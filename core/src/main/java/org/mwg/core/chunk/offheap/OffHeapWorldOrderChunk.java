@@ -49,9 +49,10 @@ public class OffHeapWorldOrderChunk implements WorldOrderChunk, OffHeapChunk {
     private long elementNext_ptr;
     private long elementHash_ptr;
 
+    private long index;
+
     public OffHeapWorldOrderChunk(ChunkListener listener, long previousAddr, Buffer initialString) {
         this.listener = listener;
-
         if (previousAddr != CoreConstants.OFFHEAP_NULL_PTR) {
             this.rootPtr = previousAddr;
             elementK_ptr = OffHeapLongArray.get(this.rootPtr, INDEX_ELEMENT_K);
@@ -121,6 +122,11 @@ public class OffHeapWorldOrderChunk implements WorldOrderChunk, OffHeapChunk {
     @Override
     public final long addr() {
         return rootPtr;
+    }
+
+    @Override
+    public void setIndex(long index) {
+        this.index = index;
     }
 
     public static void free(long addr) {
@@ -281,6 +287,11 @@ public class OffHeapWorldOrderChunk implements WorldOrderChunk, OffHeapChunk {
             }
             internal_set_dirty();
         }
+    }
+
+    @Override
+    public long index() {
+        return index;
     }
 
     @Override

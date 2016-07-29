@@ -91,16 +91,7 @@ class CoreGraph implements org.mwg.Graph {
         if (!_isConnected.get()) {
             throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
         }
-        long[] initPreviouslyResolved = new long[6];
-        //init previously resolved values
-        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_WORLD_INDEX] = world;
-        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_SUPER_TIME_INDEX] = time;
-        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_TIME_INDEX] = time;
-        //init previous magics
-        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_WORLD_MAGIC] = Constants.NULL_LONG;
-        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_SUPER_TIME_MAGIC] = Constants.NULL_LONG;
-        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_TIME_MAGIC] = Constants.NULL_LONG;
-        org.mwg.Node newNode = new CoreNode(world, time, this._nodeKeyCalculator.newKey(), this, initPreviouslyResolved);
+        final org.mwg.Node newNode = new CoreNode(world, time, this._nodeKeyCalculator.newKey(), this);
         this._resolver.initNode(newNode, Constants.NULL_LONG);
         return newNode;
     }
@@ -113,23 +104,14 @@ class CoreGraph implements org.mwg.Graph {
         if (!_isConnected.get()) {
             throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
         }
-        long[] initPreviouslyResolved = new long[6];
-        //init previously resolved values
-        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_WORLD_INDEX] = world;
-        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_SUPER_TIME_INDEX] = time;
-        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_TIME_INDEX] = time;
-        //init previous magics
-        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_WORLD_MAGIC] = Constants.NULL_LONG;
-        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_SUPER_TIME_MAGIC] = Constants.NULL_LONG;
-        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_TIME_MAGIC] = Constants.NULL_LONG;
-        long extraCode = _resolver.stringToHash(nodeType, false);
-        NodeFactory resolvedFactory = factoryByCode(extraCode);
+        final long extraCode = _resolver.stringToHash(nodeType, false);
+        final NodeFactory resolvedFactory = factoryByCode(extraCode);
         AbstractNode newNode;
         if (resolvedFactory == null) {
             System.out.println("WARNING: UnKnow NodeType " + nodeType + ", missing plugin configuration in the builder ? Using generic node as a fallback");
-            newNode = new CoreNode(world, time, this._nodeKeyCalculator.newKey(), this, initPreviouslyResolved);
+            newNode = new CoreNode(world, time, this._nodeKeyCalculator.newKey(), this);
         } else {
-            newNode = (AbstractNode) resolvedFactory.create(world, time, this._nodeKeyCalculator.newKey(), this, initPreviouslyResolved);
+            newNode = (AbstractNode) resolvedFactory.create(world, time, this._nodeKeyCalculator.newKey(), this);
         }
         this._resolver.initNode(newNode, extraCode);
         return newNode;
@@ -143,20 +125,37 @@ class CoreGraph implements org.mwg.Graph {
         if (!_isConnected.get()) {
             throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
         }
-        AbstractNode castedOrigin = (AbstractNode) origin;
-        long[] initPreviouslyResolved = castedOrigin._previousResolveds.get();
-        if (initPreviouslyResolved == null) {
-            throw new RuntimeException(CoreConstants.DEAD_NODE_ERROR + " node id: " + origin.id());
-        }
-        long typeCode = _resolver.markNodeAndGetType(origin);
-        NodeFactory resolvedFactory = factoryByCode(typeCode);
-        org.mwg.Node newNode;
-        if (resolvedFactory == null) {
-            newNode = new CoreNode(castedOrigin.world(), castedOrigin.time(), castedOrigin.id(), this, initPreviouslyResolved);
+        final AbstractNode casted = (AbstractNode) origin;
+        casted.cacheLock();
+        if (casted._dead) {
+            casted.cacheUnlock();
+            throw new RuntimeException(CoreConstants.DEAD_NODE_ERROR + " node id: " + casted.id());
         } else {
-            newNode = resolvedFactory.create(castedOrigin.world(), castedOrigin.time(), castedOrigin.id(), this, initPreviouslyResolved);
+            //Duplicate marks on all chunks
+            this._space.markByIndex(casted._index_stateChunk);
+            this._space.markByIndex(casted._index_superTimeTree);
+            this._space.markByIndex(casted._index_timeTree);
+            this._space.markByIndex(casted._index_worldOrder);
+            //Create the cloned node
+            final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.getByIndex(casted._index_worldOrder);
+            final NodeFactory resolvedFactory = factoryByCode(worldOrderChunk.extra());
+            AbstractNode newNode;
+            if (resolvedFactory == null) {
+                newNode = new CoreNode(origin.world(), origin.time(), origin.id(), this);
+            } else {
+                newNode = (AbstractNode) resolvedFactory.create(origin.world(), origin.time(), origin.id(), this);
+            }
+            //Init the cloned node with clonee resolver cache
+            newNode._index_stateChunk = casted._index_stateChunk;
+            newNode._index_timeTree = casted._index_timeTree;
+            newNode._index_superTimeTree = casted._index_superTimeTree;
+            newNode._index_worldOrder = casted._index_worldOrder;
+            newNode._world_magic = casted._world_magic;
+            newNode._super_time_magic = casted._super_time_magic;
+            newNode._time_magic = casted._time_magic;
+            casted.cacheUnlock();
+            return newNode;
         }
-        return newNode;
     }
 
     public NodeFactory factoryByCode(long code) {
@@ -186,7 +185,7 @@ class CoreGraph implements org.mwg.Graph {
 
     @Override
     public void save(Callback<Boolean> callback) {
-        ChunkIterator dirtyIterator = this._space.detachDirties();
+        final ChunkIterator dirtyIterator = this._space.detachDirties();
         saveDirtyList(dirtyIterator, callback);
     }
 
@@ -230,7 +229,6 @@ class CoreGraph implements org.mwg.Graph {
                                         Buffer view2 = it.next();
                                         Buffer view3 = it.next();
                                         Buffer view4 = it.next();
-
                                         Boolean noError = true;
                                         try {
                                             //init the global universe tree (mandatory for synchronious create)
@@ -635,23 +633,12 @@ class CoreGraph implements org.mwg.Graph {
                 } else {
                     LongLongMap globalIndexContent;
                     if (globalIndexNodeUnsafe == null) {
-                        long[] initPreviouslyResolved = new long[6];
-                        //init previously resolved values
-                        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_WORLD_INDEX] = world;
-                        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_SUPER_TIME_INDEX] = time;
-                        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_TIME_INDEX] = time;
-                        //init previous magics
-                        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_WORLD_MAGIC] = CoreConstants.NULL_LONG;
-                        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_SUPER_TIME_MAGIC] = CoreConstants.NULL_LONG;
-                        initPreviouslyResolved[CoreConstants.PREVIOUS_RESOLVED_TIME_MAGIC] = CoreConstants.NULL_LONG;
-
-                        globalIndexNodeUnsafe = new CoreNode(world, time, CoreConstants.END_OF_TIME, selfPointer, initPreviouslyResolved);
+                        globalIndexNodeUnsafe = new CoreNode(world, time, CoreConstants.END_OF_TIME, selfPointer);
                         selfPointer._resolver.initNode(globalIndexNodeUnsafe, CoreConstants.NULL_LONG);
                         globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.getOrCreateMap(CoreConstants.INDEX_ATTRIBUTE, Type.LONG_TO_LONG_MAP);
                     } else {
                         globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.get(CoreConstants.INDEX_ATTRIBUTE);
                     }
-
                     long indexId = globalIndexContent.get(indexNameCoded);
                     //globalIndexNodeUnsafe.free();
                     if (indexId == CoreConstants.NULL_LONG) {

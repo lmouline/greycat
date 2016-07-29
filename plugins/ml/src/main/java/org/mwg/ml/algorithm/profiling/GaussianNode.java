@@ -31,8 +31,8 @@ public class GaussianNode extends AbstractMLNode implements ProfilingNode {
     private static final String INTERNAL_MIN_KEY = "_min";
     private static final String INTERNAL_MAX_KEY = "_max";
 
-    public GaussianNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
-        super(p_world, p_time, p_id, p_graph, currentResolution);
+    public GaussianNode(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
     }
 
 
@@ -67,8 +67,7 @@ public class GaussianNode extends AbstractMLNode implements ProfilingNode {
         } else if (attributeName.equals(MAX)) {
             return getMax();
         } else if (attributeName.equals(COV)) {
-            NodeState resolved = this._resolver.resolveState(this, true);
-
+            final NodeState resolved = this._resolver.resolveState(this);
             double[] initialPrecision = (double[]) resolved.getFromKey(PRECISION);
             int nbfeature = this.getNumberOfFeatures();
             if (initialPrecision == null) {
@@ -97,7 +96,7 @@ public class GaussianNode extends AbstractMLNode implements ProfilingNode {
 
 
     public void learnVector(final double[] values, final Callback<Boolean> callback) {
-        NodeState resolved = this._resolver.resolveState(this, true);
+        final NodeState resolved = this._resolver.alignState(this);
         int features = values.length;
         //manage total
         int total = getTotal();
@@ -169,7 +168,7 @@ public class GaussianNode extends AbstractMLNode implements ProfilingNode {
             set(INTERNAL_MAX_KEY, max);
             set(INTERNAL_SUMSQUARE_KEY, sumsquares);
         }
-        if(callback!=null) {
+        if (callback != null) {
             callback.on(true);
         }
     }

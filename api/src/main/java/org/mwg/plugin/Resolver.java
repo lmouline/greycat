@@ -25,14 +25,6 @@ public interface Resolver {
     void initNode(Node node, long typeCode);
 
     /**
-     * Put additional marks to the current node chunks and return the current type of the node
-     *
-     * @param node origin node to additionally mark
-     * @return node type code
-     */
-    long markNodeAndGetType(org.mwg.Node node);
-
-    /**
      * Initializes a newly created world, and sets the parent relationship.
      *
      * @param parentWorld The parent world
@@ -73,16 +65,22 @@ public interface Resolver {
      */
     <A extends Node> void lookup(long world, long time, long id, Callback<A> callback);
 
+
     /**
      * Resolves the state of a node, to access attributes, relations, and indexes.
-     * In case dephasing is allowed the latest state available is returned.
-     * In case dephasing is not allowed (false), the state is phased, i.e.: cloned at the timePoint of the node.
      *
-     * @param node           The node for which the state must be collected.
-     * @param allowDephasing Specifies if the requested state can be dephased. If not, it will be cloned at the timepoint of the node.
+     * @param node The node for which the state must be collected.
      * @return The resolved state of the node.
      */
-    NodeState resolveState(Node node, boolean allowDephasing);
+    NodeState resolveState(Node node);
+
+    /**
+     * Align the state of a node, to access attributes, relations, and indexes.
+     *
+     * @param node The node for which the state must be collected.
+     * @return The resolved state of the node.
+     */
+    NodeState alignState(Node node);
 
     /**
      * @param node  The node for which the state must be collected.

@@ -24,6 +24,8 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
     private final long _time;
     private final long _id;
 
+    private long _index;
+
     private volatile InternalState state;
     private volatile long _flags;
     private volatile long _marks;
@@ -55,6 +57,16 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
         if (!this.inLoadMode) {
             internal_set_dirty();
         }
+    }
+
+    @Override
+    public void setIndex(long p_index) {
+        this._index = p_index;
+    }
+
+    @Override
+    public long index() {
+        return _index;
     }
 
     @Override
@@ -255,7 +267,7 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
             case Type.RELATION:
                 long[] previous = (long[]) result;
                 if (previous == null || previous.length == 0) {
-                    previous = new long[8];
+                    previous = new long[2];
                     previous[0] = 1;
                     previous[1] = (Long) elem;
                     internal_set(p_elementIndex, elemType, previous, false, true);

@@ -21,10 +21,9 @@ public class GaussianClassifierNode extends AbstractGaussianClassifierNode imple
      * @param p_time
      * @param p_id
      * @param p_graph
-     * @param currentResolution
      */
-    public GaussianClassifierNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
-        super(p_world, p_time, p_id, p_graph, currentResolution);
+    public GaussianClassifierNode(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
     }
 
     //TODO Any synchronization?

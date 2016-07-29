@@ -40,8 +40,8 @@ public class LogisticRegressionClassifierNode extends AbstractClassifierSlidingW
 
     public static final String NAME = "LogisticRegressionBatch";
 
-    public LogisticRegressionClassifierNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
-        super(p_world, p_time, p_id, p_graph, currentResolution);
+    public LogisticRegressionClassifierNode(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
     }
 
     public static final String GD_DIFFERENCE_THRESH_KEY = "gdDifferenceThreshold";

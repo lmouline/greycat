@@ -36,17 +36,6 @@ public class CoreConstants extends org.mwg.Constants {
     //public static final int REMOVED_BIT = 1 << REMOVED_BIT_INDEX;
 
     /**
-     * Node constants
-     **/
-    public static final int PREVIOUS_RESOLVED_WORLD_INDEX = 0;
-    public static final int PREVIOUS_RESOLVED_SUPER_TIME_INDEX = 1;
-    public static final int PREVIOUS_RESOLVED_TIME_INDEX = 2;
-
-    public static final int PREVIOUS_RESOLVED_WORLD_MAGIC = 3;
-    public static final int PREVIOUS_RESOLVED_SUPER_TIME_MAGIC = 4;
-    public static final int PREVIOUS_RESOLVED_TIME_MAGIC = 5;
-
-    /**
      * Keys constants
      */
     //public static final int KEYS_SIZE = 3;

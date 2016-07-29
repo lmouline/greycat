@@ -6,6 +6,7 @@ import org.mwg.Graph;
 import org.mwg.core.CoreConstants;
 import org.mwg.core.chunk.ChunkListener;
 import org.mwg.core.chunk.Stack;
+import org.mwg.core.chunk.heap.HeapChunk;
 import org.mwg.core.utility.BufferBuilder;
 import org.mwg.core.utility.PrimitiveHelper;
 import org.mwg.plugin.Chunk;
@@ -99,7 +100,11 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
             } while (!this._iterationCounter.compareAndSet(previous, next));
             long chunkIndex = OffHeapLongArray.get(_dirtyElements, previous);
             long chunkRootAddr = OffHeapLongArray.get(_elementValues, chunkIndex);
-            return this._parent.internal_create(chunkRootAddr);
+            OffHeapChunk chunk = this._parent.internal_create(chunkRootAddr);
+            if (chunk != null) {
+                chunk.setIndex(chunkIndex);
+            }
+            return chunk;
         }
 
         public boolean declareDirty(long dirtyIndex) {
@@ -173,24 +178,46 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
                 if (newFlag == 1) {
                     //was at zero before, risky operation, check selectWith LRU
                     if (this._lru.dequeue(m)) {
-                        return internal_create(foundChunkPtr);
+                        OffHeapChunk chunk = internal_create(foundChunkPtr);
+                        if(chunk != null){
+                            chunk.setIndex(m);
+                        }
+                        return chunk;
                     } else {
                         if (OffHeapLongArray.get(foundChunkPtr, CoreConstants.OFFHEAP_CHUNK_INDEX_MARKS) > 1) {
                             //ok fine we are several on the same object...
-                            return internal_create(foundChunkPtr);
+                            OffHeapChunk chunk = internal_create(foundChunkPtr);
+                            if(chunk != null){
+                                chunk.setIndex(m);
+                            }
+                            return chunk;
                         } else {
                             //better return null the object will be recycled by somebody else...
                             return null;
                         }
                     }
                 } else {
-                    return internal_create(foundChunkPtr);
+                    OffHeapChunk chunk = internal_create(foundChunkPtr);
+                    if(chunk != null){
+                        chunk.setIndex(m);
+                    }
+                    return chunk;
                 }
             } else {
                 m = OffHeapLongArray.get(_elementNext, m);
             }
         }
         return null;
+    }
+
+    @Override
+    public Chunk getByIndex(final long index) {
+        final long addr = OffHeapLongArray.get(_elementValues, index);
+        final OffHeapChunk chunk = internal_create(addr);
+        if (chunk != null) {
+            chunk.setIndex(index);
+        }
+        return chunk;
     }
 
     @Override
@@ -221,6 +248,42 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
         }
     }
 
+    @Override
+    public void unmarkByIndex(long index) {
+        final long addr = OffHeapLongArray.get(_elementValues, index);
+
+//CAS on the mark of the chunk
+        long previousFlag;
+        long newFlag;
+        do {
+            previousFlag = OffHeapLongArray.get(addr, CoreConstants.OFFHEAP_CHUNK_INDEX_MARKS);
+            newFlag = previousFlag - 1;
+        }
+        while (!OffHeapLongArray.compareAndSwap(addr, CoreConstants.OFFHEAP_CHUNK_INDEX_MARKS, previousFlag, newFlag));
+        //check if this object hasField to be re-enqueue to the list of available
+        if (newFlag == 0) {
+            //declare available for recycling
+            this._lru.enqueue(index);
+        }
+    }
+
+    @Override
+    public void markByIndex(long index) {
+        final long addr = OffHeapLongArray.get(_elementValues, index);
+
+        //TODO
+        long previousFlag;
+        long newFlag;
+        do {
+            previousFlag = OffHeapLongArray.get(addr, CoreConstants.OFFHEAP_CHUNK_INDEX_MARKS);
+            newFlag = previousFlag + 1;
+        }
+        while (!OffHeapLongArray.compareAndSwap(addr, CoreConstants.OFFHEAP_CHUNK_INDEX_MARKS, previousFlag, newFlag));
+        if (OffHeapLongArray.get(index, CoreConstants.OFFHEAP_CHUNK_INDEX_MARKS) == 1) {
+            throw new RuntimeException("Access by index is supposed to be safe...internal problem!");
+        }
+    }
+
     private OffHeapChunk internal_create(long addr) {
         byte chunkType = (byte) OffHeapLongArray.get(addr, CoreConstants.OFFHEAP_CHUNK_INDEX_TYPE);
         switch (chunkType) {
@@ -237,6 +300,7 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
         }
     }
 
+    /*
     @Override
     public void unmark(byte type, long world, long time, long id) {
         long index = PrimitiveHelper.tripleHash(type, world, time, id, this._hashCapacity);
@@ -269,13 +333,11 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
                 m = OffHeapLongArray.get(_elementNext, m);
             }
         }
-    }
+    }*/
 
     @Override
     public void unmarkChunk(Chunk chunk) {
-
         long chunkAddr = ((OffHeapChunk) chunk).addr();
-
         long previousMarks;
         long newMarks;
         do {
@@ -284,7 +346,6 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
         }
         while (!OffHeapLongArray.compareAndSwap(chunkAddr, CoreConstants.OFFHEAP_CHUNK_INDEX_MARKS, previousMarks, newMarks));
         if (newMarks == 0) {
-
             long world = chunk.world();
             long time = chunk.time();
             long id = chunk.id();
@@ -461,10 +522,15 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
             }
 
             this._elementCount.incrementAndGet();
+            ((OffHeapChunk) p_elem).setIndex(currentVictimIndex);
             return p_elem;
         } else {
             //return the previous chunk
-            return internal_create(OffHeapLongArray.get(_elementValues, entry));
+            OffHeapChunk chunk = internal_create(OffHeapLongArray.get(_elementValues, entry));
+            if (chunk != null) {
+                chunk.setIndex(entry);
+            }
+            return chunk;
         }
     }
 
@@ -475,7 +541,6 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
 
     @Override
     public void declareDirty(Chunk dirtyChunk) {
-
         long world = dirtyChunk.world();
         long time = dirtyChunk.time();
         long id = dirtyChunk.id();

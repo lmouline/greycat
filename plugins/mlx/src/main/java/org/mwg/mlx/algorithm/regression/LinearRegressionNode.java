@@ -12,8 +12,8 @@ public class LinearRegressionNode extends AbstractLinearRegressionNode {
 
     public static final String NAME = "LinearRegressionBatch";
 
-    public LinearRegressionNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
-        super(p_world, p_time, p_id, p_graph, currentResolution);
+    public LinearRegressionNode(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
     }
 
     @Override

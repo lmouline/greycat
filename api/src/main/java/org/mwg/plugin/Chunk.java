@@ -20,4 +20,6 @@ public interface Chunk {
 
     void merge(Buffer buffer);
 
+    long index();
+
 }

@@ -15,8 +15,8 @@ public class ExtractFeatureTest {
     public void test() {
         final Graph graph = new GraphBuilder().withPlugin(new AbstractPlugin().declareNodeType(NoopRegressionNode.NAME, new NodeFactory() {
             @Override
-            public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-                return new NoopRegressionNode(world, time, id, graph, initialResolution);
+            public Node create(long world, long time, long id, Graph graph) {
+                return new NoopRegressionNode(world, time, id, graph);
             }
         })).build();
         graph.connect(new Callback<Boolean>() {
@@ -45,8 +45,8 @@ public class ExtractFeatureTest {
     public void testMath() {
         final Graph graph = new GraphBuilder().withPlugin(new AbstractPlugin().declareNodeType(NoopRegressionNode.NAME, new NodeFactory() {
             @Override
-            public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-                return new NoopRegressionNode(world, time, id, graph, initialResolution);
+            public Node create(long world, long time, long id, Graph graph) {
+                return new NoopRegressionNode(world, time, id, graph);
             }
         })).build();
         graph.connect(new Callback<Boolean>() {
@@ -75,8 +75,8 @@ public class ExtractFeatureTest {
     public void testMathEscaped() {
         final Graph graph = new GraphBuilder().withPlugin(new AbstractPlugin().declareNodeType(NoopRegressionNode.NAME, new NodeFactory() {
             @Override
-            public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-                return new NoopRegressionNode(world, time, id, graph, initialResolution);
+            public Node create(long world, long time, long id, Graph graph) {
+                return new NoopRegressionNode(world, time, id, graph);
             }
         })).build();
         graph.connect(new Callback<Boolean>() {

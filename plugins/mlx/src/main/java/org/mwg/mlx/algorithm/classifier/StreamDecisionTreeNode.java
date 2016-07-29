@@ -11,8 +11,8 @@ public class StreamDecisionTreeNode extends AbstractClassifierSlidingWindowManag
 
     //TODO We BADLY need to keep the tree between received data points.
 
-    public StreamDecisionTreeNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
-        super(p_world, p_time, p_id, p_graph, currentResolution);
+    public StreamDecisionTreeNode(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
     }
 
     @Override

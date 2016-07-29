@@ -21,11 +21,13 @@ public class HeapGenChunk implements GenChunk, HeapChunk {
     private final long _world;
     private final long _time;
     private final long _id;
+
+    private long _index;
+
     private final ChunkListener _space;
 
     private volatile long _flags;
     private volatile long _marks;
-
 
     /**
      * @ignore ts
@@ -45,7 +47,6 @@ public class HeapGenChunk implements GenChunk, HeapChunk {
             throw new Error(ex);
         }
     }
-
 
     /**
      * internal variable
@@ -110,6 +111,11 @@ public class HeapGenChunk implements GenChunk, HeapChunk {
         if (toInsert != previous) {
             internal_set_dirty();
         }
+    }
+
+    @Override
+    public long index() {
+        return _index;
     }
 
     /**
@@ -221,6 +227,11 @@ public class HeapGenChunk implements GenChunk, HeapChunk {
             nval = val & ~bitsToDisable | bitsToEnable;
         } while (!unsafe.compareAndSwapLong(this, _flagsOffset, val, nval));
         return val != nval;
+    }
+
+    @Override
+    public void setIndex(long p_index) {
+        this._index = p_index;
     }
 
     private void internal_set_dirty() {

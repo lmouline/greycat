@@ -13,13 +13,12 @@ public interface NodeFactory {
     /**
      * Create a new Node
      *
-     * @param world             current world
-     * @param time              current time
-     * @param id                current node id
-     * @param graph             current graph
-     * @param initialResolution current resolved world/superTime/time and associated magics
+     * @param world current world
+     * @param time  current time
+     * @param id    current node id
+     * @param graph current graph
      * @return newly created Node object
      */
-    Node create(long world, long time, long id, Graph graph, long[] initialResolution);
+    Node create(long world, long time, long id, Graph graph);
 
 }

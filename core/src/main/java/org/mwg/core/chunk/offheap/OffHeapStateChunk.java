@@ -67,6 +67,8 @@ public class OffHeapStateChunk implements StateChunk, ChunkListener, OffHeapChun
         }
     }
 
+    private long index;
+
     public OffHeapStateChunk(ChunkListener space, long previousAddr, Buffer initialPayload, Chunk origin) {
         _space = space;
         if (previousAddr == CoreConstants.OFFHEAP_NULL_PTR) {
@@ -128,6 +130,11 @@ public class OffHeapStateChunk implements StateChunk, ChunkListener, OffHeapChun
     @Override
     public final long addr() {
         return this.root_array_ptr;
+    }
+
+    @Override
+    public void setIndex(long index) {
+        this.index = index;
     }
 
     private void softClone(OffHeapStateChunk origin) {
@@ -411,6 +418,11 @@ public class OffHeapStateChunk implements StateChunk, ChunkListener, OffHeapChun
                 throw new RuntimeException("CAS Error !!!");
             }
         }
+    }
+
+    @Override
+    public long index() {
+        return index;
     }
 
     private void load(Buffer buffer, boolean isMerge) {

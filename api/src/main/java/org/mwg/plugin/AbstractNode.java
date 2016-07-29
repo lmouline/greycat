@@ -5,13 +5,18 @@ import org.mwg.struct.LongLongArrayMap;
 import org.mwg.struct.LongLongArrayMapCallBack;
 import org.mwg.struct.Map;
 
+import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Base implementation to develop NodeFactory plugins without overriding every methods
  */
 public abstract class AbstractNode implements Node {
+
+    /**
+     * @ignore ts
+     */
+    private static sun.misc.Unsafe unsafe;
 
     private final long _world;
 
@@ -23,16 +28,62 @@ public abstract class AbstractNode implements Node {
 
     protected final Resolver _resolver;
 
-    public final AtomicReference<long[]> _previousResolveds;
+    //cache to enhance the resolving process
+    public volatile long _index_worldOrder = -1;
+    public volatile long _index_superTimeTree = -1;
+    public volatile long _index_timeTree = -1;
+    public volatile long _index_stateChunk = -1;
+    public volatile long _world_magic = -1;
+    public volatile long _super_time_magic = -1;
+    public volatile long _time_magic = -1;
+    public volatile boolean _dead = false;
+    private volatile int _lock;
 
-    public AbstractNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
+    public AbstractNode(long p_world, long p_time, long p_id, Graph p_graph) {
         this._world = p_world;
         this._time = p_time;
         this._id = p_id;
         this._graph = p_graph;
         this._resolver = p_graph.resolver();
-        this._previousResolveds = new AtomicReference<long[]>();
-        this._previousResolveds.set(currentResolution);
+    }
+
+    /**
+     * @ignore ts
+     */
+    private static final long _lockOffset;
+
+    /**
+     * @ignore ts
+     */
+    static {
+        if (unsafe == null) {
+            try {
+                Field theUnsafe = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+                theUnsafe.setAccessible(true);
+                unsafe = (sun.misc.Unsafe) theUnsafe.get(null);
+            } catch (Exception e) {
+                throw new RuntimeException("ERROR: unsafe operations are not available");
+            }
+        }
+        try {
+            _lockOffset = unsafe.objectFieldOffset(AbstractNode.class.getDeclaredField("_lock"));
+        } catch (Exception ex) {
+            throw new Error(ex);
+        }
+    }
+
+    /**
+     * @native ts
+     */
+    public void cacheLock() {
+        while (!unsafe.compareAndSwapInt(this, _lockOffset, 0, 1)) ;
+    }
+
+    /**
+     * @native ts
+     */
+    public void cacheUnlock() {
+        _lock = 0;
     }
 
     /**
@@ -48,11 +99,11 @@ public abstract class AbstractNode implements Node {
     }
 
     protected NodeState unphasedState() {
-        return this._resolver.resolveState(this, true);
+        return this._resolver.resolveState(this);
     }
 
     protected NodeState phasedState() {
-        return this._resolver.resolveState(this, false);
+        return this._resolver.alignState(this);
     }
 
     protected NodeState newState(long time) {
@@ -81,7 +132,7 @@ public abstract class AbstractNode implements Node {
 
     @Override
     public Object get(String propertyName) {
-        NodeState resolved = this._resolver.resolveState(this, true);
+        final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
             return resolved.get(this._resolver.stringToHash(propertyName, false));
         }
@@ -135,7 +186,7 @@ public abstract class AbstractNode implements Node {
 
     @Override
     public void setProperty(String propertyName, byte propertyType, Object propertyValue) {
-        NodeState preciseState = this._resolver.resolveState(this, false);
+        final NodeState preciseState = this._resolver.alignState(this);
         if (preciseState != null) {
             preciseState.set(this._resolver.stringToHash(propertyName, true), propertyType, propertyValue);
         } else {
@@ -145,7 +196,7 @@ public abstract class AbstractNode implements Node {
 
     @Override
     public Map getOrCreateMap(String propertyName, byte propertyType) {
-        NodeState preciseState = this._resolver.resolveState(this, false);
+        final NodeState preciseState = this._resolver.alignState(this);
         if (preciseState != null) {
             return (Map) preciseState.getOrCreate(this._resolver.stringToHash(propertyName, true), propertyType);
         } else {
@@ -155,7 +206,7 @@ public abstract class AbstractNode implements Node {
 
     @Override
     public byte type(String propertyName) {
-        NodeState resolved = this._resolver.resolveState(this, true);
+        final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
             return resolved.getType(this._resolver.stringToHash(propertyName, false));
         }
@@ -172,7 +223,7 @@ public abstract class AbstractNode implements Node {
         if (callback == null) {
             return;
         }
-        final NodeState resolved = this._resolver.resolveState(this, true);
+        final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
             final long[] flatRefs = (long[]) resolved.get(this._resolver.stringToHash(relationName, false));
             if (flatRefs == null || flatRefs.length == 0) {
@@ -212,25 +263,9 @@ public abstract class AbstractNode implements Node {
     @Override
     public void add(String relationName, Node relatedNode) {
         if (relatedNode != null) {
-            NodeState preciseState = this._resolver.resolveState(this, false);
+            NodeState preciseState = this._resolver.alignState(this);
             long relationKey = this._resolver.stringToHash(relationName, true);
             if (preciseState != null) {
-
-                /*
-                long[] previous = (long[]) preciseState.get(relationKey);
-                if (previous == null) {
-                    previous = new long[1];
-                    previous[0] = relatedNode.id();
-                } else {
-                    long[] incArray = new long[previous.length + 1];
-                    System.arraycopy(previous, 0, incArray, 0, previous.length);
-                    incArray[previous.length] = relatedNode.id();
-                    previous = incArray;
-                }
-                preciseState.set(relationKey, Type.RELATION, previous);
-                */
-
-
                 preciseState.append(relationKey, Type.RELATION, relatedNode.id());
             } else {
                 throw new RuntimeException(Constants.CACHE_MISS_ERROR);
@@ -241,7 +276,7 @@ public abstract class AbstractNode implements Node {
     @Override
     public void remove(String relationName, Node relatedNode) {
         if (relatedNode != null) {
-            NodeState preciseState = this._resolver.resolveState(this, false);
+            final NodeState preciseState = this._resolver.alignState(this);
             long relationKey = this._resolver.stringToHash(relationName, false);
             if (preciseState != null) {
                 long[] previous = (long[]) preciseState.get(relationKey);
@@ -277,7 +312,7 @@ public abstract class AbstractNode implements Node {
 
     @Override
     public long timeDephasing() {
-        NodeState state = this._resolver.resolveState(this, true);
+        final NodeState state = this._resolver.resolveState(this);
         if (state != null) {
             return (this._time - state.time());
         } else {
@@ -287,7 +322,7 @@ public abstract class AbstractNode implements Node {
 
     @Override
     public void rephase() {
-        this._resolver.resolveState(this, false);
+        this._resolver.alignState(this);
     }
 
     @Override
@@ -302,11 +337,11 @@ public abstract class AbstractNode implements Node {
 
     @Override
     public void findByQuery(final Query query, final Callback<Node[]> callback) {
-        NodeState currentNodeState = this._resolver.resolveState(this, false);
+        final NodeState currentNodeState = this._resolver.resolveState(this);
         if (currentNodeState == null) {
             throw new RuntimeException(Constants.CACHE_MISS_ERROR);
         }
-        String indexName = query.indexName();
+        final String indexName = query.indexName();
         if (indexName == null) {
             throw new RuntimeException("Please specify indexName in query before first use!");
         }
@@ -318,7 +353,7 @@ public abstract class AbstractNode implements Node {
         if (queryTime == Constants.NULL_LONG) {
             queryTime = time();
         }
-        LongLongArrayMap indexMap = (LongLongArrayMap) currentNodeState.get(this._resolver.stringToHash(indexName, false));
+        final LongLongArrayMap indexMap = (LongLongArrayMap) currentNodeState.get(this._resolver.stringToHash(indexName, false));
         if (indexMap != null) {
             final AbstractNode selfPointer = this;
             final long[] foundId = indexMap.get(query.hash());
@@ -349,7 +384,7 @@ public abstract class AbstractNode implements Node {
                     int resultSetIndex = 0;
                     for (int i = 0; i < resultSet.length; i++) {
                         org.mwg.Node resolvedNode = resolved[i];
-                        NodeState resolvedState = selfPointer._resolver.resolveState(resolvedNode, true);
+                        final NodeState resolvedState = selfPointer._resolver.resolveState(resolvedNode);
                         boolean exact = true;
                         for (int j = 0; j < query.attributes().length; j++) {
                             Object obj = resolvedState.get(query.attributes()[j]);
@@ -403,7 +438,7 @@ public abstract class AbstractNode implements Node {
 
     @Override
     public void find(String indexName, String query, Callback<Node[]> callback) {
-        Query queryObj = _graph.newQuery();
+        final Query queryObj = _graph.newQuery();
         queryObj.setWorld(world());
         queryObj.setTime(time());
         queryObj.setIndexName(indexName);
@@ -413,11 +448,11 @@ public abstract class AbstractNode implements Node {
 
     @Override
     public void findAll(final String indexName, final Callback<Node[]> callback) {
-        NodeState currentNodeState = this._resolver.resolveState(this, false);
+        final NodeState currentNodeState = this._resolver.resolveState(this);
         if (currentNodeState == null) {
             throw new RuntimeException(Constants.CACHE_MISS_ERROR);
         }
-        LongLongArrayMap indexMap = (LongLongArrayMap) currentNodeState.get(this._resolver.stringToHash(indexName, false));
+        final LongLongArrayMap indexMap = (LongLongArrayMap) currentNodeState.get(this._resolver.stringToHash(indexName, false));
         if (indexMap != null) {
             final AbstractNode selfPointer = this;
             int mapSize = (int) indexMap.size();
@@ -443,7 +478,7 @@ public abstract class AbstractNode implements Node {
                     if (loopInteger.get() == resolved.length) {
                         callback.on(resolved);
                     } else {
-                        Node[] toSend = new org.mwg.plugin.AbstractNode[loopInteger.get()];
+                        final Node[] toSend = new org.mwg.plugin.AbstractNode[loopInteger.get()];
                         System.arraycopy(resolved, 0, toSend, 0, toSend.length);
                         callback.on(toSend);
                     }
@@ -457,13 +492,13 @@ public abstract class AbstractNode implements Node {
     @Override
     public void index(String indexName, org.mwg.Node nodeToIndex, String flatKeyAttributes, Callback<Boolean> callback) {
         final String[] keyAttributes = flatKeyAttributes.split(Constants.QUERY_SEP + "");
-        NodeState currentNodeState = this._resolver.resolveState(this, true);
+        final NodeState currentNodeState = this._resolver.alignState(this);
         if (currentNodeState == null) {
             throw new RuntimeException(Constants.CACHE_MISS_ERROR);
         }
         LongLongArrayMap indexMap = (LongLongArrayMap) currentNodeState.getOrCreate(this._resolver.stringToHash(indexName, true), Type.LONG_TO_LONG_ARRAY_MAP);
         Query flatQuery = _graph.newQuery();
-        NodeState toIndexNodeState = this._resolver.resolveState(nodeToIndex, true);
+        final NodeState toIndexNodeState = this._resolver.resolveState(nodeToIndex);
         for (int i = 0; i < keyAttributes.length; i++) {
             String attKey = keyAttributes[i];
             Object attValue = toIndexNodeState.getFromKey(attKey);
@@ -483,14 +518,14 @@ public abstract class AbstractNode implements Node {
     @Override
     public void unindex(String indexName, org.mwg.Node nodeToIndex, String flatKeyAttributes, Callback<Boolean> callback) {
         final String[] keyAttributes = flatKeyAttributes.split(Constants.QUERY_SEP + "");
-        NodeState currentNodeState = this._resolver.resolveState(this, true);
+        final NodeState currentNodeState = this._resolver.alignState(this);
         if (currentNodeState == null) {
             throw new RuntimeException(Constants.CACHE_MISS_ERROR);
         }
         LongLongArrayMap indexMap = (LongLongArrayMap) currentNodeState.get(this._resolver.stringToHash(indexName, false));
         if (indexMap != null) {
             Query flatQuery = _graph.newQuery();
-            NodeState toIndexNodeState = this._resolver.resolveState(nodeToIndex, true);
+            final NodeState toIndexNodeState = this._resolver.resolveState(nodeToIndex);
             for (int i = 0; i < keyAttributes.length; i++) {
                 String attKey = keyAttributes[i];
                 Object attValue = toIndexNodeState.getFromKey(attKey);
@@ -525,7 +560,7 @@ public abstract class AbstractNode implements Node {
         builder.append(time());
         builder.append(",\"id\":");
         builder.append(id());
-        NodeState state = this._resolver.resolveState(this, true);
+        final NodeState state = this._resolver.resolveState(this);
         if (state != null) {
             state.each(new NodeStateCallback() {
                 @Override

@@ -1,6 +1,7 @@
 package org.mwg.core;
 
 import org.junit.Assert;
+import org.junit.Test;
 import org.mwg.*;
 import org.mwg.core.chunk.offheap.OffHeapByteArray;
 import org.mwg.core.chunk.offheap.OffHeapDoubleArray;
@@ -61,7 +62,7 @@ public class Benchmark3Test {
     }
 
     //final int valuesToInsert = 10000000;
-    final int valuesToInsert = 1000000000;
+    final int valuesToInsert = 10000000;
 
     final long timeOrigin = 1000;
 

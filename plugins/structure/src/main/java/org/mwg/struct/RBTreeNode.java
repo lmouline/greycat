@@ -10,8 +10,8 @@ public class RBTreeNode extends AbstractNode {
     private static final boolean RED = true;
     private static final boolean BLACK = false;
 
-    public RBTreeNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
-        super(p_world, p_time, p_id, p_graph, currentResolution);
+    public RBTreeNode(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
     }
 
 }

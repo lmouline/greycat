@@ -23,6 +23,8 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
     private final long _time;
     private final long _id;
 
+    private long _index;
+
     private final ChunkListener _listener;
 
     private volatile int _threshold;
@@ -180,6 +182,11 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
     }
 
     @Override
+    public void setIndex(long p_index) {
+        this._index = p_index;
+    }
+
+    @Override
     public final long size() {
         return _size;
     }
@@ -267,6 +274,11 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
                 this.internal_set_dirty();
             }
         }
+    }
+
+    @Override
+    public long index() {
+        return _index;
     }
 
     @Override

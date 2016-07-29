@@ -38,8 +38,8 @@ public class PolynomialNode extends AbstractMLNode implements RegressionNode {
     private static final Enforcer enforcer = new Enforcer().asPositiveDouble(PRECISION);
 
 
-    public PolynomialNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
-        super(p_world, p_time, p_id, p_graph, currentResolution);
+    public PolynomialNode(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
     }
 
 
@@ -290,7 +290,7 @@ public class PolynomialNode extends AbstractMLNode implements RegressionNode {
         builder.append(time());
         builder.append(",\"id\":");
         builder.append(id());
-        NodeState state = this._resolver.resolveState(this, true);
+        final NodeState state = this._resolver.resolveState(this);
         if (state != null) {
             double[] weight = (double[]) state.getFromKey(INTERNAL_WEIGHT_KEY);
             if (weight != null) {

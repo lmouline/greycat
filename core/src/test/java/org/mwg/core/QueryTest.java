@@ -49,11 +49,6 @@ public class QueryTest implements Resolver {
     }
 
     @Override
-    public long markNodeAndGetType(Node node) {
-        return 0;
-    }
-
-    @Override
     public void initWorld(long parentWorld, long childWorld) {
 
     }
@@ -79,7 +74,12 @@ public class QueryTest implements Resolver {
     }
 
     @Override
-    public NodeState resolveState(Node node, boolean allowDephasing) {
+    public NodeState resolveState(Node node) {
+        return null;
+    }
+
+    @Override
+    public NodeState alignState(Node node) {
         return null;
     }
 

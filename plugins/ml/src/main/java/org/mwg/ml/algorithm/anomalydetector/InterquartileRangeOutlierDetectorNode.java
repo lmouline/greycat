@@ -61,8 +61,8 @@ public class InterquartileRangeOutlierDetectorNode extends AbstractMLNode implem
     private static final Enforcer enforcer = new Enforcer()
            .asIntWithin(BUFFER_SIZE_KEY, 1, MAX_BUFFER_LIMIT);
 
-    public InterquartileRangeOutlierDetectorNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
-        super(p_world, p_time, p_id, p_graph, currentResolution);
+    public InterquartileRangeOutlierDetectorNode(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
     }
 
     /**

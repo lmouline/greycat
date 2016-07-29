@@ -19,8 +19,8 @@ public class BatchDecisionTreeNode extends AbstractClassifierSlidingWindowManagi
 
     DecisionTreeNode rootNode = null;
 
-    public BatchDecisionTreeNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
-        super(p_world, p_time, p_id, p_graph, currentResolution);
+    public BatchDecisionTreeNode(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
     }
 
     protected int predict(DecisionTreeNode node, double value[]) {

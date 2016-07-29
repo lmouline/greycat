@@ -19,8 +19,8 @@ public class GaussianNaiveBayesianNode extends AbstractGaussianClassifierNode im
     /**
      * {@inheritDoc}
      */
-    public GaussianNaiveBayesianNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
-        super(p_world, p_time, p_id, p_graph, currentResolution);
+    public GaussianNaiveBayesianNode(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
     }
 
 

@@ -22,25 +22,18 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
 
     private static final int HASH_LOAD_FACTOR = 4;
 
-    /**
-     * Global variables
-     */
     private final int _maxEntries;
     private final int _hashEntries;
-
     private final int _saveBatchSize;
     private final AtomicInteger _elementCount;
     private final Stack _lru;
-    private Graph _graph;
-
-    /**
-     * HashMap variables
-     */
     private final int[] _elementNext;
     private final int[] _elementHash;
     private final Chunk[] _values;
     private final AtomicIntegerArray _elementHashLock;
     private final AtomicReference<InternalDirtyStateList> _dirtyState;
+
+    private Graph _graph;
 
     @Override
     public void setGraph(Graph p_graph) {
@@ -184,12 +177,16 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
                 m = this._elementNext[m];
             }
         }
-
         return result;
     }
 
     @Override
-    public void getOrLoadAndMark(final byte type, final long world, final long time, final long id, final Callback<Chunk> callback) {
+    public final Chunk getByIndex(long index) {
+        return this._values[(int) index];
+    }
+
+    @Override
+    public final void getOrLoadAndMark(final byte type, final long world, final long time, final long id, final Callback<Chunk> callback) {
         Chunk fromMemory = getAndMark(type, world, time, id);
         if (fromMemory != null) {
             callback.on(fromMemory);
@@ -221,44 +218,31 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
     }
 
     @Override
-    public void unmark(byte type, long world, long time, long id) {
-        int index = (int) PrimitiveHelper.tripleHash(type, world, time, id, this._hashEntries);
-        int m = this._elementHash[index];
-        while (m != -1) {
-            HeapChunk foundChunk = (HeapChunk) this._values[m];
-            if (foundChunk != null && type == foundChunk.chunkType() && world == foundChunk.world() && time == foundChunk.time() && id == foundChunk.id()) {
-                if (foundChunk.unmark() == 0) {
-                    //declare available for recycling
-                    this._lru.enqueue(m);
-                }
-                return;
-            } else {
-                m = this._elementNext[m];
+    public void unmarkByIndex(long index) {
+        HeapChunk foundChunk = (HeapChunk) this._values[(int) index];
+        if (foundChunk != null) {
+            if (foundChunk.unmark() == 0) {
+                //declare available for recycling
+                this._lru.enqueue(index);
+            }
+        }
+    }
+
+    @Override
+    public void markByIndex(long index) {
+        HeapChunk foundChunk = (HeapChunk) this._values[(int) index];
+        if (foundChunk != null) {
+            //GET VALUE
+            if (foundChunk.mark() == 1) {
+                //was at zero before, risky operation, check selectWith LRU
+                this._lru.dequeue(index);
             }
         }
     }
 
     @Override
     public void unmarkChunk(Chunk chunk) {
-        HeapChunk heapChunk = (HeapChunk) chunk;
-        if (heapChunk.unmark() == 0) {
-            long nodeWorld = chunk.world();
-            long nodeTime = chunk.time();
-            long nodeId = chunk.id();
-            byte nodeType = chunk.chunkType();
-            int index = (int) PrimitiveHelper.tripleHash(chunk.chunkType(), nodeWorld, nodeTime, nodeId, this._hashEntries);
-            int m = this._elementHash[index];
-            while (m != -1) {
-                Chunk foundChunk = this._values[m];
-                if (foundChunk != null && nodeType == foundChunk.chunkType() && nodeWorld == foundChunk.world() && nodeTime == foundChunk.time() && nodeId == foundChunk.id()) {
-                    //chunk is available for recycling
-                    this._lru.enqueue(m);
-                    return;
-                } else {
-                    m = this._elementNext[m];
-                }
-            }
-        }
+        unmarkByIndex(chunk.index());
     }
 
     @Override
@@ -359,6 +343,7 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
                 this._elementCount.decrementAndGet();
             }
             _values[currentVictimIndex] = p_elem;
+            ((HeapChunk) p_elem).setIndex(currentVictimIndex);
             //negociate the lock to write on hashIndex
             while (!this._elementHashLock.compareAndSet(hashIndex, -1, 1)) ;
             _elementNext[currentVictimIndex] = _elementHash[hashIndex];
@@ -440,7 +425,7 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
     }
 
     @Override
-    public void free() {
+    public final void free() {
         //TODO
     }
 
@@ -450,11 +435,11 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
     }
 
     @Override
-    public long available() {
+    public final long available() {
         return _lru.size();
     }
 
-    public void printMarked() {
+    public final void printMarked() {
         for (int i = 0; i < _values.length; i++) {
             if (_values[i] != null) {
                 if (_values[i].marks() != 0) {

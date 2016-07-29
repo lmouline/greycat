@@ -20,6 +20,9 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
     private final long _world;
     private final long _time;
     private final long _id;
+
+    private long _index;
+
     private final ChunkListener _listener;
 
     private volatile int _lock;
@@ -328,6 +331,11 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
         }
     }
 
+    @Override
+    public long index() {
+        return _index;
+    }
+
     private int findNonNullKeyEntry(long key, int index, InternalState internalState) {
         int m = internalState.elementHash[index];
         while (m >= 0) {
@@ -504,6 +512,11 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
             nval = val & ~bitsToDisable | bitsToEnable;
         } while (!unsafe.compareAndSwapLong(this, _flagsOffset, val, nval));
         return val != nval;
+    }
+
+    @Override
+    public void setIndex(long p_index) {
+        this._index = p_index;
     }
 
 }

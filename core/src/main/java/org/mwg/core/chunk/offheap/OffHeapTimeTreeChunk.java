@@ -47,6 +47,8 @@ public class OffHeapTimeTreeChunk implements TimeTreeChunk, OffHeapChunk {
 
     private final ChunkListener _listener;
 
+    private long index;
+
     public OffHeapTimeTreeChunk(ChunkListener p_listener, long previousAddr, Buffer initialPayload) {
         //listener
         this._listener = p_listener;
@@ -147,6 +149,11 @@ public class OffHeapTimeTreeChunk implements TimeTreeChunk, OffHeapChunk {
     }
 
     @Override
+    public void setIndex(long index) {
+        this.index = index;
+    }
+
+    @Override
     public final long marks() {
         return OffHeapLongArray.get(addr, INDEX_MARKS);
     }
@@ -220,16 +227,14 @@ public class OffHeapTimeTreeChunk implements TimeTreeChunk, OffHeapChunk {
     }
 
     @Override
-    public synchronized final void save(Buffer buffer) {
+    public final void save(Buffer buffer) {
         //lock and load fromVar main memory
         while (!OffHeapLongArray.compareAndSwap(addr, INDEX_LOCK, 0, 1)) ;
         try {
             ptrConsistency();
-
             if (OffHeapLongArray.get(addr, INDEX_ROOT_ELEM) == CoreConstants.OFFHEAP_NULL_PTR) {
                 return;
             }
-
             long treeSize = OffHeapLongArray.get(addr, INDEX_SIZE);
             boolean isFirst = true;
             for (int i = 0; i < treeSize; i++) {
@@ -240,7 +245,6 @@ public class OffHeapTimeTreeChunk implements TimeTreeChunk, OffHeapChunk {
                 }
                 Base64.encodeLongToBuffer(OffHeapLongArray.get(kPtr, i), buffer);
             }
-
         } finally {
             if (!OffHeapLongArray.compareAndSwap(addr, INDEX_LOCK, 1, 0)) {
                 throw new RuntimeException("CAS Error !!!");
@@ -654,6 +658,11 @@ public class OffHeapTimeTreeChunk implements TimeTreeChunk, OffHeapChunk {
         if (toDeclareDirty) {
             internal_set_dirty();
         }
+    }
+
+    @Override
+    public long index() {
+        return index;
     }
 
 }

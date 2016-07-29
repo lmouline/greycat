@@ -42,8 +42,8 @@ public class LiveLinearRegressionNode extends AbstractMLNode implements Regressi
 
     //Factory of the class integrated
 
-    public LiveLinearRegressionNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
-        super(p_world, p_time, p_id, p_graph, currentResolution);
+    public LiveLinearRegressionNode(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
     }
 
     @Override
@@ -57,7 +57,7 @@ public class LiveLinearRegressionNode extends AbstractMLNode implements Regressi
     }
 
     public void internalLearn(double[] input, double output, Callback<Boolean> callback) {
-        NodeState state = this._resolver.resolveState(this, true);
+        NodeState state = this._resolver.alignState(this);
         int iterations = state.getFromKeyWithDefault(ITERATION_KEY, ITERATION_DEF);
         double alpha = state.getFromKeyWithDefault(ALPHA_KEY, ALPHA_DEF);
         double lambda = state.getFromKeyWithDefault(LAMBDA_KEY, LAMBDA_DEF);
@@ -146,7 +146,7 @@ public class LiveLinearRegressionNode extends AbstractMLNode implements Regressi
 
     @Override
     public void extrapolate(final Callback<Double> callback) {
-        NodeState state = this._resolver.resolveState(this, true);
+        final NodeState state = this._resolver.resolveState(this);
         final double[] weights = (double[]) state.getFromKey(WEIGHT_KEY);
         if (weights == null) {
             if (callback != null) {

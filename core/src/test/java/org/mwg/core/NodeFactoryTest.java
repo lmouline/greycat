@@ -26,8 +26,8 @@ public class NodeFactoryTest {
 
     class ExNodeImpl extends AbstractNode implements ExNode {
 
-        public ExNodeImpl(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
-            super(p_world, p_time, p_id, p_graph, currentResolution);
+        public ExNodeImpl(long p_world, long p_time, long p_id, Graph p_graph) {
+            super(p_world, p_time, p_id, p_graph);
         }
 
         @Override
@@ -48,8 +48,8 @@ public class NodeFactoryTest {
     public void heapTest() {
         test(new GraphBuilder().withScheduler(new NoopScheduler()).withPlugin(new AbstractPlugin().declareNodeType(NAME, new NodeFactory() {
             @Override
-            public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-                return new ExNodeImpl(world, time, id, graph, initialResolution);
+            public Node create(long world, long time, long id, Graph graph) {
+                return new ExNodeImpl(world, time, id, graph);
             }
         })).build());
     }
@@ -68,8 +68,8 @@ public class NodeFactoryTest {
 
         test(new GraphBuilder().withScheduler(new NoopScheduler()).withOffHeapMemory().withMemorySize(10000).saveEvery(20).withPlugin(new AbstractPlugin().declareNodeType(NAME, new NodeFactory() {
             @Override
-            public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-                return new ExNodeImpl(world, time, id, graph, initialResolution);
+            public Node create(long world, long time, long id, Graph graph) {
+                return new ExNodeImpl(world, time, id, graph);
             }
         })).build());
 

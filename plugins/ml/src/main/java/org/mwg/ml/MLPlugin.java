@@ -20,57 +20,57 @@ public class MLPlugin extends AbstractPlugin {
         //PolynomialNode
         declareNodeType(PolynomialNode.NAME, new NodeFactory() {
             @Override
-            public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-                return new PolynomialNode(world, time, id, graph, initialResolution);
+            public Node create(long world, long time, long id, Graph graph) {
+                return new PolynomialNode(world, time, id, graph);
             }
         });
         //GaussianSlot
         declareNodeType(GaussianSlotNode.NAME, new NodeFactory() {
             @Override
-            public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-                return new GaussianSlotNode(world, time, id, graph, initialResolution);
+            public Node create(long world, long time, long id, Graph graph) {
+                return new GaussianSlotNode(world, time, id, graph);
             }
         });
         //GaussianMixtureNode
         declareNodeType(GaussianMixtureNode.NAME, new NodeFactory() {
             @Override
-            public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-                return new GaussianMixtureNode(world, time, id, graph, initialResolution);
+            public Node create(long world, long time, long id, Graph graph) {
+                return new GaussianMixtureNode(world, time, id, graph);
             }
         });
         //LiveRegressionNode
         declareNodeType(LiveLinearRegressionNode.NAME, new NodeFactory() {
             @Override
-            public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-                return new LiveLinearRegressionNode(world, time, id, graph, initialResolution);
+            public Node create(long world, long time, long id, Graph graph) {
+                return new LiveLinearRegressionNode(world, time, id, graph);
             }
         });
         //InterquartileRangeOutlierDetectorNode
         declareNodeType(InterquartileRangeOutlierDetectorNode.NAME, new NodeFactory() {
             @Override
-            public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-                return new InterquartileRangeOutlierDetectorNode(world, time, id, graph, initialResolution);
+            public Node create(long world, long time, long id, Graph graph) {
+                return new InterquartileRangeOutlierDetectorNode(world, time, id, graph);
             }
         });
 
         declareNodeType(KDNode.NAME, new NodeFactory() {
             @Override
-            public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-                return new KDNode(world, time, id, graph, initialResolution);
+            public Node create(long world, long time, long id, Graph graph) {
+                return new KDNode(world, time, id, graph);
             }
         });
 
         declareNodeType(GaussianTreeNode.NAME, new NodeFactory() {
             @Override
-            public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-                return new GaussianTreeNode(world, time, id, graph, initialResolution);
+            public Node create(long world, long time, long id, Graph graph) {
+                return new GaussianTreeNode(world, time, id, graph);
             }
         });
 
         declareNodeType(GaussianNode.NAME, new NodeFactory() {
             @Override
-            public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-                return new GaussianNode(world, time, id, graph, initialResolution);
+            public Node create(long world, long time, long id, Graph graph) {
+                return new GaussianNode(world, time, id, graph);
             }
         });
 

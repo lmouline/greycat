@@ -1,10 +1,8 @@
 package org.mwg.core;
 
 import org.mwg.GraphBuilder;
-import org.mwg.core.chunk.AtomicSpace;
 import org.mwg.core.chunk.heap.HeapChunkSpace;
 import org.mwg.core.chunk.offheap.OffHeapChunkSpace;
-import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.core.scheduler.TrampolineScheduler;
 import org.mwg.core.task.CoreTask;
 import org.mwg.core.utility.ReadOnlyStorage;

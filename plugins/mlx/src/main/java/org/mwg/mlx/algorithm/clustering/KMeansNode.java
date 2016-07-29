@@ -11,8 +11,8 @@ import java.util.Random;
  */
 public class KMeansNode extends AbstractNode {
 
-    public KMeansNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
-        super(p_world, p_time, p_id, p_graph, currentResolution);
+    public KMeansNode(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
     }
 
     //TODO That should be configurable

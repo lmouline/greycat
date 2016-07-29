@@ -25,7 +25,7 @@ public class GaussianSlotNode extends AbstractMLNode implements ProfilingNode {
     }
 
     public void learnArray(double[] values) {
-        NodeState resolved = this._resolver.resolveState(this, true);
+        final NodeState resolved = this._resolver.alignState(this);
         int numOfSlot = resolved.getFromKeyWithDefault(SLOTS_NUMBER, SLOTS_NUMBER_DEF);
 
         int[] total;
@@ -158,7 +158,7 @@ public class GaussianSlotNode extends AbstractMLNode implements ProfilingNode {
 
     @Override
     public Object get(String attributeName) {
-        NodeState state = this._resolver.resolveState(this, true);
+        final NodeState state = this._resolver.resolveState(this);
         if (attributeName.equals(SLOTS_NUMBER)) {
             return state.getFromKeyWithDefault(SLOTS_NUMBER, SLOTS_NUMBER_DEF);
         } else if (attributeName.equals(PERIOD_SIZE)) {
@@ -169,8 +169,8 @@ public class GaussianSlotNode extends AbstractMLNode implements ProfilingNode {
     }
 
 
-    public GaussianSlotNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
-        super(p_world, p_time, p_id, p_graph, currentResolution);
+    public GaussianSlotNode(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
     }
 
 

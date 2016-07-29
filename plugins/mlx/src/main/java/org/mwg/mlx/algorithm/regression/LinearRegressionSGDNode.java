@@ -15,8 +15,8 @@ public class LinearRegressionSGDNode extends AbstractLRGradientDescentNode {
 
     public static final String NAME = "LinearRegressionStochasticGradientDescent";
 
-    public LinearRegressionSGDNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
-        super(p_world, p_time, p_id, p_graph, currentResolution);
+    public LinearRegressionSGDNode(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
     }
 
     //We don't need large buffer. Gradient algorithm uses sliding window only for evaluations.

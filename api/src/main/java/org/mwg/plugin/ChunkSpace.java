@@ -17,6 +17,11 @@ public interface ChunkSpace {
     Chunk getAndMark(byte type, long world, long time, long id);
 
     /**
+     * Get and mark chunk for the associated index
+     */
+    Chunk getByIndex(long index);
+
+    /**
      * Insert the chunk into the space and mark it before asVar used
      */
     Chunk putAndMark(Chunk elem);
@@ -29,14 +34,16 @@ public interface ChunkSpace {
     /**
      * UnMark chunk for the association of keys
      */
-    void unmark(byte type, long world, long time, long id);
+    void unmarkByIndex(final long index);
+
+    void markByIndex(final long index);
 
     /**
      * UnMark chunk
      */
-    void unmarkChunk(Chunk chunk);
+    void unmarkChunk(final Chunk chunk);
 
-    void freeChunk(Chunk chunk);
+    void freeChunk(final Chunk chunk);
 
     /**
      * Declare the chunk asVar dirty

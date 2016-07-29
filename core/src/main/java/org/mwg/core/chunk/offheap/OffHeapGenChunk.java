@@ -28,6 +28,10 @@ public class OffHeapGenChunk implements GenChunk, OffHeapChunk {
 
     private static final int INDEX_CURRENT = 6;
 
+    private static final int CHUNK_SIZE = 7;
+
+    private long index;
+
     public OffHeapGenChunk(ChunkListener p_listener, long previousAddr, Buffer initialPayload) {
         //listener
         this.listener = p_listener;
@@ -35,10 +39,10 @@ public class OffHeapGenChunk implements GenChunk, OffHeapChunk {
         if (previousAddr != CoreConstants.OFFHEAP_NULL_PTR) {
             rootPtr = previousAddr;
         } else if (initialPayload != null && initialPayload.length() > 0) {
-            rootPtr = OffHeapLongArray.allocate(7);
+            rootPtr = OffHeapLongArray.allocate(CHUNK_SIZE);
             load(initialPayload);
         } else {
-            rootPtr = OffHeapLongArray.allocate(7);
+            rootPtr = OffHeapLongArray.allocate(CHUNK_SIZE);
             OffHeapLongArray.set(rootPtr, INDEX_CURRENT, 0);
             OffHeapLongArray.set(rootPtr, INDEX_FLAGS, 0);
             OffHeapLongArray.set(rootPtr, INDEX_MARKS, 0);
@@ -61,6 +65,11 @@ public class OffHeapGenChunk implements GenChunk, OffHeapChunk {
         if (toInsert != previous) {
             internal_set_dirty();
         }
+    }
+
+    @Override
+    public long index() {
+        return index;
     }
 
     public static void free(long addr) {
@@ -95,6 +104,11 @@ public class OffHeapGenChunk implements GenChunk, OffHeapChunk {
     @Override
     public long addr() {
         return rootPtr;
+    }
+
+    @Override
+    public void setIndex(long index) {
+        this.index = index;
     }
 
     @Override

@@ -10,14 +10,14 @@ public class StructPlugin extends AbstractPlugin {
     public StructPlugin() {
         declareNodeType(RBTree.NAME, new NodeFactory() {
             @Override
-            public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-                return new RBTree(world,time,id,graph,initialResolution);
+            public Node create(long world, long time, long id, Graph graph) {
+                return new RBTree(world,time,id,graph);
             }
         });
         declareNodeType(RBTreeNode.NAME, new NodeFactory() {
             @Override
-            public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-                return new RBTreeNode(world,time,id,graph,initialResolution);
+            public Node create(long world, long time, long id, Graph graph) {
+                return new RBTreeNode(world,time,id,graph);
             }
         });
     }
