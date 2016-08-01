@@ -74,9 +74,20 @@ public class KDNode extends AbstractNode {
         if (key.length != dim) {
             throw new RuntimeException("Key size should always be the same");
         }
-
         Distance distance = getDistance(state);
         internalInsert(this, this, distance, key, 0, dim, err, value, callback);
+    }
+
+    public void insertWithTask(final double[] key, final Node value, final Callback<Boolean> callback) {
+        NodeState state = unphasedState();
+        final int dim = state.getFromKeyWithDefault(INTERNAL_DIM, key.length);
+        final double err = state.getFromKeyWithDefault(DISTANCE_THRESHOLD, DISTANCE_THRESHOLD_DEF);
+
+        if (key.length != dim) {
+            throw new RuntimeException("Key size should always be the same");
+        }
+        Distance distance = getDistance(state);
+        internalInsertTask(this, this, distance, key, 0, dim, err, value, callback);
     }
 
 
@@ -223,8 +234,6 @@ public class KDNode extends AbstractNode {
 //    }, newTask());
 
 
-
-
     private static void internalNearest(KDNode node, final Distance distance, final double[] target, final HRect hr, final double max_dist_sqd, final int lev, final int dim, final double err, final NearestNeighborList nnl) {
         // 1. if kd is empty exit.
         if (node == null) {
@@ -355,6 +364,7 @@ public class KDNode extends AbstractNode {
     }
 
 
+
     static Task insert = whileDo(new TaskFunctionConditional() {
         @Override
         public boolean eval(TaskContext context) {
@@ -416,15 +426,21 @@ public class KDNode extends AbstractNode {
     }, traverse("{{next}}"));
 
 
+
     private static void internalInsertTask(final KDNode node, final KDNode root, final Distance distance, final double[] keyToInsert, final int lev, final int dim, final double err, final Node valueToInsert, final Callback<Boolean> callback) {
+
+
         TaskContext tc = insert.prepareWith(node.graph(), root, new Callback<TaskResult>() {
             @Override
             public void on(TaskResult result) {
+                result.free();
                 if (callback != null) {
                     callback.on(true);
                 }
             }
         });
+
+
 
         TaskResult res = tc.newResult();
         res.add(keyToInsert);
@@ -436,7 +452,9 @@ public class KDNode extends AbstractNode {
         tc.setGlobalVariable("err", tc.wrap(err));
         tc.setGlobalVariable("lev", tc.wrap(lev));
         tc.setGlobalVariable("dim", tc.wrap(dim));
+
         insert.executeUsing(tc);
+
     }
 
 
