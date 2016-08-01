@@ -434,11 +434,6 @@ declare module org {
             static typeName(p_type: number): string;
         }
         module plugin {
-            abstract class AbstractIterable {
-                abstract next(): any;
-                abstract close(): void;
-                abstract estimate(): number;
-            }
             abstract class AbstractNode implements org.mwg.Node {
                 private _world;
                 private _time;

@@ -1,11 +1,11 @@
 package org.mwg.plugin;
 
 import org.mwg.*;
-import org.mwg.struct.LongLongArrayMap;
-import org.mwg.struct.LongLongArrayMapCallBack;
-import org.mwg.struct.Map;
+import org.mwg.struct.*;
 
 import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -19,13 +19,9 @@ public abstract class AbstractNode implements Node {
     private static sun.misc.Unsafe unsafe;
 
     private final long _world;
-
     private final long _time;
-
     private final long _id;
-
     private final Graph _graph;
-
     protected final Resolver _resolver;
 
     //cache to enhance the resolving process
@@ -75,14 +71,14 @@ public abstract class AbstractNode implements Node {
     /**
      * @native ts
      */
-    public void cacheLock() {
+    public final void cacheLock() {
         while (!unsafe.compareAndSwapInt(this, _lockOffset, 0, 1)) ;
     }
 
     /**
      * @native ts
      */
-    public void cacheUnlock() {
+    public final void cacheUnlock() {
         _lock = 0;
     }
 
@@ -94,39 +90,39 @@ public abstract class AbstractNode implements Node {
     }
 
     @Override
-    public String nodeTypeName() {
+    public final String nodeTypeName() {
         return this._resolver.typeName(this);
     }
 
-    protected NodeState unphasedState() {
+    protected final NodeState unphasedState() {
         return this._resolver.resolveState(this);
     }
 
-    protected NodeState phasedState() {
+    protected final NodeState phasedState() {
         return this._resolver.alignState(this);
     }
 
-    protected NodeState newState(long time) {
+    protected final NodeState newState(long time) {
         return this._resolver.newState(this, _world, time);
     }
 
     @Override
-    public Graph graph() {
+    public final Graph graph() {
         return _graph;
     }
 
     @Override
-    public long world() {
+    public final long world() {
         return this._world;
     }
 
     @Override
-    public long time() {
+    public final long time() {
         return this._time;
     }
 
     @Override
-    public long id() {
+    public final long id() {
         return this._id;
     }
 
@@ -195,7 +191,7 @@ public abstract class AbstractNode implements Node {
     }
 
     @Override
-    public Map getOrCreateMap(String propertyName, byte propertyType) {
+    public final Map getOrCreateMap(String propertyName, byte propertyType) {
         final NodeState preciseState = this._resolver.alignState(this);
         if (preciseState != null) {
             return (Map) preciseState.getOrCreate(this._resolver.stringToHash(propertyName, true), propertyType);
@@ -214,12 +210,12 @@ public abstract class AbstractNode implements Node {
     }
 
     @Override
-    public void removeProperty(String attributeName) {
+    public final void removeProperty(String attributeName) {
         setProperty(attributeName, Type.INT, null);
     }
 
     @Override
-    public void rel(String relationName, final Callback<Node[]> callback) {
+    public final void rel(String relationName, final Callback<Node[]> callback) {
         if (callback == null) {
             return;
         }
@@ -261,7 +257,7 @@ public abstract class AbstractNode implements Node {
     }
 
     @Override
-    public void add(String relationName, Node relatedNode) {
+    public final void add(String relationName, Node relatedNode) {
         if (relatedNode != null) {
             NodeState preciseState = this._resolver.alignState(this);
             long relationKey = this._resolver.stringToHash(relationName, true);
@@ -274,7 +270,7 @@ public abstract class AbstractNode implements Node {
     }
 
     @Override
-    public void remove(String relationName, Node relatedNode) {
+    public final void remove(String relationName, Node relatedNode) {
         if (relatedNode != null) {
             final NodeState preciseState = this._resolver.alignState(this);
             long relationKey = this._resolver.stringToHash(relationName, false);
@@ -306,12 +302,12 @@ public abstract class AbstractNode implements Node {
     }
 
     @Override
-    public void free() {
+    public final void free() {
         this._resolver.freeNode(this);
     }
 
     @Override
-    public long timeDephasing() {
+    public final long timeDephasing() {
         final NodeState state = this._resolver.resolveState(this);
         if (state != null) {
             return (this._time - state.time());
@@ -321,17 +317,17 @@ public abstract class AbstractNode implements Node {
     }
 
     @Override
-    public void rephase() {
+    public final void rephase() {
         this._resolver.alignState(this);
     }
 
     @Override
-    public void timepoints(long beginningOfSearch, long endOfSearch, Callback<long[]> callback) {
+    public final void timepoints(final long beginningOfSearch, final long endOfSearch, final Callback<long[]> callback) {
         this._resolver.resolveTimepoints(this, beginningOfSearch, endOfSearch, callback);
     }
 
     @Override
-    public <A extends Node> void jump(long targetTime, Callback<A> callback) {
+    public final <A extends Node> void jump(final long targetTime, final Callback<A> callback) {
         _resolver.lookup(_world, targetTime, _id, callback);
     }
 
@@ -603,7 +599,7 @@ public abstract class AbstractNode implements Node {
                                 break;
                             }
                             case Type.DOUBLE: {
-                                if (!isNaN((Double) elem)) {
+                                if (!isNaN((double) elem)) {
                                     builder.append(",\"");
                                     builder.append(_resolver.hashToString(attributeKey));
                                     builder.append("\":");
@@ -658,6 +654,93 @@ public abstract class AbstractNode implements Node {
                                 builder.append("]");
                                 break;
                             }
+                            /* Map attributes */
+                            case Type.LONG_TO_LONG_MAP: {
+                                builder.append(",\"");
+                                builder.append(_resolver.hashToString(attributeKey));
+                                builder.append("\":");
+                                builder.append("{");
+                                LongLongMap castedMapL2L = (LongLongMap) elem;
+                                final boolean[] isFirst = {true};
+                                castedMapL2L.each(new LongLongMapCallBack() {
+                                    @Override
+                                    public void on(long key, long value) {
+                                        if (!isFirst[0]) {
+                                            builder.append(",");
+                                        } else {
+                                            isFirst[0] = false;
+                                        }
+                                        builder.append("\"");
+                                        builder.append(key);
+                                        builder.append("\":");
+                                        builder.append(value);
+                                    }
+                                });
+                                builder.append("}");
+                                break;
+                            }
+                            case Type.LONG_TO_LONG_ARRAY_MAP: {
+                                builder.append(",\"");
+                                builder.append(_resolver.hashToString(attributeKey));
+                                builder.append("\":");
+                                builder.append("{");
+                                LongLongArrayMap castedMapL2LA = (LongLongArrayMap) elem;
+                                final boolean[] isFirst = {true};
+
+                                Set<Long> keys = new HashSet<Long>();
+                                castedMapL2LA.each(new LongLongArrayMapCallBack() {
+                                    @Override
+                                    public void on(long key, long value) {
+                                        keys.add(key);
+                                    }
+                                });
+                                final Long[] flatKeys = keys.toArray(new Long[keys.size()]);
+                                for (int i = 0; i < flatKeys.length; i++) {
+                                    long[] values = castedMapL2LA.get(flatKeys[i]);
+                                    if (!isFirst[0]) {
+                                        builder.append(",");
+                                    } else {
+                                        isFirst[0] = false;
+                                    }
+                                    builder.append("\"");
+                                    builder.append(flatKeys[i]);
+                                    builder.append("\":[");
+                                    for (int j = 0; j < values.length; j++) {
+                                        if (j != 0) {
+                                            builder.append(",");
+                                        }
+                                        builder.append(values[j]);
+                                    }
+                                    builder.append("]");
+                                }
+                                builder.append("}");
+                                break;
+                            }
+                            case Type.STRING_TO_LONG_MAP: {
+                                builder.append(",\"");
+                                builder.append(_resolver.hashToString(attributeKey));
+                                builder.append("\":");
+                                builder.append("{");
+                                StringLongMap castedMapS2L = (StringLongMap) elem;
+                                final boolean[] isFirst = {true};
+                                castedMapS2L.each(new StringLongMapCallBack() {
+                                    @Override
+                                    public void on(String key, long value) {
+                                        if (!isFirst[0]) {
+                                            builder.append(",");
+                                        } else {
+                                            isFirst[0] = false;
+                                        }
+                                        builder.append("\"");
+                                        builder.append(key);
+                                        builder.append("\":");
+                                        builder.append(value);
+                                    }
+                                });
+                                builder.append("}");
+                                break;
+                            }
+
                         }
                     }
                 }

@@ -239,6 +239,16 @@ public class IndexTest {
                     }
                 });
 
+
+                /*/
+                TODO need a sort on long[] keys to activate a reproducable test
+                graph.getIndexNode(0, 0, "nodes", new Callback<Node>() {
+                    @Override
+                    public void on(Node result) {
+                        Assert.assertEquals("{\"world\":0,\"time\":0,\"id\":2,\"index\":{\"1204220001051439\":[3],\"-613988652408916\":[1]}}", result.toString());
+                    }
+                });*/
+
                 graph.disconnect(new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result) {
