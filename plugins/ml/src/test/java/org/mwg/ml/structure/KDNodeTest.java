@@ -19,7 +19,7 @@ public class KDNodeTest {
         final Graph graph = new GraphBuilder()
                 .withPlugin(new MLPlugin())
                 .withMemorySize(10000)
-                .withOffHeapMemory()
+                //.withOffHeapMemory()
                 .build();
         graph.connect(new Callback<Boolean>() {
             @Override
