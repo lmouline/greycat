@@ -751,10 +751,9 @@ final class MWGResolver implements Resolver {
 
     @Override
     public NodeState newState(Node node, long world, long time) {
-
-        //TODO optimize
-
         final AbstractNode castedNode = (AbstractNode) node;
+        NodeState resolved;
+        castedNode.cacheLock();
 
         AbstractNode fakeNode = new CoreNode(world, time, node.id(), node.graph());
         fakeNode._index_worldOrder = castedNode._index_worldOrder;
@@ -766,7 +765,20 @@ final class MWGResolver implements Resolver {
         fakeNode._super_time_magic = castedNode._super_time_magic;
         fakeNode._world_magic = castedNode._world_magic;
 
-        return alignState(fakeNode);
+        resolved = alignState(fakeNode);
+
+        castedNode._index_worldOrder = fakeNode._index_worldOrder;
+        castedNode._index_superTimeTree = fakeNode._index_superTimeTree;
+        castedNode._index_timeTree = fakeNode._index_timeTree;
+        castedNode._index_stateChunk = fakeNode._index_stateChunk;
+
+        castedNode._time_magic = fakeNode._time_magic;
+        castedNode._super_time_magic = fakeNode._super_time_magic;
+        castedNode._world_magic = fakeNode._world_magic;
+
+        castedNode.cacheUnlock();
+
+        return resolved;
     }
 
     @Override
