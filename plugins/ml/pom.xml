@@ -19,13 +19,12 @@
             <artifactId>api</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
-        <!-- Test -->
         <dependency>
             <groupId>org.kevoree.mwg</groupId>
             <artifactId>core</artifactId>
             <version>${project.parent.version}</version>
-            <scope>test</scope>
         </dependency>
+        <!-- Test -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
