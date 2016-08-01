@@ -42,7 +42,7 @@ final class MWGResolver implements Resolver {
     public final void init(org.mwg.Graph graph) {
         _graph = graph;
         dictionary = (StateChunk) this._space.getAndMark(ChunkType.STATE_CHUNK, CoreConstants.GLOBAL_DICTIONARY_KEY[0], CoreConstants.GLOBAL_DICTIONARY_KEY[1], CoreConstants.GLOBAL_DICTIONARY_KEY[2]);
-        globalWorldOrderChunk = (WorldOrderChunk) this._space.getAndMark(ChunkType.WORLD_ORDER_CHUNK, Constants.NULL_LONG, Constants.NULL_LONG, Constants.NULL_LONG);
+        globalWorldOrderChunk = (WorldOrderChunk) this._space.getAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, Constants.NULL_LONG);
     }
 
     @Override
@@ -86,7 +86,7 @@ final class MWGResolver implements Resolver {
         }
         timeTree.insert(node.time());
         //initiate universe management
-        final WorldOrderChunk objectWorldOrder_0 = (WorldOrderChunk) this._space.create(ChunkType.WORLD_ORDER_CHUNK, Constants.NULL_LONG, Constants.NULL_LONG, node.id(), null, null);
+        final WorldOrderChunk objectWorldOrder_0 = (WorldOrderChunk) this._space.create(ChunkType.WORLD_ORDER_CHUNK, 0, 0, node.id(), null, null);
         final WorldOrderChunk objectWorldOrder = (WorldOrderChunk) this._space.putAndMark(objectWorldOrder_0);
         if (objectWorldOrder_0 != objectWorldOrder) {
             this._space.freeChunk(objectWorldOrder_0);
@@ -131,7 +131,7 @@ final class MWGResolver implements Resolver {
     public final <A extends org.mwg.Node> void lookup(long world, long time, long id, Callback<A> callback) {
         final MWGResolver selfPointer = this;
         try {
-            selfPointer.getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, Constants.NULL_LONG, Constants.NULL_LONG, id, new Callback<Chunk>() {
+            selfPointer.getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id, new Callback<Chunk>() {
                 @Override
                 public void on(final Chunk theNodeWorldOrder) {
                     if (theNodeWorldOrder == null) {
@@ -784,7 +784,7 @@ final class MWGResolver implements Resolver {
     @Override
     public void resolveTimepoints(final org.mwg.Node node, final long beginningOfSearch, final long endOfSearch, final Callback<long[]> callback) {
         final MWGResolver selfPointer = this;
-        getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, CoreConstants.NULL_LONG, CoreConstants.NULL_LONG, node.id(), new Callback<Chunk>() {
+        getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, node.id(), new Callback<Chunk>() {
             @Override
             public void on(Chunk resolved) {
                 if (resolved == null) {

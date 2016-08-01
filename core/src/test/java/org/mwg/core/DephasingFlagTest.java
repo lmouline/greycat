@@ -59,11 +59,9 @@ public class DephasingFlagTest {
                 n0.jump(5, new Callback<Node>() {
                     @Override
                     public void on(Node n5) {
-
                         NodeState dephasedN5 = graph.resolver().newState(n5, 0, 3);
                         //n5.set("name", "n5");
                         n5.free();
-
                     }
                 });
 

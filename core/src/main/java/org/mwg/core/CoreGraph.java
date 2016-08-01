@@ -214,7 +214,7 @@ class CoreGraph implements org.mwg.Graph {
                             BufferBuilder.keyToBuffer(connectionKeys, ChunkType.GEN_CHUNK, Constants.END_OF_TIME, Constants.NULL_LONG, _prefix);
                             connectionKeys.write(CoreConstants.BUFFER_SEP);
                             //preload GlobalWorldOrder
-                            BufferBuilder.keyToBuffer(connectionKeys, ChunkType.WORLD_ORDER_CHUNK, Constants.NULL_LONG, Constants.NULL_LONG, Constants.NULL_LONG);
+                            BufferBuilder.keyToBuffer(connectionKeys, ChunkType.WORLD_ORDER_CHUNK, 0, 0, Constants.NULL_LONG);
                             connectionKeys.write(CoreConstants.BUFFER_SEP);
                             //preload GlobalDictionary
                             BufferBuilder.keyToBuffer(connectionKeys, ChunkType.STATE_CHUNK, CoreConstants.GLOBAL_DICTIONARY_KEY[0], CoreConstants.GLOBAL_DICTIONARY_KEY[1], CoreConstants.GLOBAL_DICTIONARY_KEY[2]);
@@ -235,9 +235,9 @@ class CoreGraph implements org.mwg.Graph {
 
                                             WorldOrderChunk globalWorldOrder;
                                             if (view3.length() > 0) {
-                                                globalWorldOrder = (WorldOrderChunk) selfPointer._space.create(ChunkType.WORLD_ORDER_CHUNK, Constants.NULL_LONG, Constants.NULL_LONG, Constants.NULL_LONG, view3, null);
+                                                globalWorldOrder = (WorldOrderChunk) selfPointer._space.create(ChunkType.WORLD_ORDER_CHUNK, 0, 0, Constants.NULL_LONG, view3, null);
                                             } else {
-                                                globalWorldOrder = (WorldOrderChunk) selfPointer._space.create(ChunkType.WORLD_ORDER_CHUNK, Constants.NULL_LONG, Constants.NULL_LONG, Constants.NULL_LONG, null, null);
+                                                globalWorldOrder = (WorldOrderChunk) selfPointer._space.create(ChunkType.WORLD_ORDER_CHUNK, 0, 0, Constants.NULL_LONG, null, null);
                                             }
                                             selfPointer._space.putAndMark(globalWorldOrder);
 
