@@ -1,10 +1,6 @@
 package org.mwg.core.utility;
 
-import org.mwg.Callback;
 import org.mwg.Constants;
-import org.mwg.plugin.AbstractIterable;
-
-import java.util.Iterator;
 
 public class PrimitiveHelper {
 
