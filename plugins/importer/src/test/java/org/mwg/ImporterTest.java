@@ -2,7 +2,6 @@ package org.mwg;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mwg.core.scheduler.ExecutorScheduler;
 import org.mwg.importer.ImporterActions;
 import org.mwg.importer.ImporterPlugin;
 import org.mwg.task.Action;
@@ -11,7 +10,11 @@ import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -107,9 +110,10 @@ public class ImporterTest {
     }
 
     @Test
-    public void testReadFilesOnFile() {
+    public void testReadFilesOnFile() throws UnsupportedEncodingException, MalformedURLException, URISyntaxException {
         final Graph g = new GraphBuilder().withPlugin(new ImporterPlugin()).build();
         URL urlFIle = this.getClass().getClassLoader().getResource("smarthome/readme.md");
+        URL urlFIle2 = this.getClass().getClassLoader().getResource(URLDecoder.decode("folder with spaces in name/aFile.txt","UTF-8"));
 
         g.connect(new Callback<Boolean>() {
             @Override
@@ -123,10 +127,22 @@ public class ImporterTest {
                         nbFile[0]++;
                         context.continueWith(null);
                     }
+                })).action(ImporterActions.READFILES,urlFIle2.getPath()).foreach(then(new Action(){
+                    @Override
+                    public void eval(TaskContext context)  {
+                        String file = (String) context.result().get(0);
+                        try {
+                            Assert.assertEquals(URLDecoder.decode(urlFIle2.getPath(), "UTF-8"), file);
+                        }catch (UnsupportedEncodingException ex) {
+                            Assert.fail(ex.getMessage());
+                        }
+                        nbFile[0]++;
+                        context.continueWith(null);
+                    }
                 }));
                 t.execute(g, null);
 
-                Assert.assertEquals(1, nbFile[0]);
+                Assert.assertEquals(2, nbFile[0]);
             }
         });
     }

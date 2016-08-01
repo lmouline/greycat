@@ -5,7 +5,9 @@ import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLDecoder;
 
 class ActionReadFiles extends AbstractTaskAction {
 
@@ -22,7 +24,12 @@ class ActionReadFiles extends AbstractTaskAction {
         if (path == null) {
             throw new RuntimeException("Variable " + _pathOrTemplate + " does not exist in the context");
         }
-        File file = new File(path);
+        File file = null;
+        try {
+            file = new File(URLDecoder.decode(path, "UTF-8"));
+        } catch (UnsupportedEncodingException ex) {
+            //should never append
+        }
         if (!file.exists()) {
             URL url = this.getClass().getClassLoader().getResource(path);
             if (url == null) {
