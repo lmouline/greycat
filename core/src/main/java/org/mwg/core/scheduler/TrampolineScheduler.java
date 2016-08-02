@@ -3,7 +3,9 @@ package org.mwg.core.scheduler;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.Scheduler;
 
+import java.util.Deque;
 import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,7 +18,7 @@ public class TrampolineScheduler implements Scheduler {
      * @native ts
      * private queue = new org.mwg.core.scheduler.JobQueue();
      */
-    private final BlockingDeque<Job> queue = new LinkedBlockingDeque<Job>();
+    private final Deque<Job> queue = new ConcurrentLinkedDeque<Job>();
     private final AtomicInteger wip = new AtomicInteger(0);
 
     @Override

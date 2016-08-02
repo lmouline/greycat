@@ -129,7 +129,7 @@ class CoreTaskContext implements TaskContext {
 
     @Override
     public final void setVariable(final String name, final TaskResult value) {
-        if(value == null){
+        if (value == null) {
             throw new RuntimeException("null variable not allowed, use empty TaskResult instead");
         }
         Map<String, TaskResult> target = internal_deep_resolve_map(name);
