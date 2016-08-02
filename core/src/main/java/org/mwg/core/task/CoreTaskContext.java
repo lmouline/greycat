@@ -5,11 +5,13 @@ import org.mwg.Graph;
 import org.mwg.Node;
 import org.mwg.core.task.math.CoreMathExpressionEngine;
 import org.mwg.core.task.math.MathExpressionEngine;
+import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.task.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -119,30 +121,32 @@ class CoreTaskContext implements TaskContext {
         this._localVariables.put(name, new CoreTaskResult(null, false));
     }
 
-    @Override
-    public void defineVariableWith(final String name, TaskResult initialResult) {
-        if (this._localVariables == null) {
-            this._localVariables = new HashMap<String, TaskResult>();
+    private TaskResult lazyWrap(Object input) {
+        if (input instanceof CoreTaskResult) {
+            return (TaskResult) input;
+        } else {
+            return wrap(input);
         }
-        if (initialResult == null) {
-            throw new RuntimeException("null variable not allowed, use empty TaskResult instead");
-        }
-        this._localVariables.put(name, initialResult.clone());
     }
 
     @Override
-    public final void setGlobalVariable(final String name, final TaskResult value) {
-        final TaskResult previous = this._globalVariables.put(name, value.clone());
+    public void defineVariableWith(final String name, Object initialResult) {
+        if (this._localVariables == null) {
+            this._localVariables = new HashMap<String, TaskResult>();
+        }
+        this._localVariables.put(name, lazyWrap(initialResult).clone());
+    }
+
+    @Override
+    public final void setGlobalVariable(final String name, final Object value) {
+        final TaskResult previous = this._globalVariables.put(name, lazyWrap(value).clone());
         if (previous != null) {
             previous.free();
         }
     }
 
     @Override
-    public final void setVariable(final String name, final TaskResult value) {
-        if (value == null) {
-            throw new RuntimeException("null variable not allowed, use empty TaskResult instead");
-        }
+    public final void setVariable(final String name, final Object value) {
         Map<String, TaskResult> target = internal_deep_resolve_map(name);
         if (target == null) {
             if (this._localVariables == null) {
@@ -150,7 +154,7 @@ class CoreTaskContext implements TaskContext {
             }
             target = this._localVariables;
         }
-        final TaskResult previous = target.put(name, value.clone());
+        final TaskResult previous = target.put(name, lazyWrap(value).clone());
         if (previous != null) {
             previous.free();
         }
@@ -171,22 +175,35 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
-    public final void addToGlobalVariable(final String name, final TaskResult value) {
+    public final void addToGlobalVariable(final String name, final Object value) {
         TaskResult previous = this._globalVariables.get(name);
         if (previous == null) {
             previous = new CoreTaskResult(null, false);
             this._globalVariables.put(name, previous);
         }
         if (value != null) {
-            TaskResult clonedValue = value.clone();
-            for (int i = 0; i < clonedValue.size(); i++) {
-                previous.add(clonedValue.get(i));
+            if (value instanceof CoreTaskResult) {
+                TaskResult casted = (TaskResult) value;
+                for (int i = 0; i < casted.size(); i++) {
+                    final Object loop = casted.get(i);
+                    if (loop instanceof AbstractNode) {
+                        final Node castedNode = (Node) loop;
+                        previous.add(castedNode.graph().cloneNode(castedNode));
+                    } else {
+                        previous.add(loop);
+                    }
+                }
+            } else if (value instanceof AbstractNode) {
+                final Node castedNode = (Node) value;
+                previous.add(castedNode.graph().cloneNode(castedNode));
+            } else {
+                previous.add(value);
             }
         }
     }
 
     @Override
-    public final void addToVariable(final String name, final TaskResult value) {
+    public final void addToVariable(final String name, final Object value) {
         Map<String, TaskResult> target = internal_deep_resolve_map(name);
         if (target == null) {
             if (this._localVariables == null) {
@@ -200,9 +217,22 @@ class CoreTaskContext implements TaskContext {
             target.put(name, previous);
         }
         if (value != null) {
-            TaskResult clonedValue = value.clone();
-            for (int i = 0; i < clonedValue.size(); i++) {
-                previous.add(clonedValue.get(i));
+            if (value instanceof CoreTaskResult) {
+                TaskResult casted = (TaskResult) value;
+                for (int i = 0; i < casted.size(); i++) {
+                    final Object loop = casted.get(i);
+                    if (loop instanceof AbstractNode) {
+                        final Node castedNode = (Node) loop;
+                        previous.add(castedNode.graph().cloneNode(castedNode));
+                    } else {
+                        previous.add(loop);
+                    }
+                }
+            } else if (value instanceof AbstractNode) {
+                final Node castedNode = (Node) value;
+                previous.add(castedNode.graph().cloneNode(castedNode));
+            } else {
+                previous.add(value);
             }
         }
     }

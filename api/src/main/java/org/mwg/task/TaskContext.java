@@ -27,15 +27,15 @@ public interface TaskContext {
 
     void defineVariable(String name);
 
-    void defineVariableWith(String name, TaskResult initialResult);
+    void defineVariableWith(String name, Object initialResult);
 
-    void setGlobalVariable(String name, TaskResult value);
+    void setGlobalVariable(String name, Object value);
 
-    void setVariable(String name, TaskResult value);
+    void setVariable(String name, Object value);
 
-    void addToGlobalVariable(String name, TaskResult value);
+    void addToGlobalVariable(String name, Object value);
 
-    void addToVariable(String name, TaskResult value);
+    void addToVariable(String name, Object value);
 
     Map<String, TaskResult> globalVariables();
 
