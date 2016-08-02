@@ -841,6 +841,7 @@ declare module org {
                 wrapClone(input: any): org.mwg.task.TaskResult<any>;
                 newResult(): org.mwg.task.TaskResult<any>;
                 defineVariable(name: string): void;
+                defineVariableWith(name: string, initialResult: org.mwg.task.TaskResult<any>): void;
                 setGlobalVariable(name: string, value: org.mwg.task.TaskResult<any>): void;
                 setVariable(name: string, value: org.mwg.task.TaskResult<any>): void;
                 addToGlobalVariable(name: string, value: org.mwg.task.TaskResult<any>): void;
@@ -1865,6 +1866,7 @@ declare module org {
                     wrapClone(input: any): org.mwg.task.TaskResult<any>;
                     newResult(): org.mwg.task.TaskResult<any>;
                     defineVariable(name: string): void;
+                    defineVariableWith(name: string, initialResult: org.mwg.task.TaskResult<any>): void;
                     setGlobalVariable(name: string, value: org.mwg.task.TaskResult<any>): void;
                     setVariable(name: string, value: org.mwg.task.TaskResult<any>): void;
                     private internal_deep_resolve_map(name);

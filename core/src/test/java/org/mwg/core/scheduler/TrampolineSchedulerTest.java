@@ -13,7 +13,7 @@ import static org.mwg.task.Actions.*;
  */
 public class TrampolineSchedulerTest {
 
-    @Test
+  //  @Test
     public void test() {
         Graph g = new GraphBuilder().withScheduler(new TrampolineScheduler()).build();
         g.connect(new Callback<Boolean>() {

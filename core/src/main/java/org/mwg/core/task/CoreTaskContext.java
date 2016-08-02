@@ -120,6 +120,17 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
+    public void defineVariableWith(final String name, TaskResult initialResult) {
+        if (this._localVariables == null) {
+            this._localVariables = new HashMap<String, TaskResult>();
+        }
+        if (initialResult == null) {
+            throw new RuntimeException("null variable not allowed, use empty TaskResult instead");
+        }
+        this._localVariables.put(name, initialResult.clone());
+    }
+
+    @Override
     public final void setGlobalVariable(final String name, final TaskResult value) {
         final TaskResult previous = this._globalVariables.put(name, value.clone());
         if (previous != null) {

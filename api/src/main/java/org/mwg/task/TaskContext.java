@@ -27,6 +27,8 @@ public interface TaskContext {
 
     void defineVariable(String name);
 
+    void defineVariableWith(String name, TaskResult initialResult);
+
     void setGlobalVariable(String name, TaskResult value);
 
     void setVariable(String name, TaskResult value);
