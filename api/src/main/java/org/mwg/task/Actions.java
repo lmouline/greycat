@@ -63,7 +63,6 @@ public class Actions {
     }
 
 
-
     public static Task asGlobalVar(String variableName) {
         return newTask().asGlobalVar(variableName);
     }
@@ -210,6 +209,18 @@ public class Actions {
 
     public static Task clear() {
         return newTask().clear();
+    }
+
+    public static Task subTask(final Task subTask) {
+        return newTask().subTask(subTask);
+    }
+
+    public static Task subTasks(final Task[] subTasks) {
+        return newTask().subTasks(subTasks);
+    }
+
+    public static Task subTasksPar(final Task[] subTasks) {
+        return newTask().subTasksPar(subTasks);
     }
 
 }
