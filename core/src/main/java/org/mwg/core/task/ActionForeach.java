@@ -25,7 +25,7 @@ class ActionForeach extends AbstractTaskAction {
             context.continueTask();
         } else {
             final TaskResultIterator it = previousResult.iterator();
-            final TaskResult finalResult = context.wrap(null);
+            final TaskResult finalResult = context.newResult();
             finalResult.allocate(previousResult.size());
             final Callback[] recursiveAction = new Callback[1];
             final TaskResult[] loopRes = new TaskResult[1];
