@@ -129,6 +129,9 @@ class CoreTaskContext implements TaskContext {
 
     @Override
     public final void setVariable(final String name, final TaskResult value) {
+        if(value == null){
+            throw new RuntimeException("null variable not allowed, use empty TaskResult instead");
+        }
         Map<String, TaskResult> target = internal_deep_resolve_map(name);
         if (target == null) {
             if (this._localVariables == null) {
@@ -136,11 +139,7 @@ class CoreTaskContext implements TaskContext {
             }
             target = this._localVariables;
         }
-        TaskResult toInsert = value;
-        if(toInsert != null){
-            toInsert = value.clone();
-        }
-        final TaskResult previous = target.put(name, toInsert);
+        final TaskResult previous = target.put(name, value.clone());
         if (previous != null) {
             previous.free();
         }
