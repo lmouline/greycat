@@ -41,7 +41,7 @@ class CoreTaskContext implements TaskContext {
         if (parentContext == null) {
             this._globalVariables = new ConcurrentHashMap<String, TaskResult>();
         } else {
-            this._globalVariables = _parent.globalVariables();
+            this._globalVariables = ((CoreTaskContext)_parent).globalVariables();
         }
         this._result = initial;
         this._callback = p_callback;
@@ -237,13 +237,11 @@ class CoreTaskContext implements TaskContext {
         }
     }
 
-    @Override
-    public Map<String, TaskResult> globalVariables() {
+    Map<String, TaskResult> globalVariables() {
         return this._globalVariables;
     }
 
-    @Override
-    public Map<String, TaskResult> variables() {
+    Map<String, TaskResult> variables() {
         return this._localVariables;
     }
 

@@ -37,10 +37,6 @@ public interface TaskContext {
 
     void addToVariable(String name, Object value);
 
-    Map<String, TaskResult> globalVariables();
-
-    Map<String, TaskResult> variables();
-
     //Object based results
     TaskResult result();
 
