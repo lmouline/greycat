@@ -26,7 +26,7 @@ class ActionSubTasks extends AbstractTaskAction {
         final AtomicInteger cursor = new AtomicInteger(0);
         final int tasksSize = _subTasks.length;
         final TaskResult next = context.newResult();
-        final Callback<TaskResult>[] loopcb = new Callback[0];
+        final Callback<TaskResult>[] loopcb = new Callback[1];
         loopcb[0] = new Callback<TaskResult>() {
             @Override
             public void on(final TaskResult result) {
