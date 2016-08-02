@@ -136,7 +136,11 @@ class CoreTaskContext implements TaskContext {
             }
             target = this._localVariables;
         }
-        final TaskResult previous = target.put(name, value.clone());
+        TaskResult toInsert = value;
+        if(toInsert != null){
+            toInsert = value.clone();
+        }
+        final TaskResult previous = target.put(name, toInsert);
         if (previous != null) {
             previous.free();
         }
