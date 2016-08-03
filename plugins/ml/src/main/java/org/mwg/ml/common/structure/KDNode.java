@@ -149,6 +149,71 @@ public class KDNode extends AbstractNode {
     }
 
 
+    public void nearestNTask(final double[] key, final int n, final Callback<Node[]> callback) {
+        NodeState state = unphasedState();
+        final int dim = state.getFromKeyWithDefault(INTERNAL_DIM, key.length);
+
+        if (key.length != dim) {
+            throw new RuntimeException("Key size should always be the same");
+        }
+
+        // initial call is with infinite hyper-rectangle and max distance
+        HRect hr = HRect.infiniteHRect(key.length);
+        double max_dist_sqd = Double.MAX_VALUE;
+
+        final NearestNeighborList nnl = new NearestNeighborList(n);
+        Distance distance = getDistance(state);
+
+
+        TaskContext tc = nearestTask.prepareWith(graph(), this, new Callback<TaskResult>() {
+            @Override
+            public void on(TaskResult result) {
+
+                //ToDo replace by lookup parallel task
+                long[] res = nnl.getAllNodes();
+                DeferCounter counter = graph().newCounter(res.length);
+                final Node[] finalres = new Node[res.length];
+                for (int i = 0; i < res.length; i++) {
+                    int finalI = i;
+                    graph().lookup(world(), time(), res[i], new Callback<Node>() {
+                        @Override
+                        public void on(Node result) {
+                            finalres[finalI] = result;
+                            counter.count();
+                        }
+                    });
+                }
+                counter.then(new Job() {
+                    @Override
+                    public void run() {
+                        callback.on(finalres);
+                    }
+                });
+                result.free();
+            }
+        });
+
+
+        TaskResult res = tc.newResult();
+        res.add(key);
+
+        // (this, distance, key, hr, max_dist_sqd, 0, dim, err, nnl);
+
+        tc.setGlobalVariable("key", res);
+        tc.setGlobalVariable("distance", distance);
+        tc.setGlobalVariable("dim", dim);
+        tc.setGlobalVariable("nnl", nnl);
+
+        tc.defineVariableWith("lev", 0);
+        tc.defineVariableWith("hr", hr);
+        tc.defineVariableWith("max_dist_sqd", max_dist_sqd);
+
+        nearestTask.executeUsing(tc);
+
+
+    }
+
+
     public void nearestN(final double[] key, final int n, final Callback<Node[]> callback) {
         NodeState state = unphasedState();
         final int dim = state.getFromKeyWithDefault(INTERNAL_DIM, key.length);
@@ -185,10 +250,8 @@ public class KDNode extends AbstractNode {
                 callback.on(finalres);
             }
         });
-
     }
 
-    //protected static void nnbr(KDNode kd, HPoint target, HRect hr, double max_dist_sqd, int lev, int K,  NearestNeighborList nnl)
 
 
     //todo make it async with callback
@@ -212,33 +275,348 @@ public class KDNode extends AbstractNode {
         return null;
     }
 
-//
-//    Task nearWhile = whileDo(new TaskFunctionConditional() {
-//        @Override
-//        public boolean eval(TaskContext context) {
-//            Node current = context.resultAsNodes().get(0);
-//            double[] nodeKey = (double[]) current.get(INTERNAL_KEY);
-//
-//            //Get variables from context
-//
-//            int dim = (int) context.globalVariables().get("dim").get(0);
-//            double[] target = (double[]) context.globalVariables().get("key").get(0);
-//            Distance distance = (Distance) context.globalVariables().get("distance").get(0);
-//
-//            int lev = (int) context.localVariables().get("lev").get(0);
-//            HRect hr =(HRect) context.localVariables().get("hrect").get(0);
-//            double max_dist_sqd=(double) context.localVariables().get("maxdist").get(0);
-//
-//
-//        }
-//    }, newTask());
+
+    private static Task insert = whileDo(new TaskFunctionConditional() {
+        @Override
+        public boolean eval(TaskContext context) {
+
+            Node current = context.resultAsNodes().get(0);
+            double[] nodeKey = (double[]) current.get(INTERNAL_KEY);
+
+            //Get variables from context
+
+            //toDo optimize the variables here
+            int dim = (int) context.variable("dim").get(0);
+            double[] keyToInsert = (double[]) context.variable("key").get(0);
+
+            Node valueToInsert = (Node) context.variable("value").get(0);
+            Node root = (Node) context.variable("root").get(0);
+            Distance distance = (Distance) context.variable("distance").get(0);
+            double err = (double) context.variable("err").get(0);
+            int lev = (int) context.variable("lev").get(0);
+
+
+            //Bootstrap, first insert ever
+            if (nodeKey == null) {
+                current.setProperty(INTERNAL_KEY, Type.DOUBLE_ARRAY, keyToInsert);
+                current.setProperty(INTERNAL_VALUE, Type.RELATION, new long[]{valueToInsert.id()});
+                current.setProperty(NUM_NODES, Type.INT, 1);
+                return false; //stop the while loop and insert here
+            } else if (distance.measure(keyToInsert, nodeKey) < err) {
+                current.setProperty(INTERNAL_VALUE, Type.RELATION, new long[]{valueToInsert.id()});
+                return false; //insert in the current node, and done with it, no need to continue looping
+            } else {
+                //Decision point for next step
+                long[] child = null;
+                String nextRel;
+                if (keyToInsert[lev] > nodeKey[lev]) {
+                    child = (long[]) current.get(INTERNAL_RIGHT);
+                    nextRel = INTERNAL_RIGHT;
+                } else {
+                    child = (long[]) current.get(INTERNAL_LEFT);
+                    nextRel = INTERNAL_LEFT;
+                }
+
+                //If there is no node to the right, we create one and the game is over
+                if (child == null || child.length == 0) {
+                    KDNode childNode = (KDNode) context.graph().newTypedNode(current.world(), current.time(), NAME);
+                    childNode.setProperty(INTERNAL_KEY, Type.DOUBLE_ARRAY, keyToInsert);
+                    childNode.setProperty(INTERNAL_VALUE, Type.RELATION, new long[]{valueToInsert.id()});
+                    current.setProperty(nextRel, Type.RELATION, new long[]{childNode.id()});
+                    root.setProperty(NUM_NODES, Type.INT, (Integer) root.get(NUM_NODES) + 1);
+                    childNode.free();
+                    return false;
+                } else {
+                    //Otherwise we need to prepare for the next while iteration
+                    context.setGlobalVariable("next", nextRel);
+                    context.setGlobalVariable("lev", (lev + 1) % dim);
+                    return true;
+                }
+            }
+        }
+
+    }, traverse("{{next}}"));
+
+
+
+
+    private static Task initFindNear() {
+        Task reccursiveDown = newTask();
+
+        reccursiveDown.then(new Action() {
+            @Override
+            public void eval(TaskContext context) {
+
+                // 1. Load the variables and if kd is empty exit.
+
+                Node node = context.resultAsNodes().get(0);
+                if (node == null) {
+                    context.continueTask();
+                    return;
+                }
+
+              //  printerTask.println(node.id());
+               // printerTask.flush();
+                //print(node,"Task ");
+
+                double[] pivot = (double[]) node.get(INTERNAL_KEY);
+
+                //Global variable
+                int dim = (int) context.variable("dim").get(0);
+                double[] target = (double[]) context.variable("key").get(0);
+                Distance distance = (Distance) context.variable("distance").get(0);
+
+                //Local variables
+                int lev = (int) context.variable("lev").get(0);
+                HRect hr = (HRect) context.variable("hr").get(0);
+                double max_dist_sqd = (double) context.variable("max_dist_sqd").get(0);
+
+                if( context.variable("hrN")!=null){
+                    lev=(int) context.variable("levN").get(0);
+                    hr = (HRect) context.variable("hrN").get(0);
+                    max_dist_sqd = (double) context.variable("max_dist_sqdN").get(0);
+                    context.defineVariableWith("hr", hr);
+                    context.defineVariableWith("max_dist_sqd", max_dist_sqd);
+                    context.defineVariableWith("lev", lev);
+                }
+
+
+                // 2. s := split field of kd
+                int s = lev % dim;
+                //System.out.println("T1 "+node.id()+ " lev "+lev+ " s "+s);
+
+                // 3. pivot := dom-elt field of kd
+
+                double pivot_to_target = distance.measure(pivot, target);
+
+                // 4. Cut hr into to sub-hyperrectangles left-hr and right-hr.
+                // The cut plane is through pivot and perpendicular to the s
+                // dimension.
+                HRect left_hr = hr; // optimize by not cloning
+                HRect right_hr = (HRect) hr.clone();
+                left_hr.max[s] = pivot[s];
+                right_hr.min[s] = pivot[s];
+
+                // 5. target-in-left := target_s <= pivot_s
+                boolean target_in_left = target[s] < pivot[s];
+
+                long[] nearer_kd;
+                HRect nearer_hr;
+                long[] further_kd;
+                HRect further_hr;
+                String nearer_st;
+                String farther_st;
+
+                // 6. if target-in-left then
+                // 6.1. nearer-kd := left field of kd and nearer-hr := left-hr
+                // 6.2. further-kd := right field of kd and further-hr := right-hr
+                if (target_in_left) {
+                    nearer_kd = (long[]) node.get(INTERNAL_LEFT);
+                    nearer_st = INTERNAL_LEFT;
+                    nearer_hr = left_hr;
+
+                    further_kd = (long[]) node.get(INTERNAL_RIGHT);
+                    further_hr = right_hr;
+                    farther_st = INTERNAL_RIGHT;
+                }
+                //
+                // 7. if not target-in-left then
+                // 7.1. nearer-kd := right field of kd and nearer-hr := right-hr
+                // 7.2. further-kd := left field of kd and further-hr := left-hr
+                else {
+                    nearer_kd = (long[]) node.get(INTERNAL_RIGHT);
+                    nearer_hr = right_hr;
+                    nearer_st = INTERNAL_RIGHT;
+
+
+                    further_kd = (long[]) node.get(INTERNAL_LEFT);
+                    further_hr = left_hr;
+                    farther_st = INTERNAL_LEFT;
+                }
+
+                //define contextual variables for reccursivity:
+
+                if (nearer_kd != null && nearer_kd.length != 0) {
+                    context.defineVariableWith("near", nearer_st);
+
+                } else {
+                    context.defineVariableWith("near", context.newResult());  //stop the loop
+                }
+
+                if (further_kd != null && further_kd.length != 0) {
+                    context.defineVariableWith("far", farther_st);
+                } else {
+                    context.defineVariableWith("far", context.newResult()); //stop the loop
+                }
+
+                context.defineVariableWith("further_hr", further_hr);
+                context.defineVariableWith("pivot_to_target", pivot_to_target);
+
+
+                //The 3 variables to set for next round of reccursivity:
+//                context.defineVariableWith("hr", nearer_hr);
+//                context.defineVariableWith("max_dist_sqd", max_dist_sqd);
+//                context.defineVariableWith("lev", lev + 1);
+
+
+                context.defineVariableWith("hrN", nearer_hr);
+                context.defineVariableWith("max_dist_sqdN", max_dist_sqd);
+                context.defineVariableWith("levN", lev + 1);
+
+                context.continueTask();
+
+
+            }
+        }).subTasks(new Task[]{
+
+                ifThen(new TaskFunctionConditional() {
+                    @Override
+                    public boolean eval(TaskContext context) {
+                        return context.variable("near").size() > 0;
+                    }
+                }, traverse("{{near}}").subTask(reccursiveDown))
+
+
+                ,
+
+                then(new Action() {
+                    @Override
+                    public void eval(TaskContext context) {
+
+
+                        //Global variables
+                        NearestNeighborList nnl = (NearestNeighborList) context.variable("nnl").get(0);
+                        double[] target = (double[]) context.variable("key").get(0);
+                        Distance distance = (Distance) context.variable("distance").get(0);
+
+
+
+
+                        //Local variables
+                        double max_dist_sqd = (double) context.variable("max_dist_sqd").get(0);
+                        HRect further_hr = (HRect) context.variable("further_hr").get(0);
+                        double pivot_to_target = (double) context.variable("pivot_to_target").get(0);
+                        int lev = (int) context.variable("lev").get(0);
+                        Node node = context.resultAsNodes().get(0);
+                        //System.out.println("T2 "+node.id()+ " lev "+lev);
+
+
+                        double dist_sqd;
+                        if (!nnl.isCapacityReached()) {
+                            dist_sqd = Double.MAX_VALUE;
+                        } else {
+                            dist_sqd = nnl.getMaxPriority();
+                        }
+
+                        // 9. max-dist-sqd := minimum of max-dist-sqd and dist-sqd
+                        double max_dist_sqd2 = Math.min(max_dist_sqd, dist_sqd);
+
+                        // 10. A nearer point could only lie in further-kd if there were some
+                        // part of further-hr within distance sqrt(max-dist-sqd) of
+                        // target. If this is the case then
+                        double[] closest = further_hr.closest(target);
+                        if (distance.measure(closest, target) < max_dist_sqd) {
+
+                            // 10.1 if (pivot-target)^2 < dist-sqd then
+                            if (pivot_to_target < dist_sqd) {
+
+                                // 10.1.2 dist-sqd = (pivot-target)^2
+                                dist_sqd = pivot_to_target;
+                                //System.out.println("T3 "+node.id()+" insert-> "+((long[]) (node.get(INTERNAL_VALUE)))[0]);
+                                //System.out.println("INSTASK " + ((long[]) (node.get(INTERNAL_VALUE)))[0] + " id: "+node.id());
+                                nnl.insert(((long[]) (node.get(INTERNAL_VALUE)))[0], dist_sqd);
+
+                                // 10.1.3 max-dist-sqd = dist-sqd
+                                // max_dist_sqd = dist_sqd;
+                                if (nnl.isCapacityReached()) {
+                                    max_dist_sqd2 = nnl.getMaxPriority();
+                                } else {
+                                    max_dist_sqd2 = Double.MAX_VALUE;
+                                }
+                            }
+
+                            // 10.2 Recursively call Nearest Neighbor with parameters
+                            // (further-kd, target, further-hr, max-dist_sqd),
+                            // storing results in temp-nearest and temp-dist-sqd
+                            //nnbr(further_kd, target, further_hr, max_dist_sqd, lev + 1, K, nnl);
+
+
+                            //The 3 variables to set for next round of reccursivity:
+//                            context.defineVariableWith("hr", further_hr);
+//                            context.defineVariableWith("max_dist_sqd", max_dist_sqd2);
+//                            context.defineVariableWith("lev", lev + 1);
+
+                            context.defineVariableWith("hrN", further_hr);
+                            context.defineVariableWith("max_dist_sqdN", max_dist_sqd2);
+                            context.defineVariableWith("levN", lev + 1);
+
+
+
+                            context.defineVariableWith("continueFar", true);
+
+                        } else {
+                            context.defineVariableWith("continueFar", false);
+                        }
+                        context.continueTask();
+                    }
+                }).ifThen(new TaskFunctionConditional() {
+                    @Override
+                    public boolean eval(TaskContext context) {
+                        return ((boolean) context.variable("continueFar").get(0) && context.variable("far").size() > 0); //Exploring the far depends also on the distance
+                    }
+                }, traverse("{{far}}").subTask(reccursiveDown))
+        });
+
+
+        return reccursiveDown;
+    }
+
+    private static Task nearestTask = initFindNear();
+
+ /*   private static PrintWriter printerTask;
+    private static PrintWriter printer;
+
+    static {
+        try {
+            printer = new PrintWriter(new File("sync.txt"));
+            printerTask = new PrintWriter(new File("task.txt"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private static void print(Node result, String s){
+        long[] rt = ((long[]) result.get("_right"));
+        long[] lt = ((long[]) result.get("_left"));
+        long rit = -1;
+        long lft = -1;
+        boolean print=false;
+        if (rt != null && rt.length > 0) {
+            rit = rt[0];
+            print =true;
+        }
+        if (lt != null && lt.length > 0) {
+            lft = lt[0];
+            print =true;
+        }
+        if(print) {
+            System.out.println(s + result.id() );
+        }
+    }*/
 
 
     private static void internalNearest(KDNode node, final Distance distance, final double[] target, final HRect hr, final double max_dist_sqd, final int lev, final int dim, final double err, final NearestNeighborList nnl) {
         // 1. if kd is empty exit.
+
         if (node == null) {
             return;
         }
+
+
+        //printer.println(node.id());
+       // printer.flush();
+
 
         NodeState state = node.unphasedState();
         double[] pivot = (double[]) state.getFromKey(INTERNAL_KEY);
@@ -248,6 +626,7 @@ public class KDNode extends AbstractNode {
 
         // 2. s := split field of kd
         int s = lev % dim;
+        //System.out.println("S1 "+node.id()+ " lev "+lev+ " s "+s);
 
         // 3. pivot := dom-elt field of kd
 
@@ -305,6 +684,8 @@ public class KDNode extends AbstractNode {
             }
         });
 
+       // System.out.println("S2 "+node.id()+ " lev "+ lev);
+
 
         double dist_sqd;
 
@@ -328,6 +709,7 @@ public class KDNode extends AbstractNode {
 
                 // 10.1.2 dist-sqd = (pivot-target)^2
                 dist_sqd = pivot_to_target;
+           //     System.out.println("S3 "+node.id()+" -> insert "+((long[]) state.getFromKey(INTERNAL_VALUE))[0]);
                 nnl.insert(((long[]) state.getFromKey(INTERNAL_VALUE))[0], dist_sqd);
 
                 // 10.1.3 max-dist-sqd = dist-sqd
@@ -364,69 +746,6 @@ public class KDNode extends AbstractNode {
     }
 
 
-
-    static Task insert = whileDo(new TaskFunctionConditional() {
-        @Override
-        public boolean eval(TaskContext context) {
-
-            Node current = context.resultAsNodes().get(0);
-            double[] nodeKey = (double[]) current.get(INTERNAL_KEY);
-
-            //Get variables from context
-
-            int dim = (int) context.globalVariables().get("dim").get(0);
-            double[] keyToInsert = (double[]) context.globalVariables().get("key").get(0);
-
-            Node valueToInsert = (Node) context.globalVariables().get("value").get(0);
-            Node root = (Node) context.globalVariables().get("root").get(0);
-            Distance distance = (Distance) context.globalVariables().get("distance").get(0);
-            double err = (double) context.globalVariables().get("err").get(0);
-            int lev = (int) context.globalVariables().get("lev").get(0);
-
-
-            //Bootstrap, first insert ever
-            if (nodeKey == null) {
-                current.setProperty(INTERNAL_KEY, Type.DOUBLE_ARRAY, keyToInsert);
-                current.setProperty(INTERNAL_VALUE, Type.RELATION, new long[]{valueToInsert.id()});
-                current.setProperty(NUM_NODES, Type.INT, 1);
-                return false; //stop the while loop and insert here
-            } else if (distance.measure(keyToInsert, nodeKey) < err) {
-                current.setProperty(INTERNAL_VALUE, Type.RELATION, new long[]{valueToInsert.id()});
-                return false; //insert in the current node, and done with it, no need to continue looping
-            } else {
-                //Decision point for next step
-                long[] child = null;
-                String nextRel;
-                if (keyToInsert[lev] > nodeKey[lev]) {
-                    child = (long[]) current.get(INTERNAL_RIGHT);
-                    nextRel = INTERNAL_RIGHT;
-                } else {
-                    child = (long[]) current.get(INTERNAL_LEFT);
-                    nextRel = INTERNAL_LEFT;
-                }
-
-                //If there is no node to the right, we create one and the game is over
-                if (child == null || child.length == 0) {
-                    KDNode childNode = (KDNode) context.graph().newTypedNode(current.world(), current.time(), NAME);
-                    childNode.setProperty(INTERNAL_KEY, Type.DOUBLE_ARRAY, keyToInsert);
-                    childNode.setProperty(INTERNAL_VALUE, Type.RELATION, new long[]{valueToInsert.id()});
-                    current.setProperty(nextRel, Type.RELATION, new long[]{childNode.id()});
-                    root.setProperty(NUM_NODES, Type.INT, (Integer) root.get(NUM_NODES) + 1);
-                    childNode.free();
-                    return false;
-                } else {
-                    //Otherwise we need to prepare for the next while iteration
-                    context.setGlobalVariable("next", context.wrap(nextRel));
-                    context.setGlobalVariable("lev", context.wrap((lev + 1) % dim));
-                    return true;
-                }
-            }
-        }
-
-    }, traverse("{{next}}"));
-
-
-
     private static void internalInsertTask(final KDNode node, final KDNode root, final Distance distance, final double[] keyToInsert, final int lev, final int dim, final double err, final Node valueToInsert, final Callback<Boolean> callback) {
 
 
@@ -441,17 +760,16 @@ public class KDNode extends AbstractNode {
         });
 
 
-
         TaskResult res = tc.newResult();
         res.add(keyToInsert);
 
         tc.setGlobalVariable("key", res);
-        tc.setGlobalVariable("value", tc.wrap(valueToInsert));
-        tc.setGlobalVariable("root", tc.wrap(root));
-        tc.setGlobalVariable("distance", tc.wrap(distance));
-        tc.setGlobalVariable("err", tc.wrap(err));
-        tc.setGlobalVariable("lev", tc.wrap(lev));
-        tc.setGlobalVariable("dim", tc.wrap(dim));
+        tc.setGlobalVariable("value", valueToInsert);
+        tc.setGlobalVariable("root", root);
+        tc.setGlobalVariable("distance", distance);
+        tc.setGlobalVariable("err", err);
+        tc.setGlobalVariable("lev", lev);
+        tc.setGlobalVariable("dim", dim);
 
         insert.executeUsing(tc);
 
