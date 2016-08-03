@@ -25,6 +25,7 @@ class CoreTaskContext implements TaskContext {
     private final int _ident;
 
     private Map<String, TaskResult> _localVariables = null;
+    private Map<String, TaskResult> _nextVariables = null;
     private AbstractTaskAction _current;
     TaskResult _result;
     private long _world;
@@ -38,10 +39,11 @@ class CoreTaskContext implements TaskContext {
         this._time = 0;
         this._graph = p_graph;
         this._parent = parentContext;
+        final CoreTaskContext castedParentContext = (CoreTaskContext) parentContext;
         if (parentContext == null) {
             this._globalVariables = new ConcurrentHashMap<String, TaskResult>();
         } else {
-            this._globalVariables = ((CoreTaskContext)_parent).globalVariables();
+            this._globalVariables = castedParentContext.globalVariables();
         }
         this._result = initial;
         this._callback = p_callback;
@@ -92,7 +94,14 @@ class CoreTaskContext implements TaskContext {
             resolved = this._localVariables.get(name);
         }
         if (resolved == null && this._parent != null) {
-            return ((CoreTaskContext) _parent).internal_deep_resolve(name);
+            final CoreTaskContext castedParent = (CoreTaskContext) _parent;
+            if (castedParent._nextVariables != null) {
+                resolved = castedParent._nextVariables.get(name);
+                if (resolved != null) {
+                    return resolved;
+                }
+            }
+            return castedParent.internal_deep_resolve(name);
         } else {
             return resolved;
         }
@@ -114,7 +123,7 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
-    public void defineVariable(final String name) {
+    public void declareVariable(final String name) {
         if (this._localVariables == null) {
             this._localVariables = new HashMap<String, TaskResult>();
         }
@@ -130,11 +139,19 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
-    public void defineVariableWith(final String name, Object initialResult) {
+    public void defineVariable(final String name, Object initialResult) {
         if (this._localVariables == null) {
             this._localVariables = new HashMap<String, TaskResult>();
         }
         this._localVariables.put(name, lazyWrap(initialResult).clone());
+    }
+
+    @Override
+    public void defineVariableForSubTask(String name, Object initialResult) {
+        if (this._nextVariables == null) {
+            this._nextVariables = new HashMap<String, TaskResult>();
+        }
+        this._nextVariables.put(name, lazyWrap(initialResult).clone());
     }
 
     @Override
@@ -168,6 +185,13 @@ class CoreTaskContext implements TaskContext {
             }
         }
         if (this._parent != null) {
+            final CoreTaskContext castedParent = (CoreTaskContext) _parent;
+            if (castedParent._nextVariables != null) {
+                TaskResult resolved = castedParent._nextVariables.get(name);
+                if (resolved != null) {
+                    return this._localVariables;
+                }
+            }
             return ((CoreTaskContext) _parent).internal_deep_resolve_map(name);
         } else {
             return null;
@@ -241,6 +265,10 @@ class CoreTaskContext implements TaskContext {
         return this._globalVariables;
     }
 
+    Map<String, TaskResult> nextVariables() {
+        return this._globalVariables;
+    }
+
     Map<String, TaskResult> variables() {
         return this._localVariables;
     }
@@ -283,6 +311,13 @@ class CoreTaskContext implements TaskContext {
                 String[] flatLocalValues = localValues.toArray(new String[localValues.size()]);
                 for (int i = 0; i < flatLocalValues.length; i++) {
                     this._localVariables.get(flatLocalValues[i]).free();
+                }
+            }
+            if (this._nextVariables != null) {
+                Set<String> nextValues = this._nextVariables.keySet();
+                String[] flatNextValues = nextValues.toArray(new String[nextValues.size()]);
+                for (int i = 0; i < flatNextValues.length; i++) {
+                    this._nextVariables.get(flatNextValues[i]).free();
                 }
             }
             if (this._parent == null) {

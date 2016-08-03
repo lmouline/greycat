@@ -24,7 +24,7 @@ class ActionRepeat extends AbstractTaskAction {
         final int nbIteration = TaskHelper.parseInt(context.template(_iterationTemplate));
         final ActionRepeat selfPointer = this;
         final AtomicInteger cursor = new AtomicInteger(0);
-        final TaskResult results = context.wrap(null);
+        final TaskResult results = context.newResult();
         results.allocate(nbIteration);
         if (nbIteration > 0) {
             final Callback[] recursiveAction = new Callback[1];
