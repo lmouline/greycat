@@ -204,9 +204,9 @@ public class KDNode extends AbstractNode {
         tc.setGlobalVariable("dim", dim);
         tc.setGlobalVariable("nnl", nnl);
 
-        tc.defineVariableWith("lev", 0);
-        tc.defineVariableWith("hr", hr);
-        tc.defineVariableWith("max_dist_sqd", max_dist_sqd);
+        tc.defineVariable("lev", 0);
+        tc.defineVariable("hr", hr);
+        tc.defineVariable("max_dist_sqd", max_dist_sqd);
 
         nearestTask.executeUsing(tc);
 
@@ -372,9 +372,9 @@ public class KDNode extends AbstractNode {
                     lev = (int) context.variable("levN").get(0);
                     hr = (HRect) context.variable("hrN").get(0);
                     max_dist_sqd = (double) context.variable("max_dist_sqdN").get(0);
-                    context.defineVariableWith("hr", hr);
-                    context.defineVariableWith("max_dist_sqd", max_dist_sqd);
-                    context.defineVariableWith("lev", lev);
+                    context.defineVariable("hr", hr);
+                    context.defineVariable("max_dist_sqd", max_dist_sqd);
+                    context.defineVariable("lev", lev);
                 }
 
 
@@ -434,20 +434,20 @@ public class KDNode extends AbstractNode {
                 //define contextual variables for reccursivity:
 
                 if (nearer_kd != null && nearer_kd.length != 0) {
-                    context.defineVariableWith("near", nearer_st);
+                    context.defineVariable("near", nearer_st);
 
                 } else {
-                    context.defineVariableWith("near", context.newResult());  //stop the loop
+                    context.defineVariable("near", context.newResult());  //stop the loop
                 }
 
                 if (further_kd != null && further_kd.length != 0) {
-                    context.defineVariableWith("far", farther_st);
+                    context.defineVariable("far", farther_st);
                 } else {
-                    context.defineVariableWith("far", context.newResult()); //stop the loop
+                    context.defineVariable("far", context.newResult()); //stop the loop
                 }
 
-                context.defineVariableWith("further_hr", further_hr);
-                context.defineVariableWith("pivot_to_target", pivot_to_target);
+                context.defineVariable("further_hr", further_hr);
+                context.defineVariable("pivot_to_target", pivot_to_target);
 
 
                 //The 3 variables to set for next round of reccursivity:
@@ -456,9 +456,9 @@ public class KDNode extends AbstractNode {
 //                context.defineVariableWith("lev", lev + 1);
 
 
-                context.defineVariableWith("hrN", nearer_hr);
-                context.defineVariableWith("max_dist_sqdN", max_dist_sqd);
-                context.defineVariableWith("levN", lev + 1);
+                context.defineVariable("hrN", nearer_hr);
+                context.defineVariable("max_dist_sqdN", max_dist_sqd);
+                context.defineVariable("levN", lev + 1);
 
                 context.continueTask();
 
@@ -541,15 +541,15 @@ public class KDNode extends AbstractNode {
 //                            context.defineVariableWith("max_dist_sqd", max_dist_sqd2);
 //                            context.defineVariableWith("lev", lev + 1);
 
-                            context.defineVariableWith("hrN", further_hr);
-                            context.defineVariableWith("max_dist_sqdN", max_dist_sqd2);
-                            context.defineVariableWith("levN", lev + 1);
+                            context.defineVariable("hrN", further_hr);
+                            context.defineVariable("max_dist_sqdN", max_dist_sqd2);
+                            context.defineVariable("levN", lev + 1);
 
 
-                            context.defineVariableWith("continueFar", true);
+                            context.defineVariable("continueFar", true);
 
                         } else {
-                            context.defineVariableWith("continueFar", false);
+                            context.defineVariable("continueFar", false);
                         }
                         context.continueTask();
                     }
