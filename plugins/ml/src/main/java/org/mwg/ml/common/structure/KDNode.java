@@ -18,15 +18,15 @@ public class KDNode extends AbstractNode {
     public static final String NAME = "KDNode";
 
     private static final String INTERNAL_LEFT = "_left";                //to navigate left
-    private static final String INTERNAL_RIGHT = "_right";           //to navigate right
+    private static final String INTERNAL_RIGHT = "_right";              //to navigate right
 
-    private static final String INTERNAL_KEY = "_key";                //Values of the node
-    private static final String INTERNAL_VALUE = "_value";            //Values of the node
-    public static final String NUM_NODES = "_num";            //Values of the node
+    private static final String INTERNAL_KEY = "_key";                  //Values of the node
+    private static final String INTERNAL_VALUE = "_value";              //Values of the node
+    public static final String NUM_NODES = "_num";                      //Values of the node
 
-    private static final String INTERNAL_DIM = "_dim";                //Values of the node
+    private static final String INTERNAL_DIM = "_dim";                  //Values of the node
 
-    public static final String DISTANCE_THRESHOLD = "_threshold";          //Distance threshold
+    public static final String DISTANCE_THRESHOLD = "_threshold";       //Distance threshold
     public static final double DISTANCE_THRESHOLD_DEF = 1e-10;
 
     public static final String DISTANCE_TYPE = "disttype";
@@ -253,7 +253,6 @@ public class KDNode extends AbstractNode {
     }
 
 
-
     //todo make it async with callback
     protected KDNode getNode(NodeState state, String key) {
         long[] ids = (long[]) state.getFromKey(key);
@@ -338,8 +337,6 @@ public class KDNode extends AbstractNode {
     }, traverse("{{next}}"));
 
 
-
-
     private static Task initFindNear() {
         Task reccursiveDown = newTask();
 
@@ -355,8 +352,8 @@ public class KDNode extends AbstractNode {
                     return;
                 }
 
-              //  printerTask.println(node.id());
-               // printerTask.flush();
+                //  printerTask.println(node.id());
+                // printerTask.flush();
                 //print(node,"Task ");
 
                 double[] pivot = (double[]) node.get(INTERNAL_KEY);
@@ -371,8 +368,8 @@ public class KDNode extends AbstractNode {
                 HRect hr = (HRect) context.variable("hr").get(0);
                 double max_dist_sqd = (double) context.variable("max_dist_sqd").get(0);
 
-                if( context.variable("hrN")!=null){
-                    lev=(int) context.variable("levN").get(0);
+                if (context.variable("hrN") != null) {
+                    lev = (int) context.variable("levN").get(0);
                     hr = (HRect) context.variable("hrN").get(0);
                     max_dist_sqd = (double) context.variable("max_dist_sqdN").get(0);
                     context.defineVariableWith("hr", hr);
@@ -490,8 +487,6 @@ public class KDNode extends AbstractNode {
                         Distance distance = (Distance) context.variable("distance").get(0);
 
 
-
-
                         //Local variables
                         double max_dist_sqd = (double) context.variable("max_dist_sqd").get(0);
                         HRect further_hr = (HRect) context.variable("further_hr").get(0);
@@ -551,7 +546,6 @@ public class KDNode extends AbstractNode {
                             context.defineVariableWith("levN", lev + 1);
 
 
-
                             context.defineVariableWith("continueFar", true);
 
                         } else {
@@ -573,38 +567,6 @@ public class KDNode extends AbstractNode {
 
     private static Task nearestTask = initFindNear();
 
- /*   private static PrintWriter printerTask;
-    private static PrintWriter printer;
-
-    static {
-        try {
-            printer = new PrintWriter(new File("sync.txt"));
-            printerTask = new PrintWriter(new File("task.txt"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    private static void print(Node result, String s){
-        long[] rt = ((long[]) result.get("_right"));
-        long[] lt = ((long[]) result.get("_left"));
-        long rit = -1;
-        long lft = -1;
-        boolean print=false;
-        if (rt != null && rt.length > 0) {
-            rit = rt[0];
-            print =true;
-        }
-        if (lt != null && lt.length > 0) {
-            lft = lt[0];
-            print =true;
-        }
-        if(print) {
-            System.out.println(s + result.id() );
-        }
-    }*/
-
 
     private static void internalNearest(KDNode node, final Distance distance, final double[] target, final HRect hr, final double max_dist_sqd, final int lev, final int dim, final double err, final NearestNeighborList nnl) {
         // 1. if kd is empty exit.
@@ -612,11 +574,6 @@ public class KDNode extends AbstractNode {
         if (node == null) {
             return;
         }
-
-
-        //printer.println(node.id());
-       // printer.flush();
-
 
         NodeState state = node.unphasedState();
         double[] pivot = (double[]) state.getFromKey(INTERNAL_KEY);
@@ -684,7 +641,7 @@ public class KDNode extends AbstractNode {
             }
         });
 
-       // System.out.println("S2 "+node.id()+ " lev "+ lev);
+        // System.out.println("S2 "+node.id()+ " lev "+ lev);
 
 
         double dist_sqd;
@@ -709,7 +666,7 @@ public class KDNode extends AbstractNode {
 
                 // 10.1.2 dist-sqd = (pivot-target)^2
                 dist_sqd = pivot_to_target;
-           //     System.out.println("S3 "+node.id()+" -> insert "+((long[]) state.getFromKey(INTERNAL_VALUE))[0]);
+                //     System.out.println("S3 "+node.id()+" -> insert "+((long[]) state.getFromKey(INTERNAL_VALUE))[0]);
                 nnl.insert(((long[]) state.getFromKey(INTERNAL_VALUE))[0], dist_sqd);
 
                 // 10.1.3 max-dist-sqd = dist-sqd

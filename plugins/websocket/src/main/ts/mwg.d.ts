@@ -759,6 +759,9 @@ declare module org {
                 static split(splitPattern: string): org.mwg.task.Task;
                 static lookup(world: string, time: string, id: string): org.mwg.task.Task;
                 static clear(): org.mwg.task.Task;
+                static subTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                static subTasks(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
+                static subTasksPar(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
             }
             interface Task {
                 setWorld(template: string): org.mwg.task.Task;
@@ -846,8 +849,6 @@ declare module org {
                 setVariable(name: string, value: any): void;
                 addToGlobalVariable(name: string, value: any): void;
                 addToVariable(name: string, value: any): void;
-                globalVariables(): java.util.Map<string, org.mwg.task.TaskResult<any>>;
-                variables(): java.util.Map<string, org.mwg.task.TaskResult<any>>;
                 result(): org.mwg.task.TaskResult<any>;
                 resultAsNodes(): org.mwg.task.TaskResult<org.mwg.Node>;
                 resultAsStrings(): org.mwg.task.TaskResult<string>;
