@@ -9,7 +9,7 @@ import org.mwg.ml.algorithm.profiling.GaussianSlotNode;
 import org.mwg.ml.algorithm.profiling.GaussianTreeNode;
 import org.mwg.ml.algorithm.regression.LiveLinearRegressionNode;
 import org.mwg.ml.algorithm.regression.PolynomialNode;
-import org.mwg.ml.common.structure.KDNode;
+import org.mwg.ml.common.structure.KDTree;
 import org.mwg.plugin.AbstractPlugin;
 import org.mwg.plugin.NodeFactory;
 
@@ -53,10 +53,10 @@ public class MLPlugin extends AbstractPlugin {
             }
         });
 
-        declareNodeType(KDNode.NAME, new NodeFactory() {
+        declareNodeType(KDTree.NAME, new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
-                return new KDNode(world, time, id, graph);
+                return new KDTree(world, time, id, graph);
             }
         });
 

@@ -5,9 +5,8 @@ import org.mwg.Graph;
 import org.mwg.Node;
 import org.mwg.Type;
 import org.mwg.ml.ProfilingNode;
-import org.mwg.ml.common.distance.Distance;
 import org.mwg.ml.common.distance.DistanceEnum;
-import org.mwg.ml.common.structure.KDNode;
+import org.mwg.ml.common.structure.KDTree;
 import org.mwg.plugin.NodeState;
 
 /**
@@ -50,10 +49,10 @@ public class GaussianTreeNode extends GaussianNode implements ProfilingNode {
                 final double[] precisions = (double[]) resolved.getFromKey(PRECISION);
 
                 if (resolved.getFromKey(INTERNAL_KDROOT) == null) {
-                    KDNode root = (KDNode) graph().newTypedNode(world(), time(), KDNode.NAME);
-                    root.setProperty(KDNode.DISTANCE_TYPE, Type.INT, DistanceEnum.GAUSSIAN);
-                    root.setProperty(KDNode.DISTANCE_THRESHOLD, Type.DOUBLE, threshold);
-                    root.setProperty(KDNode.DISTANCE_PRECISION, Type.DOUBLE_ARRAY, precisions);
+                    KDTree root = (KDTree) graph().newTypedNode(world(), time(), KDTree.NAME);
+                    root.setProperty(KDTree.DISTANCE_TYPE, Type.INT, DistanceEnum.GAUSSIAN);
+                    root.setProperty(KDTree.DISTANCE_THRESHOLD, Type.DOUBLE, threshold);
+                    root.setProperty(KDTree.GAUSSIAN_PRECISION, Type.DOUBLE_ARRAY, precisions);
                     add(INTERNAL_KDROOT, root);
                     GaussianNode profile = (GaussianNode) graph().newTypedNode(world(), time(), GaussianNode.NAME);
 
@@ -78,7 +77,7 @@ public class GaussianTreeNode extends GaussianNode implements ProfilingNode {
                     rel(INTERNAL_KDROOT, new Callback<Node[]>() {
                         @Override
                         public void on(Node[] result) {
-                            KDNode root = (KDNode) result[0];
+                            KDTree root = (KDTree) result[0];
                             root.nearestWithinDistance(features, new Callback<Node>() {
                                 @Override
                                 public void on(Node result) {
@@ -134,8 +133,8 @@ public class GaussianTreeNode extends GaussianNode implements ProfilingNode {
                 if (result == null || result.length == 0) {
                     res[0] = 0;
                 } else {
-                    KDNode root = (KDNode) result[0];
-                    res[0] = (Integer) root.get(KDNode.NUM_NODES);
+                    KDTree root = (KDTree) result[0];
+                    res[0] = (Integer) root.get(KDTree.NUM_NODES);
                 }
             }
         });
@@ -160,7 +159,7 @@ public class GaussianTreeNode extends GaussianNode implements ProfilingNode {
         rel(INTERNAL_KDROOT, new Callback<Node[]>() {
             @Override
             public void on(Node[] result) {
-                KDNode root = (KDNode) result[0];
+                KDTree root = (KDTree) result[0];
                 root.nearestWithinDistance(features, new Callback<Node>() {
                     @Override
                     public void on(Node result) {
