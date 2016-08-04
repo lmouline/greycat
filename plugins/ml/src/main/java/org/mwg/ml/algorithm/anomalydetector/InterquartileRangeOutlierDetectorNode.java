@@ -5,7 +5,7 @@ import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.ml.AbstractMLNode;
 import org.mwg.ml.AnomalyDetectionNode;
-import org.mwg.plugin.Enforcer;
+import org.mwg.utility.Enforcer;
 import org.mwg.plugin.NodeState;
 
 import java.util.Arrays;

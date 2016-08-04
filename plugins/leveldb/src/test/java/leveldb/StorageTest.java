@@ -1,12 +1,7 @@
 package leveldb;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
-import org.mwg.core.chunk.offheap.OffHeapByteArray;
-import org.mwg.core.chunk.offheap.OffHeapDoubleArray;
-import org.mwg.core.chunk.offheap.OffHeapLongArray;
-import org.mwg.core.chunk.offheap.OffHeapStringArray;
 import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.core.utility.Unsafe;
 import org.mwg.plugin.Job;
@@ -18,14 +13,15 @@ public class StorageTest {
 
     @Test
     public void offHeapTest() throws IOException {
+        /*
         OffHeapByteArray.alloc_counter = 0;
         OffHeapDoubleArray.alloc_counter = 0;
         OffHeapLongArray.alloc_counter = 0;
         OffHeapStringArray.alloc_counter = 0;
-
+*/
         Unsafe.DEBUG_MODE = true;
 
-        test("offheap ", new GraphBuilder().withStorage(new LevelDBStorage("data")).withScheduler(new NoopScheduler()).withOffHeapMemory().withMemorySize(100000).saveEvery(10000).build());
+        test("offheap ", new GraphBuilder().withStorage(new LevelDBStorage("data")).withScheduler(new NoopScheduler()).withMemorySize(100000).saveEvery(10000).build());
     }
 
     final int valuesToInsert = 300000;
@@ -71,10 +67,12 @@ public class StorageTest {
                             public void on(Boolean result) {
                                 System.out.println("Graph disconnected");
 
+                                /*
                                 Assert.assertTrue(OffHeapByteArray.alloc_counter == 0);
                                 Assert.assertTrue(OffHeapDoubleArray.alloc_counter == 0);
                                 Assert.assertTrue(OffHeapLongArray.alloc_counter == 0);
                                 Assert.assertTrue(OffHeapStringArray.alloc_counter == 0);
+                                */
                             }
                         });
                     }
@@ -114,5 +112,5 @@ public class StorageTest {
             file.delete();
         }
     }
-    
+
 }

@@ -1,6 +1,6 @@
 package org.mwg.core.chunk.heap;
 
-import org.mwg.plugin.Chunk;
+import org.mwg.chunk.Chunk;
 
 public interface HeapChunk extends Chunk {
 

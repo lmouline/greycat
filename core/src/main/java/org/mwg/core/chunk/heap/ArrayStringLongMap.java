@@ -3,8 +3,7 @@ package org.mwg.core.chunk.heap;
 
 import org.mwg.core.CoreConstants;
 import org.mwg.core.chunk.ChunkListener;
-import org.mwg.core.utility.DataHasher;
-import org.mwg.core.utility.PrimitiveHelper;
+import org.mwg.core.utility.HashHelper;
 import org.mwg.struct.StringLongMap;
 import org.mwg.struct.StringLongMapCallBack;
 
@@ -78,8 +77,8 @@ public class ArrayStringLongMap implements StringLongMap {
         if (internalState._stateSize == 0) {
             return CoreConstants.NULL_LONG;
         }
-        final long keyHash = DataHasher.hash(key);
-        long hashIndex = PrimitiveHelper.longHash(keyHash, internalState._stateSize);
+        final long keyHash = HashHelper.hash(key);
+        long hashIndex = HashHelper.longHash(keyHash, internalState._stateSize);
         int m = internalState._elementHash[(int) hashIndex];
         while (m >= 0) {
             if (keyHash == internalState._elementKH[m]) {
@@ -94,7 +93,7 @@ public class ArrayStringLongMap implements StringLongMap {
     @Override
     public String getByHash(final long keyHash) {
         final InternalState internalState = state;
-        long hashIndex = PrimitiveHelper.longHash(keyHash, internalState._stateSize);
+        long hashIndex = HashHelper.longHash(keyHash, internalState._stateSize);
         int m = internalState._elementHash[(int) hashIndex];
         while (m >= 0) {
             if (internalState._elementKH[m] == keyHash) {
@@ -109,7 +108,7 @@ public class ArrayStringLongMap implements StringLongMap {
     @Override
     public boolean containsHash(long keyHash) {
         final InternalState internalState = state;
-        long hashIndex = PrimitiveHelper.longHash(keyHash, internalState._stateSize);
+        long hashIndex = HashHelper.longHash(keyHash, internalState._stateSize);
         int m = internalState._elementHash[(int) hashIndex];
         while (m >= 0) {
             if (internalState._elementKH[m] == keyHash) {
@@ -152,12 +151,12 @@ public class ArrayStringLongMap implements StringLongMap {
             state = state.clone();
             aligned = true;
         }
-        final long keyHash = DataHasher.hash(key);
+        final long keyHash = HashHelper.hash(key);
         int entry = -1;
         long hashIndex = -1;
         InternalState internalState = state;
         if (internalState._stateSize > 0) {
-            hashIndex = PrimitiveHelper.longHash(keyHash, internalState._stateSize);
+            hashIndex = HashHelper.longHash(keyHash, internalState._stateSize);
             int m = internalState._elementHash[(int) hashIndex];
             while (m >= 0) {
                 if (internalState._elementKH[m] == keyHash) {
@@ -187,7 +186,7 @@ public class ArrayStringLongMap implements StringLongMap {
                 //rehashEveryThing
                 for (int i = 0; i < internalState._elementCount; i++) {
                     if (internalState._elementK[i] != null) { //there is a real value
-                        long newHashIndex = PrimitiveHelper.longHash(internalState._elementKH[i], newCapacity);
+                        long newHashIndex = HashHelper.longHash(internalState._elementKH[i], newCapacity);
                         int currentHashedIndex = newElementHash[(int) newHashIndex];
                         if (currentHashedIndex != -1) {
                             newElementNext[i] = currentHashedIndex;
@@ -198,7 +197,7 @@ public class ArrayStringLongMap implements StringLongMap {
                 //setPrimitiveType value for all
                 internalState = new InternalState(newCapacity, newElementK, newElementKH, newElementV, newElementNext, newElementHash, internalState._elementCount);
                 state = internalState;
-                hashIndex = PrimitiveHelper.longHash(keyHash, internalState._stateSize);
+                hashIndex = HashHelper.longHash(keyHash, internalState._stateSize);
             }
             int newIndex = internalState._elementCount;
             internalState._elementK[newIndex] = key;

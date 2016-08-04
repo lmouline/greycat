@@ -3,7 +3,7 @@ package org.mwg.ml.common;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.Type;
-import org.mwg.plugin.Enforcer;
+import org.mwg.utility.Enforcer;
 
 /**
  * Created by assaad on 17/06/16.

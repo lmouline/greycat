@@ -5,7 +5,7 @@ import io.undertow.Undertow;
 import io.undertow.websockets.WebSocketConnectionCallback;
 import io.undertow.websockets.core.*;
 import io.undertow.websockets.spi.WebSocketHttpExchange;
-import org.mwg.plugin.Chunk;
+import org.mwg.chunk.Chunk;
 import org.mwg.plugin.Job;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;

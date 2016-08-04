@@ -2,12 +2,11 @@
 package org.mwg.core.chunk.heap;
 
 import org.mwg.core.CoreConstants;
-import org.mwg.core.chunk.ChunkListener;
-import org.mwg.core.chunk.WorldOrderChunk;
-import org.mwg.core.utility.PrimitiveHelper;
+import org.mwg.chunk.WorldOrderChunk;
+import org.mwg.core.utility.HashHelper;
 import org.mwg.core.utility.Unsafe;
-import org.mwg.plugin.Base64;
-import org.mwg.plugin.ChunkType;
+import org.mwg.utility.Base64;
+import org.mwg.chunk.ChunkType;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.LongLongMapCallBack;
 
@@ -17,13 +16,10 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
      * @ignore ts
      */
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
-    private final long _world;
-    private final long _time;
-    private final long _id;
 
     private long _index;
 
-    private final ChunkListener _listener;
+    private final HeapChunkSpace _space;
 
     private volatile int _lock;
     private volatile long _marks;
@@ -64,17 +60,17 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
 
     @Override
     public long world() {
-        return this._world;
+        return _space.worldByIndex(_index);
     }
 
     @Override
     public long time() {
-        return this._time;
+        return _space.timeByIndex(_index);
     }
 
     @Override
     public long id() {
-        return this._id;
+        return _space.idByIndex(_index);
     }
 
     @Override
@@ -87,17 +83,14 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
         this._extra = extraValue;
     }
 
-    public HeapWorldOrderChunk(long p_universe, long p_time, long p_obj, ChunkListener p_listener, Buffer initialPayload) {
-        this._world = p_universe;
-        this._time = p_time;
-        this._id = p_obj;
+    public HeapWorldOrderChunk(final HeapChunkSpace p_space, final Buffer initialPayload) {
         this._flags = 0;
         this._marks = 0;
         this._lock = 0;
         this._magic = 0;
         this._extra = CoreConstants.NULL_LONG;
 
-        this._listener = p_listener;
+        this._space = p_space;
         if (initialPayload != null && initialPayload.length() > 0) {
             load(initialPayload);
         } else {
@@ -212,7 +205,7 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
         //rehashEveryThing
         for (int i = 0; i < previousState.elementNext.length; i++) {
             if (previousState.elementNext[i] != -1) { //there is a real value
-                int index = (int) PrimitiveHelper.longHash(previousState.elementKV[i * 2], length);
+                int index = (int) HashHelper.longHash(previousState.elementKV[i * 2], length);
                 int currentHashedIndex = newElementHash[index];
                 if (currentHashedIndex != -1) {
                     newElementNext[i] = currentHashedIndex;
@@ -240,7 +233,7 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
         if (internalState.elementDataSize == 0) {
             return CoreConstants.NULL_LONG;
         }
-        int index = (int) PrimitiveHelper.longHash(key, internalState.elementDataSize);
+        int index = (int) HashHelper.longHash(key, internalState.elementDataSize);
         int m = internalState.elementHash[index];
         while (m >= 0) {
             if (key == internalState.elementKV[m * 2]) {
@@ -261,14 +254,14 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
         int entry = -1;
         int index = -1;
         if (internalState.elementDataSize != 0) {
-            index = (int) PrimitiveHelper.longHash(key, internalState.elementDataSize);
+            index = (int) HashHelper.longHash(key, internalState.elementDataSize);
             entry = findNonNullKeyEntry(key, index, internalState);
         }
         if (entry == -1) {
             if (++internalState.elementCount > internalState.threshold) {
                 rehashCapacity(internalState.elementDataSize, internalState);
                 internalState = state;
-                index = (int) PrimitiveHelper.longHash(key, internalState.elementDataSize);
+                index = (int) HashHelper.longHash(key, internalState.elementDataSize);
             }
             int newIndex = (internalState.elementCount - 1);
             internalState.elementKV[newIndex * 2] = key;
@@ -403,7 +396,7 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
                     temp_state.elementKV[insertIndex * 2 + 1] = loopValue;
 
                     //insert hash
-                    int hashIndex = (int) PrimitiveHelper.longHash(loopKey, capacity);
+                    int hashIndex = (int) HashHelper.longHash(loopKey, capacity);
                     int currentHashedIndex = temp_state.elementHash[hashIndex];
                     if (currentHashedIndex != -1) {
                         temp_state.elementNext[insertIndex] = currentHashedIndex;
@@ -428,7 +421,7 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
             temp_state.elementKV[insertIndex * 2 + 1] = loopValue;
 
             //insert hash
-            int hashIndex = (int) PrimitiveHelper.longHash(loopKey, capacity);
+            int hashIndex = (int) HashHelper.longHash(loopKey, capacity);
             int currentHashedIndex = temp_state.elementHash[hashIndex];
             if (currentHashedIndex != -1) {
                 temp_state.elementNext[insertIndex] = currentHashedIndex;
@@ -471,9 +464,9 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
     /**
      * @native ts
      * this._magic = this._magic + 1;
-     * if (this._listener != null) {
+     * if (this._space != null) {
      * if ((this._flags & org.mwg.core.CoreConstants.DIRTY_BIT) != org.mwg.core.CoreConstants.DIRTY_BIT) {
-     * this._listener.declareDirty(this);
+     * this._space.declareDirty(this);
      * }
      * }
      */
@@ -484,9 +477,9 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
             magicBefore = _magic;
             magicAfter = magicBefore + 1;
         } while (!unsafe.compareAndSwapLong(this, _magicOffset, magicBefore, magicAfter));
-        if (_listener != null) {
+        if (_space != null) {
             if ((_flags & CoreConstants.DIRTY_BIT) != CoreConstants.DIRTY_BIT) {
-                _listener.declareDirty(this);
+                _space.declareDirty(this);
             }
         }
     }

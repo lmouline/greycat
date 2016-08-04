@@ -55,7 +55,7 @@ public class CoreConstants extends org.mwg.Constants {
     /**
      * Map constants
      */
-    public static final int MAP_INITIAL_CAPACITY = 16;
+    public static final int MAP_INITIAL_CAPACITY = 4;
 
     public static final float MAP_LOAD_FACTOR = ((float) 75 / (float) 100);
 
@@ -67,13 +67,7 @@ public class CoreConstants extends org.mwg.Constants {
     /**
      * OffHeap
      */
-    public static final int OFFHEAP_NULL_PTR = -1;
-    public static final int OFFHEAP_CHUNK_INDEX_WORLD = 0;
-    public static final int OFFHEAP_CHUNK_INDEX_TIME = 1;
-    public static final int OFFHEAP_CHUNK_INDEX_ID = 2;
-    public static final int OFFHEAP_CHUNK_INDEX_TYPE = 3;
-    public static final int OFFHEAP_CHUNK_INDEX_FLAGS = 4;
-    public static final int OFFHEAP_CHUNK_INDEX_MARKS = 5;
+
 
 
     /**

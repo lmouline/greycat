@@ -5,7 +5,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.Callback;
 import org.mwg.Node;
-import org.mwg.plugin.ConsoleHook;
 import org.mwg.task.*;
 
 import static org.mwg.task.Actions.*;

@@ -7,7 +7,7 @@ import org.mwg.ml.common.matrix.Matrix;
 import org.mwg.ml.common.matrix.TransposeType;
 import org.mwg.ml.common.matrix.operation.PInvSVD;
 import org.mwg.mlx.algorithm.AbstractLinearRegressionNode;
-import org.mwg.plugin.Enforcer;
+import org.mwg.utility.Enforcer;
 import org.mwg.plugin.NodeState;
 
 public class LinearRegressionWithPeriodicityNode extends AbstractLinearRegressionNode {

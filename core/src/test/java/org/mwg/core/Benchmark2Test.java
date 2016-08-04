@@ -1,16 +1,14 @@
 package org.mwg.core;
 
-import org.junit.Assert;
 import org.mwg.*;
-import org.mwg.core.chunk.offheap.OffHeapByteArray;
-import org.mwg.core.chunk.offheap.OffHeapDoubleArray;
-import org.mwg.core.chunk.offheap.OffHeapLongArray;
-import org.mwg.core.chunk.offheap.OffHeapStringArray;
 import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.plugin.Job;
 
 public class Benchmark2Test {
 
+    /**
+     * @ignore ts
+     */
     //@Test
     public void heapTest() {
         final Graph graph = new GraphBuilder().withScheduler(new NoopScheduler()).withMemorySize(100).saveEvery(10).build();
@@ -32,6 +30,7 @@ public class Benchmark2Test {
      * @ignore ts
      */
     //@Test
+    /*
     public void offHeapTest() {
         OffHeapByteArray.alloc_counter = 0;
         OffHeapDoubleArray.alloc_counter = 0;
@@ -56,13 +55,16 @@ public class Benchmark2Test {
                 });
             }
         });
-    }
+    }*/
 
     //final int valuesToInsert = 10000000;
     final int valuesToInsert = 500;
 
     final long timeOrigin = 1000;
 
+    /**
+     * @ignore ts
+     */
     private void test(final Graph graph, final Callback<Boolean> testEnd) {
         graph.connect(new Callback<Boolean>() {
             @Override

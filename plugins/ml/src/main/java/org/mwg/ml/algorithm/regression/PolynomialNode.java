@@ -6,7 +6,7 @@ import org.mwg.Type;
 import org.mwg.ml.AbstractMLNode;
 import org.mwg.ml.RegressionNode;
 import org.mwg.ml.common.matrix.operation.PolynomialFit;
-import org.mwg.plugin.Enforcer;
+import org.mwg.utility.Enforcer;
 import org.mwg.plugin.NodeState;
 
 public class PolynomialNode extends AbstractMLNode implements RegressionNode {

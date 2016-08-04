@@ -1,14 +1,7 @@
 package org.mwg.core;
 
-import org.junit.Assert;
-import org.junit.Test;
 import org.mwg.*;
-import org.mwg.core.chunk.offheap.OffHeapByteArray;
-import org.mwg.core.chunk.offheap.OffHeapDoubleArray;
-import org.mwg.core.chunk.offheap.OffHeapLongArray;
-import org.mwg.core.chunk.offheap.OffHeapStringArray;
 import org.mwg.core.scheduler.NoopScheduler;
-import org.mwg.core.utility.Unsafe;
 import org.mwg.plugin.Job;
 
 /**
@@ -34,6 +27,7 @@ public class Benchmark3Test {
 
     //@Test
     public void offHeapTest() {
+        /*
         OffHeapByteArray.alloc_counter = 0;
         OffHeapDoubleArray.alloc_counter = 0;
         OffHeapLongArray.alloc_counter = 0;
@@ -59,6 +53,7 @@ public class Benchmark3Test {
                 });
             }
         });
+        */
     }
 
     //final int valuesToInsert = 10000000;

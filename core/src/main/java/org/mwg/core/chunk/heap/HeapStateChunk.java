@@ -4,12 +4,12 @@ import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.core.CoreConstants;
 import org.mwg.core.chunk.ChunkListener;
-import org.mwg.core.chunk.StateChunk;
-import org.mwg.core.utility.PrimitiveHelper;
+import org.mwg.chunk.StateChunk;
+import org.mwg.core.utility.HashHelper;
 import org.mwg.core.utility.Unsafe;
-import org.mwg.plugin.Base64;
-import org.mwg.plugin.Chunk;
-import org.mwg.plugin.ChunkType;
+import org.mwg.utility.Base64;
+import org.mwg.chunk.Chunk;
+import org.mwg.chunk.ChunkType;
 import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.*;
 
@@ -19,10 +19,6 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
      * @ignore ts
      */
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
-
-    private final long _world;
-    private final long _time;
-    private final long _id;
 
     private long _index;
 
@@ -49,7 +45,7 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
         }
     }
 
-    private final ChunkListener _space;
+    private final HeapChunkSpace _space;
     private boolean inLoadMode;
 
     @Override
@@ -125,11 +121,8 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
         }
     }
 
-    public HeapStateChunk(final long p_world, final long p_time, final long p_id, final ChunkListener p_space, Buffer initialPayload, Chunk origin) {
+    public HeapStateChunk(final HeapChunkSpace p_space, Buffer initialPayload, Chunk origin) {
         this.inLoadMode = false;
-        this._world = p_world;
-        this._time = p_time;
-        this._id = p_id;
         this._flags = 0;
         this._marks = 0;
         this._space = p_space;
@@ -163,7 +156,7 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
         } else {
             //init a new state
             int initialCapacity = CoreConstants.MAP_INITIAL_CAPACITY;
-            InternalState newstate = new InternalState(initialCapacity, /* keys */new long[initialCapacity], /* values */ new Object[initialCapacity], /* next */ new int[initialCapacity], /* hash */ new int[initialCapacity], /* elemType */ new byte[initialCapacity], 0, false);
+            InternalState newstate = new InternalState(initialCapacity, new long[initialCapacity], new Object[initialCapacity], new int[initialCapacity], new int[initialCapacity], new byte[initialCapacity], 0, false);
             for (int i = 0; i < initialCapacity; i++) {
                 newstate._elementNext[i] = -1;
                 newstate._elementHash[i] = -1;
@@ -173,18 +166,18 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
     }
 
     @Override
-    public final long world() {
-        return this._world;
+    public long world() {
+        return _space.worldByIndex(_index);
     }
 
     @Override
-    public final long time() {
-        return this._time;
+    public long time() {
+        return _space.timeByIndex(_index);
     }
 
     @Override
-    public final long id() {
-        return this._id;
+    public long id() {
+        return _space.idByIndex(_index);
     }
 
     @Override
@@ -252,7 +245,7 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
     @Override
     public void append(long p_elementIndex, byte elemType, Object elem) {
         final InternalState internalState = state;
-        int hashIndex = (int) PrimitiveHelper.longHash(p_elementIndex, internalState._elementDataSize);
+        int hashIndex = (int) HashHelper.longHash(p_elementIndex, internalState._elementDataSize);
         int m = internalState._elementHash[hashIndex];
         Object result = null;
         while (m >= 0) {
@@ -384,7 +377,7 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
         InternalState internalState = state;
         int hashIndex = -1;
         if (internalState._elementDataSize > 0) {
-            hashIndex = (int) PrimitiveHelper.longHash(p_elementIndex, internalState._elementDataSize);
+            hashIndex = (int) HashHelper.longHash(p_elementIndex, internalState._elementDataSize);
             int m = internalState._elementHash[hashIndex];
             while (m != -1) {
                 if (p_elementIndex == internalState._elementK[m]) {
@@ -414,7 +407,7 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
                 //rehashEveryThing
                 for (int i = 0; i < newElementV.length; i++) {
                     if (newElementV[i] != null) { //there is a real value
-                        int keyHash = (int) PrimitiveHelper.longHash(newElementK[i], newLength);
+                        int keyHash = (int) HashHelper.longHash(newElementK[i], newLength);
                         int currentHashedIndex = newElementHash[keyHash];
                         if (currentHashedIndex != -1) {
                             newElementNext[i] = currentHashedIndex;
@@ -425,7 +418,7 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
                 //setPrimitiveType value for all
                 internalState = new InternalState(newLength, newElementK, newElementV, newElementNext, newElementHash, newElementType, internalState._elementCount, false);
                 this.state = internalState;
-                hashIndex = (int) PrimitiveHelper.longHash(p_elementIndex, internalState._elementDataSize);
+                hashIndex = (int) HashHelper.longHash(p_elementIndex, internalState._elementDataSize);
             } else if (internalState.hashReadOnly) {
                 //deepClone state
                 internalState = internalState.deepClone();
@@ -463,7 +456,7 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
         if (internalState._elementDataSize == 0) {
             return null;
         }
-        int hashIndex = (int) PrimitiveHelper.longHash(p_elementIndex, internalState._elementDataSize);
+        int hashIndex = (int) HashHelper.longHash(p_elementIndex, internalState._elementDataSize);
         int m = internalState._elementHash[hashIndex];
 
         Object result = null;
@@ -531,7 +524,7 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
         if (internalState._elementDataSize == 0) {
             return -1;
         }
-        int hashIndex = (int) PrimitiveHelper.longHash(p_elementIndex, internalState._elementDataSize);
+        int hashIndex = (int) HashHelper.longHash(p_elementIndex, internalState._elementDataSize);
         int m = internalState._elementHash[hashIndex];
         while (m >= 0) {
             if (p_elementIndex == internalState._elementK[m] /* getKey */) {
@@ -763,7 +756,7 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
                                 newElementV[newIndex] = toInsert;
                                 newElementType[newIndex] = currentChunkElemType;
 
-                                int hashIndex = (int) PrimitiveHelper.longHash(currentChunkElemKey, newStateCapacity);
+                                int hashIndex = (int) HashHelper.longHash(currentChunkElemKey, newStateCapacity);
                                 int currentHashedIndex = newElementHash[hashIndex];
                                 if (currentHashedIndex != -1) {
                                     newElementNext[newIndex] = currentHashedIndex;
@@ -986,7 +979,7 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
                     newElementV[currentElemIndex] = toInsert;
                     newElementType[currentElemIndex] = currentChunkElemType;
 
-                    int hashIndex = (int) PrimitiveHelper.longHash(currentChunkElemKey, newStateCapacity);
+                    int hashIndex = (int) HashHelper.longHash(currentChunkElemKey, newStateCapacity);
                     int currentHashedIndex = newElementHash[hashIndex];
                     if (currentHashedIndex != -1) {
                         newElementNext[currentElemIndex] = currentHashedIndex;

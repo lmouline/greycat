@@ -1,30 +1,30 @@
 package org.mwg.core;
 
 import org.mwg.Constants;
+import org.mwg.Graph;
 import org.mwg.Query;
-import org.mwg.core.utility.BufferBuilder;
-import org.mwg.core.utility.DataHasher;
-import org.mwg.plugin.Base64;
+import org.mwg.core.utility.HashHelper;
+import org.mwg.utility.Base64;
 import org.mwg.plugin.Resolver;
 import org.mwg.struct.Buffer;
 
 public class CoreQuery implements Query {
 
     private final Resolver _resolver;
-
+    private final Graph _graph;
     private int capacity = 1;
     private long[] _attributes = new long[capacity];
     private Object[] _values = new Object[capacity];
     private int size = 0;
     private Long _hash;
-
     private long _world = Constants.NULL_LONG;
     private long _time = Constants.NULL_LONG;
     private String _indexName = null;
 
-    CoreQuery(Resolver p_resolver) {
-        this._resolver = p_resolver;
-        this._hash = null;
+    CoreQuery(Graph graph, Resolver p_resolver) {
+        _graph = graph;
+        _resolver = p_resolver;
+        _hash = null;
     }
 
     @Override
@@ -144,8 +144,7 @@ public class CoreQuery implements Query {
                 }
             }
         }
-
-        Buffer buf = BufferBuilder.newHeapBuffer();
+        Buffer buf = _graph.newBuffer();
         for (int i = 0; i < size; i++) {
             Base64.encodeLongToBuffer(_attributes[i], buf);
             Object loopValue = _values[i];
@@ -160,7 +159,7 @@ public class CoreQuery implements Query {
                 }
             }
         }
-        _hash = DataHasher.hashBytes(buf.data());
+        _hash = HashHelper.hashBytes(buf.data());
         buf.free();
     }
 

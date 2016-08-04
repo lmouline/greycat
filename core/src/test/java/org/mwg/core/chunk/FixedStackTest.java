@@ -3,8 +3,6 @@ package org.mwg.core.chunk;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.core.chunk.heap.FixedStack;
-import org.mwg.core.chunk.offheap.*;
-import org.mwg.core.utility.Unsafe;
 
 public class FixedStackTest {
     private static final int CAPACITY = 15;
@@ -20,6 +18,7 @@ public class FixedStackTest {
      */
     @Test
     public void offHeapFixedStackTest() {
+        /*
         OffHeapByteArray.alloc_counter = 0;
         OffHeapDoubleArray.alloc_counter = 0;
         OffHeapLongArray.alloc_counter = 0;
@@ -35,6 +34,7 @@ public class FixedStackTest {
         Assert.assertTrue(OffHeapDoubleArray.alloc_counter == 0);
         Assert.assertTrue(OffHeapLongArray.alloc_counter == 0);
         Assert.assertTrue(OffHeapStringArray.alloc_counter == 0);
+        */
     }
 
     public void test(Stack stack) {

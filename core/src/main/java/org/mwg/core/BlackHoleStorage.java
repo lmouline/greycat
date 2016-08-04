@@ -2,8 +2,8 @@ package org.mwg.core;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
-import org.mwg.core.utility.PrimitiveHelper;
-import org.mwg.plugin.Base64;
+import org.mwg.core.utility.HashHelper;
+import org.mwg.utility.Base64;
 import org.mwg.plugin.Storage;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
@@ -35,7 +35,7 @@ public class BlackHoleStorage implements Storage {
     @Override
     public void put(Buffer stream, Callback<Boolean> callback) {
         //System.err.println("WARNING: POTENTIAL DATA LOSSES, NOOP STORAGE don't save");
-        if (PrimitiveHelper.isDefined(callback)) {
+        if (callback != null) {
             callback.on(true);
         }
     }

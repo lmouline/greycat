@@ -4,7 +4,7 @@ import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.ml.ClassificationNode;
 import org.mwg.mlx.algorithm.AbstractClassifierSlidingWindowManagingNode;
-import org.mwg.plugin.Enforcer;
+import org.mwg.utility.Enforcer;
 import org.mwg.plugin.NodeState;
 
 /**

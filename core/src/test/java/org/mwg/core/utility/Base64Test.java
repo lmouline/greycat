@@ -3,7 +3,8 @@ package org.mwg.core.utility;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.Constants;
-import org.mwg.plugin.Base64;
+import org.mwg.core.memory.HeapMemoryFactory;
+import org.mwg.utility.Base64;
 import org.mwg.struct.Buffer;
 
 public class Base64Test {
@@ -15,7 +16,7 @@ public class Base64Test {
 
     @Test
     public void typeEncoding() {
-        testLong(DataHasher.hash("GaussianGmm"));
+        testLong(HashHelper.hash("GaussianGmm"));
     }
 
     @Test
@@ -49,15 +50,11 @@ public class Base64Test {
     }
 
     private void testLong(long val) {
-
-
-        Buffer buffer = BufferBuilder.newHeapBuffer();
+        Buffer buffer = bufferFactory.newBuffer();
         Base64.encodeLongToBuffer(val, buffer);
         long dec = Base64.decodeToLongWithBounds(buffer, 0, buffer.length());
         Assert.assertEquals(val, dec);
-
     }
-
 
     @Test
     public void minIntEncodingTest() {
@@ -70,13 +67,12 @@ public class Base64Test {
     }
 
     private void testInt(int val) {
-        Buffer buffer = BufferBuilder.newHeapBuffer();
+        Buffer buffer = bufferFactory.newBuffer();
         Base64.encodeIntToBuffer(val, buffer);
         int dec = Base64.decodeToIntWithBounds(buffer, 0, buffer.length());
         //System.out.println(val + " -> " + enc + " -> " + dec);
         Assert.assertEquals(val, dec);
         buffer.free();
-
     }
 
 
@@ -95,7 +91,7 @@ public class Base64Test {
      */
     @Test
     public void minDoubleEncodingTest() {
-        testDouble(PrimitiveHelper.DOUBLE_MIN_VALUE());
+        testDouble(HashHelper.DOUBLE_MIN_VALUE());
     }
 
     /**
@@ -104,7 +100,7 @@ public class Base64Test {
      */
     @Test
     public void negMaxDoubleEncodingTest() {
-        testDouble(-PrimitiveHelper.DOUBLE_MAX_VALUE());
+        testDouble(-HashHelper.DOUBLE_MAX_VALUE());
     }
 
     /**
@@ -113,7 +109,7 @@ public class Base64Test {
      */
     @Test
     public void negMinDoubleEncodingTest() {
-        testDouble(-PrimitiveHelper.DOUBLE_MIN_VALUE());
+        testDouble(-HashHelper.DOUBLE_MIN_VALUE());
     }
 
     @Test
@@ -129,8 +125,10 @@ public class Base64Test {
     }
 
 
+    private HeapMemoryFactory bufferFactory = new HeapMemoryFactory();
+
     private void testDouble(double val) {
-        Buffer buffer = BufferBuilder.newHeapBuffer();
+        Buffer buffer = bufferFactory.newBuffer();
         Base64.encodeDoubleToBuffer(val, buffer);
         double dec = Base64.decodeToDoubleWithBounds(buffer, 0, buffer.length());
         //System.out.println(val + " -> " + enc + " -> " + dec);
@@ -153,7 +151,7 @@ public class Base64Test {
     }
 
     private void boolArrayInnerTest(boolean[] array) {
-        Buffer buffer = BufferBuilder.newHeapBuffer();
+        Buffer buffer = bufferFactory.newBuffer();
         Base64.encodeBoolArrayToBuffer(array, buffer);
         boolean[] dec = Base64.decodeToBoolArrayWithBounds(buffer, 0, buffer.length(), array.length);
         //System.out.println(0x7fffffff + " -> " + enc + " -> " + dec);

@@ -1,6 +1,6 @@
 package common;
 
-import org.mwg.core.utility.PrimitiveHelper;
+import org.mwg.core.utility.HashHelper;
 
 import java.util.Random;
 import java.util.TreeMap;
@@ -32,7 +32,7 @@ public class HashCollision {
             p2 = rand.nextLong();
             p3 = rand.nextLong();
 
-            long uhash = PrimitiveHelper.tripleHash(x, p1, p2, p3, max);
+            long uhash = HashHelper.tripleHash(x, p1, p2, p3, max);
 
 
             if (randomTree.containsKey(yrand)) {

@@ -1,12 +1,9 @@
 package org.mwg.core;
 
 import org.mwg.GraphBuilder;
-import org.mwg.core.chunk.heap.HeapChunkSpace;
-import org.mwg.core.chunk.offheap.OffHeapChunkSpace;
 import org.mwg.core.scheduler.TrampolineScheduler;
 import org.mwg.core.task.CoreTask;
 import org.mwg.core.utility.ReadOnlyStorage;
-import org.mwg.plugin.ChunkSpace;
 import org.mwg.plugin.Plugin;
 import org.mwg.plugin.Scheduler;
 import org.mwg.plugin.Storage;
@@ -27,13 +24,6 @@ public class Builder implements GraphBuilder.InternalBuilder {
         if (scheduler == null) {
             scheduler = new TrampolineScheduler();
         }
-        NodeTracker nodeTracker;
-        if (p_usingGC) {
-            throw new RuntimeException("Not implemented yet !!!");
-        } else {
-            nodeTracker = new NoopNodeTracker();
-        }
-        ChunkSpace space;
         long memorySize = p_memorySize;
         if (memorySize == -1) {
             memorySize = 100000;
@@ -42,8 +32,7 @@ public class Builder implements GraphBuilder.InternalBuilder {
         if (p_autoSaveSize == -1) {
             autoSaveSize = memorySize;
         }
-        space = createSpace(p_usingOffHeapMemory, memorySize, autoSaveSize);
-        org.mwg.core.CoreGraph graph = new org.mwg.core.CoreGraph(storage, space, scheduler, new MWGResolver(storage, space, nodeTracker), p_plugins);
+        org.mwg.core.CoreGraph graph = new org.mwg.core.CoreGraph(storage, memorySize, autoSaveSize, scheduler, p_plugins);
         if (p_usingOffHeapMemory) {
             graph.offHeapBuffer = true;
         }
@@ -53,18 +42,6 @@ public class Builder implements GraphBuilder.InternalBuilder {
     @Override
     public Task newTask() {
         return new CoreTask();
-    }
-
-    /**
-     * @native ts
-     * return new org.mwg.core.chunk.heap.HeapChunkSpace(memorySize,autoSaveSize);
-     */
-    private ChunkSpace createSpace(boolean usingOffHeapMemory, long memorySize, long autoSaveSize) {
-        if (usingOffHeapMemory) {
-            return new OffHeapChunkSpace(memorySize, autoSaveSize);
-        } else {
-            return new HeapChunkSpace((int) memorySize, (int) autoSaveSize);
-        }
     }
 
 }

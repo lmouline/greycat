@@ -1,12 +1,11 @@
 package org.mwg.core.chunk.heap;
 
 import org.mwg.core.CoreConstants;
-import org.mwg.core.chunk.ChunkListener;
-import org.mwg.core.chunk.TimeTreeChunk;
-import org.mwg.core.chunk.TreeWalker;
+import org.mwg.chunk.TimeTreeChunk;
+import org.mwg.chunk.TreeWalker;
 import org.mwg.core.utility.Unsafe;
-import org.mwg.plugin.Base64;
-import org.mwg.plugin.ChunkType;
+import org.mwg.utility.Base64;
+import org.mwg.chunk.ChunkType;
 import org.mwg.struct.Buffer;
 
 public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
@@ -19,13 +18,9 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
     //constants definition
     private static final int META_SIZE = 3;
 
-    private final long _world;
-    private final long _time;
-    private final long _id;
-
     private long _index;
 
-    private final ChunkListener _listener;
+    private final HeapChunkSpace _space;
 
     private volatile int _threshold;
     private volatile int _root_index = -1;
@@ -69,13 +64,10 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
         }
     }
 
-    public HeapTimeTreeChunk(final long p_world, final long p_time, final long p_obj, final ChunkListener p_listener, final Buffer initialPayload) {
+    public HeapTimeTreeChunk(final HeapChunkSpace p_space, final Buffer initialPayload) {
         //listener
-        this._listener = p_listener;
+        this._space = p_space;
         //identifier
-        this._world = p_world;
-        this._time = p_time;
-        this._id = p_obj;
         //multi-thread management
         this._threshold = 0;
         this._flags = 0;
@@ -144,18 +136,18 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
     }
 
     @Override
-    public final long world() {
-        return this._world;
+    public long world() {
+        return _space.worldByIndex(_index);
     }
 
     @Override
-    public final long time() {
-        return this._time;
+    public long time() {
+        return _space.timeByIndex(_index);
     }
 
     @Override
-    public final long id() {
-        return this._id;
+    public long id() {
+        return _space.idByIndex(_index);
     }
 
     @Override
@@ -738,9 +730,9 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
     /**
      * @native ts
      * this._magic = this._magic + 1;
-     * if (this._listener != null) {
+     * if (this._space != null) {
      * if ((this._flags & org.mwg.core.CoreConstants.DIRTY_BIT) != org.mwg.core.CoreConstants.DIRTY_BIT) {
-     * this._listener.declareDirty(this);
+     * this._space.declareDirty(this);
      * }
      * }
      */
@@ -751,9 +743,9 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
             magicBefore = _magic;
             magicAfter = magicBefore + 1;
         } while (!unsafe.compareAndSwapLong(this, _magicOffset, magicBefore, magicAfter));
-        if (_listener != null) {
+        if (_space != null) {
             if ((_flags & CoreConstants.DIRTY_BIT) != CoreConstants.DIRTY_BIT) {
-                _listener.declareDirty(this);
+                _space.declareDirty(this);
             }
         }
     }

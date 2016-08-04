@@ -5,7 +5,7 @@ import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.ml.AbstractMLNode;
 import org.mwg.ml.ProfilingNode;
-import org.mwg.plugin.Enforcer;
+import org.mwg.utility.Enforcer;
 import org.mwg.plugin.NodeState;
 
 public class GaussianSlotNode extends AbstractMLNode implements ProfilingNode {

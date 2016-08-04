@@ -8,6 +8,10 @@ public interface Plugin {
 
     Plugin declareTaskAction(String name, TaskActionFactory factory);
 
+    Plugin declareMemoryFactory(MemoryFactory factory);
+
+    Plugin declareResolverFactory(ResolverFactory factory);
+
     String[] nodeTypes();
 
     NodeFactory nodeType(String nodeTypeName);
@@ -15,5 +19,9 @@ public interface Plugin {
     String[] taskActionTypes();
 
     TaskActionFactory taskActionType(String taskTypeName);
+
+    MemoryFactory memoryFactory();
+
+    ResolverFactory resolverFactory();
 
 }

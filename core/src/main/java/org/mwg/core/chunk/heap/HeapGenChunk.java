@@ -2,11 +2,10 @@ package org.mwg.core.chunk.heap;
 
 import org.mwg.Constants;
 import org.mwg.core.CoreConstants;
-import org.mwg.core.chunk.ChunkListener;
-import org.mwg.core.chunk.GenChunk;
+import org.mwg.chunk.GenChunk;
 import org.mwg.core.utility.Unsafe;
-import org.mwg.plugin.Base64;
-import org.mwg.plugin.ChunkType;
+import org.mwg.utility.Base64;
+import org.mwg.chunk.ChunkType;
 import org.mwg.struct.Buffer;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -18,13 +17,10 @@ public class HeapGenChunk implements GenChunk, HeapChunk {
      */
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
 
-    private final long _world;
-    private final long _time;
-    private final long _id;
+    private final HeapChunkSpace _space;
 
     private long _index;
 
-    private final ChunkListener _space;
 
     private volatile long _flags;
     private volatile long _marks;
@@ -49,10 +45,6 @@ public class HeapGenChunk implements GenChunk, HeapChunk {
     }
 
     /**
-     * internal variable
-     */
-
-    /**
      * @native ts
      * private _prefix: Long;
      */
@@ -62,9 +54,6 @@ public class HeapGenChunk implements GenChunk, HeapChunk {
 
     /**
      * @native ts
-     * this._world = p_world;
-     * this._time = p_time;
-     * this._id = p_id;
      * this._space = p_space;
      * this._flags = 0;
      * this._marks = 0;
@@ -72,10 +61,7 @@ public class HeapGenChunk implements GenChunk, HeapChunk {
      * this._currentIndex = new java.util.concurrent.atomic.AtomicLong(0);
      * this.load(initialPayload);
      */
-    public HeapGenChunk(final long p_world, final long p_time, final long p_id, final ChunkListener p_space, Buffer initialPayload) {
-        this._world = p_world;
-        this._time = p_time;
-        this._id = p_id;
+    public HeapGenChunk(final HeapChunkSpace p_space, final long p_id, Buffer initialPayload) {
         this._space = p_space;
 
         this._flags = 0;
@@ -148,20 +134,19 @@ public class HeapGenChunk implements GenChunk, HeapChunk {
         return objectKey;
     }
 
-
     @Override
-    public final long world() {
-        return this._world;
+    public long world() {
+        return _space.worldByIndex(_index);
     }
 
     @Override
-    public final long time() {
-        return this._time;
+    public long time() {
+        return _space.timeByIndex(_index);
     }
 
     @Override
-    public final long id() {
-        return this._id;
+    public long id() {
+        return _space.idByIndex(_index);
     }
 
     @Override

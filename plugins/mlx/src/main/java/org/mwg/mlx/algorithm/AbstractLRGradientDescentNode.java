@@ -1,7 +1,7 @@
 package org.mwg.mlx.algorithm;
 
 import org.mwg.Graph;
-import org.mwg.plugin.Enforcer;
+import org.mwg.utility.Enforcer;
 
 /**
  * Created by andre on 4/29/2016.

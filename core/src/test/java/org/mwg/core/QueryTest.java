@@ -2,27 +2,28 @@ package org.mwg.core;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mwg.Callback;
-import org.mwg.Graph;
-import org.mwg.Node;
-import org.mwg.core.utility.DataHasher;
-import org.mwg.plugin.Job;
-import org.mwg.plugin.NodeState;
-import org.mwg.plugin.Resolver;
+import org.mwg.*;
+import org.mwg.chunk.ChunkSpace;
+import org.mwg.core.memory.HeapMemoryFactory;
+import org.mwg.core.utility.HashHelper;
+import org.mwg.plugin.*;
+import org.mwg.struct.Buffer;
+import org.mwg.task.TaskActionFactory;
 
-public class QueryTest implements Resolver {
+public class QueryTest implements Resolver, Graph {
 
     @Test
     public void test() {
-        CoreQuery query = new CoreQuery(this);
+
+        CoreQuery query = new CoreQuery(this,this);
         query.add("name", "Hello");
         Assert.assertEquals(query.hash(), 3074775135214424L);
 
-        CoreQuery query2 = new CoreQuery(this);
+        CoreQuery query2 = new CoreQuery(this,this);
         query2.add("id", "Hello");
         Assert.assertEquals(query2.hash(), 1115038540081133L);
 
-        CoreQuery query3 = new CoreQuery(this);
+        CoreQuery query3 = new CoreQuery(this,this);
         query3.add("id", "Hello2");
         Assert.assertEquals(query3.hash(), 8950810462547208L);
 
@@ -30,7 +31,7 @@ public class QueryTest implements Resolver {
         Assert.assertTrue(query2.hash() != query.hash());
         Assert.assertTrue(query3.hash() != query2.hash());
 
-        CoreQuery query4 = new CoreQuery(this);
+        CoreQuery query4 = new CoreQuery(this,this);
         query4.add("id", "Hello2");
         Assert.assertEquals(query4.hash(), 8950810462547208L);
         Assert.assertEquals(query3.hash(), query4.hash());
@@ -39,7 +40,7 @@ public class QueryTest implements Resolver {
 
 
     @Override
-    public void init(Graph graph) {
+    public void init() {
 
     }
 
@@ -69,8 +70,130 @@ public class QueryTest implements Resolver {
     }
 
     @Override
+    public Node newNode(long world, long time) {
+        return null;
+    }
+
+    @Override
+    public Node newTypedNode(long world, long time, String nodeType) {
+        return null;
+    }
+
+    @Override
+    public Node cloneNode(Node origin) {
+        return null;
+    }
+
+    @Override
     public <A extends Node> void lookup(long world, long time, long id, Callback<A> callback) {
 
+    }
+
+    @Override
+    public long fork(long world) {
+        return 0;
+    }
+
+    @Override
+    public void save(Callback<Boolean> callback) {
+
+    }
+
+    @Override
+    public void connect(Callback<Boolean> callback) {
+
+    }
+
+    @Override
+    public void disconnect(Callback<Boolean> callback) {
+
+    }
+
+    @Override
+    public void index(String indexName, Node nodeToIndex, String flatKeyAttributes, Callback<Boolean> callback) {
+
+    }
+
+    @Override
+    public void unindex(String indexName, Node nodeToUnindex, String flatKeyAttributes, Callback<Boolean> callback) {
+
+    }
+
+    @Override
+    public void indexes(long world, long time, Callback<String[]> callback) {
+
+    }
+
+    @Override
+    public void find(long world, long time, String indexName, String query, Callback<Node[]> callback) {
+
+    }
+
+    @Override
+    public void findByQuery(Query query, Callback<Node[]> callback) {
+
+    }
+
+    @Override
+    public void findAll(long world, long time, String indexName, Callback<Node[]> callback) {
+
+    }
+
+    @Override
+    public void getIndexNode(long world, long time, String indexName, Callback<Node> callback) {
+
+    }
+
+    @Override
+    public DeferCounter newCounter(int expectedEventsCount) {
+        return null;
+    }
+
+    @Override
+    public DeferCounterSync newSyncCounter(int expectedEventsCount) {
+        return null;
+    }
+
+    @Override
+    public Resolver resolver() {
+        return null;
+    }
+
+    @Override
+    public Scheduler scheduler() {
+        return null;
+    }
+
+    @Override
+    public ChunkSpace space() {
+        return null;
+    }
+
+    @Override
+    public Storage storage() {
+        return null;
+    }
+
+    private HeapMemoryFactory factory = new HeapMemoryFactory();
+
+    @Override
+    public Buffer newBuffer() {
+        return factory.newBuffer();
+    }
+
+    @Override
+    public Query newQuery() {
+        return null;
+    }
+
+    @Override
+    public void freeNodes(Node[] nodes) {
+
+    }
+
+    @Override
+    public TaskActionFactory taskAction(String name) {
+        return null;
     }
 
     @Override
@@ -95,7 +218,7 @@ public class QueryTest implements Resolver {
 
     @Override
     public long stringToHash(String name, boolean insertIfNotExists) {
-        return DataHasher.hash(name);
+        return HashHelper.hash(name);
     }
 
     @Override

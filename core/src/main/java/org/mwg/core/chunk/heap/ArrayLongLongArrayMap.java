@@ -3,7 +3,7 @@ package org.mwg.core.chunk.heap;
 
 import org.mwg.core.CoreConstants;
 import org.mwg.core.chunk.ChunkListener;
-import org.mwg.core.utility.PrimitiveHelper;
+import org.mwg.core.utility.HashHelper;
 import org.mwg.struct.LongLongArrayMap;
 import org.mwg.struct.LongLongArrayMapCallBack;
 
@@ -85,7 +85,7 @@ public class ArrayLongLongArrayMap implements LongLongArrayMap {
         if (internalState._stateSize == 0) {
             return new long[0];
         }
-        final int hashIndex = (int) PrimitiveHelper.longHash(key, internalState._stateSize);
+        final int hashIndex = (int) HashHelper.longHash(key, internalState._stateSize);
         long[] result = new long[0];
         int capacity = 0;
         int resultIndex = 0;
@@ -167,7 +167,7 @@ public class ArrayLongLongArrayMap implements LongLongArrayMap {
 
                 for (int i = 0; i < newElementV.length; i++) {
                     if (newElementV[i] != CoreConstants.NULL_LONG) { //there is a real value
-                        int newHashIndex = (int) PrimitiveHelper.longHash(newElementK[i], newCapacity);
+                        int newHashIndex = (int) HashHelper.longHash(newElementK[i], newCapacity);
                         int currentHashedIndex = newElementHash[newHashIndex];
                         if (currentHashedIndex != -1) {
                             newElementNext[i] = currentHashedIndex;
@@ -188,7 +188,7 @@ public class ArrayLongLongArrayMap implements LongLongArrayMap {
                 internalState = new InternalState(newCapacity, newElementK, newElementV, newElementNext, newElementHash, internalState._elementCount, emptySlotHEad);
                 state = internalState;
             }
-            int hashIndex = (int) PrimitiveHelper.longHash(key, internalState._stateSize);
+            int hashIndex = (int) HashHelper.longHash(key, internalState._stateSize);
             int m = internalState._elementHash[hashIndex];
             while (m >= 0) {
                 if (key == internalState._elementK[m] && value == internalState._elementV[m]) {
@@ -224,7 +224,7 @@ public class ArrayLongLongArrayMap implements LongLongArrayMap {
             internalState._elementCount = internalState._elementCount + 1;
             _listener.declareDirty(null);
         } else {
-            int hashIndex = (int) PrimitiveHelper.longHash(key, internalState._stateSize);
+            int hashIndex = (int) HashHelper.longHash(key, internalState._stateSize);
             int m = internalState._elementHash[hashIndex];
             int previousM = -1;
             while (m >= 0) {

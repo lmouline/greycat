@@ -1,7 +1,7 @@
 package org.mwg.core.chunk;
 
 import org.mwg.Graph;
-import org.mwg.plugin.Chunk;
+import org.mwg.chunk.Chunk;
 
 public interface ChunkListener {
 

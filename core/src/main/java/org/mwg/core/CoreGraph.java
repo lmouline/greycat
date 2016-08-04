@@ -1,20 +1,21 @@
 package org.mwg.core;
 
 import org.mwg.*;
-import org.mwg.core.chunk.GenChunk;
-import org.mwg.core.chunk.StateChunk;
-import org.mwg.core.chunk.WorldOrderChunk;
+import org.mwg.chunk.*;
+import org.mwg.chunk.GenChunk;
+import org.mwg.core.memory.HeapMemoryFactory;
 import org.mwg.core.task.CoreTask;
-import org.mwg.core.utility.BufferBuilder;
 import org.mwg.core.utility.CoreDeferCounter;
 import org.mwg.core.utility.CoreDeferCounterSync;
-import org.mwg.core.utility.PrimitiveHelper;
+import org.mwg.core.utility.HashHelper;
+import org.mwg.core.utility.KeyHelper;
 import org.mwg.plugin.*;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
 import org.mwg.struct.LongLongMap;
 import org.mwg.struct.LongLongMapCallBack;
 import org.mwg.task.TaskActionFactory;
+import org.mwg.utility.Base64;
 
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -44,30 +45,59 @@ class CoreGraph implements org.mwg.Graph {
     private final AtomicBoolean _lock;
 
     private final Plugin[] _plugins;
+    private final MemoryFactory _memoryFactory;
 
-    CoreGraph(Storage p_storage, ChunkSpace p_space, Scheduler p_scheduler, Resolver p_resolver, Plugin[] p_plugins) {
-        //subElements set
-        this._storage = p_storage;
-        this._space = p_space;
-        this._space.setGraph(this);
-        this._scheduler = p_scheduler;
-        this._resolver = p_resolver;
-        //init default taskActions
-        this._taskActions = new HashMap<String, TaskActionFactory>();
+    CoreGraph(final Storage p_storage, long memorySize, long saveEvery, Scheduler p_scheduler, Plugin[] p_plugins) {
+        final Graph selfPointer = this;
+        //First round, find relevant
+        MemoryFactory memoryFactory = null;
+        ResolverFactory resolverFactory = null;
+        if (p_plugins != null) {
+            for (int i = 0; i < p_plugins.length; i++) {
+                final Plugin loopPlugin = p_plugins[i];
+                final MemoryFactory loopMF = loopPlugin.memoryFactory();
+                if (loopMF != null) {
+                    memoryFactory = loopMF;
+                }
+                final ResolverFactory loopRF = loopPlugin.resolverFactory();
+                if (loopRF != null) {
+                    resolverFactory = loopRF;
+                }
+            }
+        }
+        if (memoryFactory == null) {
+            memoryFactory = new HeapMemoryFactory();
+        }
+        if (resolverFactory == null) {
+            resolverFactory = new ResolverFactory() {
+                @Override
+                public Resolver newResolver(Storage storage, ChunkSpace space) {
+                    return new MWGResolver(storage, space, selfPointer);
+                }
+            };
+        }
+        //Second round, initialize all mandatory elements
+        _storage = p_storage;
+        _memoryFactory = memoryFactory;
+        _space = memoryFactory.newSpace(memorySize, saveEvery, selfPointer);
+        _resolver = resolverFactory.newResolver(_storage, _space);
+        _scheduler = p_scheduler;
+        //Third round, initialize all taskActions and nodeTypes
+        _taskActions = new HashMap<String, TaskActionFactory>();
         CoreTask.fillDefault(this._taskActions);
         if (p_plugins != null) {
             this._nodeTypes = new HashMap<Long, NodeFactory>();
             for (int i = 0; i < p_plugins.length; i++) {
-                Plugin loopPlugin = p_plugins[i];
-                String[] plugin_names = loopPlugin.nodeTypes();
+                final Plugin loopPlugin = p_plugins[i];
+                final String[] plugin_names = loopPlugin.nodeTypes();
                 for (int j = 0; j < plugin_names.length; j++) {
-                    String plugin_name = plugin_names[j];
+                    final String plugin_name = plugin_names[j];
                     this._nodeTypes.put(_resolver.stringToHash(plugin_name, false), loopPlugin.nodeType(plugin_name));
                 }
-                String[] task_names = loopPlugin.taskActionTypes();
+                final String[] task_names = loopPlugin.taskActionTypes();
                 for (int j = 0; j < task_names.length; j++) {
-                    String task_name = task_names[j];
-                    this._taskActions.put(task_name, loopPlugin.taskActionType(task_name));
+                    final String task_name = task_names[j];
+                    _taskActions.put(task_name, loopPlugin.taskActionType(task_name));
                 }
             }
         } else {
@@ -208,16 +238,16 @@ class CoreGraph implements org.mwg.Graph {
                             prefixBuf.free();
                             final Buffer connectionKeys = selfPointer.newBuffer();
                             //preload ObjKeyGenerator
-                            BufferBuilder.keyToBuffer(connectionKeys, ChunkType.GEN_CHUNK, Constants.BEGINNING_OF_TIME, Constants.NULL_LONG, _prefix);
+                            KeyHelper.keyToBuffer(connectionKeys, ChunkType.GEN_CHUNK, Constants.BEGINNING_OF_TIME, Constants.NULL_LONG, _prefix);
                             connectionKeys.write(CoreConstants.BUFFER_SEP);
                             //preload WorldKeyGenerator
-                            BufferBuilder.keyToBuffer(connectionKeys, ChunkType.GEN_CHUNK, Constants.END_OF_TIME, Constants.NULL_LONG, _prefix);
+                            KeyHelper.keyToBuffer(connectionKeys, ChunkType.GEN_CHUNK, Constants.END_OF_TIME, Constants.NULL_LONG, _prefix);
                             connectionKeys.write(CoreConstants.BUFFER_SEP);
                             //preload GlobalWorldOrder
-                            BufferBuilder.keyToBuffer(connectionKeys, ChunkType.WORLD_ORDER_CHUNK, 0, 0, Constants.NULL_LONG);
+                            KeyHelper.keyToBuffer(connectionKeys, ChunkType.WORLD_ORDER_CHUNK, 0, 0, Constants.NULL_LONG);
                             connectionKeys.write(CoreConstants.BUFFER_SEP);
                             //preload GlobalDictionary
-                            BufferBuilder.keyToBuffer(connectionKeys, ChunkType.STATE_CHUNK, CoreConstants.GLOBAL_DICTIONARY_KEY[0], CoreConstants.GLOBAL_DICTIONARY_KEY[1], CoreConstants.GLOBAL_DICTIONARY_KEY[2]);
+                            KeyHelper.keyToBuffer(connectionKeys, ChunkType.STATE_CHUNK, CoreConstants.GLOBAL_DICTIONARY_KEY[0], CoreConstants.GLOBAL_DICTIONARY_KEY[1], CoreConstants.GLOBAL_DICTIONARY_KEY[2]);
                             connectionKeys.write(CoreConstants.BUFFER_SEP);
                             selfPointer._storage.get(connectionKeys, new Callback<Buffer>() {
                                 @Override
@@ -239,7 +269,7 @@ class CoreGraph implements org.mwg.Graph {
                                             } else {
                                                 globalWorldOrder = (WorldOrderChunk) selfPointer._space.create(ChunkType.WORLD_ORDER_CHUNK, 0, 0, Constants.NULL_LONG, null, null);
                                             }
-                                            selfPointer._space.putAndMark(globalWorldOrder);
+                                            selfPointer._space.putAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, Constants.NULL_LONG, globalWorldOrder);
 
                                             //init the global dictionary chunk
                                             StateChunk globalDictionaryChunk;
@@ -248,24 +278,24 @@ class CoreGraph implements org.mwg.Graph {
                                             } else {
                                                 globalDictionaryChunk = (StateChunk) selfPointer._space.create(ChunkType.STATE_CHUNK, CoreConstants.GLOBAL_DICTIONARY_KEY[0], CoreConstants.GLOBAL_DICTIONARY_KEY[1], CoreConstants.GLOBAL_DICTIONARY_KEY[2], null, null);
                                             }
-                                            selfPointer._space.putAndMark(globalDictionaryChunk);
+                                            selfPointer._space.putAndMark(ChunkType.STATE_CHUNK, CoreConstants.GLOBAL_DICTIONARY_KEY[0], CoreConstants.GLOBAL_DICTIONARY_KEY[1], CoreConstants.GLOBAL_DICTIONARY_KEY[2], globalDictionaryChunk);
 
                                             if (view2.length() > 0) {
                                                 selfPointer._worldKeyCalculator = (GenChunk) selfPointer._space.create(ChunkType.GEN_CHUNK, Constants.END_OF_TIME, Constants.NULL_LONG, _prefix, view2, null);
                                             } else {
                                                 selfPointer._worldKeyCalculator = (GenChunk) selfPointer._space.create(ChunkType.GEN_CHUNK, Constants.END_OF_TIME, Constants.NULL_LONG, _prefix, null, null);
                                             }
-                                            selfPointer._space.putAndMark(selfPointer._worldKeyCalculator);
+                                            selfPointer._space.putAndMark(ChunkType.GEN_CHUNK, Constants.END_OF_TIME, Constants.NULL_LONG, _prefix, selfPointer._worldKeyCalculator);
 
                                             if (view1.length() > 0) {
                                                 selfPointer._nodeKeyCalculator = (GenChunk) selfPointer._space.create(ChunkType.GEN_CHUNK, Constants.BEGINNING_OF_TIME, Constants.NULL_LONG, _prefix, view1, null);
                                             } else {
                                                 selfPointer._nodeKeyCalculator = (GenChunk) selfPointer._space.create(ChunkType.GEN_CHUNK, Constants.BEGINNING_OF_TIME, Constants.NULL_LONG, _prefix, null, null);
                                             }
-                                            selfPointer._space.putAndMark(selfPointer._nodeKeyCalculator);
+                                            selfPointer._space.putAndMark(ChunkType.GEN_CHUNK, Constants.BEGINNING_OF_TIME, Constants.NULL_LONG, _prefix, selfPointer._nodeKeyCalculator);
 
                                             //init the resolver
-                                            selfPointer._resolver.init(selfPointer);
+                                            selfPointer._resolver.init();
 
                                             if (_plugins != null) {
                                                 for (int i = 0; i < _plugins.length; i++) {
@@ -286,12 +316,12 @@ class CoreGraph implements org.mwg.Graph {
                                         }
                                         payloads.free();
                                         selfPointer._lock.set(true);
-                                        if (PrimitiveHelper.isDefined(callback)) {
+                                        if (HashHelper.isDefined(callback)) {
                                             callback.on(noError);
                                         }
                                     } else {
                                         selfPointer._lock.set(true);
-                                        if (PrimitiveHelper.isDefined(callback)) {
+                                        if (HashHelper.isDefined(callback)) {
                                             callback.on(false);
                                         }
                                     }
@@ -306,7 +336,7 @@ class CoreGraph implements org.mwg.Graph {
         } else {
             //already connected
             selfPointer._lock.set(true);
-            if (PrimitiveHelper.isDefined(callback)) {
+            if (HashHelper.isDefined(callback)) {
                 callback.on(null);
             }
         }
@@ -338,7 +368,7 @@ class CoreGraph implements org.mwg.Graph {
                                     @Override
                                     public void on(Boolean result) {
                                         selfPointer._lock.set(true);
-                                        if (PrimitiveHelper.isDefined(callback)) {
+                                        if (HashHelper.isDefined(callback)) {
                                             callback.on(result);
                                         }
                                     }
@@ -347,7 +377,7 @@ class CoreGraph implements org.mwg.Graph {
                         });
                     } else {
                         selfPointer._lock.set(true);
-                        if (PrimitiveHelper.isDefined(callback)) {
+                        if (HashHelper.isDefined(callback)) {
                             callback.on(result);
                         }
                     }
@@ -356,7 +386,7 @@ class CoreGraph implements org.mwg.Graph {
         } else {
             //not previously connected
             this._lock.set(true);
-            if (PrimitiveHelper.isDefined(callback)) {
+            if (HashHelper.isDefined(callback)) {
                 callback.on(null);
             }
         }
@@ -364,22 +394,18 @@ class CoreGraph implements org.mwg.Graph {
 
     @Override
     public Buffer newBuffer() {
-        if (offHeapBuffer) {
-            return BufferBuilder.newOffHeapBuffer();
-        } else {
-            return BufferBuilder.newHeapBuffer();
-        }
+        return _memoryFactory.newBuffer();
     }
 
     @Override
     public Query newQuery() {
-        return new CoreQuery(_resolver);
+        return new CoreQuery(this,_resolver);
     }
 
     private void saveDirtyList(final ChunkIterator dirtyIterator, final Callback<Boolean> callback) {
         if (dirtyIterator.size() == 0) {
             dirtyIterator.free();
-            if (PrimitiveHelper.isDefined(callback)) {
+            if (HashHelper.isDefined(callback)) {
                 callback.on(null);
             }
         } else {
@@ -396,7 +422,7 @@ class CoreGraph implements org.mwg.Graph {
                         } else {
                             stream.write(CoreConstants.BUFFER_SEP);
                         }
-                        BufferBuilder.keyToBuffer(stream, loopChunk.chunkType(), loopChunk.world(), loopChunk.time(), loopChunk.id());
+                        KeyHelper.keyToBuffer(stream, loopChunk.chunkType(), loopChunk.world(), loopChunk.time(), loopChunk.id());
                     }
                     //Save chunk payload
                     stream.write(CoreConstants.BUFFER_SEP);
@@ -417,7 +443,7 @@ class CoreGraph implements org.mwg.Graph {
                     //free all value
                     stream.free();
                     dirtyIterator.free();
-                    if (PrimitiveHelper.isDefined(callback)) {
+                    if (HashHelper.isDefined(callback)) {
                         callback.on(result);
                     }
                 }
@@ -446,7 +472,7 @@ class CoreGraph implements org.mwg.Graph {
                     @Override
                     public void on(Boolean result) {
                         foundIndex.free();
-                        if (PrimitiveHelper.isDefined(callback)) {
+                        if (HashHelper.isDefined(callback)) {
                             callback.on(result);
                         }
                     }
@@ -474,13 +500,13 @@ class CoreGraph implements org.mwg.Graph {
                         @Override
                         public void on(Boolean result) {
                             foundIndex.free();
-                            if (PrimitiveHelper.isDefined(callback)) {
+                            if (HashHelper.isDefined(callback)) {
                                 callback.on(result);
                             }
                         }
                     });
                 } else {
-                    if (PrimitiveHelper.isDefined(callback)) {
+                    if (HashHelper.isDefined(callback)) {
                         callback.on(false);
                     }
                 }
@@ -531,7 +557,7 @@ class CoreGraph implements org.mwg.Graph {
             @Override
             public void on(final org.mwg.Node foundIndex) {
                 if (foundIndex == null) {
-                    if (PrimitiveHelper.isDefined(callback)) {
+                    if (HashHelper.isDefined(callback)) {
                         callback.on(new Node[0]);
                     }
                 } else {
@@ -539,7 +565,7 @@ class CoreGraph implements org.mwg.Graph {
                         @Override
                         public void on(org.mwg.Node[] collectedNodes) {
                             foundIndex.free();
-                            if (PrimitiveHelper.isDefined(callback)) {
+                            if (HashHelper.isDefined(callback)) {
                                 callback.on(collectedNodes);
                             }
                         }
@@ -568,7 +594,7 @@ class CoreGraph implements org.mwg.Graph {
             @Override
             public void on(final org.mwg.Node foundIndex) {
                 if (foundIndex == null) {
-                    if (PrimitiveHelper.isDefined(callback)) {
+                    if (HashHelper.isDefined(callback)) {
                         callback.on(new Node[0]);
                     }
                 } else {
@@ -577,7 +603,7 @@ class CoreGraph implements org.mwg.Graph {
                         @Override
                         public void on(final org.mwg.Node[] collectedNodes) {
                             foundIndex.free();
-                            if (PrimitiveHelper.isDefined(callback)) {
+                            if (HashHelper.isDefined(callback)) {
                                 callback.on(collectedNodes);
                             }
                         }
@@ -596,7 +622,7 @@ class CoreGraph implements org.mwg.Graph {
             @Override
             public void on(final org.mwg.Node foundIndex) {
                 if (foundIndex == null) {
-                    if (PrimitiveHelper.isDefined(callback)) {
+                    if (HashHelper.isDefined(callback)) {
                         callback.on(new Node[0]);
                     }
                 } else {
@@ -604,7 +630,7 @@ class CoreGraph implements org.mwg.Graph {
                         @Override
                         public void on(org.mwg.Node[] collectedNodes) {
                             foundIndex.free();
-                            if (PrimitiveHelper.isDefined(callback)) {
+                            if (HashHelper.isDefined(callback)) {
                                 callback.on(collectedNodes);
                             }
                         }

@@ -10,11 +10,9 @@ import org.mwg.Node;
 public interface Resolver {
 
     /**
-     * Initializes the resolver with the graph passed as parameter
-     *
-     * @param graph graph this resolver belongs to
+     * Initializes the resolver (cache)
      */
-    void init(Graph graph);
+    void init();
 
     /**
      * Initializes backend structures for the newly created node passed as parameter

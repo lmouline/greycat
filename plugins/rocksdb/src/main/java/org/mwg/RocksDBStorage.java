@@ -1,6 +1,6 @@
 package org.mwg;
 
-import org.mwg.plugin.Base64;
+import org.mwg.utility.Base64;
 import org.mwg.plugin.Storage;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;

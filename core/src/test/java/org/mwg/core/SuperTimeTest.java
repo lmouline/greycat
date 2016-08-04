@@ -3,15 +3,10 @@ package org.mwg.core;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
-import org.mwg.core.chunk.TimeTreeChunk;
-import org.mwg.core.chunk.offheap.OffHeapByteArray;
-import org.mwg.core.chunk.offheap.OffHeapDoubleArray;
-import org.mwg.core.chunk.offheap.OffHeapLongArray;
-import org.mwg.core.chunk.offheap.OffHeapStringArray;
+import org.mwg.chunk.TimeTreeChunk;
 import org.mwg.core.scheduler.NoopScheduler;
-import org.mwg.core.utility.Unsafe;
-import org.mwg.plugin.ChunkSpace;
-import org.mwg.plugin.ChunkType;
+import org.mwg.chunk.ChunkSpace;
+import org.mwg.chunk.ChunkType;
 
 public class SuperTimeTest {
 
@@ -25,6 +20,7 @@ public class SuperTimeTest {
      */
     @Test
     public void offHeapTest() {
+        /*
         OffHeapByteArray.alloc_counter = 0;
         OffHeapDoubleArray.alloc_counter = 0;
         OffHeapLongArray.alloc_counter = 0;
@@ -38,6 +34,7 @@ public class SuperTimeTest {
         Assert.assertTrue(OffHeapDoubleArray.alloc_counter == 0);
         Assert.assertTrue(OffHeapLongArray.alloc_counter == 0);
         Assert.assertTrue(OffHeapStringArray.alloc_counter == 0);
+        */
     }
 
     private void test(final org.mwg.Graph graph) {

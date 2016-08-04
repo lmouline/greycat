@@ -3,7 +3,7 @@ package org.mwg.core.chunk.heap;
 
 import org.mwg.core.CoreConstants;
 import org.mwg.core.chunk.ChunkListener;
-import org.mwg.core.utility.PrimitiveHelper;
+import org.mwg.core.utility.HashHelper;
 import org.mwg.struct.LongLongMap;
 import org.mwg.struct.LongLongMapCallBack;
 
@@ -78,7 +78,7 @@ public class ArrayLongLongMap implements LongLongMap {
         if (internalState._stateSize == 0) {
             return CoreConstants.NULL_LONG;
         }
-        int hashIndex = (int) PrimitiveHelper.longHash(key, internalState._stateSize);
+        int hashIndex = (int) HashHelper.longHash(key, internalState._stateSize);
         int m = internalState._elementHash[hashIndex];
         while (m >= 0) {
             if (key == internalState._elementK[m]) {
@@ -120,7 +120,7 @@ public class ArrayLongLongMap implements LongLongMap {
         int hashIndex = -1;
         InternalState internalState = state;
         if (internalState._stateSize > 0) {
-            hashIndex = (int) PrimitiveHelper.longHash(key, internalState._stateSize);
+            hashIndex = (int) HashHelper.longHash(key, internalState._stateSize);
             int m = internalState._elementHash[hashIndex];
             while (m >= 0) {
                 if (key == internalState._elementK[m]) {
@@ -148,7 +148,7 @@ public class ArrayLongLongMap implements LongLongMap {
                 //rehashEveryThing
                 for (int i = 0; i < internalState._elementCount; i++) {
                     if (internalState._elementNext[i] != -1) { //there is a real value
-                        int newHashIndex = (int) PrimitiveHelper.longHash(internalState._elementK[i], newCapacity);
+                        int newHashIndex = (int) HashHelper.longHash(internalState._elementK[i], newCapacity);
                         int currentHashedIndex = newElementHash[newHashIndex];
                         if (currentHashedIndex != -1) {
                             newElementNext[i] = currentHashedIndex;
@@ -161,7 +161,7 @@ public class ArrayLongLongMap implements LongLongMap {
                 //setPrimitiveType value for all
                 internalState = new InternalState(newCapacity, newElementK, newElementV, newElementNext, newElementHash, internalState._elementCount);
                 state = internalState;
-                hashIndex = (int) PrimitiveHelper.longHash(key, internalState._stateSize);
+                hashIndex = (int) HashHelper.longHash(key, internalState._stateSize);
             }
             int newIndex = internalState._elementCount;
             internalState._elementK[newIndex] = key;
