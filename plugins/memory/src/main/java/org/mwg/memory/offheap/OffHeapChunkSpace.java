@@ -28,7 +28,7 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
     private final long _saveBatchSize;
     private final Stack _lru;
 
-    private Graph _graph;
+    private final Graph _graph;
 
     /**
      * HashMap variables
@@ -117,7 +117,8 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
 
     }
 
-    public OffHeapChunkSpace(long initialCapacity, long saveBatchSize) {
+    public OffHeapChunkSpace(long initialCapacity, long saveBatchSize, Graph p_graph) {
+        this._graph = p_graph;
 
         if (saveBatchSize > initialCapacity) {
             throw new RuntimeException("Save Batch Size can't be bigger than cache size");

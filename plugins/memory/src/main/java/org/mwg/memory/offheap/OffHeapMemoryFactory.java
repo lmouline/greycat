@@ -8,7 +8,7 @@ import org.mwg.struct.Buffer;
 public class OffHeapMemoryFactory implements MemoryFactory {
     @Override
     public ChunkSpace newSpace(long memorySize, long saveEvery, Graph graph) {
-        return new OffHeapChunkSpace(memorySize, saveEvery);
+        return new OffHeapChunkSpace(memorySize, saveEvery, graph);
     }
 
     @Override
