@@ -346,7 +346,7 @@ declare module org {
             newSyncCounter(expectedEventsCount: number): org.mwg.DeferCounterSync;
             resolver(): org.mwg.plugin.Resolver;
             scheduler(): org.mwg.plugin.Scheduler;
-            space(): org.mwg.plugin.ChunkSpace;
+            space(): org.mwg.chunk.ChunkSpace;
             storage(): org.mwg.plugin.Storage;
             newBuffer(): org.mwg.struct.Buffer;
             newQuery(): org.mwg.Query;
@@ -433,6 +433,74 @@ declare module org {
             static RELATION: number;
             static typeName(p_type: number): string;
         }
+        module chunk {
+            interface Chunk {
+                world(): number;
+                time(): number;
+                id(): number;
+                chunkType(): number;
+                index(): number;
+                marks(): number;
+                flags(): number;
+                save(buffer: org.mwg.struct.Buffer): void;
+                merge(buffer: org.mwg.struct.Buffer): void;
+            }
+            interface ChunkIterator {
+                hasNext(): boolean;
+                next(): org.mwg.chunk.Chunk;
+                size(): number;
+                free(): void;
+            }
+            interface ChunkSpace {
+                create(type: number, world: number, time: number, id: number, initialPayload: org.mwg.struct.Buffer, origin: org.mwg.chunk.Chunk): org.mwg.chunk.Chunk;
+                getAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
+                getByIndex(index: number): org.mwg.chunk.Chunk;
+                putAndMark(type: number, world: number, time: number, id: number, elem: org.mwg.chunk.Chunk): org.mwg.chunk.Chunk;
+                getOrLoadAndMark(type: number, world: number, time: number, id: number, callback: org.mwg.Callback<org.mwg.chunk.Chunk>): void;
+                unmarkByIndex(index: number): void;
+                markByIndex(index: number): void;
+                unmarkChunk(chunk: org.mwg.chunk.Chunk): void;
+                freeChunk(chunk: org.mwg.chunk.Chunk): void;
+                declareDirty(elem: org.mwg.chunk.Chunk): void;
+                declareClean(elem: org.mwg.chunk.Chunk): void;
+                graph(): org.mwg.Graph;
+                clear(): void;
+                free(): void;
+                size(): number;
+                available(): number;
+                detachDirties(): org.mwg.chunk.ChunkIterator;
+            }
+            class ChunkType {
+                static STATE_CHUNK: number;
+                static TIME_TREE_CHUNK: number;
+                static WORLD_ORDER_CHUNK: number;
+                static GEN_CHUNK: number;
+            }
+            interface GenChunk extends org.mwg.chunk.Chunk {
+                newKey(): number;
+            }
+            interface StateChunk extends org.mwg.chunk.Chunk, org.mwg.plugin.NodeState {
+            }
+            interface TimeTreeChunk extends org.mwg.chunk.Chunk {
+                insert(key: number): void;
+                unsafe_insert(key: number): void;
+                previousOrEqual(key: number): number;
+                clearAt(max: number): void;
+                range(startKey: number, endKey: number, maxElements: number, walker: org.mwg.chunk.TreeWalker): void;
+                magic(): number;
+                size(): number;
+            }
+            interface TreeWalker {
+                (t: number): void;
+            }
+            interface WorldOrderChunk extends org.mwg.chunk.Chunk, org.mwg.struct.LongLongMap {
+                magic(): number;
+                lock(): void;
+                unlock(): void;
+                extra(): number;
+                setExtra(extraValue: number): void;
+            }
+        }
         module plugin {
             abstract class AbstractNode implements org.mwg.Node {
                 private _world;
@@ -486,12 +554,18 @@ declare module org {
             class AbstractPlugin implements org.mwg.plugin.Plugin {
                 private _nodeTypes;
                 private _taskActions;
+                private _memoryFactory;
+                private _resolverFactory;
                 declareNodeType(name: string, factory: org.mwg.plugin.NodeFactory): org.mwg.plugin.Plugin;
                 declareTaskAction(name: string, factory: org.mwg.task.TaskActionFactory): org.mwg.plugin.Plugin;
+                declareMemoryFactory(factory: org.mwg.plugin.MemoryFactory): org.mwg.plugin.Plugin;
+                declareResolverFactory(factory: org.mwg.plugin.ResolverFactory): org.mwg.plugin.Plugin;
                 nodeTypes(): string[];
                 nodeType(nodeTypeName: string): org.mwg.plugin.NodeFactory;
                 taskActionTypes(): string[];
                 taskActionType(taskTypeName: string): org.mwg.task.TaskActionFactory;
+                memoryFactory(): org.mwg.plugin.MemoryFactory;
+                resolverFactory(): org.mwg.plugin.ResolverFactory;
             }
             abstract class AbstractTaskAction implements org.mwg.task.TaskAction {
                 private _next;
@@ -499,99 +573,12 @@ declare module org {
                 next(): org.mwg.plugin.AbstractTaskAction;
                 abstract eval(context: org.mwg.task.TaskContext): void;
             }
-            class Base64 {
-                private static dictionary;
-                private static powTwo;
-                private static longIndexes;
-                static encodeLongToBuffer(l: number, buffer: org.mwg.struct.Buffer): void;
-                static encodeIntToBuffer(l: number, buffer: org.mwg.struct.Buffer): void;
-                static decodeToLong(s: org.mwg.struct.Buffer): number;
-                static decodeToLongWithBounds(s: org.mwg.struct.Buffer, offsetBegin: number, offsetEnd: number): number;
-                static decodeToInt(s: org.mwg.struct.Buffer): number;
-                static decodeToIntWithBounds(s: org.mwg.struct.Buffer, offsetBegin: number, offsetEnd: number): number;
-                static encodeDoubleToBuffer(d: number, buffer: org.mwg.struct.Buffer): void;
-                static decodeToDouble(s: org.mwg.struct.Buffer): number;
-                static decodeToDoubleWithBounds(s: org.mwg.struct.Buffer, offsetBegin: number, offsetEnd: number): number;
-                static encodeBoolArrayToBuffer(boolArr: Array<boolean>, buffer: org.mwg.struct.Buffer): void;
-                static decodeBoolArray(s: org.mwg.struct.Buffer, arraySize: number): any[];
-                static decodeToBoolArrayWithBounds(s: org.mwg.struct.Buffer, offsetBegin: number, offsetEnd: number, arraySize: number): any[];
-                static encodeStringToBuffer(s: string, buffer: org.mwg.struct.Buffer): void;
-                static decodeString(s: org.mwg.struct.Buffer): string;
-                static decodeToStringWithBounds(s: org.mwg.struct.Buffer, offsetBegin: number, offsetEnd: number): string;
-            }
-            interface Chunk {
-                world(): number;
-                time(): number;
-                id(): number;
-                chunkType(): number;
-                marks(): number;
-                flags(): number;
-                save(buffer: org.mwg.struct.Buffer): void;
-                merge(buffer: org.mwg.struct.Buffer): void;
-                index(): number;
-            }
-            interface ChunkIterator {
-                hasNext(): boolean;
-                next(): org.mwg.plugin.Chunk;
-                size(): number;
-                free(): void;
-            }
-            interface ChunkSpace {
-                create(type: number, world: number, time: number, id: number, initialPayload: org.mwg.struct.Buffer, origin: org.mwg.plugin.Chunk): org.mwg.plugin.Chunk;
-                getAndMark(type: number, world: number, time: number, id: number): org.mwg.plugin.Chunk;
-                getByIndex(index: number): org.mwg.plugin.Chunk;
-                putAndMark(elem: org.mwg.plugin.Chunk): org.mwg.plugin.Chunk;
-                getOrLoadAndMark(type: number, world: number, time: number, id: number, callback: org.mwg.Callback<org.mwg.plugin.Chunk>): void;
-                unmarkByIndex(index: number): void;
-                markByIndex(index: number): void;
-                unmarkChunk(chunk: org.mwg.plugin.Chunk): void;
-                freeChunk(chunk: org.mwg.plugin.Chunk): void;
-                declareDirty(elem: org.mwg.plugin.Chunk): void;
-                declareClean(elem: org.mwg.plugin.Chunk): void;
-                setGraph(graph: org.mwg.Graph): void;
-                graph(): org.mwg.Graph;
-                clear(): void;
-                free(): void;
-                size(): number;
-                available(): number;
-                detachDirties(): org.mwg.plugin.ChunkIterator;
-            }
-            class ChunkType {
-                static STATE_CHUNK: number;
-                static TIME_TREE_CHUNK: number;
-                static WORLD_ORDER_CHUNK: number;
-                static GEN_CHUNK: number;
-            }
-            class ConsoleHook implements org.mwg.task.TaskHook {
-                private static _instance;
-                static instance(): org.mwg.plugin.ConsoleHook;
-                on(previous: org.mwg.task.TaskAction, next: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
-            }
-            class Enforcer {
-                private checkers;
-                asBool(propertyName: string): org.mwg.plugin.Enforcer;
-                asString(propertyName: string): org.mwg.plugin.Enforcer;
-                asLong(propertyName: string): org.mwg.plugin.Enforcer;
-                asLongWithin(propertyName: string, min: number, max: number): org.mwg.plugin.Enforcer;
-                asDouble(propertyName: string): org.mwg.plugin.Enforcer;
-                asDoubleWithin(propertyName: string, min: number, max: number): org.mwg.plugin.Enforcer;
-                asInt(propertyName: string): org.mwg.plugin.Enforcer;
-                asIntWithin(propertyName: string, min: number, max: number): org.mwg.plugin.Enforcer;
-                asIntGreaterOrEquals(propertyName: string, min: number): org.mwg.plugin.Enforcer;
-                asDoubleArray(propertyName: string): org.mwg.plugin.Enforcer;
-                asPositiveInt(propertyName: string): org.mwg.plugin.Enforcer;
-                asNonNegativeDouble(propertyName: string): org.mwg.plugin.Enforcer;
-                asPositiveDouble(propertyName: string): org.mwg.plugin.Enforcer;
-                asNonNegativeOrNanDouble(propertyName: string): org.mwg.plugin.Enforcer;
-                asPositiveLong(propertyName: string): org.mwg.plugin.Enforcer;
-                declare(propertyName: string, checker: org.mwg.plugin.EnforcerChecker): org.mwg.plugin.Enforcer;
-                check(propertyName: string, propertyType: number, propertyValue: any): void;
-            }
-            interface EnforcerChecker {
-                check(inputType: number, input: any): void;
-            }
             interface Job {
                 (): void;
+            }
+            interface MemoryFactory {
+                newSpace(memorySize: number, saveEvery: number, graph: org.mwg.Graph): org.mwg.chunk.ChunkSpace;
+                newBuffer(): org.mwg.struct.Buffer;
             }
             interface NodeFactory {
                 (world: number, time: number, id: number, graph: org.mwg.Graph): org.mwg.Node;
@@ -617,13 +604,17 @@ declare module org {
             interface Plugin {
                 declareNodeType(name: string, factory: org.mwg.plugin.NodeFactory): org.mwg.plugin.Plugin;
                 declareTaskAction(name: string, factory: org.mwg.task.TaskActionFactory): org.mwg.plugin.Plugin;
+                declareMemoryFactory(factory: org.mwg.plugin.MemoryFactory): org.mwg.plugin.Plugin;
+                declareResolverFactory(factory: org.mwg.plugin.ResolverFactory): org.mwg.plugin.Plugin;
                 nodeTypes(): string[];
                 nodeType(nodeTypeName: string): org.mwg.plugin.NodeFactory;
                 taskActionTypes(): string[];
                 taskActionType(taskTypeName: string): org.mwg.task.TaskActionFactory;
+                memoryFactory(): org.mwg.plugin.MemoryFactory;
+                resolverFactory(): org.mwg.plugin.ResolverFactory;
             }
             interface Resolver {
-                init(graph: org.mwg.Graph): void;
+                init(): void;
                 initNode(node: org.mwg.Node, typeCode: number): void;
                 initWorld(parentWorld: number, childWorld: number): void;
                 freeNode(node: org.mwg.Node): void;
@@ -636,6 +627,9 @@ declare module org {
                 resolveTimepoints(node: org.mwg.Node, beginningOfSearch: number, endOfSearch: number, callback: org.mwg.Callback<Float64Array>): void;
                 stringToHash(name: string, insertIfNotExists: boolean): number;
                 hashToString(key: number): string;
+            }
+            interface ResolverFactory {
+                newResolver(storage: org.mwg.plugin.Storage, space: org.mwg.chunk.ChunkSpace): org.mwg.plugin.Resolver;
             }
             interface Scheduler {
                 dispatch(affinity: number, job: org.mwg.plugin.Job): void;
@@ -895,6 +889,56 @@ declare module org {
                 next(): A;
             }
         }
+        module utility {
+            class Base64 {
+                private static dictionary;
+                private static powTwo;
+                private static longIndexes;
+                static encodeLongToBuffer(l: number, buffer: org.mwg.struct.Buffer): void;
+                static encodeIntToBuffer(l: number, buffer: org.mwg.struct.Buffer): void;
+                static decodeToLong(s: org.mwg.struct.Buffer): number;
+                static decodeToLongWithBounds(s: org.mwg.struct.Buffer, offsetBegin: number, offsetEnd: number): number;
+                static decodeToInt(s: org.mwg.struct.Buffer): number;
+                static decodeToIntWithBounds(s: org.mwg.struct.Buffer, offsetBegin: number, offsetEnd: number): number;
+                static encodeDoubleToBuffer(d: number, buffer: org.mwg.struct.Buffer): void;
+                static decodeToDouble(s: org.mwg.struct.Buffer): number;
+                static decodeToDoubleWithBounds(s: org.mwg.struct.Buffer, offsetBegin: number, offsetEnd: number): number;
+                static encodeBoolArrayToBuffer(boolArr: Array<boolean>, buffer: org.mwg.struct.Buffer): void;
+                static decodeBoolArray(s: org.mwg.struct.Buffer, arraySize: number): any[];
+                static decodeToBoolArrayWithBounds(s: org.mwg.struct.Buffer, offsetBegin: number, offsetEnd: number, arraySize: number): any[];
+                static encodeStringToBuffer(s: string, buffer: org.mwg.struct.Buffer): void;
+                static decodeString(s: org.mwg.struct.Buffer): string;
+                static decodeToStringWithBounds(s: org.mwg.struct.Buffer, offsetBegin: number, offsetEnd: number): string;
+            }
+            class ConsoleHook implements org.mwg.task.TaskHook {
+                private static _instance;
+                static instance(): org.mwg.utility.ConsoleHook;
+                on(previous: org.mwg.task.TaskAction, next: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
+            }
+            class Enforcer {
+                private checkers;
+                asBool(propertyName: string): org.mwg.utility.Enforcer;
+                asString(propertyName: string): org.mwg.utility.Enforcer;
+                asLong(propertyName: string): org.mwg.utility.Enforcer;
+                asLongWithin(propertyName: string, min: number, max: number): org.mwg.utility.Enforcer;
+                asDouble(propertyName: string): org.mwg.utility.Enforcer;
+                asDoubleWithin(propertyName: string, min: number, max: number): org.mwg.utility.Enforcer;
+                asInt(propertyName: string): org.mwg.utility.Enforcer;
+                asIntWithin(propertyName: string, min: number, max: number): org.mwg.utility.Enforcer;
+                asIntGreaterOrEquals(propertyName: string, min: number): org.mwg.utility.Enforcer;
+                asDoubleArray(propertyName: string): org.mwg.utility.Enforcer;
+                asPositiveInt(propertyName: string): org.mwg.utility.Enforcer;
+                asNonNegativeDouble(propertyName: string): org.mwg.utility.Enforcer;
+                asPositiveDouble(propertyName: string): org.mwg.utility.Enforcer;
+                asNonNegativeOrNanDouble(propertyName: string): org.mwg.utility.Enforcer;
+                asPositiveLong(propertyName: string): org.mwg.utility.Enforcer;
+                declare(propertyName: string, checker: org.mwg.utility.EnforcerChecker): org.mwg.utility.Enforcer;
+                check(propertyName: string, propertyType: number, propertyValue: any): void;
+            }
+            interface EnforcerChecker {
+                check(inputType: number, input: any): void;
+            }
+        }
     }
 }
 declare module org {
@@ -914,7 +958,6 @@ declare module org {
             class Builder implements org.mwg.GraphBuilder.InternalBuilder {
                 newGraph(p_storage: org.mwg.plugin.Storage, p_readOnly: boolean, p_scheduler: org.mwg.plugin.Scheduler, p_plugins: org.mwg.plugin.Plugin[], p_usingGC: boolean, p_usingOffHeapMemory: boolean, p_memorySize: number, p_autoSaveSize: number): org.mwg.Graph;
                 newTask(): org.mwg.task.Task;
-                private createSpace(usingOffHeapMemory, memorySize, autoSaveSize);
             }
             class CoreConstants extends org.mwg.Constants {
                 static CHUNK_SEP: number;
@@ -931,13 +974,6 @@ declare module org {
                 static MAP_INITIAL_CAPACITY: number;
                 static MAP_LOAD_FACTOR: number;
                 static DISCONNECTED_ERROR: string;
-                static OFFHEAP_NULL_PTR: number;
-                static OFFHEAP_CHUNK_INDEX_WORLD: number;
-                static OFFHEAP_CHUNK_INDEX_TIME: number;
-                static OFFHEAP_CHUNK_INDEX_ID: number;
-                static OFFHEAP_CHUNK_INDEX_TYPE: number;
-                static OFFHEAP_CHUNK_INDEX_FLAGS: number;
-                static OFFHEAP_CHUNK_INDEX_MARKS: number;
                 static SCALE_1: number;
                 static SCALE_2: number;
                 static SCALE_3: number;
@@ -960,7 +996,8 @@ declare module org {
                 private _isConnected;
                 private _lock;
                 private _plugins;
-                constructor(p_storage: org.mwg.plugin.Storage, p_space: org.mwg.plugin.ChunkSpace, p_scheduler: org.mwg.plugin.Scheduler, p_resolver: org.mwg.plugin.Resolver, p_plugins: org.mwg.plugin.Plugin[]);
+                private _memoryFactory;
+                constructor(p_storage: org.mwg.plugin.Storage, memorySize: number, saveEvery: number, p_scheduler: org.mwg.plugin.Scheduler, p_plugins: org.mwg.plugin.Plugin[]);
                 fork(world: number): number;
                 newNode(world: number, time: number): org.mwg.Node;
                 newTypedNode(world: number, time: number, nodeType: string): org.mwg.Node;
@@ -986,7 +1023,7 @@ declare module org {
                 newSyncCounter(expectedCountCalls: number): org.mwg.DeferCounterSync;
                 resolver(): org.mwg.plugin.Resolver;
                 scheduler(): org.mwg.plugin.Scheduler;
-                space(): org.mwg.plugin.ChunkSpace;
+                space(): org.mwg.chunk.ChunkSpace;
                 storage(): org.mwg.plugin.Storage;
                 freeNodes(nodes: org.mwg.Node[]): void;
             }
@@ -995,6 +1032,7 @@ declare module org {
             }
             class CoreQuery implements org.mwg.Query {
                 private _resolver;
+                private _graph;
                 private capacity;
                 private _attributes;
                 private _values;
@@ -1003,7 +1041,7 @@ declare module org {
                 private _world;
                 private _time;
                 private _indexName;
-                constructor(p_resolver: org.mwg.plugin.Resolver);
+                constructor(graph: org.mwg.Graph, p_resolver: org.mwg.plugin.Resolver);
                 parse(flatQuery: string): org.mwg.Query;
                 add(attributeName: string, value: any): org.mwg.Query;
                 setWorld(initialWorld: number): org.mwg.Query;
@@ -1021,13 +1059,12 @@ declare module org {
             class MWGResolver implements org.mwg.plugin.Resolver {
                 private _storage;
                 private _space;
-                private _tracker;
                 private _graph;
                 private dictionary;
                 private globalWorldOrderChunk;
                 private static KEY_SIZE;
-                constructor(p_storage: org.mwg.plugin.Storage, p_space: org.mwg.plugin.ChunkSpace, p_tracker: org.mwg.core.NodeTracker);
-                init(graph: org.mwg.Graph): void;
+                constructor(p_storage: org.mwg.plugin.Storage, p_space: org.mwg.chunk.ChunkSpace, p_graph: org.mwg.Graph);
+                init(): void;
                 typeName(node: org.mwg.Node): string;
                 typeCode(node: org.mwg.Node): number;
                 initNode(node: org.mwg.Node, codeType: number): void;
@@ -1055,20 +1092,8 @@ declare module org {
             }
             module chunk {
                 interface ChunkListener {
-                    declareDirty(chunk: org.mwg.plugin.Chunk): void;
+                    declareDirty(chunk: org.mwg.chunk.Chunk): void;
                     graph(): org.mwg.Graph;
-                }
-                interface GenChunk extends org.mwg.plugin.Chunk {
-                    newKey(): number;
-                }
-                interface LongTree {
-                    insert(key: number): void;
-                    unsafe_insert(key: number): void;
-                    previousOrEqual(key: number): number;
-                    clearAt(max: number): void;
-                    range(startKey: number, endKey: number, maxElements: number, walker: org.mwg.core.chunk.TreeWalker): void;
-                    magic(): number;
-                    size(): number;
                 }
                 interface Stack {
                     enqueue(index: number): boolean;
@@ -1076,20 +1101,6 @@ declare module org {
                     dequeue(index: number): boolean;
                     free(): void;
                     size(): number;
-                }
-                interface StateChunk extends org.mwg.plugin.Chunk, org.mwg.plugin.NodeState {
-                }
-                interface TimeTreeChunk extends org.mwg.core.chunk.LongTree, org.mwg.plugin.Chunk {
-                }
-                interface TreeWalker {
-                    (t: number): void;
-                }
-                interface WorldOrderChunk extends org.mwg.plugin.Chunk, org.mwg.struct.LongLongMap {
-                    magic(): number;
-                    lock(): void;
-                    unlock(): void;
-                    extra(): number;
-                    setExtra(extraValue: number): void;
                 }
                 module heap {
                     class ArrayLongLongArrayMap implements org.mwg.struct.LongLongArrayMap {
@@ -1186,41 +1197,48 @@ declare module org {
                         free(): void;
                         size(): number;
                     }
-                    interface HeapChunk extends org.mwg.plugin.Chunk {
+                    interface HeapChunk extends org.mwg.chunk.Chunk {
                         mark(): number;
                         unmark(): number;
                         setFlags(bitsToEnable: number, bitsToDisable: number): boolean;
                         setIndex(index: number): void;
                     }
-                    class HeapChunkSpace implements org.mwg.plugin.ChunkSpace, org.mwg.core.chunk.ChunkListener {
+                    class HeapChunkSpace implements org.mwg.chunk.ChunkSpace, org.mwg.core.chunk.ChunkListener {
                         private static HASH_LOAD_FACTOR;
                         private _maxEntries;
                         private _hashEntries;
                         private _saveBatchSize;
                         private _elementCount;
                         private _lru;
-                        private _elementNext;
-                        private _elementHash;
-                        private _values;
-                        private _elementHashLock;
+                        private _hashNext;
+                        private _hash;
+                        private _chunkWorlds;
+                        private _chunkTimes;
+                        private _chunkIds;
+                        private _chunkTypes;
+                        private _chunkValues;
+                        private _chunkMarks;
+                        private _dirties;
                         private _dirtyState;
                         private _graph;
-                        setGraph(p_graph: org.mwg.Graph): void;
                         graph(): org.mwg.Graph;
-                        getValues(): org.mwg.plugin.Chunk[];
-                        constructor(initialCapacity: number, saveBatchSize: number);
-                        getAndMark(type: number, world: number, time: number, id: number): org.mwg.plugin.Chunk;
-                        getByIndex(index: number): org.mwg.plugin.Chunk;
-                        getOrLoadAndMark(type: number, world: number, time: number, id: number, callback: org.mwg.Callback<org.mwg.plugin.Chunk>): void;
+                        worldByIndex(index: number): number;
+                        timeByIndex(index: number): number;
+                        idByIndex(index: number): number;
+                        getValues(): org.mwg.chunk.Chunk[];
+                        constructor(initialCapacity: number, saveBatchSize: number, p_graph: org.mwg.Graph);
+                        getAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
+                        getByIndex(index: number): org.mwg.chunk.Chunk;
+                        getOrLoadAndMark(type: number, world: number, time: number, id: number, callback: org.mwg.Callback<org.mwg.chunk.Chunk>): void;
                         unmarkByIndex(index: number): void;
                         markByIndex(index: number): void;
-                        unmarkChunk(chunk: org.mwg.plugin.Chunk): void;
-                        freeChunk(chunk: org.mwg.plugin.Chunk): void;
-                        create(p_type: number, p_world: number, p_time: number, p_id: number, p_initialPayload: org.mwg.struct.Buffer, origin: org.mwg.plugin.Chunk): org.mwg.plugin.Chunk;
-                        putAndMark(p_elem: org.mwg.plugin.Chunk): org.mwg.plugin.Chunk;
-                        detachDirties(): org.mwg.plugin.ChunkIterator;
-                        declareDirty(dirtyChunk: org.mwg.plugin.Chunk): void;
-                        declareClean(cleanChunk: org.mwg.plugin.Chunk): void;
+                        unmarkChunk(chunk: org.mwg.chunk.Chunk): void;
+                        freeChunk(chunk: org.mwg.chunk.Chunk): void;
+                        create(p_type: number, p_world: number, p_time: number, p_id: number, p_initialPayload: org.mwg.struct.Buffer, origin: org.mwg.chunk.Chunk): org.mwg.chunk.Chunk;
+                        putAndMark(type: number, world: number, time: number, id: number, p_elem: org.mwg.chunk.Chunk): org.mwg.chunk.Chunk;
+                        detachDirties(): org.mwg.chunk.ChunkIterator;
+                        declareDirty(dirtyChunk: org.mwg.chunk.Chunk): void;
+                        declareClean(cleanChunk: org.mwg.chunk.Chunk): void;
                         clear(): void;
                         free(): void;
                         size(): number;
@@ -1228,7 +1246,7 @@ declare module org {
                         printMarked(): void;
                     }
                     module HeapChunkSpace {
-                        class InternalDirtyStateList implements org.mwg.plugin.ChunkIterator {
+                        class InternalDirtyStateList implements org.mwg.chunk.ChunkIterator {
                             private _nextCounter;
                             private _dirtyElements;
                             private _max;
@@ -1236,23 +1254,20 @@ declare module org {
                             private _parent;
                             constructor(maxSize: number, p_parent: org.mwg.core.chunk.heap.HeapChunkSpace);
                             hasNext(): boolean;
-                            next(): org.mwg.plugin.Chunk;
+                            next(): org.mwg.chunk.Chunk;
                             declareDirty(dirtyIndex: number): boolean;
                             size(): number;
                             free(): void;
                         }
                     }
-                    class HeapGenChunk implements org.mwg.core.chunk.GenChunk, org.mwg.core.chunk.heap.HeapChunk {
-                        private _world;
-                        private _time;
-                        private _id;
-                        private _index;
+                    class HeapGenChunk implements org.mwg.chunk.GenChunk, org.mwg.core.chunk.heap.HeapChunk {
                         private _space;
+                        private _index;
                         private _flags;
                         private _marks;
                         private _prefix;
                         private _currentIndex;
-                        constructor(p_world: number, p_time: number, p_id: number, p_space: org.mwg.core.chunk.ChunkListener, initialPayload: org.mwg.struct.Buffer);
+                        constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_id: number, initialPayload: org.mwg.struct.Buffer);
                         private load(payload);
                         save(buffer: org.mwg.struct.Buffer): void;
                         merge(buffer: org.mwg.struct.Buffer): void;
@@ -1270,21 +1285,18 @@ declare module org {
                         setIndex(p_index: number): void;
                         private internal_set_dirty();
                     }
-                    class HeapStateChunk implements org.mwg.core.chunk.heap.HeapChunk, org.mwg.core.chunk.StateChunk, org.mwg.core.chunk.ChunkListener {
-                        private _world;
-                        private _time;
-                        private _id;
+                    class HeapStateChunk implements org.mwg.core.chunk.heap.HeapChunk, org.mwg.chunk.StateChunk, org.mwg.core.chunk.ChunkListener {
                         private _index;
                         private state;
                         private _flags;
                         private _marks;
                         private _space;
                         private inLoadMode;
-                        declareDirty(chunk: org.mwg.plugin.Chunk): void;
+                        declareDirty(chunk: org.mwg.chunk.Chunk): void;
                         setIndex(p_index: number): void;
                         index(): number;
                         graph(): org.mwg.Graph;
-                        constructor(p_world: number, p_time: number, p_id: number, p_space: org.mwg.core.chunk.ChunkListener, initialPayload: org.mwg.struct.Buffer, origin: org.mwg.plugin.Chunk);
+                        constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, initialPayload: org.mwg.struct.Buffer, origin: org.mwg.chunk.Chunk);
                         world(): number;
                         time(): number;
                         id(): number;
@@ -1327,13 +1339,10 @@ declare module org {
                             softClone(): org.mwg.core.chunk.heap.HeapStateChunk.InternalState;
                         }
                     }
-                    class HeapTimeTreeChunk implements org.mwg.core.chunk.TimeTreeChunk, org.mwg.core.chunk.heap.HeapChunk {
+                    class HeapTimeTreeChunk implements org.mwg.chunk.TimeTreeChunk, org.mwg.core.chunk.heap.HeapChunk {
                         private static META_SIZE;
-                        private _world;
-                        private _time;
-                        private _id;
                         private _index;
-                        private _listener;
+                        private _space;
                         private _threshold;
                         private _root_index;
                         private _size;
@@ -1344,7 +1353,7 @@ declare module org {
                         private _flags;
                         private _marks;
                         private _magic;
-                        constructor(p_world: number, p_time: number, p_obj: number, p_listener: org.mwg.core.chunk.ChunkListener, initialPayload: org.mwg.struct.Buffer);
+                        constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, initialPayload: org.mwg.struct.Buffer);
                         private lock();
                         private unlock();
                         marks(): number;
@@ -1357,7 +1366,7 @@ declare module org {
                         setFlags(bitsToEnable: number, bitsToDisable: number): boolean;
                         setIndex(p_index: number): void;
                         size(): number;
-                        range(startKey: number, endKey: number, maxElements: number, walker: org.mwg.core.chunk.TreeWalker): void;
+                        range(startKey: number, endKey: number, maxElements: number, walker: org.mwg.chunk.TreeWalker): void;
                         save(buffer: org.mwg.struct.Buffer): void;
                         private load(buffer);
                         merge(buffer: org.mwg.struct.Buffer): void;
@@ -1398,12 +1407,9 @@ declare module org {
                         private internal_insert(p_key);
                         private internal_set_dirty();
                     }
-                    class HeapWorldOrderChunk implements org.mwg.core.chunk.WorldOrderChunk, org.mwg.core.chunk.heap.HeapChunk {
-                        private _world;
-                        private _time;
-                        private _id;
+                    class HeapWorldOrderChunk implements org.mwg.chunk.WorldOrderChunk, org.mwg.core.chunk.heap.HeapChunk {
                         private _index;
-                        private _listener;
+                        private _space;
                         private _lock;
                         private _marks;
                         private _magic;
@@ -1415,7 +1421,7 @@ declare module org {
                         id(): number;
                         extra(): number;
                         setExtra(extraValue: number): void;
-                        constructor(p_universe: number, p_time: number, p_obj: number, p_listener: org.mwg.core.chunk.ChunkListener, initialPayload: org.mwg.struct.Buffer);
+                        constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, initialPayload: org.mwg.struct.Buffer);
                         lock(): void;
                         unlock(): void;
                         marks(): number;
@@ -1451,7 +1457,57 @@ declare module org {
                         }
                     }
                 }
-                module offheap {
+            }
+            module memory {
+                abstract class AbstractBuffer implements org.mwg.struct.Buffer {
+                    abstract slice(initPos: number, endPos: number): Int8Array;
+                    iterator(): org.mwg.struct.BufferIterator;
+                    abstract read(position: number): number;
+                    abstract length(): number;
+                    abstract write(b: number): void;
+                    abstract writeAll(bytes: Int8Array): void;
+                    abstract data(): Int8Array;
+                    abstract free(): void;
+                    abstract removeLast(): void;
+                }
+                class BufferView implements org.mwg.struct.Buffer {
+                    private _origin;
+                    private _initPos;
+                    private _endPos;
+                    constructor(p_origin: org.mwg.core.memory.AbstractBuffer, p_initPos: number, p_endPos: number);
+                    write(b: number): void;
+                    writeAll(bytes: Int8Array): void;
+                    read(position: number): number;
+                    data(): Int8Array;
+                    length(): number;
+                    free(): void;
+                    iterator(): org.mwg.struct.BufferIterator;
+                    removeLast(): void;
+                }
+                class CoreBufferIterator implements org.mwg.struct.BufferIterator {
+                    private _origin;
+                    private _originSize;
+                    private _cursor;
+                    constructor(p_origin: org.mwg.core.memory.AbstractBuffer);
+                    hasNext(): boolean;
+                    next(): org.mwg.struct.Buffer;
+                }
+                class HeapBuffer extends org.mwg.core.memory.AbstractBuffer {
+                    private buffer;
+                    private writeCursor;
+                    slice(initPos: number, endPos: number): Int8Array;
+                    write(b: number): void;
+                    private getNewSize(old, target);
+                    writeAll(bytes: Int8Array): void;
+                    read(position: number): number;
+                    data(): Int8Array;
+                    length(): number;
+                    free(): void;
+                    removeLast(): void;
+                }
+                class HeapMemoryFactory implements org.mwg.plugin.MemoryFactory {
+                    newSpace(memorySize: number, saveEvery: number, graph: org.mwg.Graph): org.mwg.chunk.ChunkSpace;
+                    newBuffer(): org.mwg.struct.Buffer;
                 }
             }
             module scheduler {
@@ -2000,46 +2056,6 @@ declare module org {
                 }
             }
             module utility {
-                abstract class AbstractBuffer implements org.mwg.struct.Buffer {
-                    abstract slice(initPos: number, endPos: number): Int8Array;
-                    iterator(): org.mwg.struct.BufferIterator;
-                    abstract read(position: number): number;
-                    abstract length(): number;
-                    abstract write(b: number): void;
-                    abstract writeAll(bytes: Int8Array): void;
-                    abstract data(): Int8Array;
-                    abstract free(): void;
-                    abstract removeLast(): void;
-                }
-                class BufferBuilder {
-                    constructor();
-                    static keyToBuffer(buffer: org.mwg.struct.Buffer, chunkType: number, world: number, time: number, id: number): void;
-                    static getNewSize(old: number, target: number): number;
-                    static newOffHeapBuffer(): org.mwg.struct.Buffer;
-                    static newHeapBuffer(): org.mwg.struct.Buffer;
-                }
-                class BufferView implements org.mwg.struct.Buffer {
-                    private _origin;
-                    private _initPos;
-                    private _endPos;
-                    constructor(p_origin: org.mwg.core.utility.AbstractBuffer, p_initPos: number, p_endPos: number);
-                    write(b: number): void;
-                    writeAll(bytes: Int8Array): void;
-                    read(position: number): number;
-                    data(): Int8Array;
-                    length(): number;
-                    free(): void;
-                    iterator(): org.mwg.struct.BufferIterator;
-                    removeLast(): void;
-                }
-                class CoreBufferIterator implements org.mwg.struct.BufferIterator {
-                    private _origin;
-                    private _originSize;
-                    private _cursor;
-                    constructor(p_origin: org.mwg.core.utility.AbstractBuffer);
-                    hasNext(): boolean;
-                    next(): org.mwg.struct.Buffer;
-                }
                 class CoreDeferCounter implements org.mwg.DeferCounter {
                     private _nb_down;
                     private _counter;
@@ -2062,32 +2078,16 @@ declare module org {
                     wrap(): org.mwg.Callback<any>;
                     waitResult(): any;
                 }
-                class DataHasher {
-                    private static byteTable;
-                    private static HSTART;
-                    private static HMULT;
-                    static hash(data: string): number;
-                    static hashBytes(data: Int8Array): number;
-                }
-                class HeapBuffer extends org.mwg.core.utility.AbstractBuffer {
-                    private buffer;
-                    private writeCursor;
-                    slice(initPos: number, endPos: number): Int8Array;
-                    write(b: number): void;
-                    writeAll(bytes: Int8Array): void;
-                    read(position: number): number;
-                    data(): Int8Array;
-                    length(): number;
-                    free(): void;
-                    removeLast(): void;
-                }
-                class PrimitiveHelper {
+                class HashHelper {
                     static PRIME1: Long;
                     static PRIME2: Long;
                     static PRIME3: Long;
                     static PRIME4: Long;
                     static PRIME5: Long;
                     private static len;
+                    private static byteTable;
+                    private static HSTART;
+                    private static HMULT;
                     static longHash(number: number, max: number): number;
                     static tripleHash(p0: number, p1: number, p2: number, p3: number, max: number): number;
                     static rand(): number;
@@ -2095,6 +2095,11 @@ declare module org {
                     static DOUBLE_MIN_VALUE(): number;
                     static DOUBLE_MAX_VALUE(): number;
                     static isDefined(param: any): boolean;
+                    static hash(data: string): number;
+                    static hashBytes(data: Int8Array): number;
+                }
+                class KeyHelper {
+                    static keyToBuffer(buffer: org.mwg.struct.Buffer, chunkType: number, world: number, time: number, id: number): void;
                 }
                 class ReadOnlyStorage implements org.mwg.plugin.Storage {
                     private wrapped;

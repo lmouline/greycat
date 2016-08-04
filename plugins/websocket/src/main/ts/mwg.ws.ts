@@ -88,7 +88,7 @@ module org {
                         } else {
                             var callbackCodeView = it.next();
                             if(callbackCodeView != null){
-                                var callbackCode = Base64.decodeToIntWithBounds(callbackCodeView, 0, callbackCodeView.length());
+                                var callbackCode = org.mwg.utility.Base64.decodeToIntWithBounds(callbackCodeView, 0, callbackCodeView.length());
                                 var resolvedCallback = this.callbacks.get(callbackCode);
                                 if (resolvedCallback != null) {
                                     if (firstCode == this.RESP_GET || firstCode == this.RESP_LOCK) {
@@ -122,7 +122,7 @@ module org {
                     var hash = this.generator;
                     this.generator = this.generator + 1 % 1000000;
                     this.callbacks.put(hash, callback);
-                    org.mwg.plugin.Base64.encodeIntToBuffer(hash, buffer);
+                    org.mwg.utility.Base64.encodeIntToBuffer(hash, buffer);
                     if (payload != null) {
                         buffer.write(org.mwg.Constants.BUFFER_SEP);
                         buffer.writeAll(payload.data());

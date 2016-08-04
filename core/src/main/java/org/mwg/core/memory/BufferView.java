@@ -1,10 +1,9 @@
 package org.mwg.core.memory;
 
-import org.mwg.core.memory.AbstractBuffer;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
 
-public class BufferView implements Buffer {
+class BufferView implements Buffer {
 
     private AbstractBuffer _origin;
 
@@ -30,7 +29,7 @@ public class BufferView implements Buffer {
 
     @Override
     public final byte read(long position) {
-        if(_initPos + position > _endPos) {
+        if (_initPos + position > _endPos) {
             throw new ArrayIndexOutOfBoundsException("" + position);
         }
         return _origin.read(_initPos + position);

@@ -392,7 +392,7 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
                 InternalDirtyStateList previousState = this._dirtyState.get();
                 success = previousState.declareDirty((int) dirtyChunk.index());
                 if (!success) {
-                    //this._graph.save(null);
+                    this._graph.save(null);
                 }
             }
         }
