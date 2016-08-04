@@ -6,6 +6,7 @@ import org.mwg.Constants;
 import org.mwg.core.memory.HeapMemoryFactory;
 import org.mwg.utility.Base64;
 import org.mwg.struct.Buffer;
+import org.mwg.utility.HashHelper;
 
 public class Base64Test {
 

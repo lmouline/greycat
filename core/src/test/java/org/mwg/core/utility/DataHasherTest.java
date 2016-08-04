@@ -3,6 +3,7 @@ package org.mwg.core.utility;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.core.CoreConstants;
+import org.mwg.utility.HashHelper;
 
 public class DataHasherTest {
 

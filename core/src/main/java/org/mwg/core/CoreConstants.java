@@ -2,35 +2,12 @@ package org.mwg.core;
 
 public class CoreConstants extends org.mwg.Constants {
 
-    /**
-     * @native ts
-     * public static CHUNK_SEP : number = "|".charCodeAt(0);
-     */
-    public static final byte CHUNK_SEP = '|';
-
-    /**
-     * @native ts
-     * public static CHUNK_SUB_SEP : number = ",".charCodeAt(0);
-     */
-    public static final byte CHUNK_SUB_SEP = ',';
-
-    /**
-     * @native ts
-     * public static CHUNK_SUB_SUB_SEP : number = ":".charCodeAt(0);
-     */
-    public static final byte CHUNK_SUB_SUB_SEP = ':';
-
-    /**
-     * @native ts
-     * public static CHUNK_SUB_SUB_SUB_SEP : number = "%".charCodeAt(0);
-     */
-    public static final byte CHUNK_SUB_SUB_SUB_SEP = '%';
 
     /**
      * ChunkFlags
      */
     //public static final short DIRTY_BIT_INDEX = 0;
-    public static final int DIRTY_BIT = 0x01;
+
 
     //public static final short REMOVED_BIT_INDEX = 1;
     //public static final int REMOVED_BIT = 1 << REMOVED_BIT_INDEX;
@@ -55,20 +32,11 @@ public class CoreConstants extends org.mwg.Constants {
     /**
      * Map constants
      */
-    public static final int MAP_INITIAL_CAPACITY = 4;
-
-    public static final float MAP_LOAD_FACTOR = ((float) 75 / (float) 100);
 
     /**
      * Error messages
      */
     public static final String DISCONNECTED_ERROR = "Please connect your graph, prior to any usage of it";
-
-    /**
-     * OffHeap
-     */
-
-
 
     /**
      * SuperTimeTree
@@ -84,15 +52,5 @@ public class CoreConstants extends org.mwg.Constants {
      */
     public static String DEAD_NODE_ERROR = "This Node has been tagged destroyed, please don't use it anymore!";
 
-    /**
-     * @native ts
-     * public static BOOL_TRUE : number = "1".charCodeAt(0);
-     */
-    public static byte BOOL_TRUE = (byte) '1';
-    /**
-     * @native ts
-     * public static BOOL_FALSE : number = "0".charCodeAt(0);
-     */
-    public static byte BOOL_FALSE = (byte) '0';
 
 }

@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.mwg.*;
 import org.mwg.chunk.ChunkSpace;
 import org.mwg.core.memory.HeapMemoryFactory;
-import org.mwg.core.utility.HashHelper;
+import org.mwg.utility.HashHelper;
 import org.mwg.plugin.*;
 import org.mwg.struct.Buffer;
 import org.mwg.task.TaskActionFactory;

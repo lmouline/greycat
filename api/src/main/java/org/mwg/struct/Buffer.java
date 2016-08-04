@@ -55,4 +55,6 @@ public interface Buffer {
 
     void removeLast();
 
+    byte[] slice(long initPos, long endPos);
+
 }

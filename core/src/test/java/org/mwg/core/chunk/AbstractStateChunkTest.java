@@ -7,7 +7,7 @@ import org.mwg.Type;
 import org.mwg.chunk.ChunkSpace;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
-import org.mwg.core.utility.HashHelper;
+import org.mwg.utility.HashHelper;
 import org.mwg.plugin.MemoryFactory;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.LongLongArrayMap;

@@ -4,7 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
 import org.mwg.core.scheduler.NoopScheduler;
-import org.mwg.core.utility.HashHelper;
+import org.mwg.utility.HashHelper;
 
 public class HelloWorldTest {
 

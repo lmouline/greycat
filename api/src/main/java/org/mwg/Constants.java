@@ -33,6 +33,30 @@ public class Constants {
 
     /**
      * @native ts
+     * public static CHUNK_SEP : number = "|".charCodeAt(0);
+     */
+    public static final byte CHUNK_SEP = '|';
+
+    /**
+     * @native ts
+     * public static CHUNK_SUB_SEP : number = ",".charCodeAt(0);
+     */
+    public static final byte CHUNK_SUB_SEP = ',';
+
+    /**
+     * @native ts
+     * public static CHUNK_SUB_SUB_SEP : number = ":".charCodeAt(0);
+     */
+    public static final byte CHUNK_SUB_SUB_SEP = ':';
+
+    /**
+     * @native ts
+     * public static CHUNK_SUB_SUB_SUB_SEP : number = "%".charCodeAt(0);
+     */
+    public static final byte CHUNK_SUB_SUB_SUB_SEP = '%';
+
+    /**
+     * @native ts
      * return param != undefined && param != null;
      */
     public static boolean isDefined(Object param) {
@@ -58,8 +82,7 @@ public class Constants {
         }
         return true;
     }
-
-
+    
     /**
      * @native ts
      * public static BUFFER_SEP : number = "#".charCodeAt(0);
@@ -74,6 +97,23 @@ public class Constants {
      * public static KEY_SEP : number = ";".charCodeAt(0);
      */
     public static final byte KEY_SEP = ';';
+
+    public static final int MAP_INITIAL_CAPACITY = 4;
+
+    public static final float MAP_LOAD_FACTOR = ((float) 75 / (float) 100);
+
+    /**
+     * @native ts
+     * public static BOOL_TRUE : number = "1".charCodeAt(0);
+     */
+    public static byte BOOL_TRUE = (byte) '1';
+    /**
+     * @native ts
+     * public static BOOL_FALSE : number = "0".charCodeAt(0);
+     */
+    public static byte BOOL_FALSE = (byte) '0';
+
+    public static final int DIRTY_BIT = 0x01;
 
 }
 

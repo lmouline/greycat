@@ -172,20 +172,20 @@ public abstract class AbstractBufferTest {
         byte[] bytes = new byte[]{BUFFER_SEP, BUFFER_SEP, BUFFER_SEP, 15, BUFFER_SEP, BUFFER_SEP};
         buffer.writeAll(bytes);
         BufferIterator it = buffer.iterator();
-        BufferView next = (BufferView) it.next();
+        Buffer next = it.next();
         Assert.assertArrayEquals(new byte[0], next.data());
         Assert.assertEquals(0, next.length());
-        next = (BufferView) it.next();
+        next =  it.next();
         Assert.assertArrayEquals(new byte[0], next.data());
         Assert.assertEquals(0, next.length());
-        next = (BufferView) it.next();
+        next = it.next();
         Assert.assertArrayEquals(new byte[0], next.data());
         Assert.assertEquals(0, next.length());
         Assert.assertArrayEquals(new byte[]{15}, it.next().data());
-        next = (BufferView) it.next();
+        next = it.next();
         Assert.assertArrayEquals(new byte[0], next.data());
         Assert.assertEquals(0, next.length());
-        next = (BufferView) it.next();
+        next = it.next();
         Assert.assertArrayEquals(new byte[0], next.data());
         Assert.assertEquals(0, next.length());
         Assert.assertEquals(false, it.hasNext());
@@ -210,7 +210,7 @@ public abstract class AbstractBufferTest {
         byte[] bytes = new byte[]{BUFFER_SEP, BUFFER_SEP};
         buffer.writeAll(bytes);
         BufferIterator it = buffer.iterator();
-        BufferView view = (BufferView) it.next();
+        Buffer view = it.next();
         boolean catched = false;
         try {
             view.read(10);

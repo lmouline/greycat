@@ -3,7 +3,7 @@ package org.mwg.core.chunk.heap;
 import org.mwg.Constants;
 import org.mwg.core.CoreConstants;
 import org.mwg.chunk.GenChunk;
-import org.mwg.core.utility.Unsafe;
+import org.mwg.utility.Unsafe;
 import org.mwg.utility.Base64;
 import org.mwg.chunk.ChunkType;
 import org.mwg.struct.Buffer;

@@ -1,15 +1,18 @@
 package org.mwg.core.memory;
 
 import org.mwg.core.CoreConstants;
+import org.mwg.struct.Buffer;
+import org.mwg.struct.BufferIterator;
+import org.mwg.utility.DefaultBufferIterator;
 
-class HeapBuffer extends AbstractBuffer {
+class HeapBuffer implements Buffer {
 
     private byte[] buffer;
 
     private int writeCursor;
 
     @Override
-    byte[] slice(long initPos, long endPos) {
+    public byte[] slice(long initPos, long endPos) {
         int newSize = (int) (endPos - initPos + 1);
         byte[] newResult = new byte[newSize];
         System.arraycopy(buffer, (int) initPos, newResult, 0, newSize);
@@ -69,7 +72,7 @@ class HeapBuffer extends AbstractBuffer {
     @Override
     public byte[] data() {
         byte[] copy = new byte[writeCursor];
-        if(buffer != null){
+        if (buffer != null) {
             System.arraycopy(buffer, 0, copy, 0, writeCursor);
         }
         return copy;
@@ -83,6 +86,11 @@ class HeapBuffer extends AbstractBuffer {
     @Override
     public void free() {
         buffer = null;
+    }
+
+    @Override
+    public BufferIterator iterator() {
+        return new DefaultBufferIterator(this);
     }
 
     @Override

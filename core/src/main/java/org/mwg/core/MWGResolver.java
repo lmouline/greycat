@@ -2,8 +2,8 @@ package org.mwg.core;
 
 import org.mwg.*;
 import org.mwg.chunk.*;
-import org.mwg.core.utility.HashHelper;
-import org.mwg.core.utility.KeyHelper;
+import org.mwg.utility.HashHelper;
+import org.mwg.utility.KeyHelper;
 import org.mwg.plugin.*;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;

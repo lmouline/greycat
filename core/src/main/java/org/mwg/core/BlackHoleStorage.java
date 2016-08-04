@@ -2,7 +2,6 @@ package org.mwg.core;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
-import org.mwg.core.utility.HashHelper;
 import org.mwg.utility.Base64;
 import org.mwg.plugin.Storage;
 import org.mwg.struct.Buffer;

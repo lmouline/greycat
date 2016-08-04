@@ -1,6 +1,6 @@
 package common;
 
-import org.mwg.core.utility.HashHelper;
+import org.mwg.utility.HashHelper;
 
 import java.util.Random;
 import java.util.TreeMap;
