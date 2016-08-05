@@ -41,7 +41,7 @@ public class MWGND extends AbstractNode implements DummyNode {
 
     @Override
     public Object createNode() {
-        MWGND res= (MWGND) graph().newTypedNode(0, 0, NAME);
+        MWGND res = (MWGND) graph().newTypedNode(0, 0, NAME);
         res.set("level", 0);
         res.set("pid", counter);
         counter++;
@@ -49,23 +49,23 @@ public class MWGND extends AbstractNode implements DummyNode {
     }
 
     @Override
-    public void print(){
-        long l=-1;
-        long r=-1;
-        Object ll=get("leftid");
-        Object rr=get("rightid");
-        if(ll!=null){
-            l=(int)ll;
+    public void print() {
+        long l = -1;
+        long r = -1;
+        Object ll = get("leftid");
+        Object rr = get("rightid");
+        if (ll != null) {
+            l = (int) ll;
         }
-        if(rr!=null){
-            r=(int) rr;
+        if (rr != null) {
+            r = (int) rr;
         }
 
-        System.out.println("node "+this.get("pid")+", _lev: "+this.get("level")+" left: "+l+", right: "+r);
+        System.out.println("node " + this.get("pid") + ", _lev: " + this.get("level") + " left: " + l + ", right: " + r);
     }
 
     public static Object createFirst(Graph graph) {
-        MWGND res= (MWGND) graph.newTypedNode(0, 0, NAME);
+        MWGND res = (MWGND) graph.newTypedNode(0, 0, NAME);
         res.set("level", 0);
         res.set("pid", counter);
         counter++;
@@ -90,7 +90,49 @@ public class MWGND extends AbstractNode implements DummyNode {
 
     private static Task initTask() {
         Task recctrav = newTask();
+        recctrav.ifThen(new TaskFunctionConditional() {
+                            @Override
+                            public boolean eval(TaskContext context) {
+                                return context.result().size() > 0;
+                            }
+                        }, Actions.print("{{result}} --> {{lev}}")
+                        .then(new Action() {
+                    @Override
+                    public void eval(TaskContext context) {
+                        int lev = (int) context.variable("lev").get(0);
+                        //context.defineVariable("parent", context.result());
+                        //context.setVariable("parent", context.result());
 
+                        context.defineVariable("near","left");
+                        context.defineVariable("far","right");
+
+                        //context.defineVariable("next", "left");
+                        context.defineVariableForSubTask("lev", lev + 1);
+                        context.continueTask();
+                    }
+                })
+                       // .traverse("{{next}}")
+                        .isolatedSubTask(traverse("{{near}}").isolatedSubTask(recctrav))
+                        //.fromVar("parent")
+                        .then(new Action() {
+                            @Override
+                            public void eval(TaskContext context) {
+
+                                //System.out.println("current:" + context.result() + "-" + context.variable("lev"));
+
+                                context.defineVariable("next", "right");
+                                context.continueTask();
+                            }
+                        })
+              //  .defineVar("next","right")
+
+                        .isolatedSubTask(traverse("{{far}}").isolatedSubTask(recctrav))
+
+
+        );
+
+
+        /*
 
         recctrav.then(new Action() {
             @Override
@@ -103,12 +145,12 @@ public class MWGND extends AbstractNode implements DummyNode {
                 }
                 int lev = (int) context.variable("lev").get(0);
 
-                String warn="";
-                if((int)root.get("level")!=lev){
-                    warn=" -> ERROR FROM HERE!!";
+                String warn = "";
+                if ((int) root.get("level") != lev) {
+                    warn = " -> ERROR FROM HERE!!";
                 }
 
-                System.out.println("T1: "+root.get("pid")+ " _lev: "+root.get("level")+" received: "+lev + warn);
+                System.out.println("T1: " + root.get("pid") + " _lev: " + root.get("level") + " received: " + lev + warn);
 
                 long[] lt = (long[]) root.get("left");
 
@@ -134,18 +176,17 @@ public class MWGND extends AbstractNode implements DummyNode {
                 .ifThen(new TaskFunctionConditional() {
                     @Override
                     public boolean eval(TaskContext context) {
-                        return  (context.variable("near").size() > 0 ||  context.variable("far").size() > 0);
+                        return (context.variable("near").size() > 0 || context.variable("far").size() > 0);
                     }
-                },asVar("parent"))
+                }, asVar("parent"))
 
 
                 .ifThen(new TaskFunctionConditional() {
-            @Override
-            public boolean eval(TaskContext context) {
-                return context.variable("near").size() > 0;
-            }
-        }, traverse("{{near}}").subTask(recctrav))
-
+                    @Override
+                    public boolean eval(TaskContext context) {
+                        return context.variable("near").size() > 0;
+                    }
+                }, traverse("{{near}}")).subTask(recctrav)
 
 
                 .fromVar("parent").then(new Action() {
@@ -158,12 +199,12 @@ public class MWGND extends AbstractNode implements DummyNode {
                 }
                 int lev = (int) context.variable("lev").get(0);
 
-                String warn="";
-                if((int)root.get("level")!=lev){
-                    warn=" -> ERROR FROM HERE!!";
+                String warn = "";
+                if ((int) root.get("level") != lev) {
+                    warn = " -> ERROR FROM HERE!!";
                 }
 
-                System.out.println("T2: "+root.get("pid")+ " _lev: "+root.get("level")+" received: "+lev + warn);
+                System.out.println("T2: " + root.get("pid") + " _lev: " + root.get("level") + " received: " + lev + warn);
 
                 long[] rt = (long[]) root.get("right");
                 if (rt != null && rt.length != 0) {
@@ -177,16 +218,12 @@ public class MWGND extends AbstractNode implements DummyNode {
         })
 
 
-
                 .ifThen(new TaskFunctionConditional() {
-            @Override
-            public boolean eval(TaskContext context) {
-                return context.variable("far").size() > 0;
-            }
-        },traverse("{{far}}").subTask(recctrav))
-
-
-
+                    @Override
+                    public boolean eval(TaskContext context) {
+                        return context.variable("far").size() > 0;
+                    }
+                }, traverse("{{far}}")).subTask(recctrav)
 
 
                 .fromVar("parent").then(new Action() {
@@ -198,11 +235,11 @@ public class MWGND extends AbstractNode implements DummyNode {
                     return;
                 }
                 int lev = (int) context.variable("lev").get(0);
-                System.out.println("T3: "+root.get("pid")+ " _lev: "+root.get("level")+" received: "+lev);
+                System.out.println("T3: " + root.get("pid") + " _lev: " + root.get("level") + " received: " + lev);
                 context.continueTask();
             }
-        }) ;
-
+        });
+*/
         return recctrav;
     }
 

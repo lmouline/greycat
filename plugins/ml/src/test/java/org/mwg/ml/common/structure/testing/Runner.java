@@ -12,7 +12,6 @@ public class Runner {
     public static void main(String[] arg){
         final Graph graph = new GraphBuilder()
                 .withPlugin(new MWGplugin())
-                .withScheduler(new NoopScheduler())
                 .withMemorySize(100000)
                 //.withOffHeapMemory()
                 .build();
