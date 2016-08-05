@@ -1,5 +1,6 @@
 package org.mwg.core.chunk.heap;
 
+import org.mwg.Constants;
 import org.mwg.core.CoreConstants;
 import org.mwg.chunk.TimeTreeChunk;
 import org.mwg.chunk.TreeWalker;
@@ -50,7 +51,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @Override
-    public synchronized final void range(final long startKey, final long endKey, long maxElements, final TreeWalker walker) {
+    public synchronized final void range(final long startKey, final long endKey, final long maxElements, final TreeWalker walker) {
         //lock and load fromVar main memory
         int nbElements = 0;
         int indexEnd = internal_previousOrEqual_index(endKey);
@@ -61,12 +62,10 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         }
     }
 
-    //TODO probably save the size to be consistent
     @Override
     public synchronized final void save(Buffer buffer) {
-        if (_root == -1) {
-            return;
-        }
+        Base64.encodeLongToBuffer(_size, buffer);
+        buffer.write(CoreConstants.CHUNK_SEP);
         boolean isFirst = true;
         for (int i = 0; i < _size; i++) {
             if (!isFirst) {
@@ -108,6 +107,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             byte current = buffer.read(cursor);
             if (current == CoreConstants.CHUNK_SUB_SEP) {
                 isDirty = isDirty || internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                previous = cursor + 1;
+            } else if (current == CoreConstants.CHUNK_SEP) {
+                reallocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
                 previous = cursor + 1;
             }
             cursor++;
@@ -177,13 +179,6 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         //dirty
         internal_set_dirty();
     }
-
-    /*
-    private void allocate(int capacity) {
-        _back_meta = new int[capacity * META_SIZE];
-        _k = new long[capacity];
-        _colors = new boolean[capacity];
-    }*/
 
     private void reallocate(int newCapacity) {
         long[] new_back_kv = new long[newCapacity];
@@ -497,8 +492,13 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private boolean internal_insert(long p_key) {
-        if (_k.length == _size) {
-            int length = (_size == 0 ? 1 : _size * 2);
+        if (_k == null || _k.length == _size) {
+            int length = _size;
+            if (length == 0) {
+                length = Constants.MAP_INITIAL_CAPACITY;
+            } else {
+                length = length * 2;
+            }
             reallocate(length);
         }
         int newIndex = _size;

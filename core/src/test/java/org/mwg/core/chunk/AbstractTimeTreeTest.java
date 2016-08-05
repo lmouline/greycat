@@ -94,7 +94,7 @@ public abstract class AbstractTimeTreeTest {
         }
         Buffer buffer = factory.newBuffer();
         tree.save(buffer);
-        Assert.assertTrue(compareWithString(buffer, "A,C,E"));
+        Assert.assertTrue(compareWithString(buffer, "G|A,C,E"));
         Assert.assertTrue(tree.size() == 3);
 
         TimeTreeChunk tree2 = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);

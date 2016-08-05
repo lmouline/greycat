@@ -260,7 +260,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     }
 
     @Override
-    public long index() {
+    public final long index() {
         return _index;
     }
 
