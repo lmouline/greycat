@@ -113,7 +113,7 @@ public class KDNodeJava {
             return;
         }
 
-        System.out.println("J1 "+node.id()+ " lev "+ lev);
+//        System.out.println("J1 "+node.id()+ " lev "+ lev);
 
         double[] pivot = node.key;
         if (pivot == null) {
@@ -170,7 +170,7 @@ public class KDNodeJava {
         //nnbr(nearer_kd, target, nearer_hr, max_dist_sqd, lev + 1, K, nnl);
         internalNearest(nearer_kd, distance, target, nearer_hr, max_dist_sqd, lev + 1, dim, err, nnl);
 
-        System.out.println("J2 "+node.id()+ " lev "+ lev);
+//        System.out.println("J2 "+node.id()+ " lev "+ lev);
 
         double dist_sqd;
 
@@ -224,7 +224,9 @@ public class KDNodeJava {
 
         double[] tk = node.key;
         if (tk == null) {
-            node.key = key.clone();
+            node.key=new double[key.length];
+            System.arraycopy(key,0,node.key,0,key.length);
+
             node.value = value;
 
             if (node == root) {
@@ -246,7 +248,9 @@ public class KDNodeJava {
             //check right
             if (node.right == null) {
                 KDNodeJava rightNode = new KDNodeJava();
-                rightNode.key = key.clone();
+                rightNode.key=new double[key.length];
+                System.arraycopy(key,0,rightNode.key,0,key.length);
+
                 rightNode.value = value;
                 node.right = rightNode;
                 root.num = root.num + 1;
@@ -262,7 +266,8 @@ public class KDNodeJava {
         } else {
             if (node.left == null) {
                 KDNodeJava leftNode = new KDNodeJava();
-                leftNode.key = key.clone();
+                leftNode.key=new double[key.length];
+                System.arraycopy(key,0,leftNode.key,0,key.length);
                 leftNode.value = value;
                 node.left = leftNode;
                 root.num = root.num + 1;

@@ -128,7 +128,7 @@ public class KDTree extends AbstractNode {
                 HRect hr = (HRect) context.variable("hr").get(0);
                 double max_dist_sqd = (double) context.variable("max_dist_sqd").get(0);
 
-                System.out.println("T1 " + node.id() + " lev " + lev);
+//                System.out.println("T1 " + node.id() + " lev " + lev);
 
 
                 // 2. s := split field of kd
@@ -229,7 +229,7 @@ public class KDTree extends AbstractNode {
                 double pivot_to_target = (double) context.variable("pivot_to_target").get(0);
                 int lev = (int) context.variable("lev").get(0);
                 Node node = context.resultAsNodes().get(0);
-                System.out.println("T2 " + node.id() + " lev " + lev);
+//                System.out.println("T2 " + node.id() + " lev " + lev);
 
 
 //                        node.graph().save(null);
