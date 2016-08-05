@@ -215,6 +215,10 @@ public class Actions {
         return newTask().subTask(subTask);
     }
 
+    public static Task isolatedSubTask(Task subTask) {
+        return newTask().isolatedSubTask(subTask);
+    }
+
     public static Task subTasks(final Task[] subTasks) {
         return newTask().subTasks(subTasks);
     }

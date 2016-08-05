@@ -240,6 +240,8 @@ public interface Task {
      */
     Task subTask(Task subTask);
 
+    Task isolatedSubTask(Task subTask);
+
     /**
      * Execute and wait various sub tasks, result of this sub task is immediately enqueue and available for next
      *

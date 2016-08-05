@@ -760,6 +760,7 @@ declare module org {
                 static lookup(world: string, time: string, id: string): org.mwg.task.Task;
                 static clear(): org.mwg.task.Task;
                 static subTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                static isolatedSubTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 static subTasks(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                 static subTasksPar(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
             }
@@ -795,6 +796,7 @@ declare module org {
                 foreach(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 foreachPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 subTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                isolatedSubTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 subTasks(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                 subTasksPar(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                 ifThen(cond: org.mwg.task.TaskFunctionConditional, then: org.mwg.task.Task): org.mwg.task.Task;
@@ -1587,6 +1589,12 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
+                class ActionIsolatedSubTask extends org.mwg.plugin.AbstractTaskAction {
+                    private _subTask;
+                    constructor(p_subTask: org.mwg.task.Task);
+                    eval(context: org.mwg.task.TaskContext): void;
+                    toString(): string;
+                }
                 class ActionJump extends org.mwg.plugin.AbstractTaskAction {
                     private _time;
                     constructor(time: string);
@@ -1808,6 +1816,7 @@ declare module org {
                     groupWhere(groupSubTask: org.mwg.task.Task): org.mwg.task.Task;
                     inject(inputValue: any): org.mwg.task.Task;
                     subTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                    isolatedSubTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     subTasks(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                     subTasksPar(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                     ifThen(cond: org.mwg.task.TaskFunctionConditional, then: org.mwg.task.Task): org.mwg.task.Task;
