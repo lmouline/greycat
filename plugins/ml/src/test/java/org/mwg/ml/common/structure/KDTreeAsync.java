@@ -151,6 +151,7 @@ public class KDTreeAsync extends AbstractNode {
 
 //        node.graph().save(null);
 //        System.out.println("A- "+node.id()+": "+node.graph().space().available());
+        System.out.println("S1 "+node.id()+ " lev "+ lev);
 
         NodeState state = node.unphasedState();
         double[] pivot = (double[]) state.getFromKey(INTERNAL_KEY);
@@ -212,16 +213,17 @@ public class KDTreeAsync extends AbstractNode {
             @Override
             public void run() {
                 internalNearest(nearer_kd, distance, target, nearer_hr, finalMax_dist_sqd, lev + 1, dim, err, nnl);
+                if (nearer_kd != null) {
+                    nearer_kd.free();
+                }
 
             }
         });
 
-        if (nearer_kd != null) {
-            nearer_kd.free();
-        }
+
 //        node.graph().save(null);
 //        System.out.println("B- "+node.id()+": "+node.graph().space().available());
-        // System.out.println("S2 "+node.id()+ " lev "+ lev);
+         System.out.println("S2 "+node.id()+ " lev "+ lev);
 
 
         double dist_sqd;
@@ -268,14 +270,22 @@ public class KDTreeAsync extends AbstractNode {
                 @Override
                 public void run() {
                     internalNearest(further_kd, distance, target, further_hr, finalMax_dist_sqd1, lev + 1, dim, err, nnl);
+                    if (further_kd != null) {
+                        further_kd.free();
+                    }
                 }
             });
         }
-        if (further_kd != null) {
-            further_kd.free();
+        else {
+            if (further_kd != null) {
+                further_kd.free();
+            }
         }
+
 //        node.graph().save(null);
 //        System.out.println("C- "+node.id()+": "+node.graph().space().available());
+//        System.out.println("S3 "+node.id()+ " lev "+ lev);
+
     }
 
 

@@ -7,8 +7,10 @@ import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Node;
 import org.mwg.core.scheduler.NoopScheduler;
+import org.mwg.core.scheduler.TrampolineScheduler;
 import org.mwg.ml.MLPlugin;
 import org.mwg.ml.MLTestPlugin;
+import org.mwg.ml.common.distance.EuclideanDistance;
 
 import java.util.Random;
 import java.util.Scanner;
@@ -17,7 +19,7 @@ import java.util.Scanner;
  * @ignore ts
  */
 public class KDTreeAsyncTest {
-    //@Test
+    @Test
     public void KDInsertTest() {
         final Graph graph = new GraphBuilder()
                 .withPlugin(new MLTestPlugin())
@@ -35,13 +37,18 @@ public class KDTreeAsyncTest {
                 KDTree testTask = (KDTree) graph.newTypedNode(0, 0, KDTree.NAME);
                 testTask.set(KDTree.DISTANCE_THRESHOLD, 1e-30);
 
+                KDNodeJava testjava = new KDNodeJava();
+                testjava.setDistance(new EuclideanDistance());
+                testjava.setThreshold(1e-30);
+
+
                 final long initalcache = graph.space().available();
 
 
                 int dim = 4;
                 double[] vec = new double[dim];
                 Random rand = new Random(125365L);
-                int num = 137;
+                int num = 15;
                 graph.save(null);
 
                 for (int i = 0; i < num; i++) {
@@ -56,12 +63,9 @@ public class KDTreeAsyncTest {
 
                     test.insert(vec, value, null);
                     testTask.insert(vec, value, null);
+                    testjava.insert(vec,value,null);
                     value.free();
                 }
-
-
-
-
 
 
 
@@ -79,20 +83,33 @@ public class KDTreeAsyncTest {
                 test.nearestN(key, 8, new Callback<Node[]>() {
                             @Override
                             public void on(Node[] result1) {
-                                Assert.assertTrue(result1.length == 8);
-                                testTask.nearestN(key, 8, new Callback<Node[]>() {
+                               // Assert.assertTrue(result1.length == 8);
+                                System.out.println();
+                                testjava.nearestN(key, 8, new Callback<Object[]>() {
                                     @Override
-                                    public void on(Node[] result) {
-                                        Assert.assertTrue(result.length == 8);
+                                    public void on(Object[] result) {
+                                        //Assert.assertTrue(result.length == 8);
                                         for(int i=0;i<result.length;i++){
-                                            Assert.assertTrue(result[i].id()==result1[i].id());
+                                            Assert.assertTrue(((Node)result[i]).id()==result1[i].id());
                                             result1[i].free();
-                                            result[i].free();
                                         }
                                         graph.save(null);
                                         long finalcache = graph.space().available();
                                         System.out.println("init "+initalcache+" end cache: "+finalcache);
                                         Assert.assertTrue(finalcache==initalcache);
+                                        System.out.println();
+
+                                        testTask.nearestN(key, 8, new Callback<Node[]>() {
+                                            @Override
+                                            public void on(Node[] result) {
+
+                                            }
+                                        });
+
+
+
+
+
                                     }
                                 });
                             }
