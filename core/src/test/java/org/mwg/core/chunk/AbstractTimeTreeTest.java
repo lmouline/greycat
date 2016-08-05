@@ -21,7 +21,7 @@ public abstract class AbstractTimeTreeTest {
     @Test
     public void emptyHalfTest() {
         ChunkSpace space = factory.newSpace(100, 100, null);
-        TimeTreeChunk tree = (TimeTreeChunk) space.create(ChunkType.TIME_TREE_CHUNK, 0, 0, 0, null, null);
+        TimeTreeChunk tree = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
         int nbElements = 10;
         for (int i = 0; i < nbElements; i++) {
             tree.insert(i);
@@ -61,7 +61,7 @@ public abstract class AbstractTimeTreeTest {
     @Test
     public void previousOrEqualsTest() {
         ChunkSpace space = factory.newSpace(100, 100, null);
-        TimeTreeChunk tree = (TimeTreeChunk) space.create(ChunkType.TIME_TREE_CHUNK, 0, 0, 0, null, null);
+        TimeTreeChunk tree = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
         for (long i = 0; i <= 6; i++) {
             tree.insert(i);
         }
@@ -88,7 +88,7 @@ public abstract class AbstractTimeTreeTest {
     public void saveLoad() {
 
         ChunkSpace space = factory.newSpace(100, 100, null);
-        TimeTreeChunk tree = (TimeTreeChunk) space.create(ChunkType.TIME_TREE_CHUNK, 0, 0, 0, null, null);
+        TimeTreeChunk tree = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
         for (long i = 0; i <= 2; i++) {
             tree.insert(i);
         }
@@ -97,7 +97,8 @@ public abstract class AbstractTimeTreeTest {
         Assert.assertTrue(compareWithString(buffer, "A,C,E"));
         Assert.assertTrue(tree.size() == 3);
 
-        TimeTreeChunk tree2 = (TimeTreeChunk) space.create(ChunkType.TIME_TREE_CHUNK, 0, 0, 0, buffer, null);
+        TimeTreeChunk tree2 = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
+        tree2.load(buffer);
         Assert.assertTrue(tree2.size() == 3);
 
         Buffer buffer2 = factory.newBuffer();
@@ -120,7 +121,7 @@ public abstract class AbstractTimeTreeTest {
     @Test
     public void massiveTest() {
         ChunkSpace space = factory.newSpace(100, 100, null);
-        TimeTreeChunk tree = (TimeTreeChunk) space.create(ChunkType.TIME_TREE_CHUNK, 0, 0, 0, null, null);
+        TimeTreeChunk tree = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
         long max = 24;
         for (long i = 0; i <= max; i = i + 2) {
             tree.insert(i);

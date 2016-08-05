@@ -25,7 +25,7 @@ public abstract class AbstractStringLongMapTest {
     public void genericTest() {
 
         ChunkSpace space = factory.newSpace(100, 100, null);
-        StateChunk chunk = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 0, null, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
         StringLongMap map = (StringLongMap) chunk.getOrCreate(0, Type.STRING_TO_LONG_MAP);
 
         map.put("Hello", 0);

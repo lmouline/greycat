@@ -25,7 +25,7 @@ public abstract class AbstractStateChunkTest {
     @Test
     public void appendTest() {
         ChunkSpace space = factory.newSpace(100, 100, null);
-        StateChunk chunk = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 0, null, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
 
         chunk.append(0, Type.RELATION, 42L);
         long[] result = (long[]) chunk.get(0);
@@ -40,7 +40,8 @@ public abstract class AbstractStateChunkTest {
 
         Buffer buffer = factory.newBuffer();
         chunk.save(buffer);
-        StateChunk chunk2 = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 1, buffer, null);
+        StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
+        chunk2.load(buffer);
         Buffer buffer2 = factory.newBuffer();
         chunk2.save(buffer2);
 
@@ -67,7 +68,7 @@ public abstract class AbstractStateChunkTest {
     public void saveLoadTest() {
 
         ChunkSpace space = factory.newSpace(100, 100, null);
-        StateChunk chunk = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 0, null, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
 
         //init chunk selectWith primitives
         chunk.set(0, Type.BOOL, true);
@@ -81,7 +82,8 @@ public abstract class AbstractStateChunkTest {
 
         Buffer buffer = factory.newBuffer();
         chunk.save(buffer);
-        StateChunk chunk2 = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 1, buffer, null);
+        StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
+        chunk2.load(buffer);
         Buffer buffer2 = factory.newBuffer();
         chunk2.save(buffer2);
 
@@ -101,7 +103,8 @@ public abstract class AbstractStateChunkTest {
 
         chunk.save(buffer);
         space.free(chunk2);
-        chunk2 = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 2, buffer, null);
+        chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 2);
+        chunk2.load(buffer);
 
         buffer2.free();
         buffer2 = factory.newBuffer();
@@ -130,7 +133,8 @@ public abstract class AbstractStateChunkTest {
         buffer = factory.newBuffer();
         chunk.save(buffer);
         space.free(chunk2);
-        chunk2 = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 3, buffer, null);
+        chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 3);
+        chunk2.load(buffer);
 
         buffer2.free();
         buffer2 = factory.newBuffer();
@@ -152,7 +156,8 @@ public abstract class AbstractStateChunkTest {
             Assert.assertEquals(chunk.get(1000 + i), i);
         }
 
-        StateChunk chunk3 = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 4, null, chunk);
+        StateChunk chunk3 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 4);
+        chunk3.loadFrom(chunk);
         Buffer buffer3 = factory.newBuffer();
         chunk3.save(buffer3);
 
@@ -170,12 +175,13 @@ public abstract class AbstractStateChunkTest {
         space.free(chunk);
 
         //create an empty
-        StateChunk chunk4 = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 5, null, null);
+        StateChunk chunk4 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 5);
         chunk4.set(0, Type.LONG_ARRAY, new long[0]);
         Buffer saved4 = factory.newBuffer();
         chunk4.save(saved4);
 
-        StateChunk chunk5 = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 6, saved4, null);
+        StateChunk chunk5 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 6);
+        chunk5.load(saved4);
         Assert.assertEquals(((long[]) chunk5.get(0)).length, 0);
         space.free(chunk5);
         space.free(chunk4);
@@ -186,7 +192,7 @@ public abstract class AbstractStateChunkTest {
     @Test
     public void cloneTest() {
         ChunkSpace space = factory.newSpace(100, 100, null);
-        StateChunk chunk = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 0, null, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
 
         //init primitives
         chunk.set(0, Type.BOOL, true);
@@ -204,8 +210,8 @@ public abstract class AbstractStateChunkTest {
         ((StringLongMap) chunk.getOrCreate(10, Type.STRING_TO_LONG_MAP)).put("100", 100);
 
         //clone the chunk
-        StateChunk chunk2 = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 1, null, chunk);
-
+        StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
+        chunk2.loadFrom(chunk);
         //test primitives
         Assert.assertTrue(chunk2.getType(0) == Type.BOOL);
         Assert.assertTrue((Boolean) chunk.get(0));
@@ -289,7 +295,7 @@ public abstract class AbstractStateChunkTest {
     public void protectionTest() {
 
         ChunkSpace space = factory.newSpace(100, 100, null);
-        StateChunk chunk = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 0, null, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
 
         //boolean protection test
         //protectionMethod(chunk, Type.BOOL, null, true);
@@ -337,7 +343,7 @@ public abstract class AbstractStateChunkTest {
     @Test
     public void typeSwitchTest() {
         ChunkSpace space = factory.newSpace(100, 100, null);
-        StateChunk chunk = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 0, null, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
 
         //init primitives
         chunk.set(0, Type.BOOL, true);

@@ -137,12 +137,13 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     }
 
     private void internal_put(final long key, final long value, final boolean notifyUpdate) {
-        if (_size == 0) {
+        if (_size > 0) {
             //we need to init
-            int m = (int) HashHelper.longHash(key, _capacity * 2);
+            int hashIndex = (int) HashHelper.longHash(key, _capacity * 2);
+            int m = _hash[hashIndex];
             int found = -1;
             while (m >= 0) {
-                if (key == _kv[m]) {
+                if (key == _kv[m * 2]) {
                     found = m;
                 }
                 m = _next[m];
@@ -150,8 +151,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
             if (found == -1) {
                 if (_capacity == _size) {
                     resize(_capacity * 2);
+                    hashIndex = (int) HashHelper.longHash(key, _capacity * 2);
                 }
-                int hashIndex = (int) HashHelper.longHash(key, _capacity * 2);
                 _kv[_size * 2] = key;
                 _kv[_size * 2 + 1] = value;
                 _next[_size] = _hash[hashIndex];
@@ -164,8 +165,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
                     }
                 }
             } else {
-                if (_kv[m + 1] != value) {
-                    _kv[m + 1] = value;
+                if (_kv[m * 2 + 1] != value) {
+                    _kv[m * 2 + 1] = value;
                     _magic = _magic + 1;
                     if (notifyUpdate) {
                         if (_space != null) {
@@ -198,15 +199,15 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
                 return true;
             } else {
                 final long[] temp_kv = new long[newCapacity * 2];
-                System.arraycopy(_kv, 0, temp_kv, 0, _size);
+                System.arraycopy(_kv, 0, temp_kv, 0, _size * 2);
                 final int[] temp_next = new int[newCapacity];
                 final int[] temp_hash = new int[newCapacity * 2];
                 Arrays.fill(temp_next, 0, newCapacity, -1);
                 Arrays.fill(temp_hash, 0, newCapacity * 2, -1);
-                for (int i = 0; i < _size * 2; i = i + 2) {
-                    int loopIndex = (int) HashHelper.longHash(temp_kv[i], newCapacity * 2);
-                    _next[i] = _hash[loopIndex];
-                    _hash[loopIndex] = i;
+                for (int i = 0; i < _size; i++) {
+                    int loopIndex = (int) HashHelper.longHash(temp_kv[i * 2], newCapacity * 2);
+                    temp_next[i] = temp_hash[loopIndex];
+                    temp_hash[loopIndex] = i;
                 }
                 _capacity = newCapacity;
                 _hash = temp_hash;

@@ -3,6 +3,7 @@ package org.mwg.core.chunk.heap;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
+import org.mwg.chunk.StateChunk;
 import org.mwg.core.BlackHoleStorage;
 import org.mwg.core.CoreConstants;
 import org.mwg.core.chunk.Stack;
@@ -134,17 +135,10 @@ public class HeapChunkSpace implements ChunkSpace {
                 @Override
                 public void on(final Buffer result) {
                     if (result != null) {
-                        Chunk loadedChunk_0 = create(type, world, time, id, result, null);
+                        Chunk loadedChunk = createAndMark(type, world, time, id);
+                        loadedChunk.load(result);
                         result.free();
-                        if (loadedChunk_0 == null) {
-                            callback.on(null);
-                        } else {
-                            Chunk loadedChunk = putAndMark(type, world, time, id, loadedChunk_0);
-                            if (loadedChunk != loadedChunk_0) {
-                                free(loadedChunk_0);
-                            }
-                            callback.on(loadedChunk);
-                        }
+                        callback.on(loadedChunk);
                     } else {
                         keys.free();
                         callback.on(null);
@@ -187,6 +181,7 @@ public class HeapChunkSpace implements ChunkSpace {
         //NOOP
     }
 
+    /*
     @Override
     public Chunk create(byte p_type, long p_world, long p_time, long p_id, Buffer p_initialPayload, Chunk origin) {
         switch (p_type) {
@@ -201,10 +196,11 @@ public class HeapChunkSpace implements ChunkSpace {
         }
         return null;
     }
+    */
 
     //TODO, this method has performance issue
     @Override
-    public Chunk putAndMark(final byte type, final long world, final long time, final long id, final Chunk p_elem) {
+    public Chunk createAndMark(final byte type, final long world, final long time, final long id) {
         //first mark the object
         int entry = -1;
         int hashIndex = (int) HashHelper.tripleHash(type, world, time, id, this._hashEntries);
@@ -217,6 +213,7 @@ public class HeapChunkSpace implements ChunkSpace {
             m = this._hashNext[m];
         }
         if (entry == -1) {
+
             //we look for nextIndex
             int currentVictimIndex = (int) this._lru.dequeueTail();
             if (currentVictimIndex == -1) {
@@ -234,6 +231,23 @@ public class HeapChunkSpace implements ChunkSpace {
                     throw new RuntimeException("mwDB crashed, cache is full, please avoid to much retention of nodes or augment cache capacity!");
                 }
             }
+
+            Chunk toInsert = null;
+            switch (type) {
+                case ChunkType.STATE_CHUNK:
+                    toInsert = new HeapStateChunk(this, currentVictimIndex);
+                    break;
+                case ChunkType.WORLD_ORDER_CHUNK:
+                    toInsert = new HeapWorldOrderChunk(this, currentVictimIndex);
+                    break;
+                case ChunkType.TIME_TREE_CHUNK:
+                    toInsert = new HeapTimeTreeChunk(this, currentVictimIndex);
+                    break;
+                case ChunkType.GEN_CHUNK:
+                    toInsert = new HeapGenChunk(this, id, currentVictimIndex);
+                    break;
+            }
+
             if (this._chunkValues[currentVictimIndex] != null) {
                 // Chunk victim = this._chunkValues[currentVictimIndex];
                 final long victimWorld = _chunkWorlds[currentVictimIndex];
@@ -272,20 +286,19 @@ public class HeapChunkSpace implements ChunkSpace {
                 this._elementCount.decrementAndGet();
             }
 
-            _chunkValues[currentVictimIndex] = p_elem;
+            _chunkValues[currentVictimIndex] = toInsert;
             _chunkMarks[currentVictimIndex] = 1;
             _chunkTypes[currentVictimIndex] = type;
             _chunkWorlds[currentVictimIndex] = world;
             _chunkTimes[currentVictimIndex] = time;
             _chunkIds[currentVictimIndex] = id;
 
-            ((HeapChunk) p_elem).setIndex(currentVictimIndex);
             //negociate the lock to write on hashIndex
             _hashNext[currentVictimIndex] = _hash[hashIndex];
             _hash[hashIndex] = currentVictimIndex;
             //free the lock
             this._elementCount.incrementAndGet();
-            return p_elem;
+            return toInsert;
         } else {
             _chunkMarks[entry] = _chunkMarks[entry] + 1;
             return _chunkValues[entry];

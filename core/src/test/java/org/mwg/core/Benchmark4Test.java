@@ -28,8 +28,8 @@ public class Benchmark4Test {
         long init = System.currentTimeMillis();
         HeapChunkSpace space = new HeapChunkSpace(nb * 2, nb * 2, null);
         for (int i = 0; i < nb; i++) {
-            Chunk c = space.create(ChunkType.STATE_CHUNK, 0, 0, i, null, null);
-            space.putAndMark(ChunkType.STATE_CHUNK, 0, 0, i, c);
+            Chunk c = space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, i);
+            //space.putAndMark(ChunkType.STATE_CHUNK, 0, 0, i, c);
             //temp.put(i, c);
 
         }
@@ -75,7 +75,7 @@ public class Benchmark4Test {
         Map<Long, Chunk> map = new HashMap<Long, Chunk>();
         for (int i = 0; i < nb; i++) {
             long hashed = HashHelper.tripleHash(ChunkType.STATE_CHUNK, 0, 0, i, nb);
-            map.put(hashed, space.create(ChunkType.STATE_CHUNK, 0, 0, i, null, null));
+            map.put(hashed, space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, i));
         }
         long begin = System.currentTimeMillis();
         for (int i = 0; i < nb; i++) {

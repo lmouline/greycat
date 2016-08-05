@@ -20,7 +20,7 @@ public abstract class AbstractWorldOrderChunkTest {
     @Test
     public void orderTest() {
         ChunkSpace space = factory.newSpace(100, 100, null);
-        WorldOrderChunk map = (WorldOrderChunk) space.create(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 0, null, null);
+        WorldOrderChunk map = (WorldOrderChunk) space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 0);
         //mass insert
         for (long i = 0; i < 10000; i++) {
             map.put(i, i * 3);
@@ -36,7 +36,7 @@ public abstract class AbstractWorldOrderChunkTest {
     @Test
     public void saveLoadTest() {
         ChunkSpace space = factory.newSpace(100, 100, null);
-        WorldOrderChunk map = (WorldOrderChunk) space.create(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 0, null, null);
+        WorldOrderChunk map = (WorldOrderChunk) space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 1);
         //mass insert
         for (long i = 0; i < 10000; i++) {
             map.put(i, i * 3);
@@ -48,7 +48,8 @@ public abstract class AbstractWorldOrderChunkTest {
 
         Buffer buffer = factory.newBuffer();
         map.save(buffer);
-        WorldOrderChunk map2 = (WorldOrderChunk) space.create(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 1, buffer, null);
+        WorldOrderChunk map2 = (WorldOrderChunk) space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 2);
+        map2.load(buffer);
         for (long i = 0; i < 10000; i++) {
             Assert.assertTrue(map2.get(i) == i * 3);
         }

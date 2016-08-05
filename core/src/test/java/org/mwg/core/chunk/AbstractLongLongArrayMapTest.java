@@ -22,7 +22,7 @@ public abstract class AbstractLongLongArrayMapTest {
     public void genericTest() {
 
         ChunkSpace space = factory.newSpace(100, 100, null);
-        StateChunk chunk = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 0, null, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
         LongLongArrayMap map = (LongLongArrayMap) chunk.getOrCreate(0, Type.LONG_TO_LONG_ARRAY_MAP);
 
         map.put(10, 10);

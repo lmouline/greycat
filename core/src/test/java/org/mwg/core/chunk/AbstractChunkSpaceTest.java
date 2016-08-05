@@ -16,17 +16,13 @@ public abstract class AbstractChunkSpaceTest {
     public void globalTest() {
         ChunkSpace space = factory.newSpace(100, 100, null);
 
-        StateChunk stateChunk = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 0, null, null);
-        space.putAndMark(ChunkType.STATE_CHUNK, 0, 0, 0, stateChunk);
+        StateChunk stateChunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
 
-        WorldOrderChunk worldOrderChunk = (WorldOrderChunk) space.create(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 1, null, null);
-        space.putAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 1, worldOrderChunk);
+        WorldOrderChunk worldOrderChunk = (WorldOrderChunk) space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 1);
 
-        TimeTreeChunk timeTreeChunk = (TimeTreeChunk) space.create(ChunkType.TIME_TREE_CHUNK, 0, 0, 2, null, null);
-        space.putAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 2, timeTreeChunk);
+        TimeTreeChunk timeTreeChunk = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 2);
 
-        GenChunk genChunk = (GenChunk) space.create(ChunkType.GEN_CHUNK, 1, 1, 1, null, null);
-        space.putAndMark(ChunkType.GEN_CHUNK, 1, 1, 1, genChunk);
+        GenChunk genChunk = (GenChunk) space.createAndMark(ChunkType.GEN_CHUNK, 1, 1, 1);
 
         space.freeAll();
     }

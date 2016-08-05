@@ -12,25 +12,18 @@ import org.mwg.chunk.ChunkType;
 import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.*;
 
-class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
+class HeapStateChunk implements StateChunk, ChunkListener {
 
-    private long _index;
-
-    private volatile InternalState state;
+    private final long _index;
     private final HeapChunkSpace _space;
 
-    private boolean inLoadMode;
+    private volatile InternalState state;
 
     @Override
     public final void declareDirty(Chunk chunk) {
-        if (!this.inLoadMode) {
-            internal_set_dirty();
-        }
-    }
-
-    @Override
-    public void setIndex(long p_index) {
-        this._index = p_index;
+        //if (!this.inLoadMode) {
+        internal_set_dirty();
+        //}
     }
 
     @Override
@@ -41,6 +34,11 @@ class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
     @Override
     public final Graph graph() {
         return _space.graph();
+    }
+
+    @Override
+    public void loadFrom(StateChunk origin) {
+        //TODO
     }
 
     private final class InternalState {
@@ -94,9 +92,11 @@ class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
         }
     }
 
-    HeapStateChunk(final HeapChunkSpace p_space, Buffer initialPayload, Chunk origin) {
-        this.inLoadMode = false;
+    HeapStateChunk(final HeapChunkSpace p_space, final long p_index) {
+        //this.inLoadMode = false;
         this._space = p_space;
+        this._index = p_index;
+        /*
         if (initialPayload != null && initialPayload.length() > 0) {
             load(initialPayload, false);
         } else if (origin != null) {
@@ -133,7 +133,7 @@ class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
                 newstate._elementHash[i] = -1;
             }
             state = newstate;
-        }
+        }*/
     }
 
     @Override
@@ -528,7 +528,7 @@ class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
         if (payload == null || payload.length() == 0) {
             return;
         }
-        inLoadMode = true;
+        //inLoadMode = true;
         //future map elements
         long[] newElementK = null;
         Object[] newElementV = null;
@@ -928,7 +928,7 @@ class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
             this.state = new InternalState(newStateCapacity, newElementK, newElementV, newElementNext, newElementHash, newElementType, newNumberElement, false);
         }
 
-        this.inLoadMode = false;
+        //this.inLoadMode = false;
     }
 
     @Override
