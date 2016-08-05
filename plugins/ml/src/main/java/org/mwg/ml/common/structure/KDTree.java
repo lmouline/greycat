@@ -107,7 +107,6 @@ public class KDTree extends AbstractNode {
 
                 // 1. Load the variables and if kd is empty exit.
 
-
                 Node node = context.resultAsNodes().get(0);
                 if (node == null) {
                     context.continueTask();
@@ -115,7 +114,7 @@ public class KDTree extends AbstractNode {
                 }
 
 //                node.graph().save(null);
-//                System.out.println("A- "+node.id()+": "+node.graph().space().available());
+               // System.out.println("A- "+node.id()+": "+node.graph().space().available());
 
                 double[] pivot = (double[]) node.get(INTERNAL_KEY);
 
@@ -179,7 +178,6 @@ public class KDTree extends AbstractNode {
                     nearer_hr = right_hr;
                     nearer_st = INTERNAL_RIGHT;
 
-
                     further_kd = (long[]) node.get(INTERNAL_LEFT);
                     further_hr = left_hr;
                     farther_st = INTERNAL_LEFT;
@@ -206,20 +204,19 @@ public class KDTree extends AbstractNode {
                     context.defineVariableForSubTask("far", context.newResult()); //stop the loop
                 }
 
-
                 context.continueTask();
             }
-        }).asVar("parent").ifThen(new TaskFunctionConditional() {
+        })
+                .isolatedSubTask(ifThen(new TaskFunctionConditional() {
             @Override
             public boolean eval(TaskContext context) {
                 return context.variable("near").size() > 0;
             }
-        }, traverse("{{near}}").subTask(reccursiveDown))
+        }, traverse("{{near}}").isolatedSubTask(reccursiveDown)))
 
-          .fromVar("parent").then(new Action() {
+                .then(new Action() {
             @Override
             public void eval(TaskContext context) {
-
 
                 //Global variables
                 NearestNeighborList nnl = (NearestNeighborList) context.variable("nnl").get(0);
@@ -236,7 +233,7 @@ public class KDTree extends AbstractNode {
 
 
 //                        node.graph().save(null);
-//                        System.out.println("B- "+node.id()+": "+node.graph().space().available());
+              //  System.out.println("B- "+node.id()+": "+node.graph().space().available());
 
                 double dist_sqd;
                 if (!nnl.isCapacityReached()) {
@@ -291,12 +288,13 @@ public class KDTree extends AbstractNode {
                 }
                 context.continueTask();
             }
-        }).ifThen(new TaskFunctionConditional() {
+        })
+                .isolatedSubTask(ifThen(new TaskFunctionConditional() {
             @Override
             public boolean eval(TaskContext context) {
                 return ((boolean) context.variable("continueFar").get(0) && context.variable("far").size() > 0); //Exploring the far depends also on the distance
             }
-        }, traverse("{{far}}").subTask(reccursiveDown))              ;
+        }, traverse("{{far}}").isolatedSubTask(reccursiveDown)))  ;
 
 
         return reccursiveDown;

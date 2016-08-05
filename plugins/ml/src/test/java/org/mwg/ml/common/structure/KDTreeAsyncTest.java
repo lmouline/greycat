@@ -101,8 +101,12 @@ public class KDTreeAsyncTest {
 
                                         testTask.nearestN(key, 8, new Callback<Node[]>() {
                                             @Override
-                                            public void on(Node[] result) {
-
+                                            public void on(Node[] result3) {
+                                                for(int i=0;i<result3.length;i++){
+                                                    Assert.assertTrue((result3[i]).id()==result1[i].id());
+                                                    Assert.assertTrue(((Node)result[i]).id()==result3[i].id());
+                                                    result1[i].free();
+                                                }
                                             }
                                         });
 
