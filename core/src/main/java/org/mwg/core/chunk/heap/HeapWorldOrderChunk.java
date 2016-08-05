@@ -89,7 +89,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
      * @native ts
      */
     @Override
-    public void lock() {
+    public final void lock() {
         while (!unsafe.compareAndSwapInt(this, _lockOffset, 0, 1)) ;
     }
 
@@ -97,7 +97,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
      * @native ts
      */
     @Override
-    public void unlock() {
+    public final void unlock() {
         if (!unsafe.compareAndSwapInt(this, _lockOffset, 1, 0)) {
             throw new RuntimeException("CAS Error !!!");
         }
@@ -221,7 +221,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     }
 
     @Override
-    public synchronized void load(Buffer buffer) {
+    public synchronized final void load(final Buffer buffer) {
         long cursor = 0;
         long bufferSize = buffer.length();
         boolean initDone = false;
@@ -231,7 +231,6 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
             if (buffer.read(cursor) == CoreConstants.CHUNK_SEP) {
                 if (!initDone) {
                     resize((int) Base64.decodeToLongWithBounds(buffer, 0, cursor));
-                    //TODO extend to size to avoid unnecessary reHash
                     initDone = true;
                 } else {
                     //extra char read
@@ -264,7 +263,6 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
         return _index;
     }
 
-    //TODO check intersection of remove and put
     @Override
     public synchronized final void remove(long key) {
         throw new RuntimeException("Not implemented yet!!!");

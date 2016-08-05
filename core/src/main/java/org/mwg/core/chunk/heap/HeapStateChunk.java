@@ -17,7 +17,13 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     private final long _index;
     private final HeapChunkSpace _space;
 
-    private volatile InternalState state;
+    private int _capacity;
+    private long[] _k;
+    private Object[] _v;
+    private int[] _next;
+    private int[] _hash;
+    private byte[] _type;
+    private volatile int _size;
 
     @Override
     public final void declareDirty(Chunk chunk) {
@@ -27,7 +33,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     }
 
     @Override
-    public long index() {
+    public final long index() {
         return _index;
     }
 
@@ -41,25 +47,9 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         //TODO
     }
 
+    /*
     private final class InternalState {
 
-        final int _elementDataSize;
-
-        final long[] _elementK;
-
-        final Object[] _elementV;
-
-        final int[] _elementNext;
-
-        final int[] _elementHash;
-
-        final byte[] _elementType;
-
-        final int threshold;
-
-        volatile int _elementCount;
-
-        boolean hashReadOnly;
 
         InternalState(int elementDataSize, long[] p_elementK, Object[] p_elementV, int[] p_elementNext, int[] p_elementHash, byte[] p_elementType, int p_elementCount, boolean p_hashReadOnly) {
             this.hashReadOnly = p_hashReadOnly;
@@ -82,7 +72,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
             System.arraycopy(_elementHash, 0, clonedElementHash, 0, this._elementDataSize);
             byte[] clonedElementType = new byte[this._elementDataSize];
             System.arraycopy(_elementType, 0, clonedElementType, 0, this._elementDataSize);
-            return new InternalState(this._elementDataSize, clonedElementK, _elementV /* considered as safe because came fromVar a softClone */, clonedElementNext, clonedElementHash, clonedElementType, _elementCount, false);
+            return new InternalState(this._elementDataSize, clonedElementK, _elementV, clonedElementNext, clonedElementHash, clonedElementType, _elementCount, false);
         }
 
         InternalState softClone() {
@@ -90,7 +80,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
             System.arraycopy(_elementV, 0, clonedElementV, 0, this._elementDataSize);
             return new InternalState(this._elementDataSize, _elementK, clonedElementV, _elementNext, _elementHash, _elementType, _elementCount, true);
         }
-    }
+    }*/
 
     HeapStateChunk(final HeapChunkSpace p_space, final long p_index) {
         //this.inLoadMode = false;
@@ -137,17 +127,17 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     }
 
     @Override
-    public long world() {
+    public final long world() {
         return _space.worldByIndex(_index);
     }
 
     @Override
-    public long time() {
+    public final long time() {
         return _space.timeByIndex(_index);
     }
 
     @Override
-    public long id() {
+    public final long id() {
         return _space.idByIndex(_index);
     }
 
@@ -177,7 +167,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     }
 
     @Override
-    public void append(long p_elementIndex, byte elemType, Object elem) {
+    public final void append(final long p_elementIndex, final byte elemType, final Object elem) {
         final InternalState internalState = state;
         int hashIndex = (int) HashHelper.longHash(p_elementIndex, internalState._elementDataSize);
         int m = internalState._elementHash[hashIndex];
@@ -219,7 +209,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     }
 
     @Override
-    public void setFromKey(String key, byte p_elemType, Object p_unsafe_elem) {
+    public final void setFromKey(final String key, final byte p_elemType, final Object p_unsafe_elem) {
         internal_set(_space.graph().resolver().stringToHash(key, true), p_elemType, p_unsafe_elem, true, false);
     }
 
@@ -385,28 +375,26 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     }
 
     @Override
-    public final Object get(long p_elementIndex) {
-        final InternalState internalState = state;
-        if (internalState._elementDataSize == 0) {
+    public synchronized final Object get(final long p_elementIndex) {
+        if (_size == 0) {
             return null;
         }
-        int hashIndex = (int) HashHelper.longHash(p_elementIndex, internalState._elementDataSize);
-        int m = internalState._elementHash[hashIndex];
-
+        int hashIndex = (int) HashHelper.longHash(p_elementIndex, _capacity * 2);
+        int m = _hash[hashIndex];
         Object result = null;
         while (m >= 0) {
-            if (p_elementIndex == internalState._elementK[m] /* getKey */) {
-                result = internalState._elementV[m]; /* getValue */
+            if (p_elementIndex == _k[m]) {
+                result = _v[m]; /* getValue */
                 break;
             } else {
-                m = internalState._elementNext[m];
+                m = _next[m];
             }
         }
         if (result == null) {
             return null;
         }
-
-        switch (internalState._elementType[m]) {
+        //TODO optimize this
+        switch (_type[m]) {
             case Type.DOUBLE_ARRAY:
                 double[] castedResultD = (double[]) result;
                 double[] copyD = new double[castedResultD.length];
@@ -438,13 +426,13 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     }
 
     @Override
-    public Object getFromKey(String key) {
+    public final Object getFromKey(String key) {
         return get(_space.graph().resolver().stringToHash(key, false));
     }
 
     @Override
-    public <A> A getFromKeyWithDefault(String key, A defaultValue) {
-        Object result = getFromKey(key);
+    public final <A> A getFromKeyWithDefault(String key, A defaultValue) {
+        final Object result = getFromKey(key);
         if (result == null) {
             return defaultValue;
         } else {
@@ -453,18 +441,17 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     }
 
     @Override
-    public final byte getType(long p_elementIndex) {
-        final InternalState internalState = state;
-        if (internalState._elementDataSize == 0) {
+    public final byte getType(final long p_elementIndex) {
+        if (_size == 0) {
             return -1;
         }
-        int hashIndex = (int) HashHelper.longHash(p_elementIndex, internalState._elementDataSize);
-        int m = internalState._elementHash[hashIndex];
+        int hashIndex = (int) HashHelper.longHash(p_elementIndex, _capacity);
+        int m = _hash[hashIndex];
         while (m >= 0) {
-            if (p_elementIndex == internalState._elementK[m] /* getKey */) {
-                return internalState._elementType[m]; /* getValue */
+            if (p_elementIndex == _k[m]) {
+                return _type[m];
             } else {
-                m = internalState._elementNext[m];
+                m = _next[m];
             }
         }
         return -1;
@@ -476,8 +463,8 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     }
 
     @Override
-    public final Object getOrCreate(long p_elementIndex, byte elemType) {
-        Object previousObject = get(p_elementIndex);
+    public final Object getOrCreate(final long p_elementIndex, final byte elemType) {
+        final Object previousObject = get(p_elementIndex);
         byte previousType = getType(p_elementIndex);
         if (previousObject != null && previousType == elemType) {
             return previousObject;
@@ -497,23 +484,22 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     }
 
     @Override
-    public Object getOrCreateFromKey(String key, byte elemType) {
+    public final Object getOrCreateFromKey(final String key, final byte elemType) {
         return getOrCreate(_space.graph().resolver().stringToHash(key, true), elemType);
     }
 
     @Override
-    public final void each(NodeStateCallback callBack) {
-        final InternalState currentState = this.state;
-        for (int i = 0; i < (currentState._elementCount); i++) {
-            if (currentState._elementV[i] != null) {
-                if (currentState._elementType[i] == Type.RELATION) {
-                    long[] castedRel = (long[]) currentState._elementV[i];
+    public final void each(final NodeStateCallback callBack) {
+        for (int i = 0; i < _size; i++) {
+            if (_v[i] != null) {
+                if (_type[i] == Type.RELATION) {
+                    long[] castedRel = (long[]) _v[i];
                     int relSize = (int) castedRel[0];
                     long[] shrinkedRel = new long[relSize];
                     System.arraycopy(castedRel, 1, shrinkedRel, 0, relSize);
-                    callBack.on(currentState._elementK[i], currentState._elementType[i], shrinkedRel);
+                    callBack.on(_k[i], _type[i], shrinkedRel);
                 } else {
-                    callBack.on(currentState._elementK[i], currentState._elementType[i], currentState._elementV[i]);
+                    callBack.on(_k[i], _type[i], _v[i]);
                 }
             }
         }
@@ -933,26 +919,24 @@ class HeapStateChunk implements StateChunk, ChunkListener {
 
     @Override
     public final void save(final Buffer buffer) {
-        final InternalState internalState = state;
-        Base64.encodeIntToBuffer(internalState._elementCount, buffer);
-        for (int i = 0; i < internalState._elementCount; i++) {
-            if (internalState._elementV[i] != null) { //there is a real value
-                long loopKey = internalState._elementK[i];
-                Object loopValue = internalState._elementV[i];
+        Base64.encodeIntToBuffer(_size, buffer);
+        for (int i = 0; i < _size; i++) {
+            if (_v[i] != null) { //there is a real value
+                final Object loopValue = _v[i];
                 if (loopValue != null) {
                     buffer.write(CoreConstants.CHUNK_SEP);
-                    Base64.encodeLongToBuffer(loopKey, buffer);
+                    Base64.encodeLongToBuffer(_k[i], buffer);
                     buffer.write(CoreConstants.CHUNK_SUB_SEP);
                     /** Encode to type of elem, for unSerialization */
-                    Base64.encodeIntToBuffer(internalState._elementType[i], buffer);
+                    Base64.encodeIntToBuffer(_type[i], buffer);
                     buffer.write(CoreConstants.CHUNK_SUB_SEP);
-                    switch (internalState._elementType[i]) {
+                    switch (_type[i]) {
                         /** Primitive Types */
                         case Type.STRING:
                             Base64.encodeStringToBuffer((String) loopValue, buffer);
                             break;
                         case Type.BOOL:
-                            if ((Boolean) internalState._elementV[i]) {
+                            if ((Boolean) _v[i]) {
                                 buffer.write(CoreConstants.BOOL_TRUE);
                             } else {
                                 buffer.write(CoreConstants.BOOL_FALSE);

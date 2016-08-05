@@ -29,17 +29,17 @@ final class HeapGenChunk implements GenChunk {
     }
 
     @Override
-    public synchronized void save(Buffer buffer) {
+    public synchronized final void save(final Buffer buffer) {
         Base64.encodeLongToBuffer(_seed, buffer);
     }
 
     @Override
-    public synchronized void load(Buffer buffer) {
+    public synchronized final void load(final Buffer buffer) {
         _seed = Base64.decodeToLongWithBounds(buffer, 0, buffer.length());
     }
 
     @Override
-    public synchronized long newKey() {
+    public synchronized final long newKey() {
         _seed++;
         final long nextIndex = _seed;
         if (_seed == Constants.KEY_PREFIX_MASK) {
@@ -56,22 +56,22 @@ final class HeapGenChunk implements GenChunk {
     }
 
     @Override
-    public long index() {
+    public final long index() {
         return _index;
     }
 
     @Override
-    public long world() {
+    public final long world() {
         return _space.worldByIndex(_index);
     }
 
     @Override
-    public long time() {
+    public final long time() {
         return _space.timeByIndex(_index);
     }
 
     @Override
-    public long id() {
+    public final long id() {
         return _space.idByIndex(_index);
     }
 
