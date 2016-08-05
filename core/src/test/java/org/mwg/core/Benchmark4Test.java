@@ -36,7 +36,7 @@ public class Benchmark4Test {
         long begin = System.currentTimeMillis();
         for (int i = 0; i < nb; i++) {
             Chunk c = space.getAndMark(ChunkType.STATE_CHUNK, 0, 0, i);
-            space.unmarkChunk(c);
+            space.unmark(c.index());
         }
         long after = System.currentTimeMillis();
         System.out.println("total " + (after - init) + "ms, " + ((nb / 1000) / ((double) (after - init) / 1000d)) + " k chunk/s");

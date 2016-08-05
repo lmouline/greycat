@@ -29,8 +29,8 @@ public abstract class AbstractWorldOrderChunkTest {
         for (long i = 0; i < 10000; i++) {
             Assert.assertTrue(map.get(i) == i * 3);
         }
-        space.freeChunk(map);
-        space.free();
+        space.free(map);
+        space.freeAll();
     }
 
     @Test
@@ -60,9 +60,9 @@ public abstract class AbstractWorldOrderChunkTest {
         buffer.free();
         buffer2.free();
 
-        space.freeChunk(map);
-        space.freeChunk(map2);
-        space.free();
+        space.free(map);
+        space.free(map2);
+        space.freeAll();
     }
 
     private boolean compareBuffers(Buffer buffer, Buffer buffer2) {

@@ -9,7 +9,7 @@ public interface ChunkSpace {
     /**
      * Create Chunk, out of the space, not marked, used asVar a factory
      */
-    Chunk create(byte type, long world, long time, long id, Buffer initialPayload, Chunk origin);
+    Chunk createAndMark(byte type, long world, long time, long id);
 
     /**
      * Get and mark chunk for the association of keys
@@ -17,43 +17,22 @@ public interface ChunkSpace {
     Chunk getAndMark(byte type, long world, long time, long id);
 
     /**
-     * Get and mark chunk for the associated index
-     */
-    Chunk getByIndex(long index);
-
-    /**
-     * Insert the chunk into the space and mark it before asVar used
-     */
-    Chunk putAndMark(byte type, long world, long time, long id, Chunk elem);
-
-    /**
      * Get and mark chunk for the association of keys, if not present in cache, load it from configured storage
      */
     void getOrLoadAndMark(byte type, long world, long time, long id, Callback<Chunk> callback);
 
     /**
-     * UnMark chunk for the association of keys
+     * Get chunk for the associated index
      */
-    void unmarkByIndex(final long index);
+    Chunk get(long index);
+    
+    void unmark(final long index);
 
-    void markByIndex(final long index);
+    long mark(final long index);
 
-    /**
-     * UnMark chunk
-     */
-    void unmarkChunk(final Chunk chunk);
+    void free(final Chunk chunk);
 
-    void freeChunk(final Chunk chunk);
-
-    /**
-     * Declare the chunk asVar dirty
-     */
-    void declareDirty(Chunk elem);
-
-    /**
-     * Declare the chunk asVar clean
-     */
-    void declareClean(Chunk elem);
+    void notifyUpdate(long index);
 
     /**
      * Get current working graph
@@ -62,14 +41,14 @@ public interface ChunkSpace {
      */
     Graph graph();
 
+    void save();
+
     void clear();
 
-    void free();
+    void freeAll();
 
     long size();
 
     long available();
-
-    ChunkIterator detachDirties();
 
 }

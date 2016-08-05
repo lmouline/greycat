@@ -200,7 +200,7 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
     }
 
     @Override
-    public Chunk getByIndex(final long index) {
+    public Chunk get(final long index) {
         final long addr = OffHeapLongArray.get(_elementValues, index);
         final OffHeapChunk chunk = internal_create(addr);
         if (chunk != null) {
@@ -225,7 +225,7 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
                         result.free();
                         Chunk loadedChunk = putAndMark(type, world, time, id, loadedChunk_0);
                         if (loadedChunk != loadedChunk_0) {
-                            freeChunk(loadedChunk_0);
+                            free(loadedChunk_0);
                         }
                         callback.on(loadedChunk);
                     } else {
@@ -238,7 +238,7 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
     }
 
     @Override
-    public void unmarkByIndex(long index) {
+    public void unmark(long index) {
         final long addr = OffHeapLongArray.get(_elementValues, index);
 
 //CAS on the mark of the chunk
@@ -257,7 +257,7 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
     }
 
     @Override
-    public void markByIndex(long index) {
+    public void mark(long index) {
         final long addr = OffHeapLongArray.get(_elementValues, index);
 
         //TODO
@@ -628,7 +628,7 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
     }
 
     @Override
-    public void free() {
+    public void freeAll() {
         for (long i = 0; i < this._capacity; i++) {
             long previousPtr = OffHeapLongArray.get(_elementValues, i);
             if (previousPtr != OffHeapConstants.OFFHEAP_NULL_PTR) {
@@ -658,7 +658,7 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
     }
 
     @Override
-    public void freeChunk(Chunk chunk) {
+    public void free(Chunk chunk) {
         OffHeapChunk casted = (OffHeapChunk) chunk;
         switch (casted.chunkType()) {
             case ChunkType.STATE_CHUNK:

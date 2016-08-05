@@ -27,7 +27,7 @@ public abstract class AbstractGenChunkTest {
         Assert.assertEquals(genChunk.newKey(), 2);
         Assert.assertEquals(genChunk.newKey(), 3);
 
-        space.freeChunk(genChunk);
+        space.free(genChunk);
 
         Buffer buf = factory.newBuffer();
         Base64.encodeLongToBuffer(100, buf);
@@ -47,14 +47,14 @@ public abstract class AbstractGenChunkTest {
         Assert.assertEquals(103, Base64.decodeToLongWithBounds(bufSave, 0, 2));
 
         bufSave.free();
-        space.freeChunk(genChunk2);
+        space.free(genChunk2);
 
         GenChunk genChunk_100 = (GenChunk) space.create(ChunkType.GEN_CHUNK, 0, 0, 100, null, null);
         Assert.assertEquals(genChunk_100.newKey(), 13743895347201L);
         Assert.assertEquals(genChunk_100.newKey(), 13743895347202L);
 
-        space.freeChunk(genChunk_100);
-        space.free();
+        space.free(genChunk_100);
+        space.freeAll();
 
     }
 

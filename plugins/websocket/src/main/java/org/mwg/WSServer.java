@@ -196,7 +196,7 @@ public class WSServer implements WebSocketConnectionCallback {
                 @Override
                 public void on(Chunk memoryChunk) {
                     if (memoryChunk != null) {
-                        memoryChunk.merge(values[finalI]);
+                        memoryChunk.load(values[finalI]);
                         graph.space().unmarkChunk(memoryChunk);
                     }
                     defer.count();

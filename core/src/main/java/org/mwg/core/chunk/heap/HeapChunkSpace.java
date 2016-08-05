@@ -3,22 +3,20 @@ package org.mwg.core.chunk.heap;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
+import org.mwg.core.BlackHoleStorage;
 import org.mwg.core.CoreConstants;
-import org.mwg.core.chunk.ChunkListener;
 import org.mwg.core.chunk.Stack;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.KeyHelper;
 import org.mwg.chunk.Chunk;
-import org.mwg.chunk.ChunkIterator;
 import org.mwg.chunk.ChunkSpace;
 import org.mwg.chunk.ChunkType;
 import org.mwg.struct.Buffer;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
-public class HeapChunkSpace implements ChunkSpace, ChunkListener {
+public class HeapChunkSpace implements ChunkSpace {
 
     private static final int HASH_LOAD_FACTOR = 4;
 
@@ -29,6 +27,7 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
     private final AtomicInteger _elementCount;
 
     private final Stack _lru;
+    private final Stack _dirtiesStack;
 
     private final int[] _hashNext;
     private final int[] _hash;
@@ -40,7 +39,6 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
     private final long[] _chunkMarks;
     private final boolean[] _dirties;
 
-    private final AtomicReference<InternalDirtyStateList> _dirtyState;
     private final Graph _graph;
 
     @Override
@@ -60,68 +58,7 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
         return this._chunkIds[(int) index];
     }
 
-    final private class InternalDirtyStateList implements ChunkIterator {
-
-        private final AtomicInteger _nextCounter;
-        private final int[] _dirtyElements;
-        private final int _max;
-        private final AtomicInteger _iterationCounter;
-        private final HeapChunkSpace _parent;
-
-        InternalDirtyStateList(int maxSize, HeapChunkSpace p_parent) {
-            this._dirtyElements = new int[maxSize];
-            this._nextCounter = new AtomicInteger(0);
-            this._iterationCounter = new AtomicInteger(0);
-            this._max = maxSize;
-            this._parent = p_parent;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return this._iterationCounter.get() < this._nextCounter.get();
-        }
-
-        @Override
-        public Chunk next() {
-            int previous;
-            int next;
-            do {
-                previous = this._iterationCounter.get();
-                if (this._nextCounter.get() == previous) {
-                    return null;
-                }
-                next = previous + 1;
-            } while (!this._iterationCounter.compareAndSet(previous, next));
-            return this._parent.getValues()[this._dirtyElements[previous]];
-        }
-
-        public boolean declareDirty(int dirtyIndex) {
-            int previousDirty;
-            int nextDirty;
-            do {
-                previousDirty = this._nextCounter.get();
-                if (previousDirty == this._max) {
-                    return false;
-                }
-                nextDirty = previousDirty + 1;
-            } while (!this._nextCounter.compareAndSet(previousDirty, nextDirty));
-            //ok we have the token previous
-            this._dirtyElements[previousDirty] = dirtyIndex;
-            return true;
-        }
-
-        @Override
-        public long size() {
-            return this._nextCounter.get();
-        }
-
-        @Override
-        public void free() {
-            //noop
-        }
-    }
-
-    public Chunk[] getValues() {
+    public final Chunk[] getValues() {
         return _chunkValues;
     }
 
@@ -133,9 +70,8 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
         _maxEntries = initialCapacity;
         _hashEntries = initialCapacity * HASH_LOAD_FACTOR;
         _saveBatchSize = saveBatchSize;
-        _lru = new FixedStack(initialCapacity);
-        _dirtyState = new AtomicReference<InternalDirtyStateList>();
-        _dirtyState.set(new InternalDirtyStateList(saveBatchSize, this));
+        _lru = new FixedStack(initialCapacity, true);
+        _dirtiesStack = new FixedStack(initialCapacity, true);
         _hashNext = new int[initialCapacity];
         Arrays.fill(_hashNext, 0, _maxEntries, -1);
         _chunkValues = new Chunk[initialCapacity];
@@ -154,7 +90,6 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
         _chunkMarks = new long[_maxEntries];
         Arrays.fill(_chunkMarks, 0, _maxEntries, 0);
         _dirties = new boolean[_maxEntries];
-
     }
 
     @Override
@@ -167,44 +102,29 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
                     && _chunkWorlds[m] == world
                     && _chunkTimes[m] == time
                     && _chunkIds[m] == id) {
-
-                //GET VALUE
-                //if (mark(m) != -1) {
-                found = m;
+                if (mark(m) > 0) {
+                    found = m;
+                }
                 break;
-                //}
             } else {
                 m = this._hashNext[m];
             }
         }
         if (found != -1) {
-            HeapChunk foundChunk = (HeapChunk) this._chunkValues[found];
-            if (foundChunk != null && foundChunk.mark() == 1) {
-                //was at zero before, risky operation, check selectWith LRU
-                this._lru.dequeue(m);
-            }
-            return foundChunk;
+            return this._chunkValues[found];
         } else {
             return null;
         }
     }
 
-    /*
-    public long mark(long index) {
-
-        do {
-
-        } while (unsafe.compareAndSwapLong());
-    }*/
-
     @Override
-    public final Chunk getByIndex(long index) {
+    public final Chunk get(final long index) {
         return this._chunkValues[(int) index];
     }
 
     @Override
     public final void getOrLoadAndMark(final byte type, final long world, final long time, final long id, final Callback<Chunk> callback) {
-        Chunk fromMemory = getAndMark(type, world, time, id);
+        final Chunk fromMemory = getAndMark(type, world, time, id);
         if (fromMemory != null) {
             callback.on(fromMemory);
         } else {
@@ -221,7 +141,7 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
                         } else {
                             Chunk loadedChunk = putAndMark(type, world, time, id, loadedChunk_0);
                             if (loadedChunk != loadedChunk_0) {
-                                freeChunk(loadedChunk_0);
+                                free(loadedChunk_0);
                             }
                             callback.on(loadedChunk);
                         }
@@ -234,41 +154,38 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
         }
     }
 
+    //TODO change this with a compareAndSwap
     @Override
-    public void unmarkByIndex(long index) {
-        HeapChunk foundChunk = (HeapChunk) this._chunkValues[(int) index];
-        if (foundChunk != null) {
-            if (foundChunk.unmark() == 0) {
-                //declare available for recycling
-                this._lru.enqueue(index);
-            }
+    public long mark(long index) {
+        long marks = _chunkMarks[(int) index];
+        if (marks != -1) {
+            marks++;
+            _chunkMarks[(int) index] = marks;
+        }
+        if (marks == 1) {
+            //was at zero before, risky operation, check selectWith LRU
+            this._lru.dequeue(index);
+        }
+        return marks;
+    }
+
+    @Override
+    public void unmark(long index) {
+        long marks = _chunkMarks[(int) index];
+        if (marks != -1) {
+            marks--;
+            _chunkMarks[(int) index] = marks;
+        }
+        if (marks == 0) {
+            //declare available for recycling
+            this._lru.enqueue(index);
         }
     }
 
     @Override
-    public void markByIndex(long index) {
-        HeapChunk foundChunk = (HeapChunk) this._chunkValues[(int) index];
-        if (foundChunk != null) {
-            //GET VALUE
-            if (foundChunk.mark() == 1) {
-                //was at zero before, risky operation, check selectWith LRU
-                this._lru.dequeue(index);
-            }
-        }
-    }
-
-    @Override
-    public void unmarkChunk(Chunk chunk) {
-        if (chunk != null) {
-            unmarkByIndex(chunk.index());
-        }
-    }
-
-    @Override
-    public void freeChunk(Chunk chunk) {
+    public void free(Chunk chunk) {
         //NOOP
     }
-
 
     @Override
     public Chunk create(byte p_type, long p_world, long p_time, long p_id, Buffer p_initialPayload, Chunk origin) {
@@ -289,10 +206,6 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
     @Override
     public Chunk putAndMark(final byte type, final long world, final long time, final long id, final Chunk p_elem) {
         //first mark the object
-        HeapChunk heapChunk = (HeapChunk) p_elem;
-        if (heapChunk.mark() != 1) {
-            throw new RuntimeException("Warning, trying to put an unsafe object " + p_elem);
-        }
         int entry = -1;
         int hashIndex = (int) HashHelper.tripleHash(type, world, time, id, this._hashEntries);
         int m = this._hash[hashIndex];
@@ -352,12 +265,15 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
                 _hashNext[m] = -1;//flag to dropped value
                 //UNREF victim value object
                 _chunkValues[currentVictimIndex] = null;
+                //TODO compare and swap here
+                _chunkMarks[currentVictimIndex] = -1;
 
                 //free the lock
                 this._elementCount.decrementAndGet();
             }
 
             _chunkValues[currentVictimIndex] = p_elem;
+            _chunkMarks[currentVictimIndex] = 1;
             _chunkTypes[currentVictimIndex] = type;
             _chunkWorlds[currentVictimIndex] = world;
             _chunkTimes[currentVictimIndex] = time;
@@ -371,51 +287,71 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
             this._elementCount.incrementAndGet();
             return p_elem;
         } else {
+            _chunkMarks[entry] = _chunkMarks[entry] + 1;
             return _chunkValues[entry];
         }
     }
 
+    //TODO change by a compare and swap
     @Override
-    public ChunkIterator detachDirties() {
-        return _dirtyState.getAndSet(new InternalDirtyStateList(this._saveBatchSize, this));
-    }
-
-    @Override
-    public void declareDirty(Chunk dirtyChunk) {
-        HeapChunk currentM = (HeapChunk) dirtyChunk;
-        if (currentM.setFlags(CoreConstants.DIRTY_BIT, 0)) {
-            //add an additional mark
-            currentM.mark();
-            //now enqueue in the dirtyList to be saved later
-            boolean success = false;
-            while (!success) {
-                InternalDirtyStateList previousState = this._dirtyState.get();
-                success = previousState.declareDirty((int) dirtyChunk.index());
-                if (!success) {
-                    this._graph.save(null);
-                }
+    public void notifyUpdate(long index) {
+        boolean previous = _dirties[(int) index];
+        if (!previous) {
+            _dirties[(int) index] = true;
+            _dirtiesStack.enqueue(index);
+            if (_dirtiesStack.size() > _saveBatchSize) {
+                save();
             }
         }
     }
 
     @Override
-    public void declareClean(Chunk cleanChunk) {
-        HeapChunk currentM = (HeapChunk) cleanChunk;
-        currentM.setFlags(0, CoreConstants.DIRTY_BIT);
-        //free the save mark
-        if (currentM.unmark() == 0) {
-            this._lru.enqueue(currentM.index());
+    public void save() {
+        boolean isNoop = this._graph.storage() instanceof BlackHoleStorage;
+        final Buffer stream = this._graph.newBuffer();
+        boolean isFirst = true;
+        while (_dirtiesStack.size() != 0) {
+            long tail = _dirtiesStack.dequeueTail();
+            Chunk loopChunk = _chunkValues[(int) tail];
+            //Save chunk Key
+            if (!isNoop) {
+                if (isFirst) {
+                    isFirst = false;
+                } else {
+                    stream.write(CoreConstants.BUFFER_SEP);
+                }
+                KeyHelper.keyToBuffer(stream, loopChunk.chunkType(), loopChunk.world(), loopChunk.time(), loopChunk.id());
+            }
+            //Save chunk payload
+            stream.write(CoreConstants.BUFFER_SEP);
+            try {
+                if (!isNoop) { //optimization to not save unused bytes
+                    loopChunk.save(stream);
+                }
+                _dirties[(int) tail] = false;
+                unmark((int) tail);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+        //shrink in case of i != full size
+        this.graph().storage().put(stream, new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                //free all value
+                stream.free();
+            }
+        });
     }
 
     @Override
     public final void clear() {
-        //TODO
+        //TODO reset everything
     }
 
     @Override
-    public final void free() {
-        //TODO
+    public final void freeAll() {
+        //TODO reset everything
     }
 
     @Override
@@ -431,19 +367,19 @@ public class HeapChunkSpace implements ChunkSpace, ChunkListener {
     public final void printMarked() {
         for (int i = 0; i < _chunkValues.length; i++) {
             if (_chunkValues[i] != null) {
-                if (_chunkValues[i].marks() != 0) {
+                if (_chunkMarks[i] != 0) {
                     switch (_chunkTypes[i]) {
                         case ChunkType.STATE_CHUNK:
-                            System.out.println("STATE(" + _chunkWorlds[i] + "," + _chunkValues[i].time() + "," + _chunkValues[i].id() + ")->marks->" + _chunkValues[i].marks());
+                            System.out.println("STATE(" + _chunkWorlds[i] + "," + _chunkValues[i].time() + "," + _chunkValues[i].id() + ")->marks->" + _chunkMarks[i]);
                             break;
                         case ChunkType.TIME_TREE_CHUNK:
-                            System.out.println("TIME_TREE(" + _chunkWorlds[i] + "," + _chunkValues[i].time() + "," + _chunkValues[i].id() + ")->marks->" + _chunkValues[i].marks());
+                            System.out.println("TIME_TREE(" + _chunkWorlds[i] + "," + _chunkValues[i].time() + "," + _chunkValues[i].id() + ")->marks->" + _chunkMarks[i]);
                             break;
                         case ChunkType.WORLD_ORDER_CHUNK:
-                            System.out.println("WORLD_ORDER(" + _chunkWorlds[i] + "," + _chunkValues[i].time() + "," + _chunkValues[i].id() + ")->marks->" + _chunkValues[i].marks());
+                            System.out.println("WORLD_ORDER(" + _chunkWorlds[i] + "," + _chunkValues[i].time() + "," + _chunkValues[i].id() + ")->marks->" + _chunkMarks[i]);
                             break;
                         case ChunkType.GEN_CHUNK:
-                            System.out.println("GENERATOR(" + _chunkWorlds[i] + "," + _chunkValues[i].time() + "," + _chunkValues[i].id() + ")->marks->" + _chunkValues[i].marks());
+                            System.out.println("GENERATOR(" + _chunkWorlds[i] + "," + _chunkValues[i].time() + "," + _chunkValues[i].id() + ")->marks->" + _chunkMarks[i]);
                             break;
                     }
                 }

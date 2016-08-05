@@ -243,7 +243,7 @@ public class OffHeapWorldOrderChunk implements WorldOrderChunk, OffHeapChunk {
     }
 
     @Override
-    public void merge(Buffer buffer) {
+    public void load(Buffer buffer) {
         //cas to put a lock flag
         while (!OffHeapLongArray.compareAndSwap(rootPtr, INDEX_LOCK, 0, 1)) ;
         try {

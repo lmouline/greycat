@@ -6,46 +6,19 @@ import org.mwg.core.CoreConstants;
 import org.mwg.core.chunk.ChunkListener;
 import org.mwg.chunk.StateChunk;
 import org.mwg.utility.HashHelper;
-import org.mwg.utility.Unsafe;
 import org.mwg.utility.Base64;
 import org.mwg.chunk.Chunk;
 import org.mwg.chunk.ChunkType;
 import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.*;
 
-public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
-
-    /**
-     * @ignore ts
-     */
-    private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
+class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
 
     private long _index;
 
     private volatile InternalState state;
-    private volatile long _flags;
-    private volatile long _marks;
-
-    /**
-     * @ignore ts
-     */
-    private static final long _flagsOffset;
-    /**
-     * @ignore ts
-     */
-    private static final long _marksOffset;
-
-    /** @ignore ts */
-    static {
-        try {
-            _flagsOffset = unsafe.objectFieldOffset(HeapStateChunk.class.getDeclaredField("_flags"));
-            _marksOffset = unsafe.objectFieldOffset(HeapStateChunk.class.getDeclaredField("_marks"));
-        } catch (Exception ex) {
-            throw new Error(ex);
-        }
-    }
-
     private final HeapChunkSpace _space;
+
     private boolean inLoadMode;
 
     @Override
@@ -121,10 +94,8 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
         }
     }
 
-    public HeapStateChunk(final HeapChunkSpace p_space, Buffer initialPayload, Chunk origin) {
+    HeapStateChunk(final HeapChunkSpace p_space, Buffer initialPayload, Chunk origin) {
         this.inLoadMode = false;
-        this._flags = 0;
-        this._marks = 0;
         this._space = p_space;
         if (initialPayload != null && initialPayload.length() > 0) {
             load(initialPayload, false);
@@ -183,43 +154,6 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
     @Override
     public final byte chunkType() {
         return ChunkType.STATE_CHUNK;
-    }
-
-    @Override
-    public final long marks() {
-        return this._marks;
-    }
-
-    /**
-     * @native ts
-     * this._marks = this._marks + 1;
-     * return this._marks
-     */
-    @Override
-    public final long mark() {
-        long before;
-        long after;
-        do {
-            before = _marks;
-            after = before + 1;
-        } while (!unsafe.compareAndSwapLong(this, _marksOffset, before, after));
-        return after;
-    }
-
-    /**
-     * @native ts
-     * this._marks = this._marks - 1;
-     * return this._marks
-     */
-    @Override
-    public final long unmark() {
-        long before;
-        long after;
-        do {
-            before = _marks;
-            after = before - 1;
-        } while (!unsafe.compareAndSwapLong(this, _marksOffset, before, after));
-        return after;
     }
 
     /**
@@ -298,21 +232,21 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
                 switch (p_elemType) {
                     /** Primitives */
                     case Type.BOOL:
-                        param_elem = (Boolean) p_unsafe_elem;
+                        param_elem = (boolean) p_unsafe_elem;
                         break;
                     case Type.DOUBLE:
-                        param_elem = (Double) p_unsafe_elem;
+                        param_elem = (double) p_unsafe_elem;
                         break;
                     case Type.LONG:
                         if (p_unsafe_elem instanceof Integer) {
                             int preCasting = (Integer) p_unsafe_elem;
                             param_elem = (long) preCasting;
                         } else {
-                            param_elem = (Long) p_unsafe_elem;
+                            param_elem = (long) p_unsafe_elem;
                         }
                         break;
                     case Type.INT:
-                        param_elem = (Integer) p_unsafe_elem;
+                        param_elem = (int) p_unsafe_elem;
                         break;
                     case Type.STRING:
                         param_elem = (String) p_unsafe_elem;
@@ -586,7 +520,7 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
     }
 
     @Override
-    public void merge(Buffer buffer) {
+    public void load(Buffer buffer) {
         load(buffer, true);
     }
 
@@ -642,7 +576,7 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
                     isFirstElem = false;
                     int stateChunkSize = Base64.decodeToIntWithBounds(payload, 0, cursor);
 
-                    if (!isMerge) { //in case of merge, state chunk already initialized
+                    if (!isMerge) { //in case of load, state chunk already initialized
                         newNumberElement = stateChunkSize;
                         int newStateChunkSize = (stateChunkSize == 0 ? 1 : stateChunkSize * 2);
                         //init map element
@@ -1117,32 +1051,8 @@ public class HeapStateChunk implements HeapChunk, StateChunk, ChunkListener {
 
     private void internal_set_dirty() {
         if (_space != null) {
-            if ((_flags & CoreConstants.DIRTY_BIT) != CoreConstants.DIRTY_BIT) {
-                _space.declareDirty(this);
-            }
+            _space.notifyUpdate(_index);
         }
     }
 
-    @Override
-    public final long flags() {
-        return _flags;
-    }
-
-    /**
-     * @native ts
-     * var val = this._flags
-     * var nval = val & ~bitsToDisable | bitsToEnable;
-     * this._flags = nval;
-     * return val != nval;
-     */
-    @Override
-    public final boolean setFlags(long bitsToEnable, long bitsToDisable) {
-        long val;
-        long nval;
-        do {
-            val = _flags;
-            nval = val & ~bitsToDisable | bitsToEnable;
-        } while (!unsafe.compareAndSwapLong(this, _flagsOffset, val, nval));
-        return val != nval;
-    }
 }

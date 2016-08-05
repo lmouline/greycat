@@ -3,17 +3,11 @@ package org.mwg.core.chunk.heap;
 import org.mwg.core.CoreConstants;
 import org.mwg.chunk.TimeTreeChunk;
 import org.mwg.chunk.TreeWalker;
-import org.mwg.utility.Unsafe;
 import org.mwg.utility.Base64;
 import org.mwg.chunk.ChunkType;
 import org.mwg.struct.Buffer;
 
-public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
-
-    /**
-     * @ignore ts
-     */
-    private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
+class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
 
     //constants definition
     private static final int META_SIZE = 3;
@@ -30,109 +24,20 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
     private volatile long[] _back_k;
     private volatile boolean[] _back_colors;
 
-    private volatile int _lock;
-    private volatile long _flags;
-    private volatile long _marks;
     private volatile long _magic;
 
-    /**
-     * @ignore ts
-     */
-    private static final long _lockOffset;
-    /**
-     * @ignore ts
-     */
-    private static final long _flagsOffset;
-    /**
-     * @ignore ts
-     */
-    private static final long _marksOffset;
-    /**
-     * @ignore ts
-     */
-    private static final long _magicOffset;
-
-    /** @ignore ts */
-    static {
-        try {
-            _lockOffset = unsafe.objectFieldOffset(HeapTimeTreeChunk.class.getDeclaredField("_lock"));
-            _flagsOffset = unsafe.objectFieldOffset(HeapTimeTreeChunk.class.getDeclaredField("_flags"));
-            _marksOffset = unsafe.objectFieldOffset(HeapTimeTreeChunk.class.getDeclaredField("_marks"));
-            _magicOffset = unsafe.objectFieldOffset(HeapTimeTreeChunk.class.getDeclaredField("_magic"));
-        } catch (Exception ex) {
-            throw new Error(ex);
-        }
-    }
-
-    public HeapTimeTreeChunk(final HeapChunkSpace p_space, final Buffer initialPayload) {
+    HeapTimeTreeChunk(final HeapChunkSpace p_space, final Buffer initialPayload) {
         //listener
         this._space = p_space;
         //identifier
         //multi-thread management
         this._threshold = 0;
-        this._flags = 0;
-        this._marks = 0;
         this._magic = 0;
-        this._lock = 0;
         try {
             load(initialPayload);
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * @native ts
-     */
-    private void lock() {
-        while (!unsafe.compareAndSwapInt(this, _lockOffset, 0, 1)) ;
-    }
-
-    /**
-     * @native ts
-     */
-    private void unlock() {
-        if (!unsafe.compareAndSwapInt(this, _lockOffset, 1, 0)) {
-            throw new RuntimeException("CAS Error !!!");
-        }
-    }
-
-
-    @Override
-    public final long marks() {
-        return this._marks;
-    }
-
-    /**
-     * @native ts
-     * this._marks = this._marks + 1;
-     * return this._marks
-     */
-    @Override
-    public final long mark() {
-        long before;
-        long after;
-        do {
-            before = _marks;
-            after = before + 1;
-        } while (!unsafe.compareAndSwapLong(this, _marksOffset, before, after));
-        return after;
-    }
-
-    /**
-     * @native ts
-     * this._marks = this._marks - 1;
-     * return this._marks
-     */
-    @Override
-    public final long unmark() {
-        long before;
-        long after;
-        do {
-            before = _marks;
-            after = before - 1;
-        } while (!unsafe.compareAndSwapLong(this, _marksOffset, before, after));
-        return after;
     }
 
     @Override
@@ -151,29 +56,6 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
     }
 
     @Override
-    public final long flags() {
-        return _flags;
-    }
-
-    /**
-     * @native ts
-     * var val = this._flags
-     * var nval = val & ~bitsToDisable | bitsToEnable;
-     * this._flags = nval;
-     * return val != nval;
-     */
-    @Override
-    public final boolean setFlags(long bitsToEnable, long bitsToDisable) {
-        long val;
-        long nval;
-        do {
-            val = _flags;
-            nval = val & ~bitsToDisable | bitsToEnable;
-        } while (!unsafe.compareAndSwapLong(this, _flagsOffset, val, nval));
-        return val != nval;
-    }
-
-    @Override
     public void setIndex(long p_index) {
         this._index = p_index;
     }
@@ -186,7 +68,6 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
     @Override
     public synchronized final void range(long startKey, long endKey, long maxElements, TreeWalker walker) {
         //lock and load fromVar main memory
-        lock();
         int nbElements = 0;
         int indexEnd = internal_previousOrEqual_index(endKey);
         while (indexEnd != -1 && key(indexEnd) >= startKey && nbElements < maxElements) {
@@ -194,31 +75,22 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
             nbElements++;
             indexEnd = previous(indexEnd);
         }
-
-        //free the lock
-        unlock();
     }
 
     @Override
     public synchronized final void save(Buffer buffer) {
         //lock and load fromVar main memory
-        lock();
-        try {
-            if (_root_index == -1) {
-                return;
+        if (_root_index == -1) {
+            return;
+        }
+        boolean isFirst = true;
+        for (int i = 0; i < _size; i++) {
+            if (!isFirst) {
+                buffer.write(CoreConstants.CHUNK_SUB_SEP);
+            } else {
+                isFirst = false;
             }
-            boolean isFirst = true;
-            for (int i = 0; i < _size; i++) {
-                if (!isFirst) {
-                    buffer.write(CoreConstants.CHUNK_SUB_SEP);
-                } else {
-                    isFirst = false;
-                }
-                Base64.encodeLongToBuffer(this._back_k[i], buffer);
-            }
-        } finally {
-            //free the lock
-            unlock();
+            Base64.encodeLongToBuffer(this._back_k[i], buffer);
         }
     }
 
@@ -243,8 +115,7 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
     }
 
     @Override
-    public void merge(Buffer buffer) {
-        lock();
+    public void load(Buffer buffer) {
         boolean isDirty = false;
         try {
             long cursor = 0;
@@ -261,7 +132,6 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
             isDirty = isDirty || internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
         } finally {
             //free the lock
-            unlock();
             if (isDirty) {
                 this.internal_set_dirty();
             }
@@ -276,19 +146,13 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
     @Override
     public synchronized final long previousOrEqual(long key) {
         //lock and load fromVar main memory
-        lock();
         long resultKey;
-        try {
-            int result = internal_previousOrEqual_index(key);
+        int result = internal_previousOrEqual_index(key);
 
-            if (result != -1) {
-                resultKey = key(result);
-            } else {
-                resultKey = CoreConstants.NULL_LONG;
-            }
-        } finally {
-            //free the lock
-            unlock();
+        if (result != -1) {
+            resultKey = key(result);
+        } else {
+            resultKey = CoreConstants.NULL_LONG;
         }
         return resultKey;
     }
@@ -300,22 +164,12 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
 
     @Override
     public synchronized final void insert(long p_key) {
-
         boolean toSetDirty;
         //lock and load fromVar main memory
-
-        lock();
-        try {
-            toSetDirty = internal_insert(p_key);
-
-        } finally {
-            //free the lock and write to main memory
-            unlock();
-        }
+        toSetDirty = internal_insert(p_key);
         if (toSetDirty) {
             internal_set_dirty();
         }
-
     }
 
     @Override
@@ -331,24 +185,18 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
     @Override
     public synchronized final void clearAt(long max) {
         //lock and load fromVar main memory
-        lock();
-        try {
-            long[] previousValue = _back_k;
-            //reset the state
-            _back_k = new long[_back_k.length];
-            _back_meta = new int[_back_k.length * META_SIZE];
-            _back_colors = new boolean[_back_k.length];
-            _root_index = -1;
-            int _previousSize = _size;
-            _size = 0;
-            for (int i = 0; i < _previousSize; i++) {
-                if (previousValue[i] != CoreConstants.NULL_LONG && previousValue[i] < max) {
-                    internal_insert(previousValue[i]);
-                }
+        long[] previousValue = _back_k;
+        //reset the state
+        _back_k = new long[_back_k.length];
+        _back_meta = new int[_back_k.length * META_SIZE];
+        _back_colors = new boolean[_back_k.length];
+        _root_index = -1;
+        int _previousSize = _size;
+        _size = 0;
+        for (int i = 0; i < _previousSize; i++) {
+            if (previousValue[i] != CoreConstants.NULL_LONG && previousValue[i] < max) {
+                internal_insert(previousValue[i]);
             }
-        } finally {
-            //free the lock and write to main memory
-            unlock();
         }
         //dirty
         internal_set_dirty();
@@ -727,26 +575,10 @@ public class HeapTimeTreeChunk implements TimeTreeChunk, HeapChunk {
         return true;
     }
 
-    /**
-     * @native ts
-     * this._magic = this._magic + 1;
-     * if (this._space != null) {
-     * if ((this._flags & org.mwg.core.CoreConstants.DIRTY_BIT) != org.mwg.core.CoreConstants.DIRTY_BIT) {
-     * this._space.declareDirty(this);
-     * }
-     * }
-     */
     private void internal_set_dirty() {
-        long magicBefore;
-        long magicAfter;
-        do {
-            magicBefore = _magic;
-            magicAfter = magicBefore + 1;
-        } while (!unsafe.compareAndSwapLong(this, _magicOffset, magicBefore, magicAfter));
+        _magic = _magic + 1;
         if (_space != null) {
-            if ((_flags & CoreConstants.DIRTY_BIT) != CoreConstants.DIRTY_BIT) {
-                _space.declareDirty(this);
-            }
+            _space.notifyUpdate(_index);
         }
     }
 

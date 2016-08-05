@@ -12,7 +12,7 @@ import org.mwg.task.Task;
 public class Builder implements GraphBuilder.InternalBuilder {
 
     @Override
-    public org.mwg.Graph newGraph(Storage p_storage, boolean p_readOnly, Scheduler p_scheduler, Plugin[] p_plugins, boolean p_usingGC, boolean p_usingOffHeapMemory, long p_memorySize, long p_autoSaveSize) {
+    public org.mwg.Graph newGraph(Storage p_storage, boolean p_readOnly, Scheduler p_scheduler, Plugin[] p_plugins, long p_memorySize, long p_autoSaveSize) {
         Storage storage = p_storage;
         if (storage == null) {
             storage = new BlackHoleStorage();
@@ -32,11 +32,7 @@ public class Builder implements GraphBuilder.InternalBuilder {
         if (p_autoSaveSize == -1) {
             autoSaveSize = memorySize;
         }
-        org.mwg.core.CoreGraph graph = new org.mwg.core.CoreGraph(storage, memorySize, autoSaveSize, scheduler, p_plugins);
-        if (p_usingOffHeapMemory) {
-            graph.offHeapBuffer = true;
-        }
-        return graph;
+        return new org.mwg.core.CoreGraph(storage, memorySize, autoSaveSize, scheduler, p_plugins);
     }
 
     @Override

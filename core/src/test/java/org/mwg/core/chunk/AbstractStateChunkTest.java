@@ -58,9 +58,9 @@ public abstract class AbstractStateChunkTest {
         Assert.assertEquals(result2_3[2], 72L);
         Assert.assertEquals(result2_3.length, 3);
 
-        space.freeChunk(chunk);
-        space.freeChunk(chunk2);
-        space.free();
+        space.free(chunk);
+        space.free(chunk2);
+        space.freeAll();
     }
 
     @Test
@@ -100,7 +100,7 @@ public abstract class AbstractStateChunkTest {
         buffer = factory.newBuffer();
 
         chunk.save(buffer);
-        space.freeChunk(chunk2);
+        space.free(chunk2);
         chunk2 = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 2, buffer, null);
 
         buffer2.free();
@@ -129,7 +129,7 @@ public abstract class AbstractStateChunkTest {
         buffer.free();
         buffer = factory.newBuffer();
         chunk.save(buffer);
-        space.freeChunk(chunk2);
+        space.free(chunk2);
         chunk2 = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 3, buffer, null);
 
         buffer2.free();
@@ -165,9 +165,9 @@ public abstract class AbstractStateChunkTest {
         buffer2.free();
         buffer.free();
 
-        space.freeChunk(chunk3);
-        space.freeChunk(chunk2);
-        space.freeChunk(chunk);
+        space.free(chunk3);
+        space.free(chunk2);
+        space.free(chunk);
 
         //create an empty
         StateChunk chunk4 = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 5, null, null);
@@ -177,10 +177,10 @@ public abstract class AbstractStateChunkTest {
 
         StateChunk chunk5 = (StateChunk) space.create(ChunkType.STATE_CHUNK, 0, 0, 6, saved4, null);
         Assert.assertEquals(((long[]) chunk5.get(0)).length, 0);
-        space.freeChunk(chunk5);
-        space.freeChunk(chunk4);
+        space.free(chunk5);
+        space.free(chunk4);
         saved4.free();
-        space.free();
+        space.freeAll();
     }
 
     @Test
@@ -279,9 +279,9 @@ public abstract class AbstractStateChunkTest {
         chunk2.set(11, Type.STRING, "newString");
         Assert.assertEquals(chunk2.get(11), "newString");
 
-        space.freeChunk(chunk);
-        space.freeChunk(chunk2);
-        space.free();
+        space.free(chunk);
+        space.free(chunk2);
+        space.freeAll();
 
     }
 
@@ -328,8 +328,8 @@ public abstract class AbstractStateChunkTest {
         protectionMethod(chunk, Type.LONG_TO_LONG_MAP, "hello", true);
         protectionMethod(chunk, Type.LONG_TO_LONG_ARRAY_MAP, "hello", true);
 
-        space.freeChunk(chunk);
-        space.free();
+        space.free(chunk);
+        space.freeAll();
 
 
     }
@@ -395,8 +395,8 @@ public abstract class AbstractStateChunkTest {
         ((LongLongArrayMap) chunk.getOrCreate(8, Type.LONG_TO_LONG_ARRAY_MAP)).put(100, 100);
         ((StringLongMap) chunk.getOrCreate(9, Type.STRING_TO_LONG_MAP)).put("100", 100);
 
-        space.freeChunk(chunk);
-        space.free();
+        space.free(chunk);
+        space.freeAll();
 
     }
 

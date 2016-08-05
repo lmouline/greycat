@@ -409,7 +409,7 @@ public class OffHeapStateChunk implements StateChunk, ChunkListener, OffHeapChun
     }
 
     @Override
-    public void merge(Buffer buffer) {
+    public void load(Buffer buffer) {
         while (!OffHeapLongArray.compareAndSwap(root_array_ptr, INDEX_LOCK, 0, 1)) ; // lock
         try {
             load(buffer, true);

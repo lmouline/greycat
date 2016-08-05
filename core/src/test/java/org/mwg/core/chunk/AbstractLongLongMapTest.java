@@ -70,8 +70,8 @@ public abstract class AbstractLongLongMapTest {
             Assert.assertTrue(map.get(i) == i);
         }
 
-        space.freeChunk(chunk);
-        space.free();
+        space.free(chunk);
+        space.freeAll();
 
     }
 

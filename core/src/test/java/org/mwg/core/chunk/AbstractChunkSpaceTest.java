@@ -28,7 +28,7 @@ public abstract class AbstractChunkSpaceTest {
         GenChunk genChunk = (GenChunk) space.create(ChunkType.GEN_CHUNK, 1, 1, 1, null, null);
         space.putAndMark(ChunkType.GEN_CHUNK, 1, 1, 1, genChunk);
 
-        space.free();
+        space.freeAll();
     }
 
 }

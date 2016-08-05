@@ -73,8 +73,8 @@ public abstract class AbstractStringLongMapTest {
             Assert.assertTrue(map.getValue("i_" + i) == i);
         }
 
-        space.freeChunk(chunk);
-        space.free();
+        space.free(chunk);
+        space.freeAll();
 
     }
 

@@ -1,6 +1,7 @@
 
 package org.mwg.core.chunk.heap;
 
+import org.mwg.Constants;
 import org.mwg.core.CoreConstants;
 import org.mwg.chunk.WorldOrderChunk;
 import org.mwg.utility.HashHelper;
@@ -10,98 +11,78 @@ import org.mwg.chunk.ChunkType;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.LongLongMapCallBack;
 
-public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
+import java.util.Arrays;
+
+final class HeapWorldOrderChunk implements WorldOrderChunk {
 
     /**
      * @ignore ts
      */
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
 
-    private long _index;
-
     private final HeapChunkSpace _space;
+    private final long _index;
 
     private volatile int _lock;
-    private volatile long _marks;
     private volatile long _magic;
-    private volatile long _flags;
     private volatile long _extra;
 
-    /**
-     * @ignore ts
-     */
-    private static final long _flagsOffset;
-    /**
-     * @ignore ts
-     */
-    private static final long _marksOffset;
+    private volatile int _size;
+    private int _capacity;
+    private long[] _kv;
+    private int[] _next;
+    private int[] _hash;
+
     /**
      * @ignore ts
      */
     private static final long _lockOffset;
-    /**
-     * @ignore ts
-     */
-    private static final long _magicOffset;
 
     /** @ignore ts */
     static {
         try {
-            _flagsOffset = unsafe.objectFieldOffset(HeapWorldOrderChunk.class.getDeclaredField("_flags"));
-            _marksOffset = unsafe.objectFieldOffset(HeapWorldOrderChunk.class.getDeclaredField("_marks"));
             _lockOffset = unsafe.objectFieldOffset(HeapWorldOrderChunk.class.getDeclaredField("_lock"));
-            _magicOffset = unsafe.objectFieldOffset(HeapWorldOrderChunk.class.getDeclaredField("_magic"));
         } catch (Exception ex) {
             throw new Error(ex);
         }
     }
 
-    private volatile InternalState state;
+    HeapWorldOrderChunk(final HeapChunkSpace p_space, final long p_index) {
+        _lock = 0;
+        _magic = 0;
+        _extra = CoreConstants.NULL_LONG;
+        _index = p_index;
+        _space = p_space;
+        _size = 0;
+        _capacity = 0;
+        _kv = null;
+        _next = null;
+        _hash = null;
+    }
 
     @Override
-    public long world() {
+    public final long world() {
         return _space.worldByIndex(_index);
     }
 
     @Override
-    public long time() {
+    public final long time() {
         return _space.timeByIndex(_index);
     }
 
     @Override
-    public long id() {
+    public final long id() {
         return _space.idByIndex(_index);
     }
 
     @Override
-    public long extra() {
+    public final long extra() {
         return this._extra;
     }
 
     @Override
-    public void setExtra(long extraValue) {
+    public final void setExtra(final long extraValue) {
         this._extra = extraValue;
-    }
-
-    public HeapWorldOrderChunk(final HeapChunkSpace p_space, final Buffer initialPayload) {
-        this._flags = 0;
-        this._marks = 0;
-        this._lock = 0;
-        this._magic = 0;
-        this._extra = CoreConstants.NULL_LONG;
-
-        this._space = p_space;
-        if (initialPayload != null && initialPayload.length() > 0) {
-            load(initialPayload);
-        } else {
-            int initialCapacity = CoreConstants.MAP_INITIAL_CAPACITY;
-            InternalState newstate = new InternalState(initialCapacity, new long[initialCapacity * 2], new int[initialCapacity], new int[initialCapacity], 0);
-            for (int i = 0; i < initialCapacity; i++) {
-                newstate.elementNext[i] = -1;
-                newstate.elementHash[i] = -1;
-            }
-            this.state = newstate;
-        }
     }
 
     /**
@@ -122,171 +103,124 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
         }
     }
 
-    /**
-     * Internal Map state, to be replace in a compare and swap manner
-     */
-    private final class InternalState {
-
-        final int threshold;
-
-        final int elementDataSize;
-
-        final long[] elementKV;
-
-        final int[] elementNext;
-
-        final int[] elementHash;
-
-        volatile int elementCount;
-
-        InternalState(int elementDataSize, long[] elementKV, int[] elementNext, int[] elementHash, int elemCount) {
-            this.elementDataSize = elementDataSize;
-            this.elementKV = elementKV;
-            this.elementNext = elementNext;
-            this.elementHash = elementHash;
-            this.threshold = (int) (elementDataSize * CoreConstants.MAP_LOAD_FACTOR);
-            this.elementCount = elemCount;
-        }
-    }
-
-    @Override
-    public final long marks() {
-        return this._marks;
-    }
-
-
-    /**
-     * @native ts
-     * this._marks = this._marks + 1;
-     * return this._marks
-     */
-    @Override
-    public final long mark() {
-        long before;
-        long after;
-        do {
-            before = _marks;
-            after = before + 1;
-        } while (!unsafe.compareAndSwapLong(this, _marksOffset, before, after));
-        return after;
-    }
-
-    /**
-     * @native ts
-     * this._marks = this._marks - 1;
-     * return this._marks
-     */
-    @Override
-    public final long unmark() {
-        long before;
-        long after;
-        do {
-            before = _marks;
-            after = before - 1;
-        } while (!unsafe.compareAndSwapLong(this, _marksOffset, before, after));
-        return after;
-    }
-
     @Override
     public final long magic() {
         return this._magic;
     }
 
-    private void rehashCapacity(int capacity, InternalState previousState) {
-        int length = (capacity == 0 ? 1 : capacity * 2);
-        long[] newElementKV = new long[length * 2];
-        System.arraycopy(previousState.elementKV, 0, newElementKV, 0, previousState.elementKV.length);
-        int[] newElementNext = new int[length];
-        int[] newElementHash = new int[length];
-        for (int i = 0; i < length; i++) {
-            newElementNext[i] = -1;
-            newElementHash[i] = -1;
-        }
-        //rehashEveryThing
-        for (int i = 0; i < previousState.elementNext.length; i++) {
-            if (previousState.elementNext[i] != -1) { //there is a real value
-                int index = (int) HashHelper.longHash(previousState.elementKV[i * 2], length);
-                int currentHashedIndex = newElementHash[index];
-                if (currentHashedIndex != -1) {
-                    newElementNext[i] = currentHashedIndex;
-                } else {
-                    newElementNext[i] = -2; //special char to tag used values
-                }
-                newElementHash[index] = i;
-            }
-        }
-        //setPrimitiveType value for all
-        state = new InternalState(length, newElementKV, newElementNext, newElementHash, previousState.elementCount);
-    }
-
     @Override
     public final void each(LongLongMapCallBack callback) {
-        final InternalState internalState = state;
-        for (int i = 0; i < internalState.elementCount; i++) {
-            callback.on(internalState.elementKV[i * 2], internalState.elementKV[i * 2 + 1]);
+        for (int i = 0; i < _size; i++) {
+            callback.on(_kv[i * 2], _kv[i * 2 + 1]);
         }
     }
 
     @Override
-    public final long get(long key) {
-        final InternalState internalState = state;
-        if (internalState.elementDataSize == 0) {
-            return CoreConstants.NULL_LONG;
-        }
-        int index = (int) HashHelper.longHash(key, internalState.elementDataSize);
-        int m = internalState.elementHash[index];
-        while (m >= 0) {
-            if (key == internalState.elementKV[m * 2]) {
-                return internalState.elementKV[(m * 2) + 1];
-            } else {
-                m = internalState.elementNext[m];
+    public synchronized final long get(final long key) {
+        if (_size > 0) {
+            final int index = (int) HashHelper.longHash(key, _capacity * 2);
+            int m = _hash[index];
+            while (m >= 0) {
+                if (key == _kv[m * 2]) {
+                    return _kv[(m * 2) + 1];
+                } else {
+                    m = _next[m];
+                }
             }
         }
         return CoreConstants.NULL_LONG;
     }
 
     @Override
-    public final synchronized void put(long key, long value) {
-        InternalState internalState = state;
-        if (internalState == null) {
-            internalState = new InternalState(0, new long[0], new int[0], new int[0], 0);
-        }
-        int entry = -1;
-        int index = -1;
-        if (internalState.elementDataSize != 0) {
-            index = (int) HashHelper.longHash(key, internalState.elementDataSize);
-            entry = findNonNullKeyEntry(key, index, internalState);
-        }
-        if (entry == -1) {
-            if (++internalState.elementCount > internalState.threshold) {
-                rehashCapacity(internalState.elementDataSize, internalState);
-                internalState = state;
-                index = (int) HashHelper.longHash(key, internalState.elementDataSize);
+    public synchronized final void put(final long key, final long value) {
+        internal_put(key, value, true);
+    }
+
+    private void internal_put(final long key, final long value, final boolean notifyUpdate) {
+        if (_size == 0) {
+            //we need to init
+            int m = (int) HashHelper.longHash(key, _capacity * 2);
+            int found = -1;
+            while (m >= 0) {
+                if (key == _kv[m]) {
+                    found = m;
+                }
+                m = _next[m];
             }
-            int newIndex = (internalState.elementCount - 1);
-            internalState.elementKV[newIndex * 2] = key;
-            internalState.elementKV[newIndex * 2 + 1] = value;
-            int currentHashedIndex = internalState.elementHash[index];
-            if (currentHashedIndex != -1) {
-                internalState.elementNext[newIndex] = currentHashedIndex;
+            if (found == -1) {
+                if (_capacity == _size) {
+                    resize(_capacity * 2);
+                }
+                int hashIndex = (int) HashHelper.longHash(key, _capacity * 2);
+                _kv[_size * 2] = key;
+                _kv[_size * 2 + 1] = value;
+                _next[_size] = _hash[hashIndex];
+                _hash[hashIndex] = _size;
+                _size++;
+                _magic = _magic + 1;
+                if (notifyUpdate) {
+                    if (_space != null) {
+                        _space.notifyUpdate(_index);
+                    }
+                }
             } else {
-                internalState.elementNext[newIndex] = -2; //special char to tag used values
+                if (_kv[m + 1] != value) {
+                    _kv[m + 1] = value;
+                    _magic = _magic + 1;
+                    if (notifyUpdate) {
+                        if (_space != null) {
+                            _space.notifyUpdate(_index);
+                        }
+                    }
+                }
             }
-            //now the object is reachable to other thread everything should be ready
-            internalState.elementHash[index] = newIndex;
-            internal_set_dirty();
         } else {
-            if (internalState.elementKV[entry + 1] != value) {
-                //setValue
-                internalState.elementKV[entry + 1] = value;
-                internal_set_dirty();
-            }
+            _capacity = Constants.MAP_INITIAL_CAPACITY;
+            _next = new int[_capacity];
+            Arrays.fill(_next, 0, _capacity, -1);
+            _hash = new int[_capacity * 2];
+            Arrays.fill(_hash, 0, _capacity * 2, -1);
+            _kv = new long[_capacity * 2];
+            _size = 1;
+            _kv[0] = key;
+            _kv[1] = value;
+            _hash[(int) HashHelper.longHash(key, _capacity)] = 0;
         }
     }
 
-    //TODO lock once to optimise the merge
+    private boolean resize(final int newCapacity) {
+        if (newCapacity > _capacity) {
+            if (_kv == null) {
+                _kv = new long[newCapacity * 2];
+                _hash = new int[newCapacity * 2];
+                _next = new int[newCapacity];
+                _capacity = newCapacity;
+                return true;
+            } else {
+                final long[] temp_kv = new long[newCapacity * 2];
+                System.arraycopy(_kv, 0, temp_kv, 0, _size);
+                final int[] temp_next = new int[newCapacity];
+                final int[] temp_hash = new int[newCapacity * 2];
+                Arrays.fill(temp_next, 0, newCapacity, -1);
+                Arrays.fill(temp_hash, 0, newCapacity * 2, -1);
+                for (int i = 0; i < _size * 2; i = i + 2) {
+                    int loopIndex = (int) HashHelper.longHash(temp_kv[i], newCapacity * 2);
+                    _next[i] = _hash[loopIndex];
+                    _hash[loopIndex] = i;
+                }
+                _capacity = newCapacity;
+                _hash = temp_hash;
+                _next = temp_next;
+                _kv = temp_kv;
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
     @Override
-    public void merge(Buffer buffer) {
+    public synchronized void load(Buffer buffer) {
         long cursor = 0;
         long bufferSize = buffer.length();
         boolean initDone = false;
@@ -295,6 +229,8 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
         while (cursor < bufferSize) {
             if (buffer.read(cursor) == CoreConstants.CHUNK_SEP) {
                 if (!initDone) {
+                    resize((int) Base64.decodeToLongWithBounds(buffer, 0, cursor));
+                    //TODO extend to size to avoid unnecessary reHash
                     initDone = true;
                 } else {
                     //extra char read
@@ -304,9 +240,7 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
             } else if (buffer.read(cursor) == CoreConstants.CHUNK_SUB_SEP) {
                 if (loopKey != CoreConstants.NULL_LONG) {
                     long loopValue = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-
-                    put(loopKey, loopValue);//TODO optimize this
-
+                    internal_put(loopKey, loopValue, false);
                     //reset key for next round
                     loopKey = CoreConstants.NULL_LONG;
                 }
@@ -320,24 +254,13 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
         }
         if (loopKey != CoreConstants.NULL_LONG) {
             long loopValue = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-            put(loopKey, loopValue);//TODO optimize this
+            internal_put(loopKey, loopValue, false);
         }
     }
 
     @Override
     public long index() {
         return _index;
-    }
-
-    private int findNonNullKeyEntry(long key, int index, InternalState internalState) {
-        int m = internalState.elementHash[index];
-        while (m >= 0) {
-            if (key == internalState.elementKV[m * 2] /* getKey */) {
-                return m;
-            }
-            m = internalState.elementNext[m];
-        }
-        return -1;
     }
 
     //TODO check intersection of remove and put
@@ -348,168 +271,32 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
 
     @Override
     public final long size() {
-        return state.elementCount;
-    }
-
-    private void load(Buffer buffer) {
-        if (buffer == null || buffer.length() == 0) {
-            return;
-        }
-        int cursor = 0;
-        long loopKey = CoreConstants.NULL_LONG;
-        int previousStart = -1;
-        long capacity = -1;
-        int insertIndex = 0;
-        InternalState temp_state = null;
-        long bufferSize = buffer.length();
-        boolean initDone = false;
-        while (cursor < bufferSize) {
-            if (buffer.read(cursor) == CoreConstants.CHUNK_SEP) {
-                if (!initDone) {
-                    long size = Base64.decodeToLongWithBounds(buffer, 0, cursor);
-                    if (size == 0) {
-                        capacity = 1;
-                    } else {
-                        capacity = size * 2; // << 1
-                    }
-                    long[] newElementKV = new long[(int) (capacity * 2)];
-                    int[] newElementNext = new int[(int) capacity];
-                    int[] newElementHash = new int[(int) capacity];
-                    for (int i = 0; i < capacity; i++) {
-                        newElementNext[i] = -1;
-                        newElementHash[i] = -1;
-                    }
-                    //setPrimitiveType value for all
-                    temp_state = new InternalState((int) capacity, newElementKV, newElementNext, newElementHash, (int) size);
-                    //reset for next round
-                    initDone = true;
-                } else {
-                    //extra char read
-                    _extra = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                }
-                previousStart = cursor + 1;
-            } else if (buffer.read(cursor) == CoreConstants.CHUNK_SUB_SEP && temp_state != null) {
-                if (loopKey != CoreConstants.NULL_LONG) {
-                    long loopValue = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                    //insert raw
-                    temp_state.elementKV[insertIndex * 2] = loopKey;
-                    temp_state.elementKV[insertIndex * 2 + 1] = loopValue;
-
-                    //insert hash
-                    int hashIndex = (int) HashHelper.longHash(loopKey, capacity);
-                    int currentHashedIndex = temp_state.elementHash[hashIndex];
-                    if (currentHashedIndex != -1) {
-                        temp_state.elementNext[insertIndex] = currentHashedIndex;
-                    }
-                    temp_state.elementHash[hashIndex] = insertIndex;
-                    insertIndex++;
-                    //reset key for next round
-                    loopKey = CoreConstants.NULL_LONG;
-                }
-                previousStart = cursor + 1;
-            } else if (buffer.read(cursor) == CoreConstants.CHUNK_SUB_SUB_SEP) {
-                loopKey = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                previousStart = cursor + 1;
-            }
-            //loop in all case
-            cursor++;
-        }
-        if (loopKey != CoreConstants.NULL_LONG && temp_state != null) {
-            long loopValue = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-            //insert raw
-            temp_state.elementKV[insertIndex * 2] = loopKey;
-            temp_state.elementKV[insertIndex * 2 + 1] = loopValue;
-
-            //insert hash
-            int hashIndex = (int) HashHelper.longHash(loopKey, capacity);
-            int currentHashedIndex = temp_state.elementHash[hashIndex];
-            if (currentHashedIndex != -1) {
-                temp_state.elementNext[insertIndex] = currentHashedIndex;
-            }
-            temp_state.elementHash[hashIndex] = insertIndex;
-        }
-        if (temp_state != null) {
-            this.state = temp_state;
-        }
+        return _size;
     }
 
     @Override
-    public final void save(Buffer buffer) {
-        final InternalState internalState = state;
-        Base64.encodeLongToBuffer(internalState.elementCount, buffer);
+    public synchronized final void save(final Buffer buffer) {
+        Base64.encodeLongToBuffer(_size, buffer);
         buffer.write(CoreConstants.CHUNK_SEP);
         if (_extra != CoreConstants.NULL_LONG) {
             Base64.encodeLongToBuffer(_extra, buffer);
             buffer.write(CoreConstants.CHUNK_SEP);
         }
         boolean isFirst = true;
-        for (int i = 0; i < internalState.elementCount; i++) {
-            long loopKey = internalState.elementKV[i * 2];
-            long loopValue = internalState.elementKV[i * 2 + 1];
+        for (int i = 0; i < _size; i++) {
             if (!isFirst) {
                 buffer.write(CoreConstants.CHUNK_SUB_SEP);
             }
             isFirst = false;
-            Base64.encodeLongToBuffer(loopKey, buffer);
+            Base64.encodeLongToBuffer(_kv[i * 2], buffer);
             buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
-            Base64.encodeLongToBuffer(loopValue, buffer);
+            Base64.encodeLongToBuffer(_kv[i * 2 + 1], buffer);
         }
     }
 
     @Override
     public final byte chunkType() {
         return ChunkType.WORLD_ORDER_CHUNK;
-    }
-
-    /**
-     * @native ts
-     * this._magic = this._magic + 1;
-     * if (this._space != null) {
-     * if ((this._flags & org.mwg.core.CoreConstants.DIRTY_BIT) != org.mwg.core.CoreConstants.DIRTY_BIT) {
-     * this._space.declareDirty(this);
-     * }
-     * }
-     */
-    private void internal_set_dirty() {
-        long magicBefore;
-        long magicAfter;
-        do {
-            magicBefore = _magic;
-            magicAfter = magicBefore + 1;
-        } while (!unsafe.compareAndSwapLong(this, _magicOffset, magicBefore, magicAfter));
-        if (_space != null) {
-            if ((_flags & CoreConstants.DIRTY_BIT) != CoreConstants.DIRTY_BIT) {
-                _space.declareDirty(this);
-            }
-        }
-    }
-
-    @Override
-    public final long flags() {
-        return _flags;
-    }
-
-    /**
-     * @native ts
-     * var val = this._flags
-     * var nval = val & ~bitsToDisable | bitsToEnable;
-     * this._flags = nval;
-     * return val != nval;
-     */
-    @Override
-    public final boolean setFlags(long bitsToEnable, long bitsToDisable) {
-        long val;
-        long nval;
-        do {
-            val = _flags;
-            nval = val & ~bitsToDisable | bitsToEnable;
-        } while (!unsafe.compareAndSwapLong(this, _flagsOffset, val, nval));
-        return val != nval;
-    }
-
-    @Override
-    public void setIndex(long p_index) {
-        this._index = p_index;
     }
 
 }

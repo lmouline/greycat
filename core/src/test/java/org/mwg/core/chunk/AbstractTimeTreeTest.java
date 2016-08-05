@@ -54,8 +54,8 @@ public abstract class AbstractTimeTreeTest {
             }
         });
         Assert.assertTrue(nbCall[0] == 5);
-        space.freeChunk(tree);
-        space.free();
+        space.free(tree);
+        space.freeAll();
     }
 
     @Test
@@ -80,8 +80,8 @@ public abstract class AbstractTimeTreeTest {
         Assert.assertEquals(tree.previousOrEqual(13), 13L);
         Assert.assertEquals(tree.previousOrEqual(14), 13L);
 
-        space.freeChunk(tree);
-        space.free();
+        space.free(tree);
+        space.freeAll();
     }
 
     @Test
@@ -106,13 +106,13 @@ public abstract class AbstractTimeTreeTest {
 
         tree2.insert(10000);
 
-        space.freeChunk(tree);
-        space.freeChunk(tree2);
+        space.free(tree);
+        space.free(tree2);
 
         buffer2.free();
         buffer.free();
 
-        space.free();
+        space.freeAll();
 
     }
 
@@ -128,8 +128,8 @@ public abstract class AbstractTimeTreeTest {
         for (long i = 1; i <= max; i = i + 2) {
             Assert.assertTrue(tree.previousOrEqual(i) == i - 1);
         }
-        space.freeChunk(tree);
-        space.free();
+        space.free(tree);
+        space.freeAll();
     }
 
     private boolean compareWithString(Buffer buffer, String content) {

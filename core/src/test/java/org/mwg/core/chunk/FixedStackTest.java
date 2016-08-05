@@ -10,7 +10,7 @@ public class FixedStackTest {
 
     @Test
     public void heapFixedStackTest() {
-        test(new FixedStack(CAPACITY));
+        test(new FixedStack(CAPACITY, true));
     }
 
     /**

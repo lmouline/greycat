@@ -14,12 +14,8 @@ public interface Chunk {
 
     long index();
 
-    long marks();
-
-    long flags();
-
     void save(Buffer buffer);
 
-    void merge(Buffer buffer);
-    
+    void load(Buffer buffer);
+
 }

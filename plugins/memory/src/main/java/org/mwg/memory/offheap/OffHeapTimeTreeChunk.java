@@ -633,7 +633,7 @@ public class OffHeapTimeTreeChunk implements TimeTreeChunk, OffHeapChunk {
     }
 
     @Override
-    public void merge(Buffer buffer) {
+    public void load(Buffer buffer) {
         boolean toDeclareDirty = false;
         while (!OffHeapLongArray.compareAndSwap(addr, INDEX_LOCK, 0, 1)) ;
         try {

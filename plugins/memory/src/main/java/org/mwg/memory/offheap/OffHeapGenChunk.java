@@ -55,7 +55,7 @@ public class OffHeapGenChunk implements GenChunk, OffHeapChunk {
     }
 
     @Override
-    public void merge(Buffer buffer) {
+    public void load(Buffer buffer) {
         long previous;
         long toInsert = Base64.decodeToLongWithBounds(buffer, 0, buffer.length());
         do {

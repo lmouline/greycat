@@ -72,8 +72,8 @@ public abstract class AbstractLongLongArrayMapTest {
             Assert.assertTrue(getRes[i - 1] == (CoreConstants.MAP_INITIAL_CAPACITY - i));
         }
 
-        space.freeChunk(chunk);
-        space.free();
+        space.free(chunk);
+        space.freeAll();
 
     }
 

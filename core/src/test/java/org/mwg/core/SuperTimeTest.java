@@ -99,7 +99,7 @@ public class SuperTimeTest {
                 Assert.assertTrue(superTimeTreeSize5 == 5); // TimeTree is splitted in two
 
                 //unmark the superTimeTree
-                space.unmarkChunk(superTimeTree);
+                space.unmark(superTimeTree.index());
 
                 //test that lookup are corrects
                 for (int i = 0; i < (CoreConstants.SCALE_1 * 5); i++) {
