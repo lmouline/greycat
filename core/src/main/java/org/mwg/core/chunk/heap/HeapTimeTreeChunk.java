@@ -548,8 +548,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         insertCase1(newIndex);
         return true;
     }
-
-
+    
     private void internal_set_dirty() {
         _magic = _magic + 1;
         if (_space != null) {
