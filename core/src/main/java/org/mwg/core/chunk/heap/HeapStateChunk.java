@@ -89,24 +89,28 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                 }
             }
             //TODO optimize this
-            switch (_type[m]) {
-                case Type.DOUBLE_ARRAY:
-                    double[] castedResultD = (double[]) result;
-                    double[] copyD = new double[castedResultD.length];
-                    System.arraycopy(castedResultD, 0, copyD, 0, castedResultD.length);
-                    return copyD;
-                case Type.LONG_ARRAY:
-                    long[] castedResultL = (long[]) result;
-                    long[] copyL = new long[castedResultL.length];
-                    System.arraycopy(castedResultL, 0, copyL, 0, castedResultL.length);
-                    return copyL;
-                case Type.INT_ARRAY:
-                    int[] castedResultI = (int[]) result;
-                    int[] copyI = new int[castedResultI.length];
-                    System.arraycopy(castedResultI, 0, copyI, 0, castedResultI.length);
-                    return copyI;
-                default:
-                    return result;
+            if (result != null) {
+                switch (_type[m]) {
+                    case Type.DOUBLE_ARRAY:
+                        double[] castedResultD = (double[]) result;
+                        double[] copyD = new double[castedResultD.length];
+                        System.arraycopy(castedResultD, 0, copyD, 0, castedResultD.length);
+                        return copyD;
+                    case Type.LONG_ARRAY:
+                        long[] castedResultL = (long[]) result;
+                        long[] copyL = new long[castedResultL.length];
+                        System.arraycopy(castedResultL, 0, copyL, 0, castedResultL.length);
+                        return copyL;
+                    case Type.INT_ARRAY:
+                        int[] castedResultI = (int[]) result;
+                        int[] copyI = new int[castedResultI.length];
+                        System.arraycopy(castedResultI, 0, copyI, 0, castedResultI.length);
+                        return copyI;
+                    default:
+                        return result;
+                }
+            } else {
+                return null;
             }
         }
     }
@@ -157,7 +161,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         if (_size == 0) {
             return -1;
         }
-        int hashIndex = (int) HashHelper.longHash(p_elementIndex, _capacity);
+        int hashIndex = (int) HashHelper.longHash(p_elementIndex, _capacity * 2);
         int m = _hash[hashIndex];
         while (m >= 0) {
             if (p_elementIndex == _k[m]) {
@@ -455,28 +459,22 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                         param_elem = (LongArray) p_unsafe_elem;
                         break;
                     case Type.DOUBLE_ARRAY:
-                        if (p_unsafe_elem != null) {
-                            double[] castedParamDouble = (double[]) p_unsafe_elem;
-                            double[] clonedDoubleArray = new double[castedParamDouble.length];
-                            System.arraycopy(castedParamDouble, 0, clonedDoubleArray, 0, castedParamDouble.length);
-                            param_elem = clonedDoubleArray;
-                        }
+                        double[] castedParamDouble = (double[]) p_unsafe_elem;
+                        double[] clonedDoubleArray = new double[castedParamDouble.length];
+                        System.arraycopy(castedParamDouble, 0, clonedDoubleArray, 0, castedParamDouble.length);
+                        param_elem = clonedDoubleArray;
                         break;
                     case Type.LONG_ARRAY:
-                        if (p_unsafe_elem != null) {
-                            long[] castedParamLong = (long[]) p_unsafe_elem;
-                            long[] clonedLongArray = new long[castedParamLong.length];
-                            System.arraycopy(castedParamLong, 0, clonedLongArray, 0, castedParamLong.length);
-                            param_elem = clonedLongArray;
-                        }
+                        long[] castedParamLong = (long[]) p_unsafe_elem;
+                        long[] clonedLongArray = new long[castedParamLong.length];
+                        System.arraycopy(castedParamLong, 0, clonedLongArray, 0, castedParamLong.length);
+                        param_elem = clonedLongArray;
                         break;
                     case Type.INT_ARRAY:
-                        if (p_unsafe_elem != null) {
-                            int[] castedParamInt = (int[]) p_unsafe_elem;
-                            int[] clonedIntArray = new int[castedParamInt.length];
-                            System.arraycopy(castedParamInt, 0, clonedIntArray, 0, castedParamInt.length);
-                            param_elem = clonedIntArray;
-                        }
+                        int[] castedParamInt = (int[]) p_unsafe_elem;
+                        int[] clonedIntArray = new int[castedParamInt.length];
+                        System.arraycopy(castedParamInt, 0, clonedIntArray, 0, castedParamInt.length);
+                        param_elem = clonedIntArray;
                         break;
                     /** Maps */
                     case Type.STRING_TO_LONG_MAP:
@@ -497,6 +495,10 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         }
         //first value
         if (_k == null) {
+            //we do not allocate for empty element
+            if (param_elem == null) {
+                return;
+            }
             _capacity = Constants.MAP_INITIAL_CAPACITY;
             _k = new long[_capacity];
             _v = new Object[_capacity];
@@ -508,7 +510,8 @@ class HeapStateChunk implements StateChunk, ChunkListener {
             return;
         }
         int entry = -1;
-        int hashIndex;
+        int p_entry = -1;
+        int hashIndex = -1;
         if (_hash == null) {
             for (int i = 0; i < _size; i++) {
                 if (_k[i] == p_key) {
@@ -517,23 +520,64 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                 }
             }
         } else {
-            hashIndex = (int) HashHelper.longHash(p_key, _capacity);
+            hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
             int m = _hash[hashIndex];
             while (m != -1) {
                 if (_k[m] == p_key) {
                     entry = m;
                     break;
                 }
+                p_entry = m;
                 m = _next[m];
             }
         }
         //case already present
         if (entry != -1) {
             if (replaceIfPresent || (p_type != _type[entry])) {
-                _v[entry] = param_elem;
-                if (_type[entry] != p_type) {
-                    //TODO deep clone
-                    _type[entry] = p_type;
+                if (param_elem == null) {
+                    if (_hash != null) {
+                        //unHash previous
+                        if (p_entry != -1) {
+                            _next[p_entry] = _next[entry];
+                        } else {
+                            _hash[hashIndex] = -1;
+                        }
+                    }
+                    int indexVictim = _size - 1;
+                    //just pop the last value
+                    if (entry == indexVictim) {
+                        _k[entry] = -1;
+                        _v[entry] = null;
+                        _type[entry] = -1;
+                    } else {
+                        //we need to reHash the new last element at our place
+                        _k[entry] = _k[indexVictim];
+                        _v[entry] = _v[indexVictim];
+                        _type[entry] = _type[indexVictim];
+                        _next[entry] = _next[indexVictim];
+                        int victimHash = (int) HashHelper.longHash(_k[entry], _capacity * 2);
+                        int m = _hash[victimHash];
+                        if (m == indexVictim) {
+                            //the victim was the head of hashing list
+                            _hash[victimHash] = entry;
+                        } else {
+                            //the victim is in the next, rechain it
+                            while (m != -1) {
+                                if (_next[m] == indexVictim) {
+                                    _next[m] = entry;
+                                    break;
+                                }
+                                m = _next[m];
+                            }
+                        }
+                    }
+                    _size--;
+                } else {
+                    _v[entry] = param_elem;
+                    if (_type[entry] != p_type) {
+                        //TODO deep clone
+                        _type[entry] = p_type;
+                    }
                 }
             }
             declareDirty();
@@ -544,9 +588,8 @@ class HeapStateChunk implements StateChunk, ChunkListener {
             _v[_size] = param_elem;
             _type[_size] = p_type;
             if (_hash != null) {
-                int keyHash = (int) HashHelper.longHash(p_key, _capacity);
-                _next[_size] = _hash[keyHash];
-                _hash[keyHash] = _size;
+                _next[_size] = _hash[hashIndex];
+                _hash[hashIndex] = _size;
             }
             _size++;
             declareDirty();
@@ -577,7 +620,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         _next = new int[_capacity];
         Arrays.fill(_next, 0, _capacity, -1);
         for (int i = 0; i < _size; i++) {
-            int keyHash = (int) HashHelper.longHash(_k[i], _capacity);
+            int keyHash = (int) HashHelper.longHash(_k[i], _capacity * 2);
             _next[i] = _hash[keyHash];
             _hash[keyHash] = i;
         }
@@ -607,11 +650,10 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         _next = new int[_capacity];
         Arrays.fill(_next, 0, _capacity, -1);
         for (int i = 0; i < _size; i++) {
-            int keyHash = (int) HashHelper.longHash(_k[i], _capacity);
+            int keyHash = (int) HashHelper.longHash(_k[i], _capacity * 2);
             _next[i] = _hash[keyHash];
             _hash[keyHash] = i;
         }
-
     }
 
     @Override
@@ -620,44 +662,36 @@ class HeapStateChunk implements StateChunk, ChunkListener {
             return;
         }
         //reset size
-        int currentElemIndex = 0;
-
         int cursor = 0;
         long payloadSize = buffer.length();
-
         int previousStart = -1;
         long currentChunkElemKey = CoreConstants.NULL_LONG;
         byte currentChunkElemType = -1;
-
         //init detections
         boolean isFirstElem = true;
-
         //array sub creation variable
         double[] currentDoubleArr = null;
         long[] currentLongArr = null;
         int[] currentIntArr = null;
-
         //map sub creation variables
         StringLongMap currentStringLongMap = null;
         LongLongMap currentLongLongMap = null;
         LongLongArrayMap currentLongLongArrayMap = null;
-
         //array variables
         long currentSubSize = -1;
         int currentSubIndex = 0;
-
         //map key variables
         long currentMapLongKey = CoreConstants.NULL_LONG;
         String currentMapStringKey = null;
-
         while (cursor < payloadSize) {
             byte current = buffer.read(cursor);
             if (current == CoreConstants.CHUNK_SEP) {
                 if (isFirstElem) {
                     //initial the map
                     isFirstElem = false;
-                    int stateChunkSize = Base64.decodeToIntWithBounds(buffer, 0, cursor);
-                    allocate(stateChunkSize);
+                    final int stateChunkSize = Base64.decodeToIntWithBounds(buffer, 0, cursor);
+                    final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(stateChunkSize) / Math.log(2)));
+                    allocate(closePowerOfTwo);
                     previousStart = cursor + 1;
                 } else {
                     //beginning of the Chunk elem
@@ -865,7 +899,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
             }
             cursor++;
         }
-
         //take the last element
         if (currentChunkElemType != -1) {
             Object toInsert = null;
