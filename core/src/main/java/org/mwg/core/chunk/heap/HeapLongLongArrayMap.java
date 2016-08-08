@@ -7,13 +7,13 @@ import org.mwg.utility.HashHelper;
 import org.mwg.struct.LongLongArrayMap;
 import org.mwg.struct.LongLongArrayMapCallBack;
 
-public class ArrayLongLongArrayMap implements LongLongArrayMap {
+class HeapLongLongArrayMap implements LongLongArrayMap {
 
     private volatile InternalState state;
     private volatile boolean aligned;
     private final ChunkListener _listener;
 
-    public ArrayLongLongArrayMap(ChunkListener p_listener, int initialCapacity, ArrayLongLongArrayMap p_origin) {
+    HeapLongLongArrayMap(ChunkListener p_listener, int initialCapacity, HeapLongLongArrayMap p_origin) {
         this._listener = p_listener;
         if (p_origin == null) {
             InternalState newstate = new InternalState(initialCapacity, new long[initialCapacity], new long[initialCapacity], new int[initialCapacity], new int[initialCapacity], 0, 0);
@@ -222,7 +222,7 @@ public class ArrayLongLongArrayMap implements LongLongArrayMap {
             }
             internalState._elementHash[hashIndex] = newIndex;
             internalState._elementCount = internalState._elementCount + 1;
-            _listener.declareDirty(null);
+            _listener.declareDirty();
         } else {
             int hashIndex = (int) HashHelper.longHash(key, internalState._stateSize);
             int m = internalState._elementHash[hashIndex];

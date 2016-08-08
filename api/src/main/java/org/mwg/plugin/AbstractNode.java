@@ -221,15 +221,16 @@ public abstract class AbstractNode implements Node {
         }
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
-            final long[] flatRefs = (long[]) resolved.get(this._resolver.stringToHash(relationName, false));
-            if (flatRefs == null || flatRefs.length == 0) {
+            final LongArray relationArray = (LongArray) resolved.get(this._resolver.stringToHash(relationName, false));
+            if (relationArray == null || relationArray.size() == 0) {
                 callback.on(new Node[0]);
             } else {
-                final Node[] result = new Node[flatRefs.length];
-                final DeferCounter counter = _graph.newCounter(flatRefs.length);
+                final int relSize = relationArray.size();
+                final Node[] result = new Node[relSize];
+                final DeferCounter counter = _graph.newCounter(relSize);
                 final int[] resultIndex = new int[1];
-                for (int i = 0; i < flatRefs.length; i++) {
-                    this._resolver.lookup(_world, _time, flatRefs[i], new Callback<Node>() {
+                for (int i = 0; i < relSize; i++) {
+                    this._resolver.lookup(_world, _time, relationArray.get(i), new Callback<Node>() {
                         @Override
                         public void on(Node kNode) {
                             if (kNode != null) {
@@ -253,6 +254,8 @@ public abstract class AbstractNode implements Node {
                     }
                 });
             }
+        } else {
+            callback.on(new Node[0]);
         }
     }
 
@@ -260,9 +263,10 @@ public abstract class AbstractNode implements Node {
     public final void add(String relationName, Node relatedNode) {
         if (relatedNode != null) {
             NodeState preciseState = this._resolver.alignState(this);
-            long relationKey = this._resolver.stringToHash(relationName, true);
+            final long relHash = this._resolver.stringToHash(relationName, true);
             if (preciseState != null) {
-                preciseState.append(relationKey, Type.RELATION, relatedNode.id());
+                LongArray relationArray = (LongArray) preciseState.getOrCreate(relHash, Type.RELATION);
+                relationArray.add(relatedNode.id());
             } else {
                 throw new RuntimeException(Constants.CACHE_MISS_ERROR);
             }
@@ -273,27 +277,11 @@ public abstract class AbstractNode implements Node {
     public final void remove(String relationName, Node relatedNode) {
         if (relatedNode != null) {
             final NodeState preciseState = this._resolver.alignState(this);
-            long relationKey = this._resolver.stringToHash(relationName, false);
+            final long relHash = this._resolver.stringToHash(relationName, false);
             if (preciseState != null) {
-                long[] previous = (long[]) preciseState.get(relationKey);
-                if (previous != null) {
-                    int indexToRemove = -1;
-                    for (int i = 0; i < previous.length; i++) {
-                        if (previous[i] == relatedNode.id()) {
-                            indexToRemove = i;
-                            break;
-                        }
-                    }
-                    if (indexToRemove != -1) {
-                        if ((previous.length - 1) == 0) {
-                            preciseState.set(relationKey, Type.RELATION, null);
-                        } else {
-                            long[] newArray = new long[previous.length - 1];
-                            System.arraycopy(previous, 0, newArray, 0, indexToRemove);
-                            System.arraycopy(previous, indexToRemove + 1, newArray, indexToRemove, previous.length - indexToRemove - 1);
-                            preciseState.set(relationKey, Type.RELATION, newArray);
-                        }
-                    }
+                LongArray relationArray = (LongArray) preciseState.get(relHash);
+                if (relationArray != null) {
+                    relationArray.remove(relatedNode.id());
                 }
             } else {
                 throw new RuntimeException(Constants.CACHE_MISS_ERROR);
@@ -624,6 +612,19 @@ public abstract class AbstractNode implements Node {
                                 break;
                             }
                             case Type.RELATION:
+                                builder.append(",\"");
+                                builder.append(_resolver.hashToString(attributeKey));
+                                builder.append("\":");
+                                builder.append("[");
+                                LongArray castedRelArr = (LongArray) elem;
+                                for (int j = 0; j < castedRelArr.size(); j++) {
+                                    if (j != 0) {
+                                        builder.append(",");
+                                    }
+                                    builder.append(castedRelArr.get(j));
+                                }
+                                builder.append("]");
+                                break;
                             case Type.LONG_ARRAY: {
                                 builder.append(",\"");
                                 builder.append(_resolver.hashToString(attributeKey));

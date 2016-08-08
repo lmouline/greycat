@@ -8,6 +8,5 @@ public class HeapStateChunkTest extends AbstractStateChunkTest {
     public HeapStateChunkTest() {
         super(new HeapMemoryFactory());
     }
-
-
+    
 }

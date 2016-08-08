@@ -23,48 +23,6 @@ public abstract class AbstractStateChunkTest {
     }
 
     @Test
-    public void appendTest() {
-        ChunkSpace space = factory.newSpace(100, 100, null);
-        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
-
-        chunk.append(0, Type.RELATION, 42L);
-        long[] result = (long[]) chunk.get(0);
-        Assert.assertEquals(result[0], 42L);
-
-        chunk.append(0, Type.RELATION, 55L);
-        long[] result2 = (long[]) chunk.get(0);
-        Assert.assertEquals(result2[0], 42L);
-        Assert.assertEquals(result2[1], 55L);
-        Assert.assertEquals(result2.length, 2);
-
-
-        Buffer buffer = factory.newBuffer();
-        chunk.save(buffer);
-        StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
-        chunk2.load(buffer);
-        Buffer buffer2 = factory.newBuffer();
-        chunk2.save(buffer2);
-
-        Assert.assertTrue(compareBuffers(buffer, buffer2));
-
-        long[] result2_2 = (long[]) chunk2.get(0);
-        Assert.assertEquals(result2_2[0], 42L);
-        Assert.assertEquals(result2_2[1], 55L);
-        Assert.assertEquals(result2_2.length, 2);
-
-        chunk2.append(0, Type.RELATION, 72L);
-        long[] result2_3 = (long[]) chunk2.get(0);
-        Assert.assertEquals(result2_3[0], 42L);
-        Assert.assertEquals(result2_3[1], 55L);
-        Assert.assertEquals(result2_3[2], 72L);
-        Assert.assertEquals(result2_3.length, 3);
-
-        space.free(chunk);
-        space.free(chunk2);
-        space.freeAll();
-    }
-
-    @Test
     public void saveLoadTest() {
 
         ChunkSpace space = factory.newSpace(100, 100, null);

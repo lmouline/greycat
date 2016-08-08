@@ -1,5 +1,6 @@
 package org.mwg.core;
 
+import org.junit.Test;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Node;
@@ -19,11 +20,8 @@ import java.util.Random;
  */
 public class Benchmark4Test {
 
-    //@Test
+    @Test
     public void test() {
-
-        HashMap<Integer, Object> temp = new HashMap<Integer, Object>();
-
         int nb = 3000000;
         long init = System.currentTimeMillis();
         HeapChunkSpace space = new HeapChunkSpace(nb * 2, nb * 2, null);
