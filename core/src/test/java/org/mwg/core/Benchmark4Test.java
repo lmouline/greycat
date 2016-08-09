@@ -26,14 +26,14 @@ public class Benchmark4Test {
         long init = System.currentTimeMillis();
         HeapChunkSpace space = new HeapChunkSpace(nb * 2, nb * 2, null);
         for (int i = 0; i < nb; i++) {
-            Chunk c = space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, i);
+            Chunk c = space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, i);
             //space.putAndMark(ChunkType.STATE_CHUNK, 0, 0, i, c);
             //temp.put(i, c);
 
         }
         long begin = System.currentTimeMillis();
         for (int i = 0; i < nb; i++) {
-            Chunk c = space.getAndMark(ChunkType.STATE_CHUNK, 0, 0, i);
+            Chunk c = space.getAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, i);
             space.unmark(c.index());
         }
         long after = System.currentTimeMillis();

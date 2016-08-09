@@ -24,6 +24,14 @@ class HeapLongArray implements LongArray {
 
     }
 
+    public synchronized void allocate(int _capacity){
+        long[] new_back = new long[_capacity];
+        if(_back != null){
+            System.arraycopy(_back,0,new_back,0,_back.length);
+        }
+        _back = new_back;
+    }
+
     @Override
     public int size() {
         return _size;

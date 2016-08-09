@@ -661,6 +661,8 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         long[] currentLongArr = null;
         int[] currentIntArr = null;
         //map sub creation variables
+
+        HeapLongArray currentRelation = null;
         StringLongMap currentStringLongMap = null;
         LongLongMap currentLongLongMap = null;
         LongLongArrayMap currentLongLongArrayMap = null;
@@ -709,7 +711,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                             case Type.INT:
                                 toInsert = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
                                 break;
-                            /** Arrays */
                             case Type.DOUBLE_ARRAY:
                                 if (currentDoubleArr == null) {
                                     currentDoubleArr = new double[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
@@ -717,17 +718,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                                     currentDoubleArr[currentSubIndex] = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
                                 }
                                 toInsert = currentDoubleArr;
-                                break;
-                            case Type.RELATION:
-                                if (currentLongArr == null) {
-                                    long relSize = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
-                                    currentLongArr = new long[(int) relSize + 1];
-                                    currentLongArr[0] = relSize;
-                                    currentSubIndex = 1;
-                                } else {
-                                    currentLongArr[currentSubIndex] = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                                }
-                                toInsert = currentLongArr;
                                 break;
                             case Type.LONG_ARRAY:
                                 if (currentLongArr == null) {
@@ -745,7 +735,15 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                                 }
                                 toInsert = currentIntArr;
                                 break;
-                            /** Maps */
+                            case Type.RELATION:
+                                if (currentRelation == null) {
+                                    currentRelation = new HeapLongArray(this, null);
+                                    currentRelation.allocate(Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
+                                } else {
+                                    currentRelation.add(Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                                }
+                                toInsert = currentLongArr;
+                                break;
                             case Type.STRING_TO_LONG_MAP:
                                 if (currentMapStringKey != null) {
                                     currentStringLongMap.put(currentMapStringKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
@@ -795,16 +793,15 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                         case Type.DOUBLE_ARRAY:
                             currentDoubleArr = new double[(int) currentSubSize];
                             break;
-                        case Type.RELATION:
-                            currentLongArr = new long[(int) currentSubSize + 1];
-                            currentLongArr[0] = currentSubSize;
-                            currentSubIndex = 1;
-                            break;
                         case Type.LONG_ARRAY:
                             currentLongArr = new long[(int) currentSubSize];
                             break;
                         case Type.INT_ARRAY:
                             currentIntArr = new int[(int) currentSubSize];
+                            break;
+                        case Type.RELATION:
+                            currentRelation = new HeapLongArray(this, null);
+                            currentRelation.allocate((int) currentSubSize);
                             break;
                         case Type.STRING_TO_LONG_MAP:
                             currentStringLongMap = new HeapStringLongMap(this, (int) currentSubSize, null);
@@ -823,6 +820,8 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                             currentSubIndex++;
                             break;
                         case Type.RELATION:
+                            currentRelation.add(Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                            break;
                         case Type.LONG_ARRAY:
                             currentLongArr[currentSubIndex] = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
                             currentSubIndex++;
@@ -918,17 +917,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                     }
                     toInsert = currentDoubleArr;
                     break;
-                case Type.RELATION:
-                    if (currentLongArr == null) {
-                        int relSize = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
-                        currentLongArr = new long[relSize + 1];
-                        currentLongArr[0] = relSize;
-                        currentSubIndex = 1;
-                    } else {
-                        currentLongArr[currentSubIndex] = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                    }
-                    toInsert = currentLongArr;
-                    break;
                 case Type.LONG_ARRAY:
                     if (currentLongArr == null) {
                         currentLongArr = new long[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
@@ -944,6 +932,12 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                         currentIntArr[currentSubIndex] = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
                     }
                     toInsert = currentIntArr;
+                    break;
+                case Type.RELATION:
+                    if (currentRelation != null) {
+                        currentRelation.add(Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
+                    }
+                    toInsert = currentLongArr;
                     break;
                 case Type.STRING_TO_LONG_MAP:
                     if (currentMapStringKey != null) {
@@ -963,7 +957,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                     }
                     toInsert = currentLongLongArrayMap;
                     break;
-
             }
             if (toInsert != null) {
                 internal_set(currentChunkElemKey, currentChunkElemType, toInsert, true); //enhance this with boolean array

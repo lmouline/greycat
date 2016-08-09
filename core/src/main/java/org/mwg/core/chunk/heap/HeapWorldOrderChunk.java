@@ -48,16 +48,18 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     }
 
     HeapWorldOrderChunk(final HeapChunkSpace p_space, final long p_index) {
+        _index = p_index;
+        _space = p_space;
+
         _lock = 0;
         _magic = 0;
         _extra = CoreConstants.NULL_LONG;
-        _index = p_index;
-        _space = p_space;
         _size = 0;
         _capacity = 0;
         _kv = null;
         _next = null;
         _hash = null;
+
     }
 
     @Override
