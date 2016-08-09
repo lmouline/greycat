@@ -102,6 +102,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         if (buffer == null || buffer.length() == 0) {
             return;
         }
+        final boolean initial = _k == null;
         boolean isDirty = false;
         long cursor = 0;
         long previous = 0;
@@ -118,6 +119,12 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             cursor++;
         }
         isDirty = isDirty || internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        if (isDirty && !initial) {
+            if (_space != null) {
+                _space.notifyUpdate(_index);
+            }
+        }
+
     }
 
     @Override
@@ -146,9 +153,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public synchronized final void insert(final long p_key) {
-        boolean toSetDirty;
-        toSetDirty = internal_insert(p_key);
-        if (toSetDirty) {
+        if (internal_insert(p_key)) {
             internal_set_dirty();
         }
     }

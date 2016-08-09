@@ -130,16 +130,16 @@ class HeapStateChunk implements StateChunk, ChunkListener {
      * if(p_elemType == org.mwg.Type.LONG_TO_LONG_MAP){ if(!(typeof p_unsafe_elem === 'boolean')){ throw new Error("mwDB usage error, set method called with type " + org.mwg.Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
      * if(p_elemType == org.mwg.Type.LONG_TO_LONG_ARRAY_MAP){ if(!(typeof p_unsafe_elem === 'boolean')){ throw new Error("mwDB usage error, set method called with type " + org.mwg.Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
      * }
-     * this.internal_set(p_elementIndex, p_elemType, p_unsafe_elem, true);
+     * this.internal_set(p_elementIndex, p_elemType, p_unsafe_elem, true, false);
      */
     @Override
     public synchronized final void set(final long p_elementIndex, final byte p_elemType, final Object p_unsafe_elem) {
-        internal_set(p_elementIndex, p_elemType, p_unsafe_elem, true);
+        internal_set(p_elementIndex, p_elemType, p_unsafe_elem, true, false);
     }
 
     @Override
     public synchronized final void setFromKey(final String key, final byte p_elemType, final Object p_unsafe_elem) {
-        internal_set(_space.graph().resolver().stringToHash(key, true), p_elemType, p_unsafe_elem, true);
+        internal_set(_space.graph().resolver().stringToHash(key, true), p_elemType, p_unsafe_elem, true, false);
     }
 
 
@@ -164,8 +164,8 @@ class HeapStateChunk implements StateChunk, ChunkListener {
             return -1;
         }
         if (_hash == null) {
-            for(int i=0;i<_capacity;i++){
-                if(_k[i] == p_key){
+            for (int i = 0; i < _capacity; i++) {
+                if (_k[i] == p_key) {
                     return _type[i];
                 }
             }
@@ -210,7 +210,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                 toSet = new HeapLongLongArrayMap(this, CoreConstants.MAP_INITIAL_CAPACITY, null);
                 break;
         }
-        internal_set(p_elementIndex, elemType, toSet, false);
+        internal_set(p_elementIndex, elemType, toSet, false, false);
         return toSet;
     }
 
@@ -392,7 +392,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         }
     }
 
-    private synchronized void internal_set(final long p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent) {
+    private synchronized void internal_set(final long p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
         Object param_elem = null;
         //check the param type
         if (p_unsafe_elem != null) {
@@ -540,12 +540,38 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                 } else {
                     _v[entry] = param_elem;
                     if (_type[entry] != p_type) {
+
+                        //realign
+                        if (unaligned) {
+                            long[] cloned_k = new long[_capacity];
+                            System.arraycopy(_k, 0, cloned_k, 0, _capacity);
+                            _k = cloned_k;
+                            Object[] cloned_v = new Object[_capacity];
+                            System.arraycopy(_v, 0, cloned_v, 0, _capacity);
+                            _v = cloned_v;
+                            byte[] cloned_type = new byte[_capacity];
+                            System.arraycopy(_type, 0, cloned_type, 0, _capacity);
+                            _type = cloned_type;
+
+                            int[] cloned_next = new int[_capacity];
+                            System.arraycopy(_next, 0, cloned_next, 0, _capacity);
+                            _next = cloned_next;
+
+                            int[] cloned_hash = new int[_capacity * 2];
+                            System.arraycopy(_hash, 0, cloned_hash, 0, _capacity * 2);
+                            _hash = cloned_hash;
+                            unaligned = false;
+                        }
+
+
                         //TODO deep clone
                         _type[entry] = p_type;
                     }
                 }
             }
-            declareDirty();
+            if (!initial) {
+                declareDirty();
+            }
             return;
         }
 
@@ -567,8 +593,9 @@ class HeapStateChunk implements StateChunk, ChunkListener {
             int[] cloned_hash = new int[_capacity * 2];
             System.arraycopy(_hash, 0, cloned_hash, 0, _capacity * 2);
             _hash = cloned_hash;
-        }
 
+            unaligned = false;
+        }
 
         if (_size < _capacity) {
             _k[_size] = p_key;
@@ -611,11 +638,15 @@ class HeapStateChunk implements StateChunk, ChunkListener {
             _next[i] = _hash[keyHash];
             _hash[keyHash] = i;
         }
-        declareDirty();
+
+        if (!initial) {
+            declareDirty();
+        }
+
     }
 
     private void allocate(int newCapacity) {
-        if(newCapacity <= _capacity){
+        if (newCapacity <= _capacity) {
             return;
         }
         long[] ex_k = new long[newCapacity];
@@ -651,6 +682,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         if (buffer == null || buffer.length() == 0) {
             return;
         }
+        final boolean initial = _k == null;
         //reset size
         int cursor = 0;
         long payloadSize = buffer.length();
@@ -768,7 +800,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                         }
                         if (toInsert != null) {
                             //insert K/V
-                            internal_set(currentChunkElemKey, currentChunkElemType, toInsert, true); //enhance this with boolean array
+                            internal_set(currentChunkElemKey, currentChunkElemType, toInsert, true, initial); //enhance this with boolean array
                         }
                     }
                     //next round, reset all variables...
@@ -962,7 +994,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                     break;
             }
             if (toInsert != null) {
-                internal_set(currentChunkElemKey, currentChunkElemType, toInsert, true); //enhance this with boolean array
+                internal_set(currentChunkElemKey, currentChunkElemType, toInsert, true, initial); //enhance this with boolean array
             }
         }
     }

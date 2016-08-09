@@ -23,14 +23,14 @@ final class HeapGenChunk implements GenChunk {
      * this._index = p_index;
      * this._space = p_space;
      * this._prefix = Long.fromNumber(p_id).shiftLeft((org.mwg.Constants.LONG_SIZE - org.mwg.Constants.PREFIX_SIZE));
-     * this._seed = 0;
+     * this._seed = -1;
      */
     HeapGenChunk(final HeapChunkSpace p_space, final long p_id, final long p_index) {
         _index = p_index;
         _space = p_space;
         //moves the prefix 53-size(short) times to the left;
         _prefix = p_id << (Constants.LONG_SIZE - Constants.PREFIX_SIZE);
-        _seed = 0;
+        _seed = -1;
     }
 
     @Override
@@ -40,13 +40,26 @@ final class HeapGenChunk implements GenChunk {
 
     @Override
     public synchronized final void load(final Buffer buffer) {
-        _seed = Base64.decodeToLongWithBounds(buffer, 0, buffer.length());
+        if(buffer == null || buffer.length() == 0){
+            return;
+        }
+        long loaded = Base64.decodeToLongWithBounds(buffer, 0, buffer.length());
+        long previousSeed = _seed;
+        _seed = loaded;
+        if(previousSeed != -1 && previousSeed != _seed){
+            if(_space != null){
+                _space.notifyUpdate(_index);
+            }
+        }
     }
 
     /**
      * @native ts
      * if (this._seed == org.mwg.Constants.KEY_PREFIX_MASK) {
      *  throw new Error("Object Index could not be created because it exceeded the capacity of the current prefix. Ask for a new prefix.");
+     * }
+     * if(this._seed == -1){
+     *      this._seed = 0;
      * }
      * this._seed++;
      * var nextIndex = this._seed;
@@ -63,6 +76,9 @@ final class HeapGenChunk implements GenChunk {
     public synchronized final long newKey() {
         if (_seed == Constants.KEY_PREFIX_MASK) {
             throw new IndexOutOfBoundsException("Object Index could not be created because it exceeded the capacity of the current prefix. Ask for a new prefix.");
+        }
+        if(_seed == -1){
+            _seed = 0;
         }
         _seed++;
         final long nextIndex = _seed;

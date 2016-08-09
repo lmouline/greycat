@@ -7,9 +7,9 @@ import org.mwg.ml.common.distance.EuclideanDistance;
 import org.mwg.ml.common.distance.GaussianDistance;
 import org.mwg.plugin.*;
 import org.mwg.task.*;
+import org.mwg.utility.Enforcer;
 
 import static org.mwg.task.Actions.*;
-import static org.mwg.task.Actions.then;
 import static org.mwg.task.Actions.traverse;
 
 /**

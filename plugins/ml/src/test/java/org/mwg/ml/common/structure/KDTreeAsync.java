@@ -6,6 +6,7 @@ import org.mwg.ml.common.distance.DistanceEnum;
 import org.mwg.ml.common.distance.EuclideanDistance;
 import org.mwg.ml.common.distance.GaussianDistance;
 import org.mwg.plugin.*;
+import org.mwg.utility.Enforcer;
 
 /**
  * Created by assaad on 29/06/16.

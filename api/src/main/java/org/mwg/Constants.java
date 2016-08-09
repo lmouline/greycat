@@ -82,7 +82,7 @@ public class Constants {
         }
         return true;
     }
-    
+
     /**
      * @native ts
      * public static BUFFER_SEP : number = "#".charCodeAt(0);
@@ -98,7 +98,7 @@ public class Constants {
      */
     public static final byte KEY_SEP = ';';
 
-    public static final int MAP_INITIAL_CAPACITY = 4;
+    public static final int MAP_INITIAL_CAPACITY = 8;
 
     public static final float MAP_LOAD_FACTOR = ((float) 75 / (float) 100);
 

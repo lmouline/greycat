@@ -58,9 +58,7 @@ public class WSServerTest {
 
                 WSServer graphServer = new WSServer(graph, 8050);
                 graphServer.start();
-
                 final CountDownLatch latch = new CountDownLatch(1);
-
                 final Graph graph2 = new GraphBuilder().withMemorySize(10000).saveEvery(1000).withStorage(new WSClient("ws://localhost:8050")).build();
                 graph2.connect(new Callback<Boolean>() {
                     @Override
