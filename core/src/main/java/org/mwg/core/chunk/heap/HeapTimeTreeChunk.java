@@ -99,6 +99,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public synchronized final void load(Buffer buffer) {
+        if (buffer == null || buffer.length() == 0) {
+            return;
+        }
         boolean isDirty = false;
         long cursor = 0;
         long previous = 0;
@@ -548,7 +551,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         insertCase1(newIndex);
         return true;
     }
-    
+
     private void internal_set_dirty() {
         _magic = _magic + 1;
         if (_space != null) {
