@@ -65,8 +65,12 @@ final class MWGResolver implements Resolver {
         timeTree.insert(node.time());
         //initiate universe management
         final WorldOrderChunk objectWorldOrder = (WorldOrderChunk) this._space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, node.id());
+
         objectWorldOrder.put(node.world(), node.time());
-        objectWorldOrder.setExtra(codeType);
+        if (codeType != Constants.NULL_LONG) {
+            objectWorldOrder.setExtra(codeType);
+        }
+
         casted._index_stateChunk = cacheEntry.index();
         casted._index_timeTree = timeTree.index();
         casted._index_superTimeTree = superTimeTree.index();
