@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.mwg.Callback;
 import org.mwg.Node;
 import org.mwg.core.task.AbstractActionTest;
+import org.mwg.struct.LongArray;
 import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
@@ -30,7 +31,7 @@ public class ActionAddTest extends AbstractActionTest {
                     public void eval(TaskContext context) {
                         Node node = (Node) context.result().get(0);
                         Assert.assertNotNull(node);
-                        Assert.assertEquals(1, ((long[]) node.get("friend")).length);
+                        Assert.assertEquals(1, ((LongArray) node.get("friend")).size());
                         id[0] = node.id();
                     }
                 }).execute(graph, new Callback<TaskResult>() {
@@ -69,7 +70,7 @@ public class ActionAddTest extends AbstractActionTest {
                         TaskResult<Node> nodes = context.resultAsNodes();
                         Assert.assertNotNull(nodes);
                         for (int i = 0; i < 5; i++) {
-                            Assert.assertEquals(1, ((long[]) nodes.get(i).get("friend")).length);
+                            Assert.assertEquals(1, ((LongArray) nodes.get(i).get("friend")).size());
                             ids[i] = nodes.get(i).id();
                         }
                     }
@@ -79,7 +80,7 @@ public class ActionAddTest extends AbstractActionTest {
             graph.lookup(0, 0, ids[i], new Callback<Node>() {
                 @Override
                 public void on(Node result) {
-                    Assert.assertEquals(1, ((long[]) result.get("friend")).length);
+                    Assert.assertEquals(1, ((LongArray) result.get("friend")).size());
                 }
             });
         }

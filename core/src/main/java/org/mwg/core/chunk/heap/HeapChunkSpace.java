@@ -134,7 +134,7 @@ public class HeapChunkSpace implements ChunkSpace {
             graph().storage().get(keys, new Callback<Buffer>() {
                 @Override
                 public void on(final Buffer result) {
-                    if (result != null) {
+                    if (result != null && result.length() > 0) {
                         Chunk loadedChunk = createAndMark(type, world, time, id);
                         loadedChunk.load(result);
                         result.free();

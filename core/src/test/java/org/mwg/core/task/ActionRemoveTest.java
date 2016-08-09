@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.mwg.Callback;
 import org.mwg.Node;
 import org.mwg.core.task.AbstractActionTest;
+import org.mwg.struct.LongArray;
 import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
@@ -32,7 +33,7 @@ public class ActionRemoveTest extends AbstractActionTest {
                     public void eval(TaskContext context) {
                         Assert.assertNotNull(context.result());
                         Node node = context.resultAsNodes().get(0);
-                        Assert.assertNull(node.get("friend"));
+                        Assert.assertEquals(((LongArray) node.get("friend")).size(), 0);
                         id[0] = node.id();
                     }
                 }).execute(graph, null);
@@ -41,7 +42,8 @@ public class ActionRemoveTest extends AbstractActionTest {
         graph.lookup(0, 0, id[0], new Callback<Node>() {
             @Override
             public void on(Node result) {
-                Assert.assertNull(result.get("friend"));
+                Assert.assertEquals(((LongArray) result.get("friend")).size(), 0);
+                result.free();
             }
         });
     }
@@ -70,7 +72,7 @@ public class ActionRemoveTest extends AbstractActionTest {
                         Assert.assertNotNull(context.result());
                         TaskResult<Node> nodes = context.resultAsNodes();
                         for (int i = 0; i < 5; i++) {
-                            Assert.assertNull(nodes.get(i).get("friend"));
+                            Assert.assertEquals(((LongArray) nodes.get(i).get("friend")).size(), 0);
                             ids[i] = nodes.get(i).id();
                         }
                     }
@@ -80,12 +82,10 @@ public class ActionRemoveTest extends AbstractActionTest {
             graph.lookup(0, 0, ids[i], new Callback<Node>() {
                 @Override
                 public void on(Node result) {
-                    Assert.assertNull(result.get("friend"));
+                    Assert.assertEquals(((LongArray) result.get("friend")).size(), 0);
                 }
             });
         }
-
-
     }
 
     @Test

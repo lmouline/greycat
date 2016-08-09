@@ -13,28 +13,6 @@ public class TimelineTest {
         test(new GraphBuilder().withScheduler(new NoopScheduler()).build());
     }
 
-    /**
-     * @ignore ts
-     */
-    @Test
-    public void offHeapTest() {
-        /*
-        OffHeapByteArray.alloc_counter = 0;
-        OffHeapDoubleArray.alloc_counter = 0;
-        OffHeapLongArray.alloc_counter = 0;
-        OffHeapStringArray.alloc_counter = 0;
-
-        Unsafe.DEBUG_MODE = true;
-
-        test(new GraphBuilder().withScheduler(new NoopScheduler()).withOffHeapMemory().withMemorySize(10000).saveEvery(20).build());
-
-        Assert.assertTrue(OffHeapByteArray.alloc_counter == 0);
-        Assert.assertTrue(OffHeapDoubleArray.alloc_counter == 0);
-        Assert.assertTrue(OffHeapLongArray.alloc_counter == 0);
-        Assert.assertTrue(OffHeapStringArray.alloc_counter == 0);
-        */
-    }
-
     private void test(final Graph graph) {
         final int[] counter = {0};
         graph.connect(new Callback<Boolean>() {

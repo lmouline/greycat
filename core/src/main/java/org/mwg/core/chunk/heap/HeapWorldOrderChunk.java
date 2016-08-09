@@ -187,7 +187,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
             _size = 1;
             _kv[0] = key;
             _kv[1] = value;
-            _hash[(int) HashHelper.longHash(key, _capacity)] = 0;
+            _hash[(int) HashHelper.longHash(key, _capacity * 2)] = 0;
         }
     }
 
