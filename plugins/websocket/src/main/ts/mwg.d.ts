@@ -311,8 +311,17 @@ declare module org {
             static TASK_SEP: string;
             static TASK_PARAM_OPEN: string;
             static TASK_PARAM_CLOSE: string;
+            static CHUNK_SEP: number;
+            static CHUNK_SUB_SEP: number;
+            static CHUNK_SUB_SUB_SEP: number;
+            static CHUNK_SUB_SUB_SUB_SEP: number;
             static BUFFER_SEP: number;
             static KEY_SEP: number;
+            static MAP_INITIAL_CAPACITY: number;
+            static MAP_LOAD_FACTOR: number;
+            static BOOL_TRUE: number;
+            static BOOL_FALSE: number;
+            static DIRTY_BIT: number;
             static isDefined(param: any): boolean;
             static equals(src: string, other: string): boolean;
             static longArrayEquals(src: Float64Array, other: Float64Array): boolean;
@@ -375,7 +384,7 @@ declare module org {
         }
         module GraphBuilder {
             interface InternalBuilder {
-                newGraph(storage: org.mwg.plugin.Storage, readOnly: boolean, scheduler: org.mwg.plugin.Scheduler, plugins: org.mwg.plugin.Plugin[], usingGC: boolean, usingOffHeapMemory: boolean, memorySize: number, autoSaveSize: number): org.mwg.Graph;
+                newGraph(storage: org.mwg.plugin.Storage, readOnly: boolean, scheduler: org.mwg.plugin.Scheduler, plugins: org.mwg.plugin.Plugin[], memorySize: number, autoSaveSize: number): org.mwg.Graph;
                 newTask(): org.mwg.task.Task;
             }
         }
@@ -407,7 +416,7 @@ declare module org {
         }
         interface Query {
             parse(flatQuery: string): org.mwg.Query;
-            add(attributeName: string, value: any): org.mwg.Query;
+            add(attributeName: string, value: string): org.mwg.Query;
             setWorld(initialWorld: number): org.mwg.Query;
             world(): number;
             setTime(initialTime: number): org.mwg.Query;
@@ -440,10 +449,8 @@ declare module org {
                 id(): number;
                 chunkType(): number;
                 index(): number;
-                marks(): number;
-                flags(): number;
                 save(buffer: org.mwg.struct.Buffer): void;
-                merge(buffer: org.mwg.struct.Buffer): void;
+                load(buffer: org.mwg.struct.Buffer): void;
             }
             interface ChunkIterator {
                 hasNext(): boolean;
@@ -451,24 +458,25 @@ declare module org {
                 size(): number;
                 free(): void;
             }
-            interface ChunkSpace {
-                create(type: number, world: number, time: number, id: number, initialPayload: org.mwg.struct.Buffer, origin: org.mwg.chunk.Chunk): org.mwg.chunk.Chunk;
-                getAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
-                getByIndex(index: number): org.mwg.chunk.Chunk;
-                putAndMark(type: number, world: number, time: number, id: number, elem: org.mwg.chunk.Chunk): org.mwg.chunk.Chunk;
-                getOrLoadAndMark(type: number, world: number, time: number, id: number, callback: org.mwg.Callback<org.mwg.chunk.Chunk>): void;
-                unmarkByIndex(index: number): void;
-                markByIndex(index: number): void;
-                unmarkChunk(chunk: org.mwg.chunk.Chunk): void;
-                freeChunk(chunk: org.mwg.chunk.Chunk): void;
-                declareDirty(elem: org.mwg.chunk.Chunk): void;
-                declareClean(elem: org.mwg.chunk.Chunk): void;
+            interface ChunkListener {
+                declareDirty(chunk: org.mwg.chunk.Chunk): void;
                 graph(): org.mwg.Graph;
+            }
+            interface ChunkSpace {
+                createAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
+                getAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
+                getOrLoadAndMark(type: number, world: number, time: number, id: number, callback: org.mwg.Callback<org.mwg.chunk.Chunk>): void;
+                get(index: number): org.mwg.chunk.Chunk;
+                unmark(index: number): void;
+                mark(index: number): number;
+                free(chunk: org.mwg.chunk.Chunk): void;
+                notifyUpdate(index: number): void;
+                graph(): org.mwg.Graph;
+                save(callback: org.mwg.Callback<boolean>): void;
                 clear(): void;
-                free(): void;
+                freeAll(): void;
                 size(): number;
                 available(): number;
-                detachDirties(): org.mwg.chunk.ChunkIterator;
             }
             class ChunkType {
                 static STATE_CHUNK: number;
@@ -479,7 +487,15 @@ declare module org {
             interface GenChunk extends org.mwg.chunk.Chunk {
                 newKey(): number;
             }
+            interface Stack {
+                enqueue(index: number): boolean;
+                dequeueTail(): number;
+                dequeue(index: number): boolean;
+                free(): void;
+                size(): number;
+            }
             interface StateChunk extends org.mwg.chunk.Chunk, org.mwg.plugin.NodeState {
+                loadFrom(origin: org.mwg.chunk.StateChunk): void;
             }
             interface TimeTreeChunk extends org.mwg.chunk.Chunk {
                 insert(key: number): void;
@@ -587,7 +603,6 @@ declare module org {
                 world(): number;
                 time(): number;
                 set(index: number, elemType: number, elem: any): void;
-                append(index: number, elemType: number, elem: any): void;
                 setFromKey(key: string, elemType: number, elem: any): void;
                 get(index: number): any;
                 getFromKey(key: string): any;
@@ -662,10 +677,17 @@ declare module org {
                 free(): void;
                 iterator(): org.mwg.struct.BufferIterator;
                 removeLast(): void;
+                slice(initPos: number, endPos: number): Int8Array;
             }
             interface BufferIterator {
                 hasNext(): boolean;
                 next(): org.mwg.struct.Buffer;
+            }
+            interface LongArray {
+                size(): number;
+                get(index: number): number;
+                add(newValue: number): void;
+                remove(oldValue: number): void;
             }
             interface LongLongArrayMap extends org.mwg.struct.Map {
                 get(key: number): Float64Array;
@@ -910,10 +932,33 @@ declare module org {
                 static decodeString(s: org.mwg.struct.Buffer): string;
                 static decodeToStringWithBounds(s: org.mwg.struct.Buffer, offsetBegin: number, offsetEnd: number): string;
             }
+            class BufferView implements org.mwg.struct.Buffer {
+                private _origin;
+                private _initPos;
+                private _endPos;
+                constructor(p_origin: org.mwg.struct.Buffer, p_initPos: number, p_endPos: number);
+                write(b: number): void;
+                writeAll(bytes: Int8Array): void;
+                read(position: number): number;
+                data(): Int8Array;
+                length(): number;
+                free(): void;
+                iterator(): org.mwg.struct.BufferIterator;
+                removeLast(): void;
+                slice(initPos: number, endPos: number): Int8Array;
+            }
             class ConsoleHook implements org.mwg.task.TaskHook {
                 private static _instance;
                 static instance(): org.mwg.utility.ConsoleHook;
                 on(previous: org.mwg.task.TaskAction, next: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
+            }
+            class DefaultBufferIterator implements org.mwg.struct.BufferIterator {
+                private _origin;
+                private _originSize;
+                private _cursor;
+                constructor(p_origin: org.mwg.struct.Buffer);
+                hasNext(): boolean;
+                next(): org.mwg.struct.Buffer;
             }
             class Enforcer {
                 private checkers;
@@ -938,6 +983,29 @@ declare module org {
             interface EnforcerChecker {
                 check(inputType: number, input: any): void;
             }
+            class HashHelper {
+                static PRIME1: Long;
+                static PRIME2: Long;
+                static PRIME3: Long;
+                static PRIME4: Long;
+                static PRIME5: Long;
+                private static len;
+                private static byteTable;
+                private static HSTART;
+                private static HMULT;
+                static longHash(number: number, max: number): number;
+                static tripleHash(p0: number, p1: number, p2: number, p3: number, max: number): number;
+                static rand(): number;
+                static equals(src: string, other: string): boolean;
+                static DOUBLE_MIN_VALUE(): number;
+                static DOUBLE_MAX_VALUE(): number;
+                static isDefined(param: any): boolean;
+                static hash(data: string): number;
+                static hashBytes(data: Int8Array): number;
+            }
+            class KeyHelper {
+                static keyToBuffer(buffer: org.mwg.struct.Buffer, chunkType: number, world: number, time: number, id: number): void;
+            }
         }
     }
 }
@@ -956,31 +1024,22 @@ declare module org {
                 disconnect(callback: org.mwg.Callback<boolean>): void;
             }
             class Builder implements org.mwg.GraphBuilder.InternalBuilder {
-                newGraph(p_storage: org.mwg.plugin.Storage, p_readOnly: boolean, p_scheduler: org.mwg.plugin.Scheduler, p_plugins: org.mwg.plugin.Plugin[], p_usingGC: boolean, p_usingOffHeapMemory: boolean, p_memorySize: number, p_autoSaveSize: number): org.mwg.Graph;
+                newGraph(p_storage: org.mwg.plugin.Storage, p_readOnly: boolean, p_scheduler: org.mwg.plugin.Scheduler, p_plugins: org.mwg.plugin.Plugin[], p_memorySize: number, p_autoSaveSize: number): org.mwg.Graph;
                 newTask(): org.mwg.task.Task;
             }
             class CoreConstants extends org.mwg.Constants {
-                static CHUNK_SEP: number;
-                static CHUNK_SUB_SEP: number;
-                static CHUNK_SUB_SUB_SEP: number;
-                static CHUNK_SUB_SUB_SUB_SEP: number;
-                static DIRTY_BIT: number;
                 static PREFIX_TO_SAVE_SIZE: number;
                 static NULL_KEY: Float64Array;
                 static GLOBAL_UNIVERSE_KEY: Float64Array;
                 static GLOBAL_DICTIONARY_KEY: Float64Array;
                 static GLOBAL_INDEX_KEY: Float64Array;
                 static INDEX_ATTRIBUTE: string;
-                static MAP_INITIAL_CAPACITY: number;
-                static MAP_LOAD_FACTOR: number;
                 static DISCONNECTED_ERROR: string;
                 static SCALE_1: number;
                 static SCALE_2: number;
                 static SCALE_3: number;
                 static SCALE_4: number;
                 static DEAD_NODE_ERROR: string;
-                static BOOL_TRUE: number;
-                static BOOL_FALSE: number;
             }
             class CoreGraph implements org.mwg.Graph {
                 private _storage;
@@ -989,14 +1048,13 @@ declare module org {
                 private _resolver;
                 private _nodeTypes;
                 private _taskActions;
-                offHeapBuffer: boolean;
-                private _prefix;
-                private _nodeKeyCalculator;
-                private _worldKeyCalculator;
                 private _isConnected;
                 private _lock;
                 private _plugins;
                 private _memoryFactory;
+                private _prefix;
+                private _nodeKeyCalculator;
+                private _worldKeyCalculator;
                 constructor(p_storage: org.mwg.plugin.Storage, memorySize: number, saveEvery: number, p_scheduler: org.mwg.plugin.Scheduler, p_plugins: org.mwg.plugin.Plugin[]);
                 fork(world: number): number;
                 newNode(world: number, time: number): org.mwg.Node;
@@ -1010,7 +1068,6 @@ declare module org {
                 disconnect(callback: org.mwg.Callback<any>): void;
                 newBuffer(): org.mwg.struct.Buffer;
                 newQuery(): org.mwg.Query;
-                private saveDirtyList(dirtyIterator, callback);
                 index(indexName: string, toIndexNode: org.mwg.Node, flatKeyAttributes: string, callback: org.mwg.Callback<boolean>): void;
                 unindex(indexName: string, nodeToUnindex: org.mwg.Node, flatKeyAttributes: string, callback: org.mwg.Callback<boolean>): void;
                 indexes(world: number, time: number, callback: org.mwg.Callback<string[]>): void;
@@ -1043,7 +1100,7 @@ declare module org {
                 private _indexName;
                 constructor(graph: org.mwg.Graph, p_resolver: org.mwg.plugin.Resolver);
                 parse(flatQuery: string): org.mwg.Query;
-                add(attributeName: string, value: any): org.mwg.Query;
+                add(attributeName: string, value: string): org.mwg.Query;
                 setWorld(initialWorld: number): org.mwg.Query;
                 world(): number;
                 setTime(initialTime: number): org.mwg.Query;
@@ -1072,7 +1129,6 @@ declare module org {
                 freeNode(node: org.mwg.Node): void;
                 lookup<A extends org.mwg.Node>(world: number, time: number, id: number, callback: org.mwg.Callback<A>): void;
                 private resolve_world(globalWorldOrder, nodeWorldOrder, timeToResolve, originWorld);
-                private getOrLoadAndMark(type, world, time, id, callback);
                 private getOrLoadAndMarkAll(types, keys, callback);
                 resolveState(node: org.mwg.Node): org.mwg.plugin.NodeState;
                 private internal_resolveState(node, safe);
@@ -1084,16 +1140,9 @@ declare module org {
                 stringToHash(name: string, insertIfNotExists: boolean): number;
                 hashToString(key: number): string;
             }
-            interface NodeTracker {
-                monitor(node: org.mwg.Node): void;
-            }
-            class NoopNodeTracker implements org.mwg.core.NodeTracker {
-                monitor(node: org.mwg.Node): void;
-            }
             module chunk {
                 interface ChunkListener {
-                    declareDirty(chunk: org.mwg.chunk.Chunk): void;
-                    graph(): org.mwg.Graph;
+                    declareDirty(): void;
                 }
                 interface Stack {
                     enqueue(index: number): boolean;
@@ -1103,11 +1152,92 @@ declare module org {
                     size(): number;
                 }
                 module heap {
-                    class ArrayLongLongArrayMap implements org.mwg.struct.LongLongArrayMap {
+                    class FixedStack implements org.mwg.core.chunk.Stack {
+                        private _next;
+                        private _prev;
+                        private _capacity;
+                        private _first;
+                        private _last;
+                        private _count;
+                        constructor(capacity: number, fill: boolean);
+                        enqueue(index: number): boolean;
+                        dequeueTail(): number;
+                        dequeue(index: number): boolean;
+                        free(): void;
+                        size(): number;
+                    }
+                    class HeapChunkSpace implements org.mwg.chunk.ChunkSpace {
+                        private static HASH_LOAD_FACTOR;
+                        private _maxEntries;
+                        private _hashEntries;
+                        private _saveBatchSize;
+                        private _size;
+                        private _lru;
+                        private _dirtiesStack;
+                        private _hashNext;
+                        private _hash;
+                        private _chunkWorlds;
+                        private _chunkTimes;
+                        private _chunkIds;
+                        private _chunkTypes;
+                        private _chunkValues;
+                        private _chunkMarks;
+                        private _dirties;
+                        private _graph;
+                        graph(): org.mwg.Graph;
+                        worldByIndex(index: number): number;
+                        timeByIndex(index: number): number;
+                        idByIndex(index: number): number;
+                        getValues(): org.mwg.chunk.Chunk[];
+                        constructor(initialCapacity: number, saveBatchSize: number, p_graph: org.mwg.Graph);
+                        getAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
+                        get(index: number): org.mwg.chunk.Chunk;
+                        getOrLoadAndMark(type: number, world: number, time: number, id: number, callback: org.mwg.Callback<org.mwg.chunk.Chunk>): void;
+                        mark(index: number): number;
+                        unmark(index: number): void;
+                        free(chunk: org.mwg.chunk.Chunk): void;
+                        createAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
+                        notifyUpdate(index: number): void;
+                        save(callback: org.mwg.Callback<boolean>): void;
+                        clear(): void;
+                        freeAll(): void;
+                        size(): number;
+                        available(): number;
+                        printMarked(): void;
+                    }
+                    class HeapGenChunk implements org.mwg.chunk.GenChunk {
+                        private _space;
+                        private _index;
+                        private _prefix;
+                        private _seed;
+                        constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_id: number, p_index: number);
+                        save(buffer: org.mwg.struct.Buffer): void;
+                        load(buffer: org.mwg.struct.Buffer): void;
+                        newKey(): number;
+                        index(): number;
+                        world(): number;
+                        time(): number;
+                        id(): number;
+                        chunkType(): number;
+                    }
+                    class HeapLongArray implements org.mwg.struct.LongArray {
+                        private _back;
+                        private _size;
+                        private _listener;
+                        private aligned;
+                        constructor(p_listener: org.mwg.core.chunk.ChunkListener, origin: org.mwg.core.chunk.heap.HeapLongArray);
+                        allocate(_capacity: number): void;
+                        size(): number;
+                        get(index: number): number;
+                        add(newValue: number): void;
+                        remove(oldValue: number): void;
+                        toString(): string;
+                    }
+                    class HeapLongLongArrayMap implements org.mwg.struct.LongLongArrayMap {
                         private state;
                         private aligned;
                         private _listener;
-                        constructor(p_listener: org.mwg.core.chunk.ChunkListener, initialCapacity: number, p_origin: org.mwg.core.chunk.heap.ArrayLongLongArrayMap);
+                        constructor(p_listener: org.mwg.core.chunk.ChunkListener, initialCapacity: number, p_origin: org.mwg.core.chunk.heap.HeapLongLongArrayMap);
                         get(key: number): Float64Array;
                         each(callback: org.mwg.struct.LongLongArrayMapCallBack): void;
                         size(): number;
@@ -1115,7 +1245,7 @@ declare module org {
                         private internal_modify_map(key, value, toInsert);
                         remove(key: number, value: number): void;
                     }
-                    module ArrayLongLongArrayMap {
+                    module HeapLongLongArrayMap {
                         class InternalState {
                             _stateSize: number;
                             _elementK: Float64Array;
@@ -1126,14 +1256,14 @@ declare module org {
                             _elementCount: number;
                             _nextAvailableSlot: number;
                             constructor(p_stateSize: number, p_elementK: Float64Array, p_elementV: Float64Array, p_elementNext: Int32Array, p_elementHash: Int32Array, p_elementCount: number, p_nextAvailableSlot: number);
-                            clone(): org.mwg.core.chunk.heap.ArrayLongLongArrayMap.InternalState;
+                            clone(): org.mwg.core.chunk.heap.HeapLongLongArrayMap.InternalState;
                         }
                     }
-                    class ArrayLongLongMap implements org.mwg.struct.LongLongMap {
+                    class HeapLongLongMap implements org.mwg.struct.LongLongMap {
                         private state;
                         private aligned;
                         private _listener;
-                        constructor(p_listener: org.mwg.core.chunk.ChunkListener, initialCapacity: number, p_origin: org.mwg.core.chunk.heap.ArrayLongLongMap);
+                        constructor(p_listener: org.mwg.core.chunk.ChunkListener, initialCapacity: number, p_origin: org.mwg.core.chunk.heap.HeapLongLongMap);
                         get(key: number): number;
                         each(callback: org.mwg.struct.LongLongMapCallBack): void;
                         size(): number;
@@ -1141,7 +1271,7 @@ declare module org {
                         private internal_modify_map(key, value);
                         remove(key: number): void;
                     }
-                    module ArrayLongLongMap {
+                    module HeapLongLongMap {
                         class InternalState {
                             _stateSize: number;
                             _elementK: Float64Array;
@@ -1151,14 +1281,48 @@ declare module org {
                             _threshold: number;
                             _elementCount: number;
                             constructor(p_stateSize: number, p_elementK: Float64Array, p_elementV: Float64Array, p_elementNext: Int32Array, p_elementHash: Int32Array, p_elementCount: number);
-                            clone(): org.mwg.core.chunk.heap.ArrayLongLongMap.InternalState;
+                            clone(): org.mwg.core.chunk.heap.HeapLongLongMap.InternalState;
                         }
                     }
-                    class ArrayStringLongMap implements org.mwg.struct.StringLongMap {
+                    class HeapStateChunk implements org.mwg.chunk.StateChunk, org.mwg.core.chunk.ChunkListener {
+                        private _index;
+                        private _space;
+                        private _capacity;
+                        private _size;
+                        private _k;
+                        private _v;
+                        private _next;
+                        private _hash;
+                        private _type;
+                        private unaligned;
+                        constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_index: number);
+                        world(): number;
+                        time(): number;
+                        id(): number;
+                        chunkType(): number;
+                        index(): number;
+                        get(p_key: number): any;
+                        set(p_elementIndex: number, p_elemType: number, p_unsafe_elem: any): void;
+                        setFromKey(key: string, p_elemType: number, p_unsafe_elem: any): void;
+                        getFromKey(key: string): any;
+                        getFromKeyWithDefault<A>(key: string, defaultValue: A): A;
+                        getType(p_key: number): number;
+                        getTypeFromKey(key: string): number;
+                        getOrCreate(p_elementIndex: number, elemType: number): any;
+                        getOrCreateFromKey(key: string, elemType: number): any;
+                        declareDirty(): void;
+                        save(buffer: org.mwg.struct.Buffer): void;
+                        each(callBack: org.mwg.plugin.NodeStateCallback): void;
+                        loadFrom(origin: org.mwg.chunk.StateChunk): void;
+                        private internal_set(p_key, p_type, p_unsafe_elem, replaceIfPresent);
+                        private allocate(newCapacity);
+                        load(buffer: org.mwg.struct.Buffer): void;
+                    }
+                    class HeapStringLongMap implements org.mwg.struct.StringLongMap {
                         private state;
                         private aligned;
                         private _listener;
-                        constructor(p_listener: org.mwg.core.chunk.ChunkListener, initialCapacity: number, p_origin: org.mwg.core.chunk.heap.ArrayStringLongMap);
+                        constructor(p_listener: org.mwg.core.chunk.ChunkListener, initialCapacity: number, p_origin: org.mwg.core.chunk.heap.HeapStringLongMap);
                         getValue(key: string): number;
                         getByHash(keyHash: number): string;
                         containsHash(keyHash: number): boolean;
@@ -1168,7 +1332,7 @@ declare module org {
                         put(key: string, value: number): void;
                         private internal_modify_map(key, value);
                     }
-                    module ArrayStringLongMap {
+                    module HeapStringLongMap {
                         class InternalState {
                             _stateSize: number;
                             _elementK: string[];
@@ -1179,197 +1343,27 @@ declare module org {
                             _threshold: number;
                             _elementCount: number;
                             constructor(p_stateSize: number, p_elementK: string[], p_elementKH: Float64Array, p_elementV: Float64Array, p_elementNext: Int32Array, p_elementHash: Int32Array, p_elementCount: number);
-                            clone(): org.mwg.core.chunk.heap.ArrayStringLongMap.InternalState;
+                            clone(): org.mwg.core.chunk.heap.HeapStringLongMap.InternalState;
                         }
                     }
-                    class FixedStack implements org.mwg.core.chunk.Stack {
-                        private _first;
-                        private _last;
-                        private _next;
-                        private _prev;
-                        private _count;
-                        private lock;
-                        private _capacity;
-                        constructor(capacity: number);
-                        enqueue(index: number): boolean;
-                        dequeueTail(): number;
-                        dequeue(index: number): boolean;
-                        free(): void;
-                        size(): number;
-                    }
-                    interface HeapChunk extends org.mwg.chunk.Chunk {
-                        mark(): number;
-                        unmark(): number;
-                        setFlags(bitsToEnable: number, bitsToDisable: number): boolean;
-                        setIndex(index: number): void;
-                    }
-                    class HeapChunkSpace implements org.mwg.chunk.ChunkSpace, org.mwg.core.chunk.ChunkListener {
-                        private static HASH_LOAD_FACTOR;
-                        private _maxEntries;
-                        private _hashEntries;
-                        private _saveBatchSize;
-                        private _elementCount;
-                        private _lru;
-                        private _hashNext;
-                        private _hash;
-                        private _chunkWorlds;
-                        private _chunkTimes;
-                        private _chunkIds;
-                        private _chunkTypes;
-                        private _chunkValues;
-                        private _chunkMarks;
-                        private _dirties;
-                        private _dirtyState;
-                        private _graph;
-                        graph(): org.mwg.Graph;
-                        worldByIndex(index: number): number;
-                        timeByIndex(index: number): number;
-                        idByIndex(index: number): number;
-                        getValues(): org.mwg.chunk.Chunk[];
-                        constructor(initialCapacity: number, saveBatchSize: number, p_graph: org.mwg.Graph);
-                        getAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
-                        getByIndex(index: number): org.mwg.chunk.Chunk;
-                        getOrLoadAndMark(type: number, world: number, time: number, id: number, callback: org.mwg.Callback<org.mwg.chunk.Chunk>): void;
-                        unmarkByIndex(index: number): void;
-                        markByIndex(index: number): void;
-                        unmarkChunk(chunk: org.mwg.chunk.Chunk): void;
-                        freeChunk(chunk: org.mwg.chunk.Chunk): void;
-                        create(p_type: number, p_world: number, p_time: number, p_id: number, p_initialPayload: org.mwg.struct.Buffer, origin: org.mwg.chunk.Chunk): org.mwg.chunk.Chunk;
-                        putAndMark(type: number, world: number, time: number, id: number, p_elem: org.mwg.chunk.Chunk): org.mwg.chunk.Chunk;
-                        detachDirties(): org.mwg.chunk.ChunkIterator;
-                        declareDirty(dirtyChunk: org.mwg.chunk.Chunk): void;
-                        declareClean(cleanChunk: org.mwg.chunk.Chunk): void;
-                        clear(): void;
-                        free(): void;
-                        size(): number;
-                        available(): number;
-                        printMarked(): void;
-                    }
-                    module HeapChunkSpace {
-                        class InternalDirtyStateList implements org.mwg.chunk.ChunkIterator {
-                            private _nextCounter;
-                            private _dirtyElements;
-                            private _max;
-                            private _iterationCounter;
-                            private _parent;
-                            constructor(maxSize: number, p_parent: org.mwg.core.chunk.heap.HeapChunkSpace);
-                            hasNext(): boolean;
-                            next(): org.mwg.chunk.Chunk;
-                            declareDirty(dirtyIndex: number): boolean;
-                            size(): number;
-                            free(): void;
-                        }
-                    }
-                    class HeapGenChunk implements org.mwg.chunk.GenChunk, org.mwg.core.chunk.heap.HeapChunk {
-                        private _space;
-                        private _index;
-                        private _flags;
-                        private _marks;
-                        private _prefix;
-                        private _currentIndex;
-                        constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_id: number, initialPayload: org.mwg.struct.Buffer);
-                        private load(payload);
-                        save(buffer: org.mwg.struct.Buffer): void;
-                        merge(buffer: org.mwg.struct.Buffer): void;
-                        index(): number;
-                        newKey(): number;
-                        world(): number;
-                        time(): number;
-                        id(): number;
-                        chunkType(): number;
-                        marks(): number;
-                        mark(): number;
-                        unmark(): number;
-                        flags(): number;
-                        setFlags(bitsToEnable: number, bitsToDisable: number): boolean;
-                        setIndex(p_index: number): void;
-                        private internal_set_dirty();
-                    }
-                    class HeapStateChunk implements org.mwg.core.chunk.heap.HeapChunk, org.mwg.chunk.StateChunk, org.mwg.core.chunk.ChunkListener {
-                        private _index;
-                        private state;
-                        private _flags;
-                        private _marks;
-                        private _space;
-                        private inLoadMode;
-                        declareDirty(chunk: org.mwg.chunk.Chunk): void;
-                        setIndex(p_index: number): void;
-                        index(): number;
-                        graph(): org.mwg.Graph;
-                        constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, initialPayload: org.mwg.struct.Buffer, origin: org.mwg.chunk.Chunk);
-                        world(): number;
-                        time(): number;
-                        id(): number;
-                        chunkType(): number;
-                        marks(): number;
-                        mark(): number;
-                        unmark(): number;
-                        set(p_elementIndex: number, p_elemType: number, p_unsafe_elem: any): void;
-                        append(p_elementIndex: number, elemType: number, elem: any): void;
-                        setFromKey(key: string, p_elemType: number, p_unsafe_elem: any): void;
-                        private internal_set(p_elementIndex, p_elemType, p_unsafe_elem, replaceIfPresent, rawRel);
-                        get(p_elementIndex: number): any;
-                        getFromKey(key: string): any;
-                        getFromKeyWithDefault<A>(key: string, defaultValue: A): A;
-                        getType(p_elementIndex: number): number;
-                        getTypeFromKey(key: string): number;
-                        getOrCreate(p_elementIndex: number, elemType: number): any;
-                        getOrCreateFromKey(key: string, elemType: number): any;
-                        each(callBack: org.mwg.plugin.NodeStateCallback): void;
-                        merge(buffer: org.mwg.struct.Buffer): void;
-                        private load(payload, isMerge);
-                        save(buffer: org.mwg.struct.Buffer): void;
-                        private internal_set_dirty();
-                        flags(): number;
-                        setFlags(bitsToEnable: number, bitsToDisable: number): boolean;
-                    }
-                    module HeapStateChunk {
-                        class InternalState {
-                            _elementDataSize: number;
-                            _elementK: Float64Array;
-                            _elementV: any[];
-                            _elementNext: Int32Array;
-                            _elementHash: Int32Array;
-                            _elementType: Int8Array;
-                            threshold: number;
-                            _elementCount: number;
-                            hashReadOnly: boolean;
-                            constructor(elementDataSize: number, p_elementK: Float64Array, p_elementV: any[], p_elementNext: Int32Array, p_elementHash: Int32Array, p_elementType: Int8Array, p_elementCount: number, p_hashReadOnly: boolean);
-                            deepClone(): org.mwg.core.chunk.heap.HeapStateChunk.InternalState;
-                            softClone(): org.mwg.core.chunk.heap.HeapStateChunk.InternalState;
-                        }
-                    }
-                    class HeapTimeTreeChunk implements org.mwg.chunk.TimeTreeChunk, org.mwg.core.chunk.heap.HeapChunk {
+                    class HeapTimeTreeChunk implements org.mwg.chunk.TimeTreeChunk {
                         private static META_SIZE;
                         private _index;
                         private _space;
-                        private _threshold;
-                        private _root_index;
-                        private _size;
+                        private _root;
                         private _back_meta;
-                        private _back_k;
-                        private _back_colors;
-                        private _lock;
-                        private _flags;
-                        private _marks;
+                        private _k;
+                        private _colors;
                         private _magic;
-                        constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, initialPayload: org.mwg.struct.Buffer);
-                        private lock();
-                        private unlock();
-                        marks(): number;
-                        mark(): number;
-                        unmark(): number;
+                        private _size;
+                        constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_index: number);
                         world(): number;
                         time(): number;
                         id(): number;
-                        flags(): number;
-                        setFlags(bitsToEnable: number, bitsToDisable: number): boolean;
-                        setIndex(p_index: number): void;
                         size(): number;
                         range(startKey: number, endKey: number, maxElements: number, walker: org.mwg.chunk.TreeWalker): void;
                         save(buffer: org.mwg.struct.Buffer): void;
-                        private load(buffer);
-                        merge(buffer: org.mwg.struct.Buffer): void;
+                        load(buffer: org.mwg.struct.Buffer): void;
                         index(): number;
                         previousOrEqual(key: number): number;
                         magic(): number;
@@ -1377,12 +1371,9 @@ declare module org {
                         unsafe_insert(p_key: number): void;
                         chunkType(): number;
                         clearAt(max: number): void;
-                        private allocate(capacity);
                         private reallocate(newCapacity);
                         private key(p_currentIndex);
                         private setKey(p_currentIndex, p_paramIndex);
-                        value(p_currentIndex: number): number;
-                        private setValue(p_currentIndex, p_paramIndex);
                         private left(p_currentIndex);
                         private setLeft(p_currentIndex, p_paramIndex);
                         private right(p_currentIndex);
@@ -1407,92 +1398,42 @@ declare module org {
                         private internal_insert(p_key);
                         private internal_set_dirty();
                     }
-                    class HeapWorldOrderChunk implements org.mwg.chunk.WorldOrderChunk, org.mwg.core.chunk.heap.HeapChunk {
-                        private _index;
+                    class HeapWorldOrderChunk implements org.mwg.chunk.WorldOrderChunk {
                         private _space;
+                        private _index;
                         private _lock;
-                        private _marks;
                         private _magic;
-                        private _flags;
                         private _extra;
-                        private state;
+                        private _size;
+                        private _capacity;
+                        private _kv;
+                        private _next;
+                        private _hash;
+                        constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_index: number);
                         world(): number;
                         time(): number;
                         id(): number;
                         extra(): number;
                         setExtra(extraValue: number): void;
-                        constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, initialPayload: org.mwg.struct.Buffer);
                         lock(): void;
                         unlock(): void;
-                        marks(): number;
-                        mark(): number;
-                        unmark(): number;
                         magic(): number;
-                        private rehashCapacity(capacity, previousState);
                         each(callback: org.mwg.struct.LongLongMapCallBack): void;
                         get(key: number): number;
                         put(key: number, value: number): void;
-                        merge(buffer: org.mwg.struct.Buffer): void;
+                        private internal_put(key, value, notifyUpdate);
+                        private resize(newCapacity);
+                        load(buffer: org.mwg.struct.Buffer): void;
                         index(): number;
-                        private findNonNullKeyEntry(key, index, internalState);
                         remove(key: number): void;
                         size(): number;
-                        private load(buffer);
                         save(buffer: org.mwg.struct.Buffer): void;
                         chunkType(): number;
-                        private internal_set_dirty();
-                        flags(): number;
-                        setFlags(bitsToEnable: number, bitsToDisable: number): boolean;
-                        setIndex(p_index: number): void;
-                    }
-                    module HeapWorldOrderChunk {
-                        class InternalState {
-                            threshold: number;
-                            elementDataSize: number;
-                            elementKV: Float64Array;
-                            elementNext: Int32Array;
-                            elementHash: Int32Array;
-                            elementCount: number;
-                            constructor(elementDataSize: number, elementKV: Float64Array, elementNext: Int32Array, elementHash: Int32Array, elemCount: number);
-                        }
                     }
                 }
             }
             module memory {
-                abstract class AbstractBuffer implements org.mwg.struct.Buffer {
-                    abstract slice(initPos: number, endPos: number): Int8Array;
-                    iterator(): org.mwg.struct.BufferIterator;
-                    abstract read(position: number): number;
-                    abstract length(): number;
-                    abstract write(b: number): void;
-                    abstract writeAll(bytes: Int8Array): void;
-                    abstract data(): Int8Array;
-                    abstract free(): void;
-                    abstract removeLast(): void;
-                }
-                class BufferView implements org.mwg.struct.Buffer {
-                    private _origin;
-                    private _initPos;
-                    private _endPos;
-                    constructor(p_origin: org.mwg.core.memory.AbstractBuffer, p_initPos: number, p_endPos: number);
-                    write(b: number): void;
-                    writeAll(bytes: Int8Array): void;
-                    read(position: number): number;
-                    data(): Int8Array;
-                    length(): number;
-                    free(): void;
-                    iterator(): org.mwg.struct.BufferIterator;
-                    removeLast(): void;
-                }
-                class CoreBufferIterator implements org.mwg.struct.BufferIterator {
-                    private _origin;
-                    private _originSize;
-                    private _cursor;
-                    constructor(p_origin: org.mwg.core.memory.AbstractBuffer);
-                    hasNext(): boolean;
-                    next(): org.mwg.struct.Buffer;
-                }
-                class HeapBuffer extends org.mwg.core.memory.AbstractBuffer {
+                class HeapBuffer implements org.mwg.struct.Buffer {
                     private buffer;
                     private writeCursor;
                     slice(initPos: number, endPos: number): Int8Array;
@@ -1503,6 +1444,7 @@ declare module org {
                     data(): Int8Array;
                     length(): number;
                     free(): void;
+                    iterator(): org.mwg.struct.BufferIterator;
                     removeLast(): void;
                 }
                 class HeapMemoryFactory implements org.mwg.plugin.MemoryFactory {
@@ -2077,29 +2019,6 @@ declare module org {
                     then(p_callback: org.mwg.plugin.Job): void;
                     wrap(): org.mwg.Callback<any>;
                     waitResult(): any;
-                }
-                class HashHelper {
-                    static PRIME1: Long;
-                    static PRIME2: Long;
-                    static PRIME3: Long;
-                    static PRIME4: Long;
-                    static PRIME5: Long;
-                    private static len;
-                    private static byteTable;
-                    private static HSTART;
-                    private static HMULT;
-                    static longHash(number: number, max: number): number;
-                    static tripleHash(p0: number, p1: number, p2: number, p3: number, max: number): number;
-                    static rand(): number;
-                    static equals(src: string, other: string): boolean;
-                    static DOUBLE_MIN_VALUE(): number;
-                    static DOUBLE_MAX_VALUE(): number;
-                    static isDefined(param: any): boolean;
-                    static hash(data: string): number;
-                    static hashBytes(data: Int8Array): number;
-                }
-                class KeyHelper {
-                    static keyToBuffer(buffer: org.mwg.struct.Buffer, chunkType: number, world: number, time: number, id: number): void;
                 }
                 class ReadOnlyStorage implements org.mwg.plugin.Storage {
                     private wrapped;

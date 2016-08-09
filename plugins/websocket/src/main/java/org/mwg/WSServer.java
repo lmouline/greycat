@@ -197,7 +197,7 @@ public class WSServer implements WebSocketConnectionCallback {
                 public void on(Chunk memoryChunk) {
                     if (memoryChunk != null) {
                         memoryChunk.load(values[finalI]);
-                        graph.space().unmarkChunk(memoryChunk);
+                        graph.space().unmark(memoryChunk.index());
                     }
                     defer.count();
                 }
@@ -233,7 +233,7 @@ public class WSServer implements WebSocketConnectionCallback {
                     if (memoryChunk != null) {
                         final Buffer toSaveBuffer = graph.newBuffer();
                         memoryChunk.save(toSaveBuffer);
-                        graph.space().unmarkChunk(memoryChunk);
+                        graph.space().unmark(memoryChunk.index());
                         buffers[fixedI] = toSaveBuffer;
                     } else {
                         buffers[fixedI] = null;

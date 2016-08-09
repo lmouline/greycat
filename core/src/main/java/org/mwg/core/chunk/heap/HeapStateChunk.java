@@ -615,6 +615,10 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     }
 
     private void allocate(int newCapacity) {
+        if(newCapacity < _capacity){
+            return;
+        }
+
         long[] ex_k = new long[newCapacity];
         if (_k != null) {
             System.arraycopy(_k, 0, ex_k, 0, _capacity);

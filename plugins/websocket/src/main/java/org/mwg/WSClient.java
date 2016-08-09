@@ -181,7 +181,7 @@ public class WSClient implements Storage {
                     if (key != null) {
                         Chunk ch = graph.space().getAndMark(key.type, key.world, key.time, key.id);
                         if (ch != null) {
-                            graph.space().unmarkChunk(ch);
+                            graph.space().unmark(ch.index());
                             //ok we keep it, ask for update
                             if (isFirst) {
                                 isFirst = false;

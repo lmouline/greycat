@@ -3,7 +3,6 @@ package rocksdb;
 import org.junit.Test;
 import org.mwg.*;
 import org.mwg.core.scheduler.NoopScheduler;
-import org.mwg.core.utility.Unsafe;
 import org.mwg.plugin.Job;
 
 import java.io.File;
@@ -19,7 +18,7 @@ public class StorageTest {
         OffHeapLongArray.alloc_counter = 0;
         OffHeapStringArray.alloc_counter = 0;
 */
-        Unsafe.DEBUG_MODE = true;
+        //Unsafe.DEBUG_MODE = true;
 
         test("offheap ", new GraphBuilder().withStorage(new RocksDBStorage("data")).withScheduler(new NoopScheduler()).withMemorySize(100000).saveEvery(10000).build());
     }
