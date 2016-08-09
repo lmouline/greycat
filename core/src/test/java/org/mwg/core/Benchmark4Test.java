@@ -20,7 +20,7 @@ import java.util.Random;
  */
 public class Benchmark4Test {
 
-    @Test
+    //@Test
     public void test() {
         int nb = 3000000;
         long init = System.currentTimeMillis();

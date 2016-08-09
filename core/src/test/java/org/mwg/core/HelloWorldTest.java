@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
 import org.mwg.core.scheduler.NoopScheduler;
+import org.mwg.struct.LongArray;
 import org.mwg.utility.HashHelper;
 
 public class HelloWorldTest {
@@ -68,11 +69,11 @@ public class HelloWorldTest {
                         node1.add("children", node2);
                         Assert.assertTrue(HashHelper.equals("{\"world\":0,\"time\":0,\"id\":2,\"children\":[1,1,3]}", node1.toString()));
 
-                        long[] refValuesThree = (long[]) node1.get("children");
-                        Assert.assertTrue(refValuesThree.length == 3);
-                        Assert.assertTrue(refValuesThree[0] == 1);
-                        Assert.assertTrue(refValuesThree[1] == 1);
-                        Assert.assertTrue(refValuesThree[2] == 3);
+                        LongArray refValuesThree = (LongArray) node1.get("children");
+                        Assert.assertTrue(refValuesThree.size() == 3);
+                        Assert.assertTrue(refValuesThree.get(0) == 1);
+                        Assert.assertTrue(refValuesThree.get(1) == 1);
+                        Assert.assertTrue(refValuesThree.get(2) == 3);
 
                         node1.rel("children", new Callback<org.mwg.Node[]>() {
                             @Override
@@ -90,10 +91,7 @@ public class HelloWorldTest {
                                 Assert.assertTrue(HashHelper.equals("{\"world\":0,\"time\":0,\"id\":2,\"children\":[3]}", node1.toString()));
 
                                 node1.remove("children", node2);
-                                Assert.assertTrue(HashHelper.equals("{\"world\":0,\"time\":0,\"id\":2}", node1.toString()));
-
-                                long[] refValuesNull = (long[]) node1.get("children");
-                                Assert.assertNull(refValuesNull);
+                                Assert.assertTrue(HashHelper.equals("{\"world\":0,\"time\":0,\"id\":2,\"children\":[]}", node1.toString()));
 
                                 //destroy the node explicitly selectWithout waiting GC
                                 node0.free();

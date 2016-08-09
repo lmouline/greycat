@@ -159,17 +159,25 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     }
 
     @Override
-    public synchronized final byte getType(final long p_elementIndex) {
+    public synchronized final byte getType(final long p_key) {
         if (_size == 0) {
             return -1;
         }
-        int hashIndex = (int) HashHelper.longHash(p_elementIndex, _capacity * 2);
-        int m = _hash[hashIndex];
-        while (m >= 0) {
-            if (p_elementIndex == _k[m]) {
-                return _type[m];
-            } else {
-                m = _next[m];
+        if (_hash == null) {
+            for(int i=0;i<_capacity;i++){
+                if(_k[i] == p_key){
+                    return _type[i];
+                }
+            }
+        } else {
+            int hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
+            int m = _hash[hashIndex];
+            while (m >= 0) {
+                if (p_key == _k[m]) {
+                    return _type[m];
+                } else {
+                    m = _next[m];
+                }
             }
         }
         return -1;
@@ -338,15 +346,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     public synchronized final void each(final NodeStateCallback callBack) {
         for (int i = 0; i < _size; i++) {
             if (_v[i] != null) {
-                if (_type[i] == Type.RELATION) {
-                    long[] castedRel = (long[]) _v[i];
-                    int relSize = (int) castedRel[0];
-                    long[] shrinkedRel = new long[relSize];
-                    System.arraycopy(castedRel, 1, shrinkedRel, 0, relSize);
-                    callBack.on(_k[i], _type[i], shrinkedRel);
-                } else {
-                    callBack.on(_k[i], _type[i], _v[i]);
-                }
+                callBack.on(_k[i], _type[i], _v[i]);
             }
         }
     }
