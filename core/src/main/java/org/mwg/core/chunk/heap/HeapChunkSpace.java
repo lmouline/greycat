@@ -279,7 +279,6 @@ public class HeapChunkSpace implements ChunkSpace {
         }
     }
 
-    //TODO change by a compare and swap
     @Override
     public synchronized void notifyUpdate(long index) {
         if (!_dirties[(int) index]) {
