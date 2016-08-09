@@ -27,6 +27,8 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     private int[] _hash;
     private byte[] _type;
 
+    private boolean unaligned = false;
+
     HeapStateChunk(final HeapChunkSpace p_space, final long p_index) {
         _space = p_space;
         _index = p_index;
@@ -142,12 +144,12 @@ class HeapStateChunk implements StateChunk, ChunkListener {
 
 
     @Override
-    public synchronized final Object getFromKey(String key) {
+    public synchronized final Object getFromKey(final String key) {
         return get(_space.graph().resolver().stringToHash(key, false));
     }
 
     @Override
-    public synchronized final <A> A getFromKeyWithDefault(String key, A defaultValue) {
+    public synchronized final <A> A getFromKeyWithDefault(final String key, final A defaultValue) {
         final Object result = getFromKey(key);
         if (result == null) {
             return defaultValue;
@@ -174,7 +176,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     }
 
     @Override
-    public synchronized byte getTypeFromKey(String key) {
+    public synchronized byte getTypeFromKey(final String key) {
         return getType(_space.graph().resolver().stringToHash(key, false));
     }
 
@@ -185,21 +187,23 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         if (previousObject != null && previousType == elemType) {
             return previousObject;
         }
+        Object toSet = null;
         switch (elemType) {
             case Type.RELATION:
-                internal_set(p_elementIndex, elemType, new HeapLongArray(this), false);
+                toSet = new HeapLongArray(this, null);
                 break;
             case Type.STRING_TO_LONG_MAP:
-                internal_set(p_elementIndex, elemType, new HeapStringLongMap(this, CoreConstants.MAP_INITIAL_CAPACITY, null), false);
+                toSet = new HeapStringLongMap(this, CoreConstants.MAP_INITIAL_CAPACITY, null);
                 break;
             case Type.LONG_TO_LONG_MAP:
-                internal_set(p_elementIndex, elemType, new HeapLongLongMap(this, CoreConstants.MAP_INITIAL_CAPACITY, null), false);
+                toSet = new HeapLongLongMap(this, CoreConstants.MAP_INITIAL_CAPACITY, null);
                 break;
             case Type.LONG_TO_LONG_ARRAY_MAP:
-                internal_set(p_elementIndex, elemType, new HeapLongLongArrayMap(this, CoreConstants.MAP_INITIAL_CAPACITY, null), false);
+                toSet = new HeapLongLongArrayMap(this, CoreConstants.MAP_INITIAL_CAPACITY, null);
                 break;
         }
-        return get(p_elementIndex);
+        internal_set(p_elementIndex, elemType, toSet, false);
+        return toSet;
     }
 
     @Override
@@ -349,83 +353,44 @@ class HeapStateChunk implements StateChunk, ChunkListener {
 
 
     @Override
-    public synchronized void loadFrom(StateChunk origin) {
-        //TODO
+    public synchronized void loadFrom(final StateChunk origin) {
+        HeapStateChunk casted = (HeapStateChunk) origin;
+        _k = casted._k;
+        _type = casted._type;
+        _capacity = casted._capacity;
+        _size = casted._size;
+        _hash = casted._hash;
+        _next = casted._next;
+        unaligned = true;
+        _v = new Object[_capacity];
+        for (int i = 0; i < casted._capacity; i++) {
+            switch (casted._type[i]) {
+                case Type.LONG_TO_LONG_MAP:
+                    if (casted._v[i] != null) {
+                        _v[i] = new HeapLongLongMap(this, -1, (HeapLongLongMap) casted._v[i]);
+                    }
+                    break;
+                case Type.LONG_TO_LONG_ARRAY_MAP:
+                    if (casted._v[i] != null) {
+                        _v[i] = new HeapLongLongArrayMap(this, -1, (HeapLongLongArrayMap) casted._v[i]);
+                    }
+                    break;
+                case Type.STRING_TO_LONG_MAP:
+                    if (casted._v[i] != null) {
+                        _v[i] = new HeapStringLongMap(this, -1, (HeapStringLongMap) casted._v[i]);
+                    }
+                    break;
+                case Type.RELATION:
+                    if (casted._v[i] != null) {
+                        _v[i] = new HeapLongArray(this, (HeapLongArray) casted._v[i]);
+                    }
+                    break;
+                default:
+                    _v[i] = casted._v[i];
+                    break;
+            }
+        }
     }
-
-    /*
-    private final class InternalState {
-        InternalState(int elementDataSize, long[] p_elementK, Object[] p_elementV, int[] p_elementNext, int[] p_elementHash, byte[] p_elementType, int p_elementCount, boolean p_hashReadOnly) {
-            this.hashReadOnly = p_hashReadOnly;
-            this._elementDataSize = elementDataSize;
-            this._elementK = p_elementK;
-            this._elementV = p_elementV;
-            this._elementNext = p_elementNext;
-            this._elementHash = p_elementHash;
-            this._elementType = p_elementType;
-            this._elementCount = p_elementCount;
-            this.threshold = (int) (_elementDataSize * CoreConstants.MAP_LOAD_FACTOR);
-        }
-        InternalState deepClone() {
-            long[] clonedElementK = new long[this._elementDataSize];
-            System.arraycopy(_elementK, 0, clonedElementK, 0, this._elementDataSize);
-            int[] clonedElementNext = new int[this._elementDataSize];
-            System.arraycopy(_elementNext, 0, clonedElementNext, 0, this._elementDataSize);
-            int[] clonedElementHash = new int[this._elementDataSize];
-            System.arraycopy(_elementHash, 0, clonedElementHash, 0, this._elementDataSize);
-            byte[] clonedElementType = new byte[this._elementDataSize];
-            System.arraycopy(_elementType, 0, clonedElementType, 0, this._elementDataSize);
-            return new InternalState(this._elementDataSize, clonedElementK, _elementV, clonedElementNext, clonedElementHash, clonedElementType, _elementCount, false);
-        }
-        InternalState softClone() {
-            Object[] clonedElementV = new Object[this._elementDataSize];
-            System.arraycopy(_elementV, 0, clonedElementV, 0, this._elementDataSize);
-            return new InternalState(this._elementDataSize, _elementK, clonedElementV, _elementNext, _elementHash, _elementType, _elementCount, true);
-        }
-    }*/
-
-    //HeapStateChunk(final HeapChunkSpace p_space, final long p_index) {
-    //this._space = p_space;
-    //this._index = p_index;
-        /*
-        if (initialPayload != null && initialPayload.length() > 0) {
-            load(initialPayload, false);
-        } else if (origin != null) {
-            HeapStateChunk castedOrigin = (HeapStateChunk) origin;
-            InternalState clonedState = castedOrigin.state.softClone();
-            state = clonedState;
-            //deep clone for map
-            for (int i = 0; i < clonedState._elementCount; i++) {
-                switch (clonedState._elementType[i]) {
-                    case Type.LONG_TO_LONG_MAP:
-                        if (clonedState._elementV[i] != null) {
-                            clonedState._elementV[i] = new HeapLongLongMap(this, -1, (HeapLongLongMap) clonedState._elementV[i]);
-                        }
-                        break;
-                    case Type.LONG_TO_LONG_ARRAY_MAP:
-                        if (clonedState._elementV[i] != null) {
-                            clonedState._elementV[i] = new HeapLongLongArrayMap(this, -1, (HeapLongLongArrayMap) clonedState._elementV[i]);
-                        }
-                        break;
-                    case Type.STRING_TO_LONG_MAP:
-                        if (clonedState._elementV[i] != null) {
-                            clonedState._elementV[i] = new HeapStringLongMap(this, -1, (HeapStringLongMap) clonedState._elementV[i]);
-                        }
-                        break;
-                }
-            }
-        } else {
-            //init a new state
-            int initialCapacity = CoreConstants.MAP_INITIAL_CAPACITY;
-            InternalState newstate = new InternalState(initialCapacity, new long[initialCapacity], new Object[initialCapacity], new int[initialCapacity], new int[initialCapacity], new byte[initialCapacity], 0, false);
-            for (int i = 0; i < initialCapacity; i++) {
-                newstate._elementNext[i] = -1;
-                newstate._elementHash[i] = -1;
-            }
-            state = newstate;
-        }*/
-    //}
-
 
     private synchronized void internal_set(final long p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent) {
         Object param_elem = null;
@@ -583,6 +548,28 @@ class HeapStateChunk implements StateChunk, ChunkListener {
             declareDirty();
             return;
         }
+
+        if (unaligned) {
+            long[] cloned_k = new long[_capacity];
+            System.arraycopy(_k, 0, cloned_k, 0, _capacity);
+            _k = cloned_k;
+            Object[] cloned_v = new Object[_capacity];
+            System.arraycopy(_v, 0, cloned_v, 0, _capacity);
+            _v = cloned_v;
+            byte[] cloned_type = new byte[_capacity];
+            System.arraycopy(_type, 0, cloned_type, 0, _capacity);
+            _type = cloned_type;
+
+            int[] cloned_next = new int[_capacity];
+            System.arraycopy(_next, 0, cloned_next, 0, _capacity);
+            _next = cloned_next;
+
+            int[] cloned_hash = new int[_capacity * 2];
+            System.arraycopy(_hash, 0, cloned_hash, 0, _capacity * 2);
+            _hash = cloned_hash;
+        }
+
+
         if (_size < _capacity) {
             _k[_size] = p_key;
             _v[_size] = param_elem;

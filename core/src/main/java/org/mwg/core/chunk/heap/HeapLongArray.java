@@ -7,13 +7,21 @@ import org.mwg.struct.LongArray;
 class HeapLongArray implements LongArray {
 
     private long[] _back;
-    private int _size;
+    private volatile int _size;
     private final ChunkListener _listener;
+    private boolean aligned = true;
 
-    HeapLongArray(ChunkListener p_listener) {
-        _back = null;
-        _size = 0;
+    HeapLongArray(final ChunkListener p_listener, final HeapLongArray origin) {
         _listener = p_listener;
+        if (origin != null) {
+            aligned = false;
+            _back = origin._back;
+            _size = origin._size;
+        } else {
+            _back = null;
+            _size = 0;
+        }
+
     }
 
     @Override
@@ -22,12 +30,18 @@ class HeapLongArray implements LongArray {
     }
 
     @Override
-    public long get(int index) {
+    public synchronized long get(int index) {
         return _back[index];
     }
 
     @Override
-    public void add(long newValue) {
+    public synchronized void add(long newValue) {
+        if(!aligned){
+            long[] temp_back = new long[_back.length];
+            System.arraycopy(_back,0,temp_back,0,_back.length);
+            _back = temp_back;
+            aligned = true;
+        }
         if (_back == null) {
             _back = new long[Constants.MAP_INITIAL_CAPACITY];
             _back[0] = newValue;
@@ -46,7 +60,13 @@ class HeapLongArray implements LongArray {
     }
 
     @Override
-    public void remove(long oldValue) {
+    public synchronized void remove(long oldValue) {
+        if(!aligned){
+            long[] temp_back = new long[_back.length];
+            System.arraycopy(_back,0,temp_back,0,_back.length);
+            _back = temp_back;
+            aligned = true;
+        }
         int indexToRemove = -1;
         for (int i = 0; i < _size; i++) {
             if (_back[i] == oldValue) {
