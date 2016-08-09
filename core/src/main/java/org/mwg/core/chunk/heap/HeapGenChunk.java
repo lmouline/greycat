@@ -10,6 +10,11 @@ final class HeapGenChunk implements GenChunk {
 
     private final HeapChunkSpace _space;
     private final long _index;
+
+    /**
+     * @native ts
+     * private _prefix: Long;
+     */
     private final long _prefix;
     private long _seed;
 
@@ -38,13 +43,29 @@ final class HeapGenChunk implements GenChunk {
         _seed = Base64.decodeToLongWithBounds(buffer, 0, buffer.length());
     }
 
+    /**
+     * @native ts
+     * if (this._seed == org.mwg.Constants.KEY_PREFIX_MASK) {
+     *  throw new Error("Object Index could not be created because it exceeded the capacity of the current prefix. Ask for a new prefix.");
+     * }
+     * this._seed++;
+     * var nextIndex = this._seed;
+     * if(this._space){
+     *     this._space.notifyUpdate(this._index);
+     * }
+     * var objectKey = this._prefix.add(this._seed).toNumber();
+     * if (objectKey >= org.mwg.Constants.NULL_LONG) {
+     *  throw new Error("Object Index exceeds the maximum JavaScript number capacity. (2^"+org.mwg.Constants.LONG_SIZE+")");
+     * }
+     * return objectKey;
+     */
     @Override
     public synchronized final long newKey() {
-        _seed++;
-        final long nextIndex = _seed;
         if (_seed == Constants.KEY_PREFIX_MASK) {
             throw new IndexOutOfBoundsException("Object Index could not be created because it exceeded the capacity of the current prefix. Ask for a new prefix.");
         }
+        _seed++;
+        final long nextIndex = _seed;
         long objectKey = _prefix + nextIndex;
         if (_space != null) {
             _space.notifyUpdate(_index);

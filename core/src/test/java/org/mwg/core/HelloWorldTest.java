@@ -3,6 +3,7 @@ package org.mwg.core;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
+import org.mwg.core.chunk.heap.HeapChunkSpace;
 import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.struct.LongArray;
 import org.mwg.utility.HashHelper;
@@ -98,15 +99,23 @@ public class HelloWorldTest {
                                 node1.free();
                                 node2.free();
 
-                                long availableAfter = graph.space().available();
-                                Assert.assertEquals(available, availableAfter);
 
-                                graph.disconnect(new Callback<Boolean>() {
+                                graph.save(new Callback<Boolean>() {
                                     @Override
                                     public void on(Boolean result) {
-                                        //end of test
+                                        long availableAfter = graph.space().available();
+                                        Assert.assertEquals(available, availableAfter);
+
+                                        graph.disconnect(new Callback<Boolean>() {
+                                            @Override
+                                            public void on(Boolean result) {
+                                                //end of test
+
+                                            }
+                                        });
                                     }
                                 });
+
 
                             }
                         });

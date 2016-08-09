@@ -105,8 +105,8 @@ public class Benchmark4Test {
             long begin = System.currentTimeMillis();
             for (int i = 0; i < nb; i++) {
                 Node x = graph.newNode(0, 0);
-                //x.set("value", rand.nextDouble());
-                //root.add("children", x);
+                x.set("value", rand.nextDouble());
+                root.add("children", x);
             }
             long after = System.currentTimeMillis();
             long diff = after - begin;
