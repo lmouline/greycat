@@ -7,14 +7,14 @@ import org.mwg.utility.HashHelper;
 import org.mwg.struct.StringLongMap;
 import org.mwg.struct.StringLongMapCallBack;
 
-public class HeapStringLongMap implements StringLongMap {
+class HeapStringLongMap implements StringLongMap {
 
     private volatile InternalState state;
     private volatile boolean aligned;
 
     private final ChunkListener _listener;
 
-    public HeapStringLongMap(ChunkListener p_listener, int initialCapacity, HeapStringLongMap p_origin) {
+    HeapStringLongMap(ChunkListener p_listener, int initialCapacity, HeapStringLongMap p_origin) {
         this._listener = p_listener;
         if (p_origin == null) {
             InternalState newstate = new InternalState(initialCapacity, new String[initialCapacity], new long[initialCapacity], new long[initialCapacity], new int[initialCapacity], new int[initialCapacity], 0);

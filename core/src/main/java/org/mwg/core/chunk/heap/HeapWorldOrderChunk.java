@@ -111,7 +111,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     }
 
     @Override
-    public final void each(LongLongMapCallBack callback) {
+    public final void each(final LongLongMapCallBack callback) {
         for (int i = 0; i < _size; i++) {
             callback.on(_kv[i * 2], _kv[i * 2 + 1]);
         }
