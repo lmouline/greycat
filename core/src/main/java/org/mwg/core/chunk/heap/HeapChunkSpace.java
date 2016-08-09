@@ -25,7 +25,7 @@ public class HeapChunkSpace implements ChunkSpace {
     private final int _hashEntries;
     private final int _saveBatchSize;
 
-    private final AtomicInteger _elementCount;
+    private int _size;
 
     private final Stack _lru;
     private final Stack _dirtiesStack;
@@ -47,19 +47,19 @@ public class HeapChunkSpace implements ChunkSpace {
         return this._graph;
     }
 
-    final long worldByIndex(long index) {
+    final synchronized long worldByIndex(long index) {
         return this._chunkWorlds[(int) index];
     }
 
-    final long timeByIndex(long index) {
+    final synchronized long timeByIndex(long index) {
         return this._chunkTimes[(int) index];
     }
 
-    final long idByIndex(long index) {
+    final synchronized long idByIndex(long index) {
         return this._chunkIds[(int) index];
     }
 
-    public final Chunk[] getValues() {
+    public synchronized final Chunk[] getValues() {
         return _chunkValues;
     }
 
@@ -77,7 +77,7 @@ public class HeapChunkSpace implements ChunkSpace {
         Arrays.fill(_hashNext, 0, _maxEntries, -1);
         _chunkValues = new Chunk[initialCapacity];
         Arrays.fill(_chunkValues, 0, _maxEntries, null);
-        _elementCount = new AtomicInteger(0);
+        _size = 0;
         _hash = new int[_hashEntries];
         Arrays.fill(_hash, 0, _hashEntries, -1);
         _chunkWorlds = new long[_maxEntries];
@@ -94,7 +94,7 @@ public class HeapChunkSpace implements ChunkSpace {
     }
 
     @Override
-    public final Chunk getAndMark(final byte type, final long world, final long time, final long id) {
+    public synchronized final Chunk getAndMark(final byte type, final long world, final long time, final long id) {
         final int index = (int) HashHelper.tripleHash(type, world, time, id, this._hashEntries);
         int m = this._hash[index];
         int found = -1;
@@ -119,12 +119,12 @@ public class HeapChunkSpace implements ChunkSpace {
     }
 
     @Override
-    public final Chunk get(final long index) {
+    public synchronized final Chunk get(final long index) {
         return this._chunkValues[(int) index];
     }
 
     @Override
-    public final void getOrLoadAndMark(final byte type, final long world, final long time, final long id, final Callback<Chunk> callback) {
+    public synchronized final void getOrLoadAndMark(final byte type, final long world, final long time, final long id, final Callback<Chunk> callback) {
         final Chunk fromMemory = getAndMark(type, world, time, id);
         if (fromMemory != null) {
             callback.on(fromMemory);
@@ -148,9 +148,8 @@ public class HeapChunkSpace implements ChunkSpace {
         }
     }
 
-    //TODO change this with a compareAndSwap
     @Override
-    public long mark(long index) {
+    public synchronized long mark(long index) {
         long marks = _chunkMarks[(int) index];
         if (marks != -1) {
             marks++;
@@ -164,7 +163,7 @@ public class HeapChunkSpace implements ChunkSpace {
     }
 
     @Override
-    public void unmark(long index) {
+    public synchronized void unmark(long index) {
         long marks = _chunkMarks[(int) index];
         if (marks != -1) {
             marks--;
@@ -181,26 +180,8 @@ public class HeapChunkSpace implements ChunkSpace {
         //NOOP
     }
 
-    /*
     @Override
-    public Chunk create(byte p_type, long p_world, long p_time, long p_id, Buffer p_initialPayload, Chunk origin) {
-        switch (p_type) {
-            case ChunkType.STATE_CHUNK:
-                return new HeapStateChunk(this, p_initialPayload, origin);
-            case ChunkType.WORLD_ORDER_CHUNK:
-                return new HeapWorldOrderChunk(this, p_initialPayload);
-            case ChunkType.TIME_TREE_CHUNK:
-                return new HeapTimeTreeChunk(this, p_initialPayload);
-            case ChunkType.GEN_CHUNK:
-                return new HeapGenChunk(this, p_id, p_initialPayload);
-        }
-        return null;
-    }
-    */
-
-    //TODO, this method has performance issue
-    @Override
-    public Chunk createAndMark(final byte type, final long world, final long time, final long id) {
+    public synchronized Chunk createAndMark(final byte type, final long world, final long time, final long id) {
         //first mark the object
         int entry = -1;
         int hashIndex = (int) HashHelper.tripleHash(type, world, time, id, this._hashEntries);
@@ -213,7 +194,6 @@ public class HeapChunkSpace implements ChunkSpace {
             m = this._hashNext[m];
         }
         if (entry == -1) {
-
             //we look for nextIndex
             int currentVictimIndex = (int) this._lru.dequeueTail();
             if (currentVictimIndex == -1) {
@@ -231,7 +211,6 @@ public class HeapChunkSpace implements ChunkSpace {
                     throw new RuntimeException("mwDB crashed, cache is full, please avoid to much retention of nodes or augment cache capacity!");
                 }
             }
-
             Chunk toInsert = null;
             switch (type) {
                 case ChunkType.STATE_CHUNK:
@@ -247,7 +226,6 @@ public class HeapChunkSpace implements ChunkSpace {
                     toInsert = new HeapGenChunk(this, id, currentVictimIndex);
                     break;
             }
-
             if (this._chunkValues[currentVictimIndex] != null) {
                 // Chunk victim = this._chunkValues[currentVictimIndex];
                 final long victimWorld = _chunkWorlds[currentVictimIndex];
@@ -255,7 +233,6 @@ public class HeapChunkSpace implements ChunkSpace {
                 final long victimObj = _chunkIds[currentVictimIndex];
                 final byte victimType = _chunkTypes[currentVictimIndex];
                 final int indexVictim = (int) HashHelper.tripleHash(victimType, victimWorld, victimTime, victimObj, this._hashEntries);
-
                 m = _hash[indexVictim];
                 int last = -1;
                 while (m >= 0) {
@@ -281,23 +258,20 @@ public class HeapChunkSpace implements ChunkSpace {
                 _chunkValues[currentVictimIndex] = null;
                 //TODO compare and swap here
                 _chunkMarks[currentVictimIndex] = -1;
-
                 //free the lock
-                this._elementCount.decrementAndGet();
+                _size--;
             }
-
             _chunkValues[currentVictimIndex] = toInsert;
             _chunkMarks[currentVictimIndex] = 1;
             _chunkTypes[currentVictimIndex] = type;
             _chunkWorlds[currentVictimIndex] = world;
             _chunkTimes[currentVictimIndex] = time;
             _chunkIds[currentVictimIndex] = id;
-
             //negociate the lock to write on hashIndex
             _hashNext[currentVictimIndex] = _hash[hashIndex];
             _hash[hashIndex] = currentVictimIndex;
             //free the lock
-            this._elementCount.incrementAndGet();
+            _size++;
             return toInsert;
         } else {
             _chunkMarks[entry] = _chunkMarks[entry] + 1;
@@ -307,11 +281,12 @@ public class HeapChunkSpace implements ChunkSpace {
 
     //TODO change by a compare and swap
     @Override
-    public void notifyUpdate(long index) {
+    public synchronized void notifyUpdate(long index) {
         boolean previous = _dirties[(int) index];
         if (!previous) {
             _dirties[(int) index] = true;
             _dirtiesStack.enqueue(index);
+            mark(index);
             if (_dirtiesStack.size() > _saveBatchSize) {
                 save();
             }
@@ -319,7 +294,7 @@ public class HeapChunkSpace implements ChunkSpace {
     }
 
     @Override
-    public void save() {
+    public synchronized void save() {
         boolean isNoop = this._graph.storage() instanceof BlackHoleStorage;
         final Buffer stream = this._graph.newBuffer();
         boolean isFirst = true;
@@ -369,7 +344,7 @@ public class HeapChunkSpace implements ChunkSpace {
 
     @Override
     public final long size() {
-        return this._elementCount.get();
+        return _size;
     }
 
     @Override
