@@ -19,7 +19,7 @@ public class HelloWorldTest {
             @Override
             public void on(Boolean o) {
 
-                long available = graph.space().available();
+                final long available = graph.space().available();
 
                 final org.mwg.Node node0 = graph.newNode(0, 0);
 

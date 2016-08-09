@@ -41,7 +41,7 @@ public interface ChunkSpace {
      */
     Graph graph();
 
-    void save();
+    void save(Callback<Boolean> callback);
 
     void clear();
 

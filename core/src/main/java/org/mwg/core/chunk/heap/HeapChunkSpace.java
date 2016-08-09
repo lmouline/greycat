@@ -288,13 +288,13 @@ public class HeapChunkSpace implements ChunkSpace {
             _dirtiesStack.enqueue(index);
             mark(index);
             if (_dirtiesStack.size() > _saveBatchSize) {
-                save();
+                save(null);
             }
         }
     }
 
     @Override
-    public synchronized void save() {
+    public synchronized void save(final Callback<Boolean> callback) {
         boolean isNoop = this._graph.storage() instanceof BlackHoleStorage;
         final Buffer stream = this._graph.newBuffer();
         boolean isFirst = true;
@@ -328,6 +328,9 @@ public class HeapChunkSpace implements ChunkSpace {
             public void on(Boolean result) {
                 //free all value
                 stream.free();
+                if (callback != null) {
+                    callback.on(result);
+                }
             }
         });
     }

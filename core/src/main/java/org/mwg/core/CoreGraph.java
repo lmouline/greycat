@@ -205,7 +205,7 @@ class CoreGraph implements org.mwg.Graph {
 
     @Override
     public void save(Callback<Boolean> callback) {
-        _space.save();
+        _space.save(callback);
     }
 
     @Override

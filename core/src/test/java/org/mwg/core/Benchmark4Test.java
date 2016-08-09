@@ -26,14 +26,14 @@ public class Benchmark4Test {
         long init = System.currentTimeMillis();
         HeapChunkSpace space = new HeapChunkSpace(nb * 2, nb * 2, null);
         for (int i = 0; i < nb; i++) {
-            Chunk c = space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, i);
+            Chunk c = space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, i);
             //space.putAndMark(ChunkType.STATE_CHUNK, 0, 0, i, c);
             //temp.put(i, c);
 
         }
         long begin = System.currentTimeMillis();
         for (int i = 0; i < nb; i++) {
-            Chunk c = space.getAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, i);
+            Chunk c = space.getAndMark(ChunkType.STATE_CHUNK, 0, 0, i);
             space.unmark(c.index());
         }
         long after = System.currentTimeMillis();
@@ -89,24 +89,24 @@ public class Benchmark4Test {
         System.out.println((nb / 1000) / diffSecond);
     }
 
-    //@Test
+    // @Test
     public void testlookup() {
         Graph graph = new GraphBuilder()
-                .withMemorySize(3000000)
+                .withMemorySize(5000000)
                 //.withOffHeapMemory()
-                .saveEvery(10000)
+                .saveEvery(200000)
                 .withScheduler(new NoopScheduler())
                 .build();
 
-        final int nb = 100000;
+        final int nb = 1000000;
         graph.connect(result -> {
             Node root = graph.newNode(0, 0);
             Random rand = new Random();
             long begin = System.currentTimeMillis();
             for (int i = 0; i < nb; i++) {
                 Node x = graph.newNode(0, 0);
-                x.set("value", rand.nextDouble());
-                root.add("children", x);
+                //x.set("value", rand.nextDouble());
+                //root.add("children", x);
             }
             long after = System.currentTimeMillis();
             long diff = after - begin;
