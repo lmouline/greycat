@@ -72,7 +72,7 @@ public class HeapChunkSpace implements ChunkSpace {
         _hashEntries = initialCapacity * HASH_LOAD_FACTOR;
         _saveBatchSize = saveBatchSize;
         _lru = new FixedStack(initialCapacity, true);
-        _dirtiesStack = new FixedStack(initialCapacity, true);
+        _dirtiesStack = new FixedStack(initialCapacity, false);
         _hashNext = new int[initialCapacity];
         Arrays.fill(_hashNext, 0, _maxEntries, -1);
         _chunkValues = new Chunk[initialCapacity];
@@ -282,8 +282,7 @@ public class HeapChunkSpace implements ChunkSpace {
     //TODO change by a compare and swap
     @Override
     public synchronized void notifyUpdate(long index) {
-        boolean previous = _dirties[(int) index];
-        if (!previous) {
+        if (!_dirties[(int) index]) {
             _dirties[(int) index] = true;
             _dirtiesStack.enqueue(index);
             mark(index);

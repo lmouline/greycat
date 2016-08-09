@@ -27,15 +27,15 @@ public class MiniFlagTest {
                 Node node = graph.newNode(0, 0);
                 node.set("name", "hello");
 
-                ((HeapChunkSpace)graph.space()).printMarked();
+                //   ((HeapChunkSpace) graph.space()).printMarked();
 
                 graph.space().save(new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result) {
 
-                        System.out.println("<=============>");
+                        // System.out.println("<=============>");
 
-                        ((HeapChunkSpace)graph.space()).printMarked();
+                        //   ((HeapChunkSpace) graph.space()).printMarked();
 
                         graph.lookup(0, 0, node.id(), new Callback<Node>() {
                             @Override
@@ -60,8 +60,6 @@ public class MiniFlagTest {
 
                     }
                 });
-
-
 
 
             }
