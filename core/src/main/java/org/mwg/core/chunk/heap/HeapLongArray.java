@@ -21,13 +21,12 @@ class HeapLongArray implements LongArray {
             _back = null;
             _size = 0;
         }
-
     }
 
-    public synchronized void allocate(int _capacity){
+    public synchronized void allocate(int _capacity) {
         long[] new_back = new long[_capacity];
-        if(_back != null){
-            System.arraycopy(_back,0,new_back,0,_back.length);
+        if (_back != null) {
+            System.arraycopy(_back, 0, new_back, 0, _back.length);
         }
         _back = new_back;
     }
@@ -44,9 +43,9 @@ class HeapLongArray implements LongArray {
 
     @Override
     public synchronized void add(long newValue) {
-        if(!aligned){
+        if (!aligned) {
             long[] temp_back = new long[_back.length];
-            System.arraycopy(_back,0,temp_back,0,_back.length);
+            System.arraycopy(_back, 0, temp_back, 0, _back.length);
             _back = temp_back;
             aligned = true;
         }
@@ -69,9 +68,9 @@ class HeapLongArray implements LongArray {
 
     @Override
     public synchronized void remove(long oldValue) {
-        if(!aligned){
+        if (!aligned) {
             long[] temp_back = new long[_back.length];
-            System.arraycopy(_back,0,temp_back,0,_back.length);
+            System.arraycopy(_back, 0, temp_back, 0, _back.length);
             _back = temp_back;
             aligned = true;
         }
@@ -96,4 +95,17 @@ class HeapLongArray implements LongArray {
         }
     }
 
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
+        buffer.append("[");
+        for(int i=0;i<_size;i++){
+            if(i!=0){
+                buffer.append(",");
+            }
+            buffer.append(_back[i]);
+        }
+        buffer.append("]");
+        return buffer.toString();
+    }
 }

@@ -18,7 +18,7 @@ public interface Query {
      * @param value the value of the attribute for which nodes have to be collected
      * @return the {@link Query}, for a fluent API
      */
-    Query add(String attributeName, Object value);
+    Query add(String attributeName, String value);
 
     /**
      * Sets the world in which to execute the Query.

@@ -18,13 +18,16 @@ class ActionFromVar extends AbstractTaskAction {
     @Override
     public void eval(final TaskContext context) {
         final String evaluatedName = context.template(_name);
-        final TaskResult varResult;
+        TaskResult varResult;
         if(_index != -1) {
             varResult = context.wrap(context.variable(evaluatedName).get(_index));
         } else {
             varResult = context.variable(evaluatedName);
         }
-        context.continueWith(varResult.clone());
+        if(varResult != null){
+            varResult = varResult.clone();
+        }
+        context.continueWith(varResult);
     }
 
     @Override

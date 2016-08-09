@@ -5,7 +5,7 @@ import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
 import org.mwg.utility.DefaultBufferIterator;
 
-class HeapBuffer implements Buffer {
+public class HeapBuffer implements Buffer {
 
     private byte[] buffer;
 

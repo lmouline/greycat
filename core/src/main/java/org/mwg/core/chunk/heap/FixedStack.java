@@ -19,6 +19,8 @@ public final class FixedStack implements Stack {
         this._prev = new int[capacity];
         this._first = -1;
         this._last = -1;
+        Arrays.fill(_next, 0, capacity, -1);
+        Arrays.fill(_prev, 0, capacity, -1);
         if (fill) {
             for (int i = 0; i < capacity; i++) {
                 int l = _last;
@@ -32,8 +34,6 @@ public final class FixedStack implements Stack {
             }
             _count = capacity;
         } else {
-            Arrays.fill(_next, 0, capacity, -1);
-            Arrays.fill(_prev, 0, capacity, -1);
             _count = 0;
         }
     }

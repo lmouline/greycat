@@ -63,7 +63,7 @@ public class IndexTest {
                 q.setIndexName("bigram");
                 q.setTime(0);
                 q.setWorld(0);
-                q.add("children", new long[]{node_t0.id()});
+                q.add("children", "[" + node_t0.id() + "]");
                 graph.findByQuery(q, new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
