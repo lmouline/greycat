@@ -256,6 +256,15 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
+    public Task isolatedSubTask(Task subTask) {
+        if (subTask == null) {
+            throw new RuntimeException("subTask should not be null");
+        }
+        addAction(new ActionIsolatedSubTask(subTask));
+        return this;
+    }
+
+    @Override
     public Task subTasks(Task[] subTasks) {
         if (subTasks == null) {
             throw new RuntimeException("subTask should not be null");

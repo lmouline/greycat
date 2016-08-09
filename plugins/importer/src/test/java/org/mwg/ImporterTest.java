@@ -115,6 +115,9 @@ public class ImporterTest {
         URL urlFIle = this.getClass().getClassLoader().getResource("smarthome/readme.md");
         URL urlFIle2 = this.getClass().getClassLoader().getResource(URLDecoder.decode("folder with spaces in name/aFile.txt","UTF-8"));
 
+        File expectecFile = new File(urlFIle.toURI());
+        File expectedFile2 = new File(urlFIle2.toURI());
+
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean connectionResult) {
@@ -123,7 +126,7 @@ public class ImporterTest {
                     @Override
                     public void eval(TaskContext context) {
                         String file = (String) context.result().get(0);
-                        Assert.assertEquals(urlFIle.getPath(), file);
+                        Assert.assertEquals(expectecFile.getAbsolutePath(), file);
                         nbFile[0]++;
                         context.continueWith(null);
                     }
@@ -132,7 +135,7 @@ public class ImporterTest {
                     public void eval(TaskContext context)  {
                         String file = (String) context.result().get(0);
                         try {
-                            Assert.assertEquals(URLDecoder.decode(urlFIle2.getPath(), "UTF-8"), file);
+                            Assert.assertEquals(URLDecoder.decode(expectedFile2.getAbsolutePath(), "UTF-8"), file);
                         }catch (UnsupportedEncodingException ex) {
                             Assert.fail(ex.getMessage());
                         }
