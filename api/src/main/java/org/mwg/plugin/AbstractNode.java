@@ -191,10 +191,10 @@ public abstract class AbstractNode implements Node {
     }
 
     @Override
-    public final Map getOrCreate(String propertyName, byte propertyType) {
+    public final Object getOrCreate(String propertyName, byte propertyType) {
         final NodeState preciseState = this._resolver.alignState(this);
         if (preciseState != null) {
-            return (Map) preciseState.getOrCreate(this._resolver.stringToHash(propertyName, true), propertyType);
+            return preciseState.getOrCreate(this._resolver.stringToHash(propertyName, true), propertyType);
         } else {
             throw new RuntimeException(Constants.CACHE_MISS_ERROR);
         }
