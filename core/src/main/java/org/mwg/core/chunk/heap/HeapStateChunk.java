@@ -378,6 +378,9 @@ class HeapStateChunk implements StateChunk, ChunkListener {
 
     @Override
     public synchronized void loadFrom(final StateChunk origin) {
+        if (origin == null) {
+            return;
+        }
         HeapStateChunk casted = (HeapStateChunk) origin;
         _k = casted._k;
         _type = casted._type;
@@ -600,23 +603,37 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         }
 
         if (unaligned) {
-            long[] cloned_k = new long[_capacity];
-            System.arraycopy(_k, 0, cloned_k, 0, _capacity);
-            _k = cloned_k;
-            Object[] cloned_v = new Object[_capacity];
-            System.arraycopy(_v, 0, cloned_v, 0, _capacity);
-            _v = cloned_v;
-            byte[] cloned_type = new byte[_capacity];
-            System.arraycopy(_type, 0, cloned_type, 0, _capacity);
-            _type = cloned_type;
 
-            int[] cloned_next = new int[_capacity];
-            System.arraycopy(_next, 0, cloned_next, 0, _capacity);
-            _next = cloned_next;
+            if (_k != null) {
+                long[] cloned_k = new long[_capacity];
+                System.arraycopy(_k, 0, cloned_k, 0, _capacity);
+                _k = cloned_k;
+            }
 
-            int[] cloned_hash = new int[_capacity * 2];
-            System.arraycopy(_hash, 0, cloned_hash, 0, _capacity * 2);
-            _hash = cloned_hash;
+            if (_v != null) {
+                Object[] cloned_v = new Object[_capacity];
+                System.arraycopy(_v, 0, cloned_v, 0, _capacity);
+                _v = cloned_v;
+            }
+
+            if (_type != null) {
+                byte[] cloned_type = new byte[_capacity];
+                System.arraycopy(_type, 0, cloned_type, 0, _capacity);
+                _type = cloned_type;
+            }
+
+            if (_next != null) {
+                int[] cloned_next = new int[_capacity];
+                System.arraycopy(_next, 0, cloned_next, 0, _capacity);
+                _next = cloned_next;
+            }
+
+            if (_hash != null) {
+                int[] cloned_hash = new int[_capacity * 2];
+                System.arraycopy(_hash, 0, cloned_hash, 0, _capacity * 2);
+                _hash = cloned_hash;
+            }
+
 
             unaligned = false;
         }
