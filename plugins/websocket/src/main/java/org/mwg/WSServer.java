@@ -198,6 +198,13 @@ public class WSServer implements WebSocketConnectionCallback {
                     if (memoryChunk != null) {
                         memoryChunk.load(values[finalI]);
                         graph.space().unmark(memoryChunk.index());
+                    } else {
+                        Chunk newChunk = graph.space().createAndMark(tuple.type, tuple.world, tuple.time, tuple.id);
+                        if(newChunk != null){
+                            newChunk.load(values[finalI]);
+                            graph.space().unmark(newChunk.index());
+                        }
+
                     }
                     defer.count();
                 }

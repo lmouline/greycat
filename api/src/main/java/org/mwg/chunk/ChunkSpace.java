@@ -25,7 +25,7 @@ public interface ChunkSpace {
      * Get chunk for the associated index
      */
     Chunk get(long index);
-    
+
     void unmark(final long index);
 
     long mark(final long index);

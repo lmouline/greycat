@@ -3,6 +3,7 @@ package org.mwg;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.chunk.StateChunk;
+import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.plugin.AbstractNode;
 import org.mwg.struct.Buffer;
 
@@ -64,7 +65,6 @@ public class WSServerTest {
         final Graph graph = new GraphBuilder()
                 .withMemorySize(10000)
                 .saveEvery(1000)
-                .withOffHeapMemory()
                 .build();
         graph.connect(new Callback<Boolean>() {
             @Override
@@ -85,6 +85,8 @@ public class WSServerTest {
                         graph2.findAll(0, 0, "nodes", new Callback<Node[]>() {
                             @Override
                             public void on(Node[] result1) {
+
+                                Assert.assertEquals(result1[0].toString(),node.toString());
 
                                 Node newNode = graph2.newNode(0, 0);
                                 newNode.set("name", "hello2");
