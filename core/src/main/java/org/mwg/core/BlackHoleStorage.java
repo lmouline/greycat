@@ -14,7 +14,7 @@ public class BlackHoleStorage implements Storage {
     private short prefix = 0;
 
     @Override
-    public void get(Buffer keys, Callback<Buffer> callback) {
+    public final void get(Buffer keys, Callback<Buffer> callback) {
         Buffer result = _graph.newBuffer();
         BufferIterator it = keys.iterator();
         boolean isFirst = true;
@@ -32,7 +32,7 @@ public class BlackHoleStorage implements Storage {
     }
 
     @Override
-    public void put(Buffer stream, Callback<Boolean> callback) {
+    public final void put(Buffer stream, Callback<Boolean> callback) {
         //System.err.println("WARNING: POTENTIAL DATA LOSSES, NOOP STORAGE don't save");
         if (callback != null) {
             callback.on(true);
@@ -40,18 +40,18 @@ public class BlackHoleStorage implements Storage {
     }
 
     @Override
-    public void remove(Buffer keys, Callback<Boolean> callback) {
+    public final void remove(Buffer keys, Callback<Boolean> callback) {
         callback.on(true);
     }
 
     @Override
-    public void connect(Graph graph, Callback<Boolean> callback) {
+    public final void connect(Graph graph, Callback<Boolean> callback) {
         _graph = graph;
         callback.on(true);
     }
 
     @Override
-    public void lock(Callback<Buffer> callback) {
+    public final void lock(Callback<Buffer> callback) {
         Buffer buffer = _graph.newBuffer();
         Base64.encodeIntToBuffer(prefix, buffer);
         prefix++;
@@ -59,12 +59,12 @@ public class BlackHoleStorage implements Storage {
     }
 
     @Override
-    public void unlock(Buffer previousLock, Callback<Boolean> callback) {
+    public final void unlock(Buffer previousLock, Callback<Boolean> callback) {
         callback.on(true);
     }
 
     @Override
-    public void disconnect(Callback<Boolean> callback) {
+    public final void disconnect(Callback<Boolean> callback) {
         _graph = null;
         callback.on(true);
     }
