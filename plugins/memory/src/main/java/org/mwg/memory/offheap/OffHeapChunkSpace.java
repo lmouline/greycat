@@ -47,7 +47,7 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
         return _graph;
     }
 
-    final private class InternalDirtyStateList implements ChunkIterator {
+    final private class InternalDirtyStateList  {
 
         private final long _dirtyElements;
         private final long _max;
@@ -522,11 +522,6 @@ public class OffHeapChunkSpace implements ChunkSpace, ChunkListener {
             }
             return chunk;
         }
-    }
-
-    @Override
-    public ChunkIterator detachDirties() {
-        return _dirtyState.getAndSet(new InternalDirtyStateList(this._saveBatchSize, this));
     }
 
     @Override

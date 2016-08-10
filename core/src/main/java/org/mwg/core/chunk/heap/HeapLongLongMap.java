@@ -29,9 +29,6 @@ class HeapLongLongMap implements LongLongMap {
         }
     }
 
-    /**
-     * Internal Map state, to be replace in a compare and swap manner
-     */
     private final class InternalState {
 
         final int _stateSize;
@@ -73,7 +70,7 @@ class HeapLongLongMap implements LongLongMap {
     }
 
     @Override
-    public final long get(long key) {
+    public final synchronized long get(long key) {
         final InternalState internalState = state;
         if (internalState._stateSize == 0) {
             return CoreConstants.NULL_LONG;
@@ -91,7 +88,7 @@ class HeapLongLongMap implements LongLongMap {
     }
 
     @Override
-    public final void each(LongLongMapCallBack callback) {
+    public final synchronized void each(LongLongMapCallBack callback) {
         final InternalState internalState = state;
         for (int i = 0; i < internalState._elementCount; i++) {
             if (internalState._elementNext[i] != -1) { //there is a real value
@@ -101,16 +98,16 @@ class HeapLongLongMap implements LongLongMap {
     }
 
     @Override
-    public final long size() {
+    public final synchronized long size() {
         return state._elementCount;
     }
 
     @Override
-    public final void put(long key, long value) {
+    public final synchronized void put(long key, long value) {
         internal_modify_map(key, value);
     }
 
-    private synchronized void internal_modify_map(long key, long value) {
+    private void internal_modify_map(long key, long value) {
         if (!aligned) {
             //clone the state
             state = state.clone();

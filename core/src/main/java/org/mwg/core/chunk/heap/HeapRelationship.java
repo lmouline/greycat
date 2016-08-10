@@ -106,7 +106,7 @@ class HeapRelationship implements Relationship {
             _back = null;
             aligned = true;
         } else {
-            if(_back != null){
+            if (_back != null) {
                 Arrays.fill(_back, 0, _back.length, -1);
             }
         }

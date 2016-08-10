@@ -2,7 +2,6 @@ package org.mwg.chunk;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
-import org.mwg.struct.Buffer;
 
 public interface ChunkSpace {
 

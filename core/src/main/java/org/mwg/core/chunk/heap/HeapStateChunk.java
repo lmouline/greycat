@@ -99,28 +99,14 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         //empty chunk, we return immediately
         if (_size == 0) {
             return null;
-        } else if (_hash == null) {
-            for (int i = 0; i < _size; i++) {
-                if (_k[i] == p_key) {
-                    return _v[i];
-                }
-            }
-            return null;
-        } else {
-            final int hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
-            int m = _hash[hashIndex];
-            Object result = null;
-            while (m >= 0) {
-                if (p_key == _k[m]) {
-                    result = _v[m];
-                    break;
-                } else {
-                    m = _next[m];
-                }
-            }
+        }
+        int found = internal_find(p_key);
+        Object result = null;
+        if(found != -1) {
+            result = _v[found];
             //TODO optimize this
             if (result != null) {
-                switch (_type[m]) {
+                switch (_type[found]) {
                     case Type.DOUBLE_ARRAY:
                         double[] castedResultD = (double[]) result;
                         double[] copyD = new double[castedResultD.length];
@@ -139,10 +125,9 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                     default:
                         return result;
                 }
-            } else {
-                return null;
             }
         }
+        return result;
     }
 
     /**
