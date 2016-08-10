@@ -9,6 +9,7 @@ import org.mwg.ml.ProfilingNode;
 import org.mwg.ml.common.NDimentionalArray;
 import org.mwg.ml.common.matrix.Matrix;
 import org.mwg.ml.common.matrix.operation.MultivariateNormalDistribution;
+import org.mwg.struct.Relationship;
 import org.mwg.utility.Enforcer;
 import org.mwg.plugin.NodeState;
 import org.mwg.task.*;
@@ -275,8 +276,8 @@ public class GaussianMixtureNode extends AbstractMLNode implements ProfilingNode
 
         final Node selfPointer = this;
 
-        long[] subgaussians = (long[]) super.get(INTERNAL_SUBGAUSSIAN);
-        if (subgaussians != null && subgaussians.length >= compressionFactor * width) {
+        Relationship subgaussians = (Relationship) super.get(INTERNAL_SUBGAUSSIAN);
+        if (subgaussians != null && subgaussians.size()!=0 && subgaussians.size() >= compressionFactor * width) {
             super.rel(INTERNAL_SUBGAUSSIAN, new Callback<Node[]>() {
                 @Override
                 //result.length hold the original subgaussian number, and width is after compression
@@ -383,22 +384,16 @@ public class GaussianMixtureNode extends AbstractMLNode implements ProfilingNode
 
         //Add the subGaussian to the relationship
         if (level > 0) {
-            long[] subrelations = (long[]) subgaus.get(INTERNAL_SUBGAUSSIAN);
-            if (subrelations == null) {
+            Relationship subrelations = (Relationship) subgaus.get(INTERNAL_SUBGAUSSIAN);
+            if (subrelations == null||subrelations.size()==0) {
                 subgaus.updateLevel(level - 1);
                 super.add(INTERNAL_SUBGAUSSIAN, subgaus);
             } else {
-                long[] oldrel = (long[]) this.get(INTERNAL_SUBGAUSSIAN);
-                if (oldrel == null) {
-                    oldrel = new long[0];
+                Relationship oldrel = this.getOrCreateRel(INTERNAL_SUBGAUSSIAN);
+                for(int i=0;i<subrelations.size();i++){
+                    oldrel.add(subrelations.get(i));
                 }
-                long[] newrelations = new long[oldrel.length + subrelations.length];
-                System.arraycopy(oldrel, 0, newrelations, 0, oldrel.length);
-                System.arraycopy(subrelations, 0, newrelations, oldrel.length, subrelations.length);
-                set(INTERNAL_SUBGAUSSIAN, newrelations);
             }
-
-
         }
     }
 
@@ -863,11 +858,15 @@ public class GaussianMixtureNode extends AbstractMLNode implements ProfilingNode
     }
 
     public long[] getSubGraph() {
-        long[] res = (long[]) super.get(INTERNAL_SUBGAUSSIAN);
+        Relationship res = (Relationship) super.get(INTERNAL_SUBGAUSSIAN);
         if (res == null) {
-            res = new long[0];
+            return null;
         }
-        return res;
+        long[] reslong=new long[res.size()];
+        for(int i=0;i<res.size();i++){
+            reslong[i]=res.get(i);
+        }
+        return reslong;
     }
 
 

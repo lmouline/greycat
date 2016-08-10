@@ -455,12 +455,6 @@ declare module org {
                 save(buffer: org.mwg.struct.Buffer): void;
                 load(buffer: org.mwg.struct.Buffer): void;
             }
-            interface ChunkIterator {
-                hasNext(): boolean;
-                next(): org.mwg.chunk.Chunk;
-                size(): number;
-                free(): void;
-            }
             interface ChunkListener {
                 declareDirty(chunk: org.mwg.chunk.Chunk): void;
                 graph(): org.mwg.Graph;
@@ -551,7 +545,7 @@ declare module org {
                 get(propertyName: string): any;
                 set(propertyName: string, propertyValue: any): void;
                 setProperty(propertyName: string, propertyType: number, propertyValue: any): void;
-                getOrCreate(propertyName: string, propertyType: number): org.mwg.struct.Map;
+                getOrCreate(propertyName: string, propertyType: number): any;
                 type(propertyName: string): number;
                 removeProperty(attributeName: string): void;
                 rel(relationName: string, callback: org.mwg.Callback<org.mwg.Node[]>): void;

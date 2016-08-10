@@ -212,7 +212,13 @@ public class PolynomialNode extends AbstractMLNode implements RegressionNode {
 
     private static double[] updateBuffer(NodeState state, double t, String key) {
         double[] ts = (double[]) state.getFromKey(key);
-        if (ts.length < MAX_DEGREE * 4) {
+        if(ts==null){
+            ts=new double[1];
+            ts[0]=t;
+            state.setFromKey(key, Type.DOUBLE_ARRAY, ts);
+            return ts;
+        }
+        else if (ts.length < MAX_DEGREE * 4) {
             double[] nts = new double[ts.length + 1];
             System.arraycopy(ts, 0, nts, 0, ts.length);
             nts[ts.length] = t;

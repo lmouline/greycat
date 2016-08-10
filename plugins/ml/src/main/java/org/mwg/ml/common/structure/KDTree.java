@@ -58,11 +58,11 @@ public class KDTree extends AbstractNode {
             //Bootstrap, first insert ever
             if (nodeKey == null) {
                 current.setProperty(INTERNAL_KEY, Type.DOUBLE_ARRAY, keyToInsert);
-                current.setProperty(INTERNAL_VALUE, Type.RELATION, new long[]{valueToInsert.id()});
+                current.getOrCreateRel(INTERNAL_VALUE).clear().add(valueToInsert.id());
                 current.setProperty(NUM_NODES, Type.INT, 1);
                 return false; //stop the while loop and insert here
             } else if (distance.measure(keyToInsert, nodeKey) < err) {
-                current.setProperty(INTERNAL_VALUE, Type.RELATION, new long[]{valueToInsert.id()});
+                current.getOrCreateRel(INTERNAL_VALUE).clear().add(valueToInsert.id());
                 return false; //insert in the current node, and done with it, no need to continue looping
             } else {
                 //Decision point for next step
@@ -80,8 +80,8 @@ public class KDTree extends AbstractNode {
                 if (child == null || child.size() == 0) {
                     KDTree childNode = (KDTree) context.graph().newTypedNode(current.world(), current.time(), NAME);
                     childNode.setProperty(INTERNAL_KEY, Type.DOUBLE_ARRAY, keyToInsert);
-                    childNode.setProperty(INTERNAL_VALUE, Type.RELATION, new long[]{valueToInsert.id()});
-                    current.setProperty(nextRel, Type.RELATION, new long[]{childNode.id()});
+                    childNode.getOrCreateRel(INTERNAL_VALUE).clear().add(valueToInsert.id());
+                    current.getOrCreateRel(nextRel).clear().add(childNode.id());
                     root.setProperty(NUM_NODES, Type.INT, (Integer) root.get(NUM_NODES) + 1);
                     childNode.free();
                     return false;
@@ -148,9 +148,9 @@ public class KDTree extends AbstractNode {
                 // 5. target-in-left := target_s <= pivot_s
                 boolean target_in_left = target[s] < pivot[s];
 
-                long[] nearer_kd;
+                Relationship nearer_kd;
                 HRect nearer_hr;
-                long[] further_kd;
+                Relationship further_kd;
                 HRect further_hr;
                 String nearer_st;
                 String farther_st;
@@ -159,11 +159,11 @@ public class KDTree extends AbstractNode {
                 // 6.1. nearer-kd := left field of kd and nearer-hr := left-hr
                 // 6.2. further-kd := right field of kd and further-hr := right-hr
                 if (target_in_left) {
-                    nearer_kd = (long[]) node.get(INTERNAL_LEFT);
+                    nearer_kd = (Relationship) node.get(INTERNAL_LEFT);
                     nearer_st = INTERNAL_LEFT;
                     nearer_hr = left_hr;
 
-                    further_kd = (long[]) node.get(INTERNAL_RIGHT);
+                    further_kd = (Relationship) node.get(INTERNAL_RIGHT);
                     further_hr = right_hr;
                     farther_st = INTERNAL_RIGHT;
                 }
@@ -172,11 +172,11 @@ public class KDTree extends AbstractNode {
                 // 7.1. nearer-kd := right field of kd and nearer-hr := right-hr
                 // 7.2. further-kd := left field of kd and further-hr := left-hr
                 else {
-                    nearer_kd = (long[]) node.get(INTERNAL_RIGHT);
+                    nearer_kd = (Relationship) node.get(INTERNAL_RIGHT);
                     nearer_hr = right_hr;
                     nearer_st = INTERNAL_RIGHT;
 
-                    further_kd = (long[]) node.get(INTERNAL_LEFT);
+                    further_kd = (Relationship) node.get(INTERNAL_LEFT);
                     further_hr = left_hr;
                     farther_st = INTERNAL_LEFT;
                 }
@@ -185,7 +185,7 @@ public class KDTree extends AbstractNode {
                 context.defineVariable("further_hr", further_hr);
                 context.defineVariable("pivot_to_target", pivot_to_target);
 
-                if (nearer_kd != null && nearer_kd.length != 0) {
+                if (nearer_kd != null && nearer_kd.size() != 0) {
                     context.defineVariable("near", nearer_st);
                     //The 3 variables to set for next round of reccursivity:
                     context.defineVariableForSubTask("hr", nearer_hr);
@@ -196,7 +196,7 @@ public class KDTree extends AbstractNode {
                     context.defineVariableForSubTask("near", context.newResult());  //stop the loop
                 }
 
-                if (further_kd != null && further_kd.length != 0) {
+                if (further_kd != null && further_kd.size() != 0) {
                     context.defineVariableForSubTask("far", farther_st);
                 } else {
                     context.defineVariableForSubTask("far", context.newResult()); //stop the loop
@@ -256,7 +256,7 @@ public class KDTree extends AbstractNode {
                                 dist_sqd = pivot_to_target;
                                 //System.out.println("T3 "+node.id()+" insert-> "+((long[]) (node.get(INTERNAL_VALUE)))[0]);
                                 //System.out.println("INSTASK " + ((long[]) (node.get(INTERNAL_VALUE)))[0] + " id: "+node.id());
-                                nnl.insert(((long[]) (node.get(INTERNAL_VALUE)))[0], dist_sqd);
+                                nnl.insert(((Relationship) (node.get(INTERNAL_VALUE))).get(0), dist_sqd);
 
                                 // 10.1.3 max-dist-sqd = dist-sqd
                                 // max_dist_sqd = dist_sqd;

@@ -67,7 +67,7 @@ public class GaussianProbaTest {
                         Assert.assertTrue(Math.abs(covBatch.get(0,0) - Gaussian1D.getCovariance(finalSum, finalSumsquare, total)) < eps);
 
                         double testvec = rand.nextDouble() * 100;
-                        //System.out.println("Prob: " + Gaussian1D.getDensity(sum, sumsquare, total, testvec) + " " + gaussianNodeBatch.getProbability(new double[]{testvec}, null, false));
+                        System.out.println("Prob: " + Gaussian1D.getDensity(finalSum, finalSumsquare, total, testvec) + " " + result.getProbability(new double[]{testvec}, null, false));
                         Assert.assertTrue(Math.abs(Gaussian1D.getDensity(finalSum, finalSumsquare, total, testvec) - result.getProbability(new double[]{testvec}, null, false)) < eps);
 
                     }
