@@ -20,7 +20,7 @@ import java.util.Random;
  */
 public class Benchmark4Test {
 
-   // @Test
+    // @Test
     public void test() {
         int nb = 3000000;
         long init = System.currentTimeMillis();
@@ -94,7 +94,7 @@ public class Benchmark4Test {
         Graph graph = new GraphBuilder()
                 .withMemorySize(5000000)
                 //.withOffHeapMemory()
-                .saveEvery(200000)
+                .saveEvery(5000000)
                 .withScheduler(new NoopScheduler())
                 .build();
 
@@ -107,6 +107,7 @@ public class Benchmark4Test {
                 Node x = graph.newNode(0, 0);
                 x.set("value", rand.nextDouble());
                 root.add("children", x);
+                x.free();
             }
             long after = System.currentTimeMillis();
             long diff = after - begin;

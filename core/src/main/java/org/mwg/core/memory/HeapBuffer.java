@@ -97,4 +97,13 @@ public class HeapBuffer implements Buffer {
     public void removeLast() {
         writeCursor--;
     }
+
+    /**
+     * @native ts
+     * return String.fromCharCode.apply(null,this.data());
+     */
+    @Override
+    public String toString() {
+        return new String(data());
+    }
 }
