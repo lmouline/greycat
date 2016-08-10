@@ -456,8 +456,7 @@ declare module org {
                 load(buffer: org.mwg.struct.Buffer): void;
             }
             interface ChunkListener {
-                declareDirty(chunk: org.mwg.chunk.Chunk): void;
-                graph(): org.mwg.Graph;
+                declareDirty(): void;
             }
             interface ChunkSpace {
                 createAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
@@ -1144,9 +1143,6 @@ declare module org {
                 hashToString(key: number): string;
             }
             module chunk {
-                interface ChunkListener {
-                    declareDirty(): void;
-                }
                 interface Stack {
                     enqueue(index: number): boolean;
                     dequeueTail(): number;
@@ -1227,7 +1223,7 @@ declare module org {
                         private state;
                         private aligned;
                         private _listener;
-                        constructor(p_listener: org.mwg.core.chunk.ChunkListener, initialCapacity: number, p_origin: org.mwg.core.chunk.heap.HeapLongLongArrayMap);
+                        constructor(p_listener: org.mwg.chunk.ChunkListener, initialCapacity: number, p_origin: org.mwg.core.chunk.heap.HeapLongLongArrayMap);
                         get(key: number): Float64Array;
                         each(callback: org.mwg.struct.LongLongArrayMapCallBack): void;
                         size(): number;
@@ -1253,7 +1249,7 @@ declare module org {
                         private state;
                         private aligned;
                         private _listener;
-                        constructor(p_listener: org.mwg.core.chunk.ChunkListener, initialCapacity: number, p_origin: org.mwg.core.chunk.heap.HeapLongLongMap);
+                        constructor(p_listener: org.mwg.chunk.ChunkListener, initialCapacity: number, p_origin: org.mwg.core.chunk.heap.HeapLongLongMap);
                         get(key: number): number;
                         each(callback: org.mwg.struct.LongLongMapCallBack): void;
                         size(): number;
@@ -1279,7 +1275,7 @@ declare module org {
                         private _size;
                         private _listener;
                         private aligned;
-                        constructor(p_listener: org.mwg.core.chunk.ChunkListener, origin: org.mwg.core.chunk.heap.HeapRelationship);
+                        constructor(p_listener: org.mwg.chunk.ChunkListener, origin: org.mwg.core.chunk.heap.HeapRelationship);
                         allocate(_capacity: number): void;
                         size(): number;
                         get(index: number): number;
@@ -1288,7 +1284,7 @@ declare module org {
                         clear(): org.mwg.struct.Relationship;
                         toString(): string;
                     }
-                    class HeapStateChunk implements org.mwg.chunk.StateChunk, org.mwg.core.chunk.ChunkListener {
+                    class HeapStateChunk implements org.mwg.chunk.StateChunk, org.mwg.chunk.ChunkListener {
                         private _index;
                         private _space;
                         private _capacity;
@@ -1328,7 +1324,7 @@ declare module org {
                         private state;
                         private aligned;
                         private _listener;
-                        constructor(p_listener: org.mwg.core.chunk.ChunkListener, initialCapacity: number, p_origin: org.mwg.core.chunk.heap.HeapStringLongMap);
+                        constructor(p_listener: org.mwg.chunk.ChunkListener, initialCapacity: number, p_origin: org.mwg.core.chunk.heap.HeapStringLongMap);
                         getValue(key: string): number;
                         getByHash(keyHash: number): string;
                         containsHash(keyHash: number): boolean;

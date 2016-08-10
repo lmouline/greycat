@@ -284,7 +284,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                         case Type.RELATION:
                             Relationship castedLongArrRel = (Relationship) loopValue;
                             Base64.encodeIntToBuffer(castedLongArrRel.size(), buffer);
-                            for (int j = 1; j <= castedLongArrRel.size(); j++) {
+                            for (int j = 0; j < castedLongArrRel.size(); j++) {
                                 buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
                                 Base64.encodeLongToBuffer(castedLongArrRel.get(j), buffer);
                             }

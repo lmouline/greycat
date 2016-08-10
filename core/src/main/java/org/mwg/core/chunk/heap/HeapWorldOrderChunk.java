@@ -147,6 +147,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
             while (m >= 0) {
                 if (key == _kv[m * 2]) {
                     found = m;
+                    break;
                 }
                 m = _next[m];
             }
@@ -167,8 +168,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
                     }
                 }
             } else {
-                if (_kv[m * 2 + 1] != value) {
-                    _kv[m * 2 + 1] = value;
+                if (_kv[found * 2 + 1] != value) {
+                    _kv[found * 2 + 1] = value;
                     _magic = _magic + 1;
                     if (notifyUpdate) {
                         if (_space != null) {
