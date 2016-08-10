@@ -3,20 +3,24 @@
     <script src="../../../corejs/target/classes/mwg.js"></script>
     <script src="../target/classes/mwg.ws.js"></script>
     <script>
-        var graph = new org.mwg.GraphBuilder().withStorage(new org.mwg.plugin.WSClient("ws://kloud4:8050")).build();
+        var graph = new org.mwg.GraphBuilder().withStorage(new org.mwg.plugin.WSClient("ws://localhost:8050")).build();
         graph.connect(function () {
 
+
+            graph.findAll(0, 0, "nodes", function (nodes) {
+                console.log(nodes[0].toString());
+            });
 
             /*
             var node_a = graph.newNode(0, 0);
             node_a.set("name", "n_" + Date.now());
             graph.index("nodes", node_a, "name", function (res) {
                 graph.save(function (res) {
-                    graph.all(0, 0, "nodes", function (nodes) {
-                        for (i in nodes) {
-                            console.log(nodes[i].toString());
-                        }
+
+                    graph.findAll(0, 0, "nodes", function (nodes) {
+                        console.log(nodes);
                     });
+                    //console.log(graph);
                 });
             });*/
 

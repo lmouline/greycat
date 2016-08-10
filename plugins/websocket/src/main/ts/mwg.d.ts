@@ -1304,19 +1304,21 @@ declare module org {
                         chunkType(): number;
                         index(): number;
                         get(p_key: number): any;
+                        private internal_find(p_key);
+                        private internal_get(p_key);
                         set(p_elementIndex: number, p_elemType: number, p_unsafe_elem: any): void;
                         setFromKey(key: string, p_elemType: number, p_unsafe_elem: any): void;
                         getFromKey(key: string): any;
                         getFromKeyWithDefault<A>(key: string, defaultValue: A): A;
                         getType(p_key: number): number;
                         getTypeFromKey(key: string): number;
-                        getOrCreate(p_elementIndex: number, elemType: number): any;
+                        getOrCreate(p_key: number, p_type: number): any;
                         getOrCreateFromKey(key: string, elemType: number): any;
                         declareDirty(): void;
                         save(buffer: org.mwg.struct.Buffer): void;
                         each(callBack: org.mwg.plugin.NodeStateCallback): void;
                         loadFrom(origin: org.mwg.chunk.StateChunk): void;
-                        private internal_set(p_key, p_type, p_unsafe_elem, replaceIfPresent);
+                        private internal_set(p_key, p_type, p_unsafe_elem, replaceIfPresent, initial);
                         private allocate(newCapacity);
                         load(buffer: org.mwg.struct.Buffer): void;
                     }

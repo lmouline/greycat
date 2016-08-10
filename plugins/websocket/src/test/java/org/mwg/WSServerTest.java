@@ -2,6 +2,9 @@ package org.mwg;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.mwg.chunk.StateChunk;
+import org.mwg.plugin.AbstractNode;
+import org.mwg.struct.Buffer;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -11,7 +14,6 @@ public class WSServerTest {
         final Graph graph = new GraphBuilder()
                 .withMemorySize(10000)
                 .saveEvery(1000)
-                .withOffHeapMemory()
                 .build();
         graph.connect(new Callback<Boolean>() {
             @Override
@@ -34,6 +36,23 @@ public class WSServerTest {
                 root.add("children", n1);
 
                 graph.index("nodes", root, "name", null);
+
+                graph.getIndexNode(0, 0, "nodes", new Callback<Node>() {
+                    @Override
+                    public void on(Node result) {
+                        System.out.println(result.toString());
+
+                        StateChunk chunk = (StateChunk) graph.space().get(((AbstractNode) result)._index_stateChunk);
+
+                        Buffer buffer = graph.newBuffer();
+                        chunk.save(buffer);
+
+                        System.out.println(new String(buffer.data()));
+                        System.out.println(chunk.index());
+
+                    }
+                });
+
 
             }
         });

@@ -68,6 +68,34 @@ class HeapStateChunk implements StateChunk, ChunkListener {
 
     @Override
     public synchronized final Object get(final long p_key) {
+        return internal_get(p_key);
+    }
+
+    private int internal_find(final long p_key) {
+        if (_size == 0) {
+            return -1;
+        } else if (_hash == null) {
+            for (int i = 0; i < _size; i++) {
+                if (_k[i] == p_key) {
+                    return i;
+                }
+            }
+            return -1;
+        } else {
+            final int hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
+            int m = _hash[hashIndex];
+            while (m >= 0) {
+                if (p_key == _k[m]) {
+                    return m;
+                } else {
+                    m = _next[m];
+                }
+            }
+            return -1;
+        }
+    }
+
+    private Object internal_get(final long p_key) {
         //empty chunk, we return immediately
         if (_size == 0) {
             return null;
@@ -145,11 +173,11 @@ class HeapStateChunk implements StateChunk, ChunkListener {
 
     @Override
     public synchronized final Object getFromKey(final String key) {
-        return get(_space.graph().resolver().stringToHash(key, false));
+        return internal_get(_space.graph().resolver().stringToHash(key, false));
     }
 
     @Override
-    public synchronized final <A> A getFromKeyWithDefault(final String key, final A defaultValue) {
+    public final <A> A getFromKeyWithDefault(final String key, final A defaultValue) {
         final Object result = getFromKey(key);
         if (result == null) {
             return defaultValue;
@@ -184,19 +212,20 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     }
 
     @Override
-    public synchronized byte getTypeFromKey(final String key) {
+    public byte getTypeFromKey(final String key) {
         return getType(_space.graph().resolver().stringToHash(key, false));
     }
 
     @Override
-    public synchronized final Object getOrCreate(final long p_elementIndex, final byte elemType) {
-        final Object previousObject = get(p_elementIndex);
-        byte previousType = getType(p_elementIndex);
-        if (previousObject != null && previousType == elemType) {
-            return previousObject;
+    public synchronized final Object getOrCreate(final long p_key, final byte p_type) {
+        final int found = internal_find(p_key);
+        if (found != -1) {
+            if (_type[found] == p_type) {
+                return _v[found];
+            }
         }
         Object toSet = null;
-        switch (elemType) {
+        switch (p_type) {
             case Type.RELATION:
                 toSet = new HeapLongArray(this, null);
                 break;
@@ -210,15 +239,14 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                 toSet = new HeapLongLongArrayMap(this, CoreConstants.MAP_INITIAL_CAPACITY, null);
                 break;
         }
-        internal_set(p_elementIndex, elemType, toSet, false, false);
+        internal_set(p_key, p_type, toSet, true, false);
         return toSet;
     }
 
     @Override
-    public synchronized final Object getOrCreateFromKey(final String key, final byte elemType) {
+    public final Object getOrCreateFromKey(final String key, final byte elemType) {
         return getOrCreate(_space.graph().resolver().stringToHash(key, true), elemType);
     }
-
 
     @Override
     public final void declareDirty() {
@@ -241,7 +269,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                     Base64.encodeIntToBuffer(_type[i], buffer);
                     buffer.write(CoreConstants.CHUNK_SUB_SEP);
                     switch (_type[i]) {
-                        /** Primitive Types */
                         case Type.STRING:
                             Base64.encodeStringToBuffer((String) loopValue, buffer);
                             break;
@@ -261,7 +288,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                         case Type.INT:
                             Base64.encodeIntToBuffer((Integer) loopValue, buffer);
                             break;
-                        /** Arrays */
                         case Type.DOUBLE_ARRAY:
                             double[] castedDoubleArr = (double[]) loopValue;
                             Base64.encodeIntToBuffer(castedDoubleArr.length, buffer);
@@ -294,7 +320,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                                 Base64.encodeIntToBuffer(castedIntArr[j], buffer);
                             }
                             break;
-                        /** Maps */
                         case Type.STRING_TO_LONG_MAP:
                             StringLongMap castedStringLongMap = (StringLongMap) loopValue;
                             Base64.encodeLongToBuffer(castedStringLongMap.size(), buffer);
@@ -350,7 +375,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
             }
         }
     }
-
 
     @Override
     public synchronized void loadFrom(final StateChunk origin) {
@@ -638,11 +662,9 @@ class HeapStateChunk implements StateChunk, ChunkListener {
             _next[i] = _hash[keyHash];
             _hash[keyHash] = i;
         }
-
         if (!initial) {
             declareDirty();
         }
-
     }
 
     private void allocate(int newCapacity) {
@@ -678,7 +700,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     }
 
     @Override
-    public synchronized void load(final Buffer buffer) {
+    public final synchronized void load(final Buffer buffer) {
         if (buffer == null || buffer.length() == 0) {
             return;
         }
@@ -696,7 +718,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         long[] currentLongArr = null;
         int[] currentIntArr = null;
         //map sub creation variables
-
         HeapLongArray currentRelation = null;
         StringLongMap currentStringLongMap = null;
         LongLongMap currentLongLongMap = null;
@@ -718,12 +739,9 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                     allocate(closePowerOfTwo);
                     previousStart = cursor + 1;
                 } else {
-                    //beginning of the Chunk elem
-                    //check if something is still in buffer
                     if (currentChunkElemType != -1) {
                         Object toInsert = null;
                         switch (currentChunkElemType) {
-                            /** Primitive Object */
                             case Type.BOOL:
                                 if (buffer.read(previousStart) == CoreConstants.BOOL_FALSE) {
                                     toInsert = false;
@@ -734,15 +752,12 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                             case Type.STRING:
                                 toInsert = Base64.decodeToStringWithBounds(buffer, previousStart, cursor);
                                 break;
-
                             case Type.DOUBLE:
                                 toInsert = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
                                 break;
-
                             case Type.LONG:
                                 toInsert = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
                                 break;
-
                             case Type.INT:
                                 toInsert = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
                                 break;
