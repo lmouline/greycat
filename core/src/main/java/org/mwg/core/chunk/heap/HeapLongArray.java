@@ -4,6 +4,8 @@ import org.mwg.Constants;
 import org.mwg.core.chunk.ChunkListener;
 import org.mwg.struct.LongArray;
 
+import java.util.Arrays;
+
 class HeapLongArray implements LongArray {
 
     private long[] _back;
@@ -92,6 +94,16 @@ class HeapLongArray implements LongArray {
                 _back = red_back;
                 _size--;
             }
+        }
+    }
+
+    @Override
+    public void clear() {
+        _size = 0;
+        if (!aligned) {
+            _back = null;
+        } else {
+            Arrays.fill(_back,0,_back.length,-1);
         }
     }
 
