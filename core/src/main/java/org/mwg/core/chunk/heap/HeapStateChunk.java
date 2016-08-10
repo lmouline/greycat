@@ -546,20 +546,22 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                         _k[entry] = _k[indexVictim];
                         _v[entry] = _v[indexVictim];
                         _type[entry] = _type[indexVictim];
-                        _next[entry] = _next[indexVictim];
-                        int victimHash = (int) HashHelper.longHash(_k[entry], _capacity * 2);
-                        int m = _hash[victimHash];
-                        if (m == indexVictim) {
-                            //the victim was the head of hashing list
-                            _hash[victimHash] = entry;
-                        } else {
-                            //the victim is in the next, rechain it
-                            while (m != -1) {
-                                if (_next[m] == indexVictim) {
-                                    _next[m] = entry;
-                                    break;
+                        if (_hash != null) {
+                            _next[entry] = _next[indexVictim];
+                            int victimHash = (int) HashHelper.longHash(_k[entry], _capacity * 2);
+                            int m = _hash[victimHash];
+                            if (m == indexVictim) {
+                                //the victim was the head of hashing list
+                                _hash[victimHash] = entry;
+                            } else {
+                                //the victim is in the next, rechain it
+                                while (m != -1) {
+                                    if (_next[m] == indexVictim) {
+                                        _next[m] = entry;
+                                        break;
+                                    }
+                                    m = _next[m];
                                 }
-                                m = _next[m];
                             }
                         }
                     }

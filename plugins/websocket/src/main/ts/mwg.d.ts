@@ -393,11 +393,14 @@ declare module org {
             time(): number;
             id(): number;
             get(propertyName: string): any;
+            getByIndex(propIndex: number): any;
             type(propertyName: string): number;
             nodeTypeName(): string;
             set(propertyName: string, propertyValue: any): void;
             setProperty(propertyName: string, propertyType: number, propertyValue: any): void;
-            getOrCreateMap(propertyName: string, propertyType: number): org.mwg.struct.Map;
+            setPropertyByIndex(propIndex: number, propertyType: number, propertyValue: any): void;
+            getOrCreate(propertyName: string, propertyType: number): any;
+            getOrCreateRel(propertyName: string): org.mwg.struct.Relationship;
             removeProperty(propertyName: string): void;
             rel(relationName: string, callback: org.mwg.Callback<org.mwg.Node[]>): void;
             add(relationName: string, relatedNode: org.mwg.Node): void;
@@ -548,7 +551,7 @@ declare module org {
                 get(propertyName: string): any;
                 set(propertyName: string, propertyValue: any): void;
                 setProperty(propertyName: string, propertyType: number, propertyValue: any): void;
-                getOrCreateMap(propertyName: string, propertyType: number): org.mwg.struct.Map;
+                getOrCreate(propertyName: string, propertyType: number): org.mwg.struct.Map;
                 type(propertyName: string): number;
                 removeProperty(attributeName: string): void;
                 rel(relationName: string, callback: org.mwg.Callback<org.mwg.Node[]>): void;
@@ -566,6 +569,9 @@ declare module org {
                 unindex(indexName: string, nodeToIndex: org.mwg.Node, flatKeyAttributes: string, callback: org.mwg.Callback<boolean>): void;
                 private isNaN(toTest);
                 toString(): string;
+                getOrCreateRel(propertyName: string): org.mwg.struct.Relationship;
+                getByIndex(propIndex: number): any;
+                setPropertyByIndex(propIndex: number, propertyType: number, propertyValue: any): void;
             }
             class AbstractPlugin implements org.mwg.plugin.Plugin {
                 private _nodeTypes;
@@ -683,12 +689,6 @@ declare module org {
                 hasNext(): boolean;
                 next(): org.mwg.struct.Buffer;
             }
-            interface LongArray {
-                size(): number;
-                get(index: number): number;
-                add(newValue: number): void;
-                remove(oldValue: number): void;
-            }
             interface LongLongArrayMap extends org.mwg.struct.Map {
                 get(key: number): Float64Array;
                 put(key: number, value: number): void;
@@ -709,6 +709,13 @@ declare module org {
             }
             interface Map {
                 size(): number;
+            }
+            interface Relationship {
+                size(): number;
+                get(index: number): number;
+                add(newValue: number): org.mwg.struct.Relationship;
+                remove(oldValue: number): org.mwg.struct.Relationship;
+                clear(): org.mwg.struct.Relationship;
             }
             interface StringLongMap extends org.mwg.struct.Map {
                 getValue(key: string): number;
@@ -1222,19 +1229,6 @@ declare module org {
                         id(): number;
                         chunkType(): number;
                     }
-                    class HeapLongArray implements org.mwg.struct.LongArray {
-                        private _back;
-                        private _size;
-                        private _listener;
-                        private aligned;
-                        constructor(p_listener: org.mwg.core.chunk.ChunkListener, origin: org.mwg.core.chunk.heap.HeapLongArray);
-                        allocate(_capacity: number): void;
-                        size(): number;
-                        get(index: number): number;
-                        add(newValue: number): void;
-                        remove(oldValue: number): void;
-                        toString(): string;
-                    }
                     class HeapLongLongArrayMap implements org.mwg.struct.LongLongArrayMap {
                         private state;
                         private aligned;
@@ -1285,6 +1279,20 @@ declare module org {
                             constructor(p_stateSize: number, p_elementK: Float64Array, p_elementV: Float64Array, p_elementNext: Int32Array, p_elementHash: Int32Array, p_elementCount: number);
                             clone(): org.mwg.core.chunk.heap.HeapLongLongMap.InternalState;
                         }
+                    }
+                    class HeapRelationship implements org.mwg.struct.Relationship {
+                        private _back;
+                        private _size;
+                        private _listener;
+                        private aligned;
+                        constructor(p_listener: org.mwg.core.chunk.ChunkListener, origin: org.mwg.core.chunk.heap.HeapRelationship);
+                        allocate(_capacity: number): void;
+                        size(): number;
+                        get(index: number): number;
+                        add(newValue: number): org.mwg.struct.Relationship;
+                        remove(oldValue: number): org.mwg.struct.Relationship;
+                        clear(): org.mwg.struct.Relationship;
+                        toString(): string;
                     }
                     class HeapStateChunk implements org.mwg.chunk.StateChunk, org.mwg.core.chunk.ChunkListener {
                         private _index;

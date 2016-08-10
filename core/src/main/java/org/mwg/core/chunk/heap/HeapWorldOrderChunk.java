@@ -229,7 +229,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
 
     @Override
     public synchronized final void load(final Buffer buffer) {
-        if(buffer == null || buffer.length() == 0){
+        if (buffer == null || buffer.length() == 0) {
             return;
         }
         final boolean isInitial = _kv == null;
