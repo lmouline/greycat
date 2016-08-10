@@ -10,4 +10,6 @@ public interface LongArray {
 
     void remove(long oldValue);
 
+    void clear();
+
 }

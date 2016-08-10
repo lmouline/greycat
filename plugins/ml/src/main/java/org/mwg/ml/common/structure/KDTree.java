@@ -6,15 +6,13 @@ import org.mwg.ml.common.distance.DistanceEnum;
 import org.mwg.ml.common.distance.EuclideanDistance;
 import org.mwg.ml.common.distance.GaussianDistance;
 import org.mwg.plugin.*;
+import org.mwg.struct.LongArray;
 import org.mwg.task.*;
 import org.mwg.utility.Enforcer;
 
 import static org.mwg.task.Actions.*;
 import static org.mwg.task.Actions.traverse;
 
-/**
- * Created by assaad on 04/08/16.
- */
 public class KDTree extends AbstractNode {
 
     public static final String NAME = "KDTree";
@@ -68,18 +66,18 @@ public class KDTree extends AbstractNode {
                 return false; //insert in the current node, and done with it, no need to continue looping
             } else {
                 //Decision point for next step
-                long[] child = null;
+                LongArray child;
                 String nextRel;
                 if (keyToInsert[lev] > nodeKey[lev]) {
-                    child = (long[]) current.get(INTERNAL_RIGHT);
+                    child = (LongArray) current.get(INTERNAL_RIGHT);
                     nextRel = INTERNAL_RIGHT;
                 } else {
-                    child = (long[]) current.get(INTERNAL_LEFT);
+                    child = (LongArray) current.get(INTERNAL_LEFT);
                     nextRel = INTERNAL_LEFT;
                 }
 
                 //If there is no node to the right, we create one and the game is over
-                if (child == null || child.length == 0) {
+                if (child == null || child.size() == 0) {
                     KDTree childNode = (KDTree) context.graph().newTypedNode(current.world(), current.time(), NAME);
                     childNode.setProperty(INTERNAL_KEY, Type.DOUBLE_ARRAY, keyToInsert);
                     childNode.setProperty(INTERNAL_VALUE, Type.RELATION, new long[]{valueToInsert.id()});
@@ -114,7 +112,7 @@ public class KDTree extends AbstractNode {
                 }
 
 //                node.graph().save(null);
-               // System.out.println("A- "+node.id()+": "+node.graph().space().available());
+                // System.out.println("A- "+node.id()+": "+node.graph().space().available());
 
                 double[] pivot = (double[]) node.get(INTERNAL_KEY);
 
@@ -208,93 +206,93 @@ public class KDTree extends AbstractNode {
             }
         })
                 .isolatedSubTask(ifThen(new TaskFunctionConditional() {
-            @Override
-            public boolean eval(TaskContext context) {
-                return context.variable("near").size() > 0;
-            }
-        }, traverse("{{near}}").isolatedSubTask(reccursiveDown)))
+                    @Override
+                    public boolean eval(TaskContext context) {
+                        return context.variable("near").size() > 0;
+                    }
+                }, traverse("{{near}}").isolatedSubTask(reccursiveDown)))
 
                 .then(new Action() {
-            @Override
-            public void eval(TaskContext context) {
+                    @Override
+                    public void eval(TaskContext context) {
 
-                //Global variables
-                NearestNeighborList nnl = (NearestNeighborList) context.variable("nnl").get(0);
-                double[] target = (double[]) context.variable("key").get(0);
-                Distance distance = (Distance) context.variable("distance").get(0);
+                        //Global variables
+                        NearestNeighborList nnl = (NearestNeighborList) context.variable("nnl").get(0);
+                        double[] target = (double[]) context.variable("key").get(0);
+                        Distance distance = (Distance) context.variable("distance").get(0);
 
-                //Local variables
-                double max_dist_sqd = (double) context.variable("max_dist_sqd").get(0);
-                HRect further_hr = (HRect) context.variable("further_hr").get(0);
-                double pivot_to_target = (double) context.variable("pivot_to_target").get(0);
-                int lev = (int) context.variable("lev").get(0);
-                Node node = context.resultAsNodes().get(0);
+                        //Local variables
+                        double max_dist_sqd = (double) context.variable("max_dist_sqd").get(0);
+                        HRect further_hr = (HRect) context.variable("further_hr").get(0);
+                        double pivot_to_target = (double) context.variable("pivot_to_target").get(0);
+                        int lev = (int) context.variable("lev").get(0);
+                        Node node = context.resultAsNodes().get(0);
 //                System.out.println("T2 " + node.id() + " lev " + lev);
 
 
 //                        node.graph().save(null);
-              //  System.out.println("B- "+node.id()+": "+node.graph().space().available());
+                        //  System.out.println("B- "+node.id()+": "+node.graph().space().available());
 
-                double dist_sqd;
-                if (!nnl.isCapacityReached()) {
-                    dist_sqd = Double.MAX_VALUE;
-                } else {
-                    dist_sqd = nnl.getMaxPriority();
-                }
-
-                // 9. max-dist-sqd := minimum of max-dist-sqd and dist-sqd
-                double max_dist_sqd2 = Math.min(max_dist_sqd, dist_sqd);
-
-                // 10. A nearer point could only lie in further-kd if there were some
-                // part of further-hr within distance sqrt(max-dist-sqd) of
-                // target. If this is the case then
-                double[] closest = further_hr.closest(target);
-                if (distance.measure(closest, target) < max_dist_sqd) {
-
-                    // 10.1 if (pivot-target)^2 < dist-sqd then
-                    if (pivot_to_target < dist_sqd) {
-
-                        // 10.1.2 dist-sqd = (pivot-target)^2
-                        dist_sqd = pivot_to_target;
-                        //System.out.println("T3 "+node.id()+" insert-> "+((long[]) (node.get(INTERNAL_VALUE)))[0]);
-                        //System.out.println("INSTASK " + ((long[]) (node.get(INTERNAL_VALUE)))[0] + " id: "+node.id());
-                        nnl.insert(((long[]) (node.get(INTERNAL_VALUE)))[0], dist_sqd);
-
-                        // 10.1.3 max-dist-sqd = dist-sqd
-                        // max_dist_sqd = dist_sqd;
-                        if (nnl.isCapacityReached()) {
-                            max_dist_sqd2 = nnl.getMaxPriority();
+                        double dist_sqd;
+                        if (!nnl.isCapacityReached()) {
+                            dist_sqd = Double.MAX_VALUE;
                         } else {
-                            max_dist_sqd2 = Double.MAX_VALUE;
+                            dist_sqd = nnl.getMaxPriority();
                         }
+
+                        // 9. max-dist-sqd := minimum of max-dist-sqd and dist-sqd
+                        double max_dist_sqd2 = Math.min(max_dist_sqd, dist_sqd);
+
+                        // 10. A nearer point could only lie in further-kd if there were some
+                        // part of further-hr within distance sqrt(max-dist-sqd) of
+                        // target. If this is the case then
+                        double[] closest = further_hr.closest(target);
+                        if (distance.measure(closest, target) < max_dist_sqd) {
+
+                            // 10.1 if (pivot-target)^2 < dist-sqd then
+                            if (pivot_to_target < dist_sqd) {
+
+                                // 10.1.2 dist-sqd = (pivot-target)^2
+                                dist_sqd = pivot_to_target;
+                                //System.out.println("T3 "+node.id()+" insert-> "+((long[]) (node.get(INTERNAL_VALUE)))[0]);
+                                //System.out.println("INSTASK " + ((long[]) (node.get(INTERNAL_VALUE)))[0] + " id: "+node.id());
+                                nnl.insert(((long[]) (node.get(INTERNAL_VALUE)))[0], dist_sqd);
+
+                                // 10.1.3 max-dist-sqd = dist-sqd
+                                // max_dist_sqd = dist_sqd;
+                                if (nnl.isCapacityReached()) {
+                                    max_dist_sqd2 = nnl.getMaxPriority();
+                                } else {
+                                    max_dist_sqd2 = Double.MAX_VALUE;
+                                }
+                            }
+
+                            // 10.2 Recursively call Nearest Neighbor with parameters
+                            // (further-kd, target, further-hr, max-dist_sqd),
+                            // storing results in temp-nearest and temp-dist-sqd
+                            //nnbr(further_kd, target, further_hr, max_dist_sqd, lev + 1, K, nnl);
+
+
+                            //The 3 variables to set for next round of reccursivity:
+                            context.defineVariableForSubTask("hr", further_hr);
+                            context.defineVariableForSubTask("max_dist_sqd", max_dist_sqd2);
+                            context.defineVariableForSubTask("lev", lev + 1);
+
+
+                            context.defineVariable("continueFar", true);
+
+                        } else {
+                            context.defineVariable("continueFar", false);
+                        }
+                        context.continueTask();
                     }
-
-                    // 10.2 Recursively call Nearest Neighbor with parameters
-                    // (further-kd, target, further-hr, max-dist_sqd),
-                    // storing results in temp-nearest and temp-dist-sqd
-                    //nnbr(further_kd, target, further_hr, max_dist_sqd, lev + 1, K, nnl);
-
-
-                    //The 3 variables to set for next round of reccursivity:
-                    context.defineVariableForSubTask("hr", further_hr);
-                    context.defineVariableForSubTask("max_dist_sqd", max_dist_sqd2);
-                    context.defineVariableForSubTask("lev", lev + 1);
-
-
-                    context.defineVariable("continueFar", true);
-
-                } else {
-                    context.defineVariable("continueFar", false);
-                }
-                context.continueTask();
-            }
-        })
+                })
                 .isolatedSubTask(ifThen(new TaskFunctionConditional() {
-            @Override
-            public boolean eval(TaskContext context) {
-                return ((boolean) context.variable("continueFar").get(0) && context.variable("far").size() > 0); //Exploring the far depends also on the distance
-            }
-        }, traverse("{{far}}").isolatedSubTask(reccursiveDown)))  ;
+                    @Override
+                    public boolean eval(TaskContext context) {
+                        return ((boolean) context.variable("continueFar").get(0) && context.variable("far").size() > 0); //Exploring the far depends also on the distance
+                    }
+                }, traverse("{{far}}").isolatedSubTask(reccursiveDown)));
 
 
         return reccursiveDown;
