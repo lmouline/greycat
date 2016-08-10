@@ -87,9 +87,12 @@ declare module java {
             }
         }
         class Random {
+            private seed;
             nextInt(max?: number): number;
             nextDouble(): number;
             nextBoolean(): boolean;
+            setSeed(seed: number): void;
+            private nextSeeded(min?, max?);
         }
         interface Iterator<E> {
             hasNext(): boolean;
