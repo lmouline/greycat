@@ -227,7 +227,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         Object toSet = null;
         switch (p_type) {
             case Type.RELATION:
-                toSet = new HeapLongArray(this, null);
+                toSet = new HeapRelationship(this, null);
                 break;
             case Type.STRING_TO_LONG_MAP:
                 toSet = new HeapStringLongMap(this, CoreConstants.MAP_INITIAL_CAPACITY, null);
@@ -297,7 +297,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                             }
                             break;
                         case Type.RELATION:
-                            LongArray castedLongArrRel = (LongArray) loopValue;
+                            Relationship castedLongArrRel = (Relationship) loopValue;
                             Base64.encodeIntToBuffer(castedLongArrRel.size(), buffer);
                             for (int j = 1; j <= castedLongArrRel.size(); j++) {
                                 buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
@@ -406,7 +406,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                     break;
                 case Type.RELATION:
                     if (casted._v[i] != null) {
-                        _v[i] = new HeapLongArray(this, (HeapLongArray) casted._v[i]);
+                        _v[i] = new HeapRelationship(this, (HeapRelationship) casted._v[i]);
                     }
                     break;
                 default:
@@ -445,7 +445,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                         break;
                     /** Arrays */
                     case Type.RELATION:
-                        param_elem = (LongArray) p_unsafe_elem;
+                        param_elem = (Relationship) p_unsafe_elem;
                         break;
                     case Type.DOUBLE_ARRAY:
                         double[] castedParamDouble = (double[]) p_unsafe_elem;
@@ -718,7 +718,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         long[] currentLongArr = null;
         int[] currentIntArr = null;
         //map sub creation variables
-        HeapLongArray currentRelation = null;
+        HeapRelationship currentRelation = null;
         StringLongMap currentStringLongMap = null;
         LongLongMap currentLongLongMap = null;
         LongLongArrayMap currentLongLongArrayMap = null;
@@ -787,7 +787,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                                 break;
                             case Type.RELATION:
                                 if (currentRelation == null) {
-                                    currentRelation = new HeapLongArray(this, null);
+                                    currentRelation = new HeapRelationship(this, null);
                                     currentRelation.allocate(Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
                                 } else {
                                     currentRelation.add(Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
@@ -850,7 +850,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                             currentIntArr = new int[(int) currentSubSize];
                             break;
                         case Type.RELATION:
-                            currentRelation = new HeapLongArray(this, null);
+                            currentRelation = new HeapRelationship(this, null);
                             currentRelation.allocate((int) currentSubSize);
                             break;
                         case Type.STRING_TO_LONG_MAP:

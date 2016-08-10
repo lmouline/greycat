@@ -2,18 +2,18 @@ package org.mwg.core.chunk.heap;
 
 import org.mwg.Constants;
 import org.mwg.core.chunk.ChunkListener;
-import org.mwg.struct.LongArray;
+import org.mwg.struct.Relationship;
 
 import java.util.Arrays;
 
-class HeapLongArray implements LongArray {
+class HeapRelationship implements Relationship {
 
     private long[] _back;
     private volatile int _size;
     private final ChunkListener _listener;
     private boolean aligned = true;
 
-    HeapLongArray(final ChunkListener p_listener, final HeapLongArray origin) {
+    HeapRelationship(final ChunkListener p_listener, final HeapRelationship origin) {
         _listener = p_listener;
         if (origin != null) {
             aligned = false;
@@ -44,7 +44,7 @@ class HeapLongArray implements LongArray {
     }
 
     @Override
-    public synchronized void add(long newValue) {
+    public synchronized Relationship add(long newValue) {
         if (!aligned) {
             long[] temp_back = new long[_back.length];
             System.arraycopy(_back, 0, temp_back, 0, _back.length);
@@ -66,10 +66,11 @@ class HeapLongArray implements LongArray {
             _size++;
         }
         _listener.declareDirty();
+        return this;
     }
 
     @Override
-    public synchronized void remove(long oldValue) {
+    public synchronized Relationship remove(long oldValue) {
         if (!aligned) {
             long[] temp_back = new long[_back.length];
             System.arraycopy(_back, 0, temp_back, 0, _back.length);
@@ -95,24 +96,26 @@ class HeapLongArray implements LongArray {
                 _size--;
             }
         }
+        return this;
     }
 
     @Override
-    public void clear() {
+    public Relationship clear() {
         _size = 0;
         if (!aligned) {
             _back = null;
         } else {
-            Arrays.fill(_back,0,_back.length,-1);
+            Arrays.fill(_back, 0, _back.length, -1);
         }
+        return this;
     }
 
     @Override
     public String toString() {
         StringBuilder buffer = new StringBuilder();
         buffer.append("[");
-        for(int i=0;i<_size;i++){
-            if(i!=0){
+        for (int i = 0; i < _size; i++) {
+            if (i != 0) {
                 buffer.append(",");
             }
             buffer.append(_back[i]);

@@ -6,7 +6,7 @@ import org.mwg.ml.common.distance.DistanceEnum;
 import org.mwg.ml.common.distance.EuclideanDistance;
 import org.mwg.ml.common.distance.GaussianDistance;
 import org.mwg.plugin.*;
-import org.mwg.struct.LongArray;
+import org.mwg.struct.Relationship;
 import org.mwg.task.*;
 import org.mwg.utility.Enforcer;
 
@@ -66,13 +66,13 @@ public class KDTree extends AbstractNode {
                 return false; //insert in the current node, and done with it, no need to continue looping
             } else {
                 //Decision point for next step
-                LongArray child;
+                Relationship child;
                 String nextRel;
                 if (keyToInsert[lev] > nodeKey[lev]) {
-                    child = (LongArray) current.get(INTERNAL_RIGHT);
+                    child = (Relationship) current.get(INTERNAL_RIGHT);
                     nextRel = INTERNAL_RIGHT;
                 } else {
-                    child = (LongArray) current.get(INTERNAL_LEFT);
+                    child = (Relationship) current.get(INTERNAL_LEFT);
                     nextRel = INTERNAL_LEFT;
                 }
 

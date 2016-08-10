@@ -191,7 +191,7 @@ public abstract class AbstractNode implements Node {
     }
 
     @Override
-    public final Map getOrCreateMap(String propertyName, byte propertyType) {
+    public final Map getOrCreate(String propertyName, byte propertyType) {
         final NodeState preciseState = this._resolver.alignState(this);
         if (preciseState != null) {
             return (Map) preciseState.getOrCreate(this._resolver.stringToHash(propertyName, true), propertyType);
@@ -221,7 +221,7 @@ public abstract class AbstractNode implements Node {
         }
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
-            final LongArray relationArray = (LongArray) resolved.get(this._resolver.stringToHash(relationName, false));
+            final Relationship relationArray = (Relationship) resolved.get(this._resolver.stringToHash(relationName, false));
             if (relationArray == null || relationArray.size() == 0) {
                 callback.on(new Node[0]);
             } else {
@@ -265,7 +265,7 @@ public abstract class AbstractNode implements Node {
             NodeState preciseState = this._resolver.alignState(this);
             final long relHash = this._resolver.stringToHash(relationName, true);
             if (preciseState != null) {
-                LongArray relationArray = (LongArray) preciseState.getOrCreate(relHash, Type.RELATION);
+                Relationship relationArray = (Relationship) preciseState.getOrCreate(relHash, Type.RELATION);
                 relationArray.add(relatedNode.id());
             } else {
                 throw new RuntimeException(Constants.CACHE_MISS_ERROR);
@@ -279,7 +279,7 @@ public abstract class AbstractNode implements Node {
             final NodeState preciseState = this._resolver.alignState(this);
             final long relHash = this._resolver.stringToHash(relationName, false);
             if (preciseState != null) {
-                LongArray relationArray = (LongArray) preciseState.get(relHash);
+                Relationship relationArray = (Relationship) preciseState.get(relHash);
                 if (relationArray != null) {
                     relationArray.remove(relatedNode.id());
                 }
@@ -616,7 +616,7 @@ public abstract class AbstractNode implements Node {
                                 builder.append(_resolver.hashToString(attributeKey));
                                 builder.append("\":");
                                 builder.append("[");
-                                LongArray castedRelArr = (LongArray) elem;
+                                Relationship castedRelArr = (Relationship) elem;
                                 for (int j = 0; j < castedRelArr.size(); j++) {
                                     if (j != 0) {
                                         builder.append(",");
@@ -751,4 +751,13 @@ public abstract class AbstractNode implements Node {
         return builder.toString();
     }
 
+    @Override
+    public Object getByIndex(long propIndex) {
+        return _resolver.resolveState(this).get(propIndex);
+    }
+
+    @Override
+    public void setPropertyByIndex(long propIndex, byte propertyType, Object propertyValue) {
+        _resolver.alignState(this).set(propIndex, propertyType, propertyValue);
+    }
 }

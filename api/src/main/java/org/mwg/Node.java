@@ -41,6 +41,16 @@ public interface Node {
     Object get(String propertyName);
 
     /**
+     * Returns the value of an attribute of the node.
+     *
+     * @param propIndex The long of the attribute to be read.
+     * @return The value of the required attribute in this node for the current timepoint and world.
+     * The type of the returned object (i.e.: of the attribute) is given by {@link #type(String)}
+     * (typed by one of the Type)
+     */
+    Object getByIndex(long propIndex);
+
+    /**
      * Allows to know the type of an attribute. The returned value is one of {@link Type}.
      *
      * @param propertyName The name of the attribute for which the type is asked.
@@ -75,14 +85,24 @@ public interface Node {
     void setProperty(String propertyName, byte propertyType, Object propertyValue);
 
     /**
+     * Sets the value of an attribute of this node, for its current world and time.<br>
+     * This method hasField to be used for primitive types.
+     *
+     * @param propIndex     The index of the attribute. Must be unique per node.
+     * @param propertyType  The type of the attribute. Must be one of {@link Type} int value.
+     * @param propertyValue The value of the attribute. Must be consistent with the propertyType.
+     */
+    void setPropertyByIndex(long propIndex, byte propertyType, Object propertyValue);
+
+    /**
      * Gets or creates atomically a complex type (such as Maps).<br>
      * It returns a mutable Map.
      *
-     * @param propertyName The name of the Map to create. Must be unique per node.
+     * @param propertyName The name of the object to create. Must be unique per node.
      * @param propertyType The type of the attribute. Must be one of {@link Type} int value.
      * @return A Map instance that can be altered at the current world and time.
      */
-    Map getOrCreateMap(String propertyName, byte propertyType);
+    Object getOrCreate(String propertyName, byte propertyType);
 
     /**
      * Removes an attribute from the node.

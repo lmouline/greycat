@@ -581,7 +581,7 @@ class CoreGraph implements org.mwg.Graph {
                     if (globalIndexNodeUnsafe == null) {
                         globalIndexNodeUnsafe = new CoreNode(world, time, CoreConstants.END_OF_TIME, selfPointer);
                         selfPointer._resolver.initNode(globalIndexNodeUnsafe, CoreConstants.NULL_LONG);
-                        globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.getOrCreateMap(CoreConstants.INDEX_ATTRIBUTE, Type.LONG_TO_LONG_MAP);
+                        globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.getOrCreate(CoreConstants.INDEX_ATTRIBUTE, Type.LONG_TO_LONG_MAP);
                     } else {
                         globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.get(CoreConstants.INDEX_ATTRIBUTE);
                     }
@@ -591,7 +591,7 @@ class CoreGraph implements org.mwg.Graph {
                         if (createIfNull) {
                             //insert null
                             org.mwg.Node newIndexNode = selfPointer.newNode(world, time);
-                            newIndexNode.getOrCreateMap(CoreConstants.INDEX_ATTRIBUTE, Type.LONG_TO_LONG_ARRAY_MAP);
+                            newIndexNode.getOrCreate(CoreConstants.INDEX_ATTRIBUTE, Type.LONG_TO_LONG_ARRAY_MAP);
                             indexId = newIndexNode.id();
                             globalIndexContent.put(indexNameCoded, indexId);
                             callback.on(newIndexNode);

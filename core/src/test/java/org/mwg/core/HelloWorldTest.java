@@ -3,9 +3,7 @@ package org.mwg.core;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
-import org.mwg.core.chunk.heap.HeapChunkSpace;
-import org.mwg.core.scheduler.NoopScheduler;
-import org.mwg.struct.LongArray;
+import org.mwg.struct.Relationship;
 import org.mwg.utility.HashHelper;
 
 public class HelloWorldTest {
@@ -70,7 +68,7 @@ public class HelloWorldTest {
                         node1.add("children", node2);
                         Assert.assertTrue(HashHelper.equals("{\"world\":0,\"time\":0,\"id\":2,\"children\":[1,1,3]}", node1.toString()));
 
-                        LongArray refValuesThree = (LongArray) node1.get("children");
+                        Relationship refValuesThree = (Relationship) node1.get("children");
                         Assert.assertTrue(refValuesThree.size() == 3);
                         Assert.assertTrue(refValuesThree.get(0) == 1);
                         Assert.assertTrue(refValuesThree.get(1) == 1);

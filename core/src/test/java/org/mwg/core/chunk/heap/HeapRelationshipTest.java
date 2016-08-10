@@ -4,9 +4,9 @@ import org.mwg.core.chunk.AbstractLongArrayTest;
 import org.mwg.core.chunk.AbstractStringLongMapTest;
 import org.mwg.core.memory.HeapMemoryFactory;
 
-public class HeapLongArrayTest extends AbstractLongArrayTest {
+public class HeapRelationshipTest extends AbstractLongArrayTest {
 
-    public HeapLongArrayTest() {
+    public HeapRelationshipTest() {
         super(new HeapMemoryFactory());
     }
 
