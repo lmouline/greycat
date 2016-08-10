@@ -101,7 +101,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
             return null;
         }
         int found = internal_find(p_key);
-        Object result = null;
+        Object result;
         if(found != -1) {
             result = _v[found];
             //TODO optimize this
@@ -127,7 +127,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                 }
             }
         }
-        return result;
+        return null;
     }
 
     /**
