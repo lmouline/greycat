@@ -6,6 +6,7 @@ import org.mwg.ml.common.distance.DistanceEnum;
 import org.mwg.ml.common.distance.EuclideanDistance;
 import org.mwg.ml.common.distance.GaussianDistance;
 import org.mwg.plugin.*;
+import org.mwg.struct.Relationship;
 import org.mwg.utility.Enforcer;
 
 /**
@@ -122,11 +123,11 @@ public class KDTreeAsync extends AbstractNode {
 
     //todo make it async with callback
     protected KDTreeAsync getNode(NodeState state, String key) {
-        long[] ids = (long[]) state.getFromKey(key);
+        Relationship ids = (Relationship) state.getFromKey(key);
         if (ids != null) {
             KDTreeAsync[] res = new KDTreeAsync[1];
             DeferCounterSync counter = graph().newSyncCounter(1);
-            graph().lookup(world(), time(), ids[0], new Callback<Node>() {
+            graph().lookup(world(), time(), ids.get(0), new Callback<Node>() {
                 @Override
                 public void on(Node result) {
                     res[0] = (KDTreeAsync) result;
@@ -250,7 +251,7 @@ public class KDTreeAsync extends AbstractNode {
                 // 10.1.2 dist-sqd = (pivot-target)^2
                 dist_sqd = pivot_to_target;
                 //     System.out.println("S3 "+node.id()+" -> insert "+((long[]) state.getFromKey(INTERNAL_VALUE))[0]);
-                nnl.insert(((long[]) state.getFromKey(INTERNAL_VALUE))[0], dist_sqd);
+                nnl.insert(((Relationship) state.getFromKey(INTERNAL_VALUE)).get(0), dist_sqd);
 
                 // 10.1.3 max-dist-sqd = dist-sqd
                 // max_dist_sqd = dist_sqd;
@@ -296,7 +297,7 @@ public class KDTreeAsync extends AbstractNode {
         double[] nodeKey = (double[]) state.getFromKey(INTERNAL_KEY);
         if (nodeKey == null) {
             state.setFromKey(INTERNAL_KEY, Type.DOUBLE_ARRAY, keyToInsert);
-            state.setFromKey(INTERNAL_VALUE, Type.RELATION, new long[]{valueToInsert.id()});
+            node.getOrCreateRel(INTERNAL_VALUE).clear().add(valueToInsert.id());
             if (node == root) {
                 state.setFromKey(NUM_NODES, Type.INT, 1);
             }
@@ -309,7 +310,7 @@ public class KDTreeAsync extends AbstractNode {
             return;
 
         } else if (distance.measure(keyToInsert, nodeKey) < err) {
-            state.setFromKey(INTERNAL_VALUE, Type.RELATION, new long[]{valueToInsert.id()});
+            node.getOrCreateRel(INTERNAL_VALUE).clear().add(valueToInsert.id());
             if (node != root) {
                 node.free();
             }
@@ -318,21 +319,21 @@ public class KDTreeAsync extends AbstractNode {
             }
             return;
         } else {
-            long[] child = null;
+            Relationship child = null;
             String nextRel;
             if (keyToInsert[lev] > nodeKey[lev]) {
-                child = (long[]) state.getFromKey(INTERNAL_RIGHT);
+                child = (Relationship) state.getFromKey(INTERNAL_RIGHT);
                 nextRel = INTERNAL_RIGHT;
             } else {
-                child = (long[]) state.getFromKey(INTERNAL_LEFT);
+                child = (Relationship) state.getFromKey(INTERNAL_LEFT);
                 nextRel = INTERNAL_LEFT;
             }
 
-            if (child == null || child.length == 0) {
+            if (child == null || child.size() == 0) {
                 KDTreeAsync childNode = (KDTreeAsync) root.graph().newTypedNode(root.world(), root.time(), NAME);
                 childNode.set(INTERNAL_KEY, keyToInsert);
                 childNode.add(INTERNAL_VALUE, valueToInsert);
-                state.setFromKey(nextRel, Type.RELATION, new long[]{childNode.id()});
+                node.getOrCreateRel(nextRel).clear().add(childNode.id());
                 root.set(NUM_NODES, (Integer) root.get(NUM_NODES) + 1);
                 childNode.free();
                 if (node != root) {
