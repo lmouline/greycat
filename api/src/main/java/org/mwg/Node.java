@@ -1,6 +1,6 @@
 package org.mwg;
 
-import org.mwg.struct.Map;
+import org.mwg.struct.Relationship;
 
 /**
  * Node is the base element contained in the {@link Graph}.<br>
@@ -103,6 +103,8 @@ public interface Node {
      * @return A Map instance that can be altered at the current world and time.
      */
     Object getOrCreate(String propertyName, byte propertyType);
+
+    Relationship getOrCreateRel(String propertyName);
 
     /**
      * Removes an attribute from the node.

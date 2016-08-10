@@ -751,6 +751,12 @@ public abstract class AbstractNode implements Node {
         return builder.toString();
     }
 
+
+    @Override
+    public Relationship getOrCreateRel(String propertyName) {
+        return (Relationship) getOrCreate(propertyName, Type.RELATION);
+    }
+
     @Override
     public Object getByIndex(long propIndex) {
         return _resolver.resolveState(this).get(propIndex);
