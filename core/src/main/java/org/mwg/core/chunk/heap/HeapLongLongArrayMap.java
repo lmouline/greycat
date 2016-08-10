@@ -2,7 +2,7 @@
 package org.mwg.core.chunk.heap;
 
 import org.mwg.core.CoreConstants;
-import org.mwg.core.chunk.ChunkListener;
+import org.mwg.chunk.ChunkListener;
 import org.mwg.utility.HashHelper;
 import org.mwg.struct.LongLongArrayMap;
 import org.mwg.struct.LongLongArrayMapCallBack;

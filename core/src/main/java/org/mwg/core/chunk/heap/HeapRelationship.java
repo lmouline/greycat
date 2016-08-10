@@ -1,7 +1,7 @@
 package org.mwg.core.chunk.heap;
 
 import org.mwg.Constants;
-import org.mwg.core.chunk.ChunkListener;
+import org.mwg.chunk.ChunkListener;
 import org.mwg.struct.Relationship;
 
 import java.util.Arrays;
