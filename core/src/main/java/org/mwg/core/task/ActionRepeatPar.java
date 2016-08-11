@@ -24,19 +24,24 @@ class ActionRepeatPar extends AbstractTaskAction {
     @Override
     public void eval(final TaskContext context) {
         final int nbIteration = TaskHelper.parseInt(context.template(_iterationTemplate));
-        final TaskResult next = context.wrap(null);
-        next.allocate(nbIteration);
+        final TaskResult previous = context.result();
+        final TaskResult next = context.newResult();
         if (nbIteration > 0) {
             DeferCounter waiter = context.graph().newCounter(nbIteration);
             for (int i = 0; i < nbIteration; i++) {
                 final int finalI = i;
-                _subTask.executeFrom(context, context.wrap(finalI), SchedulerAffinity.ANY_LOCAL_THREAD, new Callback<TaskResult>() {
+                _subTask.executeFromUsing(context, previous, SchedulerAffinity.ANY_LOCAL_THREAD, new Callback<TaskContext>() {
+                    @Override
+                    public void on(TaskContext result) {
+                        result.defineVariable("it",finalI);
+                    }
+                }, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
-                        if (result != null && result.size() == 1) {
-                            next.add(result.get(0));
-                        } else {
-                            next.add(result);
+                        if (result != null && result.size() > 0) {
+                            for (int i = 0; i < result.size(); i++) {
+                                next.add(result.get(i));
+                            }
                         }
                         waiter.count();
                     }

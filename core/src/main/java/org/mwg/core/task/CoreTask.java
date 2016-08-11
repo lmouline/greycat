@@ -408,18 +408,45 @@ public class CoreTask implements org.mwg.task.Task {
 
     @Override
     public void executeUsing(final TaskContext preparedContext) {
-        preparedContext.graph().scheduler().dispatch(SchedulerAffinity.SAME_THREAD, new Job() {
-            @Override
-            public void run() {
-                ((CoreTaskContext) preparedContext).execute(_first);
+        if (_first != null) {
+            preparedContext.graph().scheduler().dispatch(SchedulerAffinity.SAME_THREAD, new Job() {
+                @Override
+                public void run() {
+                    ((CoreTaskContext) preparedContext).execute(_first);
+                }
+            });
+        } else {
+            CoreTaskContext casted = (CoreTaskContext) preparedContext;
+            if (casted._callback != null) {
+                casted._callback.on(emptyResult());
             }
-        });
+        }
     }
 
     @Override
     public void executeFrom(final TaskContext parentContext, final TaskResult initial, byte affinity, final Callback<TaskResult> callback) {
         if (_first != null) {
             final CoreTaskContext context = new CoreTaskContext(parentContext, initial.clone(), parentContext.graph(), parentContext.hook(), parentContext.ident() + 1, callback);
+            parentContext.graph().scheduler().dispatch(affinity, new Job() {
+                @Override
+                public void run() {
+                    context.execute(_first);
+                }
+            });
+        } else {
+            if (callback != null) {
+                callback.on(emptyResult());
+            }
+        }
+    }
+
+    @Override
+    public void executeFromUsing(TaskContext parentContext, TaskResult initial, byte affinity, Callback<TaskContext> contextInitializer, Callback<TaskResult> callback) {
+        if (_first != null) {
+            final CoreTaskContext context = new CoreTaskContext(parentContext, initial.clone(), parentContext.graph(), parentContext.hook(), parentContext.ident() + 1, callback);
+            if (contextInitializer != null) {
+                contextInitializer.on(context);
+            }
             parentContext.graph().scheduler().dispatch(affinity, new Job() {
                 @Override
                 public void run() {

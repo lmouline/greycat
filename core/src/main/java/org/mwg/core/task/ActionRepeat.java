@@ -42,13 +42,21 @@ class ActionRepeat extends AbstractTaskAction {
                         context.continueWith(results);
                     } else {
                         //recursive call
-                        context.defineVariableForSubTask("it",nextCursor);
-                        selfPointer._subTask.executeFrom(context, previous, SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+                        selfPointer._subTask.executeFromUsing(context, previous, SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
+                            @Override
+                            public void on(TaskContext result) {
+                                result.defineVariable("it",nextCursor);
+                            }
+                        }, recursiveAction[0]);
                     }
                 }
             };
-            context.defineVariableForSubTask("it",cursor.get());
-            _subTask.executeFrom(context, previous, SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+            _subTask.executeFromUsing(context, previous, SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
+                @Override
+                public void on(TaskContext result) {
+                    result.defineVariable("it",cursor.get());
+                }
+            }, recursiveAction[0]);
         } else {
             context.continueWith(results);
         }

@@ -387,15 +387,17 @@ public interface Task {
 
     Task hook(TaskHook hook);
 
-    void execute(final Graph graph, final Callback<TaskResult> result);
+    void execute(final Graph graph, final Callback<TaskResult> callback);
 
-    void executeWith(final Graph graph, final Object initial, final Callback<TaskResult> result);
+    void executeWith(final Graph graph, final Object initial, final Callback<TaskResult> callback);
 
-    TaskContext prepareWith(final Graph graph, final Object initial, final Callback<TaskResult> result);
+    TaskContext prepareWith(final Graph graph, final Object initial, final Callback<TaskResult> callback);
 
     void executeUsing(TaskContext preparedContext);
 
-    void executeFrom(final TaskContext context, final TaskResult initial, final byte affinity, final Callback<TaskResult> result);
+    void executeFrom(final TaskContext parentContext, final TaskResult initial, final byte affinity, final Callback<TaskResult> callback);
+
+    void executeFromUsing(final TaskContext parentContext, final TaskResult initial, final byte affinity, final Callback<TaskContext> contextInitializer, final Callback<TaskResult> callback);
 
     TaskResult emptyResult();
 

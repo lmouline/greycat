@@ -7,10 +7,8 @@ import org.mwg.Type;
 import org.mwg.core.scheduler.ExecutorScheduler;
 import org.mwg.core.scheduler.HybridScheduler;
 import org.mwg.core.scheduler.TrampolineScheduler;
-import org.mwg.task.Action;
-import org.mwg.task.Task;
-import org.mwg.task.TaskContext;
-import org.mwg.task.TaskResult;
+import org.mwg.task.*;
+import org.mwg.utility.ConsoleHook;
 
 import java.util.Random;
 
@@ -20,8 +18,8 @@ public class BenchmarkParTest {
 
     public static void main(String[] args) {
         Graph g = new GraphBuilder()
-                .withMemorySize(100)
-                .saveEvery(50)
+                .withMemorySize(10000)
+                .saveEvery(100)
                 //.withScheduler(new HybridScheduler())
                 .withScheduler(new TrampolineScheduler())
                 //.withScheduler(new ExecutorScheduler())
@@ -33,8 +31,9 @@ public class BenchmarkParTest {
                 final long previous = System.currentTimeMillis();
                 final long previousCache = g.space().available();
 
-                repeat("10000", newNode()
+                repeatPar("1000", newNode()
                         .setProperty("name", Type.STRING, "node_{{it}}")
+                       // .print("{{result}}")
                         .indexNode("nodes", "name")
                         .repeat("1000", jump("{{it}}").setProperty("val", Type.INT, "{{it}}").clear())
                         .clear()

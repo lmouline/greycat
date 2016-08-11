@@ -21,7 +21,7 @@ class CoreTaskContext implements TaskContext {
     private final Map<String, TaskResult> _globalVariables;
     private final TaskContext _parent;
     private final Graph _graph;
-    private final Callback<TaskResult> _callback;
+    final Callback<TaskResult> _callback;
     private final int _ident;
 
     private Map<String, TaskResult> _localVariables = null;
