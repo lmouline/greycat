@@ -32,16 +32,18 @@ public class Constants {
     public static final char TASK_PARAM_CLOSE = ')';
 
     /**
-     * @native ts
+     * {@native ts
      * return param != undefined && param != null;
+     * }
      */
     public static boolean isDefined(Object param) {
         return param != null;
     }
 
     /**
-     * @native ts
+     * {@native ts
      * return src === other
+     * }
      */
     public static boolean equals(String src, String other) {
         return src.equals(other);
@@ -61,8 +63,9 @@ public class Constants {
 
 
     /**
-     * @native ts
+     * {@native ts
      * public static BUFFER_SEP : number = "#".charCodeAt(0);
+     * }
      */
     public static final byte BUFFER_SEP = '#';
 
@@ -70,8 +73,9 @@ public class Constants {
      * Chunk Save/Load special chars
      */
     /**
-     * @native ts
+     * {@native ts
      * public static KEY_SEP : number = ";".charCodeAt(0);
+     * }
      */
     public static final byte KEY_SEP = ';';
 

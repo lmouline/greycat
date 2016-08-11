@@ -497,11 +497,12 @@ public class HeapWorldOrderChunk implements WorldOrderChunk, HeapChunk {
     }
 
     /**
-     * @native ts
+     * {@native ts
      * var val = this._flags
      * var nval = val & ~bitsToDisable | bitsToEnable;
      * this._flags = nval;
      * return val != nval;
+     * }
      */
     @Override
     public final boolean setFlags(long bitsToEnable, long bitsToDisable) {

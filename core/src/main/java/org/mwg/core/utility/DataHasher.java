@@ -38,13 +38,14 @@ public class DataHasher {
 
 
     /**
-     * @native ts
+     * {@native ts
      * var h = org.mwg.core.utility.DataHasher.HSTART;
      * var dataLength = data.length;
      * for (var i = 0; i < dataLength; i++) {
      * h = h.mul(org.mwg.core.utility.DataHasher.HMULT).xor(org.mwg.core.utility.DataHasher.byteTable[data.charCodeAt(i) & 0xff]);
      * }
      * return h.mod(org.mwg.core.CoreConstants.END_OF_TIME).toNumber();
+     * }
      */
     public static long hash(String data) {
         long h = HSTART;
@@ -58,13 +59,14 @@ public class DataHasher {
     }
 
     /**
-     * @native ts
+     * {@native ts
      * var h = org.mwg.core.utility.DataHasher.HSTART;
      * var dataLength = data.length;
      * for (var i = 0; i < dataLength; i++) {
      * h = h.mul(org.mwg.core.utility.DataHasher.HMULT).xor(org.mwg.core.utility.DataHasher.byteTable[data[i] & 0xff]);
      * }
      * return h.mod(org.mwg.core.CoreConstants.END_OF_TIME).toNumber();
+     * }
      */
     public static long hashBytes(byte[] data) {
         long h = HSTART;

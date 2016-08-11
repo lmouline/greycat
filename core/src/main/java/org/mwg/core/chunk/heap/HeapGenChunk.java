@@ -61,7 +61,7 @@ public class HeapGenChunk implements GenChunk, HeapChunk {
     private final AtomicLong _currentIndex;
 
     /**
-     * @native ts
+     * {@native ts
      * this._world = p_world;
      * this._time = p_time;
      * this._id = p_id;
@@ -71,6 +71,7 @@ public class HeapGenChunk implements GenChunk, HeapChunk {
      * this._prefix = Long.fromNumber(p_id).shiftLeft((org.mwg.Constants.LONG_SIZE - org.mwg.Constants.PREFIX_SIZE));
      * this._currentIndex = new java.util.concurrent.atomic.AtomicLong(0);
      * this.load(initialPayload);
+     * }
      */
     public HeapGenChunk(final long p_world, final long p_time, final long p_id, final ChunkListener p_space, Buffer initialPayload) {
         this._world = p_world;
@@ -119,7 +120,7 @@ public class HeapGenChunk implements GenChunk, HeapChunk {
     }
 
     /**
-     * @native ts
+     * {@native ts
      * if (this._currentIndex.get() == org.mwg.Constants.KEY_PREFIX_MASK) {
      * throw new Error("Object Index could not be created because it exceeded the capacity of the current prefix. Ask for a new prefix.");
      * }
@@ -132,6 +133,7 @@ public class HeapGenChunk implements GenChunk, HeapChunk {
      * throw new Error("Object Index exceeds the maximum JavaScript number capacity. (2^"+org.mwg.Constants.LONG_SIZE+")");
      * }
      * return objectKey;
+     * }
      */
     @Override
     public long newKey() {
@@ -212,11 +214,12 @@ public class HeapGenChunk implements GenChunk, HeapChunk {
     }
 
     /**
-     * @native ts
+     * {@native ts
      * var val = this._flags
      * var nval = val & ~bitsToDisable | bitsToEnable;
      * this._flags = nval;
      * return val != nval;
+     * }
      */
     @Override
     public final boolean setFlags(long bitsToEnable, long bitsToDisable) {

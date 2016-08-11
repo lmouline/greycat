@@ -37,7 +37,7 @@ public class PrimitiveHelper {
     private static final int len = 24;
 
     /**
-     * @native ts
+     * {@native ts
      * if (max <= 0) {
      * throw new Error("Max must be > 0");
      * }
@@ -60,6 +60,7 @@ public class PrimitiveHelper {
      * crc = (crc.isNegative()?crc.mul(-1):crc);
      * crc = crc.mod(max);
      * return crc.toNumber();
+     * }
      */
     public static long longHash(long number, long max) {
         if (max <= 0) {
@@ -94,7 +95,7 @@ public class PrimitiveHelper {
     }
 
     /**
-     * @native ts
+     * {@native ts
      * if (max <= 0) {
      * throw new Error("Max must be > 0");
      * }
@@ -138,6 +139,7 @@ public class PrimitiveHelper {
      * crc = (crc.isNegative()?crc.mul(-1):crc);
      * crc = crc.mod(max);
      * return crc.toNumber();
+     * }
      */
     public static long tripleHash(byte p0, long p1, long p2, long p3, long max) {
         if (max <= 0) {
@@ -239,8 +241,9 @@ public class PrimitiveHelper {
     }
 
     /**
-     * @native ts
+     * {@native ts
      * return param != undefined && param != null;
+     * }
      */
     public static boolean isDefined(Object param) {
         return param != null;
