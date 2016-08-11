@@ -22,31 +22,33 @@ class ActionRepeat extends AbstractTaskAction {
     @Override
     public void eval(final TaskContext context) {
         final int nbIteration = TaskHelper.parseInt(context.template(_iterationTemplate));
+        final TaskResult previous = context.result();
         final ActionRepeat selfPointer = this;
         final AtomicInteger cursor = new AtomicInteger(0);
         final TaskResult results = context.newResult();
-        results.allocate(nbIteration);
         if (nbIteration > 0) {
             final Callback[] recursiveAction = new Callback[1];
             recursiveAction[0] = new Callback<TaskResult>() {
                 @Override
                 public void on(final TaskResult res) {
                     int current = cursor.getAndIncrement();
-                    if (res != null && res.size() == 1) {
-                        results.set(current, res.get(0));
-                    } else {
-                        results.set(current, res);
+                    if (res != null) {
+                        for (int i = 0; i < res.size(); i++) {
+                            results.add(res.get(i));
+                        }
                     }
                     int nextCursor = current + 1;
                     if (nextCursor == nbIteration) {
                         context.continueWith(results);
                     } else {
                         //recursive call
-                        selfPointer._subTask.executeFrom(context, context.wrap(nextCursor), SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+                        context.defineVariableForSubTask("it",nextCursor);
+                        selfPointer._subTask.executeFrom(context, previous, SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
                     }
                 }
             };
-            _subTask.executeFrom(context, context.wrap(cursor.get()), SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+            context.defineVariableForSubTask("it",cursor.get());
+            _subTask.executeFrom(context, previous, SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
         } else {
             context.continueWith(results);
         }

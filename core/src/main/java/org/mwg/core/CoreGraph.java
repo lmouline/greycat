@@ -383,7 +383,7 @@ class CoreGraph implements org.mwg.Graph {
         if (flatKeyAttributes == null) {
             throw new RuntimeException("flatKeyAttributes should not be null");
         }
-        getIndexOrCreate(toIndexNode.world(), toIndexNode.time(), indexName, new Callback<org.mwg.Node>() {
+        getIndexOrCreate(toIndexNode.world(), toIndexNode.time(), indexName, true, new Callback<org.mwg.Node>() {
             @Override
             public void on(final org.mwg.Node foundIndex) {
                 if (foundIndex == null) {
@@ -399,7 +399,7 @@ class CoreGraph implements org.mwg.Graph {
                     }
                 });
             }
-        }, true);
+        });
     }
 
     @Override
@@ -413,7 +413,7 @@ class CoreGraph implements org.mwg.Graph {
         if (flatKeyAttributes == null) {
             throw new RuntimeException("flatKeyAttributes should not be null");
         }
-        getIndexOrCreate(nodeToUnindex.world(), nodeToUnindex.time(), indexName, new Callback<org.mwg.Node>() {
+        getIndexOrCreate(nodeToUnindex.world(), nodeToUnindex.time(), indexName, false, new Callback<org.mwg.Node>() {
             @Override
             public void on(final org.mwg.Node foundIndex) {
                 if (foundIndex != null) {
@@ -432,7 +432,7 @@ class CoreGraph implements org.mwg.Graph {
                     }
                 }
             }
-        }, false);
+        });
     }
 
     @Override
@@ -474,7 +474,7 @@ class CoreGraph implements org.mwg.Graph {
         if (query == null) {
             throw new RuntimeException("query should not be null");
         }
-        getIndexOrCreate(world, time, indexName, new Callback<org.mwg.Node>() {
+        getIndexOrCreate(world, time, indexName, false, new Callback<org.mwg.Node>() {
             @Override
             public void on(final org.mwg.Node foundIndex) {
                 if (foundIndex == null) {
@@ -493,7 +493,7 @@ class CoreGraph implements org.mwg.Graph {
                     });
                 }
             }
-        }, false);
+        });
     }
 
     @Override
@@ -510,7 +510,7 @@ class CoreGraph implements org.mwg.Graph {
         if (query.indexName() == null) {
             throw new RuntimeException("Please fill indexName parameter in query before first usage!");
         }
-        getIndexOrCreate(query.world(), query.time(), query.indexName(), new Callback<org.mwg.Node>() {
+        getIndexOrCreate(query.world(), query.time(), query.indexName(), false, new Callback<org.mwg.Node>() {
             @Override
             public void on(final org.mwg.Node foundIndex) {
                 if (foundIndex == null) {
@@ -530,7 +530,7 @@ class CoreGraph implements org.mwg.Graph {
                     });
                 }
             }
-        }, false);
+        });
     }
 
     @Override
@@ -538,7 +538,7 @@ class CoreGraph implements org.mwg.Graph {
         if (indexName == null) {
             throw new RuntimeException("indexName should not be null");
         }
-        getIndexOrCreate(world, time, indexName, new Callback<org.mwg.Node>() {
+        getIndexOrCreate(world, time, indexName, false, new Callback<org.mwg.Node>() {
             @Override
             public void on(final org.mwg.Node foundIndex) {
                 if (foundIndex == null) {
@@ -557,7 +557,7 @@ class CoreGraph implements org.mwg.Graph {
                     });
                 }
             }
-        }, false);
+        });
     }
 
     @Override
@@ -565,10 +565,10 @@ class CoreGraph implements org.mwg.Graph {
         if (indexName == null) {
             throw new RuntimeException("indexName should not be null");
         }
-        getIndexOrCreate(world, time, indexName, callback, false);
+        getIndexOrCreate(world, time, indexName, false, callback);
     }
 
-    private void getIndexOrCreate(final long world, final long time, final String indexName, final Callback<org.mwg.Node> callback, final boolean createIfNull) {
+    private void getIndexOrCreate(final long world, final long time, final String indexName, final boolean createIfNull, final Callback<org.mwg.Node> callback) {
         final CoreGraph selfPointer = this;
         final long indexNameCoded = this._resolver.stringToHash(indexName, createIfNull);
         this._resolver.lookup(world, time, CoreConstants.END_OF_TIME, new Callback<org.mwg.Node>() {
@@ -586,7 +586,7 @@ class CoreGraph implements org.mwg.Graph {
                         globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.get(CoreConstants.INDEX_ATTRIBUTE);
                     }
                     long indexId = globalIndexContent.get(indexNameCoded);
-                    //globalIndexNodeUnsafe.free();
+                    globalIndexNodeUnsafe.free();
                     if (indexId == CoreConstants.NULL_LONG) {
                         if (createIfNull) {
                             //insert null
