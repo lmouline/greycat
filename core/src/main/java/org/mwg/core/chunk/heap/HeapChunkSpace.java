@@ -32,9 +32,12 @@ public class HeapChunkSpace implements ChunkSpace {
 
     private final int[] _hashNext;
     private final int[] _hash;
-    private final long[] _chunkWorlds;
-    private final long[] _chunkTimes;
-    private final long[] _chunkIds;
+
+    private final AtomicLongArray _chunkWorlds;
+    private final AtomicLongArray _chunkTimes;
+    private final AtomicLongArray _chunkIds;
+
+    //TODO transform to atomic
     private final byte[] _chunkTypes;
 
     private final AtomicReferenceArray<Chunk> _chunkValues;
@@ -48,16 +51,16 @@ public class HeapChunkSpace implements ChunkSpace {
         return this._graph;
     }
 
-    final synchronized long worldByIndex(long index) {
-        return this._chunkWorlds[(int) index];
+    final long worldByIndex(long index) {
+        return this._chunkWorlds.get((int) index);
     }
 
-    final synchronized long timeByIndex(long index) {
-        return this._chunkTimes[(int) index];
+    final long timeByIndex(long index) {
+        return this._chunkTimes.get((int) index);
     }
 
-    final synchronized long idByIndex(long index) {
-        return this._chunkIds[(int) index];
+    final long idByIndex(long index) {
+        return this._chunkIds.get((int) index);
     }
 
     public HeapChunkSpace(final int initialCapacity, final int saveBatchSize, final Graph p_graph) {
@@ -78,12 +81,16 @@ public class HeapChunkSpace implements ChunkSpace {
         _size = 0;
         _hash = new int[_hashEntries];
         Arrays.fill(_hash, 0, _hashEntries, -1);
-        _chunkWorlds = new long[_maxEntries];
-        Arrays.fill(_chunkWorlds, 0, _maxEntries, -1);
-        _chunkTimes = new long[_maxEntries];
-        Arrays.fill(_chunkTimes, 0, _maxEntries, -1);
-        _chunkIds = new long[_maxEntries];
-        Arrays.fill(_chunkIds, 0, _maxEntries, -1);
+
+
+        _chunkWorlds = new AtomicLongArray(_maxEntries);
+
+
+        //Arrays.fill(_chunkWorlds, 0, _maxEntries, -1);
+        _chunkTimes = new AtomicLongArray(_maxEntries);
+        //Arrays.fill(_chunkTimes, 0, _maxEntries, -1);
+        _chunkIds = new AtomicLongArray(_maxEntries);
+        //Arrays.fill(_chunkIds, 0, _maxEntries, -1);
         _chunkTypes = new byte[_maxEntries];
         Arrays.fill(_chunkTypes, 0, _maxEntries, (byte) -1);
 
@@ -100,9 +107,9 @@ public class HeapChunkSpace implements ChunkSpace {
         int found = -1;
         while (m != -1) {
             if (_chunkTypes[m] == type
-                    && _chunkWorlds[m] == world
-                    && _chunkTimes[m] == time
-                    && _chunkIds[m] == id) {
+                    && _chunkWorlds.get(m) == world
+                    && _chunkTimes.get(m) == time
+                    && _chunkIds.get(m) == id) {
                 if (mark(m) > 0) {
                     found = m;
                 }
@@ -200,7 +207,7 @@ public class HeapChunkSpace implements ChunkSpace {
         int hashIndex = (int) HashHelper.tripleHash(type, world, time, id, this._hashEntries);
         int m = this._hash[hashIndex];
         while (m >= 0) {
-            if (type == _chunkTypes[m] && world == _chunkWorlds[m] && time == _chunkTimes[m] && id == _chunkIds[m]) {
+            if (type == _chunkTypes[m] && world == _chunkWorlds.get(m) && time == _chunkTimes.get(m) && id == _chunkIds.get(m)) {
                 entry = m;
                 break;
             }
@@ -253,15 +260,15 @@ public class HeapChunkSpace implements ChunkSpace {
         }
         if (this._chunkValues.get(currentVictimIndex) != null) {
             // Chunk victim = this._chunkValues[currentVictimIndex];
-            final long victimWorld = _chunkWorlds[currentVictimIndex];
-            final long victimTime = _chunkTimes[currentVictimIndex];
-            final long victimObj = _chunkIds[currentVictimIndex];
+            final long victimWorld = _chunkWorlds.get(currentVictimIndex);
+            final long victimTime = _chunkTimes.get(currentVictimIndex);
+            final long victimObj = _chunkIds.get(currentVictimIndex);
             final byte victimType = _chunkTypes[currentVictimIndex];
             final int indexVictim = (int) HashHelper.tripleHash(victimType, victimWorld, victimTime, victimObj, this._hashEntries);
             m = _hash[indexVictim];
             int last = -1;
             while (m >= 0) {
-                if (victimType == _chunkTypes[m] && victimWorld == _chunkWorlds[m] && victimTime == _chunkTimes[m] && victimObj == _chunkIds[m]) {
+                if (victimType == _chunkTypes[m] && victimWorld == _chunkWorlds.get(m) && victimTime == _chunkTimes.get(m) && victimObj == _chunkIds.get(m)) {
                     break;
                 }
                 last = m;
@@ -284,9 +291,9 @@ public class HeapChunkSpace implements ChunkSpace {
         _chunkValues.set(currentVictimIndex, toInsert);
         _chunkMarks.set(currentVictimIndex, 1);
         _chunkTypes[currentVictimIndex] = type;
-        _chunkWorlds[currentVictimIndex] = world;
-        _chunkTimes[currentVictimIndex] = time;
-        _chunkIds[currentVictimIndex] = id;
+        _chunkWorlds.set(currentVictimIndex, world);
+        _chunkTimes.set(currentVictimIndex, time);
+        _chunkIds.set(currentVictimIndex, id);
         //negociate the lock to write on hashIndex
         _hashNext[currentVictimIndex] = _hash[hashIndex];
         _hash[hashIndex] = currentVictimIndex;
@@ -372,16 +379,16 @@ public class HeapChunkSpace implements ChunkSpace {
                 if (_chunkMarks.get(i) != 0) {
                     switch (_chunkTypes[i]) {
                         case ChunkType.STATE_CHUNK:
-                            System.out.println("STATE(" + _chunkWorlds[i] + "," + _chunkTimes[i] + "," + _chunkIds[i] + ")->marks->" + _chunkMarks.get(i));
+                            System.out.println("STATE(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")->marks->" + _chunkMarks.get(i));
                             break;
                         case ChunkType.TIME_TREE_CHUNK:
-                            System.out.println("TIME_TREE(" + _chunkWorlds[i] + "," + _chunkTimes[i] + "," + _chunkIds[i] + ")->marks->" + _chunkMarks.get(i));
+                            System.out.println("TIME_TREE(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")->marks->" + _chunkMarks.get(i));
                             break;
                         case ChunkType.WORLD_ORDER_CHUNK:
-                            System.out.println("WORLD_ORDER(" + _chunkWorlds[i] + "," + _chunkTimes[i] + "," + _chunkIds[i] + ")->marks->" + _chunkMarks.get(i));
+                            System.out.println("WORLD_ORDER(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")->marks->" + _chunkMarks.get(i));
                             break;
                         case ChunkType.GEN_CHUNK:
-                            System.out.println("GENERATOR(" + _chunkWorlds[i] + "," + _chunkTimes[i] + "," + _chunkIds[i] + ")->marks->" + _chunkMarks.get(i));
+                            System.out.println("GENERATOR(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")->marks->" + _chunkMarks.get(i));
                             break;
                     }
                 }
