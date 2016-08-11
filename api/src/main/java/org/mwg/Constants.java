@@ -6,6 +6,9 @@ package org.mwg;
 public class Constants {
 
     // Limit long lengths to 53 bits because of JS limitation
+    /**
+     * Defines the maximum size of a
+     */
     public static final int LONG_SIZE = 53;
 
     public static final int PREFIX_SIZE = 16;
