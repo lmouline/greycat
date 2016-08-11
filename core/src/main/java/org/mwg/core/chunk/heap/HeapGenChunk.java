@@ -18,6 +18,8 @@ final class HeapGenChunk implements GenChunk {
     private final long _prefix;
     private long _seed;
 
+    private boolean _dirty;
+
     /**
      * @native ts
      * this._index = p_index;
@@ -31,23 +33,26 @@ final class HeapGenChunk implements GenChunk {
         //moves the prefix 53-size(short) times to the left;
         _prefix = p_id << (Constants.LONG_SIZE - Constants.PREFIX_SIZE);
         _seed = -1;
+        _dirty = false;
     }
 
     @Override
     public synchronized final void save(final Buffer buffer) {
         Base64.encodeLongToBuffer(_seed, buffer);
+        _dirty = false;
     }
 
     @Override
     public synchronized final void load(final Buffer buffer) {
-        if(buffer == null || buffer.length() == 0){
+        if (buffer == null || buffer.length() == 0) {
             return;
         }
         long loaded = Base64.decodeToLongWithBounds(buffer, 0, buffer.length());
         long previousSeed = _seed;
         _seed = loaded;
-        if(previousSeed != -1 && previousSeed != _seed){
-            if(_space != null){
+        if (previousSeed != -1 && previousSeed != _seed) {
+            if (_space != null && !_dirty) {
+                _dirty = true;
                 _space.notifyUpdate(_index);
             }
         }
@@ -56,19 +61,19 @@ final class HeapGenChunk implements GenChunk {
     /**
      * @native ts
      * if (this._seed == org.mwg.Constants.KEY_PREFIX_MASK) {
-     *  throw new Error("Object Index could not be created because it exceeded the capacity of the current prefix. Ask for a new prefix.");
+     * throw new Error("Object Index could not be created because it exceeded the capacity of the current prefix. Ask for a new prefix.");
      * }
      * if(this._seed == -1){
-     *      this._seed = 0;
+     * this._seed = 0;
      * }
      * this._seed++;
      * var nextIndex = this._seed;
      * if(this._space){
-     *     this._space.notifyUpdate(this._index);
+     * this._space.notifyUpdate(this._index);
      * }
      * var objectKey = this._prefix.add(this._seed).toNumber();
      * if (objectKey >= org.mwg.Constants.NULL_LONG) {
-     *  throw new Error("Object Index exceeds the maximum JavaScript number capacity. (2^"+org.mwg.Constants.LONG_SIZE+")");
+     * throw new Error("Object Index exceeds the maximum JavaScript number capacity. (2^"+org.mwg.Constants.LONG_SIZE+")");
      * }
      * return objectKey;
      */
@@ -77,7 +82,7 @@ final class HeapGenChunk implements GenChunk {
         if (_seed == Constants.KEY_PREFIX_MASK) {
             throw new IndexOutOfBoundsException("Object Index could not be created because it exceeded the capacity of the current prefix. Ask for a new prefix.");
         }
-        if(_seed == -1){
+        if (_seed == -1) {
             _seed = 0;
         }
         _seed++;

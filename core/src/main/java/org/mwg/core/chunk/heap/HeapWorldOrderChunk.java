@@ -33,6 +33,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     private int[] _next;
     private int[] _hash;
 
+    private boolean _dirty;
+
     /**
      * @ignore ts
      */
@@ -59,6 +61,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
         _kv = null;
         _next = null;
         _hash = null;
+
+        _dirty = false;
 
     }
 
@@ -162,7 +166,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
                 _hash[hashIndex] = _size;
                 _size++;
                 _magic = _magic + 1;
-                if (notifyUpdate) {
+                if (notifyUpdate && !_dirty) {
+                    _dirty = true;
                     if (_space != null) {
                         _space.notifyUpdate(_index);
                     }
@@ -171,7 +176,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
                 if (_kv[found * 2 + 1] != value) {
                     _kv[found * 2 + 1] = value;
                     _magic = _magic + 1;
-                    if (notifyUpdate) {
+                    if (notifyUpdate && !_dirty) {
+                        _dirty = true;
                         if (_space != null) {
                             _space.notifyUpdate(_index);
                         }
@@ -189,7 +195,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
             _kv[0] = key;
             _kv[1] = value;
             _hash[(int) HashHelper.longHash(key, _capacity * 2)] = 0;
-            if (notifyUpdate) {
+            if (notifyUpdate && !_dirty) {
+                _dirty = true;
                 if (_space != null) {
                     _space.notifyUpdate(_index);
                 }
@@ -303,6 +310,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
             buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
             Base64.encodeLongToBuffer(_kv[i * 2 + 1], buffer);
         }
+        _dirty = false;
     }
 
     @Override

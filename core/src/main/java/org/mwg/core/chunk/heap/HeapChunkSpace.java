@@ -40,7 +40,6 @@ public class HeapChunkSpace implements ChunkSpace {
     private final AtomicReferenceArray<Chunk> _chunkValues;
 
     private final AtomicLongArray _chunkMarks;
-    private final boolean[] _dirties;
 
     private final Graph _graph;
 
@@ -92,8 +91,6 @@ public class HeapChunkSpace implements ChunkSpace {
         for (int i = 0; i < _maxEntries; i++) {
             _chunkMarks.set(i, 0);
         }
-
-        _dirties = new boolean[_maxEntries];
     }
 
     @Override
@@ -299,10 +296,8 @@ public class HeapChunkSpace implements ChunkSpace {
     }
 
     @Override
-    public synchronized void notifyUpdate(long index) {
-        if (!_dirties[(int) index]) {
-            _dirties[(int) index] = true;
-            _dirtiesStack.enqueue(index);
+    public void notifyUpdate(long index) {
+        if (_dirtiesStack.enqueue(index)) {
             mark(index);
             if (_dirtiesStack.size() > _saveBatchSize) {
                 save(null);
@@ -333,7 +328,6 @@ public class HeapChunkSpace implements ChunkSpace {
                 if (!isNoop) { //optimization to not save unused bytes
                     loopChunk.save(stream);
                 }
-                _dirties[(int) tail] = false;
                 unmark((int) tail);
             } catch (Exception e) {
                 e.printStackTrace();

@@ -24,10 +24,13 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     private volatile long _magic;
     private volatile int _size = 0;
 
+    private boolean _dirty;
+
     HeapTimeTreeChunk(final HeapChunkSpace p_space, final long p_index) {
         _space = p_space;
         _index = p_index;
         _magic = 0;
+        _dirty = false;
     }
 
     @Override
@@ -75,27 +78,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             }
             Base64.encodeLongToBuffer(this._k[i], buffer);
         }
+        _dirty = false;
     }
-
-/*
-    private void load(final Buffer buffer) {
-        if (buffer == null || buffer.length() == 0) {
-            return;
-        }
-        _size = 0;
-        long cursor = 0;
-        long previous = 0;
-        long payloadSize = buffer.length();
-        while (cursor < payloadSize) {
-            byte current = buffer.read(cursor);
-            if (current == CoreConstants.CHUNK_SUB_SEP) {
-                internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                previous = cursor + 1;
-            }
-            cursor++;
-        }
-        internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
-    }*/
 
     @Override
     public synchronized final void load(Buffer buffer) {
@@ -119,7 +103,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             cursor++;
         }
         isDirty = isDirty || internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
-        if (isDirty && !initial) {
+        if (isDirty && !initial && !_dirty) {
+            _dirty = true;
             if (_space != null) {
                 _space.notifyUpdate(_index);
             }
@@ -559,7 +544,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
 
     private void internal_set_dirty() {
         _magic = _magic + 1;
-        if (_space != null) {
+        if (_space != null && !_dirty) {
+            _dirty = true;
             _space.notifyUpdate(_index);
         }
     }

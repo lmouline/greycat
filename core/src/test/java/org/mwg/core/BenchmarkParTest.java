@@ -26,7 +26,7 @@ public class BenchmarkParTest {
                 final long previous = System.currentTimeMillis();
                 final long previousCache = g.space().available();
 
-                repeatPar("10000", newNode()
+                repeat("10000", newNode()
                         .setProperty("name", Type.STRING, "node_{{it}}")
                         .print("{{result}}")
                         .indexNode("nodes", "name")

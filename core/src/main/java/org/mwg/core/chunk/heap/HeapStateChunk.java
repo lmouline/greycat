@@ -28,6 +28,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     private byte[] _type;
 
     private boolean unaligned = false;
+    private boolean _dirty;
 
     HeapStateChunk(final HeapChunkSpace p_space, final long p_index) {
         _space = p_space;
@@ -39,6 +40,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         //init to empty size
         _size = 0;
         _capacity = 0;
+        _dirty = false;
     }
 
     @Override
@@ -235,7 +237,8 @@ class HeapStateChunk implements StateChunk, ChunkListener {
 
     @Override
     public final void declareDirty() {
-        if (_space != null) {
+        if (_space != null && !_dirty) {
+            _dirty = true;
             _space.notifyUpdate(_index);
         }
     }
