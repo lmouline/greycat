@@ -20,8 +20,8 @@ public class BenchmarkParTest {
         Graph g = new GraphBuilder()
                 .withMemorySize(10000)
                 .saveEvery(100)
-                //.withScheduler(new HybridScheduler())
-                .withScheduler(new TrampolineScheduler())
+                .withScheduler(new HybridScheduler())
+                //.withScheduler(new TrampolineScheduler())
                 //.withScheduler(new ExecutorScheduler())
                 .build();
         g.connect(new Callback<Boolean>() {
@@ -33,7 +33,7 @@ public class BenchmarkParTest {
 
                 repeatPar("1000", newNode()
                         .setProperty("name", Type.STRING, "node_{{it}}")
-                       // .print("{{result}}")
+                        .print("{{result}}")
                         .indexNode("nodes", "name")
                         .repeat("1000", jump("{{it}}").setProperty("val", Type.INT, "{{it}}").clear())
                         .clear()
@@ -45,6 +45,13 @@ public class BenchmarkParTest {
                         long afterCache = g.space().available();
                         System.out.println(after - previous + "ms");
                         System.out.println(previousCache + "-" + afterCache);
+
+                        g.disconnect(new Callback<Boolean>() {
+                            @Override
+                            public void on(Boolean result) {
+
+                            }
+                        });
                     }
                 });
             }

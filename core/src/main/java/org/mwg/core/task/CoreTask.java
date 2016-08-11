@@ -256,11 +256,11 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public Task isolatedSubTask(Task subTask) {
+    public Task isolate(Task subTask) {
         if (subTask == null) {
             throw new RuntimeException("subTask should not be null");
         }
-        addAction(new ActionIsolatedSubTask(subTask));
+        addAction(new ActionIsolate(subTask));
         return this;
     }
 

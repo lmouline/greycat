@@ -205,12 +205,12 @@ public class KDTree extends AbstractNode {
                 context.continueTask();
             }
         })
-                .isolatedSubTask(ifThen(new TaskFunctionConditional() {
+                .isolate(ifThen(new TaskFunctionConditional() {
                     @Override
                     public boolean eval(TaskContext context) {
                         return context.variable("near").size() > 0;
                     }
-                }, traverse("{{near}}").isolatedSubTask(reccursiveDown)))
+                }, traverse("{{near}}").isolate(reccursiveDown)))
 
                 .then(new Action() {
                     @Override
@@ -287,12 +287,12 @@ public class KDTree extends AbstractNode {
                         context.continueTask();
                     }
                 })
-                .isolatedSubTask(ifThen(new TaskFunctionConditional() {
+                .isolate(ifThen(new TaskFunctionConditional() {
                     @Override
                     public boolean eval(TaskContext context) {
                         return ((boolean) context.variable("continueFar").get(0) && context.variable("far").size() > 0); //Exploring the far depends also on the distance
                     }
-                }, traverse("{{far}}").isolatedSubTask(reccursiveDown)));
+                }, traverse("{{far}}").isolate(reccursiveDown)));
 
 
         return reccursiveDown;

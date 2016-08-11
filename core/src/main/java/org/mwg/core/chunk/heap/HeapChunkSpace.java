@@ -119,12 +119,12 @@ public class HeapChunkSpace implements ChunkSpace {
     }
 
     @Override
-    public synchronized final Chunk get(final long index) {
+    public final Chunk get(final long index) {
         return this._chunkValues[(int) index];
     }
 
     @Override
-    public synchronized final void getOrLoadAndMark(final byte type, final long world, final long time, final long id, final Callback<Chunk> callback) {
+    public final void getOrLoadAndMark(final byte type, final long world, final long time, final long id, final Callback<Chunk> callback) {
         final Chunk fromMemory = getAndMark(type, world, time, id);
         if (fromMemory != null) {
             callback.on(fromMemory);

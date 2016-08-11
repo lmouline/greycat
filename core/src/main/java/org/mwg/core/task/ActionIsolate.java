@@ -7,11 +7,11 @@ import org.mwg.task.Task;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
-class ActionIsolatedSubTask extends AbstractTaskAction {
+class ActionIsolate extends AbstractTaskAction {
 
     private final Task _subTask;
 
-    ActionIsolatedSubTask(final Task p_subTask) {
+    ActionIsolate(final Task p_subTask) {
         super();
         _subTask = p_subTask;
     }
