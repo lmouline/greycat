@@ -78,15 +78,11 @@ public class LinearRegressionWithPeriodicityNode extends AbstractLinearRegressio
         }
         //
         for (int i=0;i<periodsList.length;i++){
-            //Sinus for this periodic component
+            //Sinus and cosine for this periodic component
             for (int j = 0; j < resultBuffer.length; j++) {
                 double time = currentBuffer[timeColumnIndex+dims*j];
-                reshapedValue[ (2*i+1)*resultBuffer.length + j] = Math.sin(time*2*Math.PI/periodsList[i]);
-            }
-            //Cosinus for this periodic component
-            for (int j = 0; j < resultBuffer.length; j++) {
-                double time = currentBuffer[timeColumnIndex+dims*j];
-                reshapedValue[(2*i+2)*resultBuffer.length + j] = Math.cos(time*2*Math.PI/periodsList[i]);
+                reshapedValue[(i+1)*resultBuffer.length + j] = Math.sin(time*2*Math.PI/periodsList[i]);
+                reshapedValue[(i+1+periodsList.length)*resultBuffer.length + j] = Math.cos(time*2*Math.PI/periodsList[i]);
             }
         }
         for (int i = 0; i < resultBuffer.length; i++) {
@@ -107,9 +103,10 @@ public class LinearRegressionWithPeriodicityNode extends AbstractLinearRegressio
             xtMulX.add(i, i, l2);
         }
 
-        PInvSVD pinvsvd = new PInvSVD();
-        pinvsvd.factor(xtMulX, false);
-        Matrix pinv = pinvsvd.getPInv();
+        //PInvSVD pinvsvd = new PInvSVD();
+        //pinvsvd.factor(xtMulX, false);
+        //Matrix pinv = pinvsvd.getPInv();
+        Matrix pinv = Matrix.pinv(xtMulX, false);
 
         Matrix invMulXt = Matrix.multiplyTranspose
                 (TransposeType.NOTRANSPOSE, pinv, TransposeType.TRANSPOSE, xMatrix);
