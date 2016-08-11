@@ -50,9 +50,10 @@ public class LinearRegressionNode extends AbstractLinearRegressionNode {
             xtMulX.add(i, i, l2);
         }
 
-        PInvSVD pinvsvd = new PInvSVD();
-        pinvsvd.factor(xtMulX, false);
-        Matrix pinv = pinvsvd.getPInv();
+        //PInvSVD pinvsvd = new PInvSVD();
+        //pinvsvd.factor(xtMulX, false);
+        //Matrix pinv = pinvsvd.getPInv();
+        Matrix pinv = Matrix.pinv(xtMulX, false);
 
         Matrix invMulXt = Matrix.multiplyTranspose
                 (TransposeType.NOTRANSPOSE, pinv, TransposeType.TRANSPOSE, xMatrix);
