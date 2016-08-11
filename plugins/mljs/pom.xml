@@ -85,11 +85,24 @@
                 <version>1.8</version>
                 <executions>
                     <execution>
-                        <id>compile</id>
+                        <id>ant-compile</id>
                         <phase>compile</phase>
                         <configuration>
                             <target>
-                                <ant antfile="taskdef.xml" />
+                                <ant antfile="compile-taskdef.xml"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>ant-test</id>
+                        <phase>test</phase>
+                        <configuration>
+                            <skip>${skipTests}</skip>
+                            <target>
+                                <ant antfile="test-taskdef.xml"/>
                             </target>
                         </configuration>
                         <goals>

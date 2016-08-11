@@ -14,107 +14,79 @@
         </condition>
     </target>
     <target name="other.run" depends="sys.check" if="isOther">
-        <echo message="Copying"/>
-        <copy file="${basedir}/src/package.json" todir="${basedir}/target"/>
-        <echo message="NPM install"/>
-        <exec executable="npm" dir="${basedir}/target" failonerror="true">
-            <arg value="install"/>
-        </exec>
-        <echo message="TSC Run (core)"/>
-        <exec executable="${basedir}/target/node_modules/typescript/bin/tsc" failonerror="true">
-            <arg value="-d"/>
-            <arg value="--sourceMap"/>
-            <arg value="--target"/>
-            <arg value="es5"/>
-            <arg value="${basedir}/target/generated-sources/core.ts"/>
-            <arg value="--out"/>
-            <arg value="${basedir}/target/classes/mwg.js"/>
-        </exec>
-        <echo message="TSC Run (test)"/>
+
+        <echo message="TSC Run (tests)"/>
         <exec executable="${basedir}/target/node_modules/typescript/bin/tsc" failonerror="true">
             <arg value="--target"/>
             <arg value="es5"/>
             <arg value="${basedir}/target/generated-test-sources/test.ts"/>
             <arg value="--out"/>
-            <arg value="${basedir}/target/test-classes/mwg.test.js"/>
+            <arg value="${basedir}/target/test-classes/mwg.ml.test.js"/>
         </exec>
+
         <echo message="Concat testRunner"/>
         <concat destfile="${basedir}/target/test-classes/test.all.js" force="no">
-            <filelist dir="${basedir}/target/test-classes" files="mwg.test.js"/>
+
+            <filelist dir="${basedir}/src" files="netlib.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
+            <filelist dir="${basedir}/../../corejs/target/classes" files="mwg.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
+            <filelist dir="${basedir}/target/test-classes" files="mwg.ml.test.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
             <filelist dir="${basedir}/target/generated-test-sources/"
                       files="testsRunner.js"/>
         </concat>
         <echo message="Concat testRunnerDev"/>
         <concat destfile="${basedir}/target/test-classes/test.all.dev.js" force="no">
-            <filelist dir="${basedir}/target/test-classes" files="mwg.test.js"/>
+            <filelist dir="${basedir}/../../corejs/target/classes" files="mwg.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
+            <filelist dir="${basedir}/target/test-classes" files="mwg.ml.test.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
             <filelist dir="${basedir}/target/generated-test-sources/"
                       files="testsRunnerDev.js"/>
         </concat>
 
+        <echo message="Execute js tests"/>
         <copy file="${basedir}/src/test.js" todir="${basedir}/target"/>
-        <echo message="Node (test.js)"/>
         <exec executable="node" dir="${basedir}/target" failonerror="true">
             <arg value="test.js"/>
         </exec>
-        <echo message="Minify"/>
-        <java jar="${basedir}/lib/compiler.jar" fork="true" failonerror="true">
-            <arg value="--js"/>
-            <arg value="${basedir}/target/classes/mwg.js"/>
-            <arg value="--js_output_file"/>
-            <arg value="${basedir}/target/classes/mwg.min.js"/>
-        </java>
     </target>
 
     <target name="win.run" depends="sys.check" if="isWindows">
-
-        <copy file="${basedir}/src/package.json" todir="${basedir}/target"/>
-
-        <exec executable="cmd" dir="${basedir}/target" failonerror="true">
-            <arg line="/c npm install" />
-        </exec>
-        <exec executable="cmd" dir="${basedir}/target" failonerror="true">
-            <arg line="/c node ${basedir}/target/node_modules/typescript/bin/tsc" />
-            <arg value="-d"/>
-            <arg value="--sourceMap"/>
-            <arg value="--target"/>
-            <arg value="es5"/>
-            <arg value="${basedir}/target/generated-sources/core.ts"/>
-            <arg value="--out"/>
-            <arg value="${basedir}/target/classes/mwg.js"/>
-        </exec>
+        <echo message="TSC Run (test)"/>
         <exec executable="cmd" dir="${basedir}/target" failonerror="true">
             <arg line="/c node ${basedir}/target/node_modules/typescript/bin/tsc" />
             <arg value="--target"/>
             <arg value="es5"/>
             <arg value="${basedir}/target/generated-test-sources/test.ts"/>
             <arg value="--out"/>
-            <arg value="${basedir}/target/test-classes/mwg.test.js"/>
+            <arg value="${basedir}/target/test-classes/mwg.ml.test.js"/>
         </exec>
-
         <concat destfile="${basedir}/target/test-classes/test.all.js" force="no">
+
+            <filelist dir="${basedir}/src" files="netlib.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
+            <filelist dir="${basedir}/../../corejs/target/classes" files="mwg.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
             <filelist dir="${basedir}/target/test-classes" files="mwg.test.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
             <filelist dir="${basedir}/target/generated-test-sources/"
                       files="testsRunner.js"/>
         </concat>
-
         <concat destfile="${basedir}/target/test-classes/test.all.dev.js" force="no">
+            <filelist dir="${basedir}/../../corejs/target/classes" files="mwg.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
             <filelist dir="${basedir}/target/test-classes" files="mwg.test.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
             <filelist dir="${basedir}/target/generated-test-sources/"
                       files="testsRunnerDev.js"/>
         </concat>
-
+        <echo message="Execute js tests"/>
         <copy file="${basedir}/src/test.js" todir="${basedir}/target"/>
-
         <exec executable="node" dir="${basedir}/target" failonerror="true">
             <arg value="test.js"/>
         </exec>
-
-        <java jar="${basedir}/lib/compiler.jar" fork="true" failonerror="true">
-            <arg value="--js"/>
-            <arg value="${basedir}/target/classes/mwg.js"/>
-            <arg value="--js_output_file"/>
-            <arg value="${basedir}/target/classes/mwg.min.js"/>
-        </java>
     </target>
 
 </project>
