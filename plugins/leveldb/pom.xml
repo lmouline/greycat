@@ -32,7 +32,7 @@
         <dependency>
             <groupId>org.iq80.leveldb</groupId>
             <artifactId>leveldb</artifactId>
-            <version>0.7</version>
+            <version>0.9</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.codehaus.jackson</groupId>

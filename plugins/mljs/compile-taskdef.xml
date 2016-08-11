@@ -83,7 +83,7 @@
         <copy file="${basedir}/src/netlib.js" todir="${basedir}/target/classes"/>
 
         <echo message="Minify"/>
-        <java jar="${basedir}/lib/compiler.jar" fork="true" failonerror="true">
+        <java jar="${basedir}/../../corejs/lib/compiler.jar" fork="true" failonerror="true">
             <arg value="--js"/>
             <arg value="${basedir}/target/classes/mwg.ml.js"/>
             <arg value="--js_output_file"/>
