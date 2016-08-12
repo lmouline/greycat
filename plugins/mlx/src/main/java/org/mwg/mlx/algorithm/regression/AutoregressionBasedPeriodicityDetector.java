@@ -296,4 +296,52 @@ public class AutoregressionBasedPeriodicityDetector extends AbstractMLNode{
         //TODO bootstrap mode management. By now - constantly in bootstrap.
     }
 
+    //TODO Step 2. Add management of thresholds for distances. Over threshold? New state.
+    //TODO Gradually moving over threshold? Compare not to last state, but to "average" one?
+    //TODO Returning to old states?
+    //TODO Step 3. Java test with real London consumption
+
+    protected static int[] withoutLastElement(int ar[]){
+        int res[] = new int[ar.length-1];
+        System.arraycopy(ar, 0, res, 0, res.length);
+        return res;
+    }
+
+    /**
+     *
+     * Effectively, Levenstein distance with weights
+     *
+     * @param per1
+     * @param per2
+     * @param weight_added_period
+     * @return
+     */
+    public static int periodsSequenceDistance(int per1[], int per2[], int weight_added_period){
+        //Possible options: period added, period deleted, period shifted
+
+        //One of the periods is empty. All others are "added"
+        if (per1.length == 0){
+            //Empty per1. All in per2 is "added"
+            return per2.length*weight_added_period;
+        }
+        if (per2.length == 0){
+            //Empty per2. All in per1 is "added"
+            return per1.length*weight_added_period;
+        }
+
+        int per1NoLast[] = withoutLastElement(per1);
+        int per2NoLast[] = withoutLastElement(per2);
+
+        //Unlike Levenstein distance, it is not just a match or mismatch.
+        //It also matters how far they are
+
+        //return minimum of following options:
+        //1. Count last period of per1 as non-existing in per2. Compare the rest.
+        //2. Count last period of per2 as non-existing in per1. Compare the rest.
+        //3. Count last period as the same in per1 and per2 (possibly shifted). Compare the rest.
+        return Math.min(Math.min(periodsSequenceDistance(per1NoLast, per2, weight_added_period) + weight_added_period,
+                                 periodsSequenceDistance(per1, per2NoLast,weight_added_period) + weight_added_period),
+                periodsSequenceDistance(per1NoLast, per2NoLast, weight_added_period) + Math.abs(per1[per1.length-1] - per2[per2.length-1]));
+
+    }
 }
