@@ -291,7 +291,7 @@ public class AutoregressionBasedPeriodicityDetector extends AbstractMLNode{
 
         NodeState state = unphasedState();
 
-        double newBuffer[] = adjustValueBuffer(state, value, true);
+        double newBuffer[] = adjustValueBuffer(state, value, false);//TODO Bootstrap - false
         return updateModelParameters(state, newBuffer, value);
         //TODO bootstrap mode management. By now - constantly in bootstrap.
     }
