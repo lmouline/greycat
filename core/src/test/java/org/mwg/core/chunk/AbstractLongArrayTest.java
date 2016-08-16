@@ -20,7 +20,7 @@ public abstract class AbstractLongArrayTest {
     @Test
     public void genericTest() {
 
-        ChunkSpace space = factory.newSpace(100, 100, null);
+        ChunkSpace space = factory.newSpace(100, null);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
         Relationship relationship = (Relationship) chunk.getOrCreate(0, Type.RELATION);
 

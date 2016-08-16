@@ -14,7 +14,7 @@ public class MiniFlagTest {
 
     @Test
     public void heapTest() {
-        flagTest(new GraphBuilder().withMemorySize(cacheSize).saveEvery(-1).build());
+        flagTest(new GraphBuilder().withMemorySize(cacheSize).build());
     }
 
     private void flagTest(final Graph graph) {

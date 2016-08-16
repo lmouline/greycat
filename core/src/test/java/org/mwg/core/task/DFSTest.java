@@ -15,7 +15,6 @@ public class DFSTest {
     private void baseGrap(Callback<Node> callback) {
         Graph graph = new GraphBuilder()
                 .withMemorySize(30000)
-                .saveEvery(10000)
                 .build();
 
         graph.connect(result -> {

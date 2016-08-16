@@ -20,7 +20,7 @@ public abstract class AbstractGenChunkTest {
     @Test
     public void genTest() {
 
-        ChunkSpace space = factory.newSpace(100, 100, null);
+        ChunkSpace space = factory.newSpace(100, null);
         GenChunk genChunk = (GenChunk) space.createAndMark(ChunkType.GEN_CHUNK, 0, 0, 0);
 
         Assert.assertEquals(genChunk.newKey(), 1);

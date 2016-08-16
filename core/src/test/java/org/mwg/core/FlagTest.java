@@ -15,7 +15,7 @@ public class FlagTest {
 
     @Test
     public void heapTest() {
-        manyWorldTest(new GraphBuilder().withMemorySize(cacheSize).saveEvery(cacheSize - 100).withScheduler(new NoopScheduler()).build());
+        manyWorldTest(new GraphBuilder().withMemorySize(cacheSize).withScheduler(new NoopScheduler()).build());
     }
 
     /**

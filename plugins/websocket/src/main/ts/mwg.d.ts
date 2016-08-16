@@ -387,25 +387,19 @@ declare module org {
             private _storage;
             private _scheduler;
             private _plugins;
-            private _offHeap;
-            private _gc;
             private _memorySize;
-            private _saveBatchSize;
             private _readOnly;
             private static _internalBuilder;
-            withOffHeapMemory(): org.mwg.GraphBuilder;
             withStorage(storage: org.mwg.plugin.Storage): org.mwg.GraphBuilder;
             withReadOnlyStorage(storage: org.mwg.plugin.Storage): org.mwg.GraphBuilder;
             withMemorySize(numberOfElements: number): org.mwg.GraphBuilder;
-            saveEvery(numberOfElements: number): org.mwg.GraphBuilder;
             withScheduler(scheduler: org.mwg.plugin.Scheduler): org.mwg.GraphBuilder;
             withPlugin(plugin: org.mwg.plugin.Plugin): org.mwg.GraphBuilder;
-            withGC(): org.mwg.GraphBuilder;
             build(): org.mwg.Graph;
         }
         module GraphBuilder {
             interface InternalBuilder {
-                newGraph(storage: org.mwg.plugin.Storage, readOnly: boolean, scheduler: org.mwg.plugin.Scheduler, plugins: org.mwg.plugin.Plugin[], memorySize: number, autoSaveSize: number): org.mwg.Graph;
+                newGraph(storage: org.mwg.plugin.Storage, readOnly: boolean, scheduler: org.mwg.plugin.Scheduler, plugins: org.mwg.plugin.Plugin[], memorySize: number): org.mwg.Graph;
                 newTask(): org.mwg.task.Task;
             }
         }
@@ -492,7 +486,6 @@ declare module org {
                 save(callback: org.mwg.Callback<boolean>): void;
                 clear(): void;
                 freeAll(): void;
-                size(): number;
                 available(): number;
             }
             class ChunkType {
@@ -613,7 +606,7 @@ declare module org {
                 (): void;
             }
             interface MemoryFactory {
-                newSpace(memorySize: number, saveEvery: number, graph: org.mwg.Graph): org.mwg.chunk.ChunkSpace;
+                newSpace(memorySize: number, graph: org.mwg.Graph): org.mwg.chunk.ChunkSpace;
                 newBuffer(): org.mwg.struct.Buffer;
             }
             interface NodeFactory {
@@ -1048,7 +1041,7 @@ declare module org {
                 disconnect(callback: org.mwg.Callback<boolean>): void;
             }
             class Builder implements org.mwg.GraphBuilder.InternalBuilder {
-                newGraph(p_storage: org.mwg.plugin.Storage, p_readOnly: boolean, p_scheduler: org.mwg.plugin.Scheduler, p_plugins: org.mwg.plugin.Plugin[], p_memorySize: number, p_autoSaveSize: number): org.mwg.Graph;
+                newGraph(p_storage: org.mwg.plugin.Storage, p_readOnly: boolean, p_scheduler: org.mwg.plugin.Scheduler, p_plugins: org.mwg.plugin.Plugin[], p_memorySize: number): org.mwg.Graph;
                 newTask(): org.mwg.task.Task;
             }
             class CoreConstants extends org.mwg.Constants {
@@ -1079,7 +1072,7 @@ declare module org {
                 private _prefix;
                 private _nodeKeyCalculator;
                 private _worldKeyCalculator;
-                constructor(p_storage: org.mwg.plugin.Storage, memorySize: number, saveEvery: number, p_scheduler: org.mwg.plugin.Scheduler, p_plugins: org.mwg.plugin.Plugin[]);
+                constructor(p_storage: org.mwg.plugin.Storage, memorySize: number, p_scheduler: org.mwg.plugin.Scheduler, p_plugins: org.mwg.plugin.Plugin[]);
                 fork(world: number): number;
                 newNode(world: number, time: number): org.mwg.Node;
                 newTypedNode(world: number, time: number, nodeType: string): org.mwg.Node;
@@ -1191,8 +1184,6 @@ declare module org {
                         private static HASH_LOAD_FACTOR;
                         private _maxEntries;
                         private _hashEntries;
-                        private _saveBatchSize;
-                        private _size;
                         private _lru;
                         private _dirtiesStack;
                         private _hashNext;
@@ -1208,7 +1199,7 @@ declare module org {
                         worldByIndex(index: number): number;
                         timeByIndex(index: number): number;
                         idByIndex(index: number): number;
-                        constructor(initialCapacity: number, saveBatchSize: number, p_graph: org.mwg.Graph);
+                        constructor(initialCapacity: number, p_graph: org.mwg.Graph);
                         getAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
                         get(index: number): org.mwg.chunk.Chunk;
                         getOrLoadAndMark(type: number, world: number, time: number, id: number, callback: org.mwg.Callback<org.mwg.chunk.Chunk>): void;
@@ -1220,7 +1211,6 @@ declare module org {
                         save(callback: org.mwg.Callback<boolean>): void;
                         clear(): void;
                         freeAll(): void;
-                        size(): number;
                         available(): number;
                         printMarked(): void;
                     }
@@ -1475,7 +1465,7 @@ declare module org {
                     toString(): string;
                 }
                 class HeapMemoryFactory implements org.mwg.plugin.MemoryFactory {
-                    newSpace(memorySize: number, saveEvery: number, graph: org.mwg.Graph): org.mwg.chunk.ChunkSpace;
+                    newSpace(memorySize: number, graph: org.mwg.Graph): org.mwg.chunk.ChunkSpace;
                     newBuffer(): org.mwg.struct.Buffer;
                 }
             }

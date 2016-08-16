@@ -11,7 +11,7 @@ public class Benchmark2Test {
      */
     //@Test
     public void heapTest() {
-        final Graph graph = new GraphBuilder().withScheduler(new NoopScheduler()).withMemorySize(100).saveEvery(10).build();
+        final Graph graph = new GraphBuilder().withScheduler(new NoopScheduler()).withMemorySize(100).build();
         test(graph, new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {

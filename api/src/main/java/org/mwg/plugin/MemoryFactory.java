@@ -6,7 +6,7 @@ import org.mwg.struct.Buffer;
 
 public interface MemoryFactory {
 
-    ChunkSpace newSpace(long memorySize, long saveEvery, Graph graph);
+    ChunkSpace newSpace(long memorySize, Graph graph);
 
     Buffer newBuffer();
 

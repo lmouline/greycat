@@ -37,7 +37,7 @@ class CoreGraph implements org.mwg.Graph {
     private GenChunk _nodeKeyCalculator = null;
     private GenChunk _worldKeyCalculator = null;
 
-    CoreGraph(final Storage p_storage, long memorySize, long saveEvery, Scheduler p_scheduler, Plugin[] p_plugins) {
+    CoreGraph(final Storage p_storage, long memorySize, Scheduler p_scheduler, Plugin[] p_plugins) {
         final Graph selfPointer = this;
         //First round, find relevant
         MemoryFactory memoryFactory = null;
@@ -69,7 +69,7 @@ class CoreGraph implements org.mwg.Graph {
         //Second round, initialize all mandatory elements
         _storage = p_storage;
         _memoryFactory = memoryFactory;
-        _space = memoryFactory.newSpace(memorySize, saveEvery, selfPointer);
+        _space = memoryFactory.newSpace(memorySize, selfPointer);
         _resolver = resolverFactory.newResolver(_storage, _space);
         _scheduler = p_scheduler;
         //Third round, initialize all taskActions and nodeTypes

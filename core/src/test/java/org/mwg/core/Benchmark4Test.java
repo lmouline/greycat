@@ -20,11 +20,11 @@ import java.util.Random;
  */
 public class Benchmark4Test {
 
-     @Test
+   // @Test
     public void test() {
         int nb = 3000000;
         long init = System.currentTimeMillis();
-        HeapChunkSpace space = new HeapChunkSpace(nb * 2, nb * 2, null);
+        HeapChunkSpace space = new HeapChunkSpace(nb * 2, null);
         for (int i = 0; i < nb; i++) {
             Chunk c = space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, i);
             //space.putAndMark(ChunkType.STATE_CHUNK, 0, 0, i, c);
@@ -69,7 +69,7 @@ public class Benchmark4Test {
     //  @Test
     public void test3() {
         int nb = 1000000;
-        HeapChunkSpace space = new HeapChunkSpace(nb, nb, null);
+        HeapChunkSpace space = new HeapChunkSpace(nb, null);
         Map<Long, Chunk> map = new HashMap<Long, Chunk>();
         for (int i = 0; i < nb; i++) {
             long hashed = HashHelper.tripleHash(ChunkType.STATE_CHUNK, 0, 0, i, nb);
@@ -93,8 +93,6 @@ public class Benchmark4Test {
     public void testlookup() {
         Graph graph = new GraphBuilder()
                 .withMemorySize(5000000)
-                //.withOffHeapMemory()
-                .saveEvery(5000000)
                 .withScheduler(new NoopScheduler())
                 .build();
 

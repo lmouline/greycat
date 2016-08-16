@@ -14,7 +14,7 @@ public abstract class AbstractChunkSpaceTest {
 
     @Test
     public void globalTest() {
-        ChunkSpace space = factory.newSpace(100, 100, null);
+        ChunkSpace space = factory.newSpace(100, null);
 
         StateChunk stateChunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
 

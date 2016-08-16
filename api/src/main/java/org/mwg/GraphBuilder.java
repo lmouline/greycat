@@ -13,17 +13,14 @@ public class GraphBuilder {
     private Storage _storage = null;
     private Scheduler _scheduler = null;
     private Plugin[] _plugins = null;
-    private boolean _offHeap = false;
-    private boolean _gc = false;
     private long _memorySize = -1;
-    private long _saveBatchSize = -1;
     private boolean _readOnly = false;
 
     private static InternalBuilder _internalBuilder = null;
 
     public interface InternalBuilder {
 
-        Graph newGraph(Storage storage, boolean readOnly, Scheduler scheduler, Plugin[] plugins, long memorySize, long autoSaveSize);
+        Graph newGraph(Storage storage, boolean readOnly, Scheduler scheduler, Plugin[] plugins, long memorySize);
 
         Task newTask();
 
@@ -64,17 +61,6 @@ public class GraphBuilder {
     }
 
     /**
-     * Triggers a serialization of teh graph every time the memory reaches the {@code numberOfElements}.
-     *
-     * @param numberOfElements the serialization trigger level
-     * @return the {@link GraphBuilder}, for a fluent API
-     */
-    public GraphBuilder saveEvery(long numberOfElements) {
-        this._saveBatchSize = numberOfElements;
-        return this;
-    }
-
-    /**
      * Sets the scheduler to be used by the graph
      *
      * @param scheduler an instance of scheduler
@@ -105,17 +91,6 @@ public class GraphBuilder {
     }
 
     /**
-     * Activates the use of garbage collection mechanism.
-     *
-     * @return the {@link GraphBuilder}, for a fluent API
-     */
-    public GraphBuilder withGC() {
-        this._gc = true;
-        return this;
-    }
-
-
-    /**
      * To call oce all options have been set, to actually create a graph instance.
      *
      * @return the {@link Graph}
@@ -123,7 +98,7 @@ public class GraphBuilder {
      * if (org.mwg.GraphBuilder._internalBuilder == null) {
      * org.mwg.GraphBuilder._internalBuilder = new org.mwg.core.Builder();
      * }
-     * return org.mwg.GraphBuilder._internalBuilder.newGraph(this._storage, this._readOnly, this._scheduler, this._plugins, this._memorySize, this._saveBatchSize);
+     * return org.mwg.GraphBuilder._internalBuilder.newGraph(this._storage, this._readOnly, this._scheduler, this._plugins, this._memorySize);
      */
     public Graph build() {
         if (_internalBuilder == null) {
@@ -135,7 +110,7 @@ public class GraphBuilder {
                 }
             }
         }
-        return _internalBuilder.newGraph(_storage, _readOnly, _scheduler, _plugins, _memorySize, _saveBatchSize);
+        return _internalBuilder.newGraph(_storage, _readOnly, _scheduler, _plugins, _memorySize);
     }
 
 }

@@ -15,7 +15,7 @@ public class DephasingFlagTest {
 
     @Test
     public void heapTest() {
-        dephaseFlagTest(new GraphBuilder().withMemorySize(cacheSize).saveEvery(cacheSize - 100).withScheduler(new NoopScheduler()).build());
+        dephaseFlagTest(new GraphBuilder().withMemorySize(cacheSize).withScheduler(new NoopScheduler()).build());
     }
 
     /**

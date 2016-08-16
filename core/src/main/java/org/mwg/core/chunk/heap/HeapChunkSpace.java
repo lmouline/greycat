@@ -23,7 +23,6 @@ public class HeapChunkSpace implements ChunkSpace {
 
     private final int _maxEntries;
     private final int _hashEntries;
-    private final int _saveBatchSize;
 
     private final Stack _lru;
     private final Stack _dirtiesStack;
@@ -61,14 +60,10 @@ public class HeapChunkSpace implements ChunkSpace {
         return this._chunkIds.get((int) index);
     }
 
-    public HeapChunkSpace(final int initialCapacity, final int saveBatchSize, final Graph p_graph) {
+    public HeapChunkSpace(final int initialCapacity, final Graph p_graph) {
         _graph = p_graph;
-        if (saveBatchSize > initialCapacity) {
-            throw new RuntimeException("Save Batch Size can't be bigger than cache size");
-        }
         _maxEntries = initialCapacity;
         _hashEntries = initialCapacity * HASH_LOAD_FACTOR;
-        _saveBatchSize = saveBatchSize;
         _lru = new FixedStack(initialCapacity, true);
         _dirtiesStack = new FixedStack(initialCapacity, false);
         _hashNext = new int[initialCapacity];
@@ -78,7 +73,6 @@ public class HeapChunkSpace implements ChunkSpace {
 
         _hash = new int[_hashEntries];
         Arrays.fill(_hash, 0, _hashEntries, -1);
-
 
         _chunkWorlds = new AtomicLongArray(_maxEntries);
 
@@ -237,7 +231,7 @@ public class HeapChunkSpace implements ChunkSpace {
             }
         }
         if (currentVictimIndex == -1) {
-            printMarked();
+            // printMarked();
             throw new RuntimeException("mwDB crashed, cache is full, please avoid to much retention of nodes or augment cache capacity! available:" + available());
         }
         Chunk toInsert = null;
@@ -301,9 +295,6 @@ public class HeapChunkSpace implements ChunkSpace {
     public void notifyUpdate(long index) {
         if (_dirtiesStack.enqueue(index)) {
             mark(index);
-            if (_dirtiesStack.size() > _saveBatchSize) {
-                save(null);
-            }
         }
     }
 

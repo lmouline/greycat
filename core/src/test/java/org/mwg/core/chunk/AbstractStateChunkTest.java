@@ -25,7 +25,7 @@ public abstract class AbstractStateChunkTest {
     @Test
     public void saveLoadTest() {
 
-        ChunkSpace space = factory.newSpace(100, 100, null);
+        ChunkSpace space = factory.newSpace(100, null);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
 
         //init chunk selectWith primitives
@@ -149,7 +149,7 @@ public abstract class AbstractStateChunkTest {
 
     @Test
     public void cloneTest() {
-        ChunkSpace space = factory.newSpace(100, 100, null);
+        ChunkSpace space = factory.newSpace(100, null);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
 
         //init primitives
@@ -252,7 +252,7 @@ public abstract class AbstractStateChunkTest {
     @Test
     public void protectionTest() {
 
-        ChunkSpace space = factory.newSpace(100, 100, null);
+        ChunkSpace space = factory.newSpace(100, null);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
 
         //boolean protection test
@@ -300,7 +300,7 @@ public abstract class AbstractStateChunkTest {
 
     @Test
     public void typeSwitchTest() {
-        ChunkSpace space = factory.newSpace(100, 100, null);
+        ChunkSpace space = factory.newSpace(100, null);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
 
         //init primitives

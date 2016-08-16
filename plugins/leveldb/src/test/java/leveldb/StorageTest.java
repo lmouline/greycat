@@ -20,10 +20,10 @@ public class StorageTest {
 */
         //Unsafe.DEBUG_MODE = true;
 
-        test("offheap ", new GraphBuilder().withStorage(new LevelDBStorage("data")).withScheduler(new NoopScheduler()).withMemorySize(100000).saveEvery(10000).build());
+        test("offheap ", new GraphBuilder().withStorage(new LevelDBStorage("data")).withScheduler(new NoopScheduler()).withMemorySize(2000000).build());
     }
 
-    final int valuesToInsert = 300000;
+    final int valuesToInsert = 1000000;
     final long timeOrigin = 1000;
 
     private void test(final String name, final Graph graph) throws IOException {
@@ -37,6 +37,7 @@ public class StorageTest {
 
                     if (i % 1000000 == 0) {
                         System.out.println("<insert til " + i + " in " + (System.currentTimeMillis() - before) / 1000 + "s");
+                        graph.save(null);
                     }
 
                     final double value = i * 0.3;

@@ -14,7 +14,6 @@ public class WSServerTest {
     public static void main(String[] args) {
         final Graph graph = new GraphBuilder()
                 .withMemorySize(10000)
-                .saveEvery(1000)
                 .build();
         graph.connect(new Callback<Boolean>() {
             @Override
@@ -64,7 +63,6 @@ public class WSServerTest {
 
         final Graph graph = new GraphBuilder()
                 .withMemorySize(10000)
-                .saveEvery(1000)
                 .build();
         graph.connect(new Callback<Boolean>() {
             @Override
@@ -78,7 +76,7 @@ public class WSServerTest {
                 WSServer graphServer = new WSServer(graph, 8050);
                 graphServer.start();
                 final CountDownLatch latch = new CountDownLatch(1);
-                final Graph graph2 = new GraphBuilder().withMemorySize(10000).saveEvery(1000).withStorage(new WSClient("ws://localhost:8050")).build();
+                final Graph graph2 = new GraphBuilder().withMemorySize(10000).withStorage(new WSClient("ws://localhost:8050")).build();
                 graph2.connect(new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result1) {
@@ -86,7 +84,7 @@ public class WSServerTest {
                             @Override
                             public void on(Node[] result1) {
 
-                                Assert.assertEquals(result1[0].toString(),node.toString());
+                                Assert.assertEquals(result1[0].toString(), node.toString());
 
                                 Node newNode = graph2.newNode(0, 0);
                                 newNode.set("name", "hello2");

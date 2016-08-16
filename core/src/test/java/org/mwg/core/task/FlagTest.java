@@ -17,7 +17,6 @@ public class FlagTest {
     public void traverse() {
         Graph graph = new GraphBuilder()
                 .withMemorySize(30000)
-                .saveEvery(10000)
                 .withScheduler(new NoopScheduler())
                 .build();
 
@@ -112,7 +111,6 @@ public class FlagTest {
     public void traverseOrKeep() {
         Graph graph = new GraphBuilder()
                 .withMemorySize(30000)
-                .saveEvery(10000)
                 .withScheduler(new NoopScheduler())
                 .build();
 
