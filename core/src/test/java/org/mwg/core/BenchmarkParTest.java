@@ -9,6 +9,9 @@ import org.mwg.task.*;
 
 import static org.mwg.task.Actions.*;
 
+/**
+ * @ignore ts
+ */
 public class BenchmarkParTest {
 
     public static void main(String[] args) {

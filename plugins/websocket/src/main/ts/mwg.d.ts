@@ -44,6 +44,24 @@ declare module java {
                     getAndSet(index: number, newVal: number): number;
                     compareAndSet(index: number, expect: number, update: number): boolean;
                 }
+                class AtomicLongArray {
+                    _internal: Float64Array;
+                    constructor(initialCapacity: number);
+                    set(index: number, newVal: number): void;
+                    get(index: number): number;
+                    getAndSet(index: number, newVal: number): number;
+                    compareAndSet(index: number, expect: number, update: number): boolean;
+                    length(): number;
+                }
+                class AtomicReferenceArray<A> {
+                    _internal: Array<A>;
+                    constructor(initialCapacity: number);
+                    set(index: number, newVal: A): void;
+                    get(index: number): A;
+                    getAndSet(index: number, newVal: A): A;
+                    compareAndSet(index: number, expect: A, update: A): boolean;
+                    length(): number;
+                }
                 class AtomicReference<A> {
                     _internal: A;
                     compareAndSet(expect: A, update: A): boolean;
@@ -87,9 +105,12 @@ declare module java {
             }
         }
         class Random {
+            private seed;
             nextInt(max?: number): number;
             nextDouble(): number;
             nextBoolean(): boolean;
+            setSeed(seed: number): void;
+            private nextSeeded(min?, max?);
         }
         interface Iterator<E> {
             hasNext(): boolean;
@@ -776,7 +797,7 @@ declare module org {
                 static lookup(world: string, time: string, id: string): org.mwg.task.Task;
                 static clear(): org.mwg.task.Task;
                 static subTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                static isolatedSubTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                static isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 static subTasks(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                 static subTasksPar(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
             }
@@ -812,7 +833,7 @@ declare module org {
                 foreach(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 foreachPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 subTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                isolatedSubTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 subTasks(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                 subTasksPar(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                 ifThen(cond: org.mwg.task.TaskFunctionConditional, then: org.mwg.task.Task): org.mwg.task.Task;
@@ -838,11 +859,12 @@ declare module org {
                 repeatPar(repetition: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                 print(name: string): org.mwg.task.Task;
                 hook(hook: org.mwg.task.TaskHook): org.mwg.task.Task;
-                execute(graph: org.mwg.Graph, result: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
-                executeWith(graph: org.mwg.Graph, initial: any, result: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
-                prepareWith(graph: org.mwg.Graph, initial: any, result: org.mwg.Callback<org.mwg.task.TaskResult<any>>): org.mwg.task.TaskContext;
+                execute(graph: org.mwg.Graph, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
+                executeWith(graph: org.mwg.Graph, initial: any, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
+                prepareWith(graph: org.mwg.Graph, initial: any, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): org.mwg.task.TaskContext;
                 executeUsing(preparedContext: org.mwg.task.TaskContext): void;
-                executeFrom(context: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, affinity: number, result: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
+                executeFrom(parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, affinity: number, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
+                executeFromUsing(parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, affinity: number, contextInitializer: org.mwg.Callback<org.mwg.task.TaskContext>, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                 emptyResult(): org.mwg.task.TaskResult<any>;
             }
             interface TaskAction {
@@ -1077,7 +1099,7 @@ declare module org {
                 findByQuery(query: org.mwg.Query, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 findAll(world: number, time: number, indexName: string, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 getIndexNode(world: number, time: number, indexName: string, callback: org.mwg.Callback<org.mwg.Node>): void;
-                private getIndexOrCreate(world, time, indexName, callback, createIfNull);
+                private getIndexOrCreate(world, time, indexName, createIfNull, callback);
                 newCounter(expectedCountCalls: number): org.mwg.DeferCounter;
                 newSyncCounter(expectedCountCalls: number): org.mwg.DeferCounterSync;
                 resolver(): org.mwg.plugin.Resolver;
@@ -1181,13 +1203,11 @@ declare module org {
                         private _chunkTypes;
                         private _chunkValues;
                         private _chunkMarks;
-                        private _dirties;
                         private _graph;
                         graph(): org.mwg.Graph;
                         worldByIndex(index: number): number;
                         timeByIndex(index: number): number;
                         idByIndex(index: number): number;
-                        getValues(): org.mwg.chunk.Chunk[];
                         constructor(initialCapacity: number, saveBatchSize: number, p_graph: org.mwg.Graph);
                         getAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
                         get(index: number): org.mwg.chunk.Chunk;
@@ -1209,6 +1229,7 @@ declare module org {
                         private _index;
                         private _prefix;
                         private _seed;
+                        private _dirty;
                         constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_id: number, p_index: number);
                         save(buffer: org.mwg.struct.Buffer): void;
                         load(buffer: org.mwg.struct.Buffer): void;
@@ -1295,6 +1316,7 @@ declare module org {
                         private _hash;
                         private _type;
                         private unaligned;
+                        private _dirty;
                         constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_index: number);
                         world(): number;
                         time(): number;
@@ -1358,6 +1380,7 @@ declare module org {
                         private _colors;
                         private _magic;
                         private _size;
+                        private _dirty;
                         constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_index: number);
                         world(): number;
                         time(): number;
@@ -1411,6 +1434,7 @@ declare module org {
                         private _kv;
                         private _next;
                         private _hash;
+                        private _dirty;
                         constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_index: number);
                         world(): number;
                         time(): number;
@@ -1448,6 +1472,7 @@ declare module org {
                     free(): void;
                     iterator(): org.mwg.struct.BufferIterator;
                     removeLast(): void;
+                    toString(): string;
                 }
                 class HeapMemoryFactory implements org.mwg.plugin.MemoryFactory {
                     newSpace(memorySize: number, saveEvery: number, graph: org.mwg.Graph): org.mwg.chunk.ChunkSpace;
@@ -1587,7 +1612,7 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
-                class ActionIsolatedSubTask extends org.mwg.plugin.AbstractTaskAction {
+                class ActionIsolate extends org.mwg.plugin.AbstractTaskAction {
                     private _subTask;
                     constructor(p_subTask: org.mwg.task.Task);
                     eval(context: org.mwg.task.TaskContext): void;
@@ -1814,7 +1839,7 @@ declare module org {
                     groupWhere(groupSubTask: org.mwg.task.Task): org.mwg.task.Task;
                     inject(inputValue: any): org.mwg.task.Task;
                     subTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                    isolatedSubTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                    isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     subTasks(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                     subTasksPar(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                     ifThen(cond: org.mwg.task.TaskFunctionConditional, then: org.mwg.task.Task): org.mwg.task.Task;
@@ -1832,6 +1857,7 @@ declare module org {
                     prepareWith(graph: org.mwg.Graph, initial: any, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): org.mwg.task.TaskContext;
                     executeUsing(preparedContext: org.mwg.task.TaskContext): void;
                     executeFrom(parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, affinity: number, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
+                    executeFromUsing(parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, affinity: number, contextInitializer: org.mwg.Callback<org.mwg.task.TaskContext>, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                     action(name: string, flatParams: string): org.mwg.task.Task;
                     parse(flat: string): org.mwg.task.Task;
                     newNode(): org.mwg.task.Task;
@@ -1854,7 +1880,7 @@ declare module org {
                     private _globalVariables;
                     private _parent;
                     private _graph;
-                    private _callback;
+                    _callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>;
                     private _ident;
                     private _localVariables;
                     private _nextVariables;
