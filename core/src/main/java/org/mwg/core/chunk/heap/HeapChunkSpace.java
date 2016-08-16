@@ -314,27 +314,27 @@ public class HeapChunkSpace implements ChunkSpace {
 
     @Override
     public synchronized void save(final Callback<Boolean> callback) {
-        boolean isNoop = this._graph.storage() instanceof BlackHoleStorage;
+        //boolean isNoop = this._graph.storage() instanceof BlackHoleStorage;
         final Buffer stream = this._graph.newBuffer();
         boolean isFirst = true;
         while (_dirtiesStack.size() != 0) {
             long tail = _dirtiesStack.dequeueTail();
             Chunk loopChunk = _chunkValues.get((int) tail);
             //Save chunk Key
-            if (!isNoop) {
+           // if (!isNoop) {
                 if (isFirst) {
                     isFirst = false;
                 } else {
                     stream.write(CoreConstants.BUFFER_SEP);
                 }
                 KeyHelper.keyToBuffer(stream, loopChunk.chunkType(), loopChunk.world(), loopChunk.time(), loopChunk.id());
-            }
+            //}
             //Save chunk payload
             stream.write(CoreConstants.BUFFER_SEP);
             try {
-                if (!isNoop) { //optimization to not save unused bytes
+                //if (!isNoop) { //optimization to not save unused bytes
                     loopChunk.save(stream);
-                }
+                //}
                 unmark((int) tail);
             } catch (Exception e) {
                 e.printStackTrace();
