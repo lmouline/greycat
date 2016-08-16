@@ -45,9 +45,7 @@ public interface ChunkSpace {
     void clear();
 
     void freeAll();
-
-    long size();
-
+    
     long available();
 
 }

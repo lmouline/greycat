@@ -30,16 +30,6 @@ public class GraphBuilder {
     }
 
     /**
-     * Activates the use of Off-Heap memory mechanisms
-     *
-     * @return the {@link GraphBuilder}, for a fluent API
-     */
-    public GraphBuilder withOffHeapMemory() {
-        this._offHeap = true;
-        return this;
-    }
-
-    /**
      * Sets the storage system to the given parameter.
      *
      * @param storage the storage system to be used by the graph

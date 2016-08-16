@@ -45,7 +45,7 @@ class ActionRepeat extends AbstractTaskAction {
                         selfPointer._subTask.executeFromUsing(context, previous, SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
                             @Override
                             public void on(TaskContext result) {
-                                result.defineVariable("it",nextCursor);
+                                result.defineVariable("it", nextCursor);
                             }
                         }, recursiveAction[0]);
                     }
@@ -54,7 +54,7 @@ class ActionRepeat extends AbstractTaskAction {
             _subTask.executeFromUsing(context, previous, SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
                 @Override
                 public void on(TaskContext result) {
-                    result.defineVariable("it",cursor.get());
+                    result.defineVariable("it", cursor.get());
                 }
             }, recursiveAction[0]);
         } else {

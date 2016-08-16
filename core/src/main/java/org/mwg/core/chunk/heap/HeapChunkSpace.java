@@ -25,8 +25,6 @@ public class HeapChunkSpace implements ChunkSpace {
     private final int _hashEntries;
     private final int _saveBatchSize;
 
-    private int _size;
-
     private final Stack _lru;
     private final Stack _dirtiesStack;
 
@@ -78,7 +76,6 @@ public class HeapChunkSpace implements ChunkSpace {
 
         _chunkValues = new AtomicReferenceArray<Chunk>(initialCapacity);
 
-        _size = 0;
         _hash = new int[_hashEntries];
         Arrays.fill(_hash, 0, _hashEntries, -1);
 
@@ -228,7 +225,6 @@ public class HeapChunkSpace implements ChunkSpace {
                 return _chunkValues.get(entry);
             }
         }
-
         int currentVictimIndex = -1;
         while (currentVictimIndex == -1) {
             int temp_victim = (int) this._lru.dequeueTail();
@@ -241,7 +237,8 @@ public class HeapChunkSpace implements ChunkSpace {
             }
         }
         if (currentVictimIndex == -1) {
-            throw new RuntimeException("mwDB crashed, cache is full, please avoid to much retention of nodes or augment cache capacity!");
+            printMarked();
+            throw new RuntimeException("mwDB crashed, cache is full, please avoid to much retention of nodes or augment cache capacity! available:" + available());
         }
         Chunk toInsert = null;
         switch (type) {
@@ -286,7 +283,6 @@ public class HeapChunkSpace implements ChunkSpace {
                 }
             }
             _hashNext[m] = -1;
-            _size--;
         }
         _chunkValues.set(currentVictimIndex, toInsert);
         _chunkMarks.set(currentVictimIndex, 1);
@@ -298,7 +294,6 @@ public class HeapChunkSpace implements ChunkSpace {
         _hashNext[currentVictimIndex] = _hash[hashIndex];
         _hash[hashIndex] = currentVictimIndex;
         //free the lock
-        _size++;
         return toInsert;
     }
 
@@ -314,28 +309,23 @@ public class HeapChunkSpace implements ChunkSpace {
 
     @Override
     public synchronized void save(final Callback<Boolean> callback) {
-        //boolean isNoop = this._graph.storage() instanceof BlackHoleStorage;
         final Buffer stream = this._graph.newBuffer();
         boolean isFirst = true;
         while (_dirtiesStack.size() != 0) {
-            long tail = _dirtiesStack.dequeueTail();
-            Chunk loopChunk = _chunkValues.get((int) tail);
+            int tail = (int) _dirtiesStack.dequeueTail();
+            Chunk loopChunk = _chunkValues.get(tail);
             //Save chunk Key
-           // if (!isNoop) {
-                if (isFirst) {
-                    isFirst = false;
-                } else {
-                    stream.write(CoreConstants.BUFFER_SEP);
-                }
-                KeyHelper.keyToBuffer(stream, loopChunk.chunkType(), loopChunk.world(), loopChunk.time(), loopChunk.id());
-            //}
+            if (isFirst) {
+                isFirst = false;
+            } else {
+                stream.write(CoreConstants.BUFFER_SEP);
+            }
+            KeyHelper.keyToBuffer(stream, _chunkTypes[tail], _chunkWorlds.get(tail), _chunkTimes.get(tail), _chunkIds.get(tail));
             //Save chunk payload
             stream.write(CoreConstants.BUFFER_SEP);
             try {
-                //if (!isNoop) { //optimization to not save unused bytes
-                    loopChunk.save(stream);
-                //}
-                unmark((int) tail);
+                loopChunk.save(stream);
+                unmark(tail);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -361,11 +351,6 @@ public class HeapChunkSpace implements ChunkSpace {
     @Override
     public final void freeAll() {
         //TODO reset everything
-    }
-
-    @Override
-    public final long size() {
-        return _size;
     }
 
     @Override
