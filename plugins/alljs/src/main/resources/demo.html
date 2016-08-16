@@ -10,7 +10,6 @@
     var graph = new org.mwg.GraphBuilder()
             .withStorage(new org.mwg.plugin.WSClient("ws://localhost:8050"))
             .withMemorySize(10000)
-            .saveEvery(100)
             .build();
     graph.connect(function () {
         var nowTime = new Date().getMilliseconds();
