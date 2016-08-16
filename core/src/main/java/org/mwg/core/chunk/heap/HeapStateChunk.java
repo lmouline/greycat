@@ -570,13 +570,16 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                             System.arraycopy(_type, 0, cloned_type, 0, _capacity);
                             _type = cloned_type;
 
-                            int[] cloned_next = new int[_capacity];
-                            System.arraycopy(_next, 0, cloned_next, 0, _capacity);
-                            _next = cloned_next;
-
-                            int[] cloned_hash = new int[_capacity * 2];
-                            System.arraycopy(_hash, 0, cloned_hash, 0, _capacity * 2);
-                            _hash = cloned_hash;
+                            if(_next != null){
+                                int[] cloned_next = new int[_capacity];
+                                System.arraycopy(_next, 0, cloned_next, 0, _capacity);
+                                _next = cloned_next;
+                            }
+                            if(_hash != null){
+                                int[] cloned_hash = new int[_capacity * 2];
+                                System.arraycopy(_hash, 0, cloned_hash, 0, _capacity * 2);
+                                _hash = cloned_hash;
+                            }
                             unaligned = false;
                         }
 
