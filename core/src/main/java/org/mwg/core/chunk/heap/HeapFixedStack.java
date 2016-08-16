@@ -1,10 +1,11 @@
 package org.mwg.core.chunk.heap;
 
-import org.mwg.core.chunk.Stack;
+
+import org.mwg.chunk.Stack;
 
 import java.util.Arrays;
 
-public final class FixedStack implements Stack {
+public final class HeapFixedStack implements Stack {
 
     private final int[] _next;
     private final int[] _prev;
@@ -13,7 +14,7 @@ public final class FixedStack implements Stack {
     private int _last;
     private int _count;
 
-    public FixedStack(int capacity, boolean fill) {
+    public HeapFixedStack(int capacity, boolean fill) {
         this._capacity = capacity;
         this._next = new int[capacity];
         this._prev = new int[capacity];

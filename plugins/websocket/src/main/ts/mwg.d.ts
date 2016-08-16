@@ -1180,6 +1180,12 @@ declare module org {
                         free(): void;
                         size(): number;
                     }
+                    class HeapAtomicByteArray {
+                        private _back;
+                        constructor(initialSize: number);
+                        get(index: number): number;
+                        set(index: number, value: number): void;
+                    }
                     class HeapChunkSpace implements org.mwg.chunk.ChunkSpace {
                         private static HASH_LOAD_FACTOR;
                         private _maxEntries;

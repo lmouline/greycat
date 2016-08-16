@@ -2,42 +2,19 @@ package org.mwg.core.chunk;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mwg.core.chunk.heap.FixedStack;
+import org.mwg.chunk.Stack;
+import org.mwg.core.chunk.heap.HeapFixedStack;
 
 public class FixedStackTest {
-    private static final int CAPACITY = 15;
 
+    protected static final int CAPACITY = 15;
 
     @Test
     public void heapFixedStackTest() {
-        test(new FixedStack(CAPACITY, true));
+        test(new HeapFixedStack(CAPACITY, true));
     }
 
-    /**
-     * @ignore ts
-     */
-    @Test
-    public void offHeapFixedStackTest() {
-        /*
-        OffHeapByteArray.alloc_counter = 0;
-        OffHeapDoubleArray.alloc_counter = 0;
-        OffHeapLongArray.alloc_counter = 0;
-        OffHeapStringArray.alloc_counter = 0;
-
-        Unsafe.DEBUG_MODE = true;
-
-        OffHeapFixedStack stack = new OffHeapFixedStack(CAPACITY);
-        test(stack);
-        stack.free();
-
-        Assert.assertTrue(OffHeapByteArray.alloc_counter == 0);
-        Assert.assertTrue(OffHeapDoubleArray.alloc_counter == 0);
-        Assert.assertTrue(OffHeapLongArray.alloc_counter == 0);
-        Assert.assertTrue(OffHeapStringArray.alloc_counter == 0);
-        */
-    }
-
-    public void test(Stack stack) {
+    protected void test(Stack stack) {
         // stack is initially full, dequeue until empty
         for (int i = 0; i < CAPACITY; i++) {
             Assert.assertTrue(stack.dequeueTail() == i);

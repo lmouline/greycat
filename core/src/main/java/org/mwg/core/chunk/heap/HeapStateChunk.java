@@ -104,7 +104,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         }
         int found = internal_find(p_key);
         Object result;
-        if(found != -1) {
+        if (found != -1) {
             result = _v[found];
             //TODO optimize this
             if (result != null) {
@@ -253,7 +253,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                     buffer.write(CoreConstants.CHUNK_SEP);
                     Base64.encodeLongToBuffer(_k[i], buffer);
                     buffer.write(CoreConstants.CHUNK_SUB_SEP);
-                    /** Encode to type of elem, for unSerialization */
                     Base64.encodeIntToBuffer(_type[i], buffer);
                     buffer.write(CoreConstants.CHUNK_SUB_SEP);
                     switch (_type[i]) {
@@ -413,7 +412,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         if (p_unsafe_elem != null) {
             try {
                 switch (p_type) {
-                    /** Primitives */
                     case Type.BOOL:
                         param_elem = (boolean) p_unsafe_elem;
                         break;
@@ -434,7 +432,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                     case Type.STRING:
                         param_elem = (String) p_unsafe_elem;
                         break;
-                    /** Arrays */
                     case Type.RELATION:
                         param_elem = (Relationship) p_unsafe_elem;
                         break;
@@ -456,7 +453,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                         System.arraycopy(castedParamInt, 0, clonedIntArray, 0, castedParamInt.length);
                         param_elem = clonedIntArray;
                         break;
-                    /** Maps */
                     case Type.STRING_TO_LONG_MAP:
                         param_elem = (StringLongMap) p_unsafe_elem;
                         break;
@@ -570,12 +566,12 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                             System.arraycopy(_type, 0, cloned_type, 0, _capacity);
                             _type = cloned_type;
 
-                            if(_next != null){
+                            if (_next != null) {
                                 int[] cloned_next = new int[_capacity];
                                 System.arraycopy(_next, 0, cloned_next, 0, _capacity);
                                 _next = cloned_next;
                             }
-                            if(_hash != null){
+                            if (_hash != null) {
                                 int[] cloned_hash = new int[_capacity * 2];
                                 System.arraycopy(_hash, 0, cloned_hash, 0, _capacity * 2);
                                 _hash = cloned_hash;
@@ -949,7 +945,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         if (currentChunkElemType != -1) {
             Object toInsert = null;
             switch (currentChunkElemType) {
-                /** Primitive Object */
                 case Type.BOOL:
                     if (buffer.read(previousStart) == CoreConstants.BOOL_FALSE) {
                         toInsert = false;
