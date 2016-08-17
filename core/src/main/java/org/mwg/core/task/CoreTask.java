@@ -652,7 +652,7 @@ public class CoreTask implements org.mwg.task.Task {
 
     @Override
     public TaskFunctionConditional mathConditional(String mathExpression) {
-        return new MathConditional(mathExpression);
+        return new MathConditional(mathExpression).conditional();
     }
 
     public static void fillDefault(Map<String, TaskActionFactory> registry) {
