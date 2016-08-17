@@ -798,7 +798,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                                 } else {
                                     currentRelation.add(Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
                                 }
-                                toInsert = currentLongArr;
+                                toInsert = currentRelation;
                                 break;
                             case Type.STRING_TO_LONG_MAP:
                                 if (currentMapStringKey != null) {
@@ -992,7 +992,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                     if (currentRelation != null) {
                         currentRelation.add(Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
                     }
-                    toInsert = currentLongArr;
+                    toInsert = currentRelation;
                     break;
                 case Type.STRING_TO_LONG_MAP:
                     if (currentMapStringKey != null) {

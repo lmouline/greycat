@@ -793,6 +793,7 @@ declare module org {
                 static isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 static subTasks(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                 static subTasksPar(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
+                static cond(mathExpression: string): org.mwg.task.TaskFunctionConditional;
             }
             interface Task {
                 setWorld(template: string): org.mwg.task.Task;
@@ -853,12 +854,14 @@ declare module org {
                 print(name: string): org.mwg.task.Task;
                 hook(hook: org.mwg.task.TaskHook): org.mwg.task.Task;
                 execute(graph: org.mwg.Graph, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
+                executeSync(graph: org.mwg.Graph): org.mwg.task.TaskResult<any>;
                 executeWith(graph: org.mwg.Graph, initial: any, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                 prepareWith(graph: org.mwg.Graph, initial: any, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): org.mwg.task.TaskContext;
                 executeUsing(preparedContext: org.mwg.task.TaskContext): void;
                 executeFrom(parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, affinity: number, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                 executeFromUsing(parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, affinity: number, contextInitializer: org.mwg.Callback<org.mwg.task.TaskContext>, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                 emptyResult(): org.mwg.task.TaskResult<any>;
+                mathConditional(mathExpression: string): org.mwg.task.TaskFunctionConditional;
             }
             interface TaskAction {
                 eval(context: org.mwg.task.TaskContext): void;
@@ -1158,28 +1161,7 @@ declare module org {
                 hashToString(key: number): string;
             }
             module chunk {
-                interface Stack {
-                    enqueue(index: number): boolean;
-                    dequeueTail(): number;
-                    dequeue(index: number): boolean;
-                    free(): void;
-                    size(): number;
-                }
                 module heap {
-                    class FixedStack implements org.mwg.core.chunk.Stack {
-                        private _next;
-                        private _prev;
-                        private _capacity;
-                        private _first;
-                        private _last;
-                        private _count;
-                        constructor(capacity: number, fill: boolean);
-                        enqueue(index: number): boolean;
-                        dequeueTail(): number;
-                        dequeue(index: number): boolean;
-                        free(): void;
-                        size(): number;
-                    }
                     class HeapAtomicByteArray {
                         private _back;
                         constructor(initialSize: number);
@@ -1219,6 +1201,20 @@ declare module org {
                         freeAll(): void;
                         available(): number;
                         printMarked(): void;
+                    }
+                    class HeapFixedStack implements org.mwg.chunk.Stack {
+                        private _next;
+                        private _prev;
+                        private _capacity;
+                        private _first;
+                        private _last;
+                        private _count;
+                        constructor(capacity: number, fill: boolean);
+                        enqueue(index: number): boolean;
+                        dequeueTail(): number;
+                        dequeue(index: number): boolean;
+                        free(): void;
+                        size(): number;
                     }
                     class HeapGenChunk implements org.mwg.chunk.GenChunk {
                         private _space;
@@ -1449,8 +1445,8 @@ declare module org {
                         index(): number;
                         remove(key: number): void;
                         size(): number;
-                        save(buffer: org.mwg.struct.Buffer): void;
                         chunkType(): number;
+                        save(buffer: org.mwg.struct.Buffer): void;
                     }
                 }
             }
@@ -1849,6 +1845,7 @@ declare module org {
                     clear(): org.mwg.task.Task;
                     lookup(world: string, time: string, id: string): org.mwg.task.Task;
                     execute(graph: org.mwg.Graph, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
+                    executeSync(graph: org.mwg.Graph): org.mwg.task.TaskResult<any>;
                     executeWith(graph: org.mwg.Graph, initial: any, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                     prepareWith(graph: org.mwg.Graph, initial: any, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): org.mwg.task.TaskContext;
                     executeUsing(preparedContext: org.mwg.task.TaskContext): void;
@@ -1870,6 +1867,7 @@ declare module org {
                     print(name: string): org.mwg.task.Task;
                     hook(p_hook: org.mwg.task.TaskHook): org.mwg.task.Task;
                     emptyResult(): org.mwg.task.TaskResult<any>;
+                    mathConditional(mathExpression: string): org.mwg.task.TaskFunctionConditional;
                     static fillDefault(registry: java.util.Map<string, org.mwg.task.TaskActionFactory>): void;
                 }
                 class CoreTaskContext implements org.mwg.task.TaskContext {
@@ -1963,6 +1961,13 @@ declare module org {
                         private buildAST(rpn);
                         private parseDouble(val);
                         private parseInt(val);
+                    }
+                    class MathConditional {
+                        private _engine;
+                        private _expression;
+                        constructor(mathExpression: string);
+                        conditional(): org.mwg.task.TaskFunctionConditional;
+                        toString(): string;
                     }
                     class MathDoubleToken implements org.mwg.core.task.math.MathToken {
                         private _content;

@@ -132,8 +132,9 @@
         <module>plugins/structure</module>
 
 
+        <!--
         <module>plugins/memory</module>
-        
+        -->
 
     </modules>
 
