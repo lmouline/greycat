@@ -7,27 +7,31 @@
         graph.connect(function () {
 
             graph.findAll(0, 0, "nodes", function (nodes) {
-                console.log(nodes[0].toString());
+
+                console.log("Nodes....");
+                for(var i=0;i<nodes.length;i++){
+                    console.log(nodes[i].toString());
+                }
+
 
             });
 
-            graph.getIndexNode(0,0,"nodes", function(node){
+/*
+            graph.getIndexNode(0, 0, "nodes", function (node) {
                 console.log(node.toString());
+            });*/
+
+
+            var node_a = graph.newNode(0, 0);
+            node_a.set("name", "n_" + Date.now());
+            graph.index("nodes", node_a, "name", function (res) {
+                graph.save(function (res) {
+                    //graph.findAll(0, 0, "nodes", function (nodes) {
+                    //    console.log(nodes);
+                   // });
+                    //console.log(graph);
+                });
             });
-
-
-            /*
-             var node_a = graph.newNode(0, 0);
-             node_a.set("name", "n_" + Date.now());
-             graph.index("nodes", node_a, "name", function (res) {
-             graph.save(function (res) {
-
-             graph.findAll(0, 0, "nodes", function (nodes) {
-             console.log(nodes);
-             });
-             //console.log(graph);
-             });
-             });*/
 
         });
     </script>

@@ -389,6 +389,8 @@ public interface Task {
 
     void execute(final Graph graph, final Callback<TaskResult> callback);
 
+    TaskResult executeSync(final Graph graph);
+
     void executeWith(final Graph graph, final Object initial, final Callback<TaskResult> callback);
 
     TaskContext prepareWith(final Graph graph, final Object initial, final Callback<TaskResult> callback);
@@ -400,5 +402,7 @@ public interface Task {
     void executeFromUsing(final TaskContext parentContext, final TaskResult initial, final byte affinity, final Callback<TaskContext> contextInitializer, final Callback<TaskResult> callback);
 
     TaskResult emptyResult();
+
+    TaskFunctionConditional mathConditional(String mathExpression);
 
 }

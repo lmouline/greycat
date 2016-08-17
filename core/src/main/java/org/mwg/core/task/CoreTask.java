@@ -2,7 +2,9 @@ package org.mwg.core.task;
 
 import org.mwg.Callback;
 import org.mwg.Constants;
+import org.mwg.DeferCounterSync;
 import org.mwg.Graph;
+import org.mwg.core.task.math.MathConditional;
 import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.SchedulerAffinity;
@@ -373,6 +375,13 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
+    public TaskResult executeSync(final Graph graph) {
+        DeferCounterSync waiter = graph.newSyncCounter(1);
+        executeWith(graph, null, waiter.wrap());
+        return (TaskResult) waiter.waitResult();
+    }
+
+    @Override
     public void executeWith(final Graph graph, final Object initial, final Callback<TaskResult> callback) {
         if (_first != null) {
             final TaskResult initalRes;
@@ -639,6 +648,11 @@ public class CoreTask implements org.mwg.task.Task {
     @Override
     public TaskResult emptyResult() {
         return new CoreTaskResult(null, false);
+    }
+
+    @Override
+    public TaskFunctionConditional mathConditional(String mathExpression) {
+        return new MathConditional(mathExpression);
     }
 
     public static void fillDefault(Map<String, TaskActionFactory> registry) {

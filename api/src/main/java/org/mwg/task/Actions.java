@@ -227,4 +227,8 @@ public class Actions {
         return newTask().subTasksPar(subTasks);
     }
 
+    public static TaskFunctionConditional cond(String mathExpression) {
+        return newTask().mathConditional(mathExpression);
+    }
+
 }

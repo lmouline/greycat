@@ -32,7 +32,6 @@ public class HeapChunkSpace implements ChunkSpace {
     private final AtomicLongArray _chunkWorlds;
     private final AtomicLongArray _chunkTimes;
     private final AtomicLongArray _chunkIds;
-
     private final HeapAtomicByteArray _chunkTypes;
 
     private final AtomicReferenceArray<Chunk> _chunkValues;
