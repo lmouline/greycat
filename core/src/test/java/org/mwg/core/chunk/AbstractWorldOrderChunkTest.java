@@ -18,6 +18,22 @@ public abstract class AbstractWorldOrderChunkTest {
     }
 
     @Test
+    public void simpleTest() {
+        ChunkSpace space = factory.newSpace(100, null);
+        WorldOrderChunk map = (WorldOrderChunk) space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 0);
+        //mass insert
+        for (long i = 0; i < 10; i++) {
+            map.put(i, i * 3);
+        }
+        //mass check
+        for (long i = 0; i < 10; i++) {
+            Assert.assertTrue(map.get(i) == i * 3);
+        }
+        space.free(map);
+        space.freeAll();
+    }
+
+    @Test
     public void orderTest() {
         ChunkSpace space = factory.newSpace(100, null);
         WorldOrderChunk map = (WorldOrderChunk) space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 0);

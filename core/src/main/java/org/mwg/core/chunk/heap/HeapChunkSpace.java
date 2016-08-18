@@ -13,6 +13,7 @@ import org.mwg.chunk.ChunkType;
 import org.mwg.struct.Buffer;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
@@ -26,8 +27,8 @@ public class HeapChunkSpace implements ChunkSpace {
     private final Stack _lru;
     private final Stack _dirtiesStack;
 
-    private final int[] _hashNext;
-    private final int[] _hash;
+    private final AtomicIntegerArray _hashNext;
+    private final AtomicIntegerArray _hash;
 
     private final AtomicLongArray _chunkWorlds;
     private final AtomicLongArray _chunkTimes;
@@ -63,20 +64,19 @@ public class HeapChunkSpace implements ChunkSpace {
         _hashEntries = initialCapacity * HASH_LOAD_FACTOR;
         _lru = new HeapFixedStack(initialCapacity, true);
         _dirtiesStack = new HeapFixedStack(initialCapacity, false);
-        _hashNext = new int[initialCapacity];
-        Arrays.fill(_hashNext, 0, _maxEntries, -1);
-
+        _hashNext = new AtomicIntegerArray(initialCapacity);
+        _hash = new AtomicIntegerArray(_hashEntries);
+        for (int i = 0; i < initialCapacity; i++) {
+            _hashNext.set(i, -1);
+        }
+        for (int i = 0; i < _hashEntries; i++) {
+            _hash.set(i, -1);
+        }
         _chunkValues = new AtomicReferenceArray<Chunk>(initialCapacity);
-
-        _hash = new int[_hashEntries];
-        Arrays.fill(_hash, 0, _hashEntries, -1);
-
         _chunkWorlds = new AtomicLongArray(_maxEntries);
-
         _chunkTimes = new AtomicLongArray(_maxEntries);
         _chunkIds = new AtomicLongArray(_maxEntries);
         _chunkTypes = new HeapAtomicByteArray(_maxEntries);
-
         _chunkMarks = new AtomicLongArray(_maxEntries);
         for (int i = 0; i < _maxEntries; i++) {
             _chunkMarks.set(i, 0);
@@ -86,7 +86,7 @@ public class HeapChunkSpace implements ChunkSpace {
     @Override
     public final Chunk getAndMark(final byte type, final long world, final long time, final long id) {
         final int index = (int) HashHelper.tripleHash(type, world, time, id, this._hashEntries);
-        int m = this._hash[index];
+        int m = this._hash.get(index);
         int found = -1;
         while (m != -1) {
             if (_chunkTypes.get(m) == type
@@ -98,7 +98,7 @@ public class HeapChunkSpace implements ChunkSpace {
                 }
                 break;
             } else {
-                m = this._hashNext[m];
+                m = this._hashNext.get(m);
             }
         }
         if (found != -1) {
@@ -139,7 +139,7 @@ public class HeapChunkSpace implements ChunkSpace {
     }
 
     @Override
-    public long mark(long index) {
+    public final long mark(final long index) {
         int castedIndex = (int) index;
         long before;
         long after;
@@ -159,7 +159,7 @@ public class HeapChunkSpace implements ChunkSpace {
     }
 
     @Override
-    public void unmark(long index) {
+    public final void unmark(final long index) {
         int castedIndex = (int) index;
         long before;
         long after;
@@ -179,22 +179,22 @@ public class HeapChunkSpace implements ChunkSpace {
     }
 
     @Override
-    public void free(Chunk chunk) {
+    public final void free(Chunk chunk) {
         //NOOP
     }
 
     @Override
-    public synchronized Chunk createAndMark(final byte type, final long world, final long time, final long id) {
+    public final synchronized Chunk createAndMark(final byte type, final long world, final long time, final long id) {
         //first mark the object
         int entry = -1;
         int hashIndex = (int) HashHelper.tripleHash(type, world, time, id, this._hashEntries);
-        int m = this._hash[hashIndex];
+        int m = this._hash.get(hashIndex);
         while (m >= 0) {
             if (type == _chunkTypes.get(m) && world == _chunkWorlds.get(m) && time == _chunkTimes.get(m) && id == _chunkIds.get(m)) {
                 entry = m;
                 break;
             }
-            m = this._hashNext[m];
+            m = this._hashNext.get(m);
         }
         if (entry != -1) {
             long previous;
@@ -248,27 +248,27 @@ public class HeapChunkSpace implements ChunkSpace {
             final long victimObj = _chunkIds.get(currentVictimIndex);
             final byte victimType = _chunkTypes.get(currentVictimIndex);
             final int indexVictim = (int) HashHelper.tripleHash(victimType, victimWorld, victimTime, victimObj, this._hashEntries);
-            m = _hash[indexVictim];
+            m = _hash.get(indexVictim);
             int last = -1;
             while (m >= 0) {
                 if (victimType == _chunkTypes.get(m) && victimWorld == _chunkWorlds.get(m) && victimTime == _chunkTimes.get(m) && victimObj == _chunkIds.get(m)) {
                     break;
                 }
                 last = m;
-                m = _hashNext[m];
+                m = _hashNext.get(m);
             }
             //POP THE VALUE FROM THE NEXT LIST
             if (last == -1) {
-                int previousNext = _hashNext[m];
-                _hash[indexVictim] = previousNext;
+                int previousNext = _hashNext.get(m);
+                _hash.set(indexVictim, previousNext);
             } else {
                 if (m == -1) {
-                    _hashNext[last] = -1;
+                    _hashNext.set(last, -1);
                 } else {
-                    _hashNext[last] = _hashNext[m];
+                    _hashNext.set(last, _hashNext.get(m));
                 }
             }
-            _hashNext[m] = -1;
+            _hashNext.set(m, -1);
         }
         _chunkValues.set(currentVictimIndex, toInsert);
         _chunkMarks.set(currentVictimIndex, 1);
@@ -277,21 +277,21 @@ public class HeapChunkSpace implements ChunkSpace {
         _chunkTimes.set(currentVictimIndex, time);
         _chunkIds.set(currentVictimIndex, id);
         //negociate the lock to write on hashIndex
-        _hashNext[currentVictimIndex] = _hash[hashIndex];
-        _hash[hashIndex] = currentVictimIndex;
+        _hashNext.set(currentVictimIndex, _hash.get(hashIndex));
+        _hash.set(hashIndex, currentVictimIndex);
         //free the lock
         return toInsert;
     }
 
     @Override
-    public void notifyUpdate(long index) {
+    public final void notifyUpdate(long index) {
         if (_dirtiesStack.enqueue(index)) {
             mark(index);
         }
     }
 
     @Override
-    public synchronized void save(final Callback<Boolean> callback) {
+    public final synchronized void save(final Callback<Boolean> callback) {
         final Buffer stream = this._graph.newBuffer();
         boolean isFirst = true;
         while (_dirtiesStack.size() != 0) {

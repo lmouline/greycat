@@ -133,8 +133,10 @@
 
 
         <!--
-        <module>plugins/memory</module>
+        <module>plugins/gexf</module>
         -->
+        
+        <module>plugins/memory</module>
 
     </modules>
 

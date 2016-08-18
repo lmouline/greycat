@@ -3,13 +3,9 @@ package org.mwg.memory.offheap;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mwg.memory.offheap.OffHeapByteArray;
 
 import java.nio.ByteBuffer;
 
-/**
- * @ignore ts
- */
 public class OffHeapByteArrayTest {
 
     private int fromByteArray(byte[] bytes) {

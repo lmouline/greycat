@@ -29,7 +29,7 @@ public class BenchmarkParTest {
                 final long previousCache = g.space().available();
                 repeatPar("10000", newNode()
                         .setProperty("name", Type.STRING, "node_{{it}}")
-                        .print("{{result}}")
+                        // .print("{{result}}")
                         .indexNode("nodes", "name")
                         .repeat("1000", jump("{{it}}").setProperty("val", Type.INT, "{{it}}").clear())
                         .save()
