@@ -161,7 +161,9 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                 isDirty = isDirty || internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
                 previous = cursor + 1;
             } else if (current == Constants.CHUNK_SEP) {
-                reallocate(OffHeapLongArray.get(addr, CAPACITY), Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                final long treeSize = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
+                reallocate(OffHeapLongArray.get(addr, CAPACITY), closePowerOfTwo);
                 previous = cursor + 1;
             }
             cursor++;
