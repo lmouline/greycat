@@ -207,10 +207,13 @@ public class OffHeapChunkSpace implements ChunkSpace {
         switch (OffHeapByteArray.get(types, index)) {
             case ChunkType.STATE_CHUNK:
                 //return new HeapStateChunk(this, currentVictimIndex);
+                break;
             case ChunkType.WORLD_ORDER_CHUNK:
                 OffHeapWorldOrderChunk.free(OffHeapLongArray.get(addrs, index));
+                break;
             case ChunkType.TIME_TREE_CHUNK:
                 OffHeapTimeTreeChunk.free(OffHeapLongArray.get(addrs, index));
+                break;
             case ChunkType.GEN_CHUNK:
                 OffHeapGenChunk.free(OffHeapLongArray.get(addrs, index));
                 break;
