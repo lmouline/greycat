@@ -19,46 +19,6 @@ public abstract class AbstractTimeTreeTest {
     }
 
     @Test
-    public void emptyHalfTest() {
-        ChunkSpace space = factory.newSpace(100, null);
-        TimeTreeChunk tree = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
-        int nbElements = 10;
-        for (int i = 0; i < nbElements; i++) {
-            tree.insert(i);
-        }
-        final long[] nbCall = {0};
-        tree.range(org.mwg.Constants.BEGINNING_OF_TIME, org.mwg.Constants.END_OF_TIME, tree.size() / 2, new TreeWalker() {
-            @Override
-            public void elem(long t) {
-                nbCall[0]++;
-            }
-        });
-        Assert.assertTrue((nbElements / 2) == nbCall[0]);
-        final long[] median = new long[1];
-        nbCall[0] = 0;
-        tree.range(org.mwg.Constants.BEGINNING_OF_TIME, org.mwg.Constants.END_OF_TIME, tree.size() / 2, new TreeWalker() {
-            @Override
-            public void elem(long t) {
-                median[0] = 5;
-                nbCall[0]++;
-            }
-        });
-        Assert.assertTrue(median[0] == 5);
-        Assert.assertTrue(nbCall[0] == 5);
-        tree.clearAt(median[0]);
-        nbCall[0] = 0;
-        tree.range(org.mwg.Constants.BEGINNING_OF_TIME, org.mwg.Constants.END_OF_TIME, org.mwg.Constants.END_OF_TIME, new TreeWalker() {
-            @Override
-            public void elem(long t) {
-                nbCall[0]++;
-            }
-        });
-        Assert.assertTrue(nbCall[0] == 5);
-        space.free(tree);
-        space.freeAll();
-    }
-
-    @Test
     public void previousOrEqualsTest() {
         ChunkSpace space = factory.newSpace(100, null);
         TimeTreeChunk tree = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
@@ -132,6 +92,47 @@ public abstract class AbstractTimeTreeTest {
         space.free(tree);
         space.freeAll();
     }
+
+    @Test
+    public void emptyHalfTest() {
+        ChunkSpace space = factory.newSpace(100, null);
+        TimeTreeChunk tree = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
+        int nbElements = 10;
+        for (int i = 0; i < nbElements; i++) {
+            tree.insert(i);
+        }
+        final long[] nbCall = {0};
+        tree.range(org.mwg.Constants.BEGINNING_OF_TIME, org.mwg.Constants.END_OF_TIME, tree.size() / 2, new TreeWalker() {
+            @Override
+            public void elem(long t) {
+                nbCall[0]++;
+            }
+        });
+        Assert.assertTrue((nbElements / 2) == nbCall[0]);
+        final long[] median = new long[1];
+        nbCall[0] = 0;
+        tree.range(org.mwg.Constants.BEGINNING_OF_TIME, org.mwg.Constants.END_OF_TIME, tree.size() / 2, new TreeWalker() {
+            @Override
+            public void elem(long t) {
+                median[0] = 5;
+                nbCall[0]++;
+            }
+        });
+        Assert.assertTrue(median[0] == 5);
+        Assert.assertTrue(nbCall[0] == 5);
+        tree.clearAt(median[0]);
+        nbCall[0] = 0;
+        tree.range(org.mwg.Constants.BEGINNING_OF_TIME, org.mwg.Constants.END_OF_TIME, org.mwg.Constants.END_OF_TIME, new TreeWalker() {
+            @Override
+            public void elem(long t) {
+                nbCall[0]++;
+            }
+        });
+        Assert.assertTrue(nbCall[0] == 5);
+        space.free(tree);
+        space.freeAll();
+    }
+
 
     private boolean compareWithString(Buffer buffer, String content) {
         for (int i = 0; i < content.length(); i++) {

@@ -115,7 +115,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
         try {
             long size = OffHeapLongArray.get(addr, SIZE);
             long kv_addr = OffHeapLongArray.get(addr, KV);
-            for (int i = 0; i < size; i++) {
+            for (long i = 0; i < size; i++) {
                 callback.on(OffHeapLongArray.get(kv_addr, i * 2), OffHeapLongArray.get(kv_addr, i * 2 + 1));
             }
         } finally {
@@ -130,7 +130,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
         while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
         try {
             if (OffHeapLongArray.get(addr, SIZE) > 0) {
-                final int index = (int) HashHelper.longHash(key, OffHeapLongArray.get(addr, CAPACITY) * 2);
+                final long index = HashHelper.longHash(key, OffHeapLongArray.get(addr, CAPACITY) * 2);
                 final long hash_addr = OffHeapLongArray.get(addr, HASH);
                 final long kv_addr = OffHeapLongArray.get(addr, KV);
                 final long kv_next = OffHeapLongArray.get(addr, NEXT);
@@ -268,7 +268,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
                 OffHeapLongArray.reset(new_next_addr, newCapacity);
                 long size = OffHeapLongArray.get(addr, SIZE);
                 long newHashCapacity = newCapacity * 2;
-                for (int i = 0; i < size; i++) {
+                for (long i = 0; i < size; i++) {
                     long loopIndex = HashHelper.longHash(OffHeapLongArray.get(new_kv_addr, i * 2), newHashCapacity);
                     long previousHashed = OffHeapLongArray.get(new_hash_addr, loopIndex);
                     OffHeapLongArray.set(new_next_addr, i, previousHashed);
@@ -355,7 +355,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
             }
             boolean isFirst = true;
             final long kv_addr = OffHeapLongArray.get(addr, KV);
-            for (int i = 0; i < size; i++) {
+            for (long i = 0; i < size; i++) {
                 if (!isFirst) {
                     buffer.write(Constants.CHUNK_SUB_SEP);
                 }

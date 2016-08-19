@@ -128,10 +128,9 @@ public class OffHeapChunkSpace implements ChunkSpace {
             case ChunkType.WORLD_ORDER_CHUNK:
                 return new OffHeapWorldOrderChunk(this, index);
             case ChunkType.TIME_TREE_CHUNK:
-                //return new HeapTimeTreeChunk(this, currentVictimIndex);
+                return new OffHeapTimeTreeChunk(this, index);
             case ChunkType.GEN_CHUNK:
-                //return new HeapGenChunk(this, id, currentVictimIndex);
-                break;
+                return new OffHeapGenChunk(this, OffHeapLongArray.get(ids, index), index);
         }
         return null;
     }
@@ -211,11 +210,12 @@ public class OffHeapChunkSpace implements ChunkSpace {
             case ChunkType.WORLD_ORDER_CHUNK:
                 OffHeapWorldOrderChunk.free(OffHeapLongArray.get(addrs, index));
             case ChunkType.TIME_TREE_CHUNK:
-                //return new HeapTimeTreeChunk(this, currentVictimIndex);
+                OffHeapTimeTreeChunk.free(OffHeapLongArray.get(addrs, index));
             case ChunkType.GEN_CHUNK:
-                //return new HeapGenChunk(this, id, currentVictimIndex);
+                OffHeapGenChunk.free(OffHeapLongArray.get(addrs, index));
                 break;
         }
+        OffHeapLongArray.set(addrs, index, OffHeapConstants.OFFHEAP_NULL_PTR);
     }
 
     @Override
