@@ -143,7 +143,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     }
 
     private void internal_put(final long key, final long value, final boolean notifyUpdate) {
-        if (_size > 0) {
+        if (_capacity > 0) {
             //we need to init
             int hashIndex = (int) HashHelper.longHash(key, _capacity * 2);
             int m = _hash[hashIndex];
