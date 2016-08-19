@@ -17,7 +17,7 @@ public class ActionWhileDoTest extends AbstractActionTest {
             @Override
             public void on(Node root) {
 
-                final long cache1=graph.space().available();
+                final long cache1 = graph.space().available();
 
                 Task whiletask = newTask().inject(root).whileDo(new TaskFunctionConditional() {
                                                                     @Override
@@ -42,13 +42,7 @@ public class ActionWhileDoTest extends AbstractActionTest {
                 ).fromVar("leaves");
 
 
-
-                whiletask/*.hook(ConsoleHook.instance())*/.hook(new TaskHook() {
-                    @Override
-                    public void on(TaskAction previous, TaskAction next, TaskContext context) {
-                        //System.out.println(next);
-                    }
-                }).execute(graph, new Callback<TaskResult>() {
+                whiletask.execute(graph, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
                         //System.out.println(result.toString());
@@ -56,8 +50,8 @@ public class ActionWhileDoTest extends AbstractActionTest {
                         graph.save(new Callback<Boolean>() {
                             @Override
                             public void on(Boolean result) {
-                                long cache2=graph.space().available();
-                                Assert.assertTrue(cache1==cache2);
+                                long cache2 = graph.space().available();
+                                Assert.assertTrue(cache1 == cache2);
                             }
                         });
                     }
@@ -75,7 +69,7 @@ public class ActionWhileDoTest extends AbstractActionTest {
             @Override
             public void on(Node root) {
 
-                final long cache1=graph.space().available();
+                final long cache1 = graph.space().available();
                 Task whiletask = newTask().inject(root).doWhile(
                         foreach(ifThenElse(new TaskFunctionConditional() {
                             @Override
@@ -100,12 +94,7 @@ public class ActionWhileDoTest extends AbstractActionTest {
                 ).fromVar("leaves");
 
 
-                whiletask/*.hook(ConsoleHook.instance())*/.hook(new TaskHook() {
-                    @Override
-                    public void on(TaskAction previous, TaskAction next, TaskContext context) {
-                        //System.out.println(next);
-                    }
-                }).execute(graph, new Callback<TaskResult>() {
+                whiletask.execute(graph, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
                         //System.out.println(result.toString());
@@ -113,8 +102,8 @@ public class ActionWhileDoTest extends AbstractActionTest {
                         graph.save(new Callback<Boolean>() {
                             @Override
                             public void on(Boolean result) {
-                                long cache2=graph.space().available();
-                                Assert.assertTrue(cache1==cache2);
+                                long cache2 = graph.space().available();
+                                Assert.assertTrue(cache1 == cache2);
                             }
                         });
                     }

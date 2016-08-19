@@ -1,6 +1,7 @@
 package org.mwg.plugin;
 
 import org.mwg.task.TaskActionFactory;
+import org.mwg.task.TaskHookFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,8 @@ public class AbstractPlugin implements Plugin {
     private MemoryFactory _memoryFactory;
 
     private ResolverFactory _resolverFactory;
+
+    private TaskHookFactory _hookFactory;
 
     @Override
     public Plugin declareNodeType(String name, NodeFactory factory) {
@@ -36,6 +39,17 @@ public class AbstractPlugin implements Plugin {
     @Override
     public Plugin declareResolverFactory(ResolverFactory factory) {
         _resolverFactory = factory;
+        return this;
+    }
+
+    @Override
+    public TaskHookFactory hookFactory() {
+        return _hookFactory;
+    }
+
+    @Override
+    public Plugin declareTaskHookFactory(TaskHookFactory factory) {
+        _hookFactory = factory;
         return this;
     }
 

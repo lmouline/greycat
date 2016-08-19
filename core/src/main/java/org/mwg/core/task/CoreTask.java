@@ -17,7 +17,7 @@ public class CoreTask implements org.mwg.task.Task {
 
     private AbstractTaskAction _first = null;
     private AbstractTaskAction _last = null;
-    private TaskHook _hook = null;
+    private TaskHookFactory _hookFactory = null;
 
     private void addAction(AbstractTaskAction nextAction) {
         if (_first == null) {
@@ -390,7 +390,13 @@ public class CoreTask implements org.mwg.task.Task {
             } else {
                 initalRes = new CoreTaskResult(initial, true);
             }
-            final CoreTaskContext context = new CoreTaskContext(null, initalRes, graph, this._hook, 0, callback);
+            TaskHook hook = null;
+            if (_hookFactory != null) {
+                hook = _hookFactory.newHook();
+            } else if (graph.taskHookFactory() != null) {
+                hook = graph.taskHookFactory().newHook();
+            }
+            final CoreTaskContext context = new CoreTaskContext(null, initalRes, graph, hook, 0, callback);
             graph.scheduler().dispatch(SchedulerAffinity.SAME_THREAD, new Job() {
                 @Override
                 public void run() {
@@ -412,7 +418,13 @@ public class CoreTask implements org.mwg.task.Task {
         } else {
             initalRes = new CoreTaskResult(initial, true);
         }
-        return new CoreTaskContext(null, initalRes, graph, this._hook, 0, callback);
+        TaskHook hook = null;
+        if (_hookFactory != null) {
+            hook = _hookFactory.newHook();
+        } else if (graph.taskHookFactory() != null) {
+            hook = graph.taskHookFactory().newHook();
+        }
+        return new CoreTaskContext(null, initalRes, graph, hook, 0, callback);
     }
 
     @Override
@@ -640,8 +652,8 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public Task hook(final TaskHook p_hook) {
-        this._hook = p_hook;
+    public Task hook(final TaskHookFactory p_hookFactory) {
+        this._hookFactory = p_hookFactory;
         return this;
     }
 

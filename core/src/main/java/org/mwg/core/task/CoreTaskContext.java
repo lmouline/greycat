@@ -11,10 +11,8 @@ import org.mwg.task.*;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 class CoreTaskContext implements TaskContext {
 
@@ -301,7 +299,9 @@ class CoreTaskContext implements TaskContext {
     @Override
     public final void continueTask() {
         //next step now...
-        final AbstractTaskAction previousAction = _current;
+        if (this._hook != null) {
+            this._hook.afterAction(_current, this);
+        }
         final AbstractTaskAction nextAction = _current.next();
         _current = nextAction;
         if (nextAction == null) {
@@ -328,6 +328,13 @@ class CoreTaskContext implements TaskContext {
                 }
             }
             /* End Clean */
+            if (this._hook != null) {
+                if (this._parent == null) {
+                    this._hook.end(this);
+                } else {
+                    this._hook.afterSubTask(_current, this);
+                }
+            }
             if (this._callback != null) {
                 this._callback.on(_result);
             } else {
@@ -337,7 +344,7 @@ class CoreTaskContext implements TaskContext {
             }
         } else {
             if (this._hook != null) {
-                this._hook.on(previousAction, nextAction, this);
+                this._hook.beforeAction(nextAction, this);
             }
             nextAction.eval(this);
         }
@@ -346,7 +353,12 @@ class CoreTaskContext implements TaskContext {
     final void execute(AbstractTaskAction initialTaskAction) {
         this._current = initialTaskAction;
         if (this._hook != null) {
-            this._hook.on(null, _current, this);
+            if (_parent == null) {
+                _hook.start(this);
+            } else {
+                _hook.beforeSubTask(_current, this);
+            }
+            this._hook.beforeAction(_current, this);
         }
         this._current.eval(this);
     }
@@ -463,9 +475,9 @@ class CoreTaskContext implements TaskContext {
         }
     }
 
-
     @Override
     public TaskHook hook() {
         return this._hook;
     }
+
 }

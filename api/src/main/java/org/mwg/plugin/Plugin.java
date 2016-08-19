@@ -1,6 +1,7 @@
 package org.mwg.plugin;
 
 import org.mwg.task.TaskActionFactory;
+import org.mwg.task.TaskHookFactory;
 
 public interface Plugin {
 
@@ -10,7 +11,11 @@ public interface Plugin {
 
     Plugin declareMemoryFactory(MemoryFactory factory);
 
+    Plugin declareTaskHookFactory(TaskHookFactory factory);
+
     Plugin declareResolverFactory(ResolverFactory factory);
+
+    TaskHookFactory hookFactory();
 
     String[] nodeTypes();
 

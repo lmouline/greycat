@@ -7,6 +7,7 @@ import org.mwg.core.memory.HeapMemoryFactory;
 import org.mwg.core.task.CoreTask;
 import org.mwg.core.utility.CoreDeferCounter;
 import org.mwg.core.utility.CoreDeferCounterSync;
+import org.mwg.task.TaskHookFactory;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.KeyHelper;
 import org.mwg.plugin.*;
@@ -32,6 +33,7 @@ class CoreGraph implements org.mwg.Graph {
     private final AtomicBoolean _lock;
     private final Plugin[] _plugins;
     private final MemoryFactory _memoryFactory;
+    private final TaskHookFactory _hookFactory;
 
     private Short _prefix = null;
     private GenChunk _nodeKeyCalculator = null;
@@ -42,16 +44,21 @@ class CoreGraph implements org.mwg.Graph {
         //First round, find relevant
         MemoryFactory memoryFactory = null;
         ResolverFactory resolverFactory = null;
+        TaskHookFactory hookFactory = null;
         if (p_plugins != null) {
             for (int i = 0; i < p_plugins.length; i++) {
                 final Plugin loopPlugin = p_plugins[i];
                 final MemoryFactory loopMF = loopPlugin.memoryFactory();
+                final TaskHookFactory loopHF = loopPlugin.hookFactory();
                 if (loopMF != null) {
                     memoryFactory = loopMF;
                 }
                 final ResolverFactory loopRF = loopPlugin.resolverFactory();
                 if (loopRF != null) {
                     resolverFactory = loopRF;
+                }
+                if (loopHF != null) {
+                    hookFactory = loopHF;
                 }
             }
         }
@@ -67,6 +74,7 @@ class CoreGraph implements org.mwg.Graph {
             };
         }
         //Second round, initialize all mandatory elements
+        _hookFactory = hookFactory;
         _storage = p_storage;
         _memoryFactory = memoryFactory;
         _space = memoryFactory.newSpace(memorySize, selfPointer);
@@ -193,6 +201,11 @@ class CoreGraph implements org.mwg.Graph {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public TaskHookFactory taskHookFactory() {
+        return _hookFactory;
     }
 
     @Override

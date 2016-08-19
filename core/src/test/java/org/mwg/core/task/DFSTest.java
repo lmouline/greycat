@@ -126,7 +126,7 @@ public class DFSTest {
                     TaskResult initialResult = newTask().emptyResult();
                     initialResult.add(n1);
 
-                    dfs/*.hook(ConsoleHook.instance())/*/ /*.hook(ConsoleHook.instance())/*.hook(new TaskHook() {
+                    dfs/*.hook(VerboseHook.instance())/*/ /*.hook(VerboseHook.instance())/*.hook(new TaskHook() {
                         @Override
                         public void on(TaskAction previous, TaskAction next, TaskContext context) {
                             System.out.println(next);
