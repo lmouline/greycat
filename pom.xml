@@ -29,7 +29,7 @@
     </parent>
 
     <properties>
-        <java2typescript.plugin.version>70</java2typescript.plugin.version>
+        <java2typescript.plugin.version>71</java2typescript.plugin.version>
     </properties>
 
     <developers>
@@ -135,7 +135,7 @@
         <!--
         <module>plugins/gexf</module>
         -->
-        
+
         <module>plugins/memory</module>
 
     </modules>
