@@ -1,14 +1,10 @@
 package org.mwg.memory.offheap;
 
-
 import org.mwg.Constants;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
 import org.mwg.utility.DefaultBufferIterator;
 
-/**
- * @ignore ts
- */
 class OffHeapBuffer implements Buffer {
 
     private long bufferPtr = OffHeapConstants.OFFHEAP_NULL_PTR;

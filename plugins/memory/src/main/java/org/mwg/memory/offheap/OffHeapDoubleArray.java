@@ -2,9 +2,6 @@ package org.mwg.memory.offheap;
 
 import org.mwg.utility.Unsafe;
 
-/**
- * @ignore ts
- */
 public class OffHeapDoubleArray {
     public static long alloc_counter = 0;
 
