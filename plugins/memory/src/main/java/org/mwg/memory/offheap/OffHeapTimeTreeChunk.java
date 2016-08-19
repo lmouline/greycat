@@ -29,10 +29,9 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     private final long index;
     private final long addr;
 
-    private long kPtr;
-    private long metaPtr;
-    private long colorsPtr;
-
+    private long kPtr = -1;
+    private long metaPtr = -1;
+    private long colorsPtr = -1;
 
     OffHeapTimeTreeChunk(final OffHeapChunkSpace p_space, final long p_index) {
         space = p_space;
@@ -55,11 +54,20 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         addr = temp_addr;
     }
 
+    private void ptrConsistency() {
+        long current_k = OffHeapLongArray.get(addr, K);
+        if (kPtr != current_k) {
+            kPtr = current_k;
+            metaPtr = OffHeapLongArray.get(addr, METAS);
+            colorsPtr = OffHeapLongArray.get(addr, COLORS);
+        }
+    }
+
     public static void free(final long addr) {
         if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
             OffHeapLongArray.free(OffHeapLongArray.get(addr, K));
-            OffHeapLongArray.free(OffHeapLongArray.get(addr, COLORS));
             OffHeapLongArray.free(OffHeapLongArray.get(addr, METAS));
+            OffHeapLongArray.free(OffHeapByteArray.get(addr, COLORS));
             OffHeapLongArray.free(addr);
         }
     }
@@ -96,6 +104,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public synchronized final void range(final long startKey, final long endKey, final long maxElements, final TreeWalker walker) {
+        ptrConsistency();
         //lock and load fromVar main memory
         long nbElements = 0;
         long indexEnd = internal_previousOrEqual_index(endKey);
@@ -108,6 +117,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public synchronized final void save(Buffer buffer) {
+        ptrConsistency();
         final long size = OffHeapLongArray.get(addr, SIZE);
         final long k_addr = OffHeapLongArray.get(addr, K);
         Base64.encodeLongToBuffer(size, buffer);
@@ -126,6 +136,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public synchronized final void load(Buffer buffer) {
+        ptrConsistency();
         if (buffer == null || buffer.length() == 0) {
             return;
         }
@@ -156,6 +167,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public synchronized final long previousOrEqual(long key) {
+        ptrConsistency();
         //lock and load fromVar main memory
         long resultKey;
         long result = internal_previousOrEqual_index(key);
@@ -169,6 +181,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public synchronized final void insert(final long p_key) {
+        ptrConsistency();
         if (internal_insert(p_key)) {
             internal_set_dirty();
         }
@@ -231,36 +244,27 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
 
     private void reallocate(long previousCapacity, long newCapacity) {
         if (previousCapacity < newCapacity) {
-            long k_addr = OffHeapLongArray.get(addr, K);
-            long next_k_addr;
-            if (k_addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-                next_k_addr = OffHeapLongArray.allocate(newCapacity);
+            if (kPtr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+                kPtr = OffHeapLongArray.allocate(newCapacity);
             } else {
-                next_k_addr = OffHeapLongArray.reallocate(k_addr, previousCapacity, newCapacity);
+                kPtr = OffHeapLongArray.reallocate(kPtr, previousCapacity, newCapacity);
             }
-            if (k_addr != next_k_addr) {
-                OffHeapLongArray.set(addr, K, next_k_addr);
-            }
-            long colors_addr = OffHeapLongArray.get(addr, COLORS);
-            long next_colors_addr;
-            if (colors_addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-                next_colors_addr = OffHeapByteArray.allocate(newCapacity);
+            OffHeapLongArray.set(addr, K, kPtr);
+
+            if (colorsPtr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+                colorsPtr = OffHeapByteArray.allocate(newCapacity);
             } else {
-                next_colors_addr = OffHeapByteArray.reallocate(colors_addr, previousCapacity, newCapacity);
+                colorsPtr = OffHeapByteArray.reallocate(colorsPtr, previousCapacity, newCapacity);
             }
-            if (colors_addr != next_colors_addr) {
-                OffHeapLongArray.set(addr, COLORS, next_colors_addr);
-            }
-            long metas_addr = OffHeapLongArray.get(addr, METAS);
-            long next_metas_addr;
-            if (metas_addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-                next_metas_addr = OffHeapByteArray.allocate(newCapacity);
+            OffHeapLongArray.set(addr, COLORS, colorsPtr);
+
+            if (metaPtr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+                metaPtr = OffHeapByteArray.allocate(newCapacity);
             } else {
-                next_metas_addr = OffHeapByteArray.reallocate(metas_addr, previousCapacity, newCapacity);
+                metaPtr = OffHeapByteArray.reallocate(metaPtr, previousCapacity, newCapacity);
             }
-            if (metas_addr != next_metas_addr) {
-                OffHeapLongArray.set(addr, METAS, next_metas_addr);
-            }
+            OffHeapLongArray.set(addr, METAS, metaPtr);
+            OffHeapLongArray.set(addr, CAPACITY, newCapacity);
         }
     }
 
@@ -312,14 +316,14 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         if (p_currentIndex == -1) {
             return true;
         }
-        return OffHeapByteArray.get(colorsPtr, p_currentIndex) == 1;
+        return OffHeapByteArray.get(colorsPtr, p_currentIndex) == TRUE;
     }
 
     private void setColor(long p_currentIndex, boolean p_paramIndex) {
         if (p_paramIndex) {
-            OffHeapByteArray.set(colorsPtr, p_currentIndex, (byte) 1);
+            OffHeapByteArray.set(colorsPtr, p_currentIndex, TRUE);
         } else {
-            OffHeapByteArray.set(colorsPtr, p_currentIndex, (byte) 0);
+            OffHeapByteArray.set(colorsPtr, p_currentIndex, FALSE);
         }
     }
 
@@ -497,28 +501,29 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private boolean internal_insert(long p_key) {
-/*
-
-        if (_k == null || _k.length == _size) {
-            int length = _size;
-            if (length == 0) {
-                length = Constants.MAP_INITIAL_CAPACITY;
+        long size = OffHeapLongArray.get(addr, SIZE);
+        long capacity = OffHeapLongArray.get(addr, CAPACITY);
+        if (capacity == size) {
+            long nextCapacity = size;
+            if (nextCapacity == 0) {
+                nextCapacity = Constants.MAP_INITIAL_CAPACITY;
             } else {
-                length = length * 2;
+                nextCapacity = nextCapacity * 2;
             }
-            reallocate(length);
+            reallocate(capacity, nextCapacity);
         }
-        int newIndex = _size;
+        long newIndex = size;
         if (newIndex == 0) {
             setKey(newIndex, p_key);
             setColor(newIndex, false);
             setLeft(newIndex, -1);
             setRight(newIndex, -1);
             setParent(newIndex, -1);
-            _root = newIndex;
-            _size = 1;
+            OffHeapLongArray.set(addr, ROOT, newIndex);
+            size = 1;
+            OffHeapLongArray.set(addr, SIZE, size);
         } else {
-            int n = _root;
+            long n = OffHeapLongArray.get(addr, ROOT);
             while (true) {
                 if (p_key == key(n)) {
                     return false;
@@ -530,7 +535,8 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                         setRight(newIndex, -1);
                         setParent(newIndex, -1);
                         setLeft(n, newIndex);
-                        _size++;
+                        size++;
+                        OffHeapLongArray.set(addr, SIZE, size);
                         break;
                     } else {
                         n = left(n);
@@ -543,7 +549,8 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                         setRight(newIndex, -1);
                         setParent(newIndex, -1);
                         setRight(n, newIndex);
-                        _size++;
+                        size++;
+                        OffHeapLongArray.set(addr, SIZE, size);
                         break;
                     } else {
                         n = right(n);
@@ -553,7 +560,6 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             setParent(newIndex, n);
         }
         insertCase1(newIndex);
-        */
         return true;
     }
 
