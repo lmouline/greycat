@@ -54,6 +54,4 @@ public interface TaskContext {
 
     TaskHook hook();
 
-    int ident();
-
 }

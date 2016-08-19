@@ -396,7 +396,7 @@ public class CoreTask implements org.mwg.task.Task {
             } else if (graph.taskHookFactory() != null) {
                 hook = graph.taskHookFactory().newHook();
             }
-            final CoreTaskContext context = new CoreTaskContext(null, initalRes, graph, hook, 0, callback);
+            final CoreTaskContext context = new CoreTaskContext(null, initalRes, graph, hook, callback);
             graph.scheduler().dispatch(SchedulerAffinity.SAME_THREAD, new Job() {
                 @Override
                 public void run() {
@@ -424,7 +424,7 @@ public class CoreTask implements org.mwg.task.Task {
         } else if (graph.taskHookFactory() != null) {
             hook = graph.taskHookFactory().newHook();
         }
-        return new CoreTaskContext(null, initalRes, graph, hook, 0, callback);
+        return new CoreTaskContext(null, initalRes, graph, hook, callback);
     }
 
     @Override
@@ -447,7 +447,7 @@ public class CoreTask implements org.mwg.task.Task {
     @Override
     public void executeFrom(final TaskContext parentContext, final TaskResult initial, byte affinity, final Callback<TaskResult> callback) {
         if (_first != null) {
-            final CoreTaskContext context = new CoreTaskContext(parentContext, initial.clone(), parentContext.graph(), parentContext.hook(), parentContext.ident() + 1, callback);
+            final CoreTaskContext context = new CoreTaskContext(parentContext, initial.clone(), parentContext.graph(), parentContext.hook(), callback);
             parentContext.graph().scheduler().dispatch(affinity, new Job() {
                 @Override
                 public void run() {
@@ -464,7 +464,7 @@ public class CoreTask implements org.mwg.task.Task {
     @Override
     public void executeFromUsing(TaskContext parentContext, TaskResult initial, byte affinity, Callback<TaskContext> contextInitializer, Callback<TaskResult> callback) {
         if (_first != null) {
-            final CoreTaskContext context = new CoreTaskContext(parentContext, initial.clone(), parentContext.graph(), parentContext.hook(), parentContext.ident() + 1, callback);
+            final CoreTaskContext context = new CoreTaskContext(parentContext, initial.clone(), parentContext.graph(), parentContext.hook(), callback);
             if (contextInitializer != null) {
                 contextInitializer.on(context);
             }

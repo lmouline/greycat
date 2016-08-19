@@ -12,13 +12,13 @@ class VerboseHook implements TaskHook {
     private Map<TaskContext, Integer> ctxIdents = new HashMap<TaskContext, Integer>();
 
     @Override
-    public void start(TaskContext initialContext) {
+    public synchronized void start(TaskContext initialContext) {
         ctxIdents.put(initialContext, 0);
         System.out.println("StartTask:" + initialContext);
     }
 
     @Override
-    public void beforeAction(TaskAction action, TaskContext context) {
+    public synchronized void beforeAction(TaskAction action, TaskContext context) {
         Integer currentPrefix = ctxIdents.get(context);
         for (int i = 0; i < currentPrefix; i++) {
             System.out.print("\t");
@@ -33,23 +33,23 @@ class VerboseHook implements TaskHook {
     }
 
     @Override
-    public void afterAction(TaskAction action, TaskContext context) {
+    public synchronized void afterAction(TaskAction action, TaskContext context) {
         //NOOP
     }
 
     @Override
-    public void beforeTask(TaskContext parentContext, TaskContext context) {
+    public synchronized void beforeTask(TaskContext parentContext, TaskContext context) {
         Integer currentPrefix = ctxIdents.get(parentContext);
         ctxIdents.put(context, currentPrefix + 1);
     }
 
     @Override
-    public void afterTask(TaskContext context) {
+    public synchronized void afterTask(TaskContext context) {
         ctxIdents.remove(context);
     }
 
     @Override
-    public void end(TaskContext finalContext) {
+    public synchronized void end(TaskContext finalContext) {
         System.out.println("EndTask:" + finalContext.toString());
     }
 }

@@ -20,7 +20,6 @@ class CoreTaskContext implements TaskContext {
     private final TaskContext _parent;
     private final Graph _graph;
     final Callback<TaskResult> _callback;
-    private final int _ident;
 
     private Map<String, TaskResult> _localVariables = null;
     private Map<String, TaskResult> _nextVariables = null;
@@ -30,9 +29,8 @@ class CoreTaskContext implements TaskContext {
     private long _time;
     private final TaskHook _hook;
 
-    CoreTaskContext(final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final TaskHook p_hook, final int p_ident, final Callback<TaskResult> p_callback) {
+    CoreTaskContext(final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final TaskHook p_hook, final Callback<TaskResult> p_callback) {
         this._hook = p_hook;
-        this._ident = p_ident;
         this._world = 0;
         this._time = 0;
         this._graph = p_graph;
@@ -45,11 +43,6 @@ class CoreTaskContext implements TaskContext {
         }
         this._result = initial;
         this._callback = p_callback;
-    }
-
-    @Override
-    public int ident() {
-        return this._ident;
     }
 
     @Override
