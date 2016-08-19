@@ -47,6 +47,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             OffHeapLongArray.set(temp_addr, SIZE, 0);
             OffHeapLongArray.set(temp_addr, DIRTY, 0);
             OffHeapLongArray.set(temp_addr, ROOT, -1);
+            //init to empty pointer
             OffHeapLongArray.set(temp_addr, K, OffHeapConstants.OFFHEAP_NULL_PTR);
             OffHeapLongArray.set(temp_addr, COLORS, OffHeapConstants.OFFHEAP_NULL_PTR);
             OffHeapLongArray.set(temp_addr, METAS, OffHeapConstants.OFFHEAP_NULL_PTR);
@@ -65,9 +66,18 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
 
     public static void free(final long addr) {
         if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-            OffHeapLongArray.free(OffHeapLongArray.get(addr, K));
-            OffHeapLongArray.free(OffHeapLongArray.get(addr, METAS));
-            OffHeapLongArray.free(OffHeapByteArray.get(addr, COLORS));
+            final long k_addr = OffHeapLongArray.get(addr, K);
+            if (k_addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapLongArray.free(k_addr);
+            }
+            final long metas_addr = OffHeapLongArray.get(addr, METAS);
+            if (metas_addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapLongArray.free(metas_addr);
+            }
+            final long colors_addr = OffHeapLongArray.get(addr, COLORS);
+            if (colors_addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapByteArray.free(colors_addr);
+            }
             OffHeapLongArray.free(addr);
         }
     }
@@ -259,11 +269,12 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             OffHeapLongArray.set(addr, COLORS, colorsPtr);
 
             if (metaPtr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-                metaPtr = OffHeapByteArray.allocate(newCapacity);
+                metaPtr = OffHeapLongArray.allocate(newCapacity * META_SIZE);
             } else {
-                metaPtr = OffHeapByteArray.reallocate(metaPtr, previousCapacity, newCapacity);
+                metaPtr = OffHeapLongArray.reallocate(metaPtr, previousCapacity * META_SIZE, newCapacity * META_SIZE);
             }
             OffHeapLongArray.set(addr, METAS, metaPtr);
+
             OffHeapLongArray.set(addr, CAPACITY, newCapacity);
         }
     }
