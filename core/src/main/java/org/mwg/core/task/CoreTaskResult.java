@@ -13,6 +13,15 @@ class CoreTaskResult<A> implements TaskResult<A> {
     private int _capacity = 0;
     private int _size = 0;
 
+    @Override
+    public Object[] asArray() {
+        Object[] flat = new Object[_size];
+        if (_backend != null) {
+            System.arraycopy(_backend, 0, flat, 0, _size);
+        }
+        return flat;
+    }
+
     CoreTaskResult(Object toWrap, boolean protect) {
         if (toWrap instanceof Object[]) {
             Object[] castedToWrap = (Object[]) toWrap;

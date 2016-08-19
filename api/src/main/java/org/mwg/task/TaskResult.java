@@ -20,4 +20,6 @@ public interface TaskResult<A> {
 
     int size();
 
+    Object[] asArray();
+
 }
