@@ -332,7 +332,7 @@ class CoreTaskContext implements TaskContext {
                 if (this._parent == null) {
                     this._hook.end(this);
                 } else {
-                    this._hook.afterSubTask(_current, this);
+                    this._hook.afterTask(this);
                 }
             }
             if (this._callback != null) {
@@ -356,7 +356,7 @@ class CoreTaskContext implements TaskContext {
             if (_parent == null) {
                 _hook.start(this);
             } else {
-                _hook.beforeSubTask(_current, this);
+                _hook.beforeTask(_parent, this);
             }
             this._hook.beforeAction(_current, this);
         }

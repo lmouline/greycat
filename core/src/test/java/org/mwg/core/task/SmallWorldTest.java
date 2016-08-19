@@ -6,6 +6,7 @@ import org.mwg.GraphBuilder;
 import org.mwg.Type;
 import org.mwg.task.*;
 import org.mwg.utility.VerboseHookFactory;
+import org.mwg.utility.VerbosePlugin;
 
 import static org.mwg.task.Actions.*;
 
@@ -15,6 +16,7 @@ public class SmallWorldTest {
 
         Graph g = new GraphBuilder()
                 .withMemorySize(100000)
+                .withPlugin(new VerbosePlugin())
                 .build();
         g.connect(new Callback<Boolean>() {
             @Override
@@ -38,7 +40,7 @@ public class SmallWorldTest {
                                                         ifThenElse(cond("it % 4 == 2"), fromVar("room001").add("sensors", "sensor"),
                                                                 ifThen(cond("it % 4 == 3"), fromVar("room0001").add("sensors", "sensor")))))
                         )
-                        .hook(new VerboseHookFactory()).execute(g, new Callback<TaskResult>() {
+                        /*.hook(new VerboseHookFactory())*/.execute(g, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult taskResult) {
                         if (taskResult != null) {

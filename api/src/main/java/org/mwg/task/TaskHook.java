@@ -8,9 +8,9 @@ public interface TaskHook {
 
     void afterAction(TaskAction action, TaskContext context);
 
-    void beforeSubTask(TaskAction action, TaskContext context);
+    void beforeTask(TaskContext parentContext, TaskContext context);
 
-    void afterSubTask(TaskAction action, TaskContext context);
+    void afterTask(TaskContext context);
 
     void end(TaskContext finalContext);
 

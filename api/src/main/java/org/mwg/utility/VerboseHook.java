@@ -3,18 +3,24 @@ package org.mwg.utility;
 import org.mwg.task.TaskAction;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskHook;
-import org.mwg.task.TaskResult;
+
+import java.util.HashMap;
+import java.util.Map;
 
 class VerboseHook implements TaskHook {
 
+    private Map<TaskContext, Integer> ctxIdents = new HashMap<TaskContext, Integer>();
+
     @Override
     public void start(TaskContext initialContext) {
-
+        ctxIdents.put(initialContext, 0);
+        System.out.println("StartTask:" + initialContext);
     }
 
     @Override
     public void beforeAction(TaskAction action, TaskContext context) {
-        for (int i = 0; i < context.ident(); i++) {
+        Integer currentPrefix = ctxIdents.get(context);
+        for (int i = 0; i < currentPrefix; i++) {
             System.out.print("\t");
         }
         String taskName = action.toString();
@@ -28,21 +34,22 @@ class VerboseHook implements TaskHook {
 
     @Override
     public void afterAction(TaskAction action, TaskContext context) {
-
+        //NOOP
     }
 
     @Override
-    public void beforeSubTask(TaskAction action, TaskContext context) {
-
+    public void beforeTask(TaskContext parentContext, TaskContext context) {
+        Integer currentPrefix = ctxIdents.get(parentContext);
+        ctxIdents.put(context, currentPrefix + 1);
     }
 
     @Override
-    public void afterSubTask(TaskAction action, TaskContext context) {
-
+    public void afterTask(TaskContext context) {
+        ctxIdents.remove(context);
     }
 
     @Override
-    public void end(TaskContext initialContext) {
-
+    public void end(TaskContext finalContext) {
+        System.out.println("EndTask:" + finalContext.toString());
     }
 }
