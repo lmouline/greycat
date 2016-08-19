@@ -50,9 +50,18 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
 
     public static void free(final long addr) {
         if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-            OffHeapLongArray.free(OffHeapLongArray.get(addr, HASH));
-            OffHeapLongArray.free(OffHeapLongArray.get(addr, NEXT));
-            OffHeapLongArray.free(OffHeapLongArray.get(addr, KV));
+            final long hash_addr = OffHeapLongArray.get(addr, HASH);
+            if (hash_addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapLongArray.free(hash_addr);
+            }
+            final long next_addr = OffHeapLongArray.get(addr, NEXT);
+            if (next_addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapLongArray.free(next_addr);
+            }
+            final long kv_addr = OffHeapLongArray.get(addr, KV);
+            if (kv_addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapLongArray.free(kv_addr);
+            }
             OffHeapLongArray.free(addr);
         }
     }
