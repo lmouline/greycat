@@ -24,7 +24,10 @@ public class OffHeapStringArray {
         return newMemorySegment;
     }
 
-    public static long reallocate(final long addr, final long previousCapacity, final long nextCapacity) {
+    public static long reallocate(final long addr, final long nextCapacity) {
+        return unsafe.reallocateMemory(addr, nextCapacity);
+
+        /*
         //allocate a new bigger segment
         long newBiggerMemorySegment = unsafe.allocateMemory(nextCapacity * 8);
         //reset the segment selectWith -1
@@ -35,6 +38,7 @@ public class OffHeapStringArray {
         unsafe.freeMemory(addr);
         //return the newly created segment
         return newBiggerMemorySegment;
+        */
     }
 
     public static void set(final long addr, final long index, final String valueToInsert) {

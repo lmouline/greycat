@@ -257,21 +257,21 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             if (kPtr == OffHeapConstants.OFFHEAP_NULL_PTR) {
                 kPtr = OffHeapLongArray.allocate(newCapacity);
             } else {
-                kPtr = OffHeapLongArray.reallocate(kPtr, previousCapacity, newCapacity);
+                kPtr = OffHeapLongArray.reallocate(kPtr, newCapacity);
             }
             OffHeapLongArray.set(addr, K, kPtr);
 
             if (colorsPtr == OffHeapConstants.OFFHEAP_NULL_PTR) {
                 colorsPtr = OffHeapByteArray.allocate(newCapacity);
             } else {
-                colorsPtr = OffHeapByteArray.reallocate(colorsPtr, previousCapacity, newCapacity);
+                colorsPtr = OffHeapByteArray.reallocate(colorsPtr, newCapacity);
             }
             OffHeapLongArray.set(addr, COLORS, colorsPtr);
 
             if (metaPtr == OffHeapConstants.OFFHEAP_NULL_PTR) {
                 metaPtr = OffHeapLongArray.allocate(newCapacity * META_SIZE);
             } else {
-                metaPtr = OffHeapLongArray.reallocate(metaPtr, previousCapacity * META_SIZE, newCapacity * META_SIZE);
+                metaPtr = OffHeapLongArray.reallocate(metaPtr, newCapacity * META_SIZE);
             }
             OffHeapLongArray.set(addr, METAS, metaPtr);
 

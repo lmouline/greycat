@@ -2,10 +2,8 @@ package org.mwg.memory.offheap;
 
 import org.mwg.utility.Unsafe;
 
-/**
- * @ignore ts
- */
 public class OffHeapByteArray {
+
     public static long alloc_counter = 0;
 
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
@@ -23,31 +21,22 @@ public class OffHeapByteArray {
         return newMemorySegment;
     }
 
-    public static long reallocate(final long addr, final long previousCapacity, final long nextCapacity) {
-        //allocate a new bigger segment
-        long newBiggerMemorySegment = unsafe.allocateMemory(nextCapacity);
-        //reset the segment selectWith -1
-        unsafe.setMemory(newBiggerMemorySegment, nextCapacity, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
-        //copy previous memory segment content
-        unsafe.copyMemory(addr, newBiggerMemorySegment, previousCapacity);
-        //free the previous
-        unsafe.freeMemory(addr);
-        //return the newly created segment
-        return newBiggerMemorySegment;
+    public static long reallocate(final long addr, final long nextCapacity) {
+        return unsafe.reallocateMemory(addr, nextCapacity);
     }
 
     /**
      * Transfer an primitive array from heap to off-heap memory
      *
-     * @param src Object to copy, should be an array
-     * @param destAddr start of address to store the source object
+     * @param src        Object to copy, should be an array
+     * @param destAddr   start of address to store the source object
      * @param nbElements offset of destination address
      */
     public static void copyArray(final Object src, final long destAddr, final long nbElements) {
         int baseOffset = unsafe.arrayBaseOffset(src.getClass());
         int scaleOffset = unsafe.arrayIndexScale(src.getClass());
 
-        unsafe.copyMemory(src,baseOffset,null,destAddr,nbElements * scaleOffset);
+        unsafe.copyMemory(src, baseOffset, null, destAddr, nbElements * scaleOffset);
     }
 
     public static void set(final long addr, final long index, final byte valueToInsert) {

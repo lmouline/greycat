@@ -2,9 +2,6 @@ package org.mwg.memory.offheap;
 
 import org.mwg.utility.Unsafe;
 
-/**
- * @ignore ts
- */
 public class OffHeapLongArray {
     public static long alloc_counter = 0;
 
@@ -23,25 +20,16 @@ public class OffHeapLongArray {
         return newMemorySegment;
     }
 
-    public static void reset(final long addr, final long capacity){
+    public static void reset(final long addr, final long capacity) {
         unsafe.setMemory(addr, capacity * 8, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
     }
 
-    public static long reallocate(final long addr, final long previousCapacity, final long nextCapacity) {
-        //allocate a new bigger segment
-        long newBiggerMemorySegment = unsafe.allocateMemory(nextCapacity * 8);
-        //reset the segment selectWith -1
-        unsafe.setMemory(newBiggerMemorySegment, nextCapacity * 8, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
-        //copy previous memory segment content
-        unsafe.copyMemory(addr, newBiggerMemorySegment, previousCapacity * 8);
-        //free the previous
-        unsafe.freeMemory(addr);
-        //return the newly created segment
-        return newBiggerMemorySegment;
+    public static long reallocate(final long addr, final long nextCapacity) {
+        return unsafe.reallocateMemory(addr, nextCapacity * 8);
     }
 
     public static void set(final long addr, final long index, final long valueToInsert) {
-        unsafe.putLongVolatile(null,addr + index * 8, valueToInsert);
+        unsafe.putLongVolatile(null, addr + index * 8, valueToInsert);
     }
 
     public static long get(final long addr, final long index) {
@@ -52,7 +40,6 @@ public class OffHeapLongArray {
         if (Unsafe.DEBUG_MODE) {
             alloc_counter--;
         }
-
         unsafe.freeMemory(addr);
     }
 
@@ -61,12 +48,12 @@ public class OffHeapLongArray {
     }
 
 
+    /*
     public static long cloneArray(final long srcAddr, final long length) {
         alloc_counter++;
-
         long newAddr = unsafe.allocateMemory(length * 8);
         unsafe.copyMemory(srcAddr, newAddr, length * 8);
         return newAddr;
-    }
+    }*/
 
 }

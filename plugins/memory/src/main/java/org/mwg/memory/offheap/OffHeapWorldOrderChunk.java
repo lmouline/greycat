@@ -216,7 +216,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
                 }
             }
         } else {
-            long capacity = Constants.MAP_INITIAL_CAPACITY;
+            final long capacity = Constants.MAP_INITIAL_CAPACITY;
             OffHeapLongArray.set(addr, CAPACITY, capacity);
             OffHeapLongArray.set(addr, NEXT, OffHeapLongArray.allocate(capacity));
             long hash_addr = OffHeapLongArray.allocate(capacity * 2);
@@ -248,20 +248,20 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
                 return true;
             } else {
                 //extend kv
-                long new_kv_addr = OffHeapLongArray.reallocate(kv_addr, capacity * 2, newCapacity * 2);
+                long new_kv_addr = OffHeapLongArray.reallocate(kv_addr, newCapacity * 2);
                 if (new_kv_addr != kv_addr) {
                     OffHeapLongArray.set(addr, KV, new_kv_addr);
                 }
                 //extend hash
                 long hash_addr = OffHeapLongArray.get(addr, HASH);
-                long new_hash_addr = OffHeapLongArray.reallocate(hash_addr, capacity * 2, newCapacity * 2);
+                long new_hash_addr = OffHeapLongArray.reallocate(hash_addr, newCapacity * 2);
                 if (new_hash_addr != hash_addr) {
                     OffHeapLongArray.set(addr, HASH, new_hash_addr);
                 }
                 OffHeapLongArray.reset(new_hash_addr, newCapacity * 2);
                 //extend next
                 long next_addr = OffHeapLongArray.get(addr, NEXT);
-                long new_next_addr = OffHeapLongArray.reallocate(next_addr, capacity, newCapacity);
+                long new_next_addr = OffHeapLongArray.reallocate(next_addr, newCapacity);
                 if (new_next_addr != next_addr) {
                     OffHeapLongArray.set(addr, NEXT, new_next_addr);
                 }
