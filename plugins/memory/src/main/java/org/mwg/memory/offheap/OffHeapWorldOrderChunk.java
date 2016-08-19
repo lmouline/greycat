@@ -308,7 +308,9 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
             while (cursor < bufferSize) {
                 if (buffer.read(cursor) == Constants.CHUNK_SEP) {
                     if (!initDone) {
-                        resize(Base64.decodeToLongWithBounds(buffer, 0, cursor));
+                        final long mapSize = Base64.decodeToLongWithBounds(buffer, 0, cursor);
+                        final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(mapSize) / Math.log(2)));
+                        resize(closePowerOfTwo);
                         initDone = true;
                     } else {
                         //extra char read
