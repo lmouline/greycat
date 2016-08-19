@@ -7,22 +7,6 @@ import org.mwg.task.TaskResult;
 
 class VerboseHook implements TaskHook {
 
-    //@Override
-    //public void on(TaskAction previous, TaskAction next, TaskContext context) {
-        /*
-        for (int i = 0; i < context.ident(); i++) {
-            System.out.print("\t");
-        }
-        String taskName = next.toString();
-        System.out.println(context.template(taskName));
-        */
-        /*
-        for (int i = 0; i < context.ident(); i++) {
-            System.out.print("\t");
-            System.out.println(context.result().toString());
-        }*/
-    //}
-
     @Override
     public void start(TaskContext initialContext) {
 
@@ -30,7 +14,16 @@ class VerboseHook implements TaskHook {
 
     @Override
     public void beforeAction(TaskAction action, TaskContext context) {
-
+        for (int i = 0; i < context.ident(); i++) {
+            System.out.print("\t");
+        }
+        String taskName = action.toString();
+        System.out.println(context.template(taskName));
+        /*
+        for (int i = 0; i < context.ident(); i++) {
+            System.out.print("\t");
+            System.out.println(context.result().toString());
+        }*/
     }
 
     @Override

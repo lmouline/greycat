@@ -480,4 +480,8 @@ class CoreTaskContext implements TaskContext {
         return this._hook;
     }
 
+    @Override
+    public String toString() {
+        return "{result:" + _result.toString() + "}";
+    }
 }

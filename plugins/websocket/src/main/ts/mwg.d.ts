@@ -38,7 +38,7 @@ declare module java {
             namespace atomic {
                 class AtomicIntegerArray {
                     _internal: Int32Array;
-                    constructor(p: Int32Array);
+                    constructor(initialCapacity: number);
                     set(index: number, newVal: number): void;
                     get(index: number): number;
                     getAndSet(index: number, newVal: number): number;
@@ -382,6 +382,7 @@ declare module org {
             newQuery(): org.mwg.Query;
             freeNodes(nodes: org.mwg.Node[]): void;
             taskAction(name: string): org.mwg.task.TaskActionFactory;
+            taskHookFactory(): org.mwg.task.TaskHookFactory;
         }
         class GraphBuilder {
             private _storage;
@@ -585,10 +586,13 @@ declare module org {
                 private _taskActions;
                 private _memoryFactory;
                 private _resolverFactory;
+                private _hookFactory;
                 declareNodeType(name: string, factory: org.mwg.plugin.NodeFactory): org.mwg.plugin.Plugin;
                 declareTaskAction(name: string, factory: org.mwg.task.TaskActionFactory): org.mwg.plugin.Plugin;
                 declareMemoryFactory(factory: org.mwg.plugin.MemoryFactory): org.mwg.plugin.Plugin;
                 declareResolverFactory(factory: org.mwg.plugin.ResolverFactory): org.mwg.plugin.Plugin;
+                hookFactory(): org.mwg.task.TaskHookFactory;
+                declareTaskHookFactory(factory: org.mwg.task.TaskHookFactory): org.mwg.plugin.Plugin;
                 nodeTypes(): string[];
                 nodeType(nodeTypeName: string): org.mwg.plugin.NodeFactory;
                 taskActionTypes(): string[];
@@ -633,7 +637,9 @@ declare module org {
                 declareNodeType(name: string, factory: org.mwg.plugin.NodeFactory): org.mwg.plugin.Plugin;
                 declareTaskAction(name: string, factory: org.mwg.task.TaskActionFactory): org.mwg.plugin.Plugin;
                 declareMemoryFactory(factory: org.mwg.plugin.MemoryFactory): org.mwg.plugin.Plugin;
+                declareTaskHookFactory(factory: org.mwg.task.TaskHookFactory): org.mwg.plugin.Plugin;
                 declareResolverFactory(factory: org.mwg.plugin.ResolverFactory): org.mwg.plugin.Plugin;
+                hookFactory(): org.mwg.task.TaskHookFactory;
                 nodeTypes(): string[];
                 nodeType(nodeTypeName: string): org.mwg.plugin.NodeFactory;
                 taskActionTypes(): string[];
@@ -852,7 +858,7 @@ declare module org {
                 repeat(repetition: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                 repeatPar(repetition: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                 print(name: string): org.mwg.task.Task;
-                hook(hook: org.mwg.task.TaskHook): org.mwg.task.Task;
+                hook(hookFactory: org.mwg.task.TaskHookFactory): org.mwg.task.Task;
                 execute(graph: org.mwg.Graph, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                 executeSync(graph: org.mwg.Graph): org.mwg.task.TaskResult<any>;
                 executeWith(graph: org.mwg.Graph, initial: any, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
@@ -914,7 +920,15 @@ declare module org {
                 (object: any, context: org.mwg.task.TaskContext): boolean;
             }
             interface TaskHook {
-                on(previous: org.mwg.task.TaskAction, next: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
+                start(initialContext: org.mwg.task.TaskContext): void;
+                beforeAction(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
+                afterAction(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
+                beforeSubTask(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
+                afterSubTask(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
+                end(finalContext: org.mwg.task.TaskContext): void;
+            }
+            interface TaskHookFactory {
+                newHook(): org.mwg.task.TaskHook;
             }
             interface TaskResult<A> {
                 iterator(): org.mwg.task.TaskResultIterator<any>;
@@ -966,11 +980,6 @@ declare module org {
                 iterator(): org.mwg.struct.BufferIterator;
                 removeLast(): void;
                 slice(initPos: number, endPos: number): Int8Array;
-            }
-            class ConsoleHook implements org.mwg.task.TaskHook {
-                private static _instance;
-                static instance(): org.mwg.utility.ConsoleHook;
-                on(previous: org.mwg.task.TaskAction, next: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
             }
             class DefaultBufferIterator implements org.mwg.struct.BufferIterator {
                 private _origin;
@@ -1026,6 +1035,20 @@ declare module org {
             class KeyHelper {
                 static keyToBuffer(buffer: org.mwg.struct.Buffer, chunkType: number, world: number, time: number, id: number): void;
             }
+            class VerboseHook implements org.mwg.task.TaskHook {
+                start(initialContext: org.mwg.task.TaskContext): void;
+                beforeAction(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
+                afterAction(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
+                beforeSubTask(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
+                afterSubTask(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
+                end(initialContext: org.mwg.task.TaskContext): void;
+            }
+            class VerboseHookFactory implements org.mwg.task.TaskHookFactory {
+                newHook(): org.mwg.task.TaskHook;
+            }
+            class VerbosePlugin extends org.mwg.plugin.AbstractPlugin {
+                constructor();
+            }
         }
     }
 }
@@ -1072,6 +1095,7 @@ declare module org {
                 private _lock;
                 private _plugins;
                 private _memoryFactory;
+                private _hookFactory;
                 private _prefix;
                 private _nodeKeyCalculator;
                 private _worldKeyCalculator;
@@ -1082,6 +1106,7 @@ declare module org {
                 cloneNode(origin: org.mwg.Node): org.mwg.Node;
                 factoryByCode(code: number): org.mwg.plugin.NodeFactory;
                 taskAction(taskActionName: string): org.mwg.task.TaskActionFactory;
+                taskHookFactory(): org.mwg.task.TaskHookFactory;
                 lookup<A extends org.mwg.Node>(world: number, time: number, id: number, callback: org.mwg.Callback<A>): void;
                 save(callback: org.mwg.Callback<boolean>): void;
                 connect(callback: org.mwg.Callback<boolean>): void;
@@ -1646,7 +1671,6 @@ declare module org {
                 class ActionPlugin extends org.mwg.plugin.AbstractTaskAction {
                     private _actionName;
                     private _flatParams;
-                    private initilized;
                     private subAction;
                     constructor(actionName: string, flatParams: string);
                     eval(context: org.mwg.task.TaskContext): void;
@@ -1800,7 +1824,7 @@ declare module org {
                 class CoreTask implements org.mwg.task.Task {
                     private _first;
                     private _last;
-                    private _hook;
+                    private _hookFactory;
                     private addAction(nextAction);
                     setWorld(template: string): org.mwg.task.Task;
                     setTime(template: string): org.mwg.task.Task;
@@ -1865,7 +1889,7 @@ declare module org {
                     repeat(repetition: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                     repeatPar(repetition: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                     print(name: string): org.mwg.task.Task;
-                    hook(p_hook: org.mwg.task.TaskHook): org.mwg.task.Task;
+                    hook(p_hookFactory: org.mwg.task.TaskHookFactory): org.mwg.task.Task;
                     emptyResult(): org.mwg.task.TaskResult<any>;
                     mathConditional(mathExpression: string): org.mwg.task.TaskFunctionConditional;
                     static fillDefault(registry: java.util.Map<string, org.mwg.task.TaskActionFactory>): void;
@@ -1915,6 +1939,7 @@ declare module org {
                     execute(initialTaskAction: org.mwg.plugin.AbstractTaskAction): void;
                     template(input: string): string;
                     hook(): org.mwg.task.TaskHook;
+                    toString(): string;
                 }
                 class CoreTaskResult<A> implements org.mwg.task.TaskResult<A> {
                     private _backend;
