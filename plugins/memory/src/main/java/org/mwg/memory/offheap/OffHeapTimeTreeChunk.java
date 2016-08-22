@@ -113,94 +113,129 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @Override
-    public synchronized final void range(final long startKey, final long endKey, final long maxElements, final TreeWalker walker) {
-        ptrConsistency();
-        //lock and load fromVar main memory
-        long nbElements = 0;
-        long indexEnd = internal_previousOrEqual_index(endKey);
-        while (indexEnd != -1 && key(indexEnd) >= startKey && nbElements < maxElements) {
-            walker.elem(key(indexEnd));
-            nbElements++;
-            indexEnd = previous(indexEnd);
+    public final void range(final long startKey, final long endKey, final long maxElements, final TreeWalker walker) {
+        while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
+        try {
+            ptrConsistency();
+            //lock and load fromVar main memory
+            long nbElements = 0;
+            long indexEnd = internal_previousOrEqual_index(endKey);
+            while (indexEnd != -1 && key(indexEnd) >= startKey && nbElements < maxElements) {
+                walker.elem(key(indexEnd));
+                nbElements++;
+                indexEnd = previous(indexEnd);
+            }
+        } finally {
+            if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 1, 0)) {
+                System.out.println("CAS error !!!");
+            }
         }
     }
 
     @Override
-    public synchronized final void save(Buffer buffer) {
-        ptrConsistency();
-        final long size = OffHeapLongArray.get(addr, SIZE);
-        final long k_addr = OffHeapLongArray.get(addr, K);
-        Base64.encodeLongToBuffer(size, buffer);
-        buffer.write(Constants.CHUNK_SEP);
-        boolean isFirst = true;
-        for (long i = 0; i < size; i++) {
-            if (!isFirst) {
-                buffer.write(Constants.CHUNK_SUB_SEP);
+    public final void save(Buffer buffer) {
+        while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
+        try {
+            ptrConsistency();
+            final long size = OffHeapLongArray.get(addr, SIZE);
+            final long k_addr = OffHeapLongArray.get(addr, K);
+            Base64.encodeLongToBuffer(size, buffer);
+            buffer.write(Constants.CHUNK_SEP);
+            boolean isFirst = true;
+            for (long i = 0; i < size; i++) {
+                if (!isFirst) {
+                    buffer.write(Constants.CHUNK_SUB_SEP);
+                } else {
+                    isFirst = false;
+                }
+                Base64.encodeLongToBuffer(OffHeapLongArray.get(k_addr, i), buffer);
+            }
+            OffHeapLongArray.set(addr, DIRTY, 0);
+        } finally {
+            if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 1, 0)) {
+                System.out.println("CAS error !!!");
+            }
+        }
+    }
+
+    @Override
+    public final void load(Buffer buffer) {
+        while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
+        try {
+            ptrConsistency();
+            if (buffer == null || buffer.length() == 0) {
+                return;
+            }
+            final boolean initial = (OffHeapLongArray.get(addr, K) == OffHeapConstants.OFFHEAP_NULL_PTR);
+            boolean isDirty = false;
+            long cursor = 0;
+            long previous = 0;
+            long payloadSize = buffer.length();
+            while (cursor < payloadSize) {
+                byte current = buffer.read(cursor);
+                if (current == Constants.CHUNK_SUB_SEP) {
+                    isDirty = isDirty || internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    previous = cursor + 1;
+                } else if (current == Constants.CHUNK_SEP) {
+                    final long treeSize = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
+                    reallocate(OffHeapLongArray.get(addr, CAPACITY), closePowerOfTwo);
+                    previous = cursor + 1;
+                }
+                cursor++;
+            }
+            isDirty = isDirty || internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+            if (isDirty && !initial && OffHeapLongArray.get(addr, DIRTY) != 1) {
+                OffHeapLongArray.set(addr, DIRTY, 1);
+                if (space != null) {
+                    space.notifyUpdate(index);
+                }
+            }
+        } finally {
+            if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 1, 0)) {
+                System.out.println("CAS error !!!");
+            }
+        }
+    }
+
+    @Override
+    public final long previousOrEqual(long key) {
+        while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
+        try {
+            ptrConsistency();
+            //lock and load fromVar main memory
+            long resultKey;
+            long result = internal_previousOrEqual_index(key);
+            if (result != -1) {
+                resultKey = key(result);
             } else {
-                isFirst = false;
+                resultKey = Constants.NULL_LONG;
             }
-            Base64.encodeLongToBuffer(OffHeapLongArray.get(k_addr, i), buffer);
-        }
-        OffHeapLongArray.set(addr, DIRTY, 0);
-    }
-
-    @Override
-    public synchronized final void load(Buffer buffer) {
-        ptrConsistency();
-        if (buffer == null || buffer.length() == 0) {
-            return;
-        }
-        final boolean initial = (OffHeapLongArray.get(addr, K) == OffHeapConstants.OFFHEAP_NULL_PTR);
-        boolean isDirty = false;
-        long cursor = 0;
-        long previous = 0;
-        long payloadSize = buffer.length();
-        while (cursor < payloadSize) {
-            byte current = buffer.read(cursor);
-            if (current == Constants.CHUNK_SUB_SEP) {
-                isDirty = isDirty || internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                previous = cursor + 1;
-            } else if (current == Constants.CHUNK_SEP) {
-                final long treeSize = Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
-                reallocate(OffHeapLongArray.get(addr, CAPACITY), closePowerOfTwo);
-                previous = cursor + 1;
-            }
-            cursor++;
-        }
-        isDirty = isDirty || internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
-        if (isDirty && !initial && OffHeapLongArray.get(addr, DIRTY) != 1) {
-            OffHeapLongArray.set(addr, DIRTY, 1);
-            if (space != null) {
-                space.notifyUpdate(index);
+            return resultKey;
+        } finally {
+            if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 1, 0)) {
+                System.out.println("CAS error !!!");
             }
         }
     }
 
     @Override
-    public synchronized final long previousOrEqual(long key) {
-        ptrConsistency();
-        //lock and load fromVar main memory
-        long resultKey;
-        long result = internal_previousOrEqual_index(key);
-        if (result != -1) {
-            resultKey = key(result);
-        } else {
-            resultKey = Constants.NULL_LONG;
-        }
-        return resultKey;
-    }
-
-    @Override
-    public synchronized final void insert(final long p_key) {
-        ptrConsistency();
-        if (internal_insert(p_key)) {
-            internal_set_dirty();
+    public final void insert(final long p_key) {
+        while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
+        try {
+            ptrConsistency();
+            if (internal_insert(p_key)) {
+                internal_set_dirty();
+            }
+        } finally {
+            if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 1, 0)) {
+                System.out.println("CAS error !!!");
+            }
         }
     }
 
     @Override
-    public synchronized final void unsafe_insert(final long p_key) {
+    public final void unsafe_insert(final long p_key) {
         internal_insert(p_key);
     }
 
@@ -213,12 +248,11 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     public final void clearAt(long max) {
         while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
         try {
-            // ptrConsistency();
+            ptrConsistency();
             long previousKeys = OffHeapLongArray.get(addr, K);
             long previousMetas = OffHeapLongArray.get(addr, METAS);
             long previousColors = OffHeapLongArray.get(addr, COLORS);
             long previousSize = OffHeapLongArray.get(addr, SIZE);
-
             //reset
             long capacity = Constants.MAP_INITIAL_CAPACITY;
             //init k array
@@ -230,18 +264,15 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             //init colors array
             colorsPtr = OffHeapByteArray.allocate(capacity);
             OffHeapLongArray.set(addr, COLORS, colorsPtr);
-
             OffHeapLongArray.set(addr, SIZE, 0);
             OffHeapLongArray.set(addr, ROOT, -1);
             OffHeapLongArray.set(addr, MAGIC, OffHeapLongArray.get(addr, MAGIC) + 1);
-
             for (long i = 0; i < previousSize; i++) {
                 long currentVal = OffHeapLongArray.get(previousKeys, i);
                 if (currentVal < max) {
                     internal_insert(OffHeapLongArray.get(previousKeys, i));
                 }
             }
-
             OffHeapLongArray.free(previousKeys);
             OffHeapLongArray.free(previousMetas);
             OffHeapByteArray.free(previousColors);
