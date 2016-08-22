@@ -112,8 +112,6 @@ public class Constants {
      * public static BOOL_FALSE : number = "0".charCodeAt(0);
      */
     public static byte BOOL_FALSE = (byte) '0';
-
-    public static final int DIRTY_BIT = 0x01;
-
+    
 }
 

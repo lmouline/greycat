@@ -46,14 +46,12 @@ public class OffHeapLongArray {
     public static boolean compareAndSwap(final long addr, final long index, final long expectedValue, final long updatedValue) {
         return unsafe.compareAndSwapLong(null, addr + index * 8, expectedValue, updatedValue);
     }
-
-
-    /*
+    
     public static long cloneArray(final long srcAddr, final long length) {
         alloc_counter++;
         long newAddr = unsafe.allocateMemory(length * 8);
         unsafe.copyMemory(srcAddr, newAddr, length * 8);
         return newAddr;
-    }*/
+    }
 
 }

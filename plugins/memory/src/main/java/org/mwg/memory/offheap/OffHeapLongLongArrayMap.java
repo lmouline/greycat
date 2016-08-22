@@ -7,10 +7,7 @@ import org.mwg.struct.LongLongArrayMapCallBack;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.Unsafe;
 
-/**
- * @ignore ts
- */
-public class ArrayLongLongArrayMap implements LongLongArrayMap {
+class OffHeapLongLongArrayMap implements LongLongArrayMap {
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
 
     private final ChunkListener listener;
@@ -35,7 +32,11 @@ public class ArrayLongLongArrayMap implements LongLongArrayMap {
     private long elementNext_ptr;
     private long elementHash_ptr;
 
-    public ArrayLongLongArrayMap(ChunkListener listener, long initialCapacity, long previousAddr) {
+    public long rootAddress() {
+        return root_array_ptr;
+    }
+
+    OffHeapLongLongArrayMap(ChunkListener listener, long initialCapacity, long previousAddr) {
         this.listener = listener;
         if (previousAddr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             this.root_array_ptr = OffHeapLongArray.allocate(ROOT_ARRAY_SIZE);
@@ -273,10 +274,10 @@ public class ArrayLongLongArrayMap implements LongLongArrayMap {
 
                 long newCapacity = capacity << 1;
                 //reallocate the string[], indexes are not changed
-                elementK_ptr = OffHeapStringArray.reallocate(elementK_ptr, capacity, newCapacity);
+                elementK_ptr = OffHeapStringArray.reallocate(elementK_ptr, newCapacity);
                 OffHeapLongArray.set(root_array_ptr, INDEX_ELEMENT_K, elementK_ptr);
                 //reallocate the long[] values
-                elementV_ptr = OffHeapLongArray.reallocate(elementV_ptr, capacity + 1, newCapacity + 1);
+                elementV_ptr = OffHeapLongArray.reallocate(elementV_ptr, newCapacity + 1);
                 OffHeapLongArray.set(root_array_ptr, INDEX_ELEMENT_V, elementV_ptr);
 
                 //Create two new Hash and Next structures
@@ -347,23 +348,18 @@ public class ArrayLongLongArrayMap implements LongLongArrayMap {
             //increase element count
             OffHeapLongArray.set(root_array_ptr, INDEX_ELEMENT_COUNT, elementCount + 1);
             //inform the listener
-            this.listener.declareDirty(null);
+            this.listener.declareDirty();
         } else {
             if (OffHeapLongArray.get(elementV_ptr + 8, entry) != value && value != Constants.NULL_LONG) {
                 //setValue
                 OffHeapLongArray.set(elementV_ptr + 8, entry, value);
-                this.listener.declareDirty(null);
+                this.listener.declareDirty();
             }
         }
         if (!OffHeapLongArray.compareAndSwap(root_array_ptr, INDEX_ELEMENT_LOCK, 1, 0)) {
             throw new RuntimeException("CAS error !!!");
         }
     }
-
-    public long rootAddress() {
-        return root_array_ptr;
-    }
-
 
     public static long softClone(long srcAddr) {
         // clone root array
