@@ -252,8 +252,15 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
         if (newCapacity > capacity) {
             if (kv_addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
                 OffHeapLongArray.set(addr, KV, OffHeapLongArray.allocate(newCapacity * 2));
-                OffHeapLongArray.set(addr, HASH, OffHeapLongArray.allocate(newCapacity * 2));
-                OffHeapLongArray.set(addr, NEXT, OffHeapLongArray.allocate(newCapacity));
+                //init hash
+                final long new_hash = OffHeapLongArray.allocate(newCapacity * 2);
+                OffHeapLongArray.set(new_hash, HASH, newCapacity * 2);
+                OffHeapLongArray.set(addr, HASH, new_hash);
+                //init next
+                final long new_next = OffHeapLongArray.allocate(newCapacity);
+                OffHeapLongArray.set(addr, NEXT, new_next);
+                OffHeapLongArray.reset(new_next, newCapacity);
+                //init capacity
                 OffHeapLongArray.set(addr, CAPACITY, newCapacity);
                 return true;
             } else {

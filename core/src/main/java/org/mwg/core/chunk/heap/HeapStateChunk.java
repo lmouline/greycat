@@ -27,7 +27,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
     private int[] _hash;
     private byte[] _type;
 
-    private boolean unaligned = false;
     private boolean _dirty;
 
     HeapStateChunk(final HeapChunkSpace p_space, final long p_index) {
@@ -369,15 +368,37 @@ class HeapStateChunk implements StateChunk, ChunkListener {
             return;
         }
         HeapStateChunk casted = (HeapStateChunk) origin;
-        _k = casted._k;
-        _type = casted._type;
         _capacity = casted._capacity;
         _size = casted._size;
-        _hash = casted._hash;
-        _next = casted._next;
-        unaligned = true;
+        //copy keys
+        long[] cloned_k = new long[_capacity];
+        System.arraycopy(casted._k, 0, cloned_k, 0, _capacity);
+        _k = cloned_k;
+        //copy values
+
+        /*
+        Object[] cloned_v = new Object[_capacity];
+        System.arraycopy(casted._v, 0, cloned_v, 0, _capacity);
+        _v = cloned_v;
+        */
+
+        //copy types
+        byte[] cloned_type = new byte[_capacity];
+        System.arraycopy(casted._type, 0, cloned_type, 0, _capacity);
+        _type = cloned_type;
+        //copy next if not empty
+        if (casted._next != null) {
+            int[] cloned_next = new int[_capacity];
+            System.arraycopy(casted._next, 0, cloned_next, 0, _capacity);
+            _next = cloned_next;
+        }
+        if (casted._hash != null) {
+            int[] cloned_hash = new int[_capacity * 2];
+            System.arraycopy(casted._hash, 0, cloned_hash, 0, _capacity * 2);
+            _hash = cloned_hash;
+        }
         _v = new Object[_capacity];
-        for (int i = 0; i < casted._capacity; i++) {
+        for (int i = 0; i < _size; i++) {
             switch (casted._type[i]) {
                 case Type.LONG_TO_LONG_MAP:
                     if (casted._v[i] != null) {
@@ -555,6 +576,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                     if (_type[entry] != p_type) {
 
                         //realign
+                        /*
                         if (unaligned) {
                             long[] cloned_k = new long[_capacity];
                             System.arraycopy(_k, 0, cloned_k, 0, _capacity);
@@ -577,7 +599,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                                 _hash = cloned_hash;
                             }
                             unaligned = false;
-                        }
+                        }*/
 
 
                         //TODO deep clone
@@ -590,43 +612,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
             }
             return;
         }
-
-        if (unaligned) {
-
-            if (_k != null) {
-                long[] cloned_k = new long[_capacity];
-                System.arraycopy(_k, 0, cloned_k, 0, _capacity);
-                _k = cloned_k;
-            }
-
-            if (_v != null) {
-                Object[] cloned_v = new Object[_capacity];
-                System.arraycopy(_v, 0, cloned_v, 0, _capacity);
-                _v = cloned_v;
-            }
-
-            if (_type != null) {
-                byte[] cloned_type = new byte[_capacity];
-                System.arraycopy(_type, 0, cloned_type, 0, _capacity);
-                _type = cloned_type;
-            }
-
-            if (_next != null) {
-                int[] cloned_next = new int[_capacity];
-                System.arraycopy(_next, 0, cloned_next, 0, _capacity);
-                _next = cloned_next;
-            }
-
-            if (_hash != null) {
-                int[] cloned_hash = new int[_capacity * 2];
-                System.arraycopy(_hash, 0, cloned_hash, 0, _capacity * 2);
-                _hash = cloned_hash;
-            }
-
-
-            unaligned = false;
-        }
-
         if (_size < _capacity) {
             _k[_size] = p_key;
             _v[_size] = param_elem;
@@ -651,13 +636,11 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         System.arraycopy(_type, 0, ex_type, 0, _capacity);
         _type = ex_type;
         _capacity = newCapacity;
-
         //insert the next
         _k[_size] = p_key;
         _v[_size] = param_elem;
         _type[_size] = p_type;
         _size++;
-
         //reHash
         _hash = new int[_capacity * 2];
         Arrays.fill(_hash, 0, _capacity * 2, -1);

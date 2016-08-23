@@ -52,7 +52,6 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     HeapWorldOrderChunk(final HeapChunkSpace p_space, final long p_index) {
         _index = p_index;
         _space = p_space;
-
         _lock = 0;
         _magic = 0;
         _extra = CoreConstants.NULL_LONG;
@@ -61,9 +60,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
         _kv = null;
         _next = null;
         _hash = null;
-
         _dirty = false;
-
     }
 
     @Override
@@ -211,6 +208,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
                 _hash = new int[newCapacity * 2];
                 _next = new int[newCapacity];
                 _capacity = newCapacity;
+                Arrays.fill(_next, 0, newCapacity, -1);
+                Arrays.fill(_hash, 0, newCapacity * 2, -1);
                 return true;
             } else {
                 final long[] temp_kv = new long[newCapacity * 2];

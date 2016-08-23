@@ -1,5 +1,8 @@
 package org.mwg.memory.offheap;
 
+import org.mwg.Constants;
+import org.mwg.struct.Buffer;
+import org.mwg.utility.Base64;
 import org.mwg.utility.Unsafe;
 
 public class OffHeapDoubleArray {
@@ -56,6 +59,30 @@ public class OffHeapDoubleArray {
         long newAddr = unsafe.allocateMemory(length * 8);
         unsafe.copyMemory(srcAddr, newAddr, length * 8);
         return newAddr;
+    }
+
+    static void save(final long addr, final Buffer buffer) {
+        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            return;
+        }
+        int rawSize = (int) OffHeapDoubleArray.get(addr, 0);
+        Base64.encodeIntToBuffer(rawSize, buffer);
+        for (int j = 0; j < rawSize; j++) {
+            buffer.write(Constants.CHUNK_SUB_SUB_SEP);
+            Base64.encodeDoubleToBuffer(OffHeapDoubleArray.get(addr, j + 1), buffer);
+        }
+    }
+
+    static double[] asObject(final long addr) {
+        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            return null;
+        }
+        int doubleArrayLength = (int) OffHeapLongArray.get(addr, 0);
+        double[] doubleArray = new double[doubleArrayLength];
+        for (int i = 0; i < doubleArrayLength; i++) {
+            doubleArray[i] = OffHeapDoubleArray.get(addr, i + 1);
+        }
+        return doubleArray;
     }
 
 

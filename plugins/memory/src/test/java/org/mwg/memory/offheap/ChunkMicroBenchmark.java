@@ -10,12 +10,12 @@ public class ChunkMicroBenchmark {
         long init = System.currentTimeMillis();
         OffHeapChunkSpace space = new OffHeapChunkSpace(nb, null);
         for (int i = 0; i < nb; i++) {
-            space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, i);
+            space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, i);
 
         }
         long begin = System.currentTimeMillis();
         for (int i = 0; i < nb; i++) {
-            Chunk c = space.getAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, i);
+            Chunk c = space.getAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, i);
             space.unmark(c.index());
         }
         long after = System.currentTimeMillis();

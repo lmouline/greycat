@@ -2,8 +2,10 @@ package org.mwg.memory.offheap;
 
 import org.mwg.Constants;
 import org.mwg.chunk.ChunkListener;
+import org.mwg.struct.Buffer;
 import org.mwg.struct.StringLongMap;
 import org.mwg.struct.StringLongMapCallBack;
+import org.mwg.utility.Base64;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.Unsafe;
 
@@ -407,5 +409,24 @@ class OffHeapStringLongMap implements StringLongMap {
         return newSrcAddr;
     }
     */
+    
+    static void save(final long addr, final Buffer buffer) {
+        final long size = OffHeapLongArray.get(addr, INDEX_ELEMENT_COUNT);
+        final long capacity = OffHeapLongArray.get(addr, INDEX_CAPACITY);
+        final long elementV_ptr = OffHeapLongArray.get(addr, INDEX_ELEMENT_V);
+        final long elementK_ptr = OffHeapLongArray.get(addr, INDEX_ELEMENT_K);
+        Base64.encodeLongToBuffer(size, buffer);
+        for (long i = 0; i < capacity; i++) {
+            String loopKey = OffHeapStringArray.get(elementK_ptr, i);
+            if (loopKey != null) {
+                long value = OffHeapLongArray.get(elementV_ptr + 8, i);
+                buffer.write(Constants.CHUNK_SUB_SUB_SEP);
+                Base64.encodeStringToBuffer(loopKey, buffer);
+                buffer.write(Constants.CHUNK_SUB_SUB_SUB_SEP);
+                Base64.encodeLongToBuffer(value, buffer);
+            }
+        }
+    }
+
 
 }

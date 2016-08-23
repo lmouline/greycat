@@ -463,7 +463,6 @@ public class Base64 {
         char currentSourceChar;
         int currentEncodedChar = 0;
         int freeBitsInCurrentChar = 6;
-
         for (int charIdx = 0; charIdx < sLength; charIdx++) {
             currentSourceChar = s.charAt(charIdx);
             if (freeBitsInCurrentChar == 6) {
@@ -480,7 +479,6 @@ public class Base64 {
                 freeBitsInCurrentChar = 6;
             }
         }
-
         if (freeBitsInCurrentChar != 6) {
             buffer.write(Base64.encodeArray[currentEncodedChar]);
         }
