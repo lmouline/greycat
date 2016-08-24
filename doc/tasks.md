@@ -2,7 +2,7 @@
 
 > Why a (task/traversal/promise) API ?
 
-Manipulating the Many World Graph through an asynchronous API allows to write blazing-fast code without compromising on abstraction. Asynchronous code often leads to what is known as [CallBack Hell](http://callbackhell.com/), that damage both the readability and code reusability due to encapsulated callbacks. To overcome this, modern libraries and APIs provide Promises and/or Futures. The common goal of these approaches is chaining of reusable elements that can be shared in order to avoid repeated error prone code. Finally, to reach its performance objectives, MWGs API use a `.free()` method that has to be called once a node will not be used anymore. The Task API also handle this problem to avoid coding with malloc/free-like API...
+Manipulating the Many World Graph through an asynchronous API allows to write blazing-fast code without compromising on high-level abstractions. Asynchronous code often leads to what is known as [CallBack Hell](http://callbackhell.com/), that damage both the readability of code and its reusability, due to nested callbacks. To overcome this, modern libraries and APIs provide Promises and/or Futures. The common goal of these approaches is to offer a way to chain reusable elements and to synchronize the program flow in order to avoid repeated and error prone code. MWG comes with a powerful API to manipulate and traverse graphs, which hides low-level, asynchronous task primitives behind an expressive API. Graph processing can be ressource-hungry. To make the most out of the available main memory, MWG provides an API to explicitly free the memory of a node. A `.free()` method can be called once a node will not be used anymore.
 
 # Running example
 
