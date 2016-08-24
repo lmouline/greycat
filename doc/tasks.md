@@ -32,8 +32,9 @@ Without black magic, action are just chained by `.` as any fluent DSL an inital 
 import static org.mwg.task.Actions.*;
 ```
 
+The result graph can be represented as follow:
 
-
+![Running Example View](./tasks/running_example.png)
 
 
 # TaskContext and subTasks
