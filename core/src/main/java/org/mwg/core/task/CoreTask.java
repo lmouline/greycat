@@ -594,9 +594,21 @@ public class CoreTask implements org.mwg.task.Task {
             throw new RuntimeException("relationName should not be null");
         }
         if (variableNameToAdd == null) {
-            throw new RuntimeException("relatedNode should not be null");
+            throw new RuntimeException("variableNameToAdd should not be null");
         }
         addAction(new ActionAdd(relationName, variableNameToAdd));
+        return this;
+    }
+
+    @Override
+    public Task addTo(String relationName, String variableNameTarget) {
+        if (relationName == null) {
+            throw new RuntimeException("relationName should not be null");
+        }
+        if (variableNameTarget == null) {
+            throw new RuntimeException("variableNameTarget should not be null");
+        }
+        addAction(new ActionAddTo(relationName, variableNameTarget));
         return this;
     }
 
@@ -634,14 +646,14 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public Task repeat(String repetition, Task subTask) {
-        addAction(new ActionRepeat(repetition, subTask));
+    public Task loop(String lower, String upper, Task subTask) {
+        addAction(new ActionLoop(lower, upper, subTask));
         return this;
     }
 
     @Override
-    public Task repeatPar(String repetition, Task subTask) {
-        addAction(new ActionRepeatPar(repetition, subTask));
+    public Task loopPar(String repetition, Task subTask) {
+        addAction(new ActionLoopPar(repetition, subTask));
         return this;
     }
 

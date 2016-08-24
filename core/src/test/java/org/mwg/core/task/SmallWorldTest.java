@@ -5,7 +5,6 @@ import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Type;
 import org.mwg.task.*;
-import org.mwg.utility.VerboseHookFactory;
 import org.mwg.utility.VerbosePlugin;
 
 import static org.mwg.task.Actions.*;
@@ -30,7 +29,7 @@ public class SmallWorldTest {
                         .fromVar("room0").add("rooms", "room01")
                         .fromVar("room01").add("rooms", "room001")
                         .fromVar("room001").add("rooms", "room0001")
-                        .repeat("10", //repeat automatically inject an it variable
+                        .loop("0","9", //loop automatically inject an it variable
                                 newNode()
                                         .setProperty("id", Type.STRING, "sensor_{{it}}")
                                         .indexNode("sensors", "id")

@@ -324,11 +324,20 @@ public interface Task {
     /**
      * Adds a node to a relation of a node or of an array of nodes.
      *
-     * @param relationName      The name of the relation.
-     * @param variableNameToAdd The name of the property to add, should be stored previously as a variable in task context.
+     * @param relationName  The name of the relation.
+     * @param variableToAdd The name of the property to add, should be stored previously as a variable in task context.
      * @return this task to chain actions (fluent API)
      */
-    Task add(String relationName, String variableNameToAdd);
+    Task add(String relationName, String variableToAdd);
+
+    /**
+     * Adds a node to a relation of a node or of an array of nodes.
+     *
+     * @param relationName   The name of the relation.
+     * @param variableTarget The name of the property to add, should be stored previously as a variable in task context.
+     * @return this task to chain actions (fluent API)
+     */
+    Task addTo(String relationName, String variableTarget);
 
     /**
      * Removes a node from a relation of a node or of an array of nodes.
@@ -379,9 +388,9 @@ public interface Task {
      */
     Task math(String expression);
 
-    Task repeat(String repetition, Task subTask);
+    Task loop(String lower,String upper, Task subTask);
 
-    Task repeatPar(String repetition, Task subTask);
+    Task loopPar(String repetition, Task subTask);
 
     Task print(String name);
 

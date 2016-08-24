@@ -4,8 +4,6 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.core.scheduler.ExecutorScheduler;
-import org.mwg.core.scheduler.HybridScheduler;
-import org.mwg.core.scheduler.TrampolineScheduler;
 import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
@@ -31,7 +29,7 @@ public class Benchmark5Test {
 
                 final long previous = System.currentTimeMillis();
 
-                repeatPar("1000", repeat("1000", newTask().then(new Action() {
+                loopPar("1000", loop("0","999", newTask().then(new Action() {
                     @Override
                     public void eval(TaskContext context) {
                         Random random = new Random();

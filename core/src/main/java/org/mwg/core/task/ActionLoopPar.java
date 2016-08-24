@@ -9,13 +9,13 @@ import org.mwg.task.Task;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
-class ActionRepeatPar extends AbstractTaskAction {
+class ActionLoopPar extends AbstractTaskAction {
 
     private final Task _subTask;
 
     private final String _iterationTemplate;
 
-    ActionRepeatPar(final String p_iteration, final Task p_subTask) {
+    ActionLoopPar(final String p_iteration, final Task p_subTask) {
         super();
         this._subTask = p_subTask;
         this._iterationTemplate = p_iteration;
@@ -60,7 +60,7 @@ class ActionRepeatPar extends AbstractTaskAction {
 
     @Override
     public String toString() {
-        return "repeatPar(\'" + _iterationTemplate + "\')";
+        return "loopPar(\'" + _iterationTemplate + "\')";
     }
 
 }
