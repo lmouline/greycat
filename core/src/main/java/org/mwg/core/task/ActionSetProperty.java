@@ -29,6 +29,9 @@ class ActionSetProperty extends AbstractTaskAction {
             Object toSet;
             Object templateBased = context.template(this._variableNameToSet);
             switch (_propertyType) {
+                case Type.BOOL:
+                    toSet = Boolean.parseBoolean(templateBased.toString());
+                    break;
                 case Type.INT:
                     toSet = TaskHelper.parseInt(templateBased.toString());
                     break;

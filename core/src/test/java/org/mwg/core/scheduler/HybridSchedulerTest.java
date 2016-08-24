@@ -20,7 +20,7 @@ public class HybridSchedulerTest {
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                loopPar("100", loop("0","99",print("{{result}}"))).execute(g, new Callback<TaskResult>() {
+                loopPar("0","99", loop("0","99",print("{{result}}"))).execute(g, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
                         System.out.println();

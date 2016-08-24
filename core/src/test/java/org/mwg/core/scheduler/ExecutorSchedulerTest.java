@@ -18,7 +18,7 @@ public class ExecutorSchedulerTest {
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                loopPar("100", print("{{result}}")).execute(g, new Callback<TaskResult>() {
+                loopPar("0","99", print("{{result}}")).execute(g, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
                         System.out.println("end");

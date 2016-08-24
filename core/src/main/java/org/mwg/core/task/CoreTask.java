@@ -646,14 +646,14 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public Task loop(String lower, String upper, Task subTask) {
-        addAction(new ActionLoop(lower, upper, subTask));
+    public Task loop(String from, String to, Task subTask) {
+        addAction(new ActionLoop(from, to, subTask));
         return this;
     }
 
     @Override
-    public Task loopPar(String repetition, Task subTask) {
-        addAction(new ActionLoopPar(repetition, subTask));
+    public Task loopPar(String from, String to, Task subTask) {
+        addAction(new ActionLoopPar(from,to, subTask));
         return this;
     }
 

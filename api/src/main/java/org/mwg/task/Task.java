@@ -388,9 +388,9 @@ public interface Task {
      */
     Task math(String expression);
 
-    Task loop(String lower,String upper, Task subTask);
+    Task loop(String from, String to, Task subTask);
 
-    Task loopPar(String repetition, Task subTask);
+    Task loopPar(String from, String to, Task subTask);
 
     Task print(String name);
 

@@ -20,11 +20,11 @@ public class MicroWorldTest {
             @Override
             public void on(Boolean isConnected) {
 
-                loop("1","2",
+                loopPar("1","2",
                         newNode()
                         .setProperty("name", Type.STRING, "room_{{i}}")
                         .indexNode("rooms", "name")
-                        .asVar("parentRoom")
+                        .defineVar("parentRoom")
                         .loop("1","3",
                                 newNode()
                                 .setProperty("sensor", Type.STRING, "sensor_{{i}}")

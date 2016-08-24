@@ -119,12 +119,12 @@ public class Actions {
         return newTask().traverseIndexAll(indexName);
     }
 
-    public static Task loop(String lower, String upper, Task subTask) {
-        return newTask().loop(lower, upper, subTask);
+    public static Task loop(String from, String to, Task subTask) {
+        return newTask().loop(from, to, subTask);
     }
 
-    public static Task loopPar(String repetition, Task subTask) {
-        return newTask().loopPar(repetition, subTask);
+    public static Task loopPar(String from, String to, Task subTask) {
+        return newTask().loopPar(from, to, subTask);
     }
 
     public static Task print(String name) {

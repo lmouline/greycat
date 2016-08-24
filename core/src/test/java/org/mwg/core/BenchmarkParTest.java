@@ -26,11 +26,11 @@ public class BenchmarkParTest {
             public void on(Boolean result) {
                 final long previous = System.currentTimeMillis();
                 final long previousCache = g.space().available();
-                loopPar("10000", newNode()
+                loopPar("0", "9999", newNode()
                         .setProperty("name", Type.STRING, "node_{{it}}")
                         // .print("{{result}}")
                         .indexNode("nodes", "name")
-                        .loop("0","999", jump("{{it}}").setProperty("val", Type.INT, "{{it}}").clear())
+                        .loop("0", "999", jump("{{it}}").setProperty("val", Type.INT, "{{it}}").clear())
                         .save()
                         .clear()
                 ).save().execute(g, new Callback<TaskResult>() {

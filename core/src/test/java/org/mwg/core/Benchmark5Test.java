@@ -29,7 +29,7 @@ public class Benchmark5Test {
 
                 final long previous = System.currentTimeMillis();
 
-                loopPar("1000", loop("0","999", newTask().then(new Action() {
+                loopPar("0", "999", loop("0", "999", newTask().then(new Action() {
                     @Override
                     public void eval(TaskContext context) {
                         Random random = new Random();
