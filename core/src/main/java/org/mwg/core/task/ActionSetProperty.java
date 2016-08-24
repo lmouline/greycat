@@ -30,7 +30,7 @@ class ActionSetProperty extends AbstractTaskAction {
             Object templateBased = context.template(this._variableNameToSet);
             switch (_propertyType) {
                 case Type.BOOL:
-                    toSet = Boolean.parseBoolean(templateBased.toString());
+                    toSet = parseBoolean(templateBased.toString());
                     break;
                 case Type.INT:
                     toSet = TaskHelper.parseInt(templateBased.toString());
@@ -58,6 +58,11 @@ class ActionSetProperty extends AbstractTaskAction {
     @Override
     public String toString() {
         return "setProperty(\'" + _relationName + "\'" + Constants.QUERY_SEP + "\'" + _propertyType + "\'" + Constants.QUERY_SEP + "\'" + _variableNameToSet + "\')";
+    }
+
+    private boolean parseBoolean(String booleanValue) {
+        final String lower = booleanValue.toLowerCase();
+        return (lower.equals("true") || lower.equals("1"));
     }
 
 }
