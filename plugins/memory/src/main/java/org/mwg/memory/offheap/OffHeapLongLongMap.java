@@ -10,7 +10,7 @@ import org.mwg.utility.HashHelper;
 import org.mwg.utility.Unsafe;
 
 class OffHeapLongLongMap implements LongLongMap {
-    
+
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
 
     private final ChunkListener listener;
@@ -264,11 +264,6 @@ class OffHeapLongLongMap implements LongLongMap {
             throw new RuntimeException("CAS error !!!");
         }
     }
-
-    public long rootAddress() {
-        return root_array_ptr;
-    }
-
 
     public static long incrementCopyOnWriteCounter(long addr) {
         long elemV_ptr = OffHeapLongArray.get(addr, INDEX_ELEMENT_V);

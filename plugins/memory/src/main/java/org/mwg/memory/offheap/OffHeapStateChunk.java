@@ -213,7 +213,7 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
 
     @Override
     public final Object getOrCreate(final long p_key, final byte p_type) {
-        Object toSet = null;
+        Object result = null;
         lock();
         try {
             final long found = internal_find(p_key);
@@ -239,7 +239,7 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
         } finally {
             unlock();
         }
-        return toSet;
+        return result;
     }
 
     @Override
@@ -406,29 +406,23 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
                 OffHeapLongArray.set(addr, HASH, new_hash);
             }
             for (int i = 0; i < previousSize; i++) {
-                switch (casted._type[i]) {
-                    case Type.LONG_TO_LONG_MAP:
-                        if (casted._v[i] != null) {
-                            _v[i] = new HeapLongLongMap(this, -1, (HeapLongLongMap) casted._v[i]);
-                        }
-                        break;
-                    case Type.LONG_TO_LONG_ARRAY_MAP:
-                        if (casted._v[i] != null) {
-                            _v[i] = new HeapLongLongArrayMap(this, -1, (HeapLongLongArrayMap) casted._v[i]);
-                        }
-                        break;
-                    case Type.STRING_TO_LONG_MAP:
-                        if (casted._v[i] != null) {
-                            _v[i] = new HeapStringLongMap(this, -1, (HeapStringLongMap) casted._v[i]);
-                        }
+                final byte loopType = OffHeapByteArray.get(types_ptr, i);
+                final long loopValue = OffHeapLongArray.get(values_ptr, i);
+                switch (loopType) {
+                    case Type.STRING:
+                        OffHeapString.clone(loopValue);
                         break;
                     case Type.RELATION:
-                        if (casted._v[i] != null) {
-                            _v[i] = new HeapRelationship(this, (HeapRelationship) casted._v[i]);
-                        }
+                        OffHeapLongArray.set(values_ptr, i, OffHeapRelationship.clone(loopValue));
                         break;
-                    default:
-                        _v[i] = casted._v[i];
+                    case Type.LONG_TO_LONG_MAP:
+                        OffHeapLongArray.set(values_ptr, i, OffHeapLongLongMap.clone(loopValue));
+                        break;
+                    case Type.LONG_TO_LONG_ARRAY_MAP:
+                        OffHeapLongArray.set(values_ptr, i, OffHeapLongLongArrayMap.clone(loopValue));
+                        break;
+                    case Type.STRING_TO_LONG_MAP:
+                        OffHeapLongArray.set(values_ptr, i, OffHeapStringLongMap.clone(loopValue));
                         break;
                 }
             }
@@ -437,7 +431,7 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
         }
     }
 
-    private synchronized void internal_set(final long p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
+    private long internal_set(final long p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
         Object param_elem = null;
         //check the param type
         if (p_unsafe_elem != null) {
@@ -501,48 +495,52 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
             }
         }
         //first value
-        if (_k == null) {
-            //we do not allocate for empty element
-            if (param_elem == null) {
-                return;
-            }
-            _capacity = Constants.MAP_INITIAL_CAPACITY;
-            _k = new long[_capacity];
-            _v = new Object[_capacity];
-            _type = new byte[_capacity];
-            _k[0] = p_key;
-            _v[0] = param_elem;
-            _type[0] = p_type;
-            _size = 1;
-            return;
+        if (keys_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            long new_capacity = Constants.MAP_INITIAL_CAPACITY;
+            OffHeapLongArray.set(addr, CAPACITY, new_capacity);
+            long new_keys = OffHeapLongArray.allocate(new_capacity);
+            OffHeapLongArray.set(addr, KEYS, new_keys);
+            long new_values = OffHeapLongArray.allocate(new_capacity);
+            OffHeapLongArray.set(addr, VALUES, new_values);
+            long new_types = OffHeapByteArray.allocate(new_capacity);
+            OffHeapLongArray.set(addr, TYPES, new_types);
+
+            OffHeapLongArray.set(keys_ptr, 0, p_key);
+            OffHeapLongArray.set(types_ptr, 0, p_type);
+            OffHeapLongArray.set(values_ptr, 0, TOINJECT);
+
+            OffHeapLongArray.set(addr, SIZE, 1);
+            return 0;
         }
-        int entry = -1;
-        int p_entry = -1;
-        int hashIndex = -1;
-        if (_hash == null) {
-            for (int i = 0; i < _size; i++) {
-                if (_k[i] == p_key) {
+        long entry = -1;
+        long p_entry = -1;
+        long hashIndex = -1;
+        long size = OffHeapLongArray.get(addr, SIZE);
+        long capacity = OffHeapLongArray.get(addr, CAPACITY);
+        if (hash_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            for (int i = 0; i < size; i++) {
+                if (OffHeapLongArray.get(keys_ptr, i) == p_key) {
                     entry = i;
                     break;
                 }
             }
         } else {
-            hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
-            int m = _hash[hashIndex];
+            hashIndex = HashHelper.longHash(p_key, capacity * 2);
+            long m = OffHeapLongArray.get(hash_ptr, hashIndex);
             while (m != -1) {
-                if (_k[m] == p_key) {
+                if (OffHeapLongArray.get(keys_ptr, m) == p_key) {
                     entry = m;
                     break;
                 }
                 p_entry = m;
-                m = _next[m];
+                m = OffHeapLongArray.get(next_ptr, m);
             }
         }
         //case already present
         if (entry != -1) {
             if (replaceIfPresent || (p_type != _type[entry])) {
                 if (param_elem == null) {
-                    if (_hash != null) {
+                    if (hash_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                         //unHash previous
                         if (p_entry != -1) {
                             _next[p_entry] = _next[entry];
@@ -550,7 +548,7 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
                             _hash[hashIndex] = -1;
                         }
                     }
-                    int indexVictim = _size - 1;
+                    long indexVictim = size - 1;
                     //just pop the last value
                     if (entry == indexVictim) {
                         _k[entry] = -1;
@@ -563,7 +561,7 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
                         _type[entry] = _type[indexVictim];
                         if (_hash != null) {
                             _next[entry] = _next[indexVictim];
-                            int victimHash = (int) HashHelper.longHash(_k[entry], _capacity * 2);
+                            int victimHash = (int) HashHelper.longHash(_k[entry], capacity * 2);
                             int m = _hash[victimHash];
                             if (m == indexVictim) {
                                 //the victim was the head of hashing list
@@ -580,7 +578,8 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
                             }
                         }
                     }
-                    _size--;
+                    size--;
+                    OffHeapLongArray.set(addr, SIZE, size);
                 } else {
                     _v[entry] = param_elem;
                     if (_type[entry] != p_type) {
@@ -591,22 +590,24 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
             if (!initial) {
                 declareDirty();
             }
-            return;
+            return entry;
         }
-        if (_size < _capacity) {
-            _k[_size] = p_key;
-            _v[_size] = param_elem;
-            _type[_size] = p_type;
-            if (_hash != null) {
-                _next[_size] = _hash[hashIndex];
-                _hash[hashIndex] = _size;
+        if (size < capacity) {
+            final long insert_index = size;
+            OffHeapLongArray.set(keys_ptr, insert_index, p_key);
+            OffHeapLongArray.set(values_ptr, insert_index, param_elem);
+            OffHeapByteArray.set(types_ptr, insert_index, p_type);
+            if (hash_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapLongArray.set(next_ptr, insert_index, OffHeapLongArray.get(hash_ptr, hashIndex));
+                OffHeapLongArray.set(hash_ptr, hashIndex, insert_index);
             }
-            _size++;
+            size++;
+            OffHeapLongArray.set(addr, SIZE, size);
             declareDirty();
-            return;
+            return insert_index;
         }
         //extend capacity
-        int newCapacity = _capacity * 2;
+        long newCapacity = capacity * 2;
         long[] ex_k = new long[newCapacity];
         System.arraycopy(_k, 0, ex_k, 0, _capacity);
         _k = ex_k;
@@ -638,34 +639,57 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
     }
 
     private void allocate(int newCapacity) {
-        if (newCapacity <= _capacity) {
+        final long capacity = OffHeapLongArray.get(addr, CAPACITY);
+        if (newCapacity <= capacity) {
             return;
         }
-        long[] ex_k = new long[newCapacity];
-        if (_k != null) {
-            System.arraycopy(_k, 0, ex_k, 0, _capacity);
+        //allocate or reallocate values
+        long new_keys;
+        if (keys_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            new_keys = OffHeapLongArray.allocate(newCapacity);
+        } else {
+            new_keys = OffHeapLongArray.reallocate(keys_ptr, newCapacity);
         }
-        _k = ex_k;
-        Object[] ex_v = new Object[newCapacity];
-        if (_v != null) {
-            System.arraycopy(_v, 0, ex_v, 0, _capacity);
+        OffHeapLongArray.set(addr, KEYS, new_keys);
+        //allocate or reallocate values
+        long new_values;
+        if (values_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            new_values = OffHeapLongArray.allocate(newCapacity);
+        } else {
+            new_values = OffHeapLongArray.reallocate(values_ptr, newCapacity);
         }
-        _v = ex_v;
-        byte[] ex_type = new byte[newCapacity];
-        if (_type != null) {
-            System.arraycopy(_type, 0, ex_type, 0, _capacity);
+        OffHeapLongArray.set(addr, VALUES, new_values);
+        //allocate or reallocate types
+        long new_types;
+        if (types_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            new_types = OffHeapByteArray.allocate(newCapacity);
+        } else {
+            new_types = OffHeapByteArray.reallocate(types_ptr, newCapacity);
         }
-        _type = ex_type;
-        _capacity = newCapacity;
-
-        _hash = new int[_capacity * 2];
-        Arrays.fill(_hash, 0, _capacity * 2, -1);
-        _next = new int[_capacity];
-        Arrays.fill(_next, 0, _capacity, -1);
-        for (int i = 0; i < _size; i++) {
-            int keyHash = (int) HashHelper.longHash(_k[i], _capacity * 2);
-            _next[i] = _hash[keyHash];
-            _hash[keyHash] = i;
+        OffHeapLongArray.set(addr, TYPES, new_types);
+        OffHeapLongArray.set(addr, CAPACITY, newCapacity);
+        long hash_capacity = newCapacity * 2;
+        long new_hash;
+        if (hash_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            new_hash = OffHeapLongArray.allocate(hash_capacity);
+        } else {
+            new_hash = OffHeapLongArray.reallocate(types_ptr, hash_capacity);
+            OffHeapLongArray.reset(new_hash, hash_capacity);
+        }
+        OffHeapLongArray.set(addr, HASH, new_hash);
+        long new_next;
+        if (next_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            new_next = OffHeapLongArray.allocate(newCapacity);
+        } else {
+            new_next = OffHeapLongArray.reallocate(next_ptr, newCapacity);
+            OffHeapLongArray.reset(new_next, newCapacity);
+        }
+        OffHeapLongArray.set(addr, NEXT, new_next);
+        final long size = OffHeapLongArray.get(addr, SIZE);
+        for (long i = 0; i < size; i++) {
+            long keyHash = HashHelper.longHash(OffHeapLongArray.get(new_keys, i), hash_capacity);
+            OffHeapLongArray.set(new_next, i, OffHeapLongArray.get(new_hash, keyHash));
+            OffHeapLongArray.set(new_hash, keyHash, i);
         }
     }
 
@@ -674,7 +698,7 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
         if (buffer == null || buffer.length() == 0) {
             return;
         }
-        final boolean initial = _k == null;
+        final boolean initial = (keys_ptr == OffHeapConstants.OFFHEAP_NULL_PTR);
         //reset size
         int cursor = 0;
         long payloadSize = buffer.length();
@@ -984,44 +1008,54 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
     }
 
     public static void free(long addr) {
-        long cowCounter;
+        if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            final long keys_ptr = OffHeapLongArray.get(addr, KEYS);
+            final long values_ptr = OffHeapLongArray.get(addr, VALUES);
+            final long types_ptr = OffHeapByteArray.get(addr, TYPES);
+            final long size = OffHeapLongArray.get(addr, SIZE);
+            for (long i = 0; i < size; i++) {
+                freeElement(OffHeapLongArray.get(values_ptr, i), OffHeapByteArray.get(types_ptr, i));
+            }
+            OffHeapLongArray.free(keys_ptr);
+            OffHeapLongArray.free(values_ptr);
+            OffHeapByteArray.free(types_ptr);
+            final long next_ptr = OffHeapLongArray.get(addr, NEXT);
+            if (next_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapLongArray.free(next_ptr);
+            }
+            final long hash_ptr = OffHeapLongArray.get(addr, HASH);
+            if (hash_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapLongArray.free(hash_ptr);
+            }
+            OffHeapLongArray.free(addr);
+        }
+    }
+
+    private static void freeElement(long addr, byte elemType) {
         switch (elemType) {
-            /** Primitive Object */
             case Type.STRING:
-                cowCounter = unsafe.getAndAddLong(null, addr, -1) - 1;
-                if (cowCounter == 0) {
-                    unsafe.freeMemory(addr);
-                }
+                OffHeapString.free(addr);
                 break;
-            /** Arrays */
             case Type.DOUBLE_ARRAY:
-                cowCounter = unsafe.getAndAddLong(null, addr, -1) - 1;
-                if (cowCounter == 0) {
-                    OffHeapDoubleArray.free(addr);
-                }
+                OffHeapDoubleArray.free(addr);
                 break;
             case Type.RELATION:
+                OffHeapRelationship.free(addr);
+                break;
             case Type.LONG_ARRAY:
-                cowCounter = unsafe.getAndAddLong(null, addr, -1) - 1;
-                if (cowCounter == 0) {
-                    OffHeapLongArray.free(addr);
-                }
+                OffHeapLongArray.free(addr);
                 break;
             case Type.INT_ARRAY:
-                cowCounter = unsafe.getAndAddLong(null, addr, -1) - 1;
-                if (cowCounter == 0) {
-                    OffHeapLongArray.free(addr);
-                }
+                OffHeapIntArray.free(addr);
                 break;
-            /** Maps */
             case Type.STRING_TO_LONG_MAP:
-                ArrayStringLongMap.free(addr);
+                OffHeapStringLongMap.free(addr);
                 break;
             case Type.LONG_TO_LONG_MAP:
-                ArrayLongLongMap.free(addr);
+                OffHeapLongLongMap.free(addr);
                 break;
             case Type.LONG_TO_LONG_ARRAY_MAP:
-                ArrayLongLongArrayMap.free(addr);
+                OffHeapLongLongArrayMap.free(addr);
                 break;
         }
     }

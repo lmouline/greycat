@@ -94,7 +94,6 @@ public class OffHeapChunkSpace implements ChunkSpace {
         OffHeapLongArray.free(marks);
     }
 
-
     @Override
     public final Chunk getAndMark(final byte type, final long world, final long time, final long id) {
         final long index = HashHelper.tripleHash(type, world, time, id, this._hashEntries);
@@ -124,7 +123,7 @@ public class OffHeapChunkSpace implements ChunkSpace {
     public final Chunk get(final long index) {
         switch (OffHeapByteArray.get(types, index)) {
             case ChunkType.STATE_CHUNK:
-                //return new HeapStateChunk(this, currentVictimIndex);
+                return new OffHeapStateChunk(this, index);
             case ChunkType.WORLD_ORDER_CHUNK:
                 return new OffHeapWorldOrderChunk(this, index);
             case ChunkType.TIME_TREE_CHUNK:
@@ -204,18 +203,19 @@ public class OffHeapChunkSpace implements ChunkSpace {
     }
 
     private void freeByIndex(long index) {
+        final long rawValue = OffHeapLongArray.get(addrs, index);
         switch (OffHeapByteArray.get(types, index)) {
             case ChunkType.STATE_CHUNK:
-                //return new HeapStateChunk(this, currentVictimIndex);
+                OffHeapStateChunk.free(rawValue);
                 break;
             case ChunkType.WORLD_ORDER_CHUNK:
-                OffHeapWorldOrderChunk.free(OffHeapLongArray.get(addrs, index));
+                OffHeapWorldOrderChunk.free(rawValue);
                 break;
             case ChunkType.TIME_TREE_CHUNK:
-                OffHeapTimeTreeChunk.free(OffHeapLongArray.get(addrs, index));
+                OffHeapTimeTreeChunk.free(rawValue);
                 break;
             case ChunkType.GEN_CHUNK:
-                OffHeapGenChunk.free(OffHeapLongArray.get(addrs, index));
+                OffHeapGenChunk.free(rawValue);
                 break;
         }
         OffHeapLongArray.set(addrs, index, OffHeapConstants.OFFHEAP_NULL_PTR);

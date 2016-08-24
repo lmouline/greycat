@@ -31,4 +31,26 @@ public class OffHeapString {
         return new String(bytes);
     }
 
+    static long clone(final long addr) {
+        long cow;
+        long cow_after;
+        do {
+            cow = unsafe.getLong(addr + COW);
+            cow_after = cow + 1;
+        } while (!unsafe.compareAndSwapLong(null, addr + COW, cow, cow_after));
+        return addr;
+    }
+
+    static void free(final long addr) {
+        long cow;
+        long cow_after;
+        do {
+            cow = unsafe.getLong(addr + COW);
+            cow_after = cow - 1;
+        } while (!unsafe.compareAndSwapLong(null, addr + COW, cow, cow_after));
+        if (cow == 1 && cow_after == 0) {
+            OffHeapByteArray.free(addr);
+        }
+    }
+
 }

@@ -190,5 +190,8 @@ class OffHeapRelationship implements Relationship {
         return newAddr;
     }
 
+    static void free(final long addr) {
+        OffHeapLongArray.free(addr);
+    }
 
 }
