@@ -8,7 +8,8 @@ This action should be used after a task returning a node as result.
 > The result of the *get* will be put in the result and made accessible to the next Task.
 
 Therefore, the following expression:
- ```java
+
+```java
 newNode()
 .setProperty("name","mynode")
 .get("name")
