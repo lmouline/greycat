@@ -11,7 +11,19 @@ setProperty requires 3 parameters:
 
 * name of the property 
 * type of the property
-* value to set or name of the variable containing the value
+* value to set (as String) or name of the variable containing the value
+
+## Property Type
+
+Types can be found in org.mwg.Type,
+5 different types can be used
+
+* BOOL
+* STRING
+* LONG
+* INT
+* DOUBLE
+
 
 Therefore, the following expression:
 
@@ -19,16 +31,34 @@ Therefore, the following expression:
 newNode()
 .setProperty("name",Type.String,"mynode")
 .setProperty("level",Type.Int,"1")
-.setProperty("level",Type.BOOL,"true")
+.setProperty("restriction",Type.BOOL,"true")
 .execute(g,null);
 ```
 
-Will print the following output in console:
+Will create a node with the following properties:
+
+* name = mynode
+* level = 1
+* restriction = true
+
+
+> Note that it is possible to apply some operation to variable directly within the third parameters:
+
+```java
+inject(1)
+.asVar("myvar")
+.newNode()
+.setProperty("name", Type.INT, "{{= myvar + 1}}")
+.get("name")
+.print("{{result}}")
+.execute(g,null);
+                  
+```
+
+Will print the following result:
 
 ```
-mynode
+2
 ```
 
-
-> If the goal is to retrieve and work on the node(s) linked to the current node by a relation, the [traverse](traverse.md) Task should be considered to have safely only nodes in the result.
 
