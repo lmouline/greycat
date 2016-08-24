@@ -24,5 +24,5 @@ mynode
 ```
 
 
-> If the goal is to retrieve and work on the node(s) linked to the current node by a relation, the [traverse](traverse.md) Task should be considered.
+> If the goal is to retrieve and work on the node(s) linked to the current node by a relation, the [traverse](traverse.md) Task should be considered to have safely only nodes in the result.
 
