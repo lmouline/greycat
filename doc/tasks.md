@@ -51,8 +51,10 @@ coming soon...
 The MWG task api is extensible by plugins. For instance, the importer plugin defines dedicated tasks for the manipulation of various format such as CSV.
 However, hereafter is detailled the set of tasks proposed by default in MWG core module.
 
-- [loop](./tasks/loop.md)
-- [traverse](./tasks/traverse.md)
+- [loop](tasks/loop.md)
+- [loopPar](tasks/loopPar.md)
+- [get](tasks/get.md)
+- [traverse](tasks/traverse.md)
 - todo....
 
 ## Task execution methods
