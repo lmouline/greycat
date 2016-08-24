@@ -2,7 +2,7 @@
 
 > Why a (task/traversal/promise) API ?
 
-The manipulation of Many World Graph through asynchronous API allows to express high performance code without no compromise on abstraction. HOWEVER this can also leads to the well known [CallBack Hell](http://callbackhell.com/), that damage both the readability and code reusability due to encapsulated callbacks. In order to avoid this, novel APIs use a concept of Promise also called Traversal or Future in Java. The common goal of these approach is the chaining of reusable elements that can be shared to avoid repeated error prone code. Finally to reach it's performance objectives, MWG api use a `.free()` method that has to be called once node will not be used anymore. The Task API also handle this problem to avoid coding with malloc/free api...
+Manipulating the Many World Graph through an asynchronous API allows to write blazing-fast code without compromising on abstraction. Asynchronous code often leads to what is known as [CallBack Hell](http://callbackhell.com/), that damage both the readability and code reusability due to encapsulated callbacks. To overcome this, modern libraries and APIs provide Promises and/or Futures. The common goal of these approaches is chaining of reusable elements that can be shared in order to avoid repeated error prone code. Finally, to reach its performance objectives, MWGs API use a `.free()` method that has to be called once a node will not be used anymore. The Task API also handle this problem to avoid coding with malloc/free-like API...
 
 # Running example
 
