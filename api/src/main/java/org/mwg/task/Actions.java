@@ -203,8 +203,8 @@ public class Actions {
         return newTask().split(splitPattern);
     }
 
-    public static Task lookup(String world, String time, String id) {
-        return newTask().lookup(world, time, id);
+    public static Task lookup(String nodeId) {
+        return newTask().lookup(nodeId);
     }
 
     public static Task clear() {

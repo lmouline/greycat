@@ -113,7 +113,7 @@ public class ImporterTest {
     public void testReadFilesOnFile() throws UnsupportedEncodingException, MalformedURLException, URISyntaxException {
         final Graph g = new GraphBuilder().withPlugin(new ImporterPlugin()).build();
         URL urlFIle = this.getClass().getClassLoader().getResource("smarthome/readme.md");
-        URL urlFIle2 = this.getClass().getClassLoader().getResource(URLDecoder.decode("folder with spaces in name/aFile.txt","UTF-8"));
+        URL urlFIle2 = this.getClass().getClassLoader().getResource(URLDecoder.decode("folder with spaces in name/aFile.txt", "UTF-8"));
 
         File expectecFile = new File(urlFIle.toURI());
         File expectedFile2 = new File(urlFIle2.toURI());
@@ -130,13 +130,13 @@ public class ImporterTest {
                         nbFile[0]++;
                         context.continueWith(null);
                     }
-                })).action(ImporterActions.READFILES,urlFIle2.getPath()).foreach(then(new Action(){
+                })).action(ImporterActions.READFILES, urlFIle2.getPath()).foreach(then(new Action() {
                     @Override
-                    public void eval(TaskContext context)  {
+                    public void eval(TaskContext context) {
                         String file = (String) context.result().get(0);
                         try {
                             Assert.assertEquals(URLDecoder.decode(expectedFile2.getAbsolutePath(), "UTF-8"), file);
-                        }catch (UnsupportedEncodingException ex) {
+                        } catch (UnsupportedEncodingException ex) {
                             Assert.fail(ex.getMessage());
                         }
                         nbFile[0]++;
@@ -210,7 +210,7 @@ public class ImporterTest {
                                                 }
                                             })
                                             .setTime("{{time}}")
-                                            .lookup("0", "{{time}}", "" + newNode.id())
+                                            .lookup("" + newNode.id())
                                             .setProperty("value", Type.DOUBLE, "{{value}}")
                                     //.print("insertedNode: {{result}} {{value}}")
                             ));

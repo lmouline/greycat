@@ -86,4 +86,9 @@ class IterableLines implements TaskResult<String> {
         return -1;
     }
 
+    @Override
+    public Object[] asArray() {
+        return new Object[0];
+    }
+
 }

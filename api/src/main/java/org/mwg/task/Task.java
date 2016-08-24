@@ -378,7 +378,7 @@ public interface Task {
 
     Task split(String splitPattern);
 
-    Task lookup(String world, String time, String id);
+    Task lookup(String nodeId);
 
     /**
      * Execute a math expression on all nodes given from previous step
