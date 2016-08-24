@@ -7,16 +7,21 @@ The loop action allows to express the repetition of a sub Task passed as paramet
 Therefore the following expression: 
 
 ```java
-loop("0","3",print("{{i}}"));
+loop("0", "3",
+	newNode()
+	.setProperty("name", Type.STRING, "node_{{i}}")
+	.print("{{result}}")
+)
+.execute(g,null);
 ```
 
-Will print the following result:
+Will print the following output in console:
 
 ```
-0
-1
-2
-3
+{"world":0,"time":0,"id":1,"name":"node_0"}
+{"world":0,"time":0,"id":2,"name":"node_1"}
+{"world":0,"time":0,"id":3,"name":"node_2"}
+{"world":0,"time":0,"id":4,"name":"node_3"}
 ```
 
 In addition, loop action parameters are templates and can express math expression such as `"{{=3-1}}" therefore, exclusive bounds can be build this way.

@@ -14,11 +14,12 @@ public class MicroWorldTest {
 
         Graph g = new GraphBuilder()
                 .withMemorySize(10000)
-                .withPlugin(new VerbosePlugin())
+               // .withPlugin(new VerbosePlugin())
                 .build();
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean isConnected) {
+                /*
                 loop("1","2",
                         newNode()
                         .setProperty("name", Type.STRING, "room_{{i}}")
@@ -30,8 +31,19 @@ public class MicroWorldTest {
                                 .addTo("sensors", "parentRoom")
                         )
                 ).execute(g, null);
+                */
+
+                loop("0", "3",
+                        newNode()
+                        .setProperty("name", Type.STRING, "node_{{i}}")
+                        .print("{{result}}")
+                )
+                .execute(g,null);
+
             }
         });
+
+
     }
 
 }
