@@ -371,21 +371,23 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         _capacity = casted._capacity;
         _size = casted._size;
         //copy keys
-        long[] cloned_k = new long[_capacity];
-        System.arraycopy(casted._k, 0, cloned_k, 0, _capacity);
-        _k = cloned_k;
+        if (casted._k != null) {
+            long[] cloned_k = new long[_capacity];
+            System.arraycopy(casted._k, 0, cloned_k, 0, _capacity);
+            _k = cloned_k;
+        }
         //copy values
-
         /*
         Object[] cloned_v = new Object[_capacity];
         System.arraycopy(casted._v, 0, cloned_v, 0, _capacity);
         _v = cloned_v;
         */
-
         //copy types
-        byte[] cloned_type = new byte[_capacity];
-        System.arraycopy(casted._type, 0, cloned_type, 0, _capacity);
-        _type = cloned_type;
+        if (casted._type != null) {
+            byte[] cloned_type = new byte[_capacity];
+            System.arraycopy(casted._type, 0, cloned_type, 0, _capacity);
+            _type = cloned_type;
+        }
         //copy next if not empty
         if (casted._next != null) {
             int[] cloned_next = new int[_capacity];
@@ -397,32 +399,34 @@ class HeapStateChunk implements StateChunk, ChunkListener {
             System.arraycopy(casted._hash, 0, cloned_hash, 0, _capacity * 2);
             _hash = cloned_hash;
         }
-        _v = new Object[_capacity];
-        for (int i = 0; i < _size; i++) {
-            switch (casted._type[i]) {
-                case Type.LONG_TO_LONG_MAP:
-                    if (casted._v[i] != null) {
-                        _v[i] = new HeapLongLongMap(this, -1, (HeapLongLongMap) casted._v[i]);
-                    }
-                    break;
-                case Type.LONG_TO_LONG_ARRAY_MAP:
-                    if (casted._v[i] != null) {
-                        _v[i] = new HeapLongLongArrayMap(this, -1, (HeapLongLongArrayMap) casted._v[i]);
-                    }
-                    break;
-                case Type.STRING_TO_LONG_MAP:
-                    if (casted._v[i] != null) {
-                        _v[i] = new HeapStringLongMap(this, -1, (HeapStringLongMap) casted._v[i]);
-                    }
-                    break;
-                case Type.RELATION:
-                    if (casted._v[i] != null) {
-                        _v[i] = new HeapRelationship(this, (HeapRelationship) casted._v[i]);
-                    }
-                    break;
-                default:
-                    _v[i] = casted._v[i];
-                    break;
+        if (casted._v != null) {
+            _v = new Object[_capacity];
+            for (int i = 0; i < _size; i++) {
+                switch (casted._type[i]) {
+                    case Type.LONG_TO_LONG_MAP:
+                        if (casted._v[i] != null) {
+                            _v[i] = new HeapLongLongMap(this, -1, (HeapLongLongMap) casted._v[i]);
+                        }
+                        break;
+                    case Type.LONG_TO_LONG_ARRAY_MAP:
+                        if (casted._v[i] != null) {
+                            _v[i] = new HeapLongLongArrayMap(this, -1, (HeapLongLongArrayMap) casted._v[i]);
+                        }
+                        break;
+                    case Type.STRING_TO_LONG_MAP:
+                        if (casted._v[i] != null) {
+                            _v[i] = new HeapStringLongMap(this, -1, (HeapStringLongMap) casted._v[i]);
+                        }
+                        break;
+                    case Type.RELATION:
+                        if (casted._v[i] != null) {
+                            _v[i] = new HeapRelationship(this, (HeapRelationship) casted._v[i]);
+                        }
+                        break;
+                    default:
+                        _v[i] = casted._v[i];
+                        break;
+                }
             }
         }
     }

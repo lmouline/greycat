@@ -342,7 +342,6 @@ declare module org {
             static MAP_LOAD_FACTOR: number;
             static BOOL_TRUE: number;
             static BOOL_FALSE: number;
-            static DIRTY_BIT: number;
             static isDefined(param: any): boolean;
             static equals(src: string, other: string): boolean;
             static longArrayEquals(src: Float64Array, other: Float64Array): boolean;
@@ -772,8 +771,8 @@ declare module org {
                 static traverseIndex(indexName: string, query: string): org.mwg.task.Task;
                 static traverseOrKeep(relationName: string): org.mwg.task.Task;
                 static traverseIndexAll(indexName: string): org.mwg.task.Task;
-                static repeat(repetition: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
-                static repeatPar(repetition: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
+                static loop(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
+                static loopPar(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                 static print(name: string): org.mwg.task.Task;
                 static setProperty(propertyName: string, propertyType: number, variableNameToSet: string): org.mwg.task.Task;
                 static selectWhere(subTask: org.mwg.task.Task): org.mwg.task.Task;
@@ -793,7 +792,7 @@ declare module org {
                 static whileDo(cond: org.mwg.task.TaskFunctionConditional, then: org.mwg.task.Task): org.mwg.task.Task;
                 static doWhile(then: org.mwg.task.Task, cond: org.mwg.task.TaskFunctionConditional): org.mwg.task.Task;
                 static split(splitPattern: string): org.mwg.task.Task;
-                static lookup(world: string, time: string, id: string): org.mwg.task.Task;
+                static lookup(nodeId: string): org.mwg.task.Task;
                 static clear(): org.mwg.task.Task;
                 static subTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 static isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
@@ -847,16 +846,17 @@ declare module org {
                 newTypedNode(typeNode: string): org.mwg.task.Task;
                 setProperty(propertyName: string, propertyType: number, variableNameToSet: string): org.mwg.task.Task;
                 removeProperty(propertyName: string): org.mwg.task.Task;
-                add(relationName: string, variableNameToAdd: string): org.mwg.task.Task;
+                add(relationName: string, variableToAdd: string): org.mwg.task.Task;
+                addTo(relationName: string, variableTarget: string): org.mwg.task.Task;
                 remove(relationName: string, variableNameToRemove: string): org.mwg.task.Task;
                 jump(time: string): org.mwg.task.Task;
                 parse(flat: string): org.mwg.task.Task;
                 action(name: string, params: string): org.mwg.task.Task;
                 split(splitPattern: string): org.mwg.task.Task;
-                lookup(world: string, time: string, id: string): org.mwg.task.Task;
+                lookup(nodeId: string): org.mwg.task.Task;
                 math(expression: string): org.mwg.task.Task;
-                repeat(repetition: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
-                repeatPar(repetition: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
+                loop(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
+                loopPar(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                 print(name: string): org.mwg.task.Task;
                 hook(hookFactory: org.mwg.task.TaskHookFactory): org.mwg.task.Task;
                 execute(graph: org.mwg.Graph, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
@@ -899,7 +899,6 @@ declare module org {
                 continueWith(nextResult: org.mwg.task.TaskResult<any>): void;
                 template(input: string): string;
                 hook(): org.mwg.task.TaskHook;
-                ident(): number;
             }
             interface TaskFunctionConditional {
                 (context: org.mwg.task.TaskContext): boolean;
@@ -923,8 +922,8 @@ declare module org {
                 start(initialContext: org.mwg.task.TaskContext): void;
                 beforeAction(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
                 afterAction(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
-                beforeSubTask(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
-                afterSubTask(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
+                beforeTask(parentContext: org.mwg.task.TaskContext, context: org.mwg.task.TaskContext): void;
+                afterTask(context: org.mwg.task.TaskContext): void;
                 end(finalContext: org.mwg.task.TaskContext): void;
             }
             interface TaskHookFactory {
@@ -940,6 +939,7 @@ declare module org {
                 clone(): org.mwg.task.TaskResult<A>;
                 free(): void;
                 size(): number;
+                asArray(): any[];
             }
             interface TaskResultIterator<A> {
                 next(): A;
@@ -1036,12 +1036,13 @@ declare module org {
                 static keyToBuffer(buffer: org.mwg.struct.Buffer, chunkType: number, world: number, time: number, id: number): void;
             }
             class VerboseHook implements org.mwg.task.TaskHook {
+                private ctxIdents;
                 start(initialContext: org.mwg.task.TaskContext): void;
                 beforeAction(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
                 afterAction(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
-                beforeSubTask(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
-                afterSubTask(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void;
-                end(initialContext: org.mwg.task.TaskContext): void;
+                beforeTask(parentContext: org.mwg.task.TaskContext, context: org.mwg.task.TaskContext): void;
+                afterTask(context: org.mwg.task.TaskContext): void;
+                end(finalContext: org.mwg.task.TaskContext): void;
             }
             class VerboseHookFactory implements org.mwg.task.TaskHookFactory {
                 newHook(): org.mwg.task.TaskHook;
@@ -1332,7 +1333,6 @@ declare module org {
                         private _next;
                         private _hash;
                         private _type;
-                        private unaligned;
                         private _dirty;
                         constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_index: number);
                         world(): number;
@@ -1531,6 +1531,13 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
+                class ActionAddTo extends org.mwg.plugin.AbstractTaskAction {
+                    private _relationName;
+                    private _variableNameTarget;
+                    constructor(relationName: string, variableNameTarget: string);
+                    eval(context: org.mwg.task.TaskContext): void;
+                    toString(): string;
+                }
                 class ActionAddToVar extends org.mwg.plugin.AbstractTaskAction {
                     private _name;
                     private _global;
@@ -1642,10 +1649,24 @@ declare module org {
                     toString(): string;
                 }
                 class ActionLookup extends org.mwg.plugin.AbstractTaskAction {
-                    private _world;
-                    private _time;
                     private _id;
-                    constructor(p_world: string, p_time: string, p_id: string);
+                    constructor(p_id: string);
+                    eval(context: org.mwg.task.TaskContext): void;
+                    toString(): string;
+                }
+                class ActionLoop extends org.mwg.plugin.AbstractTaskAction {
+                    private _subTask;
+                    private _lower;
+                    private _upper;
+                    constructor(p_lower: string, p_upper: string, p_subTask: org.mwg.task.Task);
+                    eval(context: org.mwg.task.TaskContext): void;
+                    toString(): string;
+                }
+                class ActionLoopPar extends org.mwg.plugin.AbstractTaskAction {
+                    private _subTask;
+                    private _lower;
+                    private _upper;
+                    constructor(p_lower: string, p_upper: string, p_subTask: org.mwg.task.Task);
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
@@ -1695,20 +1716,6 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
-                class ActionRepeat extends org.mwg.plugin.AbstractTaskAction {
-                    private _subTask;
-                    private _iterationTemplate;
-                    constructor(p_iteration: string, p_subTask: org.mwg.task.Task);
-                    eval(context: org.mwg.task.TaskContext): void;
-                    toString(): string;
-                }
-                class ActionRepeatPar extends org.mwg.plugin.AbstractTaskAction {
-                    private _subTask;
-                    private _iterationTemplate;
-                    constructor(p_iteration: string, p_subTask: org.mwg.task.Task);
-                    eval(context: org.mwg.task.TaskContext): void;
-                    toString(): string;
-                }
                 class ActionSave extends org.mwg.plugin.AbstractTaskAction {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
@@ -1732,6 +1739,7 @@ declare module org {
                     constructor(relationName: string, propertyType: number, variableNameToSet: string);
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
+                    private parseBoolean(booleanValue);
                 }
                 class ActionSplit extends org.mwg.plugin.AbstractTaskAction {
                     private _splitPattern;
@@ -1867,7 +1875,7 @@ declare module org {
                     foreachPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     save(): org.mwg.task.Task;
                     clear(): org.mwg.task.Task;
-                    lookup(world: string, time: string, id: string): org.mwg.task.Task;
+                    lookup(nodeId: string): org.mwg.task.Task;
                     execute(graph: org.mwg.Graph, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                     executeSync(graph: org.mwg.Graph): org.mwg.task.TaskResult<any>;
                     executeWith(graph: org.mwg.Graph, initial: any, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
@@ -1882,12 +1890,13 @@ declare module org {
                     setProperty(propertyName: string, propertyType: number, variableNameToSet: string): org.mwg.task.Task;
                     removeProperty(propertyName: string): org.mwg.task.Task;
                     add(relationName: string, variableNameToAdd: string): org.mwg.task.Task;
+                    addTo(relationName: string, variableNameTarget: string): org.mwg.task.Task;
                     remove(relationName: string, variableNameToRemove: string): org.mwg.task.Task;
                     jump(time: string): org.mwg.task.Task;
                     math(expression: string): org.mwg.task.Task;
                     split(splitPattern: string): org.mwg.task.Task;
-                    repeat(repetition: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
-                    repeatPar(repetition: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
+                    loop(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
+                    loopPar(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                     print(name: string): org.mwg.task.Task;
                     hook(p_hookFactory: org.mwg.task.TaskHookFactory): org.mwg.task.Task;
                     emptyResult(): org.mwg.task.TaskResult<any>;
@@ -1899,7 +1908,6 @@ declare module org {
                     private _parent;
                     private _graph;
                     _callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>;
-                    private _ident;
                     private _localVariables;
                     private _nextVariables;
                     private _current;
@@ -1907,8 +1915,7 @@ declare module org {
                     private _world;
                     private _time;
                     private _hook;
-                    constructor(parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, p_graph: org.mwg.Graph, p_hook: org.mwg.task.TaskHook, p_ident: number, p_callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>);
-                    ident(): number;
+                    constructor(parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, p_graph: org.mwg.Graph, p_hook: org.mwg.task.TaskHook, p_callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>);
                     graph(): org.mwg.Graph;
                     world(): number;
                     setWorld(p_world: number): void;
@@ -1945,6 +1952,7 @@ declare module org {
                     private _backend;
                     private _capacity;
                     private _size;
+                    asArray(): any[];
                     constructor(toWrap: any, protect: boolean);
                     iterator(): org.mwg.task.TaskResultIterator<any>;
                     get(index: number): A;

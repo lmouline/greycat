@@ -364,8 +364,8 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public Task lookup(String world, String time, String id) {
-        addAction(new ActionLookup(world, time, id));
+    public Task lookup(String nodeId) {
+        addAction(new ActionLookup(nodeId));
         return this;
     }
 
@@ -653,7 +653,7 @@ public class CoreTask implements org.mwg.task.Task {
 
     @Override
     public Task loopPar(String from, String to, Task subTask) {
-        addAction(new ActionLoopPar(from,to, subTask));
+        addAction(new ActionLoopPar(from, to, subTask));
         return this;
     }
 

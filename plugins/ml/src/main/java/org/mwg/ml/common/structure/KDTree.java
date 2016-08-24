@@ -419,7 +419,7 @@ public class KDTree extends AbstractNode {
                 //ToDo replace by lookupAll later
                 long[] res = nnl.getAllNodes();
 
-                Task lookupall = fromVar("res").foreach(lookup(String.valueOf(world()), String.valueOf(time()), "{{result}}"));
+                Task lookupall = fromVar("res").foreach(setWorld(String.valueOf(world())).setTime(String.valueOf(time())).lookup("{{result}}"));
                 TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
