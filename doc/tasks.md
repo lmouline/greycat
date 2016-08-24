@@ -55,6 +55,47 @@ However, hereafter is detailled the set of tasks proposed by default in MWG core
 - [traverse](./tasks/traverse.md)
 - todo....
 
+## Task execution methods
+
+A task is a prototype of execution that can be define statically and independently to any graph instances.
+A task is executed ON a graph.
+The simplest API to do so is the following: 
+
+``` java
+task.execute(graph, null);
+```
+
+If the task aims at returning a result, then the last task context result will be return in a result callback passed as parameter.
+This callback should be of the type of Callback<TaskResult>.
+
+Such as:
+
+``` java
+task.execute(graph, (result)-> { 
+	//DO something 
+	if(result != null){
+		//you are responsible to free the result set!
+		result.free();
+	}
+});
+```
+
+> WARNING: if the callback is not null, you are responsible to free the result, cache full error will occurs otherwise.
+
+
+## Task hook
+
+The task execution engine offers various hook to intercept the execution flow for debug or print purposes. Task hooks can be injected either locally (for a particular task) or globally for the graph (for debug purposes).
+
+A sample plugin is present in the Core as an example of a global task Hook.
+Therefore it is possible to execute all task in verbose mode using the following Graph Builder configuration.
+
+``` java
+Graph g = new GraphBuilder()
+	.withMemorySize(10000)
+ 	.withPlugin(new org.mwg.utility.VerbosePlugin())
+	.build();
+```
 
 
 
