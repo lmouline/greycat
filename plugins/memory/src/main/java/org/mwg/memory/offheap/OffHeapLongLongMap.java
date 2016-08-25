@@ -265,6 +265,55 @@ class OffHeapLongLongMap implements LongLongMap {
         }
     }
 
+
+    static long clone(final long addr) {
+        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            return OffHeapConstants.OFFHEAP_NULL_PTR;
+        }
+
+        //LOCK
+        while (!OffHeapLongArray.compareAndSwap(addr, INDEX_ELEMENT_LOCK, 0, 1)) ;
+        // consistencyCheck(); --> necessary?
+
+        long clone_root_array_ptr = OffHeapLongArray.allocate(ROOT_ARRAY_SIZE);
+
+        /** clone long variables **/
+        //init lock
+        OffHeapLongArray.set(clone_root_array_ptr, INDEX_ELEMENT_LOCK, 0);
+        //clone capacity
+        OffHeapLongArray.set(clone_root_array_ptr, INDEX_CAPACITY, OffHeapLongArray.get(addr, INDEX_CAPACITY));
+        //clone threshold
+        OffHeapLongArray.set(clone_root_array_ptr, INDEX_THRESHOLD, OffHeapLongArray.get(addr, INDEX_THRESHOLD));
+        //clone elementCount
+        OffHeapLongArray.set(clone_root_array_ptr, INDEX_ELEMENT_COUNT, OffHeapLongArray.get(addr, INDEX_ELEMENT_COUNT));
+
+        /** clone long[] variables **/
+        long clone_capacity = OffHeapLongArray.get(addr, INDEX_CAPACITY);
+
+        //clone elementK
+        long clone_elementK_ptr = OffHeapLongArray.cloneArray(OffHeapLongArray.get(addr, INDEX_ELEMENT_K), clone_capacity);
+        OffHeapLongArray.set(clone_root_array_ptr, INDEX_ELEMENT_K, clone_elementK_ptr);
+        //clone elementV
+        long clone_elementV_ptr = OffHeapLongArray.cloneArray(OffHeapLongArray.get(addr, INDEX_ELEMENT_V), 1 + clone_capacity); //copy on write counter + capacity
+        OffHeapLongArray.set(clone_elementV_ptr, 0, 0); //init cow counter
+        OffHeapLongArray.set(clone_root_array_ptr, INDEX_ELEMENT_V, clone_elementV_ptr);
+        //clone elementNext
+        long clone_elementNext_ptr = OffHeapLongArray.cloneArray(OffHeapLongArray.get(addr, INDEX_ELEMENT_NEXT), clone_capacity);
+        OffHeapLongArray.set(clone_root_array_ptr, INDEX_ELEMENT_NEXT, clone_elementNext_ptr);
+        //clone elementHash
+        long clone_elementHash_ptr = OffHeapLongArray.cloneArray(OffHeapLongArray.get(addr, INDEX_ELEMENT_HASH), clone_capacity);
+        OffHeapLongArray.set(clone_root_array_ptr, INDEX_ELEMENT_HASH, clone_elementHash_ptr);
+
+
+        //UNLOCK
+        if (!OffHeapLongArray.compareAndSwap(addr, INDEX_ELEMENT_LOCK, 1, 0)) {
+            throw new RuntimeException("CAS error !!!");
+        }
+
+        return clone_root_array_ptr;
+    }
+
+
     public static long incrementCopyOnWriteCounter(long addr) {
         long elemV_ptr = OffHeapLongArray.get(addr, INDEX_ELEMENT_V);
         return unsafe.getAndAddLong(null, elemV_ptr, 1) + 1;
