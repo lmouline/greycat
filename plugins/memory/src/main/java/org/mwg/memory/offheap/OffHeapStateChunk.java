@@ -216,26 +216,11 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
         Object result = null;
         lock();
         try {
-            final long found = internal_find(p_key);
-            if (found != OffHeapConstants.OFFHEAP_NULL_PTR && OffHeapByteArray.get(types_ptr, found) == p_type) {
-                toSet = internal_get(found);
-            } else {
-                switch (p_type) {
-                    case Type.RELATION:
-                        toSet = new HeapRelationship(this, null);
-                        break;
-                    case Type.STRING_TO_LONG_MAP:
-                        toSet = new HeapStringLongMap(this, Constants.MAP_INITIAL_CAPACITY, null);
-                        break;
-                    case Type.LONG_TO_LONG_MAP:
-                        toSet = new HeapLongLongMap(this, Constants.MAP_INITIAL_CAPACITY, null);
-                        break;
-                    case Type.LONG_TO_LONG_ARRAY_MAP:
-                        toSet = new HeapLongLongArrayMap(this, Constants.MAP_INITIAL_CAPACITY, null);
-                        break;
-                }
-                internal_set(p_key, p_type, toSet, true, false);
+            long found = internal_find(p_key);
+            if (found == OffHeapConstants.OFFHEAP_NULL_PTR || OffHeapByteArray.get(types_ptr, found) != p_type) {
+                found = internal_set(p_key, p_type, null, true, false);
             }
+            result = internal_get(found);
         } finally {
             unlock();
         }

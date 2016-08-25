@@ -563,7 +563,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                                 //the victim was the head of hashing list
                                 _hash[victimHash] = entry;
                             } else {
-                                //the victim is in the next, rechain it
+                                //the victim is in the next, reChain it
                                 while (m != -1) {
                                     if (_next[m] == indexVictim) {
                                         _next[m] = entry;
@@ -578,35 +578,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                 } else {
                     _v[entry] = param_elem;
                     if (_type[entry] != p_type) {
-
-                        //realign
-                        /*
-                        if (unaligned) {
-                            long[] cloned_k = new long[_capacity];
-                            System.arraycopy(_k, 0, cloned_k, 0, _capacity);
-                            _k = cloned_k;
-                            Object[] cloned_v = new Object[_capacity];
-                            System.arraycopy(_v, 0, cloned_v, 0, _capacity);
-                            _v = cloned_v;
-                            byte[] cloned_type = new byte[_capacity];
-                            System.arraycopy(_type, 0, cloned_type, 0, _capacity);
-                            _type = cloned_type;
-
-                            if (_next != null) {
-                                int[] cloned_next = new int[_capacity];
-                                System.arraycopy(_next, 0, cloned_next, 0, _capacity);
-                                _next = cloned_next;
-                            }
-                            if (_hash != null) {
-                                int[] cloned_hash = new int[_capacity * 2];
-                                System.arraycopy(_hash, 0, cloned_hash, 0, _capacity * 2);
-                                _hash = cloned_hash;
-                            }
-                            unaligned = false;
-                        }*/
-
-
-                        //TODO deep clone
                         _type[entry] = p_type;
                     }
                 }
