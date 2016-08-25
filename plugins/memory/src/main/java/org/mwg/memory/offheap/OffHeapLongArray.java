@@ -51,6 +51,9 @@ public class OffHeapLongArray {
     }
 
     public static long cloneArray(final long srcAddr, final long length) {
+        if (srcAddr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            return srcAddr;
+        }
         alloc_counter++;
         long newAddr = unsafe.allocateMemory(length * 8);
         unsafe.copyMemory(srcAddr, newAddr, length * 8);

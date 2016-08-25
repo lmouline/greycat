@@ -538,14 +538,14 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
         }
         //case already present
         if (entry != -1) {
-            if (replaceIfPresent || (p_type != _type[entry])) {
+            if (replaceIfPresent || (p_type != OffHeapLongArray.get(types_ptr, entry))) {
                 if (param_elem == null) {
                     if (hash_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                         //unHash previous
                         if (p_entry != -1) {
-                            _next[p_entry] = _next[entry];
+                            OffHeapLongArray.set(next_ptr, p_entry, OffHeapLongArray.get(next_ptr, entry));
                         } else {
-                            _hash[hashIndex] = -1;
+                            OffHeapLongArray.set(hash_ptr, hashIndex, -1);
                         }
                     }
                     long indexVictim = size - 1;
@@ -561,19 +561,19 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
                         _type[entry] = _type[indexVictim];
                         if (_hash != null) {
                             _next[entry] = _next[indexVictim];
-                            int victimHash = (int) HashHelper.longHash(_k[entry], capacity * 2);
-                            int m = _hash[victimHash];
+                            long victimHash = HashHelper.longHash(OffHeapLongArray.get(keys_ptr, entry), capacity * 2);
+                            long m = OffHeapLongArray.get(hash_ptr, victimHash);
                             if (m == indexVictim) {
                                 //the victim was the head of hashing list
-                                _hash[victimHash] = entry;
+                                OffHeapLongArray.set(hash_ptr, victimHash, entry);
                             } else {
                                 //the victim is in the next, rechain it
                                 while (m != -1) {
-                                    if (_next[m] == indexVictim) {
-                                        _next[m] = entry;
+                                    if (OffHeapLongArray.get(next_ptr, m) == indexVictim) {
+                                        OffHeapLongArray.set(next_ptr, m, entry);
                                         break;
                                     }
-                                    m = _next[m];
+                                    m = OffHeapLongArray.get(next_ptr, m);
                                 }
                             }
                         }
@@ -582,8 +582,8 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
                     OffHeapLongArray.set(addr, SIZE, size);
                 } else {
                     _v[entry] = param_elem;
-                    if (_type[entry] != p_type) {
-                        _type[entry] = p_type;
+                    if (OffHeapLongArray.get(types_ptr, entry) != p_type) {
+                        OffHeapLongArray.set(types_ptr, entry, p_type);
                     }
                 }
             }
@@ -608,34 +608,47 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
         }
         //extend capacity
         long newCapacity = capacity * 2;
-        long[] ex_k = new long[newCapacity];
-        System.arraycopy(_k, 0, ex_k, 0, _capacity);
-        _k = ex_k;
-        Object[] ex_v = new Object[newCapacity];
-        System.arraycopy(_v, 0, ex_v, 0, _capacity);
-        _v = ex_v;
-        byte[] ex_type = new byte[newCapacity];
-        System.arraycopy(_type, 0, ex_type, 0, _capacity);
-        _type = ex_type;
-        _capacity = newCapacity;
-        //insert the next
-        _k[_size] = p_key;
-        _v[_size] = param_elem;
-        _type[_size] = p_type;
-        _size++;
+        keys_ptr = OffHeapLongArray.reallocate(keys_ptr, newCapacity);
+        OffHeapLongArray.set(addr, KEYS, keys_ptr);
+        values_ptr = OffHeapLongArray.reallocate(values_ptr, newCapacity);
+        OffHeapLongArray.set(addr, VALUES, values_ptr);
+        types_ptr = OffHeapLongArray.reallocate(types_ptr, newCapacity);
+        OffHeapLongArray.set(addr, TYPES, types_ptr);
+        OffHeapLongArray.set(addr, CAPACITY, newCapacity);
+        //insert the new value
+        final long insert_index = size;
+        OffHeapLongArray.set(keys_ptr, insert_index, p_key);
+        OffHeapLongArray.set(values_ptr, insert_index, param_elem);
+        OffHeapLongArray.set(types_ptr, insert_index, p_type);
+        size++;
+        OffHeapLongArray.set(addr, SIZE, size);
         //reHash
-        _hash = new int[_capacity * 2];
-        Arrays.fill(_hash, 0, _capacity * 2, -1);
-        _next = new int[_capacity];
-        Arrays.fill(_next, 0, _capacity, -1);
-        for (int i = 0; i < _size; i++) {
-            int keyHash = (int) HashHelper.longHash(_k[i], _capacity * 2);
-            _next[i] = _hash[keyHash];
-            _hash[keyHash] = i;
+        final long double_newCapacity = newCapacity * 2;
+        //extend hash
+        if (hash_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            hash_ptr = OffHeapLongArray.allocate(double_newCapacity);
+        } else {
+            hash_ptr = OffHeapLongArray.reallocate(hash_ptr, double_newCapacity);
+        }
+        OffHeapLongArray.set(addr, HASH, hash_ptr);
+        OffHeapLongArray.reset(hash_ptr, double_newCapacity);
+        //extend next
+        if (next_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            next_ptr = OffHeapLongArray.allocate(newCapacity);
+        } else {
+            next_ptr = OffHeapLongArray.reallocate(next_ptr, newCapacity);
+        }
+        OffHeapLongArray.set(addr, NEXT, next_ptr);
+        OffHeapLongArray.reset(next_ptr, newCapacity);
+        for (int i = 0; i < size; i++) {
+            final long keyHash = HashHelper.longHash(OffHeapLongArray.get(keys_ptr, i), double_newCapacity);
+            OffHeapLongArray.set(next_ptr, i, OffHeapLongArray.get(hash_ptr, keyHash));
+            OffHeapLongArray.set(hash_ptr, keyHash, i);
         }
         if (!initial) {
             declareDirty();
         }
+        return insert_index;
     }
 
     private void allocate(int newCapacity) {
