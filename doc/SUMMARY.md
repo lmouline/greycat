@@ -1,0 +1,17 @@
+# Summary
+
+* [Introduction](README.md)
+* [Quick start](start.md)
+* [Tasks](tasks/README.md)
+	* [Context and variables](tasks/Context.md)
+	* [Actions](tasks/actions/README.md)
+		* [add](tasks/actions/add.md)
+		* [addTo](tasks/actions/addTo.md)
+		* [setProperty](tasks/actions/setProperty.md)
+		* [get](tasks/actions/get.md)
+		* [loop](tasks/actions/loop.md)
+		* [loopPar](tasks/actions/loopPar.md)
+		* [traverse](tasks/actions/traverse.md)
+	* [Execution methods](tasks/Execute.md)
+	* [Hooks and Debug](tasks/Hook.md)
+* [Scheduler](scheduler.md)
