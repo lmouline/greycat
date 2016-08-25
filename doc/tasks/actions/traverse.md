@@ -18,8 +18,8 @@ Therefore, using the running example as a base, the execution of the following c
 
 ``` java
 
-fromIndexAll(rooms)
-.traverse(sensors)
+fromIndexAll("rooms")
+.traverse("sensors")
 .get("sensor")
 .print("{{result}}")
 .execute(g, null);
