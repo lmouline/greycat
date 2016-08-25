@@ -551,16 +551,16 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
                     long indexVictim = size - 1;
                     //just pop the last value
                     if (entry == indexVictim) {
-                        _k[entry] = -1;
-                        _v[entry] = null;
-                        _type[entry] = -1;
+                        OffHeapLongArray.set(keys_ptr, entry, OffHeapConstants.OFFHEAP_NULL_PTR);
+                        OffHeapLongArray.set(values_ptr, entry, OffHeapConstants.OFFHEAP_NULL_PTR);
+                        OffHeapLongArray.set(types_ptr, entry, OffHeapConstants.OFFHEAP_NULL_PTR);
                     } else {
                         //we need to reHash the new last element at our place
-                        _k[entry] = _k[indexVictim];
-                        _v[entry] = _v[indexVictim];
-                        _type[entry] = _type[indexVictim];
-                        if (_hash != null) {
-                            _next[entry] = _next[indexVictim];
+                        OffHeapLongArray.set(keys_ptr, entry, OffHeapLongArray.get(keys_ptr, indexVictim));
+                        OffHeapLongArray.set(values_ptr, entry, OffHeapLongArray.get(values_ptr, indexVictim));
+                        OffHeapLongArray.set(types_ptr, entry, OffHeapLongArray.get(types_ptr, indexVictim));
+                        if (hash_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                            OffHeapLongArray.set(next_ptr, entry, OffHeapLongArray.get(next_ptr, indexVictim));
                             long victimHash = HashHelper.longHash(OffHeapLongArray.get(keys_ptr, entry), capacity * 2);
                             long m = OffHeapLongArray.get(hash_ptr, victimHash);
                             if (m == indexVictim) {
@@ -581,7 +581,7 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
                     size--;
                     OffHeapLongArray.set(addr, SIZE, size);
                 } else {
-                    _v[entry] = param_elem;
+                    OffHeapLongArray.set(values_ptr, entry, param_elem);
                     if (OffHeapLongArray.get(types_ptr, entry) != p_type) {
                         OffHeapLongArray.set(types_ptr, entry, p_type);
                     }
