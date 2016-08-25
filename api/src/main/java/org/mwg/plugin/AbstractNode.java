@@ -305,6 +305,16 @@ public abstract class AbstractNode implements Node {
     }
 
     @Override
+    public final long lastModification() {
+        final NodeState state = this._resolver.resolveState(this);
+        if (state != null) {
+            return state.time();
+        } else {
+            throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+        }
+    }
+
+    @Override
     public final void rephase() {
         this._resolver.alignState(this);
     }

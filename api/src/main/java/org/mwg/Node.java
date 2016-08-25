@@ -196,6 +196,13 @@ public interface Node {
     long timeDephasing();
 
     /**
+     * Compute the time dephasing of this node, i.e. the difference between last modification and current node timepoint.
+     *
+     * @return The amount of time between the current time of the node and the last recorded state chunk time.
+     */
+    long lastModification();
+
+    /**
      * Forces the creation of a new timePoint of a node for its time.<br>
      * Clones the previous state to the exact time of this node.<br>
      * This cancels the dephasing between the current timepoint of the node and the last record timepoint.
