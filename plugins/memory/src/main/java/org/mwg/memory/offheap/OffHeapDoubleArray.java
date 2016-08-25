@@ -85,5 +85,13 @@ public class OffHeapDoubleArray {
         return doubleArray;
     }
 
+    static long fromObject(double[] origin) {
+        long doubleArrayToInsert_ptr = OffHeapDoubleArray.allocate(1 + origin.length); // length + content of the array
+        OffHeapLongArray.set(doubleArrayToInsert_ptr, 0, origin.length);// set length
+        for (int i = 0; i < origin.length; i++) {
+            OffHeapDoubleArray.set(doubleArrayToInsert_ptr, 1 + i, origin[i]);
+        }
+        return doubleArrayToInsert_ptr;
+    }
 
 }

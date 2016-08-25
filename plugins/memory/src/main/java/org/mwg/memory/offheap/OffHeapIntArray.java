@@ -73,12 +73,21 @@ public class OffHeapIntArray {
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return null;
         }
-        int longArrayLength = (int) OffHeapIntArray.get(addr, 0); // can be safely casted
+        int longArrayLength = OffHeapIntArray.get(addr, 0); // can be safely casted
         int[] longArray = new int[longArrayLength];
         for (int i = 0; i < longArrayLength; i++) {
             longArray[i] = OffHeapIntArray.get(addr, i + 1);
         }
         return longArray;
+    }
+
+    static long fromObject(int[] origin) {
+        long intArrayToInsert_ptr = OffHeapIntArray.allocate(1 + origin.length); // length + content of the array
+        OffHeapLongArray.set(intArrayToInsert_ptr, 0, origin.length);// set length
+        for (int i = 0; i < origin.length; i++) {
+            OffHeapIntArray.set(intArrayToInsert_ptr, 1 + i, origin[i]);
+        }
+        return intArrayToInsert_ptr;
     }
 
 }

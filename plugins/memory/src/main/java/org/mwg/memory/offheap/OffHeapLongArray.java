@@ -84,4 +84,14 @@ public class OffHeapLongArray {
         return longArray;
     }
 
+    static long fromObject(long[] origin) {
+        long longArrayToInsert_ptr = OffHeapLongArray.allocate(1 + origin.length); // length + content of the array
+        OffHeapLongArray.set(longArrayToInsert_ptr, 0, origin.length);// set length
+        for (int i = 0; i < origin.length; i++) {
+            OffHeapLongArray.set(longArrayToInsert_ptr, 1 + i, origin[i]);
+        }
+        return longArrayToInsert_ptr;
+    }
+
+
 }

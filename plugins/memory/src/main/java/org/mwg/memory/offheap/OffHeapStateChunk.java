@@ -10,8 +10,6 @@ import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.*;
 import org.mwg.utility.HashHelper;
 
-import java.util.Arrays;
-
 class OffHeapStateChunk implements StateChunk, ChunkListener {
 
     private final OffHeapChunkSpace space;
@@ -62,7 +60,7 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
         }
     }
 
-    public OffHeapStateChunk(final OffHeapChunkSpace p_space, final long p_index) {
+    OffHeapStateChunk(final OffHeapChunkSpace p_space, final long p_index) {
         index = p_index;
         space = p_space;
         long temp_addr = space.addrByIndex(index);
@@ -417,16 +415,17 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
     }
 
     private long internal_set(final long p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
-        Object param_elem = null;
+        long param_elem = -1;
+        double param_double_elem = -1;
         //check the param type
         if (p_unsafe_elem != null) {
             try {
                 switch (p_type) {
                     case Type.BOOL:
-                        param_elem = (boolean) p_unsafe_elem;
+                        param_elem = ((boolean) p_unsafe_elem) ? 1 : 0;
                         break;
                     case Type.DOUBLE:
-                        param_elem = (double) p_unsafe_elem;
+                        param_double_elem = (double) p_unsafe_elem;
                         break;
                     case Type.LONG:
                         if (p_unsafe_elem instanceof Integer) {
@@ -440,37 +439,22 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
                         param_elem = (int) p_unsafe_elem;
                         break;
                     case Type.STRING:
-                        param_elem = (String) p_unsafe_elem;
-                        break;
-                    case Type.RELATION:
-                        param_elem = (Relationship) p_unsafe_elem;
+                        param_elem = OffHeapString.fromObject((String) p_unsafe_elem);
                         break;
                     case Type.DOUBLE_ARRAY:
-                        double[] castedParamDouble = (double[]) p_unsafe_elem;
-                        double[] clonedDoubleArray = new double[castedParamDouble.length];
-                        System.arraycopy(castedParamDouble, 0, clonedDoubleArray, 0, castedParamDouble.length);
-                        param_elem = clonedDoubleArray;
+                        param_elem = OffHeapDoubleArray.fromObject((double[]) p_unsafe_elem);
                         break;
                     case Type.LONG_ARRAY:
-                        long[] castedParamLong = (long[]) p_unsafe_elem;
-                        long[] clonedLongArray = new long[castedParamLong.length];
-                        System.arraycopy(castedParamLong, 0, clonedLongArray, 0, castedParamLong.length);
-                        param_elem = clonedLongArray;
+                        param_elem = OffHeapLongArray.fromObject((long[]) p_unsafe_elem);
                         break;
                     case Type.INT_ARRAY:
-                        int[] castedParamInt = (int[]) p_unsafe_elem;
-                        int[] clonedIntArray = new int[castedParamInt.length];
-                        System.arraycopy(castedParamInt, 0, clonedIntArray, 0, castedParamInt.length);
-                        param_elem = clonedIntArray;
+                        param_elem = OffHeapIntArray.fromObject((int[]) p_unsafe_elem);
                         break;
+                    case Type.RELATION:
                     case Type.STRING_TO_LONG_MAP:
-                        param_elem = (StringLongMap) p_unsafe_elem;
-                        break;
                     case Type.LONG_TO_LONG_MAP:
-                        param_elem = (LongLongMap) p_unsafe_elem;
-                        break;
                     case Type.LONG_TO_LONG_ARRAY_MAP:
-                        param_elem = (LongLongArrayMap) p_unsafe_elem;
+                        param_elem = OffHeapConstants.OFFHEAP_NULL_PTR; //empty initial ptr
                         break;
                     default:
                         throw new RuntimeException("Internal Exception, unknown type");
@@ -489,11 +473,13 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
             OffHeapLongArray.set(addr, VALUES, new_values);
             long new_types = OffHeapByteArray.allocate(new_capacity);
             OffHeapLongArray.set(addr, TYPES, new_types);
-
             OffHeapLongArray.set(keys_ptr, 0, p_key);
             OffHeapLongArray.set(types_ptr, 0, p_type);
-            OffHeapLongArray.set(values_ptr, 0, TOINJECT);
-
+            if (p_type == Type.DOUBLE) {
+                OffHeapDoubleArray.set(values_ptr, 0, param_double_elem);
+            } else {
+                OffHeapLongArray.set(values_ptr, 0, param_elem);
+            }
             OffHeapLongArray.set(addr, SIZE, 1);
             return 0;
         }
@@ -524,7 +510,7 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
         //case already present
         if (entry != -1) {
             if (replaceIfPresent || (p_type != OffHeapLongArray.get(types_ptr, entry))) {
-                if (param_elem == null) {
+                if (p_unsafe_elem == null) {
                     if (hash_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                         //unHash previous
                         if (p_entry != -1) {
@@ -566,8 +552,38 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
                     size--;
                     OffHeapLongArray.set(addr, SIZE, size);
                 } else {
+                    final byte previous_type = OffHeapByteArray.get(types_ptr, entry);
+                    final long previous_value = OffHeapLongArray.get(values_ptr, entry);
+                    if (previous_value != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                        switch (previous_type) {
+                            case Type.RELATION:
+                                OffHeapRelationship.free(previous_value);
+                                break;
+                            case Type.STRING:
+                                OffHeapString.free(previous_value);
+                                break;
+                            case Type.LONG_TO_LONG_MAP:
+                                OffHeapLongLongMap.free(previous_value);
+                                break;
+                            case Type.LONG_TO_LONG_ARRAY_MAP:
+                                OffHeapLongLongArrayMap.free(previous_value);
+                                break;
+                            case Type.STRING_TO_LONG_MAP:
+                                OffHeapLongLongArrayMap.free(previous_value);
+                                break;
+                            case Type.DOUBLE_ARRAY:
+                                OffHeapDoubleArray.free(previous_value);
+                                break;
+                            case Type.INT_ARRAY:
+                                OffHeapIntArray.free(previous_value);
+                                break;
+                            case Type.LONG_ARRAY:
+                                OffHeapLongArray.free(previous_value);
+                                break;
+                        }
+                    }
                     OffHeapLongArray.set(values_ptr, entry, param_elem);
-                    if (OffHeapLongArray.get(types_ptr, entry) != p_type) {
+                    if (previous_type != p_type) {
                         OffHeapLongArray.set(types_ptr, entry, p_type);
                     }
                 }
@@ -580,7 +596,11 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
         if (size < capacity) {
             final long insert_index = size;
             OffHeapLongArray.set(keys_ptr, insert_index, p_key);
-            OffHeapLongArray.set(values_ptr, insert_index, param_elem);
+            if (p_type == Type.DOUBLE) {
+                OffHeapDoubleArray.set(values_ptr, insert_index, param_double_elem);
+            } else {
+                OffHeapLongArray.set(values_ptr, insert_index, param_elem);
+            }
             OffHeapByteArray.set(types_ptr, insert_index, p_type);
             if (hash_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 OffHeapLongArray.set(next_ptr, insert_index, OffHeapLongArray.get(hash_ptr, hashIndex));
@@ -603,7 +623,11 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
         //insert the new value
         final long insert_index = size;
         OffHeapLongArray.set(keys_ptr, insert_index, p_key);
-        OffHeapLongArray.set(values_ptr, insert_index, param_elem);
+        if (p_type == Type.DOUBLE) {
+            OffHeapDoubleArray.set(values_ptr, insert_index, param_double_elem);
+        } else {
+            OffHeapLongArray.set(values_ptr, insert_index, param_elem);
+        }
         OffHeapLongArray.set(types_ptr, insert_index, p_type);
         size++;
         OffHeapLongArray.set(addr, SIZE, size);
