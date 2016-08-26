@@ -16,7 +16,6 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
     private int mapSize = 0;
     private int capacity = 0;
 
-
     private long[] keys = null;
     private long[] values = null;
 
@@ -240,6 +239,7 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
             setHash((int) HashHelper.longHash(insertKey, capacity * 2), 0);
             setNext(0, -1);
             mapSize++;
+            parent.declareDirty();
         } else {
             long hashCapacity = capacity * 2;
             int insertKeyHash = (int) HashHelper.longHash(insertKey, hashCapacity);
@@ -263,9 +263,10 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
                 setHash((int) HashHelper.longHash(insertKey, capacity * 2), lastIndex);
                 setNext(lastIndex, currentHash);
                 mapSize++;
+                parent.declareDirty();
             }
         }
-        parent.declareDirty();
+
     }
 
 }

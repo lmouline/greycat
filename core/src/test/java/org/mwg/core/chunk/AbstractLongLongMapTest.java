@@ -39,7 +39,7 @@ public abstract class AbstractLongLongMapTest {
         Assert.assertTrue(1 == map.get(0));
         Assert.assertTrue(2 == map.get(1));
 
-        map.put(2, CoreConstants.NULL_LONG);
+        map.put(2, 2);
         Assert.assertTrue(2 == map.get(2));
 
         final long[] keys = new long[3];

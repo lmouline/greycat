@@ -1286,29 +1286,29 @@ declare module org {
                         put(insertKey: number, insertValue: number): void;
                     }
                     class HeapLongLongMap implements org.mwg.struct.LongLongMap {
-                        private state;
-                        private aligned;
-                        private _listener;
-                        constructor(p_listener: org.mwg.chunk.ChunkListener, initialCapacity: number, p_origin: org.mwg.core.chunk.heap.HeapLongLongMap);
-                        get(key: number): number;
+                        private parent;
+                        private mapSize;
+                        private capacity;
+                        private keys;
+                        private values;
+                        private nexts;
+                        private hashs;
+                        constructor(p_listener: org.mwg.chunk.ChunkListener);
+                        private key(i);
+                        private setKey(i, newValue);
+                        private value(i);
+                        private setValue(i, newValue);
+                        private next(i);
+                        private setNext(i, newValue);
+                        private hash(i);
+                        private setHash(i, newValue);
+                        reallocate(newCapacity: number): void;
+                        cloneFor(newParent: org.mwg.core.chunk.heap.HeapStateChunk): org.mwg.core.chunk.heap.HeapLongLongMap;
+                        get(requestKey: number): number;
                         each(callback: org.mwg.struct.LongLongMapCallBack): void;
                         size(): number;
-                        put(key: number, value: number): void;
-                        private internal_modify_map(key, value);
-                        remove(key: number): void;
-                    }
-                    module HeapLongLongMap {
-                        class InternalState {
-                            _stateSize: number;
-                            _elementK: Float64Array;
-                            _elementV: Float64Array;
-                            _elementNext: Int32Array;
-                            _elementHash: Int32Array;
-                            _threshold: number;
-                            _elementCount: number;
-                            constructor(p_stateSize: number, p_elementK: Float64Array, p_elementV: Float64Array, p_elementNext: Int32Array, p_elementHash: Int32Array, p_elementCount: number);
-                            clone(): org.mwg.core.chunk.heap.HeapLongLongMap.InternalState;
-                        }
+                        remove(requestKey: number): void;
+                        put(insertKey: number, insertValue: number): void;
                     }
                     class HeapRelationship implements org.mwg.struct.Relationship {
                         private _back;

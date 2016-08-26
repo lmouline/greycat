@@ -219,7 +219,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                 toSet = new HeapStringLongMap(this, CoreConstants.MAP_INITIAL_CAPACITY, null);
                 break;
             case Type.LONG_TO_LONG_MAP:
-                toSet = new HeapLongLongMap(this, CoreConstants.MAP_INITIAL_CAPACITY, null);
+                toSet = new HeapLongLongMap(this);
                 break;
             case Type.LONG_TO_LONG_ARRAY_MAP:
                 toSet = new HeapLongLongArrayMap(this);
@@ -405,12 +405,12 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                 switch (casted._type[i]) {
                     case Type.LONG_TO_LONG_MAP:
                         if (casted._v[i] != null) {
-                            _v[i] = new HeapLongLongMap(this, -1, (HeapLongLongMap) casted._v[i]);
+                            _v[i] = ((HeapLongLongMap) casted._v[i]).cloneFor(this);
                         }
                         break;
                     case Type.LONG_TO_LONG_ARRAY_MAP:
                         if (casted._v[i] != null) {
-                            _v[i] = ((HeapLongLongArrayMap) casted._v[i]).cloneFor(this);//  new HeapLongLongArrayMap(this, -1, (HeapLongLongArrayMap) casted._v[i]);
+                            _v[i] = ((HeapLongLongArrayMap) casted._v[i]).cloneFor(this);
                         }
                         break;
                     case Type.STRING_TO_LONG_MAP:
@@ -821,7 +821,8 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                             currentStringLongMap = new HeapStringLongMap(this, (int) currentSubSize, null);
                             break;
                         case Type.LONG_TO_LONG_MAP:
-                            currentLongLongMap = new HeapLongLongMap(this, (int) currentSubSize, null);
+                            currentLongLongMap = new HeapLongLongMap(this);
+                            currentLongLongMap.reallocate((int) currentSubSize);
                             break;
                         case Type.LONG_TO_LONG_ARRAY_MAP:
                             currentLongLongArrayMap = new HeapLongLongArrayMap(this);
