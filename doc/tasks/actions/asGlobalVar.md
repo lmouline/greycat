@@ -17,7 +17,8 @@ inject(0)
 .foreach(
     traverse("sensors")
     .foreach(
-        math("counter+1").asGlobalVar("counter")
+        math("counter+1")
+        .asGlobalVar("counter")
     )
 )
 .print("{{counter}}")
