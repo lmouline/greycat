@@ -4,9 +4,11 @@ However, hereafter is detailled the set of tasks proposed by default in MWG core
 
 - [add](add.md)
 - [addTo](addTo.md)
-- [setProperty](setProperty.md)
+- [asVar](asVar.md)
+- [asGlobalVar](asGlobalVar.md)
 - [get](get.md)
 - [loop](loop.md)
 - [loopPar](loopPar.md)
+- [setProperty](setProperty.md)
 - [traverse](traverse.md)
 - todo....
