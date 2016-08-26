@@ -2,7 +2,6 @@
 package org.mwg.core.chunk.heap;
 
 import org.mwg.core.CoreConstants;
-import org.mwg.chunk.ChunkListener;
 import org.mwg.utility.HashHelper;
 import org.mwg.struct.StringLongMap;
 import org.mwg.struct.StringLongMapCallBack;
@@ -12,9 +11,9 @@ class HeapStringLongMap implements StringLongMap {
     private volatile InternalState state;
     private volatile boolean aligned;
 
-    private final ChunkListener _listener;
+    private final HeapStateChunk _listener;
 
-    HeapStringLongMap(ChunkListener p_listener, int initialCapacity, HeapStringLongMap p_origin) {
+    HeapStringLongMap(HeapStateChunk p_listener, int initialCapacity, HeapStringLongMap p_origin) {
         this._listener = p_listener;
         if (p_origin == null) {
             InternalState newstate = new InternalState(initialCapacity, new String[initialCapacity], new long[initialCapacity], new long[initialCapacity], new int[initialCapacity], new int[initialCapacity], 0);

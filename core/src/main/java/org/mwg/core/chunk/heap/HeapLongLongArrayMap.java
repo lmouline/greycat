@@ -2,7 +2,6 @@
 package org.mwg.core.chunk.heap;
 
 import org.mwg.Constants;
-import org.mwg.chunk.ChunkListener;
 import org.mwg.utility.HashHelper;
 import org.mwg.struct.LongLongArrayMap;
 import org.mwg.struct.LongLongArrayMapCallBack;
@@ -11,7 +10,7 @@ import java.util.Arrays;
 
 class HeapLongLongArrayMap implements LongLongArrayMap {
 
-    private final ChunkListener parent;
+    private final HeapStateChunk parent;
 
     private int mapSize = 0;
     private int capacity = 0;
@@ -22,7 +21,7 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
     private int[] nexts = null;
     private int[] hashs = null;
 
-    HeapLongLongArrayMap(final ChunkListener p_listener) {
+    HeapLongLongArrayMap(final HeapStateChunk p_listener) {
         this.parent = p_listener;
     }
 

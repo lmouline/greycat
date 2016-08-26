@@ -1,7 +1,6 @@
 package org.mwg.core.chunk.heap;
 
 import org.mwg.Constants;
-import org.mwg.chunk.ChunkListener;
 import org.mwg.struct.Relationship;
 
 import java.util.Arrays;
@@ -10,10 +9,10 @@ class HeapRelationship implements Relationship {
 
     private long[] _back;
     private volatile int _size;
-    private final ChunkListener _listener;
+    private final HeapStateChunk _listener;
     private boolean aligned = true;
 
-    HeapRelationship(final ChunkListener p_listener, final HeapRelationship origin) {
+    HeapRelationship(final HeapStateChunk p_listener, final HeapRelationship origin) {
         _listener = p_listener;
         if (origin != null) {
             aligned = false;

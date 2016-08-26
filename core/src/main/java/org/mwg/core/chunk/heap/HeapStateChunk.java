@@ -3,7 +3,6 @@ package org.mwg.core.chunk.heap;
 import org.mwg.Constants;
 import org.mwg.Type;
 import org.mwg.core.CoreConstants;
-import org.mwg.chunk.ChunkListener;
 import org.mwg.chunk.StateChunk;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.Base64;
@@ -13,7 +12,7 @@ import org.mwg.struct.*;
 
 import java.util.Arrays;
 
-class HeapStateChunk implements StateChunk, ChunkListener {
+class HeapStateChunk implements StateChunk {
 
     private final long _index;
     private final HeapChunkSpace _space;
@@ -234,7 +233,6 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         return getOrCreate(_space.graph().resolver().stringToHash(key, true), elemType);
     }
 
-    @Override
     public final void declareDirty() {
         if (_space != null && !_dirty) {
             _dirty = true;
