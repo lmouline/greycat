@@ -343,35 +343,6 @@ class OffHeapLongLongMap implements LongLongMap {
         return newSrcAddr;
     }
 
-    /*
-    public static long cloneMap(long srcAddr) {
-        // capacity
-        long capacity = OffHeapLongArray.get(srcAddr, INDEX_CAPACITY);
-
-        // copy root array
-        long newSrcAddr = OffHeapLongArray.cloneArray(srcAddr, 8);
-        // copy elementK array
-        long elementK_ptr = OffHeapLongArray.get(newSrcAddr, INDEX_ELEMENT_K);
-        long newElementK_ptr = OffHeapLongArray.cloneArray(elementK_ptr, capacity);
-        OffHeapLongArray.set(newSrcAddr, INDEX_ELEMENT_K, newElementK_ptr);
-        // copy elementV array
-        long elementV_ptr = OffHeapLongArray.get(newSrcAddr, INDEX_ELEMENT_V);
-        long newElementV_ptr = OffHeapLongArray.cloneArray(elementV_ptr, capacity + 1);
-        OffHeapLongArray.set(newSrcAddr, INDEX_ELEMENT_V, newElementV_ptr);
-        // copy elementNext array
-        long elementNext_ptr = OffHeapLongArray.get(newSrcAddr, INDEX_ELEMENT_NEXT);
-        long newElementNext_ptr = OffHeapLongArray.cloneArray(elementNext_ptr, capacity);
-        OffHeapLongArray.set(newSrcAddr, INDEX_ELEMENT_NEXT, newElementNext_ptr);
-        // copy elementHash array
-        long elementHash_ptr = OffHeapLongArray.get(srcAddr, INDEX_ELEMENT_HASH);
-        long newElementHash_ptr = OffHeapLongArray.cloneArray(elementHash_ptr, capacity);
-        OffHeapLongArray.set(newSrcAddr, INDEX_ELEMENT_HASH, newElementHash_ptr);
-
-        return newSrcAddr;
-    }
-    */
-
-
     static void save(final long addr, final Buffer buffer) {
         final long size = OffHeapLongArray.get(addr, INDEX_ELEMENT_COUNT);
         final long capacity = OffHeapLongArray.get(addr, INDEX_CAPACITY);

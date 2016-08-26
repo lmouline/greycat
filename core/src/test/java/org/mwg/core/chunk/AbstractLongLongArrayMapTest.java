@@ -46,7 +46,7 @@ public abstract class AbstractLongLongArrayMapTest {
         for (int i = 0; i < CoreConstants.MAP_INITIAL_CAPACITY; i++) {
             map.put(CoreConstants.BEGINNING_OF_TIME, i);
         }
-        Assert.assertTrue(map.size() == CoreConstants.MAP_INITIAL_CAPACITY + 2);
+       Assert.assertTrue(map.size() == CoreConstants.MAP_INITIAL_CAPACITY + 2);
 
         long[] getRes = map.get(CoreConstants.BEGINNING_OF_TIME);
         Assert.assertTrue(getRes.length == CoreConstants.MAP_INITIAL_CAPACITY);

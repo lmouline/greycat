@@ -426,6 +426,7 @@ declare module org {
             findByQuery(query: org.mwg.Query, callback: org.mwg.Callback<org.mwg.Node[]>): void;
             findAll(indexName: string, callback: org.mwg.Callback<org.mwg.Node[]>): void;
             timeDephasing(): number;
+            lastModification(): number;
             rephase(): void;
             timepoints(beginningOfSearch: number, endOfSearch: number, callback: org.mwg.Callback<Float64Array>): void;
             free(): void;
@@ -566,6 +567,7 @@ declare module org {
                 remove(relationName: string, relatedNode: org.mwg.Node): void;
                 free(): void;
                 timeDephasing(): number;
+                lastModification(): number;
                 rephase(): void;
                 timepoints(beginningOfSearch: number, endOfSearch: number, callback: org.mwg.Callback<Float64Array>): void;
                 jump<A extends org.mwg.Node>(targetTime: number, callback: org.mwg.Callback<A>): void;
@@ -1259,30 +1261,29 @@ declare module org {
                         chunkType(): number;
                     }
                     class HeapLongLongArrayMap implements org.mwg.struct.LongLongArrayMap {
-                        private state;
-                        private aligned;
-                        private _listener;
-                        constructor(p_listener: org.mwg.chunk.ChunkListener, initialCapacity: number, p_origin: org.mwg.core.chunk.heap.HeapLongLongArrayMap);
-                        get(key: number): Float64Array;
+                        private parent;
+                        private mapSize;
+                        private capacity;
+                        private keys;
+                        private values;
+                        private nexts;
+                        private hashs;
+                        constructor(p_listener: org.mwg.chunk.ChunkListener);
+                        private key(i);
+                        private setKey(i, newValue);
+                        private value(i);
+                        private setValue(i, newValue);
+                        private next(i);
+                        private setNext(i, newValue);
+                        private hash(i);
+                        private setHash(i, newValue);
+                        reallocate(newCapacity: number): void;
+                        cloneFor(newParent: org.mwg.core.chunk.heap.HeapStateChunk): org.mwg.core.chunk.heap.HeapLongLongArrayMap;
+                        get(requestKey: number): Float64Array;
                         each(callback: org.mwg.struct.LongLongArrayMapCallBack): void;
                         size(): number;
-                        put(key: number, value: number): void;
-                        private internal_modify_map(key, value, toInsert);
-                        remove(key: number, value: number): void;
-                    }
-                    module HeapLongLongArrayMap {
-                        class InternalState {
-                            _stateSize: number;
-                            _elementK: Float64Array;
-                            _elementV: Float64Array;
-                            _elementNext: Int32Array;
-                            _elementHash: Int32Array;
-                            _threshold: number;
-                            _elementCount: number;
-                            _nextAvailableSlot: number;
-                            constructor(p_stateSize: number, p_elementK: Float64Array, p_elementV: Float64Array, p_elementNext: Int32Array, p_elementHash: Int32Array, p_elementCount: number, p_nextAvailableSlot: number);
-                            clone(): org.mwg.core.chunk.heap.HeapLongLongArrayMap.InternalState;
-                        }
+                        remove(requestKey: number, requestValue: number): void;
+                        put(insertKey: number, insertValue: number): void;
                     }
                     class HeapLongLongMap implements org.mwg.struct.LongLongMap {
                         private state;

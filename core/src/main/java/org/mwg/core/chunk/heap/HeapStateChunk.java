@@ -222,7 +222,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                 toSet = new HeapLongLongMap(this, CoreConstants.MAP_INITIAL_CAPACITY, null);
                 break;
             case Type.LONG_TO_LONG_ARRAY_MAP:
-                toSet = new HeapLongLongArrayMap(this, CoreConstants.MAP_INITIAL_CAPACITY, null);
+                toSet = new HeapLongLongArrayMap(this);
                 break;
         }
         internal_set(p_key, p_type, toSet, true, false);
@@ -410,7 +410,7 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                         break;
                     case Type.LONG_TO_LONG_ARRAY_MAP:
                         if (casted._v[i] != null) {
-                            _v[i] = new HeapLongLongArrayMap(this, -1, (HeapLongLongArrayMap) casted._v[i]);
+                            _v[i] = ((HeapLongLongArrayMap) casted._v[i]).cloneFor(this);//  new HeapLongLongArrayMap(this, -1, (HeapLongLongArrayMap) casted._v[i]);
                         }
                         break;
                     case Type.STRING_TO_LONG_MAP:
@@ -683,9 +683,9 @@ class HeapStateChunk implements StateChunk, ChunkListener {
         int[] currentIntArr = null;
         //map sub creation variables
         HeapRelationship currentRelation = null;
-        StringLongMap currentStringLongMap = null;
-        LongLongMap currentLongLongMap = null;
-        LongLongArrayMap currentLongLongArrayMap = null;
+        HeapStringLongMap currentStringLongMap = null;
+        HeapLongLongMap currentLongLongMap = null;
+        HeapLongLongArrayMap currentLongLongArrayMap = null;
         //array variables
         long currentSubSize = -1;
         int currentSubIndex = 0;
@@ -824,7 +824,8 @@ class HeapStateChunk implements StateChunk, ChunkListener {
                             currentLongLongMap = new HeapLongLongMap(this, (int) currentSubSize, null);
                             break;
                         case Type.LONG_TO_LONG_ARRAY_MAP:
-                            currentLongLongArrayMap = new HeapLongLongArrayMap(this, (int) currentSubSize, null);
+                            currentLongLongArrayMap = new HeapLongLongArrayMap(this);
+                            currentLongLongArrayMap.reallocate((int) currentSubSize);
                             break;
                     }
                 } else {
