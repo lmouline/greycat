@@ -1312,12 +1312,13 @@ declare module org {
                     class HeapRelationship implements org.mwg.struct.Relationship {
                         private _back;
                         private _size;
-                        private _listener;
+                        private parent;
                         private aligned;
                         constructor(p_listener: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapRelationship);
                         allocate(_capacity: number): void;
                         size(): number;
                         get(index: number): number;
+                        unsafe_get(index: number): number;
                         add(newValue: number): org.mwg.struct.Relationship;
                         remove(oldValue: number): org.mwg.struct.Relationship;
                         clear(): org.mwg.struct.Relationship;

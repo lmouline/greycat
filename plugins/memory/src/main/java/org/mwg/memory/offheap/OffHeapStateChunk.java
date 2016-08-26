@@ -169,11 +169,9 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
                     long elemStringLongMapPtr = OffHeapLongArray.get(values_ptr, p_index);
                     return new OffHeapStringLongMap(this, Constants.MAP_INITIAL_CAPACITY, elemStringLongMapPtr);
                 case Type.LONG_TO_LONG_MAP:
-                    long elemLongLongMapPtr = OffHeapLongArray.get(values_ptr, p_index);
-                    return new OffHeapLongLongMap(this, Constants.MAP_INITIAL_CAPACITY, elemLongLongMapPtr);
+                    return new OffHeapLongLongMap(this, p_index);
                 case Type.LONG_TO_LONG_ARRAY_MAP:
-                    long elemLongLongArrayMapPtr = OffHeapLongArray.get(values_ptr, p_index);
-                    return new OffHeapLongLongArrayMap(this, Constants.MAP_INITIAL_CAPACITY, elemLongLongArrayMapPtr);
+                    return new OffHeapLongLongArrayMap(this, p_index);
                 case OffHeapConstants.OFFHEAP_NULL_PTR:
                     return null;
                 default:
@@ -275,8 +273,7 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
         return getType(space.graph().resolver().stringToHash(key, false));
     }
 
-    @Override
-    public final void declareDirty() {
+    final void declareDirty() {
         if (space != null && OffHeapLongArray.get(addr, DIRTY) != 1) {
             OffHeapLongArray.set(addr, DIRTY, 1);
             space.notifyUpdate(index);
@@ -735,9 +732,9 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
         int[] currentIntArr = null;
         //map sub creation variables
         OffHeapRelationship currentRelation = null;
-        StringLongMap currentStringLongMap = null;
-        LongLongMap currentLongLongMap = null;
-        LongLongArrayMap currentLongLongArrayMap = null;
+        OffHeapStringLongMap currentStringLongMap = null;
+        OffHeapLongLongMap currentLongLongMap = null;
+        OffHeapLongLongArrayMap currentLongLongArrayMap = null;
         //array variables
         long currentSubSize = -1;
         int currentSubIndex = 0;
@@ -866,17 +863,19 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
                             currentIntArr = new int[(int) currentSubSize];
                             break;
                         case Type.RELATION:
-                            currentRelation = new OffHeapRelationship(this, null);
+                            currentRelation = new OffHeapRelationship(this, insertIndex);
                             currentRelation.allocate((int) currentSubSize);
                             break;
                         case Type.STRING_TO_LONG_MAP:
                             currentStringLongMap = new OffHeapStringLongMap(this, (int) currentSubSize, null);
                             break;
                         case Type.LONG_TO_LONG_MAP:
-                            currentLongLongMap = new OffHeapLongLongMap(this, (int) currentSubSize, null);
+                            currentLongLongMap = new OffHeapLongLongMap(this, insertIndex);
+                            currentLongLongMap.reallocate(0, 0, currentSubSize);
                             break;
                         case Type.LONG_TO_LONG_ARRAY_MAP:
-                            currentLongLongArrayMap = new OffHeapLongLongArrayMap(this, (int) currentSubSize, null);
+                            currentLongLongArrayMap = new OffHeapLongLongArrayMap(this, insertIndex);
+                            currentLongLongArrayMap.reallocate(0, 0, currentSubSize);
                             break;
                     }
                 } else {

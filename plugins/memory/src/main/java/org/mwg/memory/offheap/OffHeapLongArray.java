@@ -14,7 +14,6 @@ public class OffHeapLongArray {
         if (Unsafe.DEBUG_MODE) {
             alloc_counter++;
         }
-
         //create the memory segment
         long newMemorySegment = unsafe.allocateMemory(capacity * 8);
         //init the memory
@@ -50,7 +49,7 @@ public class OffHeapLongArray {
         return unsafe.compareAndSwapLong(null, addr + index * 8, expectedValue, updatedValue);
     }
 
-    public static long cloneArray(final long srcAddr, final long length) {
+    static long cloneArray(final long srcAddr, final long length) {
         if (srcAddr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return srcAddr;
         }

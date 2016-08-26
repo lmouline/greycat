@@ -130,13 +130,12 @@
         <module>plugins/alljs</module>
         <module>plugins/model</module>
         <module>plugins/structure</module>
-
-
+        
         <!--
         <module>plugins/gexf</module>
         -->
 
-        <!--<module>plugins/memory</module>-->
+        <module>plugins/memory</module>
 
     </modules>
 
