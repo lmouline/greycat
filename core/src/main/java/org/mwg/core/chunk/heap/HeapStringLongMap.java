@@ -1,221 +1,330 @@
 
 package org.mwg.core.chunk.heap;
 
-import org.mwg.core.CoreConstants;
+import org.mwg.Constants;
+import org.mwg.struct.StringLongMapCallBack;
 import org.mwg.utility.HashHelper;
 import org.mwg.struct.StringLongMap;
-import org.mwg.struct.StringLongMapCallBack;
+
+import java.util.Arrays;
 
 class HeapStringLongMap implements StringLongMap {
 
-    private volatile InternalState state;
-    private volatile boolean aligned;
+    private final HeapStateChunk parent;
 
-    private final HeapStateChunk _listener;
+    private int mapSize = 0;
+    private int capacity = 0;
 
-    HeapStringLongMap(HeapStateChunk p_listener, int initialCapacity, HeapStringLongMap p_origin) {
-        this._listener = p_listener;
-        if (p_origin == null) {
-            InternalState newstate = new InternalState(initialCapacity, new String[initialCapacity], new long[initialCapacity], new long[initialCapacity], new int[initialCapacity], new int[initialCapacity], 0);
-            for (int i = 0; i < initialCapacity; i++) {
-                newstate._elementNext[i] = -1;
-                newstate._elementHash[i] = -1;
+    private String[] keys = null;
+    private long[] keysH = null;
+    private long[] values = null;
+    private int[] nexts = null;
+    private int[] hashs = null;
+
+    HeapStringLongMap(final HeapStateChunk p_listener) {
+        this.parent = p_listener;
+    }
+
+    private String key(int i) {
+        return keys[i];
+    }
+
+    private void setKey(int i, String newValue) {
+        keys[i] = newValue;
+    }
+
+    private long keyH(int i) {
+        return keysH[i];
+    }
+
+    private void setKeyH(int i, long newValue) {
+        keysH[i] = newValue;
+    }
+
+    private long value(int i) {
+        return values[i];
+    }
+
+    private void setValue(int i, long newValue) {
+        values[i] = newValue;
+    }
+
+    private int next(int i) {
+        return nexts[i];
+    }
+
+    private void setNext(int i, int newValue) {
+        nexts[i] = newValue;
+    }
+
+    private int hash(int i) {
+        return hashs[i];
+    }
+
+    private void setHash(int i, int newValue) {
+        hashs[i] = newValue;
+    }
+
+    void reallocate(int newCapacity) {
+        if (newCapacity > capacity) {
+            //extend keys
+            String[] new_keys = new String[newCapacity];
+            if (keys != null) {
+                System.arraycopy(keys, 0, new_keys, 0, capacity);
             }
-            this.state = newstate;
-            aligned = true;
-        } else {
-            this.state = p_origin.state;
-            aligned = false;
+            keys = new_keys;
+            //extend keysH
+            long[] new_keysH = new long[newCapacity];
+            if (keysH != null) {
+                System.arraycopy(keysH, 0, new_keysH, 0, capacity);
+            }
+            keysH = new_keysH;
+            //extend values
+            long[] new_values = new long[newCapacity];
+            if (values != null) {
+                System.arraycopy(values, 0, new_values, 0, capacity);
+            }
+            values = new_values;
+
+            int[] new_nexts = new int[newCapacity];
+            int[] new_hashes = new int[newCapacity * 2];
+            Arrays.fill(new_nexts, 0, newCapacity, -1);
+            Arrays.fill(new_hashes, 0, newCapacity * 2, -1);
+            hashs = new_hashes;
+            nexts = new_nexts;
+            for (int i = 0; i < mapSize; i++) {
+                int new_key_hash = (int) HashHelper.longHash(keyH(i), newCapacity * 2);
+                setNext(i, hash(new_key_hash));
+                setHash(new_key_hash, i);
+            }
+            capacity = newCapacity;
         }
     }
 
-    /**
-     * Internal Map state, to be replace in a compare and swap manner
-     */
-    private final class InternalState {
-
-        final int _stateSize;
-        final String[] _elementK;
-        final long[] _elementKH;
-        final long[] _elementV;
-        final int[] _elementNext;
-        final int[] _elementHash;
-        final int _threshold;
-        volatile int _elementCount;
-
-        InternalState(int p_stateSize, String[] p_elementK, long[] p_elementKH, long[] p_elementV, int[] p_elementNext, int[] p_elementHash, int p_elementCount) {
-            this._stateSize = p_stateSize;
-            this._elementK = p_elementK;
-            this._elementKH = p_elementKH;
-            this._elementV = p_elementV;
-            this._elementNext = p_elementNext;
-            this._elementHash = p_elementHash;
-            this._elementCount = p_elementCount;
-            this._threshold = (int) (p_stateSize * CoreConstants.MAP_LOAD_FACTOR);
+    HeapStringLongMap cloneFor(HeapStateChunk newParent) {
+        HeapStringLongMap cloned = new HeapStringLongMap(newParent);
+        cloned.mapSize = mapSize;
+        cloned.capacity = capacity;
+        if (keys != null) {
+            String[] cloned_keys = new String[capacity];
+            System.arraycopy(keys, 0, cloned_keys, 0, capacity);
+            cloned.keys = cloned_keys;
         }
-
-        public InternalState clone() {
-            String[] cloned_elementK = new String[_stateSize];
-            System.arraycopy(_elementK, 0, cloned_elementK, 0, _stateSize);
-            long[] cloned_elementKH = new long[_stateSize];
-            System.arraycopy(_elementKH, 0, cloned_elementKH, 0, _stateSize);
-            long[] cloned_elementV = new long[_stateSize];
-            System.arraycopy(_elementV, 0, cloned_elementV, 0, _stateSize);
-            int[] cloned_elementNext = new int[_stateSize];
-            System.arraycopy(_elementNext, 0, cloned_elementNext, 0, _stateSize);
-            int[] cloned_elementHash = new int[_stateSize];
-            System.arraycopy(_elementHash, 0, cloned_elementHash, 0, _stateSize);
-            return new InternalState(_stateSize, cloned_elementK, cloned_elementKH, cloned_elementV, cloned_elementNext, cloned_elementHash, _elementCount);
+        if (keysH != null) {
+            long[] cloned_keysH = new long[capacity];
+            System.arraycopy(keysH, 0, cloned_keysH, 0, capacity);
+            cloned.keysH = cloned_keysH;
         }
-
+        if (values != null) {
+            long[] cloned_values = new long[capacity];
+            System.arraycopy(values, 0, cloned_values, 0, capacity);
+            cloned.values = cloned_values;
+        }
+        if (nexts != null) {
+            int[] cloned_nexts = new int[capacity];
+            System.arraycopy(nexts, 0, cloned_nexts, 0, capacity);
+            cloned.nexts = cloned_nexts;
+        }
+        if (hashs != null) {
+            int[] cloned_hashs = new int[capacity * 2];
+            System.arraycopy(hashs, 0, cloned_hashs, 0, capacity * 2);
+            cloned.hashs = cloned_hashs;
+        }
+        return cloned;
     }
 
     @Override
-    public final long getValue(String key) {
-        final InternalState internalState = state;
-        if (internalState._stateSize == 0) {
-            return CoreConstants.NULL_LONG;
-        }
-        final long keyHash = HashHelper.hash(key);
-        long hashIndex = HashHelper.longHash(keyHash, internalState._stateSize);
-        int m = internalState._elementHash[(int) hashIndex];
-        while (m >= 0) {
-            if (keyHash == internalState._elementKH[m]) {
-                return internalState._elementV[m];
-            } else {
-                m = internalState._elementNext[m];
+    public final long getValue(final String requestString) {
+        long result = Constants.NULL_LONG;
+        synchronized (parent) {
+            if (keys != null) {
+                final long keyHash = HashHelper.hash(requestString);
+                final int hashIndex = (int) HashHelper.longHash(keyHash, capacity * 2);
+                int m = hash(hashIndex);
+                while (m >= 0) {
+                    if (keyHash == keyH(m)) {
+                        result = value(m);
+                        break;
+                    }
+                    m = next(m);
+                }
             }
         }
-        return CoreConstants.NULL_LONG;
+        return result;
     }
+
 
     @Override
     public String getByHash(final long keyHash) {
-        final InternalState internalState = state;
-        long hashIndex = HashHelper.longHash(keyHash, internalState._stateSize);
-        int m = internalState._elementHash[(int) hashIndex];
-        while (m >= 0) {
-            if (internalState._elementKH[m] == keyHash) {
-                return internalState._elementK[m];
-            } else {
-                m = internalState._elementNext[m];
+        String result = null;
+        synchronized (parent) {
+            if (keys != null) {
+                final int hashIndex = (int) HashHelper.longHash(keyHash, capacity * 2);
+                int m = hash(hashIndex);
+                while (m >= 0) {
+                    if (keyHash == keyH(m)) {
+                        result = key(m);
+                        break;
+                    }
+                    m = next(m);
+                }
             }
         }
-        return null;
+        return result;
     }
 
     @Override
     public boolean containsHash(long keyHash) {
-        final InternalState internalState = state;
-        long hashIndex = HashHelper.longHash(keyHash, internalState._stateSize);
-        int m = internalState._elementHash[(int) hashIndex];
-        while (m >= 0) {
-            if (internalState._elementKH[m] == keyHash) {
-                return true;
-            } else {
-                m = internalState._elementNext[m];
+        boolean result = false;
+        synchronized (parent) {
+            if (keys != null) {
+                final int hashIndex = (int) HashHelper.longHash(keyHash, capacity * 2);
+                int m = hash(hashIndex);
+                while (m >= 0) {
+                    if (keyHash == keyH(m)) {
+                        result = true;
+                        break;
+                    }
+                    m = next(m);
+                }
             }
         }
-        return false;
+        return result;
     }
 
     @Override
     public final void each(StringLongMapCallBack callback) {
-        final InternalState internalState = state;
-        for (int i = 0; i < internalState._elementCount; i++) {
-            if (internalState._elementK[i] != null) { //there is a real value
-                callback.on(internalState._elementK[i], internalState._elementV[i]);
-            }
+        synchronized (parent) {
+            unsafe_each(callback);
+        }
+    }
+
+    void unsafe_each(StringLongMapCallBack callback) {
+        for (int i = 0; i < mapSize; i++) {
+            callback.on(key(i), value(i));
         }
     }
 
     @Override
-    public final long size() {
-        return state._elementCount;
-    }
-
-    @Override
-    public final void remove(String key) {
-        throw new RuntimeException("Not implemented yet!!!");
-    }
-
-    @Override
-    public final void put(String key, long value) {
-        internal_modify_map(key, value);
-    }
-
-    private synchronized void internal_modify_map(String key, long value) {
-        if (!aligned) {
-            //clone the state
-            state = state.clone();
-            aligned = true;
+    public long size() {
+        long result;
+        synchronized (parent) {
+            result = mapSize;
         }
-        final long keyHash = HashHelper.hash(key);
-        int entry = -1;
-        long hashIndex = -1;
-        InternalState internalState = state;
-        if (internalState._stateSize > 0) {
-            hashIndex = HashHelper.longHash(keyHash, internalState._stateSize);
-            int m = internalState._elementHash[(int) hashIndex];
-            while (m >= 0) {
-                if (internalState._elementKH[m] == keyHash) {
-                    entry = m;
-                    break;
+        return result;
+    }
+
+    @Override
+    public final void remove(final String requestKey) {
+        synchronized (parent) {
+            if (keys != null && mapSize != 0) {
+                final long keyHash = HashHelper.hash(requestKey);
+                long hashCapacity = capacity * 2;
+                int hashIndex = (int) HashHelper.longHash(keyHash, hashCapacity);
+                int m = hash(hashIndex);
+                int found = -1;
+                while (m >= 0) {
+                    if (requestKey == key(m)) {
+                        found = m;
+                        break;
+                    }
+                    m = next(m);
                 }
-                m = internalState._elementNext[m];
-            }
-        }
-        if (entry == -1) {
-            //if need to reHash (too small or too much collisions)
-            if ((internalState._elementCount + 1) > internalState._threshold) {
-                //rehashCapacity(state.elementDataSize);
-                int newCapacity = internalState._stateSize * 2;
-                String[] newElementK = new String[newCapacity];
-                long[] newElementKH = new long[newCapacity];
-                long[] newElementV = new long[newCapacity];
-                System.arraycopy(internalState._elementK, 0, newElementK, 0, internalState._stateSize);
-                System.arraycopy(internalState._elementKH, 0, newElementKH, 0, internalState._stateSize);
-                System.arraycopy(internalState._elementV, 0, newElementV, 0, internalState._stateSize);
-                int[] newElementNext = new int[newCapacity];
-                int[] newElementHash = new int[newCapacity];
-                for (int i = 0; i < newCapacity; i++) {
-                    newElementNext[i] = -1;
-                    newElementHash[i] = -1;
-                }
-                //rehashEveryThing
-                for (int i = 0; i < internalState._elementCount; i++) {
-                    if (internalState._elementK[i] != null) { //there is a real value
-                        long newHashIndex = HashHelper.longHash(internalState._elementKH[i], newCapacity);
-                        int currentHashedIndex = newElementHash[(int) newHashIndex];
-                        if (currentHashedIndex != -1) {
-                            newElementNext[i] = currentHashedIndex;
+                if (found != -1) {
+                    //first remove currentKey from hashChain
+                    int toRemoveHash = (int) HashHelper.longHash(keyHash, hashCapacity);
+                    m = hash(toRemoveHash);
+                    if (m == found) {
+                        setHash(toRemoveHash, next(m));
+                    } else {
+                        while (m != -1) {
+                            int next_of_m = next(m);
+                            if (next_of_m == found) {
+                                setNext(m, next(next_of_m));
+                                break;
+                            }
+                            m = next_of_m;
                         }
-                        newElementHash[(int) newHashIndex] = i;
+                    }
+                    final int lastIndex = mapSize - 1;
+                    if (lastIndex == found) {
+                        //easy, was the last element
+                        mapSize--;
+                    } else {
+                        //less cool, we have to unchain the last value of the map
+                        final String lastKey = key(lastIndex);
+                        final long lastKeyH = keyH(lastIndex);
+                        setKey(found, lastKey);
+                        setKeyH(found, lastKeyH);
+                        setValue(found, value(lastIndex));
+                        setNext(found, next(lastIndex));
+                        int victimHash = (int) HashHelper.longHash(lastKeyH, hashCapacity);
+                        m = hash(victimHash);
+                        if (m == lastIndex) {
+                            //the victim was the head of hashing list
+                            setHash(victimHash, found);
+                        } else {
+                            //the victim is in the next, reChain it
+                            while (m != -1) {
+                                int next_of_m = next(m);
+                                if (next_of_m == lastIndex) {
+                                    setNext(m, found);
+                                    break;
+                                }
+                                m = next_of_m;
+                            }
+                        }
+                        mapSize--;
+                    }
+                    parent.declareDirty();
+                }
+            }
+        }
+    }
+
+    @Override
+    public final void put(final String insertKey, final long insertValue) {
+        synchronized (parent) {
+            final long keyHash = HashHelper.hash(insertKey);
+            if (keys == null) {
+                reallocate(Constants.MAP_INITIAL_CAPACITY);
+                setKey(0, insertKey);
+                setKeyH(0, keyHash);
+                setValue(0, insertValue);
+                setHash((int) HashHelper.longHash(keyHash, capacity * 2), 0);
+                setNext(0, -1);
+                mapSize++;
+            } else {
+                long hashCapacity = capacity * 2;
+                int insertKeyHash = (int) HashHelper.longHash(keyHash, hashCapacity);
+                int currentHash = hash(insertKeyHash);
+                int m = currentHash;
+                int found = -1;
+                while (m >= 0) {
+                    if (insertKey == key(m)) {
+                        found = m;
+                        break;
+                    }
+                    m = next(m);
+                }
+                if (found == -1) {
+                    final int lastIndex = mapSize;
+                    if (lastIndex == capacity) {
+                        reallocate(capacity * 2);
+                    }
+                    setKey(lastIndex, insertKey);
+                    setKeyH(lastIndex, keyHash);
+                    setValue(lastIndex, insertValue);
+                    setHash((int) HashHelper.longHash(keyHash, capacity * 2), lastIndex);
+                    setNext(lastIndex, currentHash);
+                    mapSize++;
+                    parent.declareDirty();
+                } else {
+                    if (value(found) != insertValue) {
+                        setValue(found, insertValue);
+                        parent.declareDirty();
                     }
                 }
-                //setPrimitiveType value for all
-                internalState = new InternalState(newCapacity, newElementK, newElementKH, newElementV, newElementNext, newElementHash, internalState._elementCount);
-                state = internalState;
-                hashIndex = HashHelper.longHash(keyHash, internalState._stateSize);
-            }
-            int newIndex = internalState._elementCount;
-            internalState._elementK[newIndex] = key;
-            internalState._elementKH[newIndex] = keyHash;
-            internalState._elementV[newIndex] = value;
-
-            int currentHashedElemIndex = internalState._elementHash[(int) hashIndex];
-            if (currentHashedElemIndex != -1) {
-                internalState._elementNext[newIndex] = currentHashedElemIndex;
-            }
-            //now the object is reachable to other thread everything should be ready
-            internalState._elementHash[(int) hashIndex] = newIndex;
-            internalState._elementCount = internalState._elementCount + 1;
-            _listener.declareDirty();
-        } else {
-            if (internalState._elementV[entry] != value && value != CoreConstants.NULL_LONG) {
-                //setValue
-                internalState._elementV[entry] = value;
-                _listener.declareDirty();
             }
         }
     }

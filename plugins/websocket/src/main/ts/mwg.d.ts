@@ -471,9 +471,6 @@ declare module org {
                 save(buffer: org.mwg.struct.Buffer): void;
                 load(buffer: org.mwg.struct.Buffer): void;
             }
-            interface ChunkListener {
-                declareDirty(): void;
-            }
             interface ChunkSpace {
                 createAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
                 getAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
@@ -1268,7 +1265,7 @@ declare module org {
                         private values;
                         private nexts;
                         private hashs;
-                        constructor(p_listener: org.mwg.chunk.ChunkListener);
+                        constructor(p_listener: org.mwg.core.chunk.heap.HeapStateChunk);
                         private key(i);
                         private setKey(i, newValue);
                         private value(i);
@@ -1281,6 +1278,7 @@ declare module org {
                         cloneFor(newParent: org.mwg.core.chunk.heap.HeapStateChunk): org.mwg.core.chunk.heap.HeapLongLongArrayMap;
                         get(requestKey: number): Float64Array;
                         each(callback: org.mwg.struct.LongLongArrayMapCallBack): void;
+                        unsafe_each(callback: org.mwg.struct.LongLongArrayMapCallBack): void;
                         size(): number;
                         remove(requestKey: number, requestValue: number): void;
                         put(insertKey: number, insertValue: number): void;
@@ -1293,7 +1291,7 @@ declare module org {
                         private values;
                         private nexts;
                         private hashs;
-                        constructor(p_listener: org.mwg.chunk.ChunkListener);
+                        constructor(p_listener: org.mwg.core.chunk.heap.HeapStateChunk);
                         private key(i);
                         private setKey(i, newValue);
                         private value(i);
@@ -1306,6 +1304,7 @@ declare module org {
                         cloneFor(newParent: org.mwg.core.chunk.heap.HeapStateChunk): org.mwg.core.chunk.heap.HeapLongLongMap;
                         get(requestKey: number): number;
                         each(callback: org.mwg.struct.LongLongMapCallBack): void;
+                        unsafe_each(callback: org.mwg.struct.LongLongMapCallBack): void;
                         size(): number;
                         remove(requestKey: number): void;
                         put(insertKey: number, insertValue: number): void;
@@ -1315,7 +1314,7 @@ declare module org {
                         private _size;
                         private _listener;
                         private aligned;
-                        constructor(p_listener: org.mwg.chunk.ChunkListener, origin: org.mwg.core.chunk.heap.HeapRelationship);
+                        constructor(p_listener: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapRelationship);
                         allocate(_capacity: number): void;
                         size(): number;
                         get(index: number): number;
@@ -1324,7 +1323,7 @@ declare module org {
                         clear(): org.mwg.struct.Relationship;
                         toString(): string;
                     }
-                    class HeapStateChunk implements org.mwg.chunk.StateChunk, org.mwg.chunk.ChunkListener {
+                    class HeapStateChunk implements org.mwg.chunk.StateChunk {
                         private _index;
                         private _space;
                         private _capacity;
@@ -1361,32 +1360,35 @@ declare module org {
                         load(buffer: org.mwg.struct.Buffer): void;
                     }
                     class HeapStringLongMap implements org.mwg.struct.StringLongMap {
-                        private state;
-                        private aligned;
-                        private _listener;
-                        constructor(p_listener: org.mwg.chunk.ChunkListener, initialCapacity: number, p_origin: org.mwg.core.chunk.heap.HeapStringLongMap);
-                        getValue(key: string): number;
+                        private parent;
+                        private mapSize;
+                        private capacity;
+                        private keys;
+                        private keysH;
+                        private values;
+                        private nexts;
+                        private hashs;
+                        constructor(p_listener: org.mwg.core.chunk.heap.HeapStateChunk);
+                        private key(i);
+                        private setKey(i, newValue);
+                        private keyH(i);
+                        private setKeyH(i, newValue);
+                        private value(i);
+                        private setValue(i, newValue);
+                        private next(i);
+                        private setNext(i, newValue);
+                        private hash(i);
+                        private setHash(i, newValue);
+                        reallocate(newCapacity: number): void;
+                        cloneFor(newParent: org.mwg.core.chunk.heap.HeapStateChunk): org.mwg.core.chunk.heap.HeapStringLongMap;
+                        getValue(requestString: string): number;
                         getByHash(keyHash: number): string;
                         containsHash(keyHash: number): boolean;
                         each(callback: org.mwg.struct.StringLongMapCallBack): void;
+                        unsafe_each(callback: org.mwg.struct.StringLongMapCallBack): void;
                         size(): number;
-                        remove(key: string): void;
-                        put(key: string, value: number): void;
-                        private internal_modify_map(key, value);
-                    }
-                    module HeapStringLongMap {
-                        class InternalState {
-                            _stateSize: number;
-                            _elementK: string[];
-                            _elementKH: Float64Array;
-                            _elementV: Float64Array;
-                            _elementNext: Int32Array;
-                            _elementHash: Int32Array;
-                            _threshold: number;
-                            _elementCount: number;
-                            constructor(p_stateSize: number, p_elementK: string[], p_elementKH: Float64Array, p_elementV: Float64Array, p_elementNext: Int32Array, p_elementHash: Int32Array, p_elementCount: number);
-                            clone(): org.mwg.core.chunk.heap.HeapStringLongMap.InternalState;
-                        }
+                        remove(requestKey: string): void;
+                        put(insertKey: string, insertValue: number): void;
                     }
                     class HeapTimeTreeChunk implements org.mwg.chunk.TimeTreeChunk {
                         private static META_SIZE;

@@ -215,7 +215,7 @@ class HeapStateChunk implements StateChunk {
                 toSet = new HeapRelationship(this, null);
                 break;
             case Type.STRING_TO_LONG_MAP:
-                toSet = new HeapStringLongMap(this, CoreConstants.MAP_INITIAL_CAPACITY, null);
+                toSet = new HeapStringLongMap(this);
                 break;
             case Type.LONG_TO_LONG_MAP:
                 toSet = new HeapLongLongMap(this);
@@ -233,7 +233,7 @@ class HeapStateChunk implements StateChunk {
         return getOrCreate(_space.graph().resolver().stringToHash(key, true), elemType);
     }
 
-    public final void declareDirty() {
+    final void declareDirty() {
         if (_space != null && !_dirty) {
             _dirty = true;
             _space.notifyUpdate(_index);
@@ -281,11 +281,11 @@ class HeapStateChunk implements StateChunk {
                             }
                             break;
                         case Type.RELATION:
-                            Relationship castedLongArrRel = (Relationship) loopValue;
+                            HeapRelationship castedLongArrRel = (HeapRelationship) loopValue;
                             Base64.encodeIntToBuffer(castedLongArrRel.size(), buffer);
                             for (int j = 0; j < castedLongArrRel.size(); j++) {
                                 buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
-                                Base64.encodeLongToBuffer(castedLongArrRel.get(j), buffer);
+                                Base64.encodeLongToBuffer(castedLongArrRel.unsafe_get(j), buffer);
                             }
                             break;
                         case Type.LONG_ARRAY:
@@ -305,9 +305,9 @@ class HeapStateChunk implements StateChunk {
                             }
                             break;
                         case Type.STRING_TO_LONG_MAP:
-                            StringLongMap castedStringLongMap = (StringLongMap) loopValue;
+                            HeapStringLongMap castedStringLongMap = (HeapStringLongMap) loopValue;
                             Base64.encodeLongToBuffer(castedStringLongMap.size(), buffer);
-                            castedStringLongMap.each(new StringLongMapCallBack() {
+                            castedStringLongMap.unsafe_each(new StringLongMapCallBack() {
                                 @Override
                                 public void on(final String key, final long value) {
                                     buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
@@ -413,7 +413,7 @@ class HeapStateChunk implements StateChunk {
                         break;
                     case Type.STRING_TO_LONG_MAP:
                         if (casted._v[i] != null) {
-                            _v[i] = new HeapStringLongMap(this, -1, (HeapStringLongMap) casted._v[i]);
+                            _v[i] = ((HeapStringLongMap) casted._v[i]).cloneFor(this);
                         }
                         break;
                     case Type.RELATION:
@@ -816,7 +816,8 @@ class HeapStateChunk implements StateChunk {
                             currentRelation.allocate((int) currentSubSize);
                             break;
                         case Type.STRING_TO_LONG_MAP:
-                            currentStringLongMap = new HeapStringLongMap(this, (int) currentSubSize, null);
+                            currentStringLongMap = new HeapStringLongMap(this);
+                            currentStringLongMap.reallocate((int) currentSubSize);
                             break;
                         case Type.LONG_TO_LONG_MAP:
                             currentLongLongMap = new HeapLongLongMap(this);
