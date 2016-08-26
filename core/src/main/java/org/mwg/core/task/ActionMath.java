@@ -29,13 +29,15 @@ class ActionMath extends AbstractTaskAction {
         final int previousSize = previous.size();
         for (int i = 0; i < previousSize; i++) {
             final Object loop = previous.get(i);
+            Map<String, Double> variables = new HashMap<String, Double>();
+            variables.put("PI", Math.PI);
+            variables.put("TRUE", 1.0);
+            variables.put("FALSE", 0.0);
             if (loop instanceof AbstractNode) {
-                Map<String, Double> variables = new HashMap<String, Double>();
-                variables.put("PI", Math.PI);
-                variables.put("TRUE", 1.0);
-                variables.put("FALSE", 0.0);
                 next.add(_engine.eval((Node) loop, context, variables));
                 ((AbstractNode) loop).free();
+            } else {
+                next.add(_engine.eval(null, context, variables));
             }
         }
         //optimization to avoid iteration on previous result for free
