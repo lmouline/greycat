@@ -115,157 +115,169 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
     }
 
     @Override
-    public synchronized final long[] get(final long requestKey) {
-        if (keys == null) {
-            return new long[0];
-        }
-        final int hashIndex = (int) HashHelper.longHash(requestKey, capacity * 2);
+    public final long[] get(final long requestKey) {
         long[] result = new long[0];
-        int resultCapacity = 0;
-        int resultIndex = 0;
-        int m = hash(hashIndex);
-        while (m >= 0) {
-            if (requestKey == key(m)) {
-                if (resultIndex == resultCapacity) {
-                    int newCapacity;
-                    if (resultCapacity == 0) {
-                        newCapacity = 1;
-                    } else {
-                        newCapacity = resultCapacity * 2;
+        synchronized (parent) {
+            if (keys != null) {
+                final int hashIndex = (int) HashHelper.longHash(requestKey, capacity * 2);
+                int resultCapacity = 0;
+                int resultIndex = 0;
+                int m = hash(hashIndex);
+                while (m >= 0) {
+                    if (requestKey == key(m)) {
+                        if (resultIndex == resultCapacity) {
+                            int newCapacity;
+                            if (resultCapacity == 0) {
+                                newCapacity = 1;
+                            } else {
+                                newCapacity = resultCapacity * 2;
+                            }
+                            long[] tempResult = new long[newCapacity];
+                            System.arraycopy(result, 0, tempResult, 0, result.length);
+                            result = tempResult;
+                            resultCapacity = newCapacity;
+                        }
+                        result[resultIndex] = value(m);
+                        resultIndex++;
                     }
-                    long[] tempResult = new long[newCapacity];
-                    System.arraycopy(result, 0, tempResult, 0, result.length);
-                    result = tempResult;
-                    resultCapacity = newCapacity;
+                    m = next(m);
                 }
-                result[resultIndex] = value(m);
-                resultIndex++;
+                if (resultIndex != resultCapacity) {
+                    //shrink result
+                    long[] shrinkedResult = new long[resultIndex];
+                    System.arraycopy(result, 0, shrinkedResult, 0, resultIndex);
+                    result = shrinkedResult;
+                }
             }
-            m = next(m);
         }
-        if (resultIndex == resultCapacity) {
-            return result;
-        } else {
-            //shrink result
-            long[] shrinkedResult = new long[resultIndex];
-            System.arraycopy(result, 0, shrinkedResult, 0, resultIndex);
-            return shrinkedResult;
-        }
+        return result;
     }
 
     @Override
-    public synchronized final void each(LongLongArrayMapCallBack callback) {
+    public final void each(LongLongArrayMapCallBack callback) {
+        synchronized (parent) {
+            unsafe_each(callback);
+        }
+    }
+
+    void unsafe_each(LongLongArrayMapCallBack callback) {
         for (int i = 0; i < mapSize; i++) {
             callback.on(key(i), value(i));
         }
     }
 
     @Override
-    public synchronized long size() {
-        return mapSize;
+    public long size() {
+        long result;
+        synchronized (parent) {
+            result = mapSize;
+        }
+        return result;
     }
 
     @Override
-    public synchronized final void remove(final long requestKey, final long requestValue) {
-        if (keys == null || mapSize == 0) {
-            return;
-        }
-        long hashCapacity = capacity * 2;
-        int hashIndex = (int) HashHelper.longHash(requestKey, hashCapacity);
-        int m = hash(hashIndex);
-        int found = -1;
-        while (m >= 0) {
-            if (requestKey == key(m) && requestValue == value(m)) {
-                found = m;
-                break;
-            }
-            m = next(m);
-        }
-        if (found != -1) {
-            //first remove currentKey from hashChain
-            int toRemoveHash = (int) HashHelper.longHash(requestKey, hashCapacity);
-            m = hash(toRemoveHash);
-            if (m == found) {
-                setHash(toRemoveHash, next(m));
-            } else {
-                while (m != -1) {
-                    int next_of_m = next(m);
-                    if (next_of_m == found) {
-                        setNext(m, next(next_of_m));
+    public final void remove(final long requestKey, final long requestValue) {
+        synchronized (parent) {
+            if (keys != null && mapSize != 0) {
+                long hashCapacity = capacity * 2;
+                int hashIndex = (int) HashHelper.longHash(requestKey, hashCapacity);
+                int m = hash(hashIndex);
+                int found = -1;
+                while (m >= 0) {
+                    if (requestKey == key(m) && requestValue == value(m)) {
+                        found = m;
                         break;
                     }
-                    m = next_of_m;
+                    m = next(m);
                 }
-            }
-            final int lastIndex = mapSize - 1;
-            if (lastIndex == found) {
-                //easy, was the last element
-                mapSize--;
-            } else {
-                //less cool, we have to unchain the last value of the map
-                final long lastKey = key(lastIndex);
-                setKey(found, lastKey);
-                setValue(found, value(lastIndex));
-                setNext(found, next(lastIndex));
-                int victimHash = (int) HashHelper.longHash(lastKey, hashCapacity);
-                m = hash(victimHash);
-                if (m == lastIndex) {
-                    //the victim was the head of hashing list
-                    setHash(victimHash, found);
-                } else {
-                    //the victim is in the next, reChain it
-                    while (m != -1) {
-                        int next_of_m = next(m);
-                        if (next_of_m == lastIndex) {
-                            setNext(m, found);
-                            break;
+                if (found != -1) {
+                    //first remove currentKey from hashChain
+                    int toRemoveHash = (int) HashHelper.longHash(requestKey, hashCapacity);
+                    m = hash(toRemoveHash);
+                    if (m == found) {
+                        setHash(toRemoveHash, next(m));
+                    } else {
+                        while (m != -1) {
+                            int next_of_m = next(m);
+                            if (next_of_m == found) {
+                                setNext(m, next(next_of_m));
+                                break;
+                            }
+                            m = next_of_m;
                         }
-                        m = next_of_m;
                     }
+                    final int lastIndex = mapSize - 1;
+                    if (lastIndex == found) {
+                        //easy, was the last element
+                        mapSize--;
+                    } else {
+                        //less cool, we have to unchain the last value of the map
+                        final long lastKey = key(lastIndex);
+                        setKey(found, lastKey);
+                        setValue(found, value(lastIndex));
+                        setNext(found, next(lastIndex));
+                        int victimHash = (int) HashHelper.longHash(lastKey, hashCapacity);
+                        m = hash(victimHash);
+                        if (m == lastIndex) {
+                            //the victim was the head of hashing list
+                            setHash(victimHash, found);
+                        } else {
+                            //the victim is in the next, reChain it
+                            while (m != -1) {
+                                int next_of_m = next(m);
+                                if (next_of_m == lastIndex) {
+                                    setNext(m, found);
+                                    break;
+                                }
+                                m = next_of_m;
+                            }
+                        }
+                        mapSize--;
+                    }
+                    parent.declareDirty();
                 }
-                mapSize--;
             }
-            parent.declareDirty();
         }
     }
 
     @Override
-    public synchronized final void put(final long insertKey, final long insertValue) {
-        if (keys == null) {
-            reallocate(Constants.MAP_INITIAL_CAPACITY);
-            setKey(0, insertKey);
-            setValue(0, insertValue);
-            setHash((int) HashHelper.longHash(insertKey, capacity * 2), 0);
-            setNext(0, -1);
-            mapSize++;
-            parent.declareDirty();
-        } else {
-            long hashCapacity = capacity * 2;
-            int insertKeyHash = (int) HashHelper.longHash(insertKey, hashCapacity);
-            int currentHash = hash(insertKeyHash);
-            int m = currentHash;
-            int found = -1;
-            while (m >= 0) {
-                if (insertKey == key(m) && insertValue == value(m)) {
-                    found = m;
-                    break;
-                }
-                m = next(m);
-            }
-            if (found == -1) {
-                final int lastIndex = mapSize;
-                if (lastIndex == capacity) {
-                    reallocate(capacity * 2);
-                }
-                setKey(lastIndex, insertKey);
-                setValue(lastIndex, insertValue);
-                setHash((int) HashHelper.longHash(insertKey, capacity * 2), lastIndex);
-                setNext(lastIndex, currentHash);
+    public final void put(final long insertKey, final long insertValue) {
+        synchronized (parent) {
+            if (keys == null) {
+                reallocate(Constants.MAP_INITIAL_CAPACITY);
+                setKey(0, insertKey);
+                setValue(0, insertValue);
+                setHash((int) HashHelper.longHash(insertKey, capacity * 2), 0);
+                setNext(0, -1);
                 mapSize++;
                 parent.declareDirty();
+            } else {
+                long hashCapacity = capacity * 2;
+                int insertKeyHash = (int) HashHelper.longHash(insertKey, hashCapacity);
+                int currentHash = hash(insertKeyHash);
+                int m = currentHash;
+                int found = -1;
+                while (m >= 0) {
+                    if (insertKey == key(m) && insertValue == value(m)) {
+                        found = m;
+                        break;
+                    }
+                    m = next(m);
+                }
+                if (found == -1) {
+                    final int lastIndex = mapSize;
+                    if (lastIndex == capacity) {
+                        reallocate(capacity * 2);
+                    }
+                    setKey(lastIndex, insertKey);
+                    setValue(lastIndex, insertValue);
+                    setHash((int) HashHelper.longHash(insertKey, capacity * 2), lastIndex);
+                    setNext(lastIndex, currentHash);
+                    mapSize++;
+                    parent.declareDirty();
+                }
             }
         }
-
     }
 
 }

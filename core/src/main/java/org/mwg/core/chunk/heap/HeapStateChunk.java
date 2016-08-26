@@ -318,9 +318,9 @@ class HeapStateChunk implements StateChunk {
                             });
                             break;
                         case Type.LONG_TO_LONG_MAP:
-                            LongLongMap castedLongLongMap = (LongLongMap) loopValue;
+                            HeapLongLongMap castedLongLongMap = (HeapLongLongMap) loopValue;
                             Base64.encodeLongToBuffer(castedLongLongMap.size(), buffer);
-                            castedLongLongMap.each(new LongLongMapCallBack() {
+                            castedLongLongMap.unsafe_each(new LongLongMapCallBack() {
                                 @Override
                                 public void on(final long key, final long value) {
                                     buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
@@ -331,9 +331,9 @@ class HeapStateChunk implements StateChunk {
                             });
                             break;
                         case Type.LONG_TO_LONG_ARRAY_MAP:
-                            LongLongArrayMap castedLongLongArrayMap = (LongLongArrayMap) loopValue;
+                            HeapLongLongArrayMap castedLongLongArrayMap = (HeapLongLongArrayMap) loopValue;
                             Base64.encodeLongToBuffer(castedLongLongArrayMap.size(), buffer);
-                            castedLongLongArrayMap.each(new LongLongArrayMapCallBack() {
+                            castedLongLongArrayMap.unsafe_each(new LongLongArrayMapCallBack() {
                                 @Override
                                 public void on(final long key, final long value) {
                                     buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);

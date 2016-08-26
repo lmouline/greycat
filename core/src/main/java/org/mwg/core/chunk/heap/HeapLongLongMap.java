@@ -136,9 +136,13 @@ class HeapLongLongMap implements LongLongMap {
     @Override
     public final void each(LongLongMapCallBack callback) {
         synchronized (parent) {
-            for (int i = 0; i < mapSize; i++) {
-                callback.on(key(i), value(i));
-            }
+            unsafe_each(callback);
+        }
+    }
+
+    void unsafe_each(LongLongMapCallBack callback) {
+        for (int i = 0; i < mapSize; i++) {
+            callback.on(key(i), value(i));
         }
     }
 
