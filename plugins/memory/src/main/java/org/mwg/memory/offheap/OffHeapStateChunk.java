@@ -686,7 +686,7 @@ class OffHeapStateChunk implements StateChunk {
         if (hash_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             hash_ptr = OffHeapLongArray.allocate(hash_capacity);
         } else {
-            hash_ptr = OffHeapLongArray.reallocate(types_ptr, hash_capacity);
+            hash_ptr = OffHeapLongArray.reallocate(hash_ptr, hash_capacity);
             OffHeapLongArray.reset(hash_ptr, hash_capacity);
         }
         OffHeapLongArray.set(addr, HASH, hash_ptr);
@@ -1039,9 +1039,15 @@ class OffHeapStateChunk implements StateChunk {
             for (long i = 0; i < size; i++) {
                 freeElement(OffHeapLongArray.get(values_ptr, i), OffHeapByteArray.get(types_ptr, i));
             }
-            OffHeapLongArray.free(keys_ptr);
-            OffHeapLongArray.free(values_ptr);
-            OffHeapByteArray.free(types_ptr);
+            if (keys_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapLongArray.free(keys_ptr);
+            }
+            if (values_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapLongArray.free(values_ptr);
+            }
+            if (types_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapByteArray.free(types_ptr);
+            }
             final long next_ptr = OffHeapLongArray.get(addr, NEXT);
             if (next_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 OffHeapLongArray.free(next_ptr);
