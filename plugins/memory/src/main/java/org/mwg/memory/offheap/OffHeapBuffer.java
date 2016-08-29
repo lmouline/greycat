@@ -8,9 +8,7 @@ import org.mwg.utility.DefaultBufferIterator;
 class OffHeapBuffer implements Buffer {
 
     private long bufferPtr = OffHeapConstants.OFFHEAP_NULL_PTR;
-
     private long writeCursor = 0;
-
     private long capacity = 0;
 
     @Override
@@ -88,6 +86,8 @@ class OffHeapBuffer implements Buffer {
         if (bufferPtr != OffHeapConstants.OFFHEAP_NULL_PTR) {
             OffHeapByteArray.free(bufferPtr);
             bufferPtr = OffHeapConstants.OFFHEAP_NULL_PTR;
+            capacity = 0;
+            writeCursor = 0;
         }
     }
 
@@ -106,6 +106,11 @@ class OffHeapBuffer implements Buffer {
             old = old * 2;
         }
         return old;
+    }
+
+    @Override
+    public String toString() {
+        return new String(data());
     }
 
 }

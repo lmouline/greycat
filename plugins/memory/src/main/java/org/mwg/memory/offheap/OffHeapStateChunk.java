@@ -20,7 +20,6 @@ class OffHeapStateChunk implements StateChunk {
     private static final int NEXT = 2;
     private static final int HASH = 3;
     private static final int TYPES = 4;
-
     private static final int LOCK = 5;
     private static final int SIZE = 6;
     private static final int CAPACITY = 7;
@@ -661,370 +660,373 @@ class OffHeapStateChunk implements StateChunk {
             return;
         }
         //allocate or reallocate values
-        long new_keys;
         if (keys_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-            new_keys = OffHeapLongArray.allocate(newCapacity);
+            keys_ptr = OffHeapLongArray.allocate(newCapacity);
         } else {
-            new_keys = OffHeapLongArray.reallocate(keys_ptr, newCapacity);
+            keys_ptr = OffHeapLongArray.reallocate(keys_ptr, newCapacity);
         }
-        OffHeapLongArray.set(addr, KEYS, new_keys);
+        OffHeapLongArray.set(addr, KEYS, keys_ptr);
         //allocate or reallocate values
-        long new_values;
         if (values_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-            new_values = OffHeapLongArray.allocate(newCapacity);
+            values_ptr = OffHeapLongArray.allocate(newCapacity);
         } else {
-            new_values = OffHeapLongArray.reallocate(values_ptr, newCapacity);
+            values_ptr = OffHeapLongArray.reallocate(values_ptr, newCapacity);
         }
-        OffHeapLongArray.set(addr, VALUES, new_values);
+        OffHeapLongArray.set(addr, VALUES, values_ptr);
         //allocate or reallocate types
-        long new_types;
         if (types_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-            new_types = OffHeapByteArray.allocate(newCapacity);
+            types_ptr = OffHeapByteArray.allocate(newCapacity);
         } else {
-            new_types = OffHeapByteArray.reallocate(types_ptr, newCapacity);
+            types_ptr = OffHeapByteArray.reallocate(types_ptr, newCapacity);
         }
-        OffHeapLongArray.set(addr, TYPES, new_types);
+        OffHeapLongArray.set(addr, TYPES, types_ptr);
         OffHeapLongArray.set(addr, CAPACITY, newCapacity);
         long hash_capacity = newCapacity * 2;
-        long new_hash;
         if (hash_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-            new_hash = OffHeapLongArray.allocate(hash_capacity);
+            hash_ptr = OffHeapLongArray.allocate(hash_capacity);
         } else {
-            new_hash = OffHeapLongArray.reallocate(types_ptr, hash_capacity);
-            OffHeapLongArray.reset(new_hash, hash_capacity);
+            hash_ptr = OffHeapLongArray.reallocate(types_ptr, hash_capacity);
+            OffHeapLongArray.reset(hash_ptr, hash_capacity);
         }
-        OffHeapLongArray.set(addr, HASH, new_hash);
-        long new_next;
+        OffHeapLongArray.set(addr, HASH, hash_ptr);
         if (next_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-            new_next = OffHeapLongArray.allocate(newCapacity);
+            next_ptr = OffHeapLongArray.allocate(newCapacity);
         } else {
-            new_next = OffHeapLongArray.reallocate(next_ptr, newCapacity);
-            OffHeapLongArray.reset(new_next, newCapacity);
+            next_ptr = OffHeapLongArray.reallocate(next_ptr, newCapacity);
+            OffHeapLongArray.reset(next_ptr, newCapacity);
         }
-        OffHeapLongArray.set(addr, NEXT, new_next);
+        OffHeapLongArray.set(addr, NEXT, next_ptr);
         final long size = OffHeapLongArray.get(addr, SIZE);
         for (long i = 0; i < size; i++) {
-            long keyHash = HashHelper.longHash(OffHeapLongArray.get(new_keys, i), hash_capacity);
-            OffHeapLongArray.set(new_next, i, OffHeapLongArray.get(new_hash, keyHash));
-            OffHeapLongArray.set(new_hash, keyHash, i);
+            long keyHash = HashHelper.longHash(OffHeapLongArray.get(keys_ptr, i), hash_capacity);
+            OffHeapLongArray.set(next_ptr, i, OffHeapLongArray.get(hash_ptr, keyHash));
+            OffHeapLongArray.set(hash_ptr, keyHash, i);
         }
     }
 
     @Override
-    public final synchronized void load(final Buffer buffer) {
+    public final void load(final Buffer buffer) {
         if (buffer == null || buffer.length() == 0) {
             return;
         }
-        final boolean initial = (keys_ptr == OffHeapConstants.OFFHEAP_NULL_PTR);
-        //reset size
-        int cursor = 0;
-        long payloadSize = buffer.length();
-        int previousStart = -1;
-        long currentChunkElemKey = Constants.NULL_LONG;
-        byte currentChunkElemType = -1;
-        //init detections
-        boolean isFirstElem = true;
-        //array sub creation variable
-        double[] currentDoubleArr = null;
-        long[] currentLongArr = null;
-        int[] currentIntArr = null;
-        //map sub creation variables
-        OffHeapRelationship currentRelation = null;
-        OffHeapStringLongMap currentStringLongMap = null;
-        OffHeapLongLongMap currentLongLongMap = null;
-        OffHeapLongLongArrayMap currentLongLongArrayMap = null;
-        //array variables
-        long currentSubSize = -1;
-        int currentSubIndex = 0;
-        //map key variables
-        long currentMapLongKey = Constants.NULL_LONG;
-        String currentMapStringKey = null;
-        while (cursor < payloadSize) {
-            byte current = buffer.read(cursor);
-            if (current == Constants.CHUNK_SEP) {
-                if (isFirstElem) {
-                    //initial the map
-                    isFirstElem = false;
-                    final int stateChunkSize = Base64.decodeToIntWithBounds(buffer, 0, cursor);
-                    final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(stateChunkSize) / Math.log(2)));
-                    allocate(closePowerOfTwo);
-                    previousStart = cursor + 1;
-                } else {
-                    if (currentChunkElemType != -1) {
-                        Object toInsert = null;
+        lock();
+        try {
+            consistencyCheck();
+            final boolean initial = (keys_ptr == OffHeapConstants.OFFHEAP_NULL_PTR);
+            //reset size
+            int cursor = 0;
+            long payloadSize = buffer.length();
+            int previousStart = -1;
+            long currentChunkElemKey = Constants.NULL_LONG;
+            byte currentChunkElemType = -1;
+            //init detections
+            boolean isFirstElem = true;
+            //array sub creation variable
+            double[] currentDoubleArr = null;
+            long[] currentLongArr = null;
+            int[] currentIntArr = null;
+            //map sub creation variables
+            OffHeapRelationship currentRelation = null;
+            OffHeapStringLongMap currentStringLongMap = null;
+            OffHeapLongLongMap currentLongLongMap = null;
+            OffHeapLongLongArrayMap currentLongLongArrayMap = null;
+            //array variables
+            long currentSubSize = -1;
+            int currentSubIndex = 0;
+            //map key variables
+            long currentMapLongKey = Constants.NULL_LONG;
+            String currentMapStringKey = null;
+            while (cursor < payloadSize) {
+                byte current = buffer.read(cursor);
+                if (current == Constants.CHUNK_SEP) {
+                    if (isFirstElem) {
+                        //initial the map
+                        isFirstElem = false;
+                        final int stateChunkSize = Base64.decodeToIntWithBounds(buffer, 0, cursor);
+                        final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(stateChunkSize) / Math.log(2)));
+                        allocate(closePowerOfTwo);
+                        previousStart = cursor + 1;
+                    } else {
+                        if (currentChunkElemType != -1) {
+                            Object toInsert = null;
+                            switch (currentChunkElemType) {
+                                case Type.BOOL:
+                                    if (buffer.read(previousStart) == Constants.BOOL_FALSE) {
+                                        toInsert = false;
+                                    } else if (buffer.read(previousStart) == Constants.BOOL_TRUE) {
+                                        toInsert = true;
+                                    }
+                                    break;
+                                case Type.STRING:
+                                    toInsert = Base64.decodeToStringWithBounds(buffer, previousStart, cursor);
+                                    break;
+                                case Type.DOUBLE:
+                                    toInsert = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
+                                    break;
+                                case Type.LONG:
+                                    toInsert = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                                    break;
+                                case Type.INT:
+                                    toInsert = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
+                                    break;
+                                case Type.DOUBLE_ARRAY:
+                                    if (currentDoubleArr == null) {
+                                        currentDoubleArr = new double[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
+                                    } else {
+                                        currentDoubleArr[currentSubIndex] = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
+                                    }
+                                    toInsert = currentDoubleArr;
+                                    break;
+                                case Type.LONG_ARRAY:
+                                    if (currentLongArr == null) {
+                                        currentLongArr = new long[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
+                                    } else {
+                                        currentLongArr[currentSubIndex] = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                                    }
+                                    toInsert = currentLongArr;
+                                    break;
+                                case Type.INT_ARRAY:
+                                    if (currentIntArr == null) {
+                                        currentIntArr = new int[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
+                                    } else {
+                                        currentIntArr[currentSubIndex] = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
+                                    }
+                                    toInsert = currentIntArr;
+                                    break;
+                                case Type.RELATION:
+                                    if (currentRelation == null) {
+                                        currentRelation = new OffHeapRelationship(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
+                                        currentRelation.allocate(Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
+                                    } else {
+                                        currentRelation.add(Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                                    }
+                                    //toInsert = currentRelation;
+                                    break;
+                                case Type.STRING_TO_LONG_MAP:
+                                    if (currentMapStringKey != null) {
+                                        currentStringLongMap.put(currentMapStringKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                                    }
+                                    //toInsert = currentStringLongMap;
+                                    break;
+                                case Type.LONG_TO_LONG_MAP:
+                                    if (currentMapLongKey != Constants.NULL_LONG) {
+                                        currentLongLongMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                                    }
+                                    //toInsert = currentLongLongMap;
+                                    break;
+                                case Type.LONG_TO_LONG_ARRAY_MAP:
+                                    if (currentMapLongKey != Constants.NULL_LONG) {
+                                        currentLongLongArrayMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                                    }
+                                    //toInsert = currentLongLongArrayMap;
+                                    break;
+                            }
+                            if (toInsert != null) {
+                                //insert K/V
+                                internal_set(currentChunkElemKey, currentChunkElemType, toInsert, true, initial); //enhance this with boolean array
+                            }
+                        }
+                        //next round, reset all variables...
+                        previousStart = cursor + 1;
+                        currentChunkElemKey = Constants.NULL_LONG;
+                        currentChunkElemType = -1;
+                        currentSubSize = -1;
+                        currentSubIndex = 0;
+                        currentMapLongKey = Constants.NULL_LONG;
+                        currentMapStringKey = null;
+                    }
+                } else if (current == Constants.CHUNK_SUB_SEP) { //SEPARATION BETWEEN KEY,TYPE,VALUE
+                    if (currentChunkElemKey == Constants.NULL_LONG) {
+                        currentChunkElemKey = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                        previousStart = cursor + 1;
+                    } else if (currentChunkElemType == -1) {
+                        currentChunkElemType = (byte) Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
+                        previousStart = cursor + 1;
+                    }
+                } else if (current == Constants.CHUNK_SUB_SUB_SEP) { //SEPARATION BETWEEN ARRAY VALUES AND MAP KEY/VALUE TUPLES
+                    if (currentSubSize == -1) {
+                        currentSubSize = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                        //init array or maps
                         switch (currentChunkElemType) {
-                            case Type.BOOL:
-                                if (buffer.read(previousStart) == Constants.BOOL_FALSE) {
-                                    toInsert = false;
-                                } else if (buffer.read(previousStart) == Constants.BOOL_TRUE) {
-                                    toInsert = true;
-                                }
-                                break;
-                            case Type.STRING:
-                                toInsert = Base64.decodeToStringWithBounds(buffer, previousStart, cursor);
-                                break;
-                            case Type.DOUBLE:
-                                toInsert = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
-                                break;
-                            case Type.LONG:
-                                toInsert = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                                break;
-                            case Type.INT:
-                                toInsert = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
-                                break;
                             case Type.DOUBLE_ARRAY:
-                                if (currentDoubleArr == null) {
-                                    currentDoubleArr = new double[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
-                                } else {
-                                    currentDoubleArr[currentSubIndex] = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
-                                }
-                                toInsert = currentDoubleArr;
+                                currentDoubleArr = new double[(int) currentSubSize];
                                 break;
                             case Type.LONG_ARRAY:
-                                if (currentLongArr == null) {
-                                    currentLongArr = new long[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
-                                } else {
-                                    currentLongArr[currentSubIndex] = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                                }
-                                toInsert = currentLongArr;
+                                currentLongArr = new long[(int) currentSubSize];
                                 break;
                             case Type.INT_ARRAY:
-                                if (currentIntArr == null) {
-                                    currentIntArr = new int[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
-                                } else {
-                                    currentIntArr[currentSubIndex] = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
-                                }
-                                toInsert = currentIntArr;
+                                currentIntArr = new int[(int) currentSubSize];
                                 break;
                             case Type.RELATION:
-                                if (currentRelation == null) {
-                                    currentRelation = new OffHeapRelationship(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
-                                    currentRelation.allocate(Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
-                                } else {
-                                    currentRelation.add(Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                                }
-                                //toInsert = currentRelation;
+                                currentRelation = new OffHeapRelationship(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
+                                currentRelation.allocate((int) currentSubSize);
+                                break;
+                            case Type.STRING_TO_LONG_MAP:
+                                currentStringLongMap = new OffHeapStringLongMap(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
+                                currentStringLongMap.reallocate(0, 0, currentSubSize);
+                                break;
+                            case Type.LONG_TO_LONG_MAP:
+                                currentLongLongMap = new OffHeapLongLongMap(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
+                                currentLongLongMap.reallocate(0, 0, currentSubSize);
+                                break;
+                            case Type.LONG_TO_LONG_ARRAY_MAP:
+                                currentLongLongArrayMap = new OffHeapLongLongArrayMap(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
+                                currentLongLongArrayMap.reallocate(0, 0, currentSubSize);
+                                break;
+                        }
+                    } else {
+                        switch (currentChunkElemType) {
+                            case Type.DOUBLE_ARRAY:
+                                currentDoubleArr[currentSubIndex] = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
+                                currentSubIndex++;
+                                break;
+                            case Type.RELATION:
+                                currentRelation.add(Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                                break;
+                            case Type.LONG_ARRAY:
+                                currentLongArr[currentSubIndex] = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                                currentSubIndex++;
+                                break;
+                            case Type.INT_ARRAY:
+                                currentIntArr[currentSubIndex] = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
+                                currentSubIndex++;
                                 break;
                             case Type.STRING_TO_LONG_MAP:
                                 if (currentMapStringKey != null) {
                                     currentStringLongMap.put(currentMapStringKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                                    currentMapStringKey = null;
                                 }
-                                //toInsert = currentStringLongMap;
                                 break;
                             case Type.LONG_TO_LONG_MAP:
                                 if (currentMapLongKey != Constants.NULL_LONG) {
                                     currentLongLongMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                                    currentMapLongKey = Constants.NULL_LONG;
                                 }
-                                //toInsert = currentLongLongMap;
                                 break;
                             case Type.LONG_TO_LONG_ARRAY_MAP:
                                 if (currentMapLongKey != Constants.NULL_LONG) {
                                     currentLongLongArrayMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                                    currentMapLongKey = Constants.NULL_LONG;
                                 }
-                                //toInsert = currentLongLongArrayMap;
                                 break;
                         }
-                        if (toInsert != null) {
-                            //insert K/V
-                            internal_set(currentChunkElemKey, currentChunkElemType, toInsert, true, initial); //enhance this with boolean array
-                        }
                     }
-                    //next round, reset all variables...
                     previousStart = cursor + 1;
-                    currentChunkElemKey = Constants.NULL_LONG;
-                    currentChunkElemType = -1;
-                    currentSubSize = -1;
-                    currentSubIndex = 0;
-                    currentMapLongKey = Constants.NULL_LONG;
-                    currentMapStringKey = null;
-                }
-            } else if (current == Constants.CHUNK_SUB_SEP) { //SEPARATION BETWEEN KEY,TYPE,VALUE
-                if (currentChunkElemKey == Constants.NULL_LONG) {
-                    currentChunkElemKey = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                    previousStart = cursor + 1;
-                } else if (currentChunkElemType == -1) {
-                    currentChunkElemType = (byte) Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
-                    previousStart = cursor + 1;
-                }
-            } else if (current == Constants.CHUNK_SUB_SUB_SEP) { //SEPARATION BETWEEN ARRAY VALUES AND MAP KEY/VALUE TUPLES
-                if (currentSubSize == -1) {
-                    currentSubSize = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                    //init array or maps
+                } else if (current == Constants.CHUNK_SUB_SUB_SUB_SEP) {
                     switch (currentChunkElemType) {
-                        case Type.DOUBLE_ARRAY:
-                            currentDoubleArr = new double[(int) currentSubSize];
-                            break;
-                        case Type.LONG_ARRAY:
-                            currentLongArr = new long[(int) currentSubSize];
-                            break;
-                        case Type.INT_ARRAY:
-                            currentIntArr = new int[(int) currentSubSize];
-                            break;
-                        case Type.RELATION:
-                            currentRelation = new OffHeapRelationship(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
-                            currentRelation.allocate((int) currentSubSize);
-                            break;
                         case Type.STRING_TO_LONG_MAP:
-                            currentStringLongMap = new OffHeapStringLongMap(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
-                            currentStringLongMap.reallocate(0, 0, currentSubSize);
-                            break;
-                        case Type.LONG_TO_LONG_MAP:
-                            currentLongLongMap = new OffHeapLongLongMap(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
-                            currentLongLongMap.reallocate(0, 0, currentSubSize);
-                            break;
-                        case Type.LONG_TO_LONG_ARRAY_MAP:
-                            currentLongLongArrayMap = new OffHeapLongLongArrayMap(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
-                            currentLongLongArrayMap.reallocate(0, 0, currentSubSize);
-                            break;
-                    }
-                } else {
-                    switch (currentChunkElemType) {
-                        case Type.DOUBLE_ARRAY:
-                            currentDoubleArr[currentSubIndex] = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
-                            currentSubIndex++;
-                            break;
-                        case Type.RELATION:
-                            currentRelation.add(Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                            break;
-                        case Type.LONG_ARRAY:
-                            currentLongArr[currentSubIndex] = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                            currentSubIndex++;
-                            break;
-                        case Type.INT_ARRAY:
-                            currentIntArr[currentSubIndex] = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
-                            currentSubIndex++;
-                            break;
-                        case Type.STRING_TO_LONG_MAP:
-                            if (currentMapStringKey != null) {
+                            if (currentMapStringKey == null) {
+                                currentMapStringKey = Base64.decodeToStringWithBounds(buffer, previousStart, cursor);
+                            } else {
                                 currentStringLongMap.put(currentMapStringKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                                //reset key for next loop
                                 currentMapStringKey = null;
                             }
                             break;
                         case Type.LONG_TO_LONG_MAP:
-                            if (currentMapLongKey != Constants.NULL_LONG) {
+                            if (currentMapLongKey == Constants.NULL_LONG) {
+                                currentMapLongKey = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                            } else {
                                 currentLongLongMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                                //reset key for next loop
                                 currentMapLongKey = Constants.NULL_LONG;
                             }
                             break;
                         case Type.LONG_TO_LONG_ARRAY_MAP:
-                            if (currentMapLongKey != Constants.NULL_LONG) {
+                            if (currentMapLongKey == Constants.NULL_LONG) {
+                                currentMapLongKey = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                            } else {
                                 currentLongLongArrayMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                                //reset key for next loop
                                 currentMapLongKey = Constants.NULL_LONG;
                             }
                             break;
                     }
+                    previousStart = cursor + 1;
                 }
-                previousStart = cursor + 1;
-            } else if (current == Constants.CHUNK_SUB_SUB_SUB_SEP) {
+                cursor++;
+            }
+            //take the last element
+            if (currentChunkElemType != -1) {
+                Object toInsert = null;
                 switch (currentChunkElemType) {
-                    case Type.STRING_TO_LONG_MAP:
-                        if (currentMapStringKey == null) {
-                            currentMapStringKey = Base64.decodeToStringWithBounds(buffer, previousStart, cursor);
-                        } else {
-                            currentStringLongMap.put(currentMapStringKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                            //reset key for next loop
-                            currentMapStringKey = null;
+                    case Type.BOOL:
+                        if (buffer.read(previousStart) == Constants.BOOL_FALSE) {
+                            toInsert = false;
+                        } else if (buffer.read(previousStart) == Constants.BOOL_TRUE) {
+                            toInsert = true;
                         }
+                        break;
+                    case Type.STRING:
+                        toInsert = Base64.decodeToStringWithBounds(buffer, previousStart, cursor);
+                        break;
+                    case Type.DOUBLE:
+                        toInsert = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
+                        break;
+                    case Type.LONG:
+                        toInsert = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                        break;
+                    case Type.INT:
+                        toInsert = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
+                        break;
+                    case Type.DOUBLE_ARRAY:
+                        if (currentDoubleArr == null) {
+                            currentDoubleArr = new double[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
+                        } else {
+                            currentDoubleArr[currentSubIndex] = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
+                        }
+                        toInsert = currentDoubleArr;
+                        break;
+                    case Type.LONG_ARRAY:
+                        if (currentLongArr == null) {
+                            currentLongArr = new long[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
+                        } else {
+                            currentLongArr[currentSubIndex] = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                        }
+                        toInsert = currentLongArr;
+                        break;
+                    case Type.INT_ARRAY:
+                        if (currentIntArr == null) {
+                            currentIntArr = new int[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
+                        } else {
+                            currentIntArr[currentSubIndex] = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
+                        }
+                        toInsert = currentIntArr;
+                        break;
+                    case Type.RELATION:
+                        if (currentRelation != null) {
+                            currentRelation.add(Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
+                        }
+                        toInsert = currentRelation;
+                        break;
+                    case Type.STRING_TO_LONG_MAP:
+                        if (currentMapStringKey != null) {
+                            currentStringLongMap.put(currentMapStringKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                        }
+                        toInsert = currentStringLongMap;
                         break;
                     case Type.LONG_TO_LONG_MAP:
-                        if (currentMapLongKey == Constants.NULL_LONG) {
-                            currentMapLongKey = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                        } else {
+                        if (currentMapLongKey != Constants.NULL_LONG) {
                             currentLongLongMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                            //reset key for next loop
-                            currentMapLongKey = Constants.NULL_LONG;
                         }
+                        toInsert = currentLongLongMap;
                         break;
                     case Type.LONG_TO_LONG_ARRAY_MAP:
-                        if (currentMapLongKey == Constants.NULL_LONG) {
-                            currentMapLongKey = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                        } else {
+                        if (currentMapLongKey != Constants.NULL_LONG) {
                             currentLongLongArrayMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                            //reset key for next loop
-                            currentMapLongKey = Constants.NULL_LONG;
                         }
+                        toInsert = currentLongLongArrayMap;
                         break;
                 }
-                previousStart = cursor + 1;
+                if (toInsert != null) {
+                    internal_set(currentChunkElemKey, currentChunkElemType, toInsert, true, initial); //enhance this with boolean array
+                }
             }
-            cursor++;
+        } finally {
+            unlock();
         }
-        //take the last element
-        if (currentChunkElemType != -1) {
-            Object toInsert = null;
-            switch (currentChunkElemType) {
-                case Type.BOOL:
-                    if (buffer.read(previousStart) == Constants.BOOL_FALSE) {
-                        toInsert = false;
-                    } else if (buffer.read(previousStart) == Constants.BOOL_TRUE) {
-                        toInsert = true;
-                    }
-                    break;
-                case Type.STRING:
-                    toInsert = Base64.decodeToStringWithBounds(buffer, previousStart, cursor);
-                    break;
-                case Type.DOUBLE:
-                    toInsert = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
-                    break;
-                case Type.LONG:
-                    toInsert = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                    break;
-                case Type.INT:
-                    toInsert = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
-                    break;
-                case Type.DOUBLE_ARRAY:
-                    if (currentDoubleArr == null) {
-                        currentDoubleArr = new double[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
-                    } else {
-                        currentDoubleArr[currentSubIndex] = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
-                    }
-                    toInsert = currentDoubleArr;
-                    break;
-                case Type.LONG_ARRAY:
-                    if (currentLongArr == null) {
-                        currentLongArr = new long[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
-                    } else {
-                        currentLongArr[currentSubIndex] = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                    }
-                    toInsert = currentLongArr;
-                    break;
-                case Type.INT_ARRAY:
-                    if (currentIntArr == null) {
-                        currentIntArr = new int[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
-                    } else {
-                        currentIntArr[currentSubIndex] = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
-                    }
-                    toInsert = currentIntArr;
-                    break;
-                case Type.RELATION:
-                    if (currentRelation != null) {
-                        currentRelation.add(Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
-                    }
-                    toInsert = currentRelation;
-                    break;
-                case Type.STRING_TO_LONG_MAP:
-                    if (currentMapStringKey != null) {
-                        currentStringLongMap.put(currentMapStringKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                    }
-                    toInsert = currentStringLongMap;
-                    break;
-                case Type.LONG_TO_LONG_MAP:
-                    if (currentMapLongKey != Constants.NULL_LONG) {
-                        currentLongLongMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                    }
-                    toInsert = currentLongLongMap;
-                    break;
-                case Type.LONG_TO_LONG_ARRAY_MAP:
-                    if (currentMapLongKey != Constants.NULL_LONG) {
-                        currentLongLongArrayMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                    }
-                    toInsert = currentLongLongArrayMap;
-                    break;
-            }
-            if (toInsert != null) {
-                internal_set(currentChunkElemKey, currentChunkElemType, toInsert, true, initial); //enhance this with boolean array
-            }
-        }
+
+
     }
 
     public static void free(long addr) {
