@@ -462,12 +462,12 @@ class OffHeapStateChunk implements StateChunk {
         if (keys_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             long new_capacity = Constants.MAP_INITIAL_CAPACITY;
             OffHeapLongArray.set(addr, CAPACITY, new_capacity);
-            long new_keys = OffHeapLongArray.allocate(new_capacity);
-            OffHeapLongArray.set(addr, KEYS, new_keys);
-            long new_values = OffHeapLongArray.allocate(new_capacity);
-            OffHeapLongArray.set(addr, VALUES, new_values);
-            long new_types = OffHeapByteArray.allocate(new_capacity);
-            OffHeapLongArray.set(addr, TYPES, new_types);
+            keys_ptr = OffHeapLongArray.allocate(new_capacity);
+            OffHeapLongArray.set(addr, KEYS, keys_ptr);
+            values_ptr = OffHeapLongArray.allocate(new_capacity);
+            OffHeapLongArray.set(addr, VALUES, values_ptr);
+            types_ptr = OffHeapByteArray.allocate(new_capacity);
+            OffHeapLongArray.set(addr, TYPES, types_ptr);
             OffHeapLongArray.set(keys_ptr, 0, p_key);
             OffHeapLongArray.set(types_ptr, 0, p_type);
             if (p_type == Type.DOUBLE) {

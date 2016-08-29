@@ -12,7 +12,7 @@ import org.mwg.struct.Buffer;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.KeyHelper;
 
-public class OffHeapChunkSpace implements ChunkSpace {
+class OffHeapChunkSpace implements ChunkSpace {
 
     private static final long HASH_LOAD_FACTOR = 4;
 
@@ -31,7 +31,6 @@ public class OffHeapChunkSpace implements ChunkSpace {
     private final long types;
     private final long marks;
     private final long addrs;
-
 
     @Override
     public final Graph graph() {
@@ -58,7 +57,7 @@ public class OffHeapChunkSpace implements ChunkSpace {
         OffHeapLongArray.set(addrs, index, addr);
     }
 
-    public OffHeapChunkSpace(final long initialCapacity, final Graph p_graph) {
+    OffHeapChunkSpace(final long initialCapacity, final Graph p_graph) {
         _graph = p_graph;
         _maxEntries = initialCapacity;
         _hashEntries = initialCapacity * HASH_LOAD_FACTOR;
