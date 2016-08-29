@@ -20,12 +20,12 @@ class OffHeapStringLongMap implements StringLongMap {
 
     private static int CHUNK_ELEM_SIZE = 7;
 
-    private static long addr;
-    private static long keys_ptr;
-    private static long keys_h_ptr;
-    private static long values_ptr;
-    private static long nexts_ptr;
-    private static long hashs_ptr;
+    private static long addr = OffHeapConstants.OFFHEAP_NULL_PTR;
+    private static long keys_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
+    private static long keys_h_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
+    private static long values_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
+    private static long nexts_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
+    private static long hashs_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
 
     private final long index;
     private final OffHeapStateChunk chunk;
@@ -90,6 +90,7 @@ class OffHeapStringLongMap implements StringLongMap {
         if (newCapacity > currentCapacity) {
             if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
                 addr = OffHeapLongArray.allocate(CHUNK_ELEM_SIZE);
+                chunk.setAddrByIndex(index, addr);
                 OffHeapLongArray.set(addr, SIZE, 0);
                 OffHeapLongArray.set(addr, CAPACITY, newCapacity);
                 keys_ptr = OffHeapStringArray.allocate(newCapacity);
@@ -103,7 +104,7 @@ class OffHeapStringLongMap implements StringLongMap {
                 hashs_ptr = OffHeapLongArray.allocate(newCapacity * 2);
                 OffHeapLongArray.set(addr, HASHS, hashs_ptr);
             } else {
-                keys_ptr = OffHeapStringArray.reallocate(keys_ptr, newCapacity);
+                keys_ptr = OffHeapStringArray.reallocate(keys_ptr, newCapacity, currentCapacity);
                 keys_h_ptr = OffHeapLongArray.reallocate(keys_h_ptr, newCapacity);
                 values_ptr = OffHeapLongArray.reallocate(values_ptr, newCapacity);
                 nexts_ptr = OffHeapLongArray.reallocate(nexts_ptr, newCapacity);
@@ -374,9 +375,14 @@ class OffHeapStringLongMap implements StringLongMap {
 
     static void free(final long addr) {
         if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            final long capacity = OffHeapLongArray.get(addr, CAPACITY);
             final long keys_ptr = OffHeapLongArray.get(addr, KEYS);
             if (keys_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                OffHeapLongArray.free(keys_ptr);
+                OffHeapStringArray.free(keys_ptr, capacity);
+            }
+            final long keys_h_ptr = OffHeapLongArray.get(addr, KEYS_H);
+            if (keys_h_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapLongArray.free(keys_h_ptr);
             }
             final long values_ptr = OffHeapLongArray.get(addr, VALUES);
             if (values_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
@@ -401,7 +407,9 @@ class OffHeapStringLongMap implements StringLongMap {
         long new_addr = OffHeapLongArray.cloneArray(addr, CHUNK_ELEM_SIZE);
         long capacity = OffHeapLongArray.get(addr, CAPACITY);
         long keys_ptr = OffHeapLongArray.get(addr, KEYS);
-        OffHeapLongArray.set(new_addr, KEYS, OffHeapLongArray.cloneArray(keys_ptr, capacity));
+        OffHeapLongArray.set(new_addr, KEYS, OffHeapStringArray.cloneArray(keys_ptr, capacity));
+        long keys_h_ptr = OffHeapLongArray.get(addr, KEYS_H);
+        OffHeapLongArray.set(keys_h_ptr, KEYS_H, OffHeapLongArray.cloneArray(keys_h_ptr, capacity));
         long values_ptr = OffHeapLongArray.get(addr, VALUES);
         OffHeapLongArray.set(new_addr, VALUES, OffHeapLongArray.cloneArray(values_ptr, capacity));
         long nexts_ptr = OffHeapLongArray.get(addr, NEXTS);

@@ -85,7 +85,7 @@ class OffHeapStateChunk implements StateChunk {
     }
 
     void unlock() {
-        if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) {
+        if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 1, 0)) {
             System.err.println("CAS Error!");
         }
     }
@@ -1031,7 +1031,7 @@ class OffHeapStateChunk implements StateChunk {
         if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
             final long keys_ptr = OffHeapLongArray.get(addr, KEYS);
             final long values_ptr = OffHeapLongArray.get(addr, VALUES);
-            final long types_ptr = OffHeapByteArray.get(addr, TYPES);
+            final long types_ptr = OffHeapLongArray.get(addr, TYPES);
             final long size = OffHeapLongArray.get(addr, SIZE);
             for (long i = 0; i < size; i++) {
                 freeElement(OffHeapLongArray.get(values_ptr, i), OffHeapByteArray.get(types_ptr, i));

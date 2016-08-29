@@ -21,8 +21,24 @@ public class OffHeapStringArray {
         return newMemorySegment;
     }
 
-    public static long reallocate(final long addr, final long nextCapacity) {
-        return unsafe.reallocateMemory(addr, nextCapacity * 8);
+    public static long reallocate(final long addr, final long nextCapacity, final long previousCapacity) {
+        /*
+        long new_ptr = unsafe.reallocateMemory(addr, nextCapacity * 8);
+        unsafe.setMemory(addr + previousCapacity * 8, (nextCapacity - previousCapacity) * 8, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
+        return new_ptr;
+        */
+
+        //allocate a new bigger segment
+        long newBiggerMemorySegment = unsafe.allocateMemory(nextCapacity * 8);
+        //reset the segment selectWith -1
+        unsafe.setMemory(newBiggerMemorySegment, nextCapacity * 8, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
+        //copy previous memory segment content
+        unsafe.copyMemory(addr, newBiggerMemorySegment, previousCapacity * 8);
+        //free the previous
+        unsafe.freeMemory(addr);
+        //return the newly created segment
+        return newBiggerMemorySegment;
+
     }
 
     public static void set(final long addr, final long index, final String valueToInsert) {
@@ -60,7 +76,6 @@ public class OffHeapStringArray {
         if (Unsafe.DEBUG_MODE) {
             alloc_counter--;
         }
-
         for (long i = 0; i < capacity; i++) {
             long stringPtr = unsafe.getLong(addr + i * 8);
             if (stringPtr != OffHeapConstants.OFFHEAP_NULL_PTR) {
