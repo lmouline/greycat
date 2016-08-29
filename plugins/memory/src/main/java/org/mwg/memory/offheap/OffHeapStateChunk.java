@@ -469,7 +469,7 @@ class OffHeapStateChunk implements StateChunk {
             types_ptr = OffHeapByteArray.allocate(new_capacity);
             OffHeapLongArray.set(addr, TYPES, types_ptr);
             OffHeapLongArray.set(keys_ptr, 0, p_key);
-            OffHeapLongArray.set(types_ptr, 0, p_type);
+            OffHeapByteArray.set(types_ptr, 0, p_type);
             if (p_type == Type.DOUBLE) {
                 OffHeapDoubleArray.set(values_ptr, 0, param_double_elem);
             } else {
@@ -504,7 +504,7 @@ class OffHeapStateChunk implements StateChunk {
         }
         //case already present
         if (entry != -1) {
-            if (replaceIfPresent || (p_type != OffHeapLongArray.get(types_ptr, entry))) {
+            if (replaceIfPresent || (p_type != OffHeapByteArray.get(types_ptr, entry))) {
                 if (p_unsafe_elem == null) {
                     if (hash_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                         //unHash previous
@@ -519,12 +519,12 @@ class OffHeapStateChunk implements StateChunk {
                     if (entry == indexVictim) {
                         OffHeapLongArray.set(keys_ptr, entry, OffHeapConstants.OFFHEAP_NULL_PTR);
                         OffHeapLongArray.set(values_ptr, entry, OffHeapConstants.OFFHEAP_NULL_PTR);
-                        OffHeapLongArray.set(types_ptr, entry, OffHeapConstants.OFFHEAP_NULL_PTR);
+                        OffHeapByteArray.set(types_ptr, entry, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
                     } else {
                         //we need to reHash the new last element at our place
                         OffHeapLongArray.set(keys_ptr, entry, OffHeapLongArray.get(keys_ptr, indexVictim));
                         OffHeapLongArray.set(values_ptr, entry, OffHeapLongArray.get(values_ptr, indexVictim));
-                        OffHeapLongArray.set(types_ptr, entry, OffHeapLongArray.get(types_ptr, indexVictim));
+                        OffHeapByteArray.set(types_ptr, entry, OffHeapByteArray.get(types_ptr, indexVictim));
                         if (hash_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                             OffHeapLongArray.set(next_ptr, entry, OffHeapLongArray.get(next_ptr, indexVictim));
                             long victimHash = HashHelper.longHash(OffHeapLongArray.get(keys_ptr, entry), capacity * 2);
@@ -579,7 +579,7 @@ class OffHeapStateChunk implements StateChunk {
                     }
                     OffHeapLongArray.set(values_ptr, entry, param_elem);
                     if (previous_type != p_type) {
-                        OffHeapLongArray.set(types_ptr, entry, p_type);
+                        OffHeapByteArray.set(types_ptr, entry, p_type);
                     }
                 }
             }
@@ -612,7 +612,7 @@ class OffHeapStateChunk implements StateChunk {
         OffHeapLongArray.set(addr, KEYS, keys_ptr);
         values_ptr = OffHeapLongArray.reallocate(values_ptr, newCapacity);
         OffHeapLongArray.set(addr, VALUES, values_ptr);
-        types_ptr = OffHeapLongArray.reallocate(types_ptr, newCapacity);
+        types_ptr = OffHeapByteArray.reallocate(types_ptr, newCapacity);
         OffHeapLongArray.set(addr, TYPES, types_ptr);
         OffHeapLongArray.set(addr, CAPACITY, newCapacity);
         //insert the new value
@@ -623,7 +623,7 @@ class OffHeapStateChunk implements StateChunk {
         } else {
             OffHeapLongArray.set(values_ptr, insert_index, param_elem);
         }
-        OffHeapLongArray.set(types_ptr, insert_index, p_type);
+        OffHeapByteArray.set(types_ptr, insert_index, p_type);
         size++;
         OffHeapLongArray.set(addr, SIZE, size);
         //reHash
