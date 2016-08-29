@@ -172,7 +172,7 @@ class OffHeapStateChunk implements StateChunk {
                 case OffHeapConstants.OFFHEAP_NULL_PTR:
                     return null;
                 default:
-                    throw new RuntimeException("Should never happen");
+                    throw new RuntimeException("Should never happen " + elemType);
             }
         }
         return null;
@@ -448,8 +448,9 @@ class OffHeapStateChunk implements StateChunk {
                     case Type.STRING_TO_LONG_MAP:
                     case Type.LONG_TO_LONG_MAP:
                     case Type.LONG_TO_LONG_ARRAY_MAP:
-                        param_elem = OffHeapConstants.OFFHEAP_NULL_PTR; //empty initial ptr
-                        break;
+                        throw new RuntimeException("mwDB usage error, set method called with type " + Type.typeName(p_type) + ", is getOrCreate method instead");
+                        //param_elem = OffHeapConstants.OFFHEAP_NULL_PTR; //empty initial ptr
+                        //break;
                     default:
                         throw new RuntimeException("Internal Exception, unknown type");
                 }
