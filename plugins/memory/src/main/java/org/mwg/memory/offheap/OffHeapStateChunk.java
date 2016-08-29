@@ -2,7 +2,6 @@ package org.mwg.memory.offheap;
 
 import org.mwg.Constants;
 import org.mwg.Type;
-import org.mwg.chunk.ChunkListener;
 import org.mwg.chunk.StateChunk;
 import org.mwg.utility.Base64;
 import org.mwg.chunk.ChunkType;
@@ -10,7 +9,7 @@ import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.*;
 import org.mwg.utility.HashHelper;
 
-class OffHeapStateChunk implements StateChunk, ChunkListener {
+class OffHeapStateChunk implements StateChunk {
 
     private final OffHeapChunkSpace space;
     private final long index;
@@ -166,8 +165,7 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
                 case Type.RELATION:
                     return new OffHeapRelationship(this, p_index);
                 case Type.STRING_TO_LONG_MAP:
-                    long elemStringLongMapPtr = OffHeapLongArray.get(values_ptr, p_index);
-                    return new OffHeapStringLongMap(this, Constants.MAP_INITIAL_CAPACITY, elemStringLongMapPtr);
+                    return new OffHeapStringLongMap(this, p_index);
                 case Type.LONG_TO_LONG_MAP:
                     return new OffHeapLongLongMap(this, p_index);
                 case Type.LONG_TO_LONG_ARRAY_MAP:
@@ -800,30 +798,30 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
                                 break;
                             case Type.RELATION:
                                 if (currentRelation == null) {
-                                    currentRelation = new OffHeapRelationship(this, null);
+                                    currentRelation = new OffHeapRelationship(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
                                     currentRelation.allocate(Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
                                 } else {
                                     currentRelation.add(Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
                                 }
-                                toInsert = currentRelation;
+                                //toInsert = currentRelation;
                                 break;
                             case Type.STRING_TO_LONG_MAP:
                                 if (currentMapStringKey != null) {
                                     currentStringLongMap.put(currentMapStringKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
                                 }
-                                toInsert = currentStringLongMap;
+                                //toInsert = currentStringLongMap;
                                 break;
                             case Type.LONG_TO_LONG_MAP:
                                 if (currentMapLongKey != Constants.NULL_LONG) {
                                     currentLongLongMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
                                 }
-                                toInsert = currentLongLongMap;
+                                //toInsert = currentLongLongMap;
                                 break;
                             case Type.LONG_TO_LONG_ARRAY_MAP:
                                 if (currentMapLongKey != Constants.NULL_LONG) {
                                     currentLongLongArrayMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
                                 }
-                                toInsert = currentLongLongArrayMap;
+                                //toInsert = currentLongLongArrayMap;
                                 break;
                         }
                         if (toInsert != null) {
@@ -863,18 +861,19 @@ class OffHeapStateChunk implements StateChunk, ChunkListener {
                             currentIntArr = new int[(int) currentSubSize];
                             break;
                         case Type.RELATION:
-                            currentRelation = new OffHeapRelationship(this, insertIndex);
+                            currentRelation = new OffHeapRelationship(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
                             currentRelation.allocate((int) currentSubSize);
                             break;
                         case Type.STRING_TO_LONG_MAP:
-                            currentStringLongMap = new OffHeapStringLongMap(this, (int) currentSubSize, null);
+                            currentStringLongMap = new OffHeapStringLongMap(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
+                            currentStringLongMap.reallocate(0, 0, currentSubSize);
                             break;
                         case Type.LONG_TO_LONG_MAP:
-                            currentLongLongMap = new OffHeapLongLongMap(this, insertIndex);
+                            currentLongLongMap = new OffHeapLongLongMap(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
                             currentLongLongMap.reallocate(0, 0, currentSubSize);
                             break;
                         case Type.LONG_TO_LONG_ARRAY_MAP:
-                            currentLongLongArrayMap = new OffHeapLongLongArrayMap(this, insertIndex);
+                            currentLongLongArrayMap = new OffHeapLongLongArrayMap(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
                             currentLongLongArrayMap.reallocate(0, 0, currentSubSize);
                             break;
                     }
