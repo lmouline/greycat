@@ -22,7 +22,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
     private static final int KV_OFFSET = 7;
 
     private final OffHeapChunkSpace space;
-    private final long index;
+    private final long index;//direct pointer to space
 
     OffHeapWorldOrderChunk(final OffHeapChunkSpace p_space, final long p_index) {
         index = p_index;
@@ -208,7 +208,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
     private long resize(final long currentAddr, final long previousSize, final long previousCapacity, final long newCapacity) {
         if (newCapacity > previousCapacity) {
             final long newAddr = OffHeapLongArray.reallocate(currentAddr, KV_OFFSET + newCapacity * 2);
-            space.setAddrByIndex(newAddr, index);
+            space.setAddrByIndex(index, newAddr);
             long sub_hash = OffHeapLongArray.get(newAddr, HASH_SUB);
             if (sub_hash == OffHeapConstants.OFFHEAP_NULL_PTR && newCapacity > Constants.MAP_INITIAL_CAPACITY) {
                 sub_hash = OffHeapLongArray.allocate(newCapacity * 3);
