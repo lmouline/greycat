@@ -23,10 +23,10 @@ public class OffHeapWorldOrderChunkTest extends AbstractWorldOrderChunkTest {
 
     @After
     public void tearDown() throws Exception {
-        Assert.assertEquals(OffHeapByteArray.alloc_counter,0);
-        Assert.assertEquals(OffHeapDoubleArray.alloc_counter,0);
-        Assert.assertEquals(OffHeapLongArray.alloc_counter,0);
-        Assert.assertEquals(OffHeapStringArray.alloc_counter,0);
+        Assert.assertEquals(OffHeapByteArray.alloc_counter, 0);
+        Assert.assertEquals(OffHeapDoubleArray.alloc_counter, 0);
+        Assert.assertEquals(OffHeapLongArray.alloc_counter, 0);
+        Assert.assertEquals(OffHeapStringArray.alloc_counter, 0);
     }
 
 }
