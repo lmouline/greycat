@@ -53,20 +53,24 @@ public class NDTree extends AbstractNode {
      * @native ts
      * var result = Long.UZERO;
      * for(var i = 0; i < centerKey.length; i++) {
-     * if (keyToInsert[i] <= centerKey[i]) {
+     * if(i!=0){
+     *     result = result.shiftLeft(1);
+     * }
+     * if (keyToInsert[i] > centerKey[i]) {
      * result = result.add(Long.ONE);
      * }
-     * result = result.shiftLeft(1);
      * }
      * return result.add(Long.fromNumber(org.mwg.ml.common.structure.NDTree._RELCONST, true)).toNumber();
      */
     private static long getRelationId(double[] centerKey, double[] keyToInsert) {
         long result = 0;
         for (int i = 0; i < centerKey.length; i++) {
-            if (keyToInsert[i] <= centerKey[i]) {
+            if(i!=0){
+                result = result << 1;
+            }
+            if (keyToInsert[i] > centerKey[i]) {
                 result += 1;
             }
-            result = result << 2;
         }
         return result + _RELCONST;
     }
@@ -204,6 +208,7 @@ public class NDTree extends AbstractNode {
             if (continueNavigation) {
                 //Set the long to traverse
                 long traverseId = getRelationId(centerKey, keyToInsert);
+                System.out.println(traverseId-_RELCONST);
                 //Check if there is a node already in this subspace, otherwise create it
                 if (state.get(traverseId) == null) {
                     double[] newBoundMin = new double[dim];

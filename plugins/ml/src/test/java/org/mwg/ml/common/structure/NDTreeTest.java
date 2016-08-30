@@ -23,9 +23,14 @@ public class NDTreeTest {
                 NDTree testtree = (NDTree) graph.newTypedNode(0, 0, NDTree.NAME);
 
                 //Day - Hours - Temperature - Power
-                double[] precisions = {1, 0.25, 1, 50};
+             /*   double[] precisions = {1, 0.25, 1, 50};
                 double[] boundMin = {0, 0, -10, 0};
-                double[] boundMax = {6, 24, 30, 3000};
+                double[] boundMax = {6, 24, 30, 3000};*/
+
+                double[] precisions = {0.2, 0.2};
+                double[] boundMin = {0, 0};
+                double[] boundMax = {2, 2};
+
 
                 testtree.setProperty(NDTree.BOUNDMIN, Type.DOUBLE_ARRAY, boundMin);
                 testtree.setProperty(NDTree.BOUNDMAX, Type.DOUBLE_ARRAY, boundMax);
@@ -34,13 +39,13 @@ public class NDTreeTest {
                 Node temp= graph.newNode(0,0);
                 temp.setProperty("value",Type.DOUBLE,1.5);
 
-                double[] key={0,12,5,560};
+                double[] key={1.9,1.9};
                 testtree.insert(key, temp, new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result) {
-                        int x=0;
                     }
                 });
+
 
 
             }
