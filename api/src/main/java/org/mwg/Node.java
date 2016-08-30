@@ -122,6 +122,14 @@ public interface Node {
     void rel(String relationName, Callback<Node[]> callback);
 
     /**
+     * Retrieves asynchronously the nodes contained in a traverseIndex.
+     *
+     * @param relationIndex The name of the traverseIndex to retrieve.
+     * @param callback      Callback to be called when the nodes of the relationship have been connected.
+     */
+    void relByIndex(long relationIndex, Callback<Node[]> callback);
+
+    /**
      * Adds a node to a relation.<br>
      * If the relationship doesn't exist, it is created on the fly.<br>
      *

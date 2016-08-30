@@ -216,12 +216,17 @@ public abstract class AbstractNode implements Node {
 
     @Override
     public final void rel(String relationName, final Callback<Node[]> callback) {
+        relByIndex(this._resolver.stringToHash(relationName, false), callback);
+    }
+
+    @Override
+    public void relByIndex(long relationIndex, Callback<Node[]> callback) {
         if (callback == null) {
             return;
         }
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
-            final Relationship relationArray = (Relationship) resolved.get(this._resolver.stringToHash(relationName, false));
+            final Relationship relationArray = (Relationship) resolved.get(relationIndex);
             if (relationArray == null || relationArray.size() == 0) {
                 callback.on(new Node[0]);
             } else {
