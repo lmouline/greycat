@@ -418,6 +418,7 @@ declare module org {
             getOrCreateRel(propertyName: string): org.mwg.struct.Relationship;
             removeProperty(propertyName: string): void;
             rel(relationName: string, callback: org.mwg.Callback<org.mwg.Node[]>): void;
+            relByIndex(relationIndex: number, callback: org.mwg.Callback<org.mwg.Node[]>): void;
             add(relationName: string, relatedNode: org.mwg.Node): void;
             remove(relationName: string, relatedNode: org.mwg.Node): void;
             index(indexName: string, nodeToIndex: org.mwg.Node, flatKeyAttributes: string, callback: org.mwg.Callback<boolean>): void;
@@ -560,6 +561,7 @@ declare module org {
                 type(propertyName: string): number;
                 removeProperty(attributeName: string): void;
                 rel(relationName: string, callback: org.mwg.Callback<org.mwg.Node[]>): void;
+                relByIndex(relationIndex: number, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 add(relationName: string, relatedNode: org.mwg.Node): void;
                 remove(relationName: string, relatedNode: org.mwg.Node): void;
                 free(): void;

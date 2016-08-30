@@ -103,6 +103,7 @@ class OffHeapChunkSpace implements ChunkSpace {
         OffHeapLongArray.free(ids);
         OffHeapByteArray.free(types);
         OffHeapLongArray.free(marks);
+        OffHeapLongArray.free(locks);
     }
 
     @Override
