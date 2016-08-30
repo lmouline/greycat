@@ -504,7 +504,13 @@ class OffHeapStateChunk implements StateChunk {
         }
         //case already present
         if (entry != -1) {
-            if (replaceIfPresent || (p_type != OffHeapByteArray.get(types_ptr, entry))) {
+            final byte found_type = OffHeapByteArray.get(types_ptr, entry);
+            if (replaceIfPresent || (p_type != found_type)) {
+
+                //TODO
+                //clean the previous element
+                //freeElement(OffHeapLongArray.get(values_ptr, entry), found_type);
+
                 if (p_unsafe_elem == null) {
                     if (hash_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                         //unHash previous

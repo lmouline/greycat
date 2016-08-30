@@ -302,7 +302,7 @@ public abstract class AbstractStateChunkTest {
     public void typeSwitchTest() {
         ChunkSpace space = factory.newSpace(100, null);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
-
+        
         //init primitives
         chunk.set(0, Type.BOOL, true);
         chunk.set(1, Type.STRING, "hello");

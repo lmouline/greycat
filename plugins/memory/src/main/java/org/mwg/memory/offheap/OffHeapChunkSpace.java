@@ -23,6 +23,7 @@ class OffHeapChunkSpace implements ChunkSpace {
     private final Stack _dirtiesStack;
     private final Graph _graph;
 
+    private final long locks;
     private final long hashNext;
     private final long hash;
     private final long worlds;
@@ -57,6 +58,16 @@ class OffHeapChunkSpace implements ChunkSpace {
         OffHeapLongArray.set(addrs, index, addr);
     }
 
+    final void lockByIndex(final long index) {
+        while (!OffHeapLongArray.compareAndSwap(locks, index, -1, 1)) ;
+    }
+
+    final void unlockByIndex(final long index) {
+        if (!OffHeapLongArray.compareAndSwap(locks, index, 1, -1)) {
+            System.out.println("CAS error !!!");
+        }
+    }
+
     OffHeapChunkSpace(final long initialCapacity, final Graph p_graph) {
         _graph = p_graph;
         _maxEntries = initialCapacity;
@@ -65,6 +76,7 @@ class OffHeapChunkSpace implements ChunkSpace {
         _lru = new OffHeapFixedStack(initialCapacity, true);
         _dirtiesStack = new OffHeapFixedStack(initialCapacity, false);
 
+        locks = OffHeapLongArray.allocate(initialCapacity);
         hashNext = OffHeapLongArray.allocate(initialCapacity);
         hash = OffHeapLongArray.allocate(_hashEntries);
         addrs = OffHeapLongArray.allocate(initialCapacity);
