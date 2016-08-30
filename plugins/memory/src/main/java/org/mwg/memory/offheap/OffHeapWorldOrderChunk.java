@@ -240,9 +240,9 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
         long addr = initialAddr;
         long size = OffHeapLongArray.get(addr, SIZE);
         long capacity = OffHeapLongArray.get(addr, CAPACITY);
-        long double_capacity = capacity * 2;
+        //   long double_capacity = capacity * 2;
 
-        final long hashed_requestKey = HashHelper.longHash(insertKey, double_capacity);
+        long hashed_requestKey = HashHelper.longHash(insertKey, capacity * 2);
 
         long foundIndex = -1;
         long hash_sub_ptr = OffHeapLongArray.get(addr, HASH_SUB);
@@ -273,6 +273,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
                 addr = resize(addr, size, capacity, newCapacity);
                 capacity = newCapacity;
                 hash_sub_ptr = OffHeapLongArray.get(addr, HASH_SUB);
+                hashed_requestKey = HashHelper.longHash(insertKey, capacity * 2);
             }
             setKV(addr, insertKey, insertValue, size);
             //if present, update hashing structure
