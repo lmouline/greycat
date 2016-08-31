@@ -131,7 +131,7 @@ class HeapStateChunk implements StateChunk {
     }
 
     /**
-     * @native ts
+     * {@native ts
      * if(p_unsafe_elem != null){
      * if(p_elemType == org.mwg.Type.STRING){ if(!(typeof p_unsafe_elem === 'string')){ throw new Error("mwDB usage error, set method called with type " + org.mwg.Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
      * if(p_elemType == org.mwg.Type.BOOL){ if(!(typeof p_unsafe_elem === 'boolean')){ throw new Error("mwDB usage error, set method called with type " + org.mwg.Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
@@ -144,6 +144,7 @@ class HeapStateChunk implements StateChunk {
      * if(p_elemType == org.mwg.Type.LONG_TO_LONG_ARRAY_MAP){ if(!(typeof p_unsafe_elem === 'boolean')){ throw new Error("mwDB usage error, set method called with type " + org.mwg.Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
      * }
      * this.internal_set(p_elementIndex, p_elemType, p_unsafe_elem, true, false);
+     * }
      */
     @Override
     public synchronized final void set(final long p_elementIndex, final byte p_elemType, final Object p_unsafe_elem) {

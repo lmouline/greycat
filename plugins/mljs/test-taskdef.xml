@@ -1,0 +1,92 @@
+<project default="all" basedir=".">
+
+    <target name="all" depends="other.run, win.run">
+    </target>
+
+    <target name="sys.check">
+        <condition property="isWindows">
+            <os family="windows"/>
+        </condition>
+        <condition property="isOther">
+            <not>
+                <os family="windows"/>
+            </not>
+        </condition>
+    </target>
+    <target name="other.run" depends="sys.check" if="isOther">
+
+        <echo message="TSC Run (tests)"/>
+        <exec executable="${basedir}/target/node_modules/typescript/bin/tsc" failonerror="true">
+            <arg value="--target"/>
+            <arg value="es5"/>
+            <arg value="${basedir}/target/generated-test-sources/test.ts"/>
+            <arg value="--out"/>
+            <arg value="${basedir}/target/test-classes/mwg.ml.test.js"/>
+        </exec>
+
+        <echo message="Concat testRunner"/>
+        <concat destfile="${basedir}/target/test-classes/test.all.js" force="no">
+
+            <filelist dir="${basedir}/src" files="netlib.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
+            <filelist dir="${basedir}/../../corejs/target/classes" files="mwg.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
+            <filelist dir="${basedir}/target/test-classes" files="mwg.ml.test.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
+            <filelist dir="${basedir}/target/generated-test-sources/"
+                      files="testsRunner.js"/>
+        </concat>
+        <echo message="Concat testRunnerDev"/>
+        <concat destfile="${basedir}/target/test-classes/test.all.dev.js" force="no">
+            <filelist dir="${basedir}/../../corejs/target/classes" files="mwg.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
+            <filelist dir="${basedir}/target/test-classes" files="mwg.ml.test.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
+            <filelist dir="${basedir}/target/generated-test-sources/"
+                      files="testsRunnerDev.js"/>
+        </concat>
+
+        <echo message="Execute js tests"/>
+        <copy file="${basedir}/src/test.js" todir="${basedir}/target"/>
+        <exec executable="node" dir="${basedir}/target" failonerror="true">
+            <arg value="test.js"/>
+        </exec>
+    </target>
+
+    <target name="win.run" depends="sys.check" if="isWindows">
+        <echo message="TSC Run (test)"/>
+        <exec executable="cmd" dir="${basedir}/target" failonerror="true">
+            <arg line="/c node ${basedir}/target/node_modules/typescript/bin/tsc" />
+            <arg value="--target"/>
+            <arg value="es5"/>
+            <arg value="${basedir}/target/generated-test-sources/test.ts"/>
+            <arg value="--out"/>
+            <arg value="${basedir}/target/test-classes/mwg.ml.test.js"/>
+        </exec>
+
+        <concat destfile="${basedir}/target/test-classes/mwg.ml.test.all.js" force="no">
+            <filelist dir="${basedir}/src" files="netlib.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
+            <filelist dir="${basedir}/../../corejs/target/classes" files="mwg.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
+            <filelist dir="${basedir}/target/test-classes" files="mwg.ml.test.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
+            <filelist dir="${basedir}/target/generated-test-sources/"
+                      files="testsRunner.js"/>
+        </concat>
+        <concat destfile="${basedir}/target/test-classes/mwg.ml.test.all.dev.js" force="no">
+            <filelist dir="${basedir}/../../corejs/target/classes" files="mwg.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
+            <filelist dir="${basedir}/target/test-classes" files="mwg.ml.test.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
+            <filelist dir="${basedir}/target/generated-test-sources/"
+                      files="testsRunnerDev.js"/>
+        </concat>
+        <echo message="Execute js tests"/>
+        <copy file="${basedir}/src/test.js" todir="${basedir}/target"/>
+        <exec executable="node" dir="${basedir}/target" failonerror="true">
+            <arg value="test.js"/>
+        </exec>
+    </target>
+
+</project>

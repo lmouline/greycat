@@ -38,10 +38,10 @@ public interface Blas {
      * @param ldA:        number of rows in matA to jump to reach the second column
      * @param ipiv:       The pivot indices from DGETRF;
      * @param offsetIpiv: Offset of IPIV
-     * @param matB:       matrix B -> it will become the result at the end.
+     * @param matB:       matrix B -&gt; it will become the result at the end.
      * @param offsetB:    offset in the array of matrix B
      * @param ldB:        number of rows in matB to jump to reach the second column
-     * @param info:       info[0]=0 -> successful exit
+     * @param info:       info[0]=0 -&gt; successful exit
      */
     void dgetrs(TransposeType transA, int dim, int nrhs, double[] matA, int offsetA, int ldA, int[] ipiv, int offsetIpiv, double[] matB, int offsetB, int ldB, int[] info);
 
@@ -49,7 +49,7 @@ public interface Blas {
      * To invert a matrix
      *
      * @param dim:        Dimension of matrix A
-     * @param matA:       MatrixA to invert -> the result will be stored here
+     * @param matA:       MatrixA to invert -&gt; the result will be stored here
      * @param offsetA:    offset in the array of matrix A
      * @param ldA:        number of rows in matA to jump to reach the second column
      * @param ipiv:       The pivot indices from DGETRF;
@@ -57,7 +57,7 @@ public interface Blas {
      * @param work:       A workspace for invert
      * @param offsetWork: offset in the array of workspace
      * @param ldWork:     number of rows in workspace to jump to reach the second column
-     * @param info:       info[0]=0 -> successful exit
+     * @param info:       info[0]=0 -&gt; successful exit
      */
     void dgetri(int dim, double[] matA, int offsetA, int ldA, int[] ipiv, int offsetIpiv, double[] work, int offsetWork, int ldWork, int[] info);
 
@@ -66,12 +66,12 @@ public interface Blas {
      *
      * @param rows:       rows of matrix A
      * @param columns:    columns of matrix A
-     * @param matA:       MatrixA to invert -> the result will be stored here
+     * @param matA:       MatrixA to invert -&gt; the result will be stored here
      * @param offsetA:    offset in the array of matrix A
      * @param ldA:        number of rows in matA to jump to reach the second column
      * @param ipiv:       The pivot indices from DGETRF;
      * @param offsetIpiv: Offset of IPIV
-     * @param info:       info[0]=0 -> successful exit
+     * @param info:       info[0]=0 -&gt; successful exit
      */
     void dgetrf(int rows, int columns, double[] matA, int offsetA, int ldA, int[] ipiv, int offsetIpiv, int[] info);
 
@@ -81,9 +81,9 @@ public interface Blas {
      * which is defined as the first N columns of a product of K elementary
      * reflectors of order M
      *
-     * @param m          The number of rows of the matrix Q. M >= 0.
-     * @param n          The number of columns of the matrix Q. M >= N >= 0.
-     * @param k          The number of elementary reflectors whose product defines the matrix Q. N >= K >= 0.
+     * @param m          The number of rows of the matrix Q. M &gt;= 0.
+     * @param n          The number of columns of the matrix Q. M &gt;= N &gt;= 0.
+     * @param k          The number of elementary reflectors whose product defines the matrix Q. N &gt;= K &gt;= 0.
      * @param matA       (input/output) DOUBLE PRECISION array
      * @param offsetA    offset in the array of matrix A
      * @param ldA        number of rows in matA to jump to reach the second column
@@ -101,8 +101,8 @@ public interface Blas {
     /**
      * DGEQRF computes a QR factorization of a real M-by-N matrix A:  A = Q * R.
      *
-     * @param m         The number of rows of the matrix Q. M >= 0.
-     * @param n         The number of columns of the matrix Q. M >= N >= 0.
+     * @param m         The number of rows of the matrix Q. M &gt;= 0.
+     * @param n         The number of columns of the matrix Q. M &gt;= N &gt;= 0.
      * @param matA      (input/output) DOUBLE PRECISION array
      * @param offsetA   offset in the array of matrix A
      * @param ldA       number of rows in matA to jump to reach the second column
@@ -130,25 +130,25 @@ public interface Blas {
      *               = 'S':  the first getMin(M,N) columns of U and the first
      *               getMin(M,N) rows of V**T are returned in the arrays U
      *               and VT;
-     *               = 'O':  If M >= N, the first N columns of U are overwritten
+     *               = 'O':  If M &gt;= N, the first N columns of U are overwritten
      *               on the array A and all rows of V**T are returned in
      *               the array VT;
      *               otherwise, all columns of U are returned in the
      *               array U and the first M rows of V**T are overwritten
      *               in the array A;
      *               = 'N':  no columns of U or rows of V**T are computed.
-     * @param m      The number of rows of the input matrix A.  M >= 0.     *
-     * @param n      The number of columns of the input matrix A.  N >= 0.
+     * @param m      The number of rows of the input matrix A.  M &gt;= 0.     *
+     * @param n      The number of columns of the input matrix A.  N &gt;= 0.
      * @param data   (input/output) DOUBLE PRECISION array, dimension (LDA,N)
-     * @param lda    The leading dimension of the array A.  LDA >= getMax(1,M).
+     * @param lda    The leading dimension of the array A.  LDA &gt;= getMax(1,M).
      * @param s      (output) DOUBLE PRECISION array, dimension (getMin(M,N))
-     *               The singular values of A, sorted so that S(i) >= S(i+1).
+     *               The singular values of A, sorted so that S(i) &gt;= S(i+1).
      * @param u      (output) DOUBLE PRECISION array, dimension (LDU,UCOL)
      * @param ldu    The leading dimension of the array U.
      * @param vt     (output) DOUBLE PRECISION array, dimension (LDVT,N)
      * @param ldvt   The leading dimension of the array VT.
      * @param work   (workspace/output) DOUBLE PRECISION array, dimension (MAX(1,LWORK))
-     * @param length The dimension of the array WORK. LWORK >= 1.
+     * @param length The dimension of the array WORK. LWORK &gt;= 1.
      * @param iwork  (workspace) INTEGER array, dimension (8*getMin(M,N))
      * @param info   (output) INTEGER
      */

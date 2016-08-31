@@ -1,3 +1,3 @@
 var Jasmine = require('jasmine');
 var jasmine = new Jasmine();
-jasmine.execute(['test-classes/test.all.js']);
+jasmine.execute(['test-classes/mwg.ml.test.all.js']);

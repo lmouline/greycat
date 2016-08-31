@@ -1,0 +1,69 @@
+<project default="all" basedir=".">
+
+    <target name="all" depends="other.run, win.run">
+    </target>
+
+    <target name="sys.check">
+        <condition property="isWindows">
+            <os family="windows"/>
+        </condition>
+        <condition property="isOther">
+            <not>
+                <os family="windows"/>
+            </not>
+        </condition>
+    </target>
+    <target name="other.run" depends="sys.check" if="isOther">
+        <echo message="Copying package.json"/>
+        <copy file="${basedir}/src/package.json" todir="${basedir}/target"/>
+        <echo message="NPM install"/>
+        <exec executable="npm" dir="${basedir}/target" failonerror="true">
+            <arg value="install"/>
+        </exec>
+        <echo message="TSC Run (core)"/>
+        <exec executable="${basedir}/target/node_modules/typescript/bin/tsc" failonerror="true">
+            <arg value="-d"/>
+            <arg value="--sourceMap"/>
+            <arg value="--target"/>
+            <arg value="es5"/>
+            <arg value="${basedir}/target/generated-sources/core.ts"/>
+            <arg value="--out"/>
+            <arg value="${basedir}/target/classes/mwg.js"/>
+        </exec>
+        <echo message="Minify"/>
+        <java jar="${basedir}/lib/compiler.jar" fork="true" failonerror="true">
+            <arg value="--js"/>
+            <arg value="${basedir}/target/classes/mwg.js"/>
+            <arg value="--js_output_file"/>
+            <arg value="${basedir}/target/classes/mwg.min.js"/>
+        </java>
+    </target>
+
+    <target name="win.run" depends="sys.check" if="isWindows">
+        <echo message="Copying package.json"/>
+        <copy file="${basedir}/src/package.json" todir="${basedir}/target"/>
+        <echo message="NPM install"/>
+        <exec executable="cmd" dir="${basedir}/target" failonerror="true">
+            <arg line="/c npm install" />
+        </exec>
+        <echo message="TSC Run (core)"/>
+        <exec executable="cmd" dir="${basedir}/target" failonerror="true">
+            <arg line="/c node ${basedir}/target/node_modules/typescript/bin/tsc" />
+            <arg value="-d"/>
+            <arg value="--sourceMap"/>
+            <arg value="--target"/>
+            <arg value="es5"/>
+            <arg value="${basedir}/target/generated-sources/core.ts"/>
+            <arg value="--out"/>
+            <arg value="${basedir}/target/classes/mwg.js"/>
+        </exec>
+        <echo message="Minify"/>
+        <java jar="${basedir}/lib/compiler.jar" fork="true" failonerror="true">
+            <arg value="--js"/>
+            <arg value="${basedir}/target/classes/mwg.js"/>
+            <arg value="--js_output_file"/>
+            <arg value="${basedir}/target/classes/mwg.min.js"/>
+        </java>
+    </target>
+
+</project>

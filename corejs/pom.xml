@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.kevoree.mwg</groupId>
     <artifactId>corejs</artifactId>
@@ -41,7 +42,7 @@
                 <version>${java2typescript.plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>compile-api</id>
+                        <id>transpile-api</id>
                         <goals>
                             <goal>java2ts</goal>
                         </goals>
@@ -53,7 +54,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>compile-core</id>
+                        <id>transpile-core</id>
                         <goals>
                             <goal>java2ts</goal>
                         </goals>
@@ -68,7 +69,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>compile-test</id>
+                        <id>transpile-test</id>
                         <goals>
                             <goal>java2ts</goal>
                         </goals>
@@ -91,11 +92,24 @@
                 <version>1.8</version>
                 <executions>
                     <execution>
-                        <id>compile</id>
+                        <id>ant-compile</id>
                         <phase>compile</phase>
                         <configuration>
                             <target>
-                                <ant antfile="taskdef.xml" />
+                                <ant antfile="compile-taskdef.xml"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>ant-test</id>
+                        <phase>test</phase>
+                        <configuration>
+                            <skip>${skipTests}</skip>
+                            <target>
+                                <ant antfile="test-taskdef.xml"/>
                             </target>
                         </configuration>
                         <goals>

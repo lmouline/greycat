@@ -7,10 +7,7 @@ import org.mwg.mlx.algorithm.classifier.BatchDecisionTreeNode;
 import org.mwg.mlx.algorithm.classifier.GaussianClassifierNode;
 import org.mwg.mlx.algorithm.classifier.GaussianNaiveBayesianNode;
 import org.mwg.mlx.algorithm.classifier.LogisticRegressionClassifierNode;
-import org.mwg.mlx.algorithm.regression.LinearRegressionBatchGDNode;
-import org.mwg.mlx.algorithm.regression.LinearRegressionNode;
-import org.mwg.mlx.algorithm.regression.LinearRegressionSGDNode;
-import org.mwg.mlx.algorithm.regression.LinearRegressionWithPeriodicityNode;
+import org.mwg.mlx.algorithm.regression.*;
 import org.mwg.plugin.NodeFactory;
 
 public class MLXPlugin extends MLPlugin {
@@ -64,6 +61,12 @@ public class MLXPlugin extends MLPlugin {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
                 return new GaussianClassifierNode(world, time, id, graph);
+            }
+        });
+        declareNodeType(AutoregressionBasedPeriodicityDetector.NAME, new NodeFactory() {
+            @Override
+            public Node create(long world, long time, long id, Graph graph) {
+                return new AutoregressionBasedPeriodicityDetector(world, time, id, graph);
             }
         });
     }

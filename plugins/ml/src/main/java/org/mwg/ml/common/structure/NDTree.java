@@ -50,7 +50,7 @@ public class NDTree extends AbstractNode {
 
 
     /**
-     * @native ts
+     * {@native ts
      * var result = Long.UZERO;
      * for(var i = 0; i < centerKey.length; i++) {
      * if(i!=0){
@@ -61,6 +61,7 @@ public class NDTree extends AbstractNode {
      * }
      * }
      * return result.add(Long.fromNumber(org.mwg.ml.common.structure.NDTree._RELCONST, true)).toNumber();
+     * }
      */
     private static long getRelationId(double[] centerKey, double[] keyToInsert) {
         long result = 0;
@@ -298,4 +299,3 @@ public class NDTree extends AbstractNode {
     }
 
 
-}

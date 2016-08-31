@@ -11,7 +11,7 @@ import org.mwg.plugin.NodeState;
 import java.util.Arrays;
 
 /**
- * Anomaly is detected if at least for one of the dimensions the value is <...> interquartile ranges away from the mean.
+ * Anomaly is detected if at least for one of the dimensions the value is &lt;...&gt; interquartile ranges away from the mean.
  * <p>
  * Created by andrey.boytsov on 14/06/16.
  */
