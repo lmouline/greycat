@@ -2,7 +2,7 @@ package org.mwg.memory.offheap;
 
 import org.mwg.chunk.Stack;
 
-public final class OffHeapFixedStack implements Stack {
+final class OffHeapFixedStack implements Stack {
 
     private final long _next;
     private final long _prev;
@@ -12,7 +12,7 @@ public final class OffHeapFixedStack implements Stack {
     private long _last;
     private long _count;
 
-    public OffHeapFixedStack(long capacity, boolean fill) {
+    OffHeapFixedStack(long capacity, boolean fill) {
         _capacity = capacity;
         _next = OffHeapLongArray.allocate(capacity);
         _prev = OffHeapLongArray.allocate(capacity);

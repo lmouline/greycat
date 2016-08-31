@@ -77,8 +77,7 @@ public abstract class AbstractTimeTreeTest {
         space.freeAll();
 
     }
-
-
+    
     @Test
     public void massiveTest() {
         ChunkSpace space = factory.newSpace(100, null);
@@ -133,7 +132,6 @@ public abstract class AbstractTimeTreeTest {
         space.free(tree);
         space.freeAll();
     }
-
 
     private boolean compareWithString(Buffer buffer, String content) {
         for (int i = 0; i < content.length(); i++) {

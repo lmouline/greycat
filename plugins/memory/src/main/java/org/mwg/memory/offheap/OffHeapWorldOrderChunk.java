@@ -121,6 +121,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
 
     @Override
     public final long size() {
+        //TODO CAS
         return OffHeapLongArray.get(space.addrByIndex(index), SIZE);
     }
 
