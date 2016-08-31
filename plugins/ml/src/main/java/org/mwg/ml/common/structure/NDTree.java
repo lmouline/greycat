@@ -39,10 +39,9 @@ public class NDTree extends AbstractNode {
     private static long _PRECISION = 8;
     private static long _DIM = 9;
 
-    public static String BOUNDMIN="boundmin";
-    public static String BOUNDMAX="boundmax";
-    public static String PRECISION="precision";
-
+    public static String BOUNDMIN = "boundmin";
+    public static String BOUNDMAX = "boundmax";
+    public static String PRECISION = "precision";
 
 
     //The beginning of relations navigation
@@ -54,7 +53,7 @@ public class NDTree extends AbstractNode {
      * var result = Long.UZERO;
      * for(var i = 0; i < centerKey.length; i++) {
      * if(i!=0){
-     *     result = result.shiftLeft(1);
+     * result = result.shiftLeft(1);
      * }
      * if (keyToInsert[i] > centerKey[i]) {
      * result = result.add(Long.ONE);
@@ -66,7 +65,7 @@ public class NDTree extends AbstractNode {
     private static long getRelationId(double[] centerKey, double[] keyToInsert) {
         long result = 0;
         for (int i = 0; i < centerKey.length; i++) {
-            if(i!=0){
+            if (i != 0) {
                 result = result << 1;
             }
             if (keyToInsert[i] > centerKey[i]) {
@@ -148,22 +147,18 @@ public class NDTree extends AbstractNode {
     }
 
 
-
     @Override
     public void setProperty(String propertyName, byte propertyType, Object propertyValue) {
-        if(propertyName.equals(BOUNDMIN)){
+        if (propertyName.equals(BOUNDMIN)) {
             NodeState state = unphasedState();
-            state.set(_BOUNDMIN,Type.DOUBLE_ARRAY,propertyValue);
-        }
-        else if(propertyName.equals(BOUNDMAX)){
+            state.set(_BOUNDMIN, Type.DOUBLE_ARRAY, propertyValue);
+        } else if (propertyName.equals(BOUNDMAX)) {
             NodeState state = unphasedState();
-            state.set(_BOUNDMAX,Type.DOUBLE_ARRAY,propertyValue);
-        }
-        else if(propertyName.equals(PRECISION)){
+            state.set(_BOUNDMAX, Type.DOUBLE_ARRAY, propertyValue);
+        } else if (propertyName.equals(PRECISION)) {
             NodeState state = unphasedState();
-            state.set(_PRECISION,Type.DOUBLE_ARRAY,propertyValue);
-        }
-        else {
+            state.set(_PRECISION, Type.DOUBLE_ARRAY, propertyValue);
+        } else {
             super.setProperty(propertyName, propertyType, propertyValue);
         }
     }
@@ -182,8 +177,8 @@ public class NDTree extends AbstractNode {
             double[] boundMax = (double[]) state.get(_BOUNDMAX);
             double[] boundMin = (double[]) state.get(_BOUNDMIN);
             double[] centerKey = new double[boundMax.length];
-            for(int i=0;i<centerKey.length;i++){
-                centerKey[i]=(boundMax[i]+boundMin[i])/2;
+            for (int i = 0; i < centerKey.length; i++) {
+                centerKey[i] = (boundMax[i] + boundMin[i]) / 2;
             }
 
             //Get variables from context
@@ -209,7 +204,7 @@ public class NDTree extends AbstractNode {
             if (continueNavigation) {
                 //Set the long to traverse
                 long traverseId = getRelationId(centerKey, keyToInsert);
-                System.out.println(traverseId-_RELCONST);
+                System.out.println(traverseId - _RELCONST);
                 //Check if there is a node already in this subspace, otherwise create it
                 if (state.get(traverseId) == null) {
                     double[] newBoundMin = new double[dim];
@@ -231,7 +226,7 @@ public class NDTree extends AbstractNode {
                     NodeState newState = newChild.graph().resolver().resolveState(newChild);
                     newState.set(_BOUNDMIN, Type.DOUBLE_ARRAY, newBoundMin);
                     newState.set(_BOUNDMAX, Type.DOUBLE_ARRAY, newBoundMax);
-                    Relationship relChild = (Relationship) state.getOrCreate(traverseId,Type.RELATION);
+                    Relationship relChild = (Relationship) state.getOrCreate(traverseId, Type.RELATION);
                     relChild.add(newChild.id());
                     newChild.free();
                 }
@@ -250,7 +245,7 @@ public class NDTree extends AbstractNode {
         }
 
         //todo check how to traverse on long
-    }, Actions.action (ActionTraverseById.NAME,"{{next}}"));
+    }, Actions.action(ActionTraverseById.NAME, "{{next}}"));
 
     public void insert(final double[] key, final Node value, final Callback<Boolean> callback) {
         NodeState state = unphasedState();
@@ -298,4 +293,4 @@ public class NDTree extends AbstractNode {
         insert.executeUsing(tc);
     }
 
-
+}
