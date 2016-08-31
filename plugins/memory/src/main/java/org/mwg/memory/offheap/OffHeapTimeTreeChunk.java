@@ -13,15 +13,14 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     private static final byte TRUE = 1;
     private static final byte FALSE = 0;
 
-    private static final int LOCK = 0;
-    private static final int MAGIC = 1;
-    private static final int METAS = 2;
-    private static final int K = 3;
-    private static final int COLORS = 4;
-    private static final int SIZE = 5;
-    private static final int CAPACITY = 6;
-    private static final int DIRTY = 7;
-    private static final int ROOT = 8;
+    private static final int MAGIC = 0;
+    private static final int METAS = 1;
+    private static final int K = 2;
+    private static final int COLORS = 3;
+    private static final int SIZE = 4;
+    private static final int CAPACITY = 5;
+    private static final int DIRTY = 6;
+    private static final int HEAD = 7;
 
     private static final int CHUNK_SIZE = 9;
 
@@ -41,12 +40,11 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             temp_addr = OffHeapLongArray.allocate(CHUNK_SIZE);
             space.setAddrByIndex(index, temp_addr);
             //init the initial values
-            OffHeapLongArray.set(temp_addr, LOCK, 0);
             OffHeapLongArray.set(temp_addr, MAGIC, 0);
             OffHeapLongArray.set(temp_addr, CAPACITY, 0);
             OffHeapLongArray.set(temp_addr, SIZE, 0);
             OffHeapLongArray.set(temp_addr, DIRTY, 0);
-            OffHeapLongArray.set(temp_addr, ROOT, -1);
+            OffHeapLongArray.set(temp_addr, HEAD, -1);
             //init to empty pointer
             OffHeapLongArray.set(temp_addr, K, OffHeapConstants.OFFHEAP_NULL_PTR);
             OffHeapLongArray.set(temp_addr, COLORS, OffHeapConstants.OFFHEAP_NULL_PTR);
@@ -114,7 +112,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public final void range(final long startKey, final long endKey, final long maxElements, final TreeWalker walker) {
-        while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
+        space.lockByIndex(index);
         try {
             ptrConsistency();
             //lock and load fromVar main memory
@@ -126,15 +124,13 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                 indexEnd = previous(indexEnd);
             }
         } finally {
-            if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 1, 0)) {
-                System.out.println("CAS error !!!");
-            }
+            space.unlockByIndex(index);
         }
     }
 
     @Override
-    public final void save(Buffer buffer) {
-        while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
+    public final void save(final Buffer buffer) {
+        space.lockByIndex(index);
         try {
             ptrConsistency();
             final long size = OffHeapLongArray.get(addr, SIZE);
@@ -152,15 +148,13 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             }
             OffHeapLongArray.set(addr, DIRTY, 0);
         } finally {
-            if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 1, 0)) {
-                System.out.println("CAS error !!!");
-            }
+            space.unlockByIndex(index);
         }
     }
 
     @Override
     public final void load(Buffer buffer) {
-        while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
+        space.lockByIndex(index);
         try {
             ptrConsistency();
             if (buffer == null || buffer.length() == 0) {
@@ -187,20 +181,16 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             isDirty = isDirty || internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
             if (isDirty && !initial && OffHeapLongArray.get(addr, DIRTY) != 1) {
                 OffHeapLongArray.set(addr, DIRTY, 1);
-                if (space != null) {
-                    space.notifyUpdate(index);
-                }
+                space.notifyUpdate(index);
             }
         } finally {
-            if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 1, 0)) {
-                System.out.println("CAS error !!!");
-            }
+            space.unlockByIndex(index);
         }
     }
 
     @Override
     public final long previousOrEqual(long key) {
-        while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
+        space.lockByIndex(index);
         try {
             ptrConsistency();
             //lock and load fromVar main memory
@@ -213,24 +203,20 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             }
             return resultKey;
         } finally {
-            if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 1, 0)) {
-                System.out.println("CAS error !!!");
-            }
+            space.unlockByIndex(index);
         }
     }
 
     @Override
     public final void insert(final long p_key) {
-        while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
+        space.lockByIndex(index);
         try {
             ptrConsistency();
             if (internal_insert(p_key)) {
                 internal_set_dirty();
             }
         } finally {
-            if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 1, 0)) {
-                System.out.println("CAS error !!!");
-            }
+            space.unlockByIndex(index);
         }
     }
 
@@ -246,7 +232,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public final void clearAt(long max) {
-        while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
+        space.lockByIndex(index);
         try {
             ptrConsistency();
             long previousKeys = OffHeapLongArray.get(addr, K);
@@ -265,7 +251,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             colorsPtr = OffHeapByteArray.allocate(capacity);
             OffHeapLongArray.set(addr, COLORS, colorsPtr);
             OffHeapLongArray.set(addr, SIZE, 0);
-            OffHeapLongArray.set(addr, ROOT, -1);
+            OffHeapLongArray.set(addr, HEAD, -1);
             OffHeapLongArray.set(addr, MAGIC, OffHeapLongArray.get(addr, MAGIC) + 1);
             for (long i = 0; i < previousSize; i++) {
                 long currentVal = OffHeapLongArray.get(previousKeys, i);
@@ -277,10 +263,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             OffHeapLongArray.free(previousMetas);
             OffHeapByteArray.free(previousColors);
         } finally {
-            //Free OffHeap lock
-            if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 1, 0)) {
-                throw new RuntimeException("CAS Error !!!");
-            }
+            space.unlockByIndex(index);
         }
         internal_set_dirty();
     }
@@ -307,7 +290,6 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                 metaPtr = OffHeapLongArray.reallocate(metaPtr, newCapacity * META_SIZE);
             }
             OffHeapLongArray.set(addr, METAS, metaPtr);
-
             OffHeapLongArray.set(addr, CAPACITY, newCapacity);
         }
     }
@@ -450,7 +432,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
 
     private void replaceNode(long oldn, long newn) {
         if (parent(oldn) == -1) {
-            OffHeapLongArray.set(addr, ROOT, newn);
+            OffHeapLongArray.set(addr, HEAD, newn);
         } else {
             if (oldn == left(parent(oldn))) {
                 setLeft(parent(oldn), newn);
@@ -513,7 +495,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private long internal_previousOrEqual_index(long p_key) {
-        long p = OffHeapLongArray.get(addr, ROOT);
+        long p = OffHeapLongArray.get(addr, HEAD);
         if (p == -1) {
             return p;
         }
@@ -563,11 +545,11 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             setLeft(newIndex, -1);
             setRight(newIndex, -1);
             setParent(newIndex, -1);
-            OffHeapLongArray.set(addr, ROOT, newIndex);
+            OffHeapLongArray.set(addr, HEAD, newIndex);
             size = 1;
             OffHeapLongArray.set(addr, SIZE, size);
         } else {
-            long n = OffHeapLongArray.get(addr, ROOT);
+            long n = OffHeapLongArray.get(addr, HEAD);
             while (true) {
                 if (p_key == key(n)) {
                     return false;

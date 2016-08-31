@@ -17,16 +17,18 @@ public class OffHeapGenChunkTest extends AbstractGenChunkTest {
         OffHeapByteArray.alloc_counter = 0;
         OffHeapDoubleArray.alloc_counter = 0;
         OffHeapLongArray.alloc_counter = 0;
+        OffHeapString.alloc_counter = 0;
         OffHeapStringArray.alloc_counter = 0;
         Unsafe.DEBUG_MODE = true;
     }
 
     @After
     public void tearDown() throws Exception {
-        Assert.assertTrue(OffHeapByteArray.alloc_counter == 0);
-        Assert.assertTrue(OffHeapDoubleArray.alloc_counter == 0);
-        Assert.assertTrue(OffHeapLongArray.alloc_counter == 0);
-        Assert.assertTrue(OffHeapStringArray.alloc_counter == 0);
+        Assert.assertEquals(OffHeapByteArray.alloc_counter, 0);
+        Assert.assertEquals(OffHeapDoubleArray.alloc_counter, 0);
+        Assert.assertEquals(OffHeapLongArray.alloc_counter, 0);
+        Assert.assertEquals(OffHeapString.alloc_counter, 0);
+        Assert.assertEquals(OffHeapStringArray.alloc_counter, 0);
     }
 
 }

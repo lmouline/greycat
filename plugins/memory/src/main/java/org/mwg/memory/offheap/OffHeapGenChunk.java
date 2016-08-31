@@ -13,28 +13,31 @@ final class OffHeapGenChunk implements GenChunk {
     private final long prefix;
     private final long addr;
 
-    private static final int SEED = 0;
-    private static final int LOCK = 1;
-    private static final int DIRTY = 2;
-    private static final int CHUNK_SIZE = 3;
+    private static final int DIRTY = 0;
+    private static final int SEED = 1;
+    private static final int CHUNK_SIZE = 2;
 
     OffHeapGenChunk(final OffHeapChunkSpace p_space, final long p_id, final long p_index) {
         index = p_index;
         space = p_space;
         //moves the prefix 53-size(short) times to the left;
         prefix = p_id << (Constants.LONG_SIZE - Constants.PREFIX_SIZE);
-        long temp_addr = space.addrByIndex(index);
-        if (temp_addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-            temp_addr = OffHeapLongArray.allocate(CHUNK_SIZE);
-            space.setAddrByIndex(index, temp_addr);
-            OffHeapLongArray.set(temp_addr, SEED, -1);
-            OffHeapLongArray.set(temp_addr, LOCK, 0);
-            OffHeapLongArray.set(temp_addr, DIRTY, 0);
+        space.lockByIndex(index);
+        try {
+            long temp_addr = space.addrByIndex(index);
+            if (temp_addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+                temp_addr = OffHeapLongArray.allocate(CHUNK_SIZE);
+                space.setAddrByIndex(index, temp_addr);
+                OffHeapLongArray.set(temp_addr, SEED, -1);
+                OffHeapLongArray.set(temp_addr, DIRTY, 0);
+            }
+            addr = temp_addr;
+        } finally {
+            space.unlockByIndex(index);
         }
-        addr = temp_addr;
     }
 
-    public static void free(final long addr) {
+    static void free(final long addr) {
         if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
             OffHeapLongArray.free(addr);
         }
@@ -42,20 +45,18 @@ final class OffHeapGenChunk implements GenChunk {
 
     @Override
     public final void save(final Buffer buffer) {
-        while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
+        space.lockByIndex(index);
         try {
             Base64.encodeLongToBuffer(OffHeapLongArray.get(addr, SEED), buffer);
             OffHeapLongArray.set(addr, DIRTY, 0);
         } finally {
-            if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 1, 0)) {
-                System.out.println("CAS error !!!");
-            }
+            space.unlockByIndex(index);
         }
     }
 
     @Override
     public final void load(final Buffer buffer) {
-        while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
+        space.lockByIndex(index);
         try {
             if (buffer == null || buffer.length() == 0) {
                 return;
@@ -64,21 +65,19 @@ final class OffHeapGenChunk implements GenChunk {
             long previousSeed = OffHeapLongArray.get(addr, SEED);
             OffHeapLongArray.set(addr, SEED, loaded);
             if (previousSeed != -1 && previousSeed != loaded) {
-                if (space != null && OffHeapLongArray.get(addr, DIRTY) != 1) {
+                if (OffHeapLongArray.get(addr, DIRTY) != 1) {
                     OffHeapLongArray.set(addr, DIRTY, 1);
                     space.notifyUpdate(index);
                 }
             }
         } finally {
-            if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 1, 0)) {
-                System.out.println("CAS error !!!");
-            }
+            space.unlockByIndex(index);
         }
     }
 
     @Override
     public final long newKey() {
-        while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
+        space.lockByIndex(index);
         try {
             long seed = OffHeapLongArray.get(addr, SEED);
             if (seed == Constants.KEY_PREFIX_MASK) {
@@ -90,17 +89,13 @@ final class OffHeapGenChunk implements GenChunk {
             seed++;
             OffHeapLongArray.set(addr, SEED, seed);
             long objectKey = prefix + seed;
-            if (space != null) {
-                space.notifyUpdate(index);
-            }
+            space.notifyUpdate(index);
             if (objectKey >= Constants.END_OF_TIME) {
                 throw new IndexOutOfBoundsException("Object Index exceeds the maximum JavaScript number capacity. (2^" + Constants.LONG_SIZE + ")");
             }
             return objectKey;
         } finally {
-            if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 1, 0)) {
-                System.out.println("CAS error !!!");
-            }
+            space.unlockByIndex(index);
         }
     }
 
