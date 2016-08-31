@@ -301,7 +301,13 @@ class OffHeapStringLongMap implements StringLongMap {
 
     @Override
     public final void put(final String insertStringKey, final long insertValue) {
-        chunk.lock();
+        internal_put(insertStringKey, insertValue, true);
+    }
+
+    void internal_put(final String insertStringKey, final long insertValue, boolean lock) {
+        if (lock) {
+            chunk.lock();
+        }
         try {
             update_ptr();
             final long keyHash = HashHelper.hash(insertStringKey);
@@ -354,9 +360,12 @@ class OffHeapStringLongMap implements StringLongMap {
                 }
             }
         } finally {
-            chunk.unlock();
+            if (lock) {
+                chunk.unlock();
+            }
         }
     }
+
 
     static void save(final long addr, final Buffer buffer) {
         if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {

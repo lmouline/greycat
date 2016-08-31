@@ -78,7 +78,7 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
         if (newCapacity > currentCapacity) {
             if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
                 addr = OffHeapLongArray.allocate(CHUNK_ELEM_SIZE);
-                chunk.setAddrByIndex(index,addr);
+                chunk.setAddrByIndex(index, addr);
                 OffHeapLongArray.set(addr, SIZE, 0);
                 OffHeapLongArray.set(addr, CAPACITY, newCapacity);
                 keys_ptr = OffHeapLongArray.allocate(newCapacity);
@@ -256,7 +256,13 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
 
     @Override
     public final void put(final long insertKey, final long insertValue) {
-        chunk.lock();
+        internal_put(insertKey, insertValue, true);
+    }
+
+    void internal_put(final long insertKey, final long insertValue, final boolean lock) {
+        if (lock) {
+            chunk.lock();
+        }
         try {
             update_ptr();
             if (keys_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
@@ -306,9 +312,12 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
                 }
             }
         } finally {
-            chunk.unlock();
+            if (lock) {
+                chunk.unlock();
+            }
         }
     }
+
 
     static void save(final long addr, final Buffer buffer) {
         if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {

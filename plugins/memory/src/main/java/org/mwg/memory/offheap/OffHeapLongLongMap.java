@@ -7,9 +7,6 @@ import org.mwg.struct.LongLongMap;
 import org.mwg.struct.LongLongMapCallBack;
 import org.mwg.utility.Base64;
 import org.mwg.utility.HashHelper;
-import org.mwg.utility.Unsafe;
-
-import java.util.Arrays;
 
 class OffHeapLongLongMap implements LongLongMap {
 
@@ -241,7 +238,14 @@ class OffHeapLongLongMap implements LongLongMap {
 
     @Override
     public final void put(final long insertKey, final long insertValue) {
-        chunk.lock();
+        internal_put(insertKey, insertValue, true);
+    }
+
+
+    void internal_put(final long insertKey, final long insertValue, final boolean lock) {
+        if (lock) {
+            chunk.lock();
+        }
         try {
             update_ptr();
             if (keys_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
@@ -291,7 +295,9 @@ class OffHeapLongLongMap implements LongLongMap {
                 }
             }
         } finally {
-            chunk.unlock();
+            if (lock) {
+                chunk.unlock();
+            }
         }
     }
 
