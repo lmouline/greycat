@@ -15,6 +15,7 @@ final class OffHeapGenChunk implements GenChunk {
 
     private static final int DIRTY = 0;
     private static final int SEED = 1;
+
     private static final int CHUNK_SIZE = 2;
 
     OffHeapGenChunk(final OffHeapChunkSpace p_space, final long p_id, final long p_index) {

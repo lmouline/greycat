@@ -27,19 +27,24 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
     OffHeapWorldOrderChunk(final OffHeapChunkSpace p_space, final long p_index) {
         index = p_index;
         space = p_space;
-        long temp_addr = space.addrByIndex(index);
-        if (temp_addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-            long initialCapacity = Constants.MAP_INITIAL_CAPACITY;
-            temp_addr = OffHeapLongArray.allocate(KV_OFFSET + (initialCapacity * 2));
-            space.setAddrByIndex(index, temp_addr);
-            //init the initial values
-            OffHeapLongArray.set(temp_addr, DIRTY, 0);
-            OffHeapLongArray.set(temp_addr, SIZE, 0);
-            OffHeapLongArray.set(temp_addr, CAPACITY, initialCapacity);
-            OffHeapLongArray.set(temp_addr, LOCK_EXT, 0);
-            OffHeapLongArray.set(temp_addr, MAGIC, 0);
-            OffHeapLongArray.set(temp_addr, EXTRA, Constants.NULL_LONG);
-            OffHeapLongArray.set(temp_addr, HASH_SUB, OffHeapConstants.OFFHEAP_NULL_PTR);
+        space.lockByIndex(index);
+        try {
+            long temp_addr = space.addrByIndex(index);
+            if (temp_addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+                long initialCapacity = Constants.MAP_INITIAL_CAPACITY;
+                temp_addr = OffHeapLongArray.allocate(KV_OFFSET + (initialCapacity * 2));
+                space.setAddrByIndex(index, temp_addr);
+                //init the initial values
+                OffHeapLongArray.set(temp_addr, DIRTY, 0);
+                OffHeapLongArray.set(temp_addr, SIZE, 0);
+                OffHeapLongArray.set(temp_addr, CAPACITY, initialCapacity);
+                OffHeapLongArray.set(temp_addr, LOCK_EXT, 0);
+                OffHeapLongArray.set(temp_addr, MAGIC, 0);
+                OffHeapLongArray.set(temp_addr, EXTRA, Constants.NULL_LONG);
+                OffHeapLongArray.set(temp_addr, HASH_SUB, OffHeapConstants.OFFHEAP_NULL_PTR);
+            }
+        } finally {
+            space.unlockByIndex(index);
         }
     }
 
