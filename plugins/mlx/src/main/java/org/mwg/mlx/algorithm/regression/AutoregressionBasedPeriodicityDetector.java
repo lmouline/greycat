@@ -4,8 +4,8 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.ml.AbstractMLNode;
-import org.mwg.plugin.Enforcer;
 import org.mwg.plugin.NodeState;
+import org.mwg.utility.Enforcer;
 
 import java.util.ArrayList;
 import java.util.List;
