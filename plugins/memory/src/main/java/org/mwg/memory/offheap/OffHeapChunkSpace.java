@@ -72,10 +72,8 @@ class OffHeapChunkSpace implements ChunkSpace {
         _graph = p_graph;
         _maxEntries = initialCapacity;
         _hashEntries = initialCapacity * HASH_LOAD_FACTOR;
-
         _lru = new OffHeapFixedStack(initialCapacity, true);
         _dirtiesStack = new OffHeapFixedStack(initialCapacity, false);
-
         locks = OffHeapLongArray.allocate(initialCapacity);
         hashNext = OffHeapLongArray.allocate(initialCapacity);
         hash = OffHeapLongArray.allocate(_hashEntries);
@@ -85,7 +83,6 @@ class OffHeapChunkSpace implements ChunkSpace {
         ids = OffHeapLongArray.allocate(_maxEntries);
         types = OffHeapByteArray.allocate(_maxEntries);
         marks = OffHeapLongArray.allocate(_maxEntries);
-
         for (long i = 0; i < _maxEntries; i++) {
             OffHeapLongArray.set(marks, i, 0);
         }
