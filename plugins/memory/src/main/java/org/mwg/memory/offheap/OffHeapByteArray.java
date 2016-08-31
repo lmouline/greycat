@@ -32,7 +32,7 @@ public class OffHeapByteArray {
      * @param destAddr   start of address to store the source object
      * @param nbElements offset of destination address
      */
-    public static void copyArray(final Object src, final long destAddr, final long nbElements) {
+    static void copyArray(final Object src, final long destAddr, final long nbElements) {
         int baseOffset = unsafe.arrayBaseOffset(src.getClass());
         int scaleOffset = unsafe.arrayIndexScale(src.getClass());
 

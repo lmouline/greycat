@@ -5,7 +5,7 @@ import org.mwg.struct.Buffer;
 import org.mwg.utility.Base64;
 import org.mwg.utility.Unsafe;
 
-public class OffHeapIntArray {
+class OffHeapIntArray {
 
     public static long alloc_counter = 0;
 
