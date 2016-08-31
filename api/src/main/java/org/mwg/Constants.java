@@ -64,6 +64,11 @@ public class Constants {
      * return param != undefined && param != null;
      * }
      */
+    /**
+     * Checks if a parameter is defined (!= null)
+     * @param param The parameter to test
+     * @return true if not null, false otherwise.
+     */
     public static boolean isDefined(Object param) {
         return param != null;
     }
@@ -72,6 +77,12 @@ public class Constants {
      * {@native ts
      * return src === other
      * }
+     */
+    /**
+     * Tests if an object is equal to another. This is an indirection method to offer an alternative implementation for JS
+     * @param src the first object
+     * @param other the second object
+     * @return true if objects are equal, false otherwise.
      */
     public static boolean equals(String src, String other) {
         return src.equals(other);

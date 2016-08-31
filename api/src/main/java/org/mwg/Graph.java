@@ -47,6 +47,7 @@ public interface Graph {
      * @param time     The time at which the Node must be resolved.
      * @param id       The unique identifier of the {@link Node} ({@link Node#id()}) researched.
      * @param callback The task to be called when the {@link Node} is retrieved.
+     * @param <A> the type of the parameter returned in the callback (should extend {@link Node}).
      */
     <A extends Node> void lookup(long world, long time, long id, Callback<A> callback);
 
@@ -217,7 +218,7 @@ public interface Graph {
     /**
      * Free the array of nodes (sequentially call the free method on all nodes)
      *
-     * @param nodes
+     * @param nodes the array of nodes to free
      */
     void freeNodes(Node[] nodes);
 

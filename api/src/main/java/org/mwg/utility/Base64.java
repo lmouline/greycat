@@ -212,25 +212,12 @@ public class Base64 {
 
 
     /**
-     * Encodes a long in a base-64 string. Sign is encoded on bit 0 of the long =&gt; LS bit of the right-most char of the string. 1 for negative; 0 otherwise.
+     * Encodes a long in a base-64 string. Sign is encoded on bit 0 of the long =&gt; LS bit of the right-most char of the string. 1 for negative; 0 otherwise.<br>
+     * The result is written directly in the buffer.
      *
      * @param l the long to encode
+     * @param buffer the buffer to fill
      */
-    /*
-    public static String encodeLong(long l) {
-        String result = "";
-        long tmp = l;
-        if (l < 0) {
-            tmp = -tmp;
-        }
-        for (int i = 47; i >= 5; i -= 6) {
-            if (!(PrimitiveHelper.equals(result, "") && ((int) (tmp >> i) & 0x3F) == 0)) {
-                result += encodeArray[(int) (tmp >> i) & 0x3F];
-            }
-        }
-        result += Base64.encodeArray[(int) ((tmp & 0x1F) << 1) + (l < 0 ? 1 : 0)];
-        return result;
-    }*/
     public static void encodeLongToBuffer(long l, Buffer buffer) {
         boolean empty = true;
         long tmp = l;
@@ -247,27 +234,32 @@ public class Base64 {
     }
 
     /**
-     * Encodes a int in a base-64 string. Sign is encoded on bit 0 of the long =&gt; LS bit of the right-most char of the string. 1 for negative; 0 otherwise.
-     *
-     * @param l the int to encode
-     * @return the encoded string
+     * Decodes a Base64 string to a long value. The string is read directly from the buffer.
+     * @param buffer        the buffer containing the string to decode
+     * @param offsetBegin   the offset to the beginning of the string in the buffer
+     * @param offsetEnd     the offset to the end of the string
+     * @return              the decoded long value
      */
-    public static String encodeInt(int l) {
-        String result = "";
-        int tmp = l;
-        if (l < 0) {
-            tmp = -tmp;
+    public static long decodeToLongWithBounds(Buffer buffer, long offsetBegin, long offsetEnd) {
+        long result = 0;
+        result += (Base64.decodeArray[buffer.read(offsetEnd - 1)] & 0xFF) >> 1;
+        long length = offsetEnd - offsetBegin;
+        for (long i = 1; i < length; i++) {
+            result += ((long) (Base64.decodeArray[buffer.read((offsetEnd - 1) - i)] & 0xFF)) << ((6 * i) - 1);
         }
-        for (int i = 29; i >= 5; i -= 6) {
-            if (result.length() != 0 && ((tmp >> i) & 0x3F) == 0) {
-                result += Base64.encodeArray[(tmp >> i) & 0x3F];
-            }
+        if (((Base64.decodeArray[buffer.read(offsetEnd - 1)] & 0xFF) & 0x1) != 0) {
+            result = -result;
         }
-        result += Base64.encodeArray[(tmp & 0x1F) * 2 + (l < 0 ? 1 : 0)];
         return result;
     }
 
-
+    /**
+     * Encodes a int in a base-64 string. Sign is encoded on bit 0 of the long =&gt; LS bit of the right-most char of the string. 1 for negative; 0 otherwise.<br>
+     * The result is written directly in the buffer.
+     *
+     * @param l         the int to encode
+     * @param buffer    the buffer to fill
+     */
     public static void encodeIntToBuffer(int l, Buffer buffer) {
         boolean empty = true;
         int tmp = l;
@@ -283,33 +275,18 @@ public class Base64 {
         buffer.write(Base64.encodeArray[((tmp & 0x1F) << 1) + (l < 0 ? 1 : 0)]);
     }
 
-    /*
-    public static long decodeToLong(String s) {
-        return decodeToLongWithBounds(s, 0, s.length());
-    }*/
-
-    public static long decodeToLongWithBounds(Buffer buffer, long offsetBegin, long offsetEnd) {
-        long result = 0;
-        result += (Base64.decodeArray[buffer.read(offsetEnd - 1)] & 0xFF) >> 1;
-        for (int i = 1; i < (offsetEnd - offsetBegin); i++) {
-            result += ((long) (Base64.decodeArray[buffer.read((offsetEnd - 1) - i)] & 0xFF)) << ((6 * i) - 1);
-        }
-        if (((Base64.decodeArray[buffer.read(offsetEnd - 1)] & 0xFF) & 0x1) != 0) {
-            result = -result;
-        }
-        return result;
-    }
-
-    /*
-    public static int decodeToInt(String s) {
-        return decodeToIntWithBounds(s, 0, s.length());
-    }
-    */
-
+    /**
+     * Decodes a Base64 string to an int value. The string is read directly from the buffer.
+     * @param buffer        the buffer containing the string to decode
+     * @param offsetBegin   the offset to the beginning of the string in the buffer
+     * @param offsetEnd     the offset to the end of the string
+     * @return              the decoded int value
+     */
     public static int decodeToIntWithBounds(Buffer buffer, long offsetBegin, long offsetEnd) {
         int result = 0;
         result += (Base64.decodeArray[buffer.read(offsetEnd - 1)] & 0xFF) >> 1;
-        for (int i = 1; i < (offsetEnd - offsetBegin); i++) {
+        long length = offsetEnd - offsetBegin;
+        for (int i = 1; i < length; i++) {
             result += (Base64.decodeArray[buffer.read((offsetEnd - 1) - i)] & 0xFF) << ((6 * i) - 1);
         }
         if (((Base64.decodeArray[buffer.read(offsetEnd - 1)] & 0xFF) & 0x1) != 0) {
@@ -322,21 +299,9 @@ public class Base64 {
     /**
      * Encodes a boolean array into a Base64 string
      *
-     * @param boolArr the array to encode
+     * @param boolArr   the array to encode
+     * @param buffer    the buffer to fill
      */
-    /*
-    public static String encodeBoolArray(boolean[] boolArr) {
-        String result = "";
-        int tmpVal = 0;
-        for (int i = 0; i < boolArr.length; i++) {
-            tmpVal = tmpVal | ((boolArr[i] ? 1 : 0) << i % 6);
-            if (i % 6 == 5 || i == boolArr.length - 1) {
-                result += Base64.encodeArray[tmpVal];
-                tmpVal = 0;
-            }
-        }
-        return result;
-    }*/
     public static void encodeBoolArrayToBuffer(boolean[] boolArr, Buffer buffer) {
         int tmpVal = 0;
         for (int i = 0; i < boolArr.length; i++) {
@@ -348,15 +313,18 @@ public class Base64 {
         }
     }
 
-    /*
-    public static boolean[] decodeBoolArray(String s, int arraySize) {
-        return decodeToBoolArrayWithBounds(s, 0, s.length(), arraySize);
-    }*/
-
-
+    /**
+     * Decodes a Base64 string to a boolean array. The string is read directly from the buffer.
+     * @param buffer        the buffer containing the string to decode
+     * @param offsetBegin   the offset to the beginning of the string in the buffer
+     * @param offsetEnd     the offset to the end of the string
+     * @param arraySize     The size of the array
+     * @return              the decoded boolean array
+     */
     public static boolean[] decodeToBoolArrayWithBounds(Buffer buffer, long offsetBegin, long offsetEnd, int arraySize) {
         boolean[] resultTmp = new boolean[arraySize];
-        for (int i = 0; i < (offsetEnd - offsetBegin); i++) {
+        long length = offsetEnd - offsetBegin;
+        for (int i = 0; i < length; i++) {
             int bitarray = Base64.decodeArray[buffer.read(offsetBegin + i)] & 0xFF;
             for (int bit_i = 0; bit_i < 6; bit_i++) {
                 if ((6 * i) + bit_i < arraySize) {
@@ -375,24 +343,8 @@ public class Base64 {
      * Trailing 'A's (aka 0) are dismissed for compression.
      *
      * @param d the double to encode
+     * @param buffer the buffer to fill
      */
-    /*
-    public static String encodeDouble(double d) {
-        String result = "";
-        long l = Double.doubleToLongBits(d);
-        //encode sign + exp
-        result += Base64.encodeArray[(int) (l >> 58) & 0x3F];
-        result += Base64.encodeArray[(int) (l >> 52) & 0x3F];
-        //encode mantissa
-        result += Base64.encodeArray[(int) (l >> 48) & 0x0F];
-        for (int i = 42; i >= 0; i -= 6) {
-            if (((l >> i) & 0x3F) == 0 && (l & (~(0xFFFFFFFFFFFFFFFFl << i))) == 0) {
-                break;
-            }
-            result += Base64.encodeArray[(int) (l >> i) & 0x3F];
-        }
-        return result;
-    }*/
     public static void encodeDoubleToBuffer(double d, Buffer buffer) {
         long l = Double.doubleToLongBits(d);
         //encode sign + exp
@@ -408,11 +360,13 @@ public class Base64 {
         }
     }
 
-    /*
-    public static double decodeToDouble(String s) {
-        return decodeToDoubleWithBounds(s, 0, s.length());
-    }*/
-
+    /**
+     * Decodes a Base64 string to an double value. The string is read directly from the buffer.
+     * @param buffer        the buffer containing the string to decode
+     * @param offsetBegin   the offset to the beginning of the string in the buffer
+     * @param offsetEnd     the offset to the end of the string
+     * @return              the decoded double value
+     */
     public static double decodeToDoubleWithBounds(Buffer buffer, long offsetBegin, long offsetEnd) {
         long result = 0;
         //sign + exponent
@@ -425,37 +379,12 @@ public class Base64 {
         return Double.longBitsToDouble(result);
     }
 
-    public static String encodeString(String s) {
-        String result = "";
-
-        int sLength = s.length();
-        char currentSourceChar;
-        int currentEncodedChar = 0;
-        int freeBitsInCurrentChar = 6;
-
-        for (int charIdx = 0; charIdx < sLength; charIdx++) {
-            currentSourceChar = s.charAt(charIdx);
-            if (freeBitsInCurrentChar == 6) {
-                result += Base64.encodeArray[currentSourceChar >> 2 & 0x3F];
-                currentEncodedChar = (currentSourceChar & 0x3) << 4;
-                freeBitsInCurrentChar = 4;
-            } else if (freeBitsInCurrentChar == 4) {
-                result += Base64.encodeArray[(currentEncodedChar | ((currentSourceChar >> 4) & 0xF)) & 0x3F];
-                currentEncodedChar = (currentSourceChar & 0xF) << 2;
-                freeBitsInCurrentChar = 2;
-            } else if (freeBitsInCurrentChar == 2) {
-                result += Base64.encodeArray[(currentEncodedChar | ((currentSourceChar >> 6) & 0x3)) & 0x3F];
-                result += Base64.encodeArray[currentSourceChar & 0x3F];
-                freeBitsInCurrentChar = 6;
-            }
-        }
-
-        if (freeBitsInCurrentChar != 6) {
-            result += Base64.encodeArray[currentEncodedChar];
-        }
-        return result;
-    }
-
+    /**
+     * Encodes a string into Base64 string.
+     *
+     * @param s         the string to encode
+     * @param buffer    the buffer to fill
+     */
     public static void encodeStringToBuffer(String s, Buffer buffer) {
         int sLength = s.length();
         char currentSourceChar;
@@ -482,11 +411,13 @@ public class Base64 {
         }
     }
 
-    /*
-    public static String decodeToString(String s) {
-        return decodeToStringWithBounds(s, 0, s.length());
-    }*/
-
+    /**
+     * Decodes a Base64 string to a string. The string is read directly from the buffer.
+     * @param buffer        the buffer containing the string to decode
+     * @param offsetBegin   the offset to the beginning of the string in the buffer
+     * @param offsetEnd     the offset to the end of the string
+     * @return              the decoded string value
+     */
     public static String decodeToStringWithBounds(Buffer buffer, long offsetBegin, long offsetEnd) {
         if (offsetBegin == offsetEnd) {
             return null;
@@ -520,7 +451,7 @@ public class Base64 {
     }
 
 
-    /*
+    /* UTILITIES FOR DEBUG -- DO NOT REMOVE
     private static String printBits(long val) {
         String toString = Long.toBinaryString(val);
         String res = "";

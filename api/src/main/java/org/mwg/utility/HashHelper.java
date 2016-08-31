@@ -5,32 +5,37 @@ import org.mwg.Constants;
 public class HashHelper {
 
     /**
-     * @native ts
+     * {@native ts
      * public static PRIME1 : Long = Long.fromNumber(2654435761, false);
+     * }
      */
     private static final long PRIME1 = 2654435761L;
 
     /**
-     * @native ts
+     * {@native ts
      * public static PRIME2 : Long = Long.fromNumber(2246822519, false);
+     * }
      */
     private static final long PRIME2 = 2246822519L;
 
     /**
-     * @native ts
+     * {@native ts
      * public static PRIME3 : Long = Long.fromNumber(3266489917, false);
+     * }
      */
     private static final long PRIME3 = 3266489917L;
 
     /**
-     * @native ts
+     * {@native ts
      * public static PRIME4 : Long = Long.fromNumber(668265263, false);
+     * }
      */
     private static final long PRIME4 = 668265263L;
 
     /**
-     * @native ts
+     * {@native ts
      * public static PRIME5 : Long = Long.fromNumber(0x165667b1, false);
+     * }
      */
     private static final long PRIME5 = 0x165667b1;
 
@@ -61,6 +66,12 @@ public class HashHelper {
      * crc = crc.mod(max);
      * return crc.toNumber();
      * }
+     */
+    /**
+     * Hashes a long
+     * @param number    the long to hash
+     * @param max       the max hash value
+     * @return          the hash value
      */
     public static long longHash(long number, long max) {
         if (max <= 0) {
@@ -141,6 +152,15 @@ public class HashHelper {
      * return crc.toNumber();
      * }
      */
+    /**
+     * Hashes a triple
+     * @param p0    First byte
+     * @param p1    First long
+     * @param p2    Second long
+     * @param p3    Third long
+     * @param max   the max hash value
+     * @return      the hash
+     */
     public static long tripleHash(byte p0, long p1, long p2, long p3, long max) {
         if (max <= 0) {
             throw new IllegalArgumentException("Max must be > 0");
@@ -209,32 +229,56 @@ public class HashHelper {
 
 
     /**
-     * @native ts
+     * {@native ts
      * return Math.random() * 1000000
+     * }
+     */
+    /**
+     * Returns a random long number
+     * @return a random number
      */
     public static long rand() {
         return (long) (Math.random() * Constants.END_OF_TIME);
     }
 
     /**
-     * @native ts
+     * {@native ts
      * return src === other
+     * }
+     */
+    /**
+     * Tests equality between two elements
+     * @param src       The first element
+     * @param other     The second element
+     * @return          True if equals, false otherwise
+     * @deprecated
+     * @see Constants#equals(String, String)
      */
     public static boolean equals(String src, String other) {
         return src.equals(other);
     }
 
     /**
-     * @native ts
+     * {@native ts
      * return Number.MIN_VALUE;
+     * }
+     */
+    /**
+     * Returns the minimum double value
+     * @return the minimum double value
      */
     public static double DOUBLE_MIN_VALUE() {
         return Double.MIN_VALUE;
     }
 
     /**
-     * @native ts
+     * {@native ts
      * return Number.MAX_VALUE;
+     * }
+     */
+    /**
+     * Returns the maximum double value
+     * @return the maximum double value
      */
     public static double DOUBLE_MAX_VALUE() {
         return Double.MAX_VALUE;
@@ -245,12 +289,19 @@ public class HashHelper {
      * return param != undefined && param != null;
      * }
      */
+    /**
+     * Checks if an object is defined
+     * @param param The element to check
+     * @return      True if defined, null otherwise.
+     * @deprecated
+     * @see Constants#isDefined(Object)
+     */
     public static boolean isDefined(Object param) {
         return param != null;
     }
 
     /**
-     * @native ts
+     * {@native ts
      * private static byteTable = function(){
      * var table = [];
      * var h = Long.fromBits(0xCAAF1684, 0x544B2FBA);
@@ -264,32 +315,41 @@ public class HashHelper {
      * }
      * return table;
      * }();
+     * }
      */
     private static final long[] byteTable = createLookupTable();
 
     /**
-     * @native ts
+     * {@native ts
      * private static HSTART : Long = Long.fromBits(0xA205B064, 0xBB40E64D);
+     * }
      */
     private static final long HSTART = 0xBB40E64DA205B064L;
     //0xBB40E64DA205B064
 
     /**
-     * @native ts
+     * {@native ts
      * private static HMULT : Long = Long.fromBits(0xE116586D,0x6A5D39EA);
+     * }
      */
     private static final long HMULT = 7664345821815920749L;
     //0x6A5D39EAE116586D
 
 
     /**
-     * @native ts
+     * {@native ts
      * var h = org.mwg.utility.HashHelper.HSTART;
      * var dataLength = data.length;
      * for (var i = 0; i < dataLength; i++) {
      * h = h.mul(org.mwg.utility.HashHelper.HMULT).xor(org.mwg.utility.HashHelper.byteTable[data.charCodeAt(i) & 0xff]);
      * }
      * return h.mod(org.mwg.core.CoreConstants.END_OF_TIME).toNumber();
+     * }
+     */
+    /**
+     * Hashes a String
+     * @param data  The string to has
+     * @return      The hash value
      */
     public static long hash(String data) {
         long h = HSTART;
@@ -303,13 +363,19 @@ public class HashHelper {
     }
 
     /**
-     * @native ts
+     * {@native ts
      * var h = org.mwg.utility.HashHelper.HSTART;
      * var dataLength = data.length;
      * for (var i = 0; i < dataLength; i++) {
      * h = h.mul(org.mwg.utility.HashHelper.HMULT).xor(org.mwg.utility.HashHelper.byteTable[data[i] & 0xff]);
      * }
      * return h.mod(org.mwg.core.CoreConstants.END_OF_TIME).toNumber();
+     * }
+     */
+    /**
+     * Hashes a byte array.
+     * @param data  The bytes to hash
+     * @return      The hash value
      */
     public static long hashBytes(byte[] data) {
         long h = HSTART;

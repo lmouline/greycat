@@ -6,14 +6,13 @@ package org.mwg.plugin;
 public interface NodeState {
 
     /**
-     * Access to the world whom this state is attached to
-     *
-     * @return current resolved world
+     * Returns the id of the world this state is attached to.
+     * @return the world id
      */
     long world();
 
     /**
-     * Access to the time whom this state is attached to
+     * Returns the time this state is attached to.
      *
      * @return current resolved time
      */
@@ -58,7 +57,8 @@ public interface NodeState {
      *
      * @param key          unique key of element
      * @param defaultValue default value in case of null on the previous state
-     * @return stored element
+     * @param <A> The type of the value
+     * @return typed stored element
      */
     <A> A getFromKeyWithDefault(String key, A defaultValue);
 
@@ -102,7 +102,7 @@ public interface NodeState {
     /**
      * Iterate over NodeState elements
      *
-     * @param callBack
+     * @param callBack the method to be called for each state.
      */
     void each(NodeStateCallback callBack);
 

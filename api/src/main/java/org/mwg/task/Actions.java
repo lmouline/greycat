@@ -7,13 +7,15 @@ public class Actions {
     private static GraphBuilder.InternalBuilder _internalBuilder = null;
 
     /**
-     * To call oce all options have been set, to actually create a task instance.
+     * To be called once all options have been set, to actually create a task instance.
+     * @return The new task
      *
-     * @native ts
+     * {@native ts
      * if (org.mwg.task.Actions._internalBuilder == null) {
      * org.mwg.task.Actions._internalBuilder = new org.mwg.core.Builder();
      * }
      * return org.mwg.task.Actions._internalBuilder.newTask();
+     * }
      */
     public static Task newTask() {
         if (_internalBuilder == null) {
