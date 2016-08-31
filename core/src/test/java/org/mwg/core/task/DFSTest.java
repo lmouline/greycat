@@ -72,75 +72,54 @@ public class DFSTest {
 
     @Test
     public void traverse() {
-        baseGrap(new Callback<Node>() {
-            @Override
-            public void on(Node n1) {
+        baseGrap(n1 -> {
 
-                if (n1 != null) {
-                    //DO BFS from n1
-                    Task dfs = newTask();
-                    dfs.foreach(asVar("parent")
-                            .traverse("left").asVar("left")
-                            .fromVar("parent").traverse("right").asVar("right")
-                            .then(new Action() {
-                                @Override
-                                public void eval(TaskContext context) {
-                                    Node left = null;
-                                    if (context.variable("left").size() > 0) {
-                                        left = (Node) context.variable("left").get(0);
-                                    }
-                                    Node right = null;
-                                    if (context.variable("right").size() > 0) {
-                                        right = (Node) context.variable("right").get(0);
-                                    }
-                                    TaskResult<Node> nextStep = context.newResult();
-                                    if (left != null && right != null) {
-                                        if (left.id() < right.id()) {
-                                            nextStep.add(left.graph().cloneNode(left));
-                                            nextStep.add(right.graph().cloneNode(right));
-                                        } else {
-                                            nextStep.add(left.graph().cloneNode(left));
-                                            nextStep.add(right.graph().cloneNode(right));
-                                        }
-                                    } else if (left != null) {
-                                        nextStep.add(left.graph().cloneNode(left));
-                                    }
-                                    if (left != null) {
-                                        context.addToGlobalVariable("nnl", context.wrap(left.id()));
-                                        context.addToGlobalVariable("nnld", context.wrap(left.id() / 2));
-                                    }
-                                    context.continueWith(nextStep);
+            if (n1 != null) {
+                //DO BFS from n1
+                Task dfs = newTask();
+                dfs.foreach(asVar("parent")
+                        .traverse("left").asVar("left")
+                        .fromVar("parent").traverse("right").asVar("right")
+                        .then(context -> {
+                            Node left = null;
+                            if (context.variable("left").size() > 0) {
+                                left = (Node) context.variable("left").get(0);
+                            }
+                            Node right = null;
+                            if (context.variable("right").size() > 0) {
+                                right = (Node) context.variable("right").get(0);
+                            }
+                            TaskResult<Node> nextStep = context.newResult();
+                            if (left != null && right != null) {
+                                if (left.id() < right.id()) {
+                                    nextStep.add(left.graph().cloneNode(left));
+                                    nextStep.add(right.graph().cloneNode(right));
+                                } else {
+                                    nextStep.add(left.graph().cloneNode(left));
+                                    nextStep.add(right.graph().cloneNode(right));
                                 }
-                            }).ifThen(new TaskFunctionConditional() {
-                                @Override
-                                public boolean eval(TaskContext context) {
-                                    return context.result().size() > 0;
-                                }
-                            }, dfs).then(new Action() {
-                                @Override
-                                public void eval(TaskContext context) {
-                                    context.continueTask();
-                                }
-                            })).fromVar("nnl");
+                            } else if (left != null) {
+                                nextStep.add(left.graph().cloneNode(left));
+                            }
+                            if (left != null) {
+                                context.addToGlobalVariable("nnl", context.wrap(left.id()));
+                                context.addToGlobalVariable("nnld", context.wrap(left.id() / 2));
+                            }
+                            context.continueWith(nextStep);
+                        }).ifThen(context -> (context.result().size() > 0), dfs).then(context -> context.continueTask())).fromVar("nnl");
 
-                    TaskResult initialResult = newTask().emptyResult();
-                    initialResult.add(n1);
+                TaskResult initialResult = newTask().emptyResult();
+                initialResult.add(n1);
 
-                    dfs/*.hook(VerboseHook.instance())/*/ /*.hook(VerboseHook.instance())/*.hook(new TaskHook() {
-                        @Override
-                        public void on(TaskAction previous, TaskAction next, TaskContext context) {
-                            System.out.println(next);
-                        }
-                    })*/.executeWith(n1.graph(), initialResult, new Callback<TaskResult>() {
-                        @Override
-                        public void on(TaskResult result) {
-                            Assert.assertEquals(result.toString(), "[2,4,5,7]");
-                        }
-                    });
-
-                }
+                dfs/*.hook(VerboseHook.instance())/*/ /*.hook(VerboseHook.instance())/*.hook(new TaskHook() {
+                    @Override
+                    public void on(TaskAction previous, TaskAction next, TaskContext context) {
+                        System.out.println(next);
+                    }
+                })*/.executeWith(n1.graph(), initialResult, result -> Assert.assertEquals(result.toString(), "[2,4,5,7]"));
 
             }
+
         });
     }
 
