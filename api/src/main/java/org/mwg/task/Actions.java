@@ -9,7 +9,8 @@ public class Actions {
     /**
      * To be called once all options have been set, to actually create a task instance.
      * @return The new task
-     *
+     */
+    /**
      * {@native ts
      * if (org.mwg.task.Actions._internalBuilder == null) {
      * org.mwg.task.Actions._internalBuilder = new org.mwg.core.Builder();

@@ -42,6 +42,12 @@ public class HashHelper {
     private static final int len = 24;
 
     /**
+     * Hashes a long
+     * @param number    the long to hash
+     * @param max       the max hash value
+     * @return          the hash value
+     */
+    /**
      * {@native ts
      * if (max <= 0) {
      * throw new Error("Max must be > 0");
@@ -66,12 +72,6 @@ public class HashHelper {
      * crc = crc.mod(max);
      * return crc.toNumber();
      * }
-     */
-    /**
-     * Hashes a long
-     * @param number    the long to hash
-     * @param max       the max hash value
-     * @return          the hash value
      */
     public static long longHash(long number, long max) {
         if (max <= 0) {
@@ -105,6 +105,15 @@ public class HashHelper {
         return crc;
     }
 
+    /**
+     * Hashes a triple
+     * @param p0    First byte
+     * @param p1    First long
+     * @param p2    Second long
+     * @param p3    Third long
+     * @param max   the max hash value
+     * @return      the hash
+     */
     /**
      * {@native ts
      * if (max <= 0) {
@@ -151,15 +160,6 @@ public class HashHelper {
      * crc = crc.mod(max);
      * return crc.toNumber();
      * }
-     */
-    /**
-     * Hashes a triple
-     * @param p0    First byte
-     * @param p1    First long
-     * @param p2    Second long
-     * @param p3    Third long
-     * @param max   the max hash value
-     * @return      the hash
      */
     public static long tripleHash(byte p0, long p1, long p2, long p3, long max) {
         if (max <= 0) {
@@ -229,23 +229,18 @@ public class HashHelper {
 
 
     /**
+     * Returns a random long number
+     * @return a random number
+     */
+    /**
      * {@native ts
      * return Math.random() * 1000000
      * }
-     */
-    /**
-     * Returns a random long number
-     * @return a random number
      */
     public static long rand() {
         return (long) (Math.random() * Constants.END_OF_TIME);
     }
 
-    /**
-     * {@native ts
-     * return src === other
-     * }
-     */
     /**
      * Tests equality between two elements
      * @param src       The first element
@@ -254,47 +249,52 @@ public class HashHelper {
      * @deprecated
      * @see Constants#equals(String, String)
      */
+    /**
+     * {@native ts
+     * return src === other
+     * }
+     */
     public static boolean equals(String src, String other) {
         return src.equals(other);
     }
 
     /**
+     * Returns the minimum double value
+     * @return the minimum double value
+     */
+    /**
      * {@native ts
      * return Number.MIN_VALUE;
      * }
-     */
-    /**
-     * Returns the minimum double value
-     * @return the minimum double value
      */
     public static double DOUBLE_MIN_VALUE() {
         return Double.MIN_VALUE;
     }
 
     /**
+     * Returns the maximum double value
+     * @return the maximum double value
+     */
+    /**
      * {@native ts
      * return Number.MAX_VALUE;
      * }
-     */
-    /**
-     * Returns the maximum double value
-     * @return the maximum double value
      */
     public static double DOUBLE_MAX_VALUE() {
         return Double.MAX_VALUE;
     }
 
     /**
-     * {@native ts
-     * return param != undefined && param != null;
-     * }
-     */
-    /**
      * Checks if an object is defined
      * @param param The element to check
      * @return      True if defined, null otherwise.
      * @deprecated
      * @see Constants#isDefined(Object)
+     */
+    /**
+     * {@native ts
+     * return param != undefined && param != null;
+     * }
      */
     public static boolean isDefined(Object param) {
         return param != null;
@@ -337,6 +337,11 @@ public class HashHelper {
 
 
     /**
+     * Hashes a String
+     * @param data  The string to has
+     * @return      The hash value
+     */
+    /**
      * {@native ts
      * var h = org.mwg.utility.HashHelper.HSTART;
      * var dataLength = data.length;
@@ -345,11 +350,6 @@ public class HashHelper {
      * }
      * return h.mod(org.mwg.core.CoreConstants.END_OF_TIME).toNumber();
      * }
-     */
-    /**
-     * Hashes a String
-     * @param data  The string to has
-     * @return      The hash value
      */
     public static long hash(String data) {
         long h = HSTART;
@@ -363,6 +363,11 @@ public class HashHelper {
     }
 
     /**
+     * Hashes a byte array.
+     * @param data  The bytes to hash
+     * @return      The hash value
+     */
+    /**
      * {@native ts
      * var h = org.mwg.utility.HashHelper.HSTART;
      * var dataLength = data.length;
@@ -371,11 +376,6 @@ public class HashHelper {
      * }
      * return h.mod(org.mwg.core.CoreConstants.END_OF_TIME).toNumber();
      * }
-     */
-    /**
-     * Hashes a byte array.
-     * @param data  The bytes to hash
-     * @return      The hash value
      */
     public static long hashBytes(byte[] data) {
         long h = HSTART;
