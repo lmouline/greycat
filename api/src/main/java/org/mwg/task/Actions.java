@@ -65,7 +65,6 @@ public class Actions {
         return newTask().parse(flatTask);
     }
 
-
     public static Task asGlobalVar(String variableName) {
         return newTask().asGlobalVar(variableName);
     }
@@ -76,6 +75,10 @@ public class Actions {
 
     public static Task asVar(String variableName) {
         return newTask().asGlobalVar(variableName);
+    }
+
+    public static Task defineVar(String variableName) {
+        return newTask().defineVar(variableName);
     }
 
     public static Task addToVar(String variableName) {
@@ -105,7 +108,6 @@ public class Actions {
     public static Task traverse(String relationName) {
         return newTask().traverse(relationName);
     }
-
 
 
     public static Task get(String name) {
