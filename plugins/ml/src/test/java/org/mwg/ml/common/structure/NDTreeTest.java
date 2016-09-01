@@ -39,7 +39,7 @@ public class NDTreeTest {
                 Node temp= graph.newNode(0,0);
                 temp.setProperty("value",Type.DOUBLE,1.5);
 
-                double[] key={1.9,1.9};
+                double[] key={1.3,1.9};
                 testtree.insert(key, temp, new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result) {

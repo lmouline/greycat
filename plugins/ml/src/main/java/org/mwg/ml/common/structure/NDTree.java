@@ -4,13 +4,12 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.Node;
 import org.mwg.Type;
-import org.mwg.ml.common.distance.Distance;
+import org.mwg.ml.common.matrix.Matrix;
 import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.NodeState;
 import org.mwg.struct.Relationship;
 import org.mwg.task.*;
 
-import static org.mwg.task.Actions.traverse;
 import static org.mwg.task.Actions.whileDo;
 
 /**
@@ -37,12 +36,11 @@ public class NDTree extends AbstractNode {
 
     //to store only on the root node
     private static long _PRECISION = 8;
-    private static long _DIM = 9;
+    private static int _NUMNODES = 9;
 
-    public static String BOUNDMIN="boundmin";
-    public static String BOUNDMAX="boundmax";
-    public static String PRECISION="precision";
-
+    public static String BOUNDMIN = "boundmin";
+    public static String BOUNDMAX = "boundmax";
+    public static String PRECISION = "precision";
 
 
     //The beginning of relations navigation
@@ -54,7 +52,7 @@ public class NDTree extends AbstractNode {
      * var result = Long.UZERO;
      * for(var i = 0; i < centerKey.length; i++) {
      * if(i!=0){
-     *     result = result.shiftLeft(1);
+     * result = result.shiftLeft(1);
      * }
      * if (keyToInsert[i] > centerKey[i]) {
      * result = result.add(Long.ONE);
@@ -65,7 +63,7 @@ public class NDTree extends AbstractNode {
     private static long getRelationId(double[] centerKey, double[] keyToInsert) {
         long result = 0;
         for (int i = 0; i < centerKey.length; i++) {
-            if(i!=0){
+            if (i != 0) {
                 result = result << 1;
             }
             if (keyToInsert[i] > centerKey[i]) {
@@ -138,7 +136,7 @@ public class NDTree extends AbstractNode {
             }
             total++;
             //Store everything
-            state.set(_TOTAL, Type.DOUBLE_ARRAY, total);
+            state.set(_TOTAL, Type.INT, total);
             state.set(_SUM, Type.DOUBLE_ARRAY, sum);
             state.set(_MIN, Type.DOUBLE_ARRAY, min);
             state.set(_MAX, Type.DOUBLE_ARRAY, max);
@@ -147,22 +145,148 @@ public class NDTree extends AbstractNode {
     }
 
 
+    public int getTotal() {
+        Integer x = (Integer) super.getByIndex(_TOTAL);
+        if (x == null) {
+            return 0;
+        } else {
+            return x;
+        }
+    }
+
+
+    public double[] getAvg() {
+        int total = getTotal();
+        if (total == 0) {
+            return null;
+        }
+        if (total == 1) {
+            return (double[]) super.getByIndex(_SUM);
+        } else {
+            double[] avg = (double[]) super.getByIndex(_SUM);
+            for (int i = 0; i < avg.length; i++) {
+                avg[i] = avg[i] / total;
+            }
+            return avg;
+        }
+
+    }
+
+
+    public double[] getCovarianceArray(double[] avg, double[] err) {
+        if (avg == null) {
+            double[] errClone = new double[err.length];
+            System.arraycopy(err, 0, errClone, 0, err.length);
+            return errClone;
+        }
+        if (err == null) {
+            err = new double[avg.length];
+        }
+        int features = avg.length;
+
+        int total = getTotal();
+        if (total == 0) {
+            return null;
+        }
+        if (total > 1) {
+            double[] covariances = new double[features];
+            double[] sumsquares = (double[]) super.getByIndex(_SUMSQ);
+
+            double correction = total;
+            correction = correction / (total - 1);
+
+            int count = 0;
+            for (int i = 0; i < features; i++) {
+                covariances[i] = (sumsquares[count] / total - avg[i] * avg[i]) * correction;
+                if (covariances[i] < err[i]) {
+                    covariances[i] = err[i];
+                }
+                count += features - i;
+            }
+            return covariances;
+        } else {
+            double[] errClone = new double[err.length];
+            System.arraycopy(err, 0, errClone, 0, err.length);
+            return errClone;
+        }
+    }
+
+
+    public Matrix getCovariance(double[] avg, double[] err) {
+        int features = avg.length;
+
+        int total = getTotal();
+        if (total == 0) {
+            return null;
+        }
+        if (err == null) {
+            err = new double[avg.length];
+        }
+        if (total > 1) {
+            double[] covariances = new double[features * features];
+            double[] sumsquares = (double[]) super.getByIndex(_SUMSQ);
+
+            double correction = total;
+            correction = correction / (total - 1);
+
+            int count = 0;
+            for (int i = 0; i < features; i++) {
+                for (int j = i; j < features; j++) {
+                    covariances[i * features + j] = (sumsquares[count] / total - avg[i] * avg[j]) * correction;
+                    covariances[j * features + i] = covariances[i * features + j];
+                    count++;
+                    if (covariances[i * features + i] < err[i]) {
+                        covariances[i * features + i] = err[i];
+                    }
+                }
+            }
+            return new Matrix(covariances, features, features);
+        } else {
+            return null;
+        }
+    }
+
+    public double[] getMin() {
+        int total = getTotal();
+        if (total == 0) {
+            return null;
+        }
+        if (total == 1) {
+            double[] min = (double[]) super.getByIndex(_SUM);
+            return min;
+        } else {
+            double[] min = (double[]) super.getByIndex(_MIN);
+            return min;
+        }
+    }
+
+    public double[] getMax() {
+        int total = getTotal();
+        if (total == 0) {
+            return null;
+        }
+        if (total == 1) {
+            double[] max = (double[]) super.getByIndex(_SUM);
+            return max;
+        } else {
+            double[] max = (double[]) super.getByIndex(_MAX);
+            return max;
+        }
+    }
+
 
     @Override
     public void setProperty(String propertyName, byte propertyType, Object propertyValue) {
-        if(propertyName.equals(BOUNDMIN)){
+        if (propertyName.equals(BOUNDMIN)) {
             NodeState state = unphasedState();
-            state.set(_BOUNDMIN,Type.DOUBLE_ARRAY,propertyValue);
-        }
-        else if(propertyName.equals(BOUNDMAX)){
+            state.set(_BOUNDMIN, Type.DOUBLE_ARRAY, propertyValue);
+        } else if (propertyName.equals(BOUNDMAX)) {
             NodeState state = unphasedState();
-            state.set(_BOUNDMAX,Type.DOUBLE_ARRAY,propertyValue);
-        }
-        else if(propertyName.equals(PRECISION)){
+            state.set(_BOUNDMAX, Type.DOUBLE_ARRAY, propertyValue);
+        } else if (propertyName.equals(PRECISION)) {
             NodeState state = unphasedState();
-            state.set(_PRECISION,Type.DOUBLE_ARRAY,propertyValue);
-        }
-        else {
+            state.set(_PRECISION, Type.DOUBLE_ARRAY, propertyValue);
+        } else {
             super.setProperty(propertyName, propertyType, propertyValue);
         }
     }
@@ -173,6 +297,9 @@ public class NDTree extends AbstractNode {
         @Override
         public boolean eval(TaskContext context) {
 
+            Node root = (Node) context.variable("root").get(0);
+
+
             Node current = context.resultAsNodes().get(0);
             NodeState state = current.graph().resolver().resolveState(current);
 
@@ -181,8 +308,8 @@ public class NDTree extends AbstractNode {
             double[] boundMax = (double[]) state.get(_BOUNDMAX);
             double[] boundMin = (double[]) state.get(_BOUNDMIN);
             double[] centerKey = new double[boundMax.length];
-            for(int i=0;i<centerKey.length;i++){
-                centerKey[i]=(boundMax[i]+boundMin[i])/2;
+            for (int i = 0; i < centerKey.length; i++) {
+                centerKey[i] = (boundMax[i] + boundMin[i]) / 2;
             }
 
             //Get variables from context
@@ -208,7 +335,7 @@ public class NDTree extends AbstractNode {
             if (continueNavigation) {
                 //Set the long to traverse
                 long traverseId = getRelationId(centerKey, keyToInsert);
-                System.out.println(traverseId-_RELCONST);
+                // System.out.println(traverseId-_RELCONST);
                 //Check if there is a node already in this subspace, otherwise create it
                 if (state.get(traverseId) == null) {
                     double[] newBoundMin = new double[dim];
@@ -230,26 +357,37 @@ public class NDTree extends AbstractNode {
                     NodeState newState = newChild.graph().resolver().resolveState(newChild);
                     newState.set(_BOUNDMIN, Type.DOUBLE_ARRAY, newBoundMin);
                     newState.set(_BOUNDMAX, Type.DOUBLE_ARRAY, newBoundMax);
-                    Relationship relChild = (Relationship) state.getOrCreate(traverseId,Type.RELATION);
+                    Relationship relChild = (Relationship) state.getOrCreate(traverseId, Type.RELATION);
                     relChild.add(newChild.id());
                     newChild.free();
+                    if(root.getByIndex(_NUMNODES)!=null) {
+                        int count = (int) root.getByIndex(_NUMNODES);
+                        count++;
+                        root.setPropertyByIndex(_NUMNODES, Type.INT, count);
+                    }
+                    else {
+                        root.setPropertyByIndex(_NUMNODES, Type.INT, 2);
+                    }
                 }
                 //toDo how to optimzie not to lookup
                 //In all cases we can traverse here
                 context.setVariable("next", traverseId);
             } else {
-                Node valueToInsert = (Node) context.variable("value").get(0);
-                //toDo Validate append relationships
+                try {
+                    Node valueToInsert = (Node) context.variable("value").get(0);
+                    //toDo Validate append relationships
+                    Relationship rel = (Relationship) state.getOrCreate(_VALUES, Type.RELATION);
+                    rel.add(valueToInsert.id());
+                } catch (Exception ex) {
 
-                Relationship rel = (Relationship) state.getOrCreate(_VALUES, Type.RELATION);
-                rel.add(valueToInsert.id());
+                }
             }
 
             return continueNavigation;
         }
 
         //todo check how to traverse on long
-    }, Actions.action (ActionTraverseById.NAME,"{{next}}"));
+    }, Actions.action(ActionTraverseById.NAME, "{{next}}"));
 
     public void insert(final double[] key, final Node value, final Callback<Boolean> callback) {
         NodeState state = unphasedState();
@@ -287,8 +425,11 @@ public class NDTree extends AbstractNode {
 
         //Set global variables
         tc.setGlobalVariable("key", res);
-        tc.setGlobalVariable("value", value);
+        if (value != null) {
+            tc.setGlobalVariable("value", value);
+        }
 
+        tc.setGlobalVariable("root",this);
         TaskResult resPres = tc.newResult();
         resPres.add(precisions);
         tc.setGlobalVariable("precision", resPres);
@@ -298,4 +439,13 @@ public class NDTree extends AbstractNode {
     }
 
 
+    public int getNumNodes() {
+
+        if(getByIndex(_NUMNODES)!=null) {
+            return (int) getByIndex(_NUMNODES);
+        }
+        else {
+            return 1;
+        }
+    }
 }
