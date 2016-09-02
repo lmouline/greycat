@@ -310,7 +310,7 @@ class OffHeapStateChunk implements StateChunk {
                     buffer.write(Constants.CHUNK_SEP);
                     Base64.encodeLongToBuffer(key(addr, i), buffer);
                     buffer.write(Constants.CHUNK_SUB_SEP);
-                    final byte type = OffHeapByteArray.get(addr, i);
+                    final byte type = type(addr, i);
                     Base64.encodeIntToBuffer(type, buffer);
                     buffer.write(Constants.CHUNK_SUB_SEP);
                     final long rawValue = value(addr, i);
