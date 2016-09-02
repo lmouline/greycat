@@ -17,7 +17,6 @@ public class OffHeapBufferTest extends AbstractBufferTest {
         OffHeapByteArray.alloc_counter = 0;
         OffHeapDoubleArray.alloc_counter = 0;
         OffHeapLongArray.alloc_counter = 0;
-        OffHeapStringArray.alloc_counter = 0;
         Unsafe.DEBUG_MODE = true;
     }
 
@@ -26,7 +25,6 @@ public class OffHeapBufferTest extends AbstractBufferTest {
         Assert.assertTrue(OffHeapByteArray.alloc_counter == 0);
         Assert.assertTrue(OffHeapDoubleArray.alloc_counter == 0);
         Assert.assertTrue(OffHeapLongArray.alloc_counter == 0);
-        Assert.assertTrue(OffHeapStringArray.alloc_counter == 0);
     }
 
 }
