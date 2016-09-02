@@ -14,6 +14,8 @@ class OffHeapRelationship implements Relationship {
     private static int SIZE = 1;
     private static int SHIFT = 2;
 
+    private static long addr = OffHeapConstants.OFFHEAP_NULL_PTR;
+
     private final long index;
     private final OffHeapStateChunk chunk;
 
@@ -25,7 +27,7 @@ class OffHeapRelationship implements Relationship {
     public final void allocate(int newCapacity) {
         chunk.lock();
         try {
-            final long addr = chunk.addrByIndex(index);
+            addr = chunk.addrByIndex(index);
             if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
                 //initial allocation
                 final long newly = OffHeapLongArray.allocate(newCapacity + SHIFT);
@@ -101,7 +103,7 @@ class OffHeapRelationship implements Relationship {
         } finally {
             chunk.unlock();
         }
-        chunk.declareDirty();
+        chunk.declareDirty(addr);
         return this;
     }
 
@@ -128,7 +130,7 @@ class OffHeapRelationship implements Relationship {
             chunk.unlock();
         }
         if (leftShift) {
-            chunk.declareDirty();
+            chunk.declareDirty(addr);
         }
         return this;
     }

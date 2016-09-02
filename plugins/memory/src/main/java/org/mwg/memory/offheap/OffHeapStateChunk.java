@@ -530,7 +530,7 @@ class OffHeapStateChunk implements StateChunk {
                         final byte typeOfVictim = type(addr, indexVictim);
                         if (typeOfVictim == Type.DOUBLE) {
                             final double victimDoubleValue = doubleValue(addr, indexVictim);
-                            setDoubleValue(addr, );
+//                            setDoubleValue(addr, );
 
                             //TODO
                         } else {
@@ -658,7 +658,7 @@ class OffHeapStateChunk implements StateChunk {
             OffHeapLongArray.set(hash_ptr, keyHash, i);
         }*/
         if (!initial) {
-            declareDirty();
+//            declareDirty();
         }
         return insert_index;
     }

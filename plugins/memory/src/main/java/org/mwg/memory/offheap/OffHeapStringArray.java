@@ -9,40 +9,16 @@ public class OffHeapStringArray {
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
 
     public static long allocate(final long capacity) {
-        if (Unsafe.DEBUG_MODE) {
-            alloc_counter++;
-        }
-
-        //create the memory segment
-        long newMemorySegment = unsafe.allocateMemory(capacity * 8);
-        //init the memory
-        unsafe.setMemory(newMemorySegment, capacity * 8, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
-        //return the newly created segment
-        return newMemorySegment;
+        return OffHeapLongArray.allocate(capacity);
     }
 
-    public static long reallocate(final long addr, final long nextCapacity, final long previousCapacity) {
-        /*
-        long new_ptr = unsafe.reallocateMemory(addr, nextCapacity * 8);
-        unsafe.setMemory(addr + previousCapacity * 8, (nextCapacity - previousCapacity) * 8, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
-        return new_ptr;
-        */
-
-        //allocate a new bigger segment
-        long newBiggerMemorySegment = unsafe.allocateMemory(nextCapacity * 8);
-        //reset the segment selectWith -1
-        unsafe.setMemory(newBiggerMemorySegment, nextCapacity * 8, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
-        //copy previous memory segment content
-        unsafe.copyMemory(addr, newBiggerMemorySegment, previousCapacity * 8);
-        //free the previous
-        unsafe.freeMemory(addr);
-        //return the newly created segment
-        return newBiggerMemorySegment;
-
+    public static long reallocate(final long addr, final long nextCapacity) {
+        return OffHeapLongArray.reallocate(addr, nextCapacity);
     }
 
     public static void set(final long addr, final long index, final String valueToInsert) {
         long temp_stringPtr = unsafe.getLong(addr + index * 8);
+
         byte[] valueAsByte = valueToInsert.getBytes();
         long newStringPtr = unsafe.allocateMemory(4 + valueAsByte.length);
         //copy size of the string
@@ -53,8 +29,9 @@ public class OffHeapStringArray {
         }
         //register the new stringPtr
         unsafe.putLongVolatile(null, addr + index * 8, newStringPtr);
-        //freeMemory if notNull
-        if (temp_stringPtr != -1) {
+
+        //free memory if not null
+        if (temp_stringPtr != OffHeapConstants.OFFHEAP_NULL_PTR) {
             unsafe.freeMemory(temp_stringPtr);
         }
     }
