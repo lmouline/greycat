@@ -42,19 +42,19 @@ class OffHeapStateChunk implements StateChunk {
         space = p_space;
     }
 
-    void lock() {
+    final void lock() {
         space.lockByIndex(index);
     }
 
-    void unlock() {
+    final void unlock() {
         space.unlockByIndex(index);
     }
 
-    long addrByIndex(long index) {
+    final long addrByIndex(long index) {
         return OffHeapLongArray.get(space.addrByIndex(index), OFFSET + (index * ELEM_SIZE) + 2);
     }
 
-    void setAddrByIndex(long index, long newAddr) {
+    final void setAddrByIndex(long index, long newAddr) {
         OffHeapLongArray.set(space.addrByIndex(index), OFFSET + (index * ELEM_SIZE) + 2, newAddr);
     }
 
