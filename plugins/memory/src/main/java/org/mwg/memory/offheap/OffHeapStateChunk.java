@@ -529,8 +529,8 @@ class OffHeapStateChunk implements StateChunk {
                         setKey(addr, entry, key(addr, indexVictim));
                         final byte typeOfVictim = type(addr, indexVictim);
                         if (typeOfVictim == Type.DOUBLE) {
-                            final double victimDoubleValue = doubleValue(addr,indexVictim);
-                            setDoubleValue(addr,);
+                            final double victimDoubleValue = doubleValue(addr, indexVictim);
+                            setDoubleValue(addr, );
 
                             //TODO
                         } else {
@@ -633,8 +633,10 @@ class OffHeapStateChunk implements StateChunk {
         setType(addr, insert_index, p_type);
         OffHeapLongArray.set(addr, SIZE, size + 1);
         //reHash
-        final long double_newCapacity = newCapacity * 2;
+        //final long double_newCapacity = newCapacity * 2;
         //extend hash
+
+        /*
         if (subhash_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             subhash_ptr = OffHeapLongArray.allocate(double_newCapacity);
         } else {
@@ -654,7 +656,7 @@ class OffHeapStateChunk implements StateChunk {
             final long keyHash = HashHelper.longHash(OffHeapLongArray.get(keys_ptr, i), double_newCapacity);
             OffHeapLongArray.set(next_ptr, i, OffHeapLongArray.get(hash_ptr, keyHash));
             OffHeapLongArray.set(hash_ptr, keyHash, i);
-        }
+        }*/
         if (!initial) {
             declareDirty();
         }
