@@ -30,13 +30,25 @@ public abstract class AbstractStateChunkTest {
 
         //init chunk selectWith primitives
         chunk.set(0, Type.BOOL, true);
+        Assert.assertEquals(chunk.get(0), true);
+
         chunk.set(1, Type.STRING, "hello");
+        Assert.assertEquals(chunk.get(1), "hello");
+
         chunk.set(2, Type.DOUBLE, 1.0);
+        Assert.assertEquals(chunk.get(2), 1.0);
+
         chunk.set(3, Type.LONG, 1000l);
+        Assert.assertEquals(chunk.get(3), 1000l);
+
         chunk.set(4, Type.INT, 100);
+        Assert.assertEquals(chunk.get(4), 100);
 
         chunk.set(5, Type.INT, 1);
+        Assert.assertEquals(chunk.get(5), 1);
+
         chunk.set(5, Type.INT, null);
+        Assert.assertEquals(chunk.get(5), null);
 
         Buffer buffer = factory.newBuffer();
         chunk.save(buffer);
@@ -302,7 +314,7 @@ public abstract class AbstractStateChunkTest {
     public void typeSwitchTest() {
         ChunkSpace space = factory.newSpace(100, null);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
-        
+
         //init primitives
         chunk.set(0, Type.BOOL, true);
         chunk.set(1, Type.STRING, "hello");

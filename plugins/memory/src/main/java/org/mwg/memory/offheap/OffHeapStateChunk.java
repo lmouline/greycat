@@ -154,7 +154,7 @@ class OffHeapStateChunk implements StateChunk {
     }
 
     private Object internal_get(final long addr, final long index) {
-        if (index > 0) {
+        if (index >= 0) {
             final byte elemType = type(addr, index);
             final long rawValue = value(addr, index);
             switch (type(addr, index)) {
