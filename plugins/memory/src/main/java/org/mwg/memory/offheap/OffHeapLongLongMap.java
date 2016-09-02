@@ -231,7 +231,7 @@ class OffHeapLongLongMap implements LongLongMap {
                             mapSize--;
                             OffHeapLongArray.set(addr, SIZE, mapSize);
                         }
-                        chunk.declareDirty();
+                        chunk.declareDirty(addr);
                     }
                 }
             }
@@ -290,11 +290,11 @@ class OffHeapLongLongMap implements LongLongMap {
                     setNext(lastIndex, currentHash);
                     mapSize++;
                     OffHeapLongArray.set(addr, SIZE, mapSize);
-                    chunk.declareDirty();
+                    chunk.declareDirty(addr);
                 } else {
                     if (value(found) != insertValue) {
                         setValue(found, insertValue);
-                        chunk.declareDirty();
+                        chunk.declareDirty(addr);
                     }
                 }
             }

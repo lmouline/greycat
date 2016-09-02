@@ -105,12 +105,17 @@ class OffHeapStringLongMap implements StringLongMap {
                 OffHeapLongArray.set(addr, HASHS, hashs_ptr);
             } else {
                 keys_ptr = OffHeapStringArray.reallocate(keys_ptr, newCapacity, currentCapacity);
+                OffHeapLongArray.set(addr, KEYS, keys_ptr);
                 keys_h_ptr = OffHeapLongArray.reallocate(keys_h_ptr, newCapacity);
+                OffHeapLongArray.set(addr, KEYS_H, keys_h_ptr);
                 values_ptr = OffHeapLongArray.reallocate(values_ptr, newCapacity);
+                OffHeapLongArray.set(addr, VALUES, values_ptr);
                 nexts_ptr = OffHeapLongArray.reallocate(nexts_ptr, newCapacity);
+                OffHeapLongArray.set(addr, NEXTS, nexts_ptr);
                 OffHeapLongArray.reset(nexts_ptr, newCapacity);
                 final long newHashCapacity = newCapacity * 2;
                 hashs_ptr = OffHeapLongArray.reallocate(hashs_ptr, newHashCapacity);
+                OffHeapLongArray.set(addr, HASHS, hashs_ptr);
                 OffHeapLongArray.reset(hashs_ptr, newHashCapacity);
                 for (long i = 0; i < currentSize; i++) {
                     long new_key_hash = HashHelper.longHash(key_h(i), newHashCapacity);
@@ -290,7 +295,7 @@ class OffHeapStringLongMap implements StringLongMap {
                             mapSize--;
                             OffHeapLongArray.set(addr, SIZE, mapSize);
                         }
-                        chunk.declareDirty();
+                        chunk.declareDirty(addr);
                     }
                 }
             }
@@ -351,11 +356,11 @@ class OffHeapStringLongMap implements StringLongMap {
                     setNext(lastIndex, currentHash);
                     mapSize++;
                     OffHeapLongArray.set(addr, SIZE, mapSize);
-                    chunk.declareDirty();
+                    chunk.declareDirty(addr);
                 } else {
                     if (value(found) != insertValue) {
                         setValue(found, insertValue);
-                        chunk.declareDirty();
+                        chunk.declareDirty(addr);
                     }
                 }
             }
