@@ -92,11 +92,15 @@ class OffHeapLongLongMap implements LongLongMap {
                 OffHeapLongArray.set(addr, HASHS, hashs_ptr);
             } else {
                 keys_ptr = OffHeapLongArray.reallocate(keys_ptr, newCapacity);
+                OffHeapLongArray.set(addr, KEYS, keys_ptr);
                 values_ptr = OffHeapLongArray.reallocate(values_ptr, newCapacity);
+                OffHeapLongArray.set(addr, VALUES, values_ptr);
                 nexts_ptr = OffHeapLongArray.reallocate(nexts_ptr, newCapacity);
+                nexts_ptr = OffHeapLongArray.allocate(newCapacity);
                 OffHeapLongArray.reset(nexts_ptr, newCapacity);
                 final long newHashCapacity = newCapacity * 2;
                 hashs_ptr = OffHeapLongArray.reallocate(hashs_ptr, newHashCapacity);
+                OffHeapLongArray.set(addr, HASHS, hashs_ptr);
                 OffHeapLongArray.reset(hashs_ptr, newHashCapacity);
                 for (long i = 0; i < currentSize; i++) {
                     long new_key_hash = HashHelper.longHash(key(i), newHashCapacity);
