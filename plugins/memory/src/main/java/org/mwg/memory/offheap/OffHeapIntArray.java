@@ -7,6 +7,10 @@ import org.mwg.utility.Unsafe;
 
 class OffHeapIntArray {
 
+    private static int COW_INDEX = 0;
+    private static int SIZE_INDEX = 1;
+    private static int SHIFT_INDEX = 2;
+
     public static long alloc_counter = 0;
 
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
@@ -31,8 +35,8 @@ class OffHeapIntArray {
         return unsafe.reallocateMemory(addr, nextCapacity * 4);
     }
 
-    public static void set(final long addr, final long index, final long valueToInsert) {
-        unsafe.putLongVolatile(null, addr + index * 4, valueToInsert);
+    public static void set(final long addr, final long index, final int valueToInsert) {
+        unsafe.putIntVolatile(null, addr + index * 4, valueToInsert);
     }
 
     public static int get(final long addr, final long index) {
@@ -46,26 +50,19 @@ class OffHeapIntArray {
         unsafe.freeMemory(addr);
     }
 
-    public static boolean compareAndSwap(final long addr, final long index, final long expectedValue, final long updatedValue) {
-        return unsafe.compareAndSwapLong(null, addr + index * 4, expectedValue, updatedValue);
-    }
-
-    public static long cloneArray(final long srcAddr, final long length) {
-        alloc_counter++;
-        long newAddr = unsafe.allocateMemory(length * 4);
-        unsafe.copyMemory(srcAddr, newAddr, length * 4);
-        return newAddr;
+    static boolean compareAndSwap(final long addr, final long index, final int expectedValue, final int updatedValue) {
+        return unsafe.compareAndSwapInt(null, addr + index * 4, expectedValue, updatedValue);
     }
 
     static void save(final long addr, final Buffer buffer) {
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return;
         }
-        final long rawSize = OffHeapIntArray.get(addr, 0);
+        final long rawSize = OffHeapIntArray.get(addr, SIZE_INDEX);
         Base64.encodeLongToBuffer(rawSize, buffer);
         for (int j = 0; j < rawSize; j++) {
             buffer.write(Constants.CHUNK_SUB_SUB_SEP);
-            Base64.encodeLongToBuffer(OffHeapIntArray.get(addr, j + 1), buffer);
+            Base64.encodeLongToBuffer(get(addr, j + SHIFT_INDEX), buffer);
         }
     }
 
@@ -73,21 +70,47 @@ class OffHeapIntArray {
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return null;
         }
-        int longArrayLength = OffHeapIntArray.get(addr, 0); // can be safely casted
+        int longArrayLength = get(addr, SIZE_INDEX); // can be safely casted
         int[] longArray = new int[longArrayLength];
         for (int i = 0; i < longArrayLength; i++) {
-            longArray[i] = OffHeapIntArray.get(addr, i + 1);
+            longArray[i] = get(addr, i + SHIFT_INDEX);
         }
         return longArray;
     }
 
     static long fromObject(int[] origin) {
-        long intArrayToInsert_ptr = OffHeapIntArray.allocate(1 + origin.length); // length + content of the array
-        OffHeapLongArray.set(intArrayToInsert_ptr, 0, origin.length);// set length
+        long intArrayToInsert_ptr = OffHeapIntArray.allocate(SHIFT_INDEX + origin.length);
+        set(intArrayToInsert_ptr, SIZE_INDEX, origin.length);
+        set(intArrayToInsert_ptr, COW_INDEX, 1);
         for (int i = 0; i < origin.length; i++) {
-            OffHeapIntArray.set(intArrayToInsert_ptr, 1 + i, origin[i]);
+            set(intArrayToInsert_ptr, SHIFT_INDEX + i, origin[i]);
         }
         return intArrayToInsert_ptr;
+    }
+
+    static long cloneObject(final long addr) {
+        int cow;
+        int cow_after;
+        do {
+            cow = get(addr, COW_INDEX);
+            cow_after = cow + 1;
+        } while (!compareAndSwap(addr, COW_INDEX, cow, cow_after));
+        return addr;
+    }
+
+    static void freeObject(final long addr) {
+        int cow;
+        int cow_after;
+        do {
+            cow = get(addr, COW_INDEX);
+            cow_after = cow - 1;
+        } while (!compareAndSwap(addr, COW_INDEX, cow, cow_after));
+        if (cow == 1 && cow_after == 0) {
+            unsafe.freeMemory(addr);
+            if (Unsafe.DEBUG_MODE) {
+                alloc_counter--;
+            }
+        }
     }
 
 }

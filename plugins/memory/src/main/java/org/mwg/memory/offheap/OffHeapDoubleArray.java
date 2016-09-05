@@ -6,6 +6,11 @@ import org.mwg.utility.Base64;
 import org.mwg.utility.Unsafe;
 
 public class OffHeapDoubleArray {
+
+    private static int COW_INDEX = 0;
+    private static int SIZE_INDEX = 1;
+    private static int SHIFT_INDEX = 2;
+
     public static long alloc_counter = 0;
 
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
@@ -14,7 +19,6 @@ public class OffHeapDoubleArray {
         if (Unsafe.DEBUG_MODE) {
             alloc_counter++;
         }
-
         //create the memory segment
         long newMemorySegment = unsafe.allocateMemory(capacity * 8);
         //init the memory
@@ -65,11 +69,11 @@ public class OffHeapDoubleArray {
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return;
         }
-        int rawSize = (int) OffHeapLongArray.get(addr, 0);
+        int rawSize = (int) OffHeapLongArray.get(addr, SIZE_INDEX);
         Base64.encodeIntToBuffer(rawSize, buffer);
         for (int j = 0; j < rawSize; j++) {
             buffer.write(Constants.CHUNK_SUB_SUB_SEP);
-            Base64.encodeDoubleToBuffer(OffHeapDoubleArray.get(addr, j + 1), buffer);
+            Base64.encodeDoubleToBuffer(OffHeapDoubleArray.get(addr, j + SHIFT_INDEX), buffer);
         }
     }
 
@@ -77,21 +81,47 @@ public class OffHeapDoubleArray {
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return null;
         }
-        int doubleArrayLength = (int) OffHeapLongArray.get(addr, 0);
+        int doubleArrayLength = (int) OffHeapLongArray.get(addr, SIZE_INDEX);
         double[] doubleArray = new double[doubleArrayLength];
         for (int i = 0; i < doubleArrayLength; i++) {
-            doubleArray[i] = OffHeapDoubleArray.get(addr, i + 1);
+            doubleArray[i] = OffHeapDoubleArray.get(addr, i + SHIFT_INDEX);
         }
         return doubleArray;
     }
 
     static long fromObject(double[] origin) {
-        long doubleArrayToInsert_ptr = OffHeapDoubleArray.allocate(1 + origin.length); // length + content of the array
-        OffHeapLongArray.set(doubleArrayToInsert_ptr, 0, origin.length);// set length
+        long doubleArrayToInsert_ptr = OffHeapDoubleArray.allocate(SHIFT_INDEX + origin.length);
+        OffHeapLongArray.set(doubleArrayToInsert_ptr, SIZE_INDEX, origin.length);
+        OffHeapLongArray.set(doubleArrayToInsert_ptr, COW_INDEX, 1);
         for (int i = 0; i < origin.length; i++) {
-            OffHeapDoubleArray.set(doubleArrayToInsert_ptr, 1 + i, origin[i]);
+            OffHeapDoubleArray.set(doubleArrayToInsert_ptr, SHIFT_INDEX + i, origin[i]);
         }
         return doubleArrayToInsert_ptr;
+    }
+
+    static long cloneObject(final long addr) {
+        long cow;
+        long cow_after;
+        do {
+            cow = OffHeapLongArray.get(addr, COW_INDEX);
+            cow_after = cow + 1;
+        } while (!OffHeapLongArray.compareAndSwap(addr, COW_INDEX, cow, cow_after));
+        return addr;
+    }
+
+    static void freeObject(final long addr) {
+        long cow;
+        long cow_after;
+        do {
+            cow = OffHeapLongArray.get(addr, COW_INDEX);
+            cow_after = cow - 1;
+        } while (!OffHeapLongArray.compareAndSwap(addr, COW_INDEX, cow, cow_after));
+        if (cow == 1 && cow_after == 0) {
+            unsafe.freeMemory(addr);
+            if (Unsafe.DEBUG_MODE) {
+                alloc_counter--;
+            }
+        }
     }
 
 }

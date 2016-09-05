@@ -124,6 +124,8 @@ public abstract class AbstractStateChunkTest {
         for (int i = 0; i < 10; i++) {
             Assert.assertEquals(chunk.get(1000 + i), i);
         }
+
+
         StateChunk chunk3 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 4);
         chunk3.loadFrom(chunk);
         Buffer buffer3 = factory.newBuffer();
@@ -132,6 +134,7 @@ public abstract class AbstractStateChunkTest {
         buffer.free();
         buffer = factory.newBuffer();
         chunk.save(buffer);
+
         Assert.assertTrue(compareBuffers(buffer, buffer3));
 
         buffer3.free();

@@ -390,7 +390,7 @@ class OffHeapStateChunk implements StateChunk {
                 //retrieve to clone address
                 final long castedAddr = space.addrByIndex(casted.index);
                 final long castedCapacity = OffHeapLongArray.get(castedAddr, CAPACITY);
-                final long castedSize = OffHeapLongArray.get(castedAddr, CAPACITY);
+                final long castedSize = OffHeapLongArray.get(castedAddr, SIZE);
                 final long castedSubHash = OffHeapLongArray.get(castedAddr, SUBHASH);
                 addr = OffHeapLongArray.cloneArray(castedAddr, OFFSET + (castedCapacity * ELEM_SIZE));
                 //clone sub hash if needed
@@ -401,6 +401,15 @@ class OffHeapStateChunk implements StateChunk {
                 //TODO optimze with a flag to avoid this iteration
                 for (int i = 0; i < castedSize; i++) {
                     switch (type(castedAddr, i)) {
+                        case Type.DOUBLE_ARRAY:
+                            OffHeapDoubleArray.cloneObject(value(castedAddr, i));
+                            break;
+                        case Type.LONG_ARRAY:
+                            OffHeapLongArray.cloneObject(value(castedAddr, i));
+                            break;
+                        case Type.INT_ARRAY:
+                            OffHeapIntArray.cloneObject(value(castedAddr, i));
+                            break;
                         case Type.STRING:
                             OffHeapString.clone(value(castedAddr, i));
                             break;
@@ -590,7 +599,7 @@ class OffHeapStateChunk implements StateChunk {
         if (size >= capacity) {
             long newCapacity = capacity * 2;
             addr = allocate(addr, newCapacity);
-            subhash_ptr = OffHeapLongArray.get(addr,SUBHASH);
+            subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
             capacity = newCapacity;
         }
         final long insert_index = size;
@@ -1002,16 +1011,16 @@ class OffHeapStateChunk implements StateChunk {
                 OffHeapString.free(addr);
                 break;
             case Type.DOUBLE_ARRAY:
-                OffHeapDoubleArray.free(addr);
+                OffHeapDoubleArray.freeObject(addr);
                 break;
             case Type.RELATION:
                 OffHeapRelationship.free(addr);
                 break;
             case Type.LONG_ARRAY:
-                OffHeapLongArray.free(addr);
+                OffHeapLongArray.freeObject(addr);
                 break;
             case Type.INT_ARRAY:
-                OffHeapIntArray.free(addr);
+                OffHeapIntArray.freeObject(addr);
                 break;
             case Type.STRING_TO_LONG_MAP:
                 OffHeapStringLongMap.free(addr);
