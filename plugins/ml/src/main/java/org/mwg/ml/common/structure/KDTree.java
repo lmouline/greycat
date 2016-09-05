@@ -57,6 +57,7 @@ public class KDTree extends AbstractNode {
 
             //Bootstrap, first insert ever
             if (nodeKey == null) {
+                current.setProperty(INTERNAL_DIM, Type.INT, dim);
                 current.setProperty(INTERNAL_KEY, Type.DOUBLE_ARRAY, keyToInsert);
                 current.getOrCreateRel(INTERNAL_VALUE).clear().add(valueToInsert.id());
                 current.setProperty(NUM_NODES, Type.INT, 1);
@@ -371,6 +372,8 @@ public class KDTree extends AbstractNode {
         insert.executeUsing(tc);
     }
 
+
+    //todo to be replaced
     public void nearestWithinDistance(final double[] key, final Callback<Node> callback) {
         NodeState state = unphasedState();
         final double err = state.getFromKeyWithDefault(DISTANCE_THRESHOLD, DISTANCE_THRESHOLD_DEF);
