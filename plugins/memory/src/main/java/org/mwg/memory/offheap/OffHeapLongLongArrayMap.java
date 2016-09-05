@@ -111,7 +111,6 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
         }
     }
 
-
     @Override
     public final long[] get(final long requestKey) {
         long[] result = new long[0];

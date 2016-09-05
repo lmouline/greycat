@@ -110,9 +110,9 @@ public abstract class AbstractStateChunkTest {
         buffer2 = factory.newBuffer();
         chunk2.save(buffer2);
 
-        Assert.assertTrue(((StringLongMap) chunk2.get(9)).size() == 3);
-        Assert.assertTrue(((LongLongMap) chunk2.get(8)).size() == 3);
-        Assert.assertTrue(((LongLongArrayMap) chunk2.get(10)).size() == 4);
+        Assert.assertEquals(((LongLongMap) chunk2.get(8)).size(), 3);
+        Assert.assertEquals(((StringLongMap) chunk2.get(9)).size(), 3);
+        Assert.assertEquals(((LongLongArrayMap) chunk2.get(10)).size(), 4);
 
         Assert.assertTrue(compareBuffers(buffer, buffer2));
         // Assert.assertTrue(1 == nbCount);

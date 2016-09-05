@@ -83,28 +83,32 @@ class OffHeapRelationship implements Relationship {
     public final Relationship add(final long newValue) {
         chunk.lock();
         try {
-            long addr = chunk.addrByIndex(index);
-            long size;
-            if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-                addr = OffHeapLongArray.allocate(Constants.MAP_INITIAL_CAPACITY + SHIFT);
-                chunk.setAddrByIndex(index, addr);
-                size = 0;
-            } else {
-                size = OffHeapLongArray.get(addr, SIZE);
-                final long capacity = OffHeapLongArray.get(addr, SIZE);
-                if (size == capacity) {
-                    final long newCapacity = capacity * 2;
-                    addr = OffHeapLongArray.reallocate(addr, newCapacity + SHIFT);
-                    OffHeapLongArray.set(addr, CAPACITY, newCapacity);
-                }
-            }
-            OffHeapLongArray.set(newValue, size + SHIFT, newValue);
-            OffHeapLongArray.set(addr, SIZE, size + 1);
+            internal_add(newValue);
             chunk.declareDirty();
         } finally {
             chunk.unlock();
         }
         return this;
+    }
+
+    final void internal_add(final long newValue) {
+        long addr = chunk.addrByIndex(index);
+        long size;
+        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            addr = OffHeapLongArray.allocate(Constants.MAP_INITIAL_CAPACITY + SHIFT);
+            chunk.setAddrByIndex(index, addr);
+            size = 0;
+        } else {
+            size = OffHeapLongArray.get(addr, SIZE);
+            final long capacity = OffHeapLongArray.get(addr, SIZE);
+            if (size == capacity) {
+                final long newCapacity = capacity * 2;
+                addr = OffHeapLongArray.reallocate(addr, newCapacity + SHIFT);
+                OffHeapLongArray.set(addr, CAPACITY, newCapacity);
+            }
+        }
+        OffHeapLongArray.set(newValue, size + SHIFT, newValue);
+        OffHeapLongArray.set(addr, SIZE, size + 1);
     }
 
     @Override
