@@ -25,9 +25,18 @@
     <div id="infoPanel" style="position: absolute; bottom: 0; right: 0; width: calc(100% - 5px); height: 200px; border: 1px solid lightgray">
         <h3>&nbsp;&nbsp;INFORMATION </h3>
         <table>
-            <tr><td><b>Bike stands:</b></td><td id="all_stands"></td></tr>
-            <tr><td><b>Free stands:</b></td><td id="free_stands"></td></tr>
-            <tr><td><b>Available bikes:</b></td><td id="available_bikes"></td></tr>
+            <tr>
+                <td><b>Bike stands:</b></td>
+                <td id="all_stands"></td>
+            </tr>
+            <tr>
+                <td><b>Free stands:</b></td>
+                <td id="free_stands"></td>
+            </tr>
+            <tr>
+                <td><b>Available bikes:</b></td>
+                <td id="available_bikes"></td>
+            </tr>
         </table>
 
     </div>
@@ -42,7 +51,8 @@
         updateContract("Luxembourg");
 
         var optionLists = {};
-        var fillOptionList = org.mwg.task.Actions.fromIndexAll("stations")
+        var fillOptionList = org.mwg.task.Actions.setTime((new Date()).getTime())
+                        .fromIndexAll("stations")
                         .get("contract_name")
                         .foreach(org.mwg.task.Actions.then(function (context) {
                             optionLists[context.result().get(0)] = context.result().get(0);
@@ -79,28 +89,30 @@
             mymap.removeLayer(markers);
         }
         markers = new L.FeatureGroup();
-        var displayStationsTask = org.mwg.task.Actions.fromIndexAll("stations").selectWith("contract_name", contract_name).foreach(
-                org.mwg.task.Actions.isolate(org.mwg.task.Actions.traverse("position").asVar("pos"))
-                        .then(function (context) {
-                            var marker = L.marker([context.variable("pos").get(0).get("lat"), context.variable("pos").get(0).get("lng")])
+        var displayStationsTask = org.mwg.task.Actions
+                .setTime((new Date()).getTime())
+                .fromIndexAll("stations").selectWith("contract_name", contract_name).foreach(
+                        org.mwg.task.Actions.isolate(org.mwg.task.Actions.traverse("position").asVar("pos"))
+                                .then(function (context) {
+                                    var marker = L.marker([context.variable("pos").get(0).get("lat"), context.variable("pos").get(0).get("lng")])
                                             .addTo(mymap)
                                             .bindPopup(context.result().get(0).get("name"));
-                            marker["node"] = context.result().get(0).id();
-                            marker.on('click', function (e) {
-                                graph.lookup(0,0,e.target.node, function(node){
-                                    document.querySelector("#all_stands").textContent = node.get("bike_stands");
-                                    document.querySelector("#free_stands").textContent = node.get("available_bike_stands");
-                                    document.querySelector("#available_bikes").textContent = node.get("available_bikes");
-                                });
+                                    marker["node"] = context.result().get(0).id();
+                                    marker.on('click', function (e) {
+                                        graph.lookup(0, (new Date()).getTime(), e.target.node, function (node) {
+                                            document.querySelector("#all_stands").textContent = node.get("bike_stands");
+                                            document.querySelector("#free_stands").textContent = node.get("available_bike_stands");
+                                            document.querySelector("#available_bikes").textContent = node.get("available_bikes");
+                                        });
 
-                            });
-                            markers.addLayer(marker);
-                            context.continueTask();
-                        })
-        ).then(function (context) {
-            mymap.addLayer(markers);
-            context.continueTask();
-        });
+                                    });
+                                    markers.addLayer(marker);
+                                    context.continueTask();
+                                })
+                ).then(function (context) {
+                    mymap.addLayer(markers);
+                    context.continueTask();
+                });
         displayStationsTask.execute(graph, null);
     }
 
@@ -110,15 +122,17 @@
     });
 
     function updateNearest(e) {
-        var askKDTree = org.mwg.task.Actions.fromIndexAll("positionsTree").then(function (context) {
-            var kdTree = context.result().get(0);
-            kdTree.nearestN([e.latlng.lat, e.latlng.lng], 10, function (nodes) {
-                for (var n in nodes) {
-                    console.log(nodes[n].get("name"));
-                }
-            });
-            context.continueTask();
-        });
+        var askKDTree = org.mwg.task.Actions
+                .setTime((new Date()).getTime())
+                .fromIndexAll("positionsTree").then(function (context) {
+                    var kdTree = context.result().get(0);
+                    kdTree.nearestN([e.latlng.lat, e.latlng.lng], 10, function (nodes) {
+                        for (var n in nodes) {
+                            console.log(nodes[n].get("name"));
+                        }
+                        context.continueTask();
+                    });
+                });
         askKDTree.execute(graph, null);
     }
 

@@ -23,39 +23,47 @@ public class ActionNewNodeFromJson extends AbstractTaskAction {
     @Override
     public void eval(TaskContext context) {
         TaskResult<Node> res = context.newResult();
-        JsonValue val = (JsonValue)context.result().get(0);
-        if(val.isObject()) {
-            res.add(buildNodeFromJsonObject(context.graph(), val.asObject()));
+        JsonValue val = (JsonValue) context.result().get(0);
+        if (val.isObject()) {
+            JsonObject obj = val.asObject();
+            context.setTime(obj.getLong("last_update", context.time()));
+            res.add(buildNodeFromJsonObject(context, val.asObject()));
         }
         context.continueWith(res);
     }
 
-    private Node buildNodeFromJsonObject(Graph g, JsonObject currentObject) {
-        Node n = g.newNode(0, 0);
+    private Node buildNodeFromJsonObject(TaskContext context, JsonObject currentObject) {
+        Graph g = context.graph();
+        Node n = g.newNode(context.world(), context.time());
+        //Node n = g.newNode(0,0);
         Iterator<JsonObject.Member> membersIt = currentObject.iterator();
         while (membersIt.hasNext()) {
-            JsonObject.Member m = membersIt.next();
-            JsonValue value = m.getValue();
-            if (value.isObject()) {
-                n.add(m.getName(), buildNodeFromJsonObject(g, value.asObject()));
-            } else if (value.isString()) {
-                n.set(m.getName(), value.asString());
-            } else if (value.isBoolean()) {
-                n.set(m.getName(), value.asBoolean());
-            } else if (value.isNumber()) {
-                try {
-                    n.set(m.getName(), value.asInt());
-                } catch (Exception e) {
+            try {
+                JsonObject.Member m = membersIt.next();
+                JsonValue value = m.getValue();
+                if (value.isObject()) {
+                    n.add(m.getName(), buildNodeFromJsonObject(context, value.asObject()));
+                } else if (value.isString()) {
+                    n.set(m.getName(), value.asString());
+                } else if (value.isBoolean()) {
+                    n.set(m.getName(), value.asBoolean());
+                } else if (value.isNumber()) {
                     try {
-                        n.set(m.getName(), value.asLong());
-                    } catch (Exception e2) {
+                        n.set(m.getName(), value.asInt());
+                    } catch (Exception e) {
                         try {
-                            n.set(m.getName(), value.asFloat());
-                        } catch (Exception e3) {
-                            n.set(m.getName(), value.asDouble());
+                            n.set(m.getName(), value.asLong());
+                        } catch (Exception e2) {
+                            try {
+                                n.set(m.getName(), value.asFloat());
+                            } catch (Exception e3) {
+                                n.set(m.getName(), value.asDouble());
+                            }
                         }
                     }
                 }
+            } catch (Throwable t) {
+                t.printStackTrace();
             }
         }
         return n;
