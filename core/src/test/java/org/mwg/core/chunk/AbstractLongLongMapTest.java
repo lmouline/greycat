@@ -26,14 +26,14 @@ public abstract class AbstractLongLongMapTest {
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
         LongLongMap map = (LongLongMap) chunk.getOrCreate(0, Type.LONG_TO_LONG_MAP);
 
-        Assert.assertEquals(map.size(),0);
+        Assert.assertEquals(map.size(), 0);
 
         map.put(0, 0);
-        Assert.assertEquals(map.size(),1);
+        Assert.assertEquals(map.size(), 1);
         Assert.assertTrue(0 == map.get(0));
 
         map.put(1, 1);
-        Assert.assertEquals(map.size(),2);
+        Assert.assertEquals(map.size(), 2);
         Assert.assertTrue(0 == map.get(0));
         Assert.assertTrue(1 == map.get(1));
 

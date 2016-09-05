@@ -31,8 +31,13 @@ class CoreTaskContext implements TaskContext {
 
     CoreTaskContext(final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final TaskHook p_hook, final Callback<TaskResult> p_callback) {
         this._hook = p_hook;
-        this._world = 0;
-        this._time = 0;
+        if (parentContext != null) {
+            this._time = parentContext.time();
+            this._world = parentContext.world();
+        } else {
+            this._world = 0;
+            this._time = 0;
+        }
         this._graph = p_graph;
         this._parent = parentContext;
         final CoreTaskContext castedParentContext = (CoreTaskContext) parentContext;
