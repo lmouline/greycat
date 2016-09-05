@@ -493,7 +493,7 @@ class OffHeapStateChunk implements StateChunk {
         long hashIndex = -1;
         long size = OffHeapLongArray.get(addr, SIZE);
         long capacity = OffHeapLongArray.get(addr, CAPACITY);
-        final long subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
+        long subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
         if (subhash_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             for (int i = 0; i < size; i++) {
                 if (key(addr, i) == p_key) {
@@ -590,6 +590,7 @@ class OffHeapStateChunk implements StateChunk {
         if (size >= capacity) {
             long newCapacity = capacity * 2;
             addr = allocate(addr, newCapacity);
+            subhash_ptr = OffHeapLongArray.get(addr,SUBHASH);
             capacity = newCapacity;
         }
         final long insert_index = size;
@@ -641,7 +642,7 @@ class OffHeapStateChunk implements StateChunk {
             }
             OffHeapLongArray.set(new_addr, SUBHASH, subHash_ptr);
             //reHash
-            final long size = OffHeapLongArray.get(addr, SIZE);
+            final long size = OffHeapLongArray.get(new_addr, SIZE);
             final long hash_capacity = newCapacity * 2;
             for (long i = 0; i < size; i++) {
                 long keyHash = HashHelper.longHash(key(new_addr, i), hash_capacity);
