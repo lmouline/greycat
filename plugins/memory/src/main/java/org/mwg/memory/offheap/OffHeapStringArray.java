@@ -7,8 +7,8 @@ public class OffHeapStringArray {
     }
 
     public static long reallocate(final long addr, final long nextCapacity, final long currentCapacity) {
-        long newAddr =  OffHeapLongArray.reallocate(addr, nextCapacity);
-        OffHeapLongArray.reset((newAddr + currentCapacity) * 8, (nextCapacity - currentCapacity) * 8);
+        long newAddr = OffHeapLongArray.reallocate(addr, nextCapacity);
+        OffHeapLongArray.reset(newAddr + (currentCapacity * 8), (nextCapacity - currentCapacity) * 8);
         return newAddr;
     }
 
@@ -25,8 +25,9 @@ public class OffHeapStringArray {
         long stringPtr = OffHeapLongArray.get(addr, index);
         if (stringPtr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return null;
+        } else {
+            return OffHeapString.asObject(stringPtr);
         }
-        return OffHeapString.asObject(addr);
     }
 
     public static void free(final long addr, final long capacity) {
@@ -39,7 +40,7 @@ public class OffHeapStringArray {
         OffHeapLongArray.free(addr);
     }
 
-    public static long cloneArray(final long srcAddr, final long length) {
+    static long cloneArray(final long srcAddr, final long length) {
         // this is just a shallow copy... (i.e., only the root array is copied)
         return OffHeapLongArray.cloneArray(srcAddr, length);
     }

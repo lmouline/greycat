@@ -34,8 +34,6 @@ public abstract class AbstractStringLongMapTest {
         Assert.assertTrue(0 == map.getValue("Hello"));
         Assert.assertTrue(1 == map.getValue("Hello1"));
 
-        /*
-
         //no effect
         map.put("Hello1", 1);
         map.put("Hello", 1);
@@ -45,8 +43,12 @@ public abstract class AbstractStringLongMapTest {
 
         map.put("DictionaryUsage", Constants.NULL_LONG);
         Assert.assertTrue(Constants.NULL_LONG == map.getValue("DictionaryUsage"));
-
+        
+        Assert.assertEquals(1, map.getValue("Hello"));
         Assert.assertTrue(HashHelper.equals("Hello", map.getByHash(HashHelper.hash("Hello"))));
+
+        /*
+
 
         final String[] keys = new String[3];
         final long[] values = new long[3];
