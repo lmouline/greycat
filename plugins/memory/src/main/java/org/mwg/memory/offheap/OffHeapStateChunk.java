@@ -245,6 +245,9 @@ class OffHeapStateChunk implements StateChunk {
 
     @Override
     public final void set(final long p_elementIndex, final byte p_elemType, final Object p_unsafe_elem) {
+        if(p_elemType == Type.LONG_TO_LONG_MAP || p_elemType == Type.LONG_TO_LONG_ARRAY_MAP || p_elemType == Type.STRING_TO_LONG_MAP || p_elemType == Type.RELATION){
+            throw new RuntimeException("Bad API usage ! Set are forbidden for Maps and Relationship , please use getOrCreate instead");
+        }
         lock();
         try {
             internal_set(p_elementIndex, p_elemType, p_unsafe_elem, true, false);
@@ -567,12 +570,12 @@ class OffHeapStateChunk implements StateChunk {
                     final byte previous_type = type(addr, entry);
                     final long previous_value = value(addr, entry);
                     //freeThePreviousValue
-                    freeElement(previous_value, previous_type);
                     if (p_type == Type.DOUBLE) {
                         setDoubleValue(addr, entry, toDoubleValue(p_unsafe_elem));
                     } else {
                         setValue(addr, entry, toAddr(p_type, p_unsafe_elem));
                     }
+                    freeElement(previous_value, previous_type);
                     if (previous_type != p_type) {
                         setType(addr, entry, p_type);
                     }

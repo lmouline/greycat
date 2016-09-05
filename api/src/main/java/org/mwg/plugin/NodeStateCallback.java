@@ -3,6 +3,6 @@ package org.mwg.plugin;
 @FunctionalInterface
 public interface NodeStateCallback {
 
-    void on(long attributeKey, int elemType, Object elem);
+    void on(long attributeKey, byte elemType, Object elem);
 
 }

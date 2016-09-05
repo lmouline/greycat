@@ -333,8 +333,6 @@ public abstract class AbstractStateChunkTest {
         //ok now switch all types
 
         //switch primitives
-
-
         chunk.set(10, Type.BOOL, true);
         Assert.assertTrue(chunk.getType(10) == Type.BOOL);
         Assert.assertTrue((Boolean) chunk.get(10));
@@ -357,22 +355,18 @@ public abstract class AbstractStateChunkTest {
         Assert.assertTrue(chunk.getType(3) == Type.DOUBLE);
         Assert.assertTrue((Double) chunk.get(3) == 1.0);
 
-
         //switch arrays
         chunk.set(4, Type.DOUBLE_ARRAY, new double[]{1.0, 2.0, 3.0});
         Assert.assertTrue(chunk.getType(4) == Type.DOUBLE_ARRAY);
         Assert.assertTrue(((double[]) chunk.get(4))[0] == 1.0);
 
-
         chunk.set(5, Type.LONG_ARRAY, new long[]{1, 2, 3});
         Assert.assertTrue(chunk.getType(5) == Type.LONG_ARRAY);
         Assert.assertTrue(((long[]) chunk.get(5))[0] == 1);
 
-
         chunk.set(6, Type.INT_ARRAY, new int[]{1, 2, 3});
         Assert.assertTrue(chunk.getType(6) == Type.INT_ARRAY);
         Assert.assertTrue(((int[]) chunk.get(6))[0] == 1);
-
 
         //switch maps
         ((LongLongMap) chunk.getOrCreate(7, Type.LONG_TO_LONG_MAP)).put(100, 100);

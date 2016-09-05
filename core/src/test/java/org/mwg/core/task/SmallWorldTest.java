@@ -21,7 +21,7 @@ public class SmallWorldTest {
             @Override
             public void on(Boolean isConnected) {
 
-                setTime("0").setWorld("0")
+                        setTime("0").setWorld("0")
                         .newNode().setProperty("name", Type.STRING, "room0").indexNode("rooms", "name").asVar("room0")
                         .newNode().setProperty("name", Type.STRING, "room01").indexNode("rooms", "name").asVar("room01")
                         .newNode().setProperty("name", Type.STRING, "room001").indexNode("rooms", "name").asVar("room001")

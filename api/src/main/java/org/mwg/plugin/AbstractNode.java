@@ -563,7 +563,7 @@ public abstract class AbstractNode implements Node {
         if (state != null) {
             state.each(new NodeStateCallback() {
                 @Override
-                public void on(long attributeKey, int elemType, Object elem) {
+                public void on(long attributeKey, byte elemType, Object elem) {
                     if (elem != null) {
                         switch (elemType) {
                             /** Primitive types */
