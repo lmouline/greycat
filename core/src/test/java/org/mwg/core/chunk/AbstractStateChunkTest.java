@@ -121,11 +121,9 @@ public abstract class AbstractStateChunkTest {
         for (int i = 0; i < 10; i++) {
             chunk.set(1000 + i, Type.INT, i);
         }
-
         for (int i = 0; i < 10; i++) {
             Assert.assertEquals(chunk.get(1000 + i), i);
         }
-
         StateChunk chunk3 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 4);
         chunk3.loadFrom(chunk);
         Buffer buffer3 = factory.newBuffer();

@@ -65,7 +65,7 @@ public class OffHeapDoubleArray {
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return;
         }
-        int rawSize = (int) OffHeapDoubleArray.get(addr, 0);
+        int rawSize = (int) OffHeapLongArray.get(addr, 0);
         Base64.encodeIntToBuffer(rawSize, buffer);
         for (int j = 0; j < rawSize; j++) {
             buffer.write(Constants.CHUNK_SUB_SUB_SEP);
