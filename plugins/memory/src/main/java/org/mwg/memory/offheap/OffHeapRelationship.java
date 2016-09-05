@@ -100,10 +100,10 @@ class OffHeapRelationship implements Relationship {
             }
             OffHeapLongArray.set(newValue, size + SHIFT, newValue);
             OffHeapLongArray.set(addr, SIZE, size + 1);
+            chunk.declareDirty();
         } finally {
             chunk.unlock();
         }
-        chunk.declareDirty(addr);
         return this;
     }
 
@@ -126,11 +126,11 @@ class OffHeapRelationship implements Relationship {
                     }
                 }
             }
+            if (leftShift) {
+                chunk.declareDirty();
+            }
         } finally {
             chunk.unlock();
-        }
-        if (leftShift) {
-            chunk.declareDirty(addr);
         }
         return this;
     }

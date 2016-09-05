@@ -245,7 +245,7 @@ class OffHeapStateChunk implements StateChunk {
 
     @Override
     public final void set(final long p_elementIndex, final byte p_elemType, final Object p_unsafe_elem) {
-        if(p_elemType == Type.LONG_TO_LONG_MAP || p_elemType == Type.LONG_TO_LONG_ARRAY_MAP || p_elemType == Type.STRING_TO_LONG_MAP || p_elemType == Type.RELATION){
+        if (p_elemType == Type.LONG_TO_LONG_MAP || p_elemType == Type.LONG_TO_LONG_ARRAY_MAP || p_elemType == Type.STRING_TO_LONG_MAP || p_elemType == Type.RELATION) {
             throw new RuntimeException("Bad API usage ! Set are forbidden for Maps and Relationship , please use getOrCreate instead");
         }
         lock();
@@ -294,8 +294,9 @@ class OffHeapStateChunk implements StateChunk {
         return getType(space.graph().resolver().stringToHash(key, false));
     }
 
-    final void declareDirty(final long addr) {
-        if (space != null && OffHeapLongArray.get(addr, DIRTY) != 1) {
+    final void declareDirty() {
+        final long addr = space.addrByIndex(index);
+        if (OffHeapLongArray.get(addr, DIRTY) != 1) {
             OffHeapLongArray.set(addr, DIRTY, 1);
             space.notifyUpdate(index);
         }
@@ -582,7 +583,7 @@ class OffHeapStateChunk implements StateChunk {
                 }
             }
             if (!initial) {
-                declareDirty(addr);
+                declareDirty();
             }
             return entry;
         }
@@ -605,9 +606,9 @@ class OffHeapStateChunk implements StateChunk {
         }
         size++;
         OffHeapLongArray.set(addr, SIZE, size);
-        declareDirty(addr);
+        declareDirty();
         if (!initial) {
-            declareDirty(addr);
+            declareDirty();
         }
         return insert_index;
     }
