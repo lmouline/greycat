@@ -19,11 +19,11 @@ class OffHeapLongLongMap implements LongLongMap {
 
     private static int CHUNK_ELEM_SIZE = 6;
 
-    private static long addr = OffHeapConstants.OFFHEAP_NULL_PTR;
-    private static long keys_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
-    private static long values_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
-    private static long nexts_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
-    private static long hashs_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
+    private long addr = OffHeapConstants.OFFHEAP_NULL_PTR;
+    private long keys_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
+    private long values_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
+    private long nexts_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
+    private long hashs_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
 
     private final long index;
     private final OffHeapStateChunk chunk;
@@ -79,7 +79,7 @@ class OffHeapLongLongMap implements LongLongMap {
         if (newCapacity > currentCapacity) {
             if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
                 addr = OffHeapLongArray.allocate(CHUNK_ELEM_SIZE);
-                chunk.setAddrByIndex(index,addr);
+                chunk.setAddrByIndex(index, addr);
                 OffHeapLongArray.set(addr, SIZE, 0);
                 OffHeapLongArray.set(addr, CAPACITY, newCapacity);
                 keys_ptr = OffHeapLongArray.allocate(newCapacity);

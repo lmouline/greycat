@@ -50,12 +50,12 @@ class OffHeapStateChunk implements StateChunk {
         space.unlockByIndex(index);
     }
 
-    final long addrByIndex(long index) {
-        return OffHeapLongArray.get(space.addrByIndex(index), OFFSET + (index * ELEM_SIZE) + 2);
+    final long addrByIndex(long elemIndex) {
+        return OffHeapLongArray.get(space.addrByIndex(index), OFFSET + (elemIndex * ELEM_SIZE) + 2);
     }
 
-    final void setAddrByIndex(long index, long newAddr) {
-        OffHeapLongArray.set(space.addrByIndex(index), OFFSET + (index * ELEM_SIZE) + 2, newAddr);
+    final void setAddrByIndex(long elemIndex, long newAddr) {
+        OffHeapLongArray.set(space.addrByIndex(index), OFFSET + (elemIndex * ELEM_SIZE) + 2, newAddr);
     }
 
     private static long key(final long addr, final long index) {
@@ -229,7 +229,7 @@ class OffHeapStateChunk implements StateChunk {
                 foundIndex = internal_find(addr, requestKey);
             }
             if (foundIndex == OffHeapConstants.OFFHEAP_NULL_PTR || type(addr, foundIndex) != requestType) {
-                foundIndex = internal_set(requestKey, requestType, null, true, false);
+                foundIndex = internal_set(requestKey, requestType, OffHeapConstants.OFFHEAP_NULL_PTR, true, false);
             }
             result = internal_get(space.addrByIndex(index), foundIndex);
         } finally {
@@ -461,9 +461,9 @@ class OffHeapStateChunk implements StateChunk {
                     case Type.STRING_TO_LONG_MAP:
                     case Type.LONG_TO_LONG_MAP:
                     case Type.LONG_TO_LONG_ARRAY_MAP:
-                        throw new RuntimeException("mwDB usage error, set method called with type " + Type.typeName(p_type) + ", is getOrCreate method instead");
-                        //param_elem = OffHeapConstants.OFFHEAP_NULL_PTR; //empty initial ptr
-                        //break;
+                        //throw new RuntimeException("mwDB usage error, set method called with type " + Type.typeName(p_type) + ", is getOrCreate method instead");
+                        param_elem = OffHeapConstants.OFFHEAP_NULL_PTR; //empty initial ptr
+                        break;
                     default:
                         throw new RuntimeException("Internal Exception, unknown type");
                 }
