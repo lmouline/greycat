@@ -41,9 +41,14 @@ public class OffHeapStringArray {
     }
 
     static long cloneArray(final long srcAddr, final long length) {
-        // this is just a shallow copy... (i.e., only the root array is copied)
-        return OffHeapLongArray.cloneArray(srcAddr, length);
+        final long clonedArray = OffHeapLongArray.cloneArray(srcAddr, length);
+        for (long i = 0; i < length; i++) {
+            final long stringPtr = OffHeapLongArray.get(clonedArray, i);
+            if (stringPtr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapString.clone(stringPtr);
+            }
+        }
+        return clonedArray;
     }
-
 
 }

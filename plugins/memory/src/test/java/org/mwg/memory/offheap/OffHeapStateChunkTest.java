@@ -24,9 +24,9 @@ public class OffHeapStateChunkTest extends AbstractStateChunkTest {
     @After
     public void tearDown() throws Exception {
         Assert.assertEquals(OffHeapByteArray.alloc_counter, 0);
-        Assert.assertEquals(OffHeapDoubleArray.alloc_counter, 0);
         Assert.assertEquals(OffHeapLongArray.alloc_counter, 0);
         Assert.assertEquals(OffHeapString.alloc_counter, 0);
+        Assert.assertEquals(OffHeapDoubleArray.alloc_counter, 0);
     }
 
 }

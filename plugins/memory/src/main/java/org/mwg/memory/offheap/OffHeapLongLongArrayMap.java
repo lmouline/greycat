@@ -361,14 +361,18 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
         }
         long new_addr = OffHeapLongArray.cloneArray(addr, CHUNK_ELEM_SIZE);
         long capacity = OffHeapLongArray.get(addr, CAPACITY);
+
         long keys_ptr = OffHeapLongArray.get(addr, KEYS);
         OffHeapLongArray.set(new_addr, KEYS, OffHeapLongArray.cloneArray(keys_ptr, capacity));
+
         long values_ptr = OffHeapLongArray.get(addr, VALUES);
         OffHeapLongArray.set(new_addr, VALUES, OffHeapLongArray.cloneArray(values_ptr, capacity));
+
         long nexts_ptr = OffHeapLongArray.get(addr, NEXTS);
         OffHeapLongArray.set(new_addr, NEXTS, OffHeapLongArray.cloneArray(nexts_ptr, capacity));
+
         long hashs_ptr = OffHeapLongArray.get(addr, HASHS);
-        OffHeapLongArray.set(new_addr, HASHS, OffHeapLongArray.cloneArray(hashs_ptr, capacity));
+        OffHeapLongArray.set(new_addr, HASHS, OffHeapLongArray.cloneArray(hashs_ptr, capacity * 2));
         return new_addr;
     }
 

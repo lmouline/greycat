@@ -350,7 +350,7 @@ class OffHeapLongLongMap implements LongLongMap {
         long nexts_ptr = OffHeapLongArray.get(addr, NEXTS);
         OffHeapLongArray.set(new_addr, NEXTS, OffHeapLongArray.cloneArray(nexts_ptr, capacity));
         long hashs_ptr = OffHeapLongArray.get(addr, HASHS);
-        OffHeapLongArray.set(new_addr, HASHS, OffHeapLongArray.cloneArray(hashs_ptr, capacity));
+        OffHeapLongArray.set(new_addr, HASHS, OffHeapLongArray.cloneArray(hashs_ptr, capacity * 2));
         return new_addr;
     }
 

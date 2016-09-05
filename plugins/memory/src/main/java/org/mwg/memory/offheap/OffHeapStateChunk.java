@@ -223,15 +223,16 @@ class OffHeapStateChunk implements StateChunk {
         Object result = null;
         lock();
         try {
-            final long addr = space.addrByIndex(index);
+            long addr = space.addrByIndex(index);
             long foundIndex = OffHeapConstants.OFFHEAP_NULL_PTR;
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 foundIndex = internal_find(addr, requestKey);
             }
             if (foundIndex == OffHeapConstants.OFFHEAP_NULL_PTR || type(addr, foundIndex) != requestType) {
                 foundIndex = internal_set(requestKey, requestType, OffHeapConstants.OFFHEAP_NULL_PTR, true, false);
+                addr = space.addrByIndex(index);
             }
-            result = internal_get(space.addrByIndex(index), foundIndex);
+            result = internal_get(addr, foundIndex);
         } finally {
             unlock();
         }
@@ -601,6 +602,7 @@ class OffHeapStateChunk implements StateChunk {
             addr = allocate(addr, newCapacity);
             subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
             capacity = newCapacity;
+            hashIndex = HashHelper.longHash(p_key, capacity * 2);
         }
         final long insert_index = size;
         setKey(addr, insert_index, p_key);
