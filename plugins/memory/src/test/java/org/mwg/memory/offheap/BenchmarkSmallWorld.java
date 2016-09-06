@@ -32,8 +32,8 @@ public class BenchmarkSmallWorld {
                         .fromVar("room001").add("rooms", "room0001")
                         .loop("0", "9", //loop automatically inject an it variable
                                 newNode()
-                                        .setProperty("id", Type.STRING, "sensor_{{it}}")
-                                        .indexNode("sensors", "id")
+                                        .setProperty("name", Type.STRING, "sensor_{{i}}")
+                                        .indexNode("sensors", "name")
                                         .defineVar("sensor")
                                         .ifThenElse(cond("i % 4 == 0"), fromVar("room0").add("sensors", "sensor"),
                                                 ifThenElse(cond("i % 4 == 1"), fromVar("room01").add("sensors", "sensor"),
