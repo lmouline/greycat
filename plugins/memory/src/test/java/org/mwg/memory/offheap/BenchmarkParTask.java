@@ -15,7 +15,7 @@ public class BenchmarkParTask {
 
     public static void main(String[] args) {
 
-        Unsafe.DEBUG_MODE = true;
+        //Unsafe.DEBUG_MODE = true;
 
         Graph g = new GraphBuilder()
                 .withMemorySize(1000000)
@@ -25,12 +25,12 @@ public class BenchmarkParTask {
         g.connect(result -> {
             final long previous = System.currentTimeMillis();
             final long previousCache = g.space().available();
-            loop("0", "9999", newNode()
+            loopPar("0", "9999", newNode()
                     .setProperty("name", Type.STRING, "node_{{i}}")
-                    .print("{{result}}")
+                    //.print("{{result}}")
                     .indexNode("nodes", "name")
-                    .loop("0", "99", jump("{{i}}").setProperty("val", Type.INT, "{{i}}").clear())
-                    .save()
+                    .loop("0", "999", jump("{{i}}").setProperty("val", Type.INT, "{{i}}").clear())
+                    .ifThen(cond("i % 10 == 0"), save().print("{{i}}"))
                     .clear()
             ).save().execute(g, new Callback<TaskResult>() {
                 @Override
