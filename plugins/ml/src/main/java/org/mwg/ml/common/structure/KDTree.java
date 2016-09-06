@@ -1,10 +1,7 @@
 package org.mwg.ml.common.structure;
 
 import org.mwg.*;
-import org.mwg.ml.common.distance.Distance;
-import org.mwg.ml.common.distance.DistanceEnum;
-import org.mwg.ml.common.distance.EuclideanDistance;
-import org.mwg.ml.common.distance.GaussianDistance;
+import org.mwg.ml.common.distance.*;
 import org.mwg.plugin.*;
 import org.mwg.struct.Relationship;
 import org.mwg.task.*;
@@ -438,7 +435,7 @@ public class KDTree extends AbstractNode {
 //                        node.graph().save(null);
                         //  System.out.println("B- "+node.id()+": "+node.graph().space().available());
 
-                        double  dist_sqd = Double.MAX_VALUE;
+                        double dist_sqd = Double.MAX_VALUE;
 
 
                         // 9. max-dist-sqd := minimum of max-dist-sqd and dist-sqd
@@ -527,6 +524,8 @@ public class KDTree extends AbstractNode {
                 throw new RuntimeException("covariance of gaussian distances cannot be null");
             }
             distance = new GaussianDistance(precision);
+        } else if (d == DistanceEnum.GEODISTANCE) {
+            distance = new GeoDistance();
         } else {
             throw new RuntimeException("Unknown distance code metric");
         }
@@ -682,7 +681,7 @@ public class KDTree extends AbstractNode {
         tc.setGlobalVariable("distance", distance);
         tc.setGlobalVariable("dim", dim);
         tc.setGlobalVariable("nnl", nnl);
-        tc.setGlobalVariable("radius",radius);
+        tc.setGlobalVariable("radius", radius);
 
         tc.defineVariable("lev", 0);
         tc.defineVariable("hr", hr);
