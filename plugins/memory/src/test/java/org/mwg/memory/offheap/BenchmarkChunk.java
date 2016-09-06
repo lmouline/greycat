@@ -3,7 +3,7 @@ package org.mwg.memory.offheap;
 import org.mwg.chunk.Chunk;
 import org.mwg.chunk.ChunkType;
 
-public class ChunkMicroBenchmark {
+public class BenchmarkChunk {
 
     public static void main(String[] args) {
         int nb = 3000000;

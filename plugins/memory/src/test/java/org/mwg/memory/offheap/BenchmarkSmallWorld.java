@@ -1,20 +1,22 @@
-package org.mwg.core.task;
+package org.mwg.memory.offheap;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Type;
-import org.mwg.task.*;
+import org.mwg.task.TaskResult;
 import org.mwg.utility.VerbosePlugin;
 
 import static org.mwg.task.Actions.*;
 
-public class SmallWorldTest {
+@SuppressWarnings("Duplicates")
+public class BenchmarkSmallWorld {
 
     public static void main(String[] args) {
 
         Graph g = new GraphBuilder()
                 .withMemorySize(100000)
+                .withPlugin(new OffHeapMemoryPlugin())
                 .withPlugin(new VerbosePlugin())
                 .build();
         g.connect(new Callback<Boolean>() {

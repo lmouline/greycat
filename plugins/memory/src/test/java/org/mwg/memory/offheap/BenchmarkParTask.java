@@ -4,18 +4,19 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Type;
+import org.mwg.core.scheduler.HybridScheduler;
 import org.mwg.task.TaskResult;
 
 import static org.mwg.task.Actions.*;
 
 @SuppressWarnings("Duplicates")
-public class ParTaskMicroBenchmark {
+public class BenchmarkParTask {
 
     public static void main(String[] args) {
         Graph g = new GraphBuilder()
-                .withMemorySize(10000)
-                //.withPlugin(new OffHeapMemoryPlugin())
-                //.withScheduler(new HybridScheduler())
+                .withMemorySize(1000000)
+                .withPlugin(new OffHeapMemoryPlugin())
+                .withScheduler(new HybridScheduler())
                 .build();
         g.connect(new Callback<Boolean>() {
             @Override
@@ -26,7 +27,7 @@ public class ParTaskMicroBenchmark {
                         .setProperty("name", Type.STRING, "node_{{it}}")
                         // .print("{{result}}")
                         .indexNode("nodes", "name")
-                        .loop("0", "999", jump("{{it}}").setProperty("val", Type.INT, "{{it}}").clear())
+                        .loop("0", "999", jump("{{i}}").setProperty("val", Type.INT, "{{i}}").clear())
                         .save()
                         .clear()
                 ).save().execute(g, new Callback<TaskResult>() {
