@@ -71,7 +71,7 @@ class OffHeapRelationship implements Relationship {
             final long addr = chunk.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 final long size = OffHeapLongArray.get(addr, SIZE);
-                if (index < size) {
+                if (elemIndex < size) {
                     result = OffHeapLongArray.get(addr, elemIndex + SHIFT);
                 } else {
                     return -1;
@@ -125,9 +125,9 @@ class OffHeapRelationship implements Relationship {
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 final long size = OffHeapLongArray.get(addr, SIZE);
                 for (int i = 0; i < size; i++) {
-                    long current = OffHeapLongArray.get(addr, i);
+                    long current = OffHeapLongArray.get(addr, SHIFT + i);
                     if (leftShift) {
-                        OffHeapLongArray.set(addr, index + (SHIFT - 1), current);
+                        OffHeapLongArray.set(addr, SHIFT + i - 1, current);
                     } else {
                         if (current == oldValue) {
                             leftShift = true;
@@ -161,23 +161,23 @@ class OffHeapRelationship implements Relationship {
     @Override
     public final String toString() {
         StringBuilder buffer = new StringBuilder();
-        chunk.lock();
-        try {
-            final long addr = chunk.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                buffer.append("[");
-                final long size = OffHeapLongArray.get(addr, SIZE);
-                for (int i = 0; i < size; i++) {
-                    if (i != 0) {
-                        buffer.append(",");
-                    }
-                    buffer.append(OffHeapLongArray.get(addr, i + SHIFT));
+        //chunk.lock();
+        // try {
+        final long addr = chunk.addrByIndex(index);
+        if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            buffer.append("[");
+            final long size = OffHeapLongArray.get(addr, SIZE);
+            for (int i = 0; i < size; i++) {
+                if (i != 0) {
+                    buffer.append(",");
                 }
-                buffer.append("]");
+                buffer.append(OffHeapLongArray.get(addr, i + SHIFT));
             }
-        } finally {
-            chunk.unlock();
+            buffer.append("]");
         }
+        //} finally {
+        // chunk.unlock();
+        //}
         return buffer.toString();
     }
 

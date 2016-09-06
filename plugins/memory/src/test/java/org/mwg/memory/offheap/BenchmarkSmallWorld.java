@@ -16,7 +16,7 @@ public class BenchmarkSmallWorld {
 
         Graph g = new GraphBuilder()
                 .withMemorySize(100000)
-                //  .withPlugin(new OffHeapMemoryPlugin())
+                .withPlugin(new OffHeapMemoryPlugin())
                 .withPlugin(new VerbosePlugin())
                 .build();
         g.connect(new Callback<Boolean>() {
