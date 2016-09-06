@@ -6,6 +6,9 @@ import org.mwg.struct.Buffer;
 import org.mwg.utility.Base64;
 import org.mwg.utility.Unsafe;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class OffHeapLongArray {
 
     private static int COW_INDEX = 0;
@@ -16,12 +19,15 @@ public class OffHeapLongArray {
 
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
 
+    private static final Map<Long, Long> segments = new HashMap<Long, Long>();
+
     public static long allocate(final long capacity) {
-        if (Unsafe.DEBUG_MODE) {
-            alloc_counter++;
-        }
         //create the memory segment
         long newMemorySegment = unsafe.allocateMemory(capacity * 8);
+        if (Unsafe.DEBUG_MODE) {
+            segments.put(newMemorySegment, capacity * 8);
+            alloc_counter++;
+        }
         //init the memory
         unsafe.setMemory(newMemorySegment, capacity * 8, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
         //return the newly created segment
@@ -33,19 +39,37 @@ public class OffHeapLongArray {
     }
 
     public static long reallocate(final long addr, final long nextCapacity) {
-        return unsafe.reallocateMemory(addr, nextCapacity * 8);
+        long new_segment = unsafe.reallocateMemory(addr, nextCapacity * 8);
+        if (Unsafe.DEBUG_MODE) {
+            segments.remove(addr);
+            segments.put(new_segment, nextCapacity * 8);
+        }
+        return new_segment;
     }
 
     public static void set(final long addr, final long index, final long valueToInsert) {
-        unsafe.putLongVolatile(null, addr + index * 8, valueToInsert);
+        if (Unsafe.DEBUG_MODE) {
+            Long allocated = segments.get(addr);
+            if (allocated == null || index < 0 || (index * 8) > allocated) {
+                throw new RuntimeException("set: bad address " + index + "(" + index * 8 + ")" + " in " + allocated);
+            }
+        }
+        unsafe.putLongVolatile(null, addr + (index * 8), valueToInsert);
     }
 
     public static long get(final long addr, final long index) {
-        return unsafe.getLongVolatile(null, addr + index * 8);
+        if (Unsafe.DEBUG_MODE) {
+            Long allocated = segments.get(addr);
+            if (allocated == null || index < 0 || (index * 8) > allocated) {
+                throw new RuntimeException("get: bad address " + index + " in " + allocated);
+            }
+        }
+        return unsafe.getLongVolatile(null, addr + (index * 8));
     }
 
     public static void free(final long addr) {
         if (Unsafe.DEBUG_MODE) {
+            segments.remove(addr);
             alloc_counter--;
         }
         unsafe.freeMemory(addr);
@@ -59,9 +83,12 @@ public class OffHeapLongArray {
         if (srcAddr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return srcAddr;
         }
-        alloc_counter++;
         long newAddr = unsafe.allocateMemory(length * 8);
-        unsafe.copyMemory(srcAddr, newAddr, length * 8);
+        if (Unsafe.DEBUG_MODE) {
+            segments.put(newAddr, (length * 8));
+            alloc_counter++;
+        }
+        unsafe.copyMemory(srcAddr, newAddr, (length * 8));
         return newAddr;
     }
 

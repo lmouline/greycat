@@ -82,7 +82,7 @@ public abstract class AbstractTimeTreeTest {
     public void massiveTest() {
         ChunkSpace space = factory.newSpace(100, null);
         TimeTreeChunk tree = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
-        long max = 24;
+        long max = 100;
         for (long i = 0; i <= max; i = i + 2) {
             tree.insert(i);
         }
