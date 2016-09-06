@@ -211,6 +211,10 @@ public class Actions {
         return newTask().lookup(nodeId);
     }
 
+    public static Task hook(TaskHookFactory fact) {
+        return newTask().hook(fact);
+    }
+
     public static Task clear() {
         return newTask().clear();
     }
