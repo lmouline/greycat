@@ -1,11 +1,14 @@
 package org.mwg.struct.distance;
 
-/**
- * Created by assaad on 29/06/16.
- */
 public class PearsonDistance implements Distance {
+
+    public static PearsonDistance INSTANCE = new PearsonDistance();
+
+    private PearsonDistance() {
+    }
+
     @Override
-    public double measure(double[] a, double[] b) {
+    public final double measure(double[] a, double[] b) {
         double xy = 0, x = 0, x2 = 0, y = 0, y2 = 0;
         for (int i = 0; i < a.length; i++) {
             xy += a[i] * b[i];
@@ -19,17 +22,18 @@ public class PearsonDistance implements Distance {
     }
 
     @Override
-    public boolean compare(double x, double y) {
+    public final boolean compare(double x, double y) {
         return Math.abs(x) > Math.abs(y);
     }
 
     @Override
-    public double getMinValue() {
+    public final double getMinValue() {
         return 1;
     }
 
     @Override
-    public double getMaxValue() {
+    public final double getMaxValue() {
         return 0;
     }
+    
 }

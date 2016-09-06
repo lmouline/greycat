@@ -1,31 +1,34 @@
 package org.mwg.struct.distance;
 
-/**
- * Created by assaad on 29/06/16.
- */
 public class EuclideanDistance implements Distance {
+
+    public static EuclideanDistance INSTANCE = new EuclideanDistance();
+
+    private EuclideanDistance() {
+    }
+
     @Override
-    public double measure(double[] x, double[] y) {
-        double value=0;
-        for(int i=0;i<x.length;i++){
-            value=value+(x[i]-y[i])*(x[i]-y[i]);
+    public final double measure(double[] x, double[] y) {
+        double value = 0;
+        for (int i = 0; i < x.length; i++) {
+            value = value + (x[i] - y[i]) * (x[i] - y[i]);
         }
         return Math.sqrt(value);
     }
 
     @Override
-    public boolean compare(double x, double y) {
+    public final boolean compare(double x, double y) {
         return x < y;
     }
 
 
     @Override
-    public double getMinValue() {
+    public final double getMinValue() {
         return 0;
     }
 
     @Override
-    public double getMaxValue() {
+    public final double getMaxValue() {
         return Double.MAX_VALUE;
     }
 }
