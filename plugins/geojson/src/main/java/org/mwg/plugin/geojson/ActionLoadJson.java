@@ -40,6 +40,7 @@ public class ActionLoadJson extends AbstractTaskAction {
                 } else {
                     result = new JsonResult(new JsonValue[]{firstElem});
                 }
+                isr.close();
             }
         } catch (IOException e) {
             e.printStackTrace();

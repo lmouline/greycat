@@ -1789,9 +1789,9 @@ var org;
                                 else {
                                     _this.rel(org.mwg.ml.algorithm.profiling.GaussianTreeNode.INTERNAL_KDROOT, function (result) {
                                         var root = result[0];
-                                        root.nearestWithinDistance(features, function (result) {
-                                            if (result != null) {
-                                                var profile = result;
+                                        root.nearestNWithinRadius(features, 1, threshold, function (result) {
+                                            if (result != null && result.length > 0) {
+                                                var profile = result[0];
                                                 profile.learnVector(values, function (result) {
                                                     root.free();
                                                     profile.free();
@@ -1842,11 +1842,12 @@ var org;
                             if (resolved.getFromKey(GaussianTreeNode.INTERNAL_KDROOT) == null) {
                                 callback(null);
                             }
+                            var threshold = resolved.getFromKeyWithDefault(GaussianTreeNode.THRESHOLD, GaussianTreeNode.THRESHOLD_DEF);
                             this.rel(GaussianTreeNode.INTERNAL_KDROOT, function (result) {
                                 var root = result[0];
-                                root.nearestWithinDistance(features, function (result) {
-                                    if (result != null) {
-                                        var profile = result;
+                                root.nearestNWithinRadius(features, 1, threshold, function (result) {
+                                    if (result != null && result.length > 0) {
+                                        var profile = result[0];
                                         var avg = profile.getAvg();
                                         var res = avg[avg.length - 1];
                                         profile.free();
@@ -4764,6 +4765,105 @@ var org;
                             }, org.mwg.task.Actions.traverse("{{far}}").isolate(reccursiveDown)));
                             return reccursiveDown;
                         };
+                        KDTree.initFindRadius = function () {
+                            var reccursiveDown = org.mwg.task.Actions.newTask();
+                            reccursiveDown.then(function (context) {
+                                var node = context.resultAsNodes().get(0);
+                                if (node == null) {
+                                    context.continueTask();
+                                    return;
+                                }
+                                var pivot = node.get(org.mwg.ml.common.structure.KDTree.INTERNAL_KEY);
+                                var dim = context.variable("dim").get(0);
+                                var target = context.variable("key").get(0);
+                                var distance = context.variable("distance").get(0);
+                                var lev = context.variable("lev").get(0);
+                                var hr = context.variable("hr").get(0);
+                                var max_dist_sqd = context.variable("max_dist_sqd").get(0);
+                                var s = lev % dim;
+                                var pivot_to_target = distance.measure(pivot, target);
+                                var left_hr = hr;
+                                var right_hr = hr.clone();
+                                left_hr.max[s] = pivot[s];
+                                right_hr.min[s] = pivot[s];
+                                var target_in_left = target[s] < pivot[s];
+                                var nearer_kd;
+                                var nearer_hr;
+                                var further_kd;
+                                var further_hr;
+                                var nearer_st;
+                                var farther_st;
+                                if (target_in_left) {
+                                    nearer_kd = node.get(org.mwg.ml.common.structure.KDTree.INTERNAL_LEFT);
+                                    nearer_st = org.mwg.ml.common.structure.KDTree.INTERNAL_LEFT;
+                                    nearer_hr = left_hr;
+                                    further_kd = node.get(org.mwg.ml.common.structure.KDTree.INTERNAL_RIGHT);
+                                    further_hr = right_hr;
+                                    farther_st = org.mwg.ml.common.structure.KDTree.INTERNAL_RIGHT;
+                                }
+                                else {
+                                    nearer_kd = node.get(org.mwg.ml.common.structure.KDTree.INTERNAL_RIGHT);
+                                    nearer_hr = right_hr;
+                                    nearer_st = org.mwg.ml.common.structure.KDTree.INTERNAL_RIGHT;
+                                    further_kd = node.get(org.mwg.ml.common.structure.KDTree.INTERNAL_LEFT);
+                                    further_hr = left_hr;
+                                    farther_st = org.mwg.ml.common.structure.KDTree.INTERNAL_LEFT;
+                                }
+                                context.defineVariable("further_hr", further_hr);
+                                context.defineVariable("pivot_to_target", pivot_to_target);
+                                if (nearer_kd != null && nearer_kd.size() != 0) {
+                                    context.defineVariable("near", nearer_st);
+                                    context.defineVariableForSubTask("hr", nearer_hr);
+                                    context.defineVariableForSubTask("max_dist_sqd", max_dist_sqd);
+                                    context.defineVariableForSubTask("lev", lev + 1);
+                                }
+                                else {
+                                    context.defineVariableForSubTask("near", context.newResult());
+                                }
+                                if (further_kd != null && further_kd.size() != 0) {
+                                    context.defineVariableForSubTask("far", farther_st);
+                                }
+                                else {
+                                    context.defineVariableForSubTask("far", context.newResult());
+                                }
+                                context.continueTask();
+                            }).isolate(org.mwg.task.Actions.ifThen(function (context) {
+                                return context.variable("near").size() > 0;
+                            }, org.mwg.task.Actions.traverse("{{near}}").isolate(reccursiveDown))).then(function (context) {
+                                var nnl = context.variable("nnl").get(0);
+                                var target = context.variable("key").get(0);
+                                var distance = context.variable("distance").get(0);
+                                var radius = context.variable("radius").get(0);
+                                var max_dist_sqd = context.variable("max_dist_sqd").get(0);
+                                var further_hr = context.variable("further_hr").get(0);
+                                var pivot_to_target = context.variable("pivot_to_target").get(0);
+                                var lev = context.variable("lev").get(0);
+                                var node = context.resultAsNodes().get(0);
+                                var dist_sqd = java.lang.Double.MAX_VALUE;
+                                var max_dist_sqd2 = Math.min(max_dist_sqd, dist_sqd);
+                                var closest = further_hr.closest(target);
+                                if (distance.measure(closest, target) < max_dist_sqd) {
+                                    if (pivot_to_target < dist_sqd) {
+                                        dist_sqd = pivot_to_target;
+                                        if (dist_sqd <= radius) {
+                                            nnl.insert((node.get(org.mwg.ml.common.structure.KDTree.INTERNAL_VALUE)).get(0), dist_sqd);
+                                        }
+                                        max_dist_sqd2 = java.lang.Double.MAX_VALUE;
+                                    }
+                                    context.defineVariableForSubTask("hr", further_hr);
+                                    context.defineVariableForSubTask("max_dist_sqd", max_dist_sqd2);
+                                    context.defineVariableForSubTask("lev", lev + 1);
+                                    context.defineVariable("continueFar", true);
+                                }
+                                else {
+                                    context.defineVariable("continueFar", false);
+                                }
+                                context.continueTask();
+                            }).isolate(org.mwg.task.Actions.ifThen(function (context) {
+                                return (context.variable("continueFar").get(0) && context.variable("far").size() > 0);
+                            }, org.mwg.task.Actions.traverse("{{far}}").isolate(reccursiveDown)));
+                            return reccursiveDown;
+                        };
                         KDTree.prototype.setProperty = function (propertyName, propertyType, propertyValue) {
                             KDTree.enforcer.check(propertyName, propertyType, propertyValue);
                             _super.prototype.setProperty.call(this, propertyName, propertyType, propertyValue);
@@ -4813,22 +4913,78 @@ var org;
                             tc.defineVariable("lev", 0);
                             KDTree.insert.executeUsing(tc);
                         };
-                        KDTree.prototype.nearestWithinDistance = function (key, callback) {
+                        KDTree.prototype.nearestNWithinRadius = function (key, n, radius, callback) {
                             var _this = this;
                             var state = this.unphasedState();
-                            var err = state.getFromKeyWithDefault(KDTree.DISTANCE_THRESHOLD, KDTree.DISTANCE_THRESHOLD_DEF);
-                            var nnl = new org.mwg.ml.common.structure.NearestNeighborList(1);
-                            this.nearestN(key, 1, function (result) {
-                                if (nnl.getBestDistance() <= err) {
-                                    var res = nnl.getHighest();
-                                    _this.graph().lookup(_this.world(), _this.time(), res, function (result) {
-                                        callback(result);
-                                    });
-                                }
-                                else {
-                                    callback(null);
-                                }
+                            var dim = state.getFromKeyWithDefault(KDTree.INTERNAL_DIM, key.length);
+                            if (key.length != dim) {
+                                throw new Error("Key size should always be the same");
+                            }
+                            var hr = org.mwg.ml.common.structure.HRect.infiniteHRect(key.length);
+                            var max_dist_sqd = java.lang.Double.MAX_VALUE;
+                            var nnl = new org.mwg.ml.common.structure.NearestNeighborList(n);
+                            var distance = this.getDistance(state);
+                            var tc = KDTree.nearestTask.prepareWith(this.graph(), this, function (result) {
+                                var res = nnl.getAllNodesWithin(radius);
+                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").foreach(org.mwg.task.Actions.lookup("{{result}}"));
+                                var tc = lookupall.prepareWith(_this.graph(), null, function (result) {
+                                    var finalres = new Array(result.size());
+                                    for (var i = 0; i < result.size(); i++) {
+                                        finalres[i] = result.get(i);
+                                    }
+                                    callback(finalres);
+                                });
+                                var tr = tc.wrap(res);
+                                tc.addToGlobalVariable("res", tr);
+                                lookupall.executeUsing(tc);
                             });
+                            var res = tc.newResult();
+                            res.add(key);
+                            tc.setGlobalVariable("key", res);
+                            tc.setGlobalVariable("distance", distance);
+                            tc.setGlobalVariable("dim", dim);
+                            tc.setGlobalVariable("nnl", nnl);
+                            tc.defineVariable("lev", 0);
+                            tc.defineVariable("hr", hr);
+                            tc.defineVariable("max_dist_sqd", max_dist_sqd);
+                            KDTree.nearestTask.executeUsing(tc);
+                        };
+                        KDTree.prototype.nearestWithinRadius = function (key, radius, callback) {
+                            var _this = this;
+                            var state = this.unphasedState();
+                            var dim = state.getFromKeyWithDefault(KDTree.INTERNAL_DIM, key.length);
+                            if (key.length != dim) {
+                                throw new Error("Key size should always be the same");
+                            }
+                            var hr = org.mwg.ml.common.structure.HRect.infiniteHRect(key.length);
+                            var max_dist_sqd = java.lang.Double.MAX_VALUE;
+                            var nnl = new org.mwg.ml.common.structure.NearestNeighborArrayList();
+                            var distance = this.getDistance(state);
+                            var tc = KDTree.nearestRadiusTask.prepareWith(this.graph(), this, function (result) {
+                                var res = nnl.getAllNodes();
+                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").foreach(org.mwg.task.Actions.lookup("{{result}}"));
+                                var tc = lookupall.prepareWith(_this.graph(), null, function (result) {
+                                    var finalres = new Array(result.size());
+                                    for (var i = 0; i < result.size(); i++) {
+                                        finalres[i] = result.get(i);
+                                    }
+                                    callback(finalres);
+                                });
+                                var tr = tc.wrap(res);
+                                tc.addToGlobalVariable("res", tr);
+                                lookupall.executeUsing(tc);
+                            });
+                            var res = tc.newResult();
+                            res.add(key);
+                            tc.setGlobalVariable("key", res);
+                            tc.setGlobalVariable("distance", distance);
+                            tc.setGlobalVariable("dim", dim);
+                            tc.setGlobalVariable("nnl", nnl);
+                            tc.setGlobalVariable("radius", radius);
+                            tc.defineVariable("lev", 0);
+                            tc.defineVariable("hr", hr);
+                            tc.defineVariable("max_dist_sqd", max_dist_sqd);
+                            KDTree.nearestRadiusTask.executeUsing(tc);
                         };
                         KDTree.prototype.nearestN = function (key, n, callback) {
                             var _this = this;
@@ -4889,6 +5045,7 @@ var org;
                             var err = context.variable("err").get(0);
                             var lev = context.variable("lev").get(0);
                             if (nodeKey == null) {
+                                current.setProperty(org.mwg.ml.common.structure.KDTree.INTERNAL_DIM, org.mwg.Type.INT, dim);
                                 current.setProperty(org.mwg.ml.common.structure.KDTree.INTERNAL_KEY, org.mwg.Type.DOUBLE_ARRAY, keyToInsert);
                                 current.getOrCreateRel(org.mwg.ml.common.structure.KDTree.INTERNAL_VALUE).clear().add(valueToInsert.id());
                                 current.setProperty(org.mwg.ml.common.structure.KDTree.NUM_NODES, org.mwg.Type.INT, 1);
@@ -4928,10 +5085,17 @@ var org;
                             }
                         }, org.mwg.task.Actions.traverse("{{next}}"));
                         KDTree.nearestTask = KDTree.initFindNear();
+                        KDTree.nearestRadiusTask = KDTree.initFindRadius();
                         KDTree.enforcer = new org.mwg.utility.Enforcer().asPositiveDouble(KDTree.DISTANCE_THRESHOLD);
                         return KDTree;
                     }(org.mwg.plugin.AbstractNode));
                     structure.KDTree = KDTree;
+                    var NDResult = (function () {
+                        function NDResult() {
+                        }
+                        return NDResult;
+                    }());
+                    structure.NDResult = NDResult;
                     var NDTree = (function (_super) {
                         __extends(NDTree, _super);
                         function NDTree(p_world, p_time, p_id, p_graph) {
@@ -5003,11 +5167,130 @@ var org;
                                     }
                                 }
                                 total++;
-                                state.set(NDTree._TOTAL, org.mwg.Type.DOUBLE_ARRAY, total);
+                                state.set(NDTree._TOTAL, org.mwg.Type.INT, total);
                                 state.set(NDTree._SUM, org.mwg.Type.DOUBLE_ARRAY, sum);
                                 state.set(NDTree._MIN, org.mwg.Type.DOUBLE_ARRAY, min);
                                 state.set(NDTree._MAX, org.mwg.Type.DOUBLE_ARRAY, max);
                                 state.set(NDTree._SUMSQ, org.mwg.Type.DOUBLE_ARRAY, sumsquares);
+                            }
+                        };
+                        NDTree.prototype.getTotal = function () {
+                            var x = _super.prototype.getByIndex.call(this, NDTree._TOTAL);
+                            if (x == null) {
+                                return 0;
+                            }
+                            else {
+                                return x;
+                            }
+                        };
+                        NDTree.prototype.getAvg = function () {
+                            var total = this.getTotal();
+                            if (total == 0) {
+                                return null;
+                            }
+                            if (total == 1) {
+                                return _super.prototype.getByIndex.call(this, NDTree._SUM);
+                            }
+                            else {
+                                var avg = _super.prototype.getByIndex.call(this, NDTree._SUM);
+                                for (var i = 0; i < avg.length; i++) {
+                                    avg[i] = avg[i] / total;
+                                }
+                                return avg;
+                            }
+                        };
+                        NDTree.prototype.getCovarianceArray = function (avg, err) {
+                            if (avg == null) {
+                                var errClone = new Float64Array(err.length);
+                                java.lang.System.arraycopy(err, 0, errClone, 0, err.length);
+                                return errClone;
+                            }
+                            if (err == null) {
+                                err = new Float64Array(avg.length);
+                            }
+                            var features = avg.length;
+                            var total = this.getTotal();
+                            if (total == 0) {
+                                return null;
+                            }
+                            if (total > 1) {
+                                var covariances = new Float64Array(features);
+                                var sumsquares = _super.prototype.getByIndex.call(this, NDTree._SUMSQ);
+                                var correction = total;
+                                correction = correction / (total - 1);
+                                var count = 0;
+                                for (var i = 0; i < features; i++) {
+                                    covariances[i] = (sumsquares[count] / total - avg[i] * avg[i]) * correction;
+                                    if (covariances[i] < err[i]) {
+                                        covariances[i] = err[i];
+                                    }
+                                    count += features - i;
+                                }
+                                return covariances;
+                            }
+                            else {
+                                var errClone = new Float64Array(err.length);
+                                java.lang.System.arraycopy(err, 0, errClone, 0, err.length);
+                                return errClone;
+                            }
+                        };
+                        NDTree.prototype.getCovariance = function (avg, err) {
+                            var features = avg.length;
+                            var total = this.getTotal();
+                            if (total == 0) {
+                                return null;
+                            }
+                            if (err == null) {
+                                err = new Float64Array(avg.length);
+                            }
+                            if (total > 1) {
+                                var covariances = new Float64Array(features * features);
+                                var sumsquares = _super.prototype.getByIndex.call(this, NDTree._SUMSQ);
+                                var correction = total;
+                                correction = correction / (total - 1);
+                                var count = 0;
+                                for (var i = 0; i < features; i++) {
+                                    for (var j = i; j < features; j++) {
+                                        covariances[i * features + j] = (sumsquares[count] / total - avg[i] * avg[j]) * correction;
+                                        covariances[j * features + i] = covariances[i * features + j];
+                                        count++;
+                                        if (covariances[i * features + i] < err[i]) {
+                                            covariances[i * features + i] = err[i];
+                                        }
+                                    }
+                                }
+                                return new org.mwg.ml.common.matrix.Matrix(covariances, features, features);
+                            }
+                            else {
+                                return null;
+                            }
+                        };
+                        NDTree.prototype.getMin = function () {
+                            var total = this.getTotal();
+                            if (total == 0) {
+                                return null;
+                            }
+                            if (total == 1) {
+                                var min = _super.prototype.getByIndex.call(this, NDTree._SUM);
+                                return min;
+                            }
+                            else {
+                                var min = _super.prototype.getByIndex.call(this, NDTree._MIN);
+                                return min;
+                            }
+                        };
+                        NDTree.prototype.getMax = function () {
+                            var total = this.getTotal();
+                            if (total == 0) {
+                                return null;
+                            }
+                            if (total == 1) {
+                                var max = _super.prototype.getByIndex.call(this, NDTree._SUM);
+                                return max;
+                            }
+                            else {
+                                var max = _super.prototype.getByIndex.call(this, NDTree._MAX);
+                                return max;
                             }
                         };
                         NDTree.prototype.setProperty = function (propertyName, propertyType, propertyValue) {
@@ -5034,6 +5317,13 @@ var org;
                         NDTree.prototype.insert = function (key, value, callback) {
                             var state = this.unphasedState();
                             var precisions = state.get(NDTree._PRECISION);
+                            if (state.get(NDTree._DIM) == null) {
+                                state.set(NDTree._DIM, org.mwg.Type.INT, key.length);
+                            }
+                            var dim = state.getWithDefault(NDTree._DIM, key.length);
+                            if (key.length != dim) {
+                                throw new Error("Key size should always be the same");
+                            }
                             var tc = NDTree.insert.prepareWith(this.graph(), this, function (result) {
                                 result.free();
                                 if (callback != null) {
@@ -5043,11 +5333,62 @@ var org;
                             var res = tc.newResult();
                             res.add(key);
                             tc.setGlobalVariable("key", res);
-                            tc.setGlobalVariable("value", value);
+                            if (value != null) {
+                                tc.setGlobalVariable("value", value);
+                            }
+                            tc.setGlobalVariable("root", this);
                             var resPres = tc.newResult();
                             resPres.add(precisions);
                             tc.setGlobalVariable("precision", resPres);
                             NDTree.insert.executeUsing(tc);
+                        };
+                        NDTree.prototype.nearestN = function (key, n, callback) {
+                            var _this = this;
+                            var state = this.unphasedState();
+                            var dim;
+                            var tdim = state.get(NDTree._DIM);
+                            if (tdim == null) {
+                                callback(null);
+                                return;
+                            }
+                            else {
+                                dim = tdim;
+                                if (key.length != dim) {
+                                    throw new Error("Key size should always be the same");
+                                }
+                            }
+                            var nnl = new org.mwg.ml.common.structure.NearestNeighborList(n);
+                            var distance = new org.mwg.ml.common.distance.EuclideanDistance();
+                            var tc = NDTree.nearestTask.prepareWith(this.graph(), this, function (result) {
+                                var res = nnl.getAllNodes();
+                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").foreach(org.mwg.task.Actions.lookup("{{result}}"));
+                                var tc = lookupall.prepareWith(_this.graph(), null, function (result) {
+                                    var finalres = new Array(result.size());
+                                    for (var i = 0; i < result.size(); i++) {
+                                        finalres[i] = result.get(i);
+                                    }
+                                    callback(finalres);
+                                });
+                                var tr = tc.wrap(res);
+                                tc.addToGlobalVariable("res", tr);
+                                lookupall.executeUsing(tc);
+                            });
+                            var res = tc.newResult();
+                            res.add(key);
+                            tc.setGlobalVariable("key", res);
+                            tc.setGlobalVariable("distance", distance);
+                            tc.setGlobalVariable("dim", dim);
+                            tc.setGlobalVariable("parents", this);
+                            tc.defineVariable("lev", 0);
+                            NDTree.nearestTask.executeUsing(tc);
+                        };
+                        NDTree.prototype.getNumNodes = function () {
+                            if (this.getByIndex(NDTree._NUMNODES) != null) {
+                                return this.getByIndex(NDTree._NUMNODES);
+                            }
+                            else {
+                                return 1;
+                            }
                         };
                         NDTree.NAME = "NDTree";
                         NDTree._TOTAL = 0;
@@ -5059,12 +5400,14 @@ var org;
                         NDTree._BOUNDMAX = 6;
                         NDTree._VALUES = 7;
                         NDTree._PRECISION = 8;
-                        NDTree._DIM = 9;
+                        NDTree._NUMNODES = 9;
+                        NDTree._DIM = 10;
                         NDTree.BOUNDMIN = "boundmin";
                         NDTree.BOUNDMAX = "boundmax";
                         NDTree.PRECISION = "precision";
                         NDTree._RELCONST = 16;
                         NDTree.insert = org.mwg.task.Actions.whileDo(function (context) {
+                            var root = context.variable("root").get(0);
                             var current = context.resultAsNodes().get(0);
                             var state = current.graph().resolver().resolveState(current);
                             var boundMax = state.get(org.mwg.ml.common.structure.NDTree._BOUNDMAX);
@@ -5086,7 +5429,6 @@ var org;
                             }
                             if (continueNavigation) {
                                 var traverseId = org.mwg.ml.common.structure.NDTree.getRelationId(centerKey, keyToInsert);
-                                console.log(traverseId - org.mwg.ml.common.structure.NDTree._RELCONST);
                                 if (state.get(traverseId) == null) {
                                     var newBoundMin = new Float64Array(dim);
                                     var newBoundMax = new Float64Array(dim);
@@ -5107,19 +5449,149 @@ var org;
                                     var relChild = state.getOrCreate(traverseId, org.mwg.Type.RELATION);
                                     relChild.add(newChild.id());
                                     newChild.free();
+                                    if (root.getByIndex(org.mwg.ml.common.structure.NDTree._NUMNODES) != null) {
+                                        var count = root.getByIndex(org.mwg.ml.common.structure.NDTree._NUMNODES);
+                                        count++;
+                                        root.setPropertyByIndex(org.mwg.ml.common.structure.NDTree._NUMNODES, org.mwg.Type.INT, count);
+                                    }
+                                    else {
+                                        root.setPropertyByIndex(org.mwg.ml.common.structure.NDTree._NUMNODES, org.mwg.Type.INT, 2);
+                                    }
                                 }
                                 context.setVariable("next", traverseId);
                             }
                             else {
-                                var valueToInsert = context.variable("value").get(0);
-                                var rel = state.getOrCreate(org.mwg.ml.common.structure.NDTree._VALUES, org.mwg.Type.RELATION);
-                                rel.add(valueToInsert.id());
+                                try {
+                                    var valueToInsert = context.variable("value").get(0);
+                                    var rel = state.getOrCreate(org.mwg.ml.common.structure.NDTree._VALUES, org.mwg.Type.RELATION);
+                                    rel.add(valueToInsert.id());
+                                }
+                                catch ($ex$) {
+                                    if ($ex$ instanceof Error) {
+                                        var ex = $ex$;
+                                    }
+                                    else {
+                                        throw $ex$;
+                                    }
+                                }
                             }
                             return continueNavigation;
                         }, org.mwg.task.Actions.action(org.mwg.ml.common.structure.ActionTraverseById.NAME, "{{next}}"));
+                        NDTree.nearestTask = org.mwg.task.Actions.whileDo(function (context) {
+                            return context.variable("parents").size() > 0;
+                        }, org.mwg.task.Actions.fromVar("parents").foreach(org.mwg.task.Actions.then(function (context) {
+                            var result = context.newResult();
+                            var current = context.result().get(0);
+                            var target = context.variable("key").get(0);
+                            var distance = context.variable("distance").get(0);
+                            current.unphasedState().each(function (attributeKey, elemType, elem) {
+                                if (attributeKey >= org.mwg.ml.common.structure.NDTree._RELCONST) {
+                                    var tempres = new org.mwg.ml.common.structure.NDResult();
+                                    tempres.parent = current;
+                                    tempres.relation = attributeKey;
+                                    tempres.distance = 0;
+                                    result.add(tempres);
+                                }
+                            });
+                            context.continueWith(result);
+                        })).then(function (context) {
+                            context.setGlobalVariable("parents", null);
+                            context.continueTask();
+                        }));
                         return NDTree;
                     }(org.mwg.plugin.AbstractNode));
                     structure.NDTree = NDTree;
+                    var NearestNeighborArrayList = (function () {
+                        function NearestNeighborArrayList() {
+                            this.maxPriority = java.lang.Double.MAX_VALUE;
+                            this.count = 0;
+                            this.data = new java.util.ArrayList();
+                            this.value = new java.util.ArrayList();
+                            this.value.add(this.maxPriority);
+                            this.data.add(-1);
+                        }
+                        NearestNeighborArrayList.prototype.getMaxPriority = function () {
+                            if (this.count == 0) {
+                                return java.lang.Double.POSITIVE_INFINITY;
+                            }
+                            return this.value.get(1);
+                        };
+                        NearestNeighborArrayList.prototype.insert = function (node, priority) {
+                            this.count++;
+                            this.value.add(priority);
+                            this.data.add(node);
+                            this.bubbleUp(this.count);
+                            return true;
+                        };
+                        NearestNeighborArrayList.prototype.getAllNodes = function () {
+                            var size = this.count;
+                            var nbrs = new Float64Array(this.count);
+                            for (var i = 0; i < size; ++i) {
+                                nbrs[size - i - 1] = this.remove();
+                            }
+                            return nbrs;
+                        };
+                        NearestNeighborArrayList.prototype.getHighest = function () {
+                            return this.data.get(1);
+                        };
+                        NearestNeighborArrayList.prototype.getBestDistance = function () {
+                            return this.value.get(1);
+                        };
+                        NearestNeighborArrayList.prototype.isEmpty = function () {
+                            return this.count == 0;
+                        };
+                        NearestNeighborArrayList.prototype.getSize = function () {
+                            return this.count;
+                        };
+                        NearestNeighborArrayList.prototype.remove = function () {
+                            if (this.count == 0) {
+                                return 0;
+                            }
+                            var element = this.data.get(1);
+                            this.data.set(1, this.data.get(this.count));
+                            this.value.set(1, this.value.get(this.count));
+                            this.data.set(this.count, 0);
+                            this.value.set(this.count, 0);
+                            this.count--;
+                            this.bubbleDown(1);
+                            return element;
+                        };
+                        NearestNeighborArrayList.prototype.bubbleDown = function (pos) {
+                            var element = this.data.get(pos);
+                            var priority = this.value.get(pos);
+                            var child;
+                            for (; pos * 2 <= this.count; pos = child) {
+                                child = pos * 2;
+                                if (child != this.count) {
+                                    if (this.value.get(child) < this.value.get(child + 1)) {
+                                        child++;
+                                    }
+                                }
+                                if (priority < this.value.get(child)) {
+                                    this.value.set(pos, this.value.get(child));
+                                    this.data.set(pos, this.data.get(child));
+                                }
+                                else {
+                                    break;
+                                }
+                            }
+                            this.value.set(pos, priority);
+                            this.data.set(pos, element);
+                        };
+                        NearestNeighborArrayList.prototype.bubbleUp = function (pos) {
+                            var element = this.data.get(pos);
+                            var priority = this.value.get(pos);
+                            while (this.value.get(pos / 2) < priority) {
+                                this.value.set(pos, this.value.get(pos / 2));
+                                this.data.set(pos, this.data.get(pos / 2));
+                                pos /= 2;
+                            }
+                            this.value.set(pos, priority);
+                            this.data.set(pos, element);
+                        };
+                        return NearestNeighborArrayList;
+                    }());
+                    structure.NearestNeighborArrayList = NearestNeighborArrayList;
                     var NearestNeighborList = (function () {
                         function NearestNeighborList(capacity) {
                             this.maxPriority = java.lang.Double.MAX_VALUE;
@@ -5232,6 +5704,23 @@ var org;
                             java.lang.System.arraycopy(this.value, 0, prioritys, 0, this.data.length);
                             this.data = elements;
                             this.value = prioritys;
+                        };
+                        NearestNeighborList.prototype.getAllNodesWithin = function (radius) {
+                            var size = Math.min(this.capacity, this.count);
+                            var nbrs = new Float64Array(size);
+                            var cc = 0;
+                            for (var i = 0; i < size; ++i) {
+                                if (this.getMaxPriority() <= radius) {
+                                    nbrs[size - cc - 1] = this.remove();
+                                    cc++;
+                                }
+                                else {
+                                    this.remove();
+                                }
+                            }
+                            var trimnbrs = new Float64Array(cc);
+                            java.lang.System.arraycopy(nbrs, size - cc, trimnbrs, 0, cc);
+                            return trimnbrs;
                         };
                         return NearestNeighborList;
                     }());

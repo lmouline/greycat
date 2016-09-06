@@ -3,6 +3,7 @@ package org.mwg;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
+import org.mwg.core.task.CoreTask;
 import org.mwg.ml.MLPlugin;
 import org.mwg.ml.common.structure.KDTree;
 import org.mwg.plugin.geojson.ActionNewNodeFromJson;
@@ -37,22 +38,32 @@ public class GeoJsonTest {
         // GetStations:     https://api.jcdecaux.com/vls/v1/stations
         // Contract information GET https://api.jcdecaux.com/vls/v1/stations/{station_number}?contract={contract_name} HTTP/1.1
 
-        final Graph g = new GraphBuilder().withPlugin(new GeoJsonPlugin()).withPlugin(new MLPlugin()).build();
+        final Graph g = new GraphBuilder().withPlugin(new GeoJsonPlugin()).withPlugin(new MLPlugin()).withPlugin(new VerbosePlugin()).build();
         g.connect(connectionResult -> {
 
             WSServer graphServer = new WSServer(g, 8050);
             graphServer.start();
 
+            while(true) {
+                update(g);
+                try {
+                    Thread.sleep(30*1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            /*
             executor.scheduleAtFixedRate(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        update(g);
+
                     } catch (Throwable t) {
                         t.printStackTrace();
                     }
                 }
             }, 0, 30, TimeUnit.SECONDS);
+            */
         });
     }
 
@@ -60,8 +71,10 @@ public class GeoJsonTest {
 
         System.out.println("Updating");
 
+
         final Task update =
                 fromIndexAll("positionsTree")
+                        .hook(new VerboseHookFactory())
                         .ifThen(new TaskFunctionConditional() {
                             @Override
                             public boolean eval(TaskContext context) {
@@ -128,6 +141,7 @@ public class GeoJsonTest {
                                             @Override
                                             public void eval(TaskContext context) {
                                                 KDTree tree = (KDTree) context.variable("tree").get(0);
+                                                tree.set(KDTree.);
                                                 Node n = context.resultAsNodes().get(0);
                                                 tree.insert(
                                                         new double[]{(double) n.get("lat"), (double) n.get("lng")},
@@ -172,7 +186,11 @@ public class GeoJsonTest {
                             try {
                                 n.set(m.getName(), value.asFloat());
                             } catch (Exception e3) {
-                                n.set(m.getName(), value.asDouble());
+                                try {
+                                    n.set(m.getName(), value.asDouble());
+                                }catch (Throwable t) {
+                                    t.printStackTrace();
+                                }
                             }
                         }
                     }
