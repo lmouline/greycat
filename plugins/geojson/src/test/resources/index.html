@@ -194,7 +194,7 @@
     </panel>
     <panel id="acc2">
         <h2><a href="#acc2">Filter stations</a></h2>
-        <form class="form-style" action="javascript:;" onsubmit="updateFilter(this)">
+        <form id="filter_form" class="form-style" action="javascript:;" onsubmit="updateFilter(this)">
             <li><label>Nb Stations</label><input type="number" class="field-long" name="find_stations_nb" value="10"/></li>
             <li><label>Radius</label><input type="number" class="field-long" name="find_stations_radius" placeholder="(radius in meters)" value="200"/></li>
             <li><input type="submit" value="Filter" /></li>
@@ -346,6 +346,10 @@
     }).bindPopup("Your position").addTo(mymap);
     userPositionMarker.on("drag", function(event){
        filterCircle.setLatLng([event.latlng.lat, event.latlng.lng]);
+        updateFilter();
+    });
+    userPositionMarker.on("dragend", function(event){
+        updateFilter();
     });
 
     var filterCircle = L.circle([49.632386, 6.168544], 200).addTo(mymap);
@@ -386,13 +390,15 @@
             result.free();
         });
         context.setVariable("contract_name", contract_name);
-        //displayStationsTask.execute(graph, null);
         displayStationsTask.executeUsing(context);
     }
 
 
-    mymap.on('click', function (e) {
-        updateNearest(e);
+    mymap.on('click', function (event) {
+        //updateNearest(e);
+        userPositionMarker.setLatLng([event.latlng.lat, event.latlng.lng]);
+        filterCircle.setLatLng([event.latlng.lat, event.latlng.lng]);
+        updateFilter();
     });
 
     function updateNearest(e) {
@@ -411,7 +417,8 @@
         askKDTree.execute(graph, null);
     }
 
-    function updateFilter(form) {
+    function updateFilter() {
+        var form = document.querySelector("#filter_form");
         var nbStations = form.querySelector("[name=find_stations_nb]").value;
         var radiusStations = form.querySelector("[name=find_stations_radius]").value;
         console.log(form.querySelector("[name=find_stations_radius]"));
@@ -434,14 +441,6 @@
                         mymap.addLayer(markers);
                         context.continueTask();
                     });
-                    /*
-                    kdTree.nearestN([e.latlng.lat, e.latlng.lng], 10, function (nodes) {
-                        for (var n in nodes) {
-                            console.log(nodes[n].get("name"));
-                        }
-                        context.continueTask();
-                    });
-                    */
                 });
         askKDTree.execute(graph, null);
 
@@ -452,20 +451,6 @@
 
         fillOptionList();
         updateContract("Luxembourg");
-
-
-        /*
-         var askIndex = org.mwg.task.Actions
-         .hook(hookFactory)
-         .then(function (context) {
-         graph.getIndexNode(0, (new Date()).getTime(), "stations", function (node) {
-         console.log(node.toString());
-         });
-         context.continueTask();
-         });
-         askIndex.execute(graph, null);
-         */
-
 
     });
 
