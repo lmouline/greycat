@@ -9,7 +9,7 @@ import org.mwg.struct.LongLongMapCallBack;
 import org.mwg.utility.Base64;
 import org.mwg.utility.HashHelper;
 
-@SuppressWarnings("ALL")
+@SuppressWarnings("Duplicates")
 class OffHeapLongLongMap implements LongLongMap {
 
     private static int SIZE = 0;
@@ -256,8 +256,7 @@ class OffHeapLongLongMap implements LongLongMap {
                 m = next(subHash, m);
             }
             if (found == -1) {
-                final long lastIndex = mapSize;
-                if (lastIndex == capacity) {
+                if (mapSize == capacity) {
                     //extend capacity
                     capacity = capacity * 2;
                     addr = OffHeapLongArray.reallocate(addr, HEADER + (capacity * 2));
@@ -274,11 +273,11 @@ class OffHeapLongLongMap implements LongLongMap {
                         setHash(subHash, capacity, new_key_hash, i);
                     }
                 }
-                setKey(addr, lastIndex, insertKey);
-                setValue(addr, lastIndex, insertValue);
+                setKey(addr, mapSize, insertKey);
+                setValue(addr, mapSize, insertValue);
                 final long hashedKey = HashHelper.longHash(insertKey, capacity * 2);
-                setNext(subHash, lastIndex, hash(subHash, capacity, hashedKey));
-                setHash(subHash, capacity, hashedKey, lastIndex);
+                setNext(subHash, mapSize, hash(subHash, capacity, hashedKey));
+                setHash(subHash, capacity, hashedKey, mapSize);
                 OffHeapLongArray.set(addr, SIZE, mapSize + 1);
                 chunk.declareDirty();
             } else {

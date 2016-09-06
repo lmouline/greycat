@@ -7,7 +7,7 @@ import org.mwg.struct.*;
 import org.mwg.utility.Base64;
 import org.mwg.utility.HashHelper;
 
-@SuppressWarnings("ALL")
+@SuppressWarnings("Duplicates")
 class OffHeapLongLongArrayMap implements LongLongArrayMap {
 
     private static int SIZE = 0;

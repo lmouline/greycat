@@ -34,10 +34,10 @@ public class SmallWorldTest {
                                         .setProperty("id", Type.STRING, "sensor_{{it}}")
                                         .indexNode("sensors", "id")
                                         .defineVar("sensor")
-                                        .ifThenElse(cond("it % 4 == 0"), fromVar("room0").add("sensors", "sensor"),
-                                                ifThenElse(cond("it % 4 == 1"), fromVar("room01").add("sensors", "sensor"),
-                                                        ifThenElse(cond("it % 4 == 2"), fromVar("room001").add("sensors", "sensor"),
-                                                                ifThen(cond("it % 4 == 3"), fromVar("room0001").add("sensors", "sensor")))))
+                                        .ifThenElse(cond("i % 4 == 0"), fromVar("room0").add("sensors", "sensor"),
+                                                ifThenElse(cond("i % 4 == 1"), fromVar("room01").add("sensors", "sensor"),
+                                                        ifThenElse(cond("i % 4 == 2"), fromVar("room001").add("sensors", "sensor"),
+                                                                ifThen(cond("i % 4 == 3"), fromVar("room0001").add("sensors", "sensor")))))
                         )
                         /*.hook(new VerboseHookFactory())*/.execute(g, new Callback<TaskResult>() {
                     @Override
