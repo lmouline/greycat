@@ -29,12 +29,13 @@ public class BenchmarkParTask {
                     .setProperty("name", Type.STRING, "node_{{i}}")
                     //.print("{{result}}")
                     .indexNode("nodes", "name")
-                    .loop("0", "999", jump("{{i}}").setProperty("val", Type.INT, "{{i}}").clear())
-                    .ifThen(cond("i % 10 == 0"), save().print("{{i}}"))
+                    .loop("0", "99", jump("{{i}}").setProperty("val", Type.INT, "{{i}}").clear())
+                    .ifThen(cond("i % 1 == 0"), save())
                     .clear()
-            ).save().execute(g, new Callback<TaskResult>() {
+            ).save().fromIndexAll("nodes").execute(g, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult result) {
+                    System.out.println("indexSize=" + result.size());
                     result.free();
                     long after = System.currentTimeMillis();
                     long afterCache = g.space().available();
