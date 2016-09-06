@@ -24,8 +24,8 @@ public class BenchmarkParTask {
                 final long previous = System.currentTimeMillis();
                 final long previousCache = g.space().available();
                 loop("0", "9999", newNode()
-                        .setProperty("name", Type.STRING, "node_{{it}}")
-                        // .print("{{result}}")
+                        .setProperty("name", Type.STRING, "node_{{i}}")
+                        .print("{{result}}")
                         .indexNode("nodes", "name")
                         .loop("0", "10", jump("{{i}}").setProperty("val", Type.INT, "{{i}}").clear())
                         .save()

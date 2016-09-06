@@ -99,12 +99,14 @@ class OffHeapRelationship implements Relationship {
         long addr = chunk.addrByIndex(index);
         long size;
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-            addr = OffHeapLongArray.allocate(Constants.MAP_INITIAL_CAPACITY + SHIFT);
+            long capacity = Constants.MAP_INITIAL_CAPACITY;
+            addr = OffHeapLongArray.allocate(SHIFT + capacity);
+            OffHeapLongArray.set(addr, CAPACITY, capacity);
             chunk.setAddrByIndex(index, addr);
             size = 0;
         } else {
             size = OffHeapLongArray.get(addr, SIZE);
-            final long capacity = OffHeapLongArray.get(addr, SIZE);
+            final long capacity = OffHeapLongArray.get(addr, CAPACITY);
             if (size == capacity) {
                 final long newCapacity = capacity * 2;
                 addr = OffHeapLongArray.reallocate(addr, newCapacity + SHIFT);
