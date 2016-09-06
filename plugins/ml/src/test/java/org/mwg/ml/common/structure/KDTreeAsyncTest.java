@@ -95,7 +95,7 @@ public class KDTreeAsyncTest {
 
 
 
-                testTask.nearestN(key, 8, new Callback<Node[]>() {
+            /*    testTask.nearestN(key, 8, new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result3) {
                         print(result3,key);
@@ -118,6 +118,8 @@ public class KDTreeAsyncTest {
                     }
                 });
 
+                */
+
 
 
 
@@ -128,7 +130,7 @@ public class KDTreeAsyncTest {
     }
 
 
-    public static void print(Node[] res, double[] key){
+   /* public static void print(Node[] res, double[] key){
         NumberFormat formatter = new DecimalFormat("#0.0000");
         EuclideanDistance ed = new EuclideanDistance();
         for (int i = 0; i < res.length; i++) {
@@ -137,5 +139,5 @@ public class KDTreeAsyncTest {
             res[i].free();
         }
         System.out.println();
-    }
+    }*/
 }
