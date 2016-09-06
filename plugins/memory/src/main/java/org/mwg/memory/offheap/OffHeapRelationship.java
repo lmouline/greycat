@@ -135,7 +135,7 @@ class OffHeapRelationship implements Relationship {
                     }
                 }
                 if (leftShift) {
-                    OffHeapLongArray.set(addr,SIZE,size -1);
+                    OffHeapLongArray.set(addr, SIZE, size - 1);
                     chunk.declareDirty();
                 }
             }
@@ -160,7 +160,6 @@ class OffHeapRelationship implements Relationship {
 
     @Override
     public final String toString() {
-        /*
         StringBuilder buffer = new StringBuilder();
         chunk.lock();
         try {
@@ -179,10 +178,7 @@ class OffHeapRelationship implements Relationship {
         } finally {
             chunk.unlock();
         }
-
         return buffer.toString();
-        */
-        return "";
     }
 
     static void save(final long addr, final Buffer buffer) {

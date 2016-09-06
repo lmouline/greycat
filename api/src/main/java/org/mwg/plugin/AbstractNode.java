@@ -566,7 +566,6 @@ public abstract class AbstractNode implements Node {
                 public void on(long attributeKey, byte elemType, Object elem) {
                     if (elem != null) {
                         switch (elemType) {
-                            /** Primitive types */
                             case Type.BOOL: {
                                 builder.append(",\"");
                                 builder.append(_resolver.hashToString(attributeKey));
@@ -610,7 +609,6 @@ public abstract class AbstractNode implements Node {
                                 }
                                 break;
                             }
-                            /** Array types */
                             case Type.DOUBLE_ARRAY: {
                                 builder.append(",\"");
                                 builder.append(_resolver.hashToString(attributeKey));
@@ -670,7 +668,6 @@ public abstract class AbstractNode implements Node {
                                 builder.append("]");
                                 break;
                             }
-                            /* Map attributes */
                             case Type.LONG_TO_LONG_MAP: {
                                 builder.append(",\"");
                                 builder.append(_resolver.hashToString(attributeKey));

@@ -16,7 +16,7 @@ public class BenchmarkSmallWorld {
 
         Graph g = new GraphBuilder()
                 .withMemorySize(100000)
-                .withPlugin(new OffHeapMemoryPlugin())
+                //  .withPlugin(new OffHeapMemoryPlugin())
                 .withPlugin(new VerbosePlugin())
                 .build();
         g.connect(new Callback<Boolean>() {
@@ -39,13 +39,9 @@ public class BenchmarkSmallWorld {
                                                 ifThenElse(cond("i % 4 == 1"), fromVar("room01").add("sensors", "sensor"),
                                                         ifThenElse(cond("i % 4 == 2"), fromVar("room001").add("sensors", "sensor"),
                                                                 ifThen(cond("i % 4 == 3"), fromVar("room0001").add("sensors", "sensor")))))
-                        ).execute(g, new Callback<TaskResult>() {
-                    @Override
-                    public void on(TaskResult taskResult) {
-                        if (taskResult != null) {
-                            taskResult.free();
-                        }
-                        System.out.println("MWG Server listener through :8050");
+                        ).execute(g, taskResult -> {
+                    if (taskResult != null) {
+                        taskResult.free();
                     }
                 });
 

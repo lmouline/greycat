@@ -143,18 +143,21 @@ class OffHeapStateChunk implements StateChunk {
 
     @Override
     public final void each(final NodeStateCallback callBack) {
-        lock();
-        try {
-            final long addr = space.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                final long size = OffHeapLongArray.get(addr, SIZE);
-                for (int i = 0; i < size; i++) {
-                    callBack.on(key(addr, i), type(addr, i), value(addr, i));
+        // lock();
+        //  try {
+        final long addr = space.addrByIndex(index);
+        if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            final long size = OffHeapLongArray.get(addr, SIZE);
+            for (int i = 0; i < size; i++) {
+                Object resolved = internal_get(addr, i);
+                if (resolved != null) {
+                    callBack.on(key(addr, i), type(addr, i), resolved);
                 }
             }
-        } finally {
-            unlock();
         }
+        // } finally {
+        //unlock();
+        //  }
     }
 
     private Object internal_get(final long addr, final long index) {
