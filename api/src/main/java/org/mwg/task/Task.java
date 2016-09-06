@@ -4,8 +4,6 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.Type;
 
-import java.util.Map;
-
 public interface Task {
 
     /**
@@ -115,6 +113,13 @@ public interface Task {
      */
     Task indexNode(String indexName, String flatKeyAttributes);
 
+    /** DRAFT
+     * Create or compliments an index of nodes. <br>
+     * These indexes are special relationships for quick access to referred nodes based on some of their attributes values.<br>
+     * Index names must be unique within a given node.
+     */
+    Task localIndex(String indexedRelation, String flatKeyAttributes, String varNodeToAdd);
+
     /**
      * Unindex the node (or the array of nodes) present in the result
      *
@@ -123,6 +128,13 @@ public interface Task {
      * @return this task to chain actions (fluent API)
      */
     Task unindexNode(String indexName, String flatKeyAttributes);
+
+    /** DRAFT
+     * Create or compliments an index of nodes. <br>
+     * These indexes are special relationships for quick access to referred nodes based on some of their attributes values.<br>
+     * Index names must be unique within a given node.
+     */
+    Task localUnindex(String indexedRelation, String flatKeyAttributes, String varNodeToAdd);
 
     /**
      * Filters the previous result to keep nodes which named attribute has a specific value
