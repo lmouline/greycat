@@ -624,6 +624,7 @@ declare module org {
                 get(index: number): any;
                 getFromKey(key: string): any;
                 getFromKeyWithDefault<A>(key: string, defaultValue: A): A;
+                getWithDefault<A>(key: number, defaultValue: A): A;
                 getOrCreate(index: number, elemType: number): any;
                 getOrCreateFromKey(key: string, elemType: number): any;
                 getType(index: number): number;
@@ -761,6 +762,7 @@ declare module org {
                 static asGlobalVar(variableName: string): org.mwg.task.Task;
                 static addToGlobalVar(variableName: string): org.mwg.task.Task;
                 static asVar(variableName: string): org.mwg.task.Task;
+                static defineVar(variableName: string): org.mwg.task.Task;
                 static addToVar(variableName: string): org.mwg.task.Task;
                 static map(mapFunction: org.mwg.task.TaskFunctionMap): org.mwg.task.Task;
                 static selectWith(name: string, pattern: string): org.mwg.task.Task;
@@ -1350,6 +1352,7 @@ declare module org {
                         setFromKey(key: string, p_elemType: number, p_unsafe_elem: any): void;
                         getFromKey(key: string): any;
                         getFromKeyWithDefault<A>(key: string, defaultValue: A): A;
+                        getWithDefault<A>(key: number, defaultValue: A): A;
                         getType(p_key: number): number;
                         getTypeFromKey(key: string): number;
                         getOrCreate(p_key: number, p_type: number): any;

@@ -8,6 +8,8 @@ import org.mwg.chunk.Chunk;
 import org.mwg.chunk.ChunkSpace;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.Stack;
+import org.mwg.memory.offheap.primary.OffHeapByteArray;
+import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.struct.Buffer;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.KeyHelper;

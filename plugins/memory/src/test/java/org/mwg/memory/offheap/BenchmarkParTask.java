@@ -1,38 +1,34 @@
-package org.mwg.core;
+package org.mwg.memory.offheap;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Type;
 import org.mwg.core.scheduler.HybridScheduler;
-import org.mwg.task.*;
+import org.mwg.task.TaskResult;
 
 import static org.mwg.task.Actions.*;
 
-/**
- * @ignore ts
- */
 @SuppressWarnings("Duplicates")
-public class BenchmarkParTest {
+public class BenchmarkParTask {
 
     public static void main(String[] args) {
         Graph g = new GraphBuilder()
-                .withMemorySize(100000)
+                .withMemorySize(1000000)
+                .withPlugin(new OffHeapMemoryPlugin())
                 .withScheduler(new HybridScheduler())
-                //.withScheduler(new TrampolineScheduler())
-                //.withScheduler(new ExecutorScheduler())
                 .build();
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
                 final long previous = System.currentTimeMillis();
                 final long previousCache = g.space().available();
-                loopPar("0", "9999", newNode()
+                loop("0", "9999", newNode()
                         .setProperty("name", Type.STRING, "node_{{i}}")
                         .print("{{result}}")
                         .indexNode("nodes", "name")
-                        .loop("0", "999", jump("{{i}}").setProperty("val", Type.INT, "{{i}}").clear())
-                        .ifThen(cond("i % 10 == 0"), save())
+                        .loop("0", "10", jump("{{i}}").setProperty("val", Type.INT, "{{i}}").clear())
+                        .save()
                         .clear()
                 ).save().execute(g, new Callback<TaskResult>() {
                     @Override

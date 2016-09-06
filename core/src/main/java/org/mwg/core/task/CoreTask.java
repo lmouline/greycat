@@ -118,7 +118,7 @@ public class CoreTask implements org.mwg.task.Task {
         if (variableName == null) {
             throw new RuntimeException("variableName should not be null");
         }
-        addAction(new ActionAsVar(variableName, true));
+        addAction(new ActionAsVar(variableName, false));
         return this;
     }
 

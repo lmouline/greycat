@@ -4,13 +4,19 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.Node;
 import org.mwg.Type;
+import org.mwg.ml.common.distance.Distance;
+import org.mwg.ml.common.distance.DistanceEnum;
+import org.mwg.ml.common.distance.EuclideanDistance;
+import org.mwg.ml.common.distance.GaussianDistance;
 import org.mwg.ml.common.matrix.Matrix;
 import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.NodeState;
+import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.Relationship;
 import org.mwg.task.*;
 
-import static org.mwg.task.Actions.whileDo;
+
+import static org.mwg.task.Actions.*;
 
 /**
  * Created by assaad on 09/08/16.
@@ -37,6 +43,8 @@ public class NDTree extends AbstractNode {
     //to store only on the root node
     private static long _PRECISION = 8;
     private static int _NUMNODES = 9;
+    private static int _DIM = 10;
+
 
     public static String BOUNDMIN = "boundmin";
     public static String BOUNDMAX = "boundmax";
@@ -299,7 +307,6 @@ public class NDTree extends AbstractNode {
 
             Node root = (Node) context.variable("root").get(0);
 
-
             Node current = context.resultAsNodes().get(0);
             NodeState state = current.graph().resolver().resolveState(current);
 
@@ -360,12 +367,11 @@ public class NDTree extends AbstractNode {
                     Relationship relChild = (Relationship) state.getOrCreate(traverseId, Type.RELATION);
                     relChild.add(newChild.id());
                     newChild.free();
-                    if(root.getByIndex(_NUMNODES)!=null) {
+                    if (root.getByIndex(_NUMNODES) != null) {
                         int count = (int) root.getByIndex(_NUMNODES);
                         count++;
                         root.setPropertyByIndex(_NUMNODES, Type.INT, count);
-                    }
-                    else {
+                    } else {
                         root.setPropertyByIndex(_NUMNODES, Type.INT, 2);
                     }
                 }
@@ -391,24 +397,18 @@ public class NDTree extends AbstractNode {
 
     public void insert(final double[] key, final Node value, final Callback<Boolean> callback) {
         NodeState state = unphasedState();
-
         final double[] precisions = (double[]) state.get(_PRECISION);
 
-//        int dim;
-//        try {
-//            dim = (int) state.get(_DIM);
-//            if(dim==0){
-//                dim = key.length;
-//                state.set(_DIM,Type.INT,dim);
-//            }
-//        }
-//        catch (Exception ex){
-//            dim = key.length;
-//            state.set(_DIM,Type.INT,dim);
-//        }
-//        if (key.length != dim) {
-//            throw new RuntimeException("Key size should always be the same");
-//        }
+        if(state.get(_DIM)==null){
+            state.set(_DIM,Type.INT,key.length);
+        }
+
+        final int dim = state.getWithDefault(_DIM, key.length);
+
+        if (key.length != dim) {
+            throw new RuntimeException("Key size should always be the same");
+        }
+
 
         TaskContext tc = insert.prepareWith(graph(), this, new Callback<TaskResult>() {
             @Override
@@ -429,7 +429,7 @@ public class NDTree extends AbstractNode {
             tc.setGlobalVariable("value", value);
         }
 
-        tc.setGlobalVariable("root",this);
+        tc.setGlobalVariable("root", this);
         TaskResult resPres = tc.newResult();
         resPres.add(precisions);
         tc.setGlobalVariable("precision", resPres);
@@ -439,12 +439,122 @@ public class NDTree extends AbstractNode {
     }
 
 
+
+
+    public void nearestN(final double[] key, final int n, final Callback<Node[]> callback) {
+        NodeState state = unphasedState();
+        int dim;
+        Object tdim = state.get(_DIM);
+        if (tdim == null) {
+            callback.on(null);
+            return;
+        } else {
+            dim = (int) tdim;
+            if (key.length != dim) {
+                throw new RuntimeException("Key size should always be the same");
+            }
+        }
+
+
+        final NearestNeighborList nnl = new NearestNeighborList(n);
+        Distance distance = new EuclideanDistance();
+
+
+        TaskContext tc = nearestTask.prepareWith(graph(), this, new Callback<TaskResult>() {
+            @Override
+            public void on(TaskResult result) {
+
+                //ToDo replace by lookupAll later
+                long[] res = nnl.getAllNodes();
+
+                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").foreach(lookup("{{result}}"));
+                TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
+                    @Override
+                    public void on(TaskResult result) {
+                        final Node[] finalres = new Node[result.size()];
+                        for (int i = 0; i < result.size(); i++) {
+                            finalres[i] = (Node) result.get(i);
+                        }
+                        callback.on(finalres);
+                    }
+                });
+
+                TaskResult tr = tc.wrap(res);
+                tc.addToGlobalVariable("res", tr);
+                lookupall.executeUsing(tc);
+            }
+        });
+
+
+        TaskResult res = tc.newResult();
+        res.add(key);
+
+        // (this, distance, key, hr, max_dist_sqd, 0, dim, err, nnl);
+
+        tc.setGlobalVariable("key", res);
+        tc.setGlobalVariable("distance", distance);
+        tc.setGlobalVariable("dim", dim);
+        tc.setGlobalVariable("parents",this);
+
+        tc.defineVariable("lev", 0);
+
+        nearestTask.executeUsing(tc);
+    }
+
+
+    private static Task nearestTask = whileDo(new TaskFunctionConditional() {
+        @Override
+        public boolean eval(TaskContext context) {
+            return context.variable("parents").size()>0;
+        }
+    },
+            fromVar("parents").foreach(then(new Action() {
+                @Override
+                public void eval(TaskContext context) {
+
+                    TaskResult result=context.newResult();
+                    NDTree current= (NDTree) context.result().get(0);
+
+
+                    //Global variable
+                    double[] target = (double[]) context.variable("key").get(0);
+                    Distance distance = (Distance) context.variable("distance").get(0);
+
+                    current.unphasedState().each(new NodeStateCallback() {
+                        @Override
+                        public void on(long attributeKey, byte elemType, Object elem) {
+                            if(attributeKey>=_RELCONST){
+                                NDResult tempres=new NDResult();
+                                tempres.parent=current;
+                                tempres.relation=attributeKey;
+                                tempres.distance=0; //todo fill with distance to current key
+                                result.add(tempres);
+                            }
+                        }
+                    });
+                    context.continueWith(result);
+                }
+            }))
+
+
+
+
+            .then(new Action() {
+        @Override
+        public void eval(TaskContext context) {
+
+            //here replace parent
+            context.setGlobalVariable("parents",null);
+            context.continueTask();
+        }
+    }));
+
+
     public int getNumNodes() {
 
-        if(getByIndex(_NUMNODES)!=null) {
+        if (getByIndex(_NUMNODES) != null) {
             return (int) getByIndex(_NUMNODES);
-        }
-        else {
+        } else {
             return 1;
         }
     }

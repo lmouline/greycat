@@ -43,6 +43,7 @@ public abstract class AbstractLongArrayTest {
 
         relationship.remove(3000);
         Assert.assertEquals(relationship.size(), 803);
+
         relationship.remove(950);
         Assert.assertEquals(relationship.size(), 802);
 

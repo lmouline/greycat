@@ -1,11 +1,13 @@
 package org.mwg.memory.offheap;
 
 import org.mwg.Constants;
+import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.Relationship;
 import org.mwg.utility.Base64;
 import org.mwg.utility.Unsafe;
 
+@SuppressWarnings("Duplicates")
 class OffHeapRelationship implements Relationship {
 
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
@@ -13,8 +15,6 @@ class OffHeapRelationship implements Relationship {
     private static int CAPACITY = 0;
     private static int SIZE = 1;
     private static int SHIFT = 2;
-
-    private static long addr = OffHeapConstants.OFFHEAP_NULL_PTR;
 
     private final long index;
     private final OffHeapStateChunk chunk;
@@ -27,7 +27,7 @@ class OffHeapRelationship implements Relationship {
     public final void allocate(int newCapacity) {
         chunk.lock();
         try {
-            addr = chunk.addrByIndex(index);
+            final long addr = chunk.addrByIndex(index);
             if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
                 //initial allocation
                 final long newly = OffHeapLongArray.allocate(newCapacity + SHIFT);
@@ -54,7 +54,9 @@ class OffHeapRelationship implements Relationship {
         long size = 0;
         try {
             final long addr = chunk.addrByIndex(index);
-            size = OffHeapLongArray.get(addr, SIZE);
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                size = OffHeapLongArray.get(addr, SIZE);
+            }
         } finally {
             chunk.unlock();
         }
@@ -62,16 +64,18 @@ class OffHeapRelationship implements Relationship {
     }
 
     @Override
-    public final long get(final int index) {
+    public final long get(final int elemIndex) {
         long result = -1;
         chunk.lock();
         try {
             final long addr = chunk.addrByIndex(index);
-            final long size = OffHeapLongArray.get(addr, SIZE);
-            if (index < size) {
-                result = OffHeapLongArray.get(addr, index + SHIFT);
-            } else {
-                return -1;
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                final long size = OffHeapLongArray.get(addr, SIZE);
+                if (elemIndex < size) {
+                    result = OffHeapLongArray.get(addr, elemIndex + SHIFT);
+                } else {
+                    return -1;
+                }
             }
         } finally {
             chunk.unlock();
@@ -83,28 +87,35 @@ class OffHeapRelationship implements Relationship {
     public final Relationship add(final long newValue) {
         chunk.lock();
         try {
-            long addr = chunk.addrByIndex(index);
-            long size;
-            if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-                addr = OffHeapLongArray.allocate(Constants.MAP_INITIAL_CAPACITY + SHIFT);
-                chunk.setAddrByIndex(index, addr);
-                size = 0;
-            } else {
-                size = OffHeapLongArray.get(addr, SIZE);
-                final long capacity = OffHeapLongArray.get(addr, SIZE);
-                if (size == capacity) {
-                    final long newCapacity = capacity * 2;
-                    addr = OffHeapLongArray.reallocate(addr, newCapacity + SHIFT);
-                    OffHeapLongArray.set(addr, CAPACITY, newCapacity);
-                }
-            }
-            OffHeapLongArray.set(newValue, size + SHIFT, newValue);
-            OffHeapLongArray.set(addr, SIZE, size + 1);
+            internal_add(newValue);
             chunk.declareDirty();
         } finally {
             chunk.unlock();
         }
         return this;
+    }
+
+    final void internal_add(final long newValue) {
+        long addr = chunk.addrByIndex(index);
+        long size;
+        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            long capacity = Constants.MAP_INITIAL_CAPACITY;
+            addr = OffHeapLongArray.allocate(SHIFT + capacity);
+            OffHeapLongArray.set(addr, CAPACITY, capacity);
+            chunk.setAddrByIndex(index, addr);
+            size = 0;
+        } else {
+            size = OffHeapLongArray.get(addr, SIZE);
+            final long capacity = OffHeapLongArray.get(addr, CAPACITY);
+            if (size == capacity) {
+                final long newCapacity = capacity * 2;
+                addr = OffHeapLongArray.reallocate(addr, newCapacity + SHIFT);
+                chunk.setAddrByIndex(index, addr);
+                OffHeapLongArray.set(addr, CAPACITY, newCapacity);
+            }
+        }
+        OffHeapLongArray.set(addr, size + SHIFT, newValue);
+        OffHeapLongArray.set(addr, SIZE, size + 1);
     }
 
     @Override
@@ -116,19 +127,21 @@ class OffHeapRelationship implements Relationship {
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 final long size = OffHeapLongArray.get(addr, SIZE);
                 for (int i = 0; i < size; i++) {
-                    long current = OffHeapLongArray.get(addr, i);
+                    long current = OffHeapLongArray.get(addr, SHIFT + i);
                     if (leftShift) {
-                        OffHeapLongArray.set(addr, index + (SHIFT - 1), current);
+                        OffHeapLongArray.set(addr, SHIFT + i - 1, current);
                     } else {
                         if (current == oldValue) {
                             leftShift = true;
                         }
                     }
                 }
+                if (leftShift) {
+                    OffHeapLongArray.set(addr, SIZE, size - 1);
+                    chunk.declareDirty();
+                }
             }
-            if (leftShift) {
-                chunk.declareDirty();
-            }
+
         } finally {
             chunk.unlock();
         }
@@ -150,23 +163,23 @@ class OffHeapRelationship implements Relationship {
     @Override
     public final String toString() {
         StringBuilder buffer = new StringBuilder();
-        chunk.lock();
-        try {
-            final long addr = chunk.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                buffer.append("[");
-                final long size = OffHeapLongArray.get(addr, SIZE);
-                for (int i = 0; i < size; i++) {
-                    if (i != 0) {
-                        buffer.append(",");
-                    }
-                    buffer.append(OffHeapLongArray.get(addr, i + SHIFT));
+        //chunk.lock();
+        // try {
+        final long addr = chunk.addrByIndex(index);
+        if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            buffer.append("[");
+            final long size = OffHeapLongArray.get(addr, SIZE);
+            for (int i = 0; i < size; i++) {
+                if (i != 0) {
+                    buffer.append(",");
                 }
-                buffer.append("]");
+                buffer.append(OffHeapLongArray.get(addr, i + SHIFT));
             }
-        } finally {
-            chunk.unlock();
+            buffer.append("]");
         }
+        //} finally {
+        // chunk.unlock();
+        //}
         return buffer.toString();
     }
 

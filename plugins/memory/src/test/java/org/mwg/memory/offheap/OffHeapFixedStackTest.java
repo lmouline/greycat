@@ -3,10 +3,12 @@ package org.mwg.memory.offheap;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.chunk.Stack;
-import org.mwg.core.chunk.FixedStackTest;
+import org.mwg.core.chunk.AbstractFixedStackTest;
+import org.mwg.memory.offheap.primary.OffHeapByteArray;
+import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.utility.Unsafe;
 
-public class OffHeapFixedStackTest extends FixedStackTest {
+public class OffHeapFixedStackTest extends AbstractFixedStackTest {
 
     @Test
     public void offHeapFixedStackTest() {

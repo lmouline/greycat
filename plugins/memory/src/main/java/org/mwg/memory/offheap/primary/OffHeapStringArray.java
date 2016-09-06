@@ -1,4 +1,6 @@
-package org.mwg.memory.offheap;
+package org.mwg.memory.offheap.primary;
+
+import org.mwg.memory.offheap.OffHeapConstants;
 
 public class OffHeapStringArray {
 
@@ -7,8 +9,8 @@ public class OffHeapStringArray {
     }
 
     public static long reallocate(final long addr, final long nextCapacity, final long currentCapacity) {
-        long newAddr =  OffHeapLongArray.reallocate(addr, nextCapacity);
-        OffHeapLongArray.reset((newAddr + currentCapacity) * 8, (nextCapacity - currentCapacity) * 8);
+        long newAddr = OffHeapLongArray.reallocate(addr, nextCapacity);
+        OffHeapLongArray.reset(newAddr + (currentCapacity * 8), (nextCapacity - currentCapacity) * 8);
         return newAddr;
     }
 
@@ -25,8 +27,9 @@ public class OffHeapStringArray {
         long stringPtr = OffHeapLongArray.get(addr, index);
         if (stringPtr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return null;
+        } else {
+            return OffHeapString.asObject(stringPtr);
         }
-        return OffHeapString.asObject(addr);
     }
 
     public static void free(final long addr, final long capacity) {
@@ -40,9 +43,14 @@ public class OffHeapStringArray {
     }
 
     public static long cloneArray(final long srcAddr, final long length) {
-        // this is just a shallow copy... (i.e., only the root array is copied)
-        return OffHeapLongArray.cloneArray(srcAddr, length);
+        final long clonedArray = OffHeapLongArray.cloneArray(srcAddr, length);
+        for (long i = 0; i < length; i++) {
+            final long stringPtr = OffHeapLongArray.get(clonedArray, i);
+            if (stringPtr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapString.clone(stringPtr);
+            }
+        }
+        return clonedArray;
     }
-
 
 }

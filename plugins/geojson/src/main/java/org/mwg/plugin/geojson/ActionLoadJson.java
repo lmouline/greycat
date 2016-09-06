@@ -28,26 +28,26 @@ public class ActionLoadJson extends AbstractTaskAction {
         final String path = context.template(_pathOrTemplate);
         URI uri = URI.create(path);
         try {
-            try(InputStreamReader isr = new InputStreamReader(uri.toURL().openStream())) {
+            try (InputStreamReader isr = new InputStreamReader(uri.toURL().openStream())) {
                 JsonValue firstElem = Json.parse(isr);
                 if (firstElem.isArray()) {
                     JsonArray array = firstElem.asArray();
                     JsonValue[] values = new JsonValue[array.size()];
-                    for(int i = 0; i < array.size(); i++) {
+                    for (int i = 0; i < array.size(); i++) {
                         values[i] = array.get(i);
                     }
-                    result =  new JsonResult(values);
+                    result = new JsonResult(values);
                 } else {
-                    result =  new JsonResult(new JsonValue[]{firstElem});
+                    result = new JsonResult(new JsonValue[]{firstElem});
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if(result == null) {
+            if (result == null) {
                 result = new JsonResult(new JsonValue[]{});
             }
+            context.continueWith(result);
         }
-        context.continueWith(result);
     }
 }
