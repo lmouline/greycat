@@ -3,6 +3,10 @@ package org.mwg.memory.offheap;
 import org.mwg.Constants;
 import org.mwg.Type;
 import org.mwg.chunk.StateChunk;
+import org.mwg.memory.offheap.primary.OffHeapDoubleArray;
+import org.mwg.memory.offheap.primary.OffHeapIntArray;
+import org.mwg.memory.offheap.primary.OffHeapLongArray;
+import org.mwg.memory.offheap.primary.OffHeapString;
 import org.mwg.utility.Base64;
 import org.mwg.chunk.ChunkType;
 import org.mwg.plugin.NodeStateCallback;
@@ -265,6 +269,16 @@ class OffHeapStateChunk implements StateChunk {
     @Override
     public final <A> A getFromKeyWithDefault(final String key, final A defaultValue) {
         final Object result = getFromKey(key);
+        if (result == null) {
+            return defaultValue;
+        } else {
+            return (A) result;
+        }
+    }
+
+    @Override
+    public <A> A getWithDefault(long key, A defaultValue) {
+        final Object result = get(key);
         if (result == null) {
             return defaultValue;
         } else {
@@ -833,11 +847,11 @@ class OffHeapStateChunk implements StateChunk {
                                 break;
                             case Type.LONG_TO_LONG_MAP:
                                 currentLongLongMap = new OffHeapLongLongMap(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
-                                currentLongLongMap.reallocate(0, 0, currentSubSize);
+                                currentLongLongMap.preAllocate(currentSubSize);
                                 break;
                             case Type.LONG_TO_LONG_ARRAY_MAP:
                                 currentLongLongArrayMap = new OffHeapLongLongArrayMap(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
-                                currentLongLongArrayMap.reallocate(0, 0, currentSubSize);
+                                currentLongLongArrayMap.preAllocate(currentSubSize);
                                 break;
                         }
                     } else {

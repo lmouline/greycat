@@ -4,6 +4,7 @@ import org.mwg.Constants;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.TimeTreeChunk;
 import org.mwg.chunk.TreeWalker;
+import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.struct.Buffer;
 import org.mwg.utility.Base64;
 

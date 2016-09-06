@@ -1,4 +1,6 @@
-package org.mwg.memory.offheap;
+package org.mwg.memory.offheap.primary;
+
+import org.mwg.memory.offheap.OffHeapConstants;
 
 public class OffHeapStringArray {
 
@@ -40,7 +42,7 @@ public class OffHeapStringArray {
         OffHeapLongArray.free(addr);
     }
 
-    static long cloneArray(final long srcAddr, final long length) {
+    public static long cloneArray(final long srcAddr, final long length) {
         final long clonedArray = OffHeapLongArray.cloneArray(srcAddr, length);
         for (long i = 0; i < length; i++) {
             final long stringPtr = OffHeapLongArray.get(clonedArray, i);

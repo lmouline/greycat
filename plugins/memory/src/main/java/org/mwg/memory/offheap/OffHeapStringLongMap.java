@@ -2,6 +2,8 @@
 package org.mwg.memory.offheap;
 
 import org.mwg.Constants;
+import org.mwg.memory.offheap.primary.OffHeapLongArray;
+import org.mwg.memory.offheap.primary.OffHeapStringArray;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.StringLongMap;
 import org.mwg.struct.StringLongMapCallBack;
@@ -106,17 +108,22 @@ class OffHeapStringLongMap implements StringLongMap {
             } else {
                 keys_ptr = OffHeapStringArray.reallocate(keys_ptr, newCapacity, currentCapacity);
                 OffHeapLongArray.set(addr, KEYS, keys_ptr);
+
                 keys_h_ptr = OffHeapLongArray.reallocate(keys_h_ptr, newCapacity);
                 OffHeapLongArray.set(addr, KEYS_H, keys_h_ptr);
+
                 values_ptr = OffHeapLongArray.reallocate(values_ptr, newCapacity);
                 OffHeapLongArray.set(addr, VALUES, values_ptr);
+
                 nexts_ptr = OffHeapLongArray.reallocate(nexts_ptr, newCapacity);
                 OffHeapLongArray.set(addr, NEXTS, nexts_ptr);
                 OffHeapLongArray.reset(nexts_ptr, newCapacity);
+
                 final long newHashCapacity = newCapacity * 2;
                 hashs_ptr = OffHeapLongArray.reallocate(hashs_ptr, newHashCapacity);
                 OffHeapLongArray.set(addr, HASHS, hashs_ptr);
                 OffHeapLongArray.reset(hashs_ptr, newHashCapacity);
+
                 for (long i = 0; i < currentSize; i++) {
                     long new_key_hash = HashHelper.longHash(key_h(i), newHashCapacity);
                     setNext(i, hash(new_key_hash));
@@ -416,16 +423,22 @@ class OffHeapStringLongMap implements StringLongMap {
         }
         long new_addr = OffHeapLongArray.cloneArray(addr, CHUNK_ELEM_SIZE);
         long capacity = OffHeapLongArray.get(addr, CAPACITY);
+
         long keys_ptr = OffHeapLongArray.get(addr, KEYS);
         OffHeapLongArray.set(new_addr, KEYS, OffHeapStringArray.cloneArray(keys_ptr, capacity));
+
         long keys_h_ptr = OffHeapLongArray.get(addr, KEYS_H);
         OffHeapLongArray.set(keys_h_ptr, KEYS_H, OffHeapLongArray.cloneArray(keys_h_ptr, capacity));
+
         long values_ptr = OffHeapLongArray.get(addr, VALUES);
         OffHeapLongArray.set(new_addr, VALUES, OffHeapLongArray.cloneArray(values_ptr, capacity));
+
         long nexts_ptr = OffHeapLongArray.get(addr, NEXTS);
         OffHeapLongArray.set(new_addr, NEXTS, OffHeapLongArray.cloneArray(nexts_ptr, capacity));
+
         long hashs_ptr = OffHeapLongArray.get(addr, HASHS);
-        OffHeapLongArray.set(new_addr, HASHS, OffHeapLongArray.cloneArray(hashs_ptr, capacity));
+        OffHeapLongArray.set(new_addr, HASHS, OffHeapLongArray.cloneArray(hashs_ptr, capacity * 2));
+
         return new_addr;
     }
 

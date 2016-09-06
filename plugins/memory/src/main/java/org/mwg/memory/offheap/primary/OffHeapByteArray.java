@@ -1,5 +1,6 @@
-package org.mwg.memory.offheap;
+package org.mwg.memory.offheap.primary;
 
+import org.mwg.memory.offheap.OffHeapConstants;
 import org.mwg.utility.Unsafe;
 
 public class OffHeapByteArray {
@@ -32,7 +33,7 @@ public class OffHeapByteArray {
      * @param destAddr   start of address to store the source object
      * @param nbElements offset of destination address
      */
-    static void copyArray(final Object src, final long destAddr, final long nbElements) {
+    public static void copyArray(final Object src, final long destAddr, final long nbElements) {
         int baseOffset = unsafe.arrayBaseOffset(src.getClass());
         int scaleOffset = unsafe.arrayIndexScale(src.getClass());
 

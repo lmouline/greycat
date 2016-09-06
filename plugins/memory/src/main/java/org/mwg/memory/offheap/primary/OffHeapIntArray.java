@@ -1,11 +1,12 @@
-package org.mwg.memory.offheap;
+package org.mwg.memory.offheap.primary;
 
 import org.mwg.Constants;
+import org.mwg.memory.offheap.OffHeapConstants;
 import org.mwg.struct.Buffer;
 import org.mwg.utility.Base64;
 import org.mwg.utility.Unsafe;
 
-class OffHeapIntArray {
+public class OffHeapIntArray {
 
     private static int COW_INDEX = 0;
     private static int SIZE_INDEX = 1;
@@ -54,7 +55,7 @@ class OffHeapIntArray {
         return unsafe.compareAndSwapInt(null, addr + index * 4, expectedValue, updatedValue);
     }
 
-    static void save(final long addr, final Buffer buffer) {
+    public static void save(final long addr, final Buffer buffer) {
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return;
         }
@@ -66,7 +67,7 @@ class OffHeapIntArray {
         }
     }
 
-    static int[] asObject(final long addr) {
+    public static int[] asObject(final long addr) {
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return null;
         }
@@ -78,7 +79,7 @@ class OffHeapIntArray {
         return longArray;
     }
 
-    static long fromObject(int[] origin) {
+    public static long fromObject(int[] origin) {
         long intArrayToInsert_ptr = OffHeapIntArray.allocate(SHIFT_INDEX + origin.length);
         set(intArrayToInsert_ptr, SIZE_INDEX, origin.length);
         set(intArrayToInsert_ptr, COW_INDEX, 1);
@@ -88,7 +89,7 @@ class OffHeapIntArray {
         return intArrayToInsert_ptr;
     }
 
-    static long cloneObject(final long addr) {
+    public static long cloneObject(final long addr) {
         int cow;
         int cow_after;
         do {
@@ -98,7 +99,7 @@ class OffHeapIntArray {
         return addr;
     }
 
-    static void freeObject(final long addr) {
+    public static void freeObject(final long addr) {
         int cow;
         int cow_after;
         do {

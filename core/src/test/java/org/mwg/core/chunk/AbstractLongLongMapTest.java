@@ -70,12 +70,10 @@ public abstract class AbstractLongLongMapTest {
         for (int i = 0; i < CoreConstants.MAP_INITIAL_CAPACITY; i++) {
             map.put(i, i);
         }
-
         //test that all values are consistent
         for (int i = 0; i < CoreConstants.MAP_INITIAL_CAPACITY; i++) {
             Assert.assertTrue(map.get(i) == i);
         }
-
         space.free(chunk);
         space.freeAll();
 
