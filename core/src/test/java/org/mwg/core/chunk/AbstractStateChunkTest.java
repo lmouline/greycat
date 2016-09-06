@@ -23,6 +23,54 @@ public abstract class AbstractStateChunkTest {
     }
 
     @Test
+    public void saveLoadPrimitif() {
+        ChunkSpace space = factory.newSpace(100, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+
+        //init chunk selectWith primitives
+        chunk.set(0, Type.BOOL, true);
+        Assert.assertEquals(chunk.get(0), true);
+
+        chunk.set(1, Type.STRING, "hello");
+        Assert.assertEquals(chunk.get(1), "hello");
+
+        chunk.set(2, Type.DOUBLE, 1.0);
+        Assert.assertEquals(chunk.get(2), 1.0);
+
+        chunk.set(3, Type.LONG, 1000l);
+        Assert.assertEquals(chunk.get(3), 1000l);
+
+        chunk.set(4, Type.INT, 100);
+        Assert.assertEquals(chunk.get(4), 100);
+
+        chunk.set(5, Type.INT, 1);
+        Assert.assertEquals(chunk.get(5), 1);
+
+        chunk.set(5, Type.INT, null);
+        Assert.assertEquals(chunk.get(5), null);
+
+        Buffer buffer = factory.newBuffer();
+        chunk.save(buffer);
+        StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
+        chunk2.load(buffer);
+        Buffer buffer2 = factory.newBuffer();
+        chunk2.save(buffer2);
+
+        Assert.assertTrue(compareBuffers(buffer, buffer2));
+
+        for (int i = 0; i < 5; i++) {
+            Assert.assertEquals(chunk.get(0), chunk2.get(0));
+        }
+
+        space.free(chunk);
+        space.free(chunk2);
+        buffer2.free();
+        buffer.free();
+        space.freeAll();
+
+    }
+
+    @Test
     public void saveLoadTest() {
 
         ChunkSpace space = factory.newSpace(100, null);
@@ -92,6 +140,7 @@ public abstract class AbstractStateChunkTest {
         string2longMap.put("1", 1);
         string2longMap.put(Constants.END_OF_TIME + "", Constants.END_OF_TIME);
         string2longMap.put(Constants.BEGINNING_OF_TIME + "", Constants.BEGINNING_OF_TIME);
+
 
         LongLongArrayMap long2longArrayMap = (LongLongArrayMap) chunk.getOrCreate(10, Type.LONG_TO_LONG_ARRAY_MAP);
         long2longArrayMap.put(1, 1);
@@ -212,8 +261,7 @@ public abstract class AbstractStateChunkTest {
         //test maps
         Assert.assertEquals(((LongLongMap) chunk2.get(8)).get(100), 100);
         Assert.assertEquals(((LongLongArrayMap) chunk2.get(9)).get(100)[0], 100);
-
-//        Assert.assertEquals(((StringLongMap) chunk2.get(10)).getValue("100"), 100);
+        Assert.assertEquals(((StringLongMap) chunk2.get(10)).getValue("100"), 100);
 
         //now we test the co-evolution of clone
 
@@ -251,12 +299,9 @@ public abstract class AbstractStateChunkTest {
         Assert.assertTrue(((LongLongArrayMap) chunk2.get(9)).get(100)[1] == 100);
         Assert.assertTrue(((LongLongArrayMap) chunk.get(9)).get(100)[0] == 100);
 
-
-        /*
         ((StringLongMap) chunk2.get(10)).put("100", 200);
         Assert.assertTrue(((StringLongMap) chunk2.get(10)).getValue("100") == 200);
         Assert.assertTrue(((StringLongMap) chunk.get(10)).getValue("100") == 100);
-*/
 
         // add something new instead of replacing something -> triggers the shallow copy of the clone
         chunk2.set(11, Type.STRING, "newString");

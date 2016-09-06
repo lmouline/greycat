@@ -3,31 +3,22 @@ package org.mwg.memory.offheap;
 
 import org.mwg.Constants;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
-import org.mwg.memory.offheap.primary.OffHeapStringArray;
+import org.mwg.memory.offheap.primary.OffHeapString;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.StringLongMap;
 import org.mwg.struct.StringLongMapCallBack;
 import org.mwg.utility.Base64;
 import org.mwg.utility.HashHelper;
 
+@SuppressWarnings("ALL")
 class OffHeapStringLongMap implements StringLongMap {
 
     private static int SIZE = 0;
     private static int CAPACITY = 1;
-    private static int KEYS = 2;
-    private static int KEYS_H = 3;
-    private static int VALUES = 4;
-    private static int NEXTS = 5;
-    private static int HASHS = 6;
+    private static int SUBHASH = 2;
 
-    private static int CHUNK_ELEM_SIZE = 7;
-
-    private long addr = OffHeapConstants.OFFHEAP_NULL_PTR;
-    private long keys_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
-    private long keys_h_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
-    private long values_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
-    private long nexts_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
-    private long hashs_ptr = OffHeapConstants.OFFHEAP_NULL_PTR;
+    private static int HEADER = 3;
+    private static int ELEM_SIZE = 3;
 
     private final long index;
     private final OffHeapStateChunk chunk;
@@ -37,99 +28,71 @@ class OffHeapStringLongMap implements StringLongMap {
         index = p_index;
     }
 
-    private void update_ptr() {
-        addr = chunk.addrByIndex(index);
-        if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-            keys_ptr = OffHeapLongArray.get(addr, KEYS);
-            keys_h_ptr = OffHeapLongArray.get(addr, KEYS_H);
-            values_ptr = OffHeapLongArray.get(addr, VALUES);
-            nexts_ptr = OffHeapLongArray.get(addr, NEXTS);
-            hashs_ptr = OffHeapLongArray.get(addr, HASHS);
-        }
+    private static long key(final long addr, final long elemIndex) {
+        return OffHeapLongArray.get(addr, HEADER + (elemIndex * ELEM_SIZE));
     }
 
-    private String key(long i) {
-        return OffHeapStringArray.get(keys_ptr, i);
+    private void setKey(final long addr, final long elemIndex, long newValue) {
+        OffHeapLongArray.set(addr, HEADER + (elemIndex * ELEM_SIZE), newValue);
     }
 
-    private void setKey(long i, String newValue) {
-        OffHeapStringArray.set(keys_ptr, i, newValue);
+    private static long keyHash(final long addr, final long elemIndex) {
+        return OffHeapLongArray.get(addr, HEADER + (elemIndex * ELEM_SIZE) + 1);
     }
 
-    private long key_h(long i) {
-        return OffHeapLongArray.get(keys_h_ptr, i);
+    private void setKeyHash(final long addr, final long elemIndex, long newValue) {
+        OffHeapLongArray.set(addr, HEADER + (elemIndex * ELEM_SIZE) + 1, newValue);
     }
 
-    private void setKey_h(long i, long newValue) {
-        OffHeapLongArray.set(keys_h_ptr, i, newValue);
+    private static long value(final long addr, final long elemIndex) {
+        return OffHeapLongArray.get(addr, HEADER + (elemIndex * ELEM_SIZE) + 2);
     }
 
-    private long value(long i) {
-        return OffHeapLongArray.get(values_ptr, i);
+    private void setValue(final long addr, final long elemIndex, long newValue) {
+        OffHeapLongArray.set(addr, HEADER + (elemIndex * ELEM_SIZE) + 2, newValue);
     }
 
-    private void setValue(long i, long newValue) {
-        OffHeapLongArray.set(values_ptr, i, newValue);
+    private long next(final long subHashAddr, final long elemIndex) {
+        return OffHeapLongArray.get(subHashAddr, elemIndex);
     }
 
-    private long next(long i) {
-        return OffHeapLongArray.get(nexts_ptr, i);
+    private void setNext(final long subHashAddr, final long elemIndex, final long newValue) {
+        OffHeapLongArray.set(subHashAddr, elemIndex, newValue);
     }
 
-    private void setNext(long i, long newValue) {
-        OffHeapLongArray.set(nexts_ptr, i, newValue);
+    private long hash(final long subHashAddr, final long capacity, final long elemIndex) {
+        return OffHeapLongArray.get(subHashAddr, (capacity + elemIndex));
     }
 
-    private long hash(long i) {
-        return OffHeapLongArray.get(hashs_ptr, i);
+    private void setHash(final long subHashAddr, final long capacity, final long elemIndex, final long newValue) {
+        OffHeapLongArray.set(subHashAddr, (capacity + elemIndex), newValue);
     }
 
-    private void setHash(long i, long newValue) {
-        OffHeapLongArray.set(hashs_ptr, i, newValue);
-    }
-
-    void reallocate(long currentCapacity, long currentSize, long newCapacity) {
-        if (newCapacity > currentCapacity) {
-            if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-                addr = OffHeapLongArray.allocate(CHUNK_ELEM_SIZE);
+    void preAllocate(long wantedCapacity) {
+        long addr = chunk.addrByIndex(index);
+        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            addr = OffHeapLongArray.allocate(HEADER + (wantedCapacity * ELEM_SIZE));
+            chunk.setAddrByIndex(index, addr);
+            OffHeapLongArray.set(addr, SIZE, 0);
+            OffHeapLongArray.set(addr, CAPACITY, wantedCapacity);
+            long subHash = OffHeapLongArray.allocate(wantedCapacity * 3);
+            OffHeapLongArray.set(addr, SUBHASH, subHash);
+        } else {
+            long currentCapacity = OffHeapLongArray.get(addr, CAPACITY);
+            if (wantedCapacity > currentCapacity) {
+                addr = OffHeapLongArray.reallocate(addr, HEADER + (wantedCapacity * ELEM_SIZE));
                 chunk.setAddrByIndex(index, addr);
-                OffHeapLongArray.set(addr, SIZE, 0);
-                OffHeapLongArray.set(addr, CAPACITY, newCapacity);
-                keys_ptr = OffHeapStringArray.allocate(newCapacity);
-                OffHeapLongArray.set(addr, KEYS, keys_ptr);
-                keys_h_ptr = OffHeapLongArray.allocate(newCapacity);
-                OffHeapLongArray.set(addr, KEYS_H, keys_h_ptr);
-                values_ptr = OffHeapLongArray.allocate(newCapacity);
-                OffHeapLongArray.set(addr, VALUES, values_ptr);
-                nexts_ptr = OffHeapLongArray.allocate(newCapacity);
-                OffHeapLongArray.set(addr, NEXTS, nexts_ptr);
-                hashs_ptr = OffHeapLongArray.allocate(newCapacity * 2);
-                OffHeapLongArray.set(addr, HASHS, hashs_ptr);
-            } else {
-                keys_ptr = OffHeapStringArray.reallocate(keys_ptr, newCapacity, currentCapacity);
-                OffHeapLongArray.set(addr, KEYS, keys_ptr);
-
-                keys_h_ptr = OffHeapLongArray.reallocate(keys_h_ptr, newCapacity);
-                OffHeapLongArray.set(addr, KEYS_H, keys_h_ptr);
-
-                values_ptr = OffHeapLongArray.reallocate(values_ptr, newCapacity);
-                OffHeapLongArray.set(addr, VALUES, values_ptr);
-
-                nexts_ptr = OffHeapLongArray.reallocate(nexts_ptr, newCapacity);
-                OffHeapLongArray.set(addr, NEXTS, nexts_ptr);
-                OffHeapLongArray.reset(nexts_ptr, newCapacity);
-
-                final long newHashCapacity = newCapacity * 2;
-                hashs_ptr = OffHeapLongArray.reallocate(hashs_ptr, newHashCapacity);
-                OffHeapLongArray.set(addr, HASHS, hashs_ptr);
-                OffHeapLongArray.reset(hashs_ptr, newHashCapacity);
-
-                for (long i = 0; i < currentSize; i++) {
-                    long new_key_hash = HashHelper.longHash(key_h(i), newHashCapacity);
-                    setNext(i, hash(new_key_hash));
-                    setHash(new_key_hash, i);
+                OffHeapLongArray.set(addr, CAPACITY, wantedCapacity);
+                long subHash = OffHeapLongArray.get(addr, SUBHASH);
+                subHash = OffHeapLongArray.reallocate(subHash, wantedCapacity * 3);
+                OffHeapLongArray.set(addr, SUBHASH, subHash);
+                OffHeapLongArray.reset(subHash, wantedCapacity * 3);
+                long size = OffHeapLongArray.get(addr, SIZE);
+                for (long i = 0; i < size; i++) {
+                    long new_key_hash = HashHelper.longHash(keyHash(addr, i), wantedCapacity * 2);
+                    setNext(subHash, i, hash(subHash, wantedCapacity, new_key_hash));
+                    setHash(subHash, wantedCapacity, new_key_hash, i);
                 }
-                OffHeapLongArray.set(addr, CAPACITY, newCapacity);
             }
         }
     }
@@ -139,17 +102,19 @@ class OffHeapStringLongMap implements StringLongMap {
         long result = Constants.NULL_LONG;
         chunk.lock();
         try {
-            update_ptr();
             final long keyHash = HashHelper.hash(requestStringKey);
-            if (keys_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                final long hashIndex = HashHelper.longHash(keyHash, OffHeapLongArray.get(addr, CAPACITY) * 2);
-                long m = hash(hashIndex);
+            final long addr = chunk.addrByIndex(index);
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                final long capacity = OffHeapLongArray.get(addr, CAPACITY);
+                final long subHash = OffHeapLongArray.get(addr, SUBHASH);
+                final long hashIndex = HashHelper.longHash(keyHash, capacity * 2);
+                long m = hash(subHash, capacity, hashIndex);
                 while (m >= 0) {
-                    if (keyHash == key_h(m)) {
-                        result = value(m);
+                    if (keyHash == keyHash(addr, m)) {
+                        result = value(addr, m);
                         break;
                     }
-                    m = next(m);
+                    m = next(subHash, m);
                 }
             }
         } finally {
@@ -160,42 +125,46 @@ class OffHeapStringLongMap implements StringLongMap {
 
     @Override
     public final String getByHash(final long keyHash) {
-        String result = null;
+        long result = Constants.NULL_LONG;
         chunk.lock();
         try {
-            update_ptr();
-            if (keys_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                final long hashIndex = HashHelper.longHash(keyHash, OffHeapLongArray.get(addr, CAPACITY) * 2);
-                long m = hash(hashIndex);
+            final long addr = chunk.addrByIndex(index);
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                final long capacity = OffHeapLongArray.get(addr, CAPACITY);
+                final long subHash = OffHeapLongArray.get(addr, SUBHASH);
+                final long hashIndex = HashHelper.longHash(keyHash, capacity * 2);
+                long m = hash(subHash, capacity, hashIndex);
                 while (m >= 0) {
-                    if (keyHash == key_h(m)) {
-                        result = key(m);
+                    if (keyHash == keyHash(addr, m)) {
+                        result = key(addr, m);
                         break;
                     }
-                    m = next(m);
+                    m = next(subHash, m);
                 }
             }
         } finally {
             chunk.unlock();
         }
-        return result;
+        return OffHeapString.asObject(result);
     }
 
     @Override
-    public final boolean containsHash(long keyHash) {
+    public final boolean containsHash(final long keyHash) {
         boolean result = false;
         chunk.lock();
         try {
-            update_ptr();
-            if (keys_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                final long hashIndex = HashHelper.longHash(keyHash, OffHeapLongArray.get(addr, CAPACITY) * 2);
-                long m = hash(hashIndex);
+            final long addr = chunk.addrByIndex(index);
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                final long capacity = OffHeapLongArray.get(addr, CAPACITY);
+                final long subHash = OffHeapLongArray.get(addr, SUBHASH);
+                final long hashIndex = HashHelper.longHash(keyHash, capacity * 2);
+                long m = hash(subHash, capacity, hashIndex);
                 while (m >= 0) {
-                    if (keyHash == key_h(m)) {
+                    if (keyHash == keyHash(addr, m)) {
                         result = true;
                         break;
                     }
-                    m = next(m);
+                    m = next(subHash, m);
                 }
             }
         } finally {
@@ -208,10 +177,12 @@ class OffHeapStringLongMap implements StringLongMap {
     public final void each(StringLongMapCallBack callback) {
         chunk.lock();
         try {
-            update_ptr();
-            final long mapSize = OffHeapLongArray.get(addr, SIZE);
-            for (long i = 0; i < mapSize; i++) {
-                callback.on(key(i), value(i));
+            final long addr = chunk.addrByIndex(index);
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                final long mapSize = OffHeapLongArray.get(addr, SIZE);
+                for (long i = 0; i < mapSize; i++) {
+                    callback.on(OffHeapString.asObject(key(addr, i)), value(addr, i));
+                }
             }
         } finally {
             chunk.unlock();
@@ -223,7 +194,7 @@ class OffHeapStringLongMap implements StringLongMap {
         long result = 0;
         chunk.lock();
         try {
-            addr = chunk.addrByIndex(index);
+            final long addr = chunk.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 result = OffHeapLongArray.get(addr, SIZE);
             }
@@ -237,34 +208,35 @@ class OffHeapStringLongMap implements StringLongMap {
     public final void remove(final String requestStringKey) {
         chunk.lock();
         try {
-            update_ptr();
-            if (keys_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                long mapSize = OffHeapLongArray.get(addr, SIZE);
+            final long addr = chunk.addrByIndex(index);
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 final long keyHash = HashHelper.hash(requestStringKey);
+                long mapSize = OffHeapLongArray.get(addr, SIZE);
                 if (mapSize != 0) {
                     long capacity = OffHeapLongArray.get(addr, CAPACITY);
+                    long subHash = OffHeapLongArray.get(addr, SUBHASH);
                     long hashCapacity = capacity * 2;
                     long hashIndex = HashHelper.longHash(keyHash, hashCapacity);
-                    long m = hash(hashIndex);
+                    long m = hash(subHash, capacity, hashIndex);
                     long found = -1;
                     while (m >= 0) {
-                        if (keyHash == key_h(m)) {
+                        if (keyHash == keyHash(addr, m)) {
                             found = m;
                             break;
                         }
-                        m = next(m);
+                        m = next(subHash, m);
                     }
                     if (found != -1) {
                         //first remove currentKey from hashChain
                         long toRemoveHash = HashHelper.longHash(keyHash, hashCapacity);
-                        m = hash(toRemoveHash);
+                        m = hash(subHash, capacity, toRemoveHash);
                         if (m == found) {
-                            setHash(toRemoveHash, next(m));
+                            setHash(subHash, capacity, toRemoveHash, next(subHash, m));
                         } else {
                             while (m != -1) {
-                                long next_of_m = next(m);
+                                long next_of_m = next(subHash, m);
                                 if (next_of_m == found) {
-                                    setNext(m, next(next_of_m));
+                                    setNext(subHash, m, next(subHash, next_of_m));
                                     break;
                                 }
                                 m = next_of_m;
@@ -273,34 +245,32 @@ class OffHeapStringLongMap implements StringLongMap {
                         final long lastIndex = mapSize - 1;
                         if (lastIndex == found) {
                             //easy, was the last element
-                            mapSize--;
-                            OffHeapLongArray.set(addr, SIZE, mapSize);
+                            OffHeapLongArray.set(addr, SIZE, mapSize - 1);
                         } else {
                             //less cool, we have to unchain the last value of the map
-                            final long lastStringIndex = OffHeapLongArray.get(keys_ptr, lastIndex);
-                            OffHeapLongArray.set(keys_ptr, found, lastStringIndex);
-                            final long lastKey = key_h(lastIndex);
-                            setKey_h(found, lastKey);
-                            setValue(found, value(lastIndex));
-                            setNext(found, next(lastIndex));
+                            final long lastKey = key(addr, lastIndex);
+                            final long lastKeyHash = keyHash(addr, lastIndex);
+                            setKey(addr, found, lastKey);
+                            setKeyHash(addr, found, lastKeyHash);
+                            setValue(addr, found, value(addr, lastIndex));
+                            setNext(subHash, found, next(subHash, lastIndex));
                             long victimHash = HashHelper.longHash(lastKey, hashCapacity);
-                            m = hash(victimHash);
+                            m = hash(subHash, capacity, victimHash);
                             if (m == lastIndex) {
                                 //the victim was the head of hashing list
-                                setHash(victimHash, found);
+                                setHash(subHash, capacity, victimHash, found);
                             } else {
                                 //the victim is in the next, reChain it
                                 while (m != -1) {
-                                    long next_of_m = next(m);
+                                    long next_of_m = next(subHash, m);
                                     if (next_of_m == lastIndex) {
-                                        setNext(m, found);
+                                        setNext(subHash, m, found);
                                         break;
                                     }
                                     m = next_of_m;
                                 }
                             }
-                            mapSize--;
-                            OffHeapLongArray.set(addr, SIZE, mapSize);
+                            OffHeapLongArray.set(addr, SIZE, mapSize - 1);
                         }
                         chunk.declareDirty();
                     }
@@ -312,11 +282,10 @@ class OffHeapStringLongMap implements StringLongMap {
     }
 
     @Override
-    public final void put(final String insertStringKey, final long insertValue) {
+    public final void put(final String insertKey, final long insertValue) {
         chunk.lock();
         try {
-            update_ptr();
-            internal_put(insertStringKey, insertValue);
+            internal_put(insertKey, insertValue);
         } finally {
             chunk.unlock();
         }
@@ -324,94 +293,95 @@ class OffHeapStringLongMap implements StringLongMap {
 
     void internal_put(final String insertStringKey, final long insertValue) {
         final long keyHash = HashHelper.hash(insertStringKey);
-        if (keys_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-            reallocate(0, 0, Constants.MAP_INITIAL_CAPACITY);
-            setKey(0, insertStringKey);
-            setKey_h(0, keyHash);
-            setValue(0, insertValue);
-            long mapSize = OffHeapLongArray.get(addr, SIZE);
-            long capacity = OffHeapLongArray.get(addr, CAPACITY);
-            setHash((int) HashHelper.longHash(keyHash, capacity * 2), 0);
-            setNext(0, -1);
-            mapSize++;
-            OffHeapLongArray.set(addr, SIZE, mapSize);
+        long addr = chunk.addrByIndex(index);
+        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            //initial allocation
+            final long capacity = Constants.MAP_INITIAL_CAPACITY;
+            addr = OffHeapLongArray.allocate(HEADER + (capacity * ELEM_SIZE));
+            chunk.setAddrByIndex(index, addr);
+            final long subHash = OffHeapLongArray.allocate(capacity * 3);
+            OffHeapLongArray.set(addr, SIZE, 1);
+            OffHeapLongArray.set(addr, CAPACITY, capacity);
+            OffHeapLongArray.set(addr, SUBHASH, subHash);
+            setKey(addr, 0, OffHeapString.fromObject(insertStringKey));
+            setKeyHash(addr, 0, keyHash);
+            setValue(addr, 0, insertValue);
+            setHash(subHash, capacity, (int) HashHelper.longHash(keyHash, capacity * 2), 0);
+            setNext(subHash, 0, -1);
         } else {
             long mapSize = OffHeapLongArray.get(addr, SIZE);
             long capacity = OffHeapLongArray.get(addr, CAPACITY);
-            long hashCapacity = capacity * 2;
-            long insertKeyHash = HashHelper.longHash(keyHash, hashCapacity);
-            long currentHash = hash(insertKeyHash);
-            long m = currentHash;
+            long subHash = OffHeapLongArray.get(addr, SUBHASH);
+            long m = hash(subHash, capacity, HashHelper.longHash(keyHash, capacity * 2));
             long found = -1;
             while (m >= 0) {
-                if (keyHash == key_h(m)) {
+                if (keyHash == keyHash(addr, m)) {
                     found = m;
                     break;
                 }
-                m = next(m);
+                m = next(subHash, m);
             }
             if (found == -1) {
                 final long lastIndex = mapSize;
                 if (lastIndex == capacity) {
-                    reallocate(capacity, mapSize, capacity * 2);
-                    capacity = OffHeapLongArray.get(addr, CAPACITY);
-                    mapSize = OffHeapLongArray.get(addr, SIZE);
+                    //extend capacity
+                    capacity = capacity * 2;
+                    addr = OffHeapLongArray.reallocate(addr, HEADER + (capacity * ELEM_SIZE));
+                    chunk.setAddrByIndex(index, addr);
+                    OffHeapLongArray.set(addr, CAPACITY, capacity);
+                    subHash = OffHeapLongArray.reallocate(subHash, capacity * 3);
+                    OffHeapLongArray.reset(subHash, capacity * 3);
+                    OffHeapLongArray.set(addr, SUBHASH, subHash);
+                    //reHash previous stored content
+                    long size = OffHeapLongArray.get(addr, SIZE);
+                    for (long i = 0; i < size; i++) {
+                        long new_key_hash = HashHelper.longHash(keyHash(addr, i), capacity * 2);
+                        setNext(subHash, i, hash(subHash, capacity, new_key_hash));
+                        setHash(subHash, capacity, new_key_hash, i);
+                    }
                 }
-                setKey(lastIndex, insertStringKey);
-                setKey_h(lastIndex, keyHash);
-                setValue(lastIndex, insertValue);
-                setHash((int) HashHelper.longHash(keyHash, capacity * 2), lastIndex);
-                setNext(lastIndex, currentHash);
-                mapSize++;
-                OffHeapLongArray.set(addr, SIZE, mapSize);
+                setKey(addr, lastIndex, OffHeapString.fromObject(insertStringKey));
+                setKeyHash(addr, lastIndex, keyHash);
+                setValue(addr, lastIndex, insertValue);
+                final long hashedKey = HashHelper.longHash(keyHash, capacity * 2);
+                setNext(subHash, lastIndex, hash(subHash, capacity, hashedKey));
+                setHash(subHash, capacity, hashedKey, lastIndex);
+                OffHeapLongArray.set(addr, SIZE, mapSize + 1);
                 chunk.declareDirty();
             } else {
-                if (value(found) != insertValue) {
-                    setValue(found, insertValue);
+                if (value(addr, found) != insertValue) {
+                    setValue(addr, found, insertValue);
                     chunk.declareDirty();
                 }
             }
         }
     }
 
-
     static void save(final long addr, final Buffer buffer) {
         if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
             final long size = OffHeapLongArray.get(addr, SIZE);
-            final long keys_ptr = OffHeapLongArray.get(addr, KEYS);
-            final long values_ptr = OffHeapLongArray.get(addr, VALUES);
             Base64.encodeLongToBuffer(size, buffer);
             for (long i = 0; i < size; i++) {
                 buffer.write(Constants.CHUNK_SUB_SUB_SEP);
-                Base64.encodeStringToBuffer(OffHeapStringArray.get(keys_ptr, i), buffer);
+                Base64.encodeStringToBuffer(OffHeapString.asObject(key(addr, i)), buffer);
                 buffer.write(Constants.CHUNK_SUB_SUB_SUB_SEP);
-                Base64.encodeLongToBuffer(OffHeapLongArray.get(values_ptr, i), buffer);
+                Base64.encodeLongToBuffer(value(addr, i), buffer);
             }
         }
     }
 
     static void free(final long addr) {
         if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-            final long capacity = OffHeapLongArray.get(addr, CAPACITY);
-            final long keys_ptr = OffHeapLongArray.get(addr, KEYS);
-            if (keys_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                OffHeapStringArray.free(keys_ptr, capacity);
+            final long size = OffHeapLongArray.get(addr, SIZE);
+            for (long i = 0; i < size; i++) {
+                long keyAddr = key(addr, i);
+                if(keyAddr != OffHeapConstants.OFFHEAP_NULL_PTR){
+                    OffHeapString.free(keyAddr);
+                }
             }
-            final long keys_h_ptr = OffHeapLongArray.get(addr, KEYS_H);
-            if (keys_h_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                OffHeapLongArray.free(keys_h_ptr);
-            }
-            final long values_ptr = OffHeapLongArray.get(addr, VALUES);
-            if (values_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                OffHeapLongArray.free(values_ptr);
-            }
-            final long nexts_ptr = OffHeapLongArray.get(addr, NEXTS);
-            if (nexts_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                OffHeapLongArray.free(nexts_ptr);
-            }
-            final long hashs_ptr = OffHeapLongArray.get(addr, HASHS);
-            if (hashs_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                OffHeapLongArray.free(hashs_ptr);
+            final long previousHash = OffHeapLongArray.get(addr, SUBHASH);
+            if (previousHash != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapLongArray.free(previousHash);
             }
             OffHeapLongArray.free(addr);
         }
@@ -420,26 +390,17 @@ class OffHeapStringLongMap implements StringLongMap {
     static long clone(final long addr) {
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return OffHeapConstants.OFFHEAP_NULL_PTR;
+        } else {
+            final long capacity = OffHeapLongArray.get(addr, CAPACITY);
+            //copy main array
+            final long new_addr = OffHeapLongArray.cloneArray(addr, HEADER + (capacity * ELEM_SIZE));
+            final long previousHash = OffHeapLongArray.get(addr, SUBHASH);
+            if (previousHash != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                final long newHash = OffHeapLongArray.cloneArray(previousHash, (capacity * 3));
+                OffHeapLongArray.set(new_addr, SUBHASH, newHash);
+            }
+            return new_addr;
         }
-        long new_addr = OffHeapLongArray.cloneArray(addr, CHUNK_ELEM_SIZE);
-        long capacity = OffHeapLongArray.get(addr, CAPACITY);
-
-        long keys_ptr = OffHeapLongArray.get(addr, KEYS);
-        OffHeapLongArray.set(new_addr, KEYS, OffHeapStringArray.cloneArray(keys_ptr, capacity));
-
-        long keys_h_ptr = OffHeapLongArray.get(addr, KEYS_H);
-        OffHeapLongArray.set(keys_h_ptr, KEYS_H, OffHeapLongArray.cloneArray(keys_h_ptr, capacity));
-
-        long values_ptr = OffHeapLongArray.get(addr, VALUES);
-        OffHeapLongArray.set(new_addr, VALUES, OffHeapLongArray.cloneArray(values_ptr, capacity));
-
-        long nexts_ptr = OffHeapLongArray.get(addr, NEXTS);
-        OffHeapLongArray.set(new_addr, NEXTS, OffHeapLongArray.cloneArray(nexts_ptr, capacity));
-
-        long hashs_ptr = OffHeapLongArray.get(addr, HASHS);
-        OffHeapLongArray.set(new_addr, HASHS, OffHeapLongArray.cloneArray(hashs_ptr, capacity * 2));
-
-        return new_addr;
     }
 
 }

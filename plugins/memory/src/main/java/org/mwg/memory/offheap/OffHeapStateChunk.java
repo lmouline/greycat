@@ -843,7 +843,7 @@ class OffHeapStateChunk implements StateChunk {
                                 break;
                             case Type.STRING_TO_LONG_MAP:
                                 currentStringLongMap = new OffHeapStringLongMap(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
-                                currentStringLongMap.reallocate(0, 0, currentSubSize);
+                                currentStringLongMap.preAllocate(currentSubSize);
                                 break;
                             case Type.LONG_TO_LONG_MAP:
                                 currentLongLongMap = new OffHeapLongLongMap(this, internal_set(currentChunkElemKey, currentChunkElemType, null, true, initial));
