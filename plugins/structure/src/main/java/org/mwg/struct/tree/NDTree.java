@@ -1,4 +1,4 @@
-package org.mwg.struct;
+package org.mwg.struct.tree;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
@@ -7,8 +7,11 @@ import org.mwg.Type;
 import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.NodeState;
 import org.mwg.plugin.NodeStateCallback;
+import org.mwg.struct.Relationship;
+import org.mwg.struct.action.ActionTraverseById;
 import org.mwg.struct.distance.Distance;
 import org.mwg.struct.distance.EuclideanDistance;
+import org.mwg.struct.util.NearestNeighborList;
 import org.mwg.task.*;
 
 import static org.mwg.task.Actions.*;

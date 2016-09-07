@@ -1,9 +1,9 @@
-package org.mwg.struct;
+package org.mwg.struct.util;
 
 
 import java.util.ArrayList;
 
-class NearestNeighborArrayList {
+public class NearestNeighborArrayList {
 
     /**
      * The maximum priority possible in this priority queue.

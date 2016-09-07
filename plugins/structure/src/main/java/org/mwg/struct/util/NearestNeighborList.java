@@ -1,7 +1,7 @@
-package org.mwg.struct;
+package org.mwg.struct.util;
 
 
-class NearestNeighborList {
+public class NearestNeighborList {
 
     /**
      * The maximum priority possible in this priority queue.

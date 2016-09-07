@@ -7,9 +7,8 @@ import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Node;
 import org.mwg.struct.distance.EuclideanDistance;
+import org.mwg.struct.tree.KDTree;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Random;
 
 /**

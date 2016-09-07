@@ -3,7 +3,7 @@ package org.mwg.struct;
 import org.mwg.Callback;
 import org.mwg.Node;
 
-public interface MultiDimTree {
+public interface NTree {
 
     void nearestN(final double[] keys, final int nbElem, final Callback<Node[]> callback);
 

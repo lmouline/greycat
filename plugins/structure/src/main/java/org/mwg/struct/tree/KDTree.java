@@ -1,4 +1,4 @@
-package org.mwg.struct;
+package org.mwg.struct.tree;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
@@ -6,13 +6,18 @@ import org.mwg.Node;
 import org.mwg.Type;
 import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.NodeState;
+import org.mwg.struct.NTree;
+import org.mwg.struct.Relationship;
 import org.mwg.struct.distance.*;
+import org.mwg.struct.util.HRect;
+import org.mwg.struct.util.NearestNeighborArrayList;
+import org.mwg.struct.util.NearestNeighborList;
 import org.mwg.task.*;
 import org.mwg.utility.Enforcer;
 
 import static org.mwg.task.Actions.*;
 
-class KDTree extends AbstractNode implements MultiDimTree {
+public class KDTree extends AbstractNode implements NTree {
 
     public static final String NAME = "KDTree";
 
@@ -28,7 +33,7 @@ class KDTree extends AbstractNode implements MultiDimTree {
     public static final double DISTANCE_THRESHOLD_DEF = 1e-10;
     public static final int DISTANCE_TYPE_DEF = 0;
 
-    KDTree(long p_world, long p_time, long p_id, Graph p_graph) {
+    public KDTree(long p_world, long p_time, long p_id, Graph p_graph) {
         super(p_world, p_time, p_id, p_graph);
     }
 

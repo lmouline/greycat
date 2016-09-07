@@ -4,6 +4,7 @@ import org.mwg.Graph;
 import org.mwg.Node;
 import org.mwg.plugin.AbstractPlugin;
 import org.mwg.plugin.NodeFactory;
+import org.mwg.struct.tree.KDTree;
 
 public class StructPlugin extends AbstractPlugin {
 

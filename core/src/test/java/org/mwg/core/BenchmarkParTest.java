@@ -17,7 +17,7 @@ public class BenchmarkParTest {
 
     public static void main(String[] args) {
         Graph g = new GraphBuilder()
-                .withMemorySize(100000)
+                .withMemorySize(1000000)
                 .withScheduler(new HybridScheduler())
                 //.withScheduler(new TrampolineScheduler())
                 //.withScheduler(new ExecutorScheduler())
@@ -29,15 +29,15 @@ public class BenchmarkParTest {
                 final long previousCache = g.space().available();
                 loopPar("0", "9999", newNode()
                         .setProperty("name", Type.STRING, "node_{{i}}")
-                        //.print("{{result}}")
+                        .print("{{result}}")
                         .indexNode("nodes", "name")
-                        .loop("0", "99", jump("{{i}}").setProperty("val", Type.INT, "{{i}}").clear())
-                        .ifThen(cond("i % 10 == 0"), save())
+                        .loop("0", "999", jump("{{i}}").setProperty("val", Type.INT, "{{i}}").clear())
+                        .ifThen(cond("i % 100 == 0"), save())
                         .clear()
                 ).save().fromIndexAll("nodes").execute(g, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
-                        System.out.println("indexSize="+result.size());
+                        System.out.println("indexSize=" + result.size());
                         result.free();
                         long after = System.currentTimeMillis();
                         long afterCache = g.space().available();
@@ -46,7 +46,6 @@ public class BenchmarkParTest {
                         g.disconnect(new Callback<Boolean>() {
                             @Override
                             public void on(Boolean result) {
-
                             }
                         });
                     }

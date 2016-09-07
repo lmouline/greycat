@@ -1,4 +1,4 @@
-package org.mwg.struct;
+package org.mwg.struct.action;
 
 import org.mwg.Callback;
 import org.mwg.DeferCounter;
@@ -9,13 +9,13 @@ import org.mwg.plugin.Job;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
-public class ActionTraverseById extends AbstractTaskAction {
+public class ActionNearestNWithingRadius extends AbstractTaskAction {
 
-    public static String NAME = "traverseById";
+    public static String NAME = "nearestN";
 
     private final String _name;
 
-    public ActionTraverseById(final String p_name) {
+    public ActionNearestNWithingRadius(final String p_name) {
         super();
         this._name = p_name;
     }

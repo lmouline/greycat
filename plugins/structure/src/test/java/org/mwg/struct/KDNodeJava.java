@@ -3,6 +3,7 @@ package org.mwg.struct;
 
 import org.mwg.Callback;
 import org.mwg.struct.distance.Distance;
+import org.mwg.struct.util.HRect;
 
 public class KDNodeJava {
 

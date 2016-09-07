@@ -1,13 +1,13 @@
-package org.mwg.struct;
+package org.mwg.struct.util;
 
 
 // Hyper-Rectangle class supporting KDTree class
 
 
-class HRect {
+public class HRect {
 
-    protected double[] min;
-    protected double[] max;
+    public double[] min;
+    public double[] max;
 
     protected HRect(double[] vmin, double[] vmax) {
 
@@ -18,12 +18,12 @@ class HRect {
         System.arraycopy(vmax, 0, max, 0, vmax.length);
     }
 
-    protected Object clone() {
+    public Object clone() {
         return new HRect(min, max);
     }
 
     // from Moore's eqn. 6.6
-    protected double[] closest(double[] t) {
+    public double[] closest(double[] t) {
 
         double[] p = new double[t.length];
 
@@ -41,7 +41,7 @@ class HRect {
     }
 
     // used in initial conditions of KDTree.nearest()
-    protected static HRect infiniteHRect(int d) {
+    public static HRect infiniteHRect(int d) {
 
         double[] vmin = new double[d];
         double[] vmax = new double[d];
