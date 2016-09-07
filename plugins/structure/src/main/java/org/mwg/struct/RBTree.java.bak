@@ -11,6 +11,4 @@ public class RBTree extends AbstractNode {
         super(p_world, p_time, p_id, p_graph);
     }
 
-
-
 }

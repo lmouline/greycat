@@ -386,7 +386,7 @@ class CoreGraph implements org.mwg.Graph {
     }
 
     @Override
-    public void index(final String indexName, final org.mwg.Node toIndexNode, final String flatKeyAttributes, final Callback<Boolean> callback) {
+    public synchronized void index(final String indexName, final org.mwg.Node toIndexNode, final String flatKeyAttributes, final Callback<Boolean> callback) {
         if (indexName == null) {
             throw new RuntimeException("indexName should not be null");
         }
@@ -416,7 +416,7 @@ class CoreGraph implements org.mwg.Graph {
     }
 
     @Override
-    public void unindex(final String indexName, final org.mwg.Node nodeToUnindex, final String flatKeyAttributes, final Callback<Boolean> callback) {
+    public synchronized void unindex(final String indexName, final org.mwg.Node nodeToUnindex, final String flatKeyAttributes, final Callback<Boolean> callback) {
         if (indexName == null) {
             throw new RuntimeException("indexName should not be null");
         }

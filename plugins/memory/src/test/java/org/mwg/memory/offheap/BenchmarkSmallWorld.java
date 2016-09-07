@@ -5,6 +5,7 @@ import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Type;
 import org.mwg.task.TaskResult;
+import org.mwg.utility.Unsafe;
 import org.mwg.utility.VerbosePlugin;
 
 import static org.mwg.task.Actions.*;
@@ -13,6 +14,8 @@ import static org.mwg.task.Actions.*;
 public class BenchmarkSmallWorld {
 
     public static void main(String[] args) {
+
+        Unsafe.DEBUG_MODE = true;
 
         Graph g = new GraphBuilder()
                 .withMemorySize(100000)

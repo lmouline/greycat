@@ -1,35 +1,41 @@
-package org.mwg.ml.common.structure;
+package org.mwg.struct.tree;
 
-import org.mwg.*;
-import org.mwg.ml.common.distance.*;
-import org.mwg.plugin.*;
+import org.mwg.Callback;
+import org.mwg.Graph;
+import org.mwg.Node;
+import org.mwg.Type;
+import org.mwg.plugin.AbstractNode;
+import org.mwg.plugin.NodeState;
+import org.mwg.struct.NTree;
 import org.mwg.struct.Relationship;
+import org.mwg.struct.distance.*;
+import org.mwg.struct.util.HRect;
+import org.mwg.struct.util.NearestNeighborArrayList;
+import org.mwg.struct.util.NearestNeighborList;
 import org.mwg.task.*;
 import org.mwg.utility.Enforcer;
 
 import static org.mwg.task.Actions.*;
-import static org.mwg.task.Actions.traverse;
 
-public class KDTree extends AbstractNode {
+public class KDTree extends AbstractNode implements NTree {
 
     public static final String NAME = "KDTree";
 
-    private static final String INTERNAL_LEFT = "_left";                //to navigate left
-    private static final String INTERNAL_RIGHT = "_right";              //to navigate right
+    private static final String LEFT = "left";
+    private static final String RIGHT = "right";
+    private static final String KEY = "key";
+    private static final String VALUE = "value";
+    private static final String SIZE = "size";
+    private static final String DIMENSIONS = "dimensions";
+    public static final String DISTANCE = "distance";
 
-    private static final String INTERNAL_KEY = "_key";                  //Keys of the node
-    private static final String INTERNAL_VALUE = "_value";              //Values of the node
-    public static final String NUM_NODES = "_num";                      //Number of nodes inserted in the tree
-
-    private static final String INTERNAL_DIM = "_dim";                  //Dimension of the key
-
-    public static final String DISTANCE_THRESHOLD = "_threshold";       //Distance threshold to define when 2 keys are not considered the same anymopre
+    public static final String DISTANCE_THRESHOLD = "threshold";       //Distance threshold to define when 2 keys are not considered the same anymopre
     public static final double DISTANCE_THRESHOLD_DEF = 1e-10;
-
-    public static final String DISTANCE_TYPE = "disttype";
     public static final int DISTANCE_TYPE_DEF = 0;
-    public static final String GAUSSIAN_PRECISION = "_precision";
 
+    public KDTree(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
+    }
 
     //Insert key/value task
     private static Task insert = whileDo(new TaskFunctionConditional() {
@@ -37,7 +43,7 @@ public class KDTree extends AbstractNode {
         public boolean eval(TaskContext context) {
 
             Node current = context.resultAsNodes().get(0);
-            double[] nodeKey = (double[]) current.get(INTERNAL_KEY);
+            double[] nodeKey = (double[]) current.get(KEY);
 
             //Get variables from context
 
@@ -54,33 +60,33 @@ public class KDTree extends AbstractNode {
 
             //Bootstrap, first insert ever
             if (nodeKey == null) {
-                current.setProperty(INTERNAL_DIM, Type.INT, dim);
-                current.setProperty(INTERNAL_KEY, Type.DOUBLE_ARRAY, keyToInsert);
-                current.getOrCreateRel(INTERNAL_VALUE).clear().add(valueToInsert.id());
-                current.setProperty(NUM_NODES, Type.INT, 1);
+                current.setProperty(DIMENSIONS, Type.INT, dim);
+                current.setProperty(KEY, Type.DOUBLE_ARRAY, keyToInsert);
+                current.getOrCreateRel(VALUE).clear().add(valueToInsert.id());
+                current.setProperty(SIZE, Type.INT, 1);
                 return false; //stop the while loop and insert here
             } else if (distance.measure(keyToInsert, nodeKey) < err) {
-                current.getOrCreateRel(INTERNAL_VALUE).clear().add(valueToInsert.id());
+                current.getOrCreateRel(VALUE).clear().add(valueToInsert.id());
                 return false; //insert in the current node, and done with it, no need to continue looping
             } else {
                 //Decision point for next step
                 Relationship child;
                 String nextRel;
                 if (keyToInsert[lev] > nodeKey[lev]) {
-                    child = (Relationship) current.get(INTERNAL_RIGHT);
-                    nextRel = INTERNAL_RIGHT;
+                    child = (Relationship) current.get(RIGHT);
+                    nextRel = RIGHT;
                 } else {
-                    child = (Relationship) current.get(INTERNAL_LEFT);
-                    nextRel = INTERNAL_LEFT;
+                    child = (Relationship) current.get(LEFT);
+                    nextRel = LEFT;
                 }
 
                 //If there is no node to the right, we create one and the game is over
                 if (child == null || child.size() == 0) {
                     KDTree childNode = (KDTree) context.graph().newTypedNode(current.world(), current.time(), NAME);
-                    childNode.setProperty(INTERNAL_KEY, Type.DOUBLE_ARRAY, keyToInsert);
-                    childNode.getOrCreateRel(INTERNAL_VALUE).clear().add(valueToInsert.id());
+                    childNode.setProperty(KEY, Type.DOUBLE_ARRAY, keyToInsert);
+                    childNode.getOrCreateRel(VALUE).clear().add(valueToInsert.id());
                     current.getOrCreateRel(nextRel).clear().add(childNode.id());
-                    root.setProperty(NUM_NODES, Type.INT, (Integer) root.get(NUM_NODES) + 1);
+                    root.setProperty(SIZE, Type.INT, (Integer) root.get(SIZE) + 1);
                     childNode.free();
                     return false;
                 } else {
@@ -112,7 +118,7 @@ public class KDTree extends AbstractNode {
 //                node.graph().save(null);
                 // System.out.println("A- "+node.id()+": "+node.graph().space().available());
 
-                double[] pivot = (double[]) node.get(INTERNAL_KEY);
+                double[] pivot = (double[]) node.get(KEY);
 
                 //Global variable
                 int dim = (int) context.variable("dim").get(0);
@@ -157,26 +163,26 @@ public class KDTree extends AbstractNode {
                 // 6.1. nearer-kd := left field of kd and nearer-hr := left-hr
                 // 6.2. further-kd := right field of kd and further-hr := right-hr
                 if (target_in_left) {
-                    nearer_kd = (Relationship) node.get(INTERNAL_LEFT);
-                    nearer_st = INTERNAL_LEFT;
+                    nearer_kd = (Relationship) node.get(LEFT);
+                    nearer_st = LEFT;
                     nearer_hr = left_hr;
 
-                    further_kd = (Relationship) node.get(INTERNAL_RIGHT);
+                    further_kd = (Relationship) node.get(RIGHT);
                     further_hr = right_hr;
-                    farther_st = INTERNAL_RIGHT;
+                    farther_st = RIGHT;
                 }
                 //
                 // 7. if not target-in-left then
                 // 7.1. nearer-kd := right field of kd and nearer-hr := right-hr
                 // 7.2. further-kd := left field of kd and further-hr := left-hr
                 else {
-                    nearer_kd = (Relationship) node.get(INTERNAL_RIGHT);
+                    nearer_kd = (Relationship) node.get(RIGHT);
                     nearer_hr = right_hr;
-                    nearer_st = INTERNAL_RIGHT;
+                    nearer_st = RIGHT;
 
-                    further_kd = (Relationship) node.get(INTERNAL_LEFT);
+                    further_kd = (Relationship) node.get(LEFT);
                     further_hr = left_hr;
-                    farther_st = INTERNAL_LEFT;
+                    farther_st = LEFT;
                 }
 
                 //define contextual variables for reccursivity:
@@ -254,7 +260,7 @@ public class KDTree extends AbstractNode {
                                 dist_sqd = pivot_to_target;
                                 //System.out.println("T3 "+node.id()+" insert-> "+((long[]) (node.get(INTERNAL_VALUE)))[0]);
                                 //System.out.println("INSTASK " + ((long[]) (node.get(INTERNAL_VALUE)))[0] + " id: "+node.id());
-                                nnl.insert(((Relationship) (node.get(INTERNAL_VALUE))).get(0), dist_sqd);
+                                nnl.insert(((Relationship) (node.get(VALUE))).get(0), dist_sqd);
 
                                 // 10.1.3 max-dist-sqd = dist-sqd
                                 // max_dist_sqd = dist_sqd;
@@ -314,7 +320,7 @@ public class KDTree extends AbstractNode {
 //                node.graph().save(null);
                 // System.out.println("A- "+node.id()+": "+node.graph().space().available());
 
-                double[] pivot = (double[]) node.get(INTERNAL_KEY);
+                double[] pivot = (double[]) node.get(KEY);
 
                 //Global variable
                 int dim = (int) context.variable("dim").get(0);
@@ -360,26 +366,26 @@ public class KDTree extends AbstractNode {
                 // 6.1. nearer-kd := left field of kd and nearer-hr := left-hr
                 // 6.2. further-kd := right field of kd and further-hr := right-hr
                 if (target_in_left) {
-                    nearer_kd = (Relationship) node.get(INTERNAL_LEFT);
-                    nearer_st = INTERNAL_LEFT;
+                    nearer_kd = (Relationship) node.get(LEFT);
+                    nearer_st = LEFT;
                     nearer_hr = left_hr;
 
-                    further_kd = (Relationship) node.get(INTERNAL_RIGHT);
+                    further_kd = (Relationship) node.get(RIGHT);
                     further_hr = right_hr;
-                    farther_st = INTERNAL_RIGHT;
+                    farther_st = RIGHT;
                 }
                 //
                 // 7. if not target-in-left then
                 // 7.1. nearer-kd := right field of kd and nearer-hr := right-hr
                 // 7.2. further-kd := left field of kd and further-hr := left-hr
                 else {
-                    nearer_kd = (Relationship) node.get(INTERNAL_RIGHT);
+                    nearer_kd = (Relationship) node.get(RIGHT);
                     nearer_hr = right_hr;
-                    nearer_st = INTERNAL_RIGHT;
+                    nearer_st = RIGHT;
 
-                    further_kd = (Relationship) node.get(INTERNAL_LEFT);
+                    further_kd = (Relationship) node.get(LEFT);
                     further_hr = left_hr;
-                    farther_st = INTERNAL_LEFT;
+                    farther_st = LEFT;
                 }
 
                 //define contextual variables for reccursivity:
@@ -455,7 +461,7 @@ public class KDTree extends AbstractNode {
                                 //System.out.println("T3 "+node.id()+" insert-> "+((long[]) (node.get(INTERNAL_VALUE)))[0]);
                                 //System.out.println("INSTASK " + ((long[]) (node.get(INTERNAL_VALUE)))[0] + " id: "+node.id());
                                 if (dist_sqd <= radius) {
-                                    nnl.insert(((Relationship) (node.get(INTERNAL_VALUE))).get(0), dist_sqd);
+                                    nnl.insert(((Relationship) (node.get(VALUE))).get(0), dist_sqd);
                                 }
                                 // 10.1.3 max-dist-sqd = dist-sqd
                                 // max_dist_sqd = dist_sqd;
@@ -498,11 +504,6 @@ public class KDTree extends AbstractNode {
     private static Task nearestTask = initFindNear();
     private static Task nearestRadiusTask = initFindRadius();
 
-
-    public KDTree(long p_world, long p_time, long p_id, Graph p_graph) {
-        super(p_world, p_time, p_id, p_graph);
-    }
-
     private static final Enforcer enforcer = new Enforcer()
             .asPositiveDouble(DISTANCE_THRESHOLD);
 
@@ -512,30 +513,23 @@ public class KDTree extends AbstractNode {
         super.setProperty(propertyName, propertyType, propertyValue);
     }
 
-
-    private Distance getDistance(NodeState state) {
-        int d = state.getFromKeyWithDefault(DISTANCE_TYPE, DISTANCE_TYPE_DEF);
+    protected Distance getDistance(NodeState state) {
+        int d = state.getFromKeyWithDefault(DISTANCE, DISTANCE_TYPE_DEF);
         Distance distance;
-        if (d == DistanceEnum.EUCLIDEAN) {
-            distance = new EuclideanDistance();
-        } else if (d == DistanceEnum.GAUSSIAN) {
-            double[] precision = (double[]) state.getFromKey(GAUSSIAN_PRECISION);
-            if (precision == null) {
-                throw new RuntimeException("covariance of gaussian distances cannot be null");
-            }
-            distance = new GaussianDistance(precision);
-        } else if (d == DistanceEnum.GEODISTANCE) {
-            distance = new GeoDistance();
+        if (d == Distances.EUCLIDEAN) {
+            distance = EuclideanDistance.INSTANCE;
+        } else if (d == Distances.GEODISTANCE) {
+            distance = GeoDistance.INSTANCE;
         } else {
             throw new RuntimeException("Unknown distance code metric");
         }
         return distance;
     }
 
-
+    @Override
     public void insert(final double[] key, final Node value, final Callback<Boolean> callback) {
         NodeState state = unphasedState();
-        final int dim = state.getFromKeyWithDefault(INTERNAL_DIM, key.length);
+        final int dim = state.getFromKeyWithDefault(DIMENSIONS, key.length);
         final double err = state.getFromKeyWithDefault(DISTANCE_THRESHOLD, DISTANCE_THRESHOLD_DEF);
 
         if (key.length != dim) {
@@ -569,10 +563,15 @@ public class KDTree extends AbstractNode {
         insert.executeUsing(tc);
     }
 
+    @Override
+    public int size() {
+        return graph().resolver().resolveState(this).getFromKeyWithDefault(SIZE, 0);
+    }
 
+    @Override
     public void nearestNWithinRadius(final double[] key, int n, double radius, final Callback<Node[]> callback) {
         NodeState state = unphasedState();
-        final int dim = state.getFromKeyWithDefault(INTERNAL_DIM, key.length);
+        final int dim = state.getFromKeyWithDefault(DIMENSIONS, key.length);
 
         if (key.length != dim) {
             throw new RuntimeException("Key size should always be the same");
@@ -630,9 +629,10 @@ public class KDTree extends AbstractNode {
 
     }
 
+    @Override
     public void nearestWithinRadius(final double[] key, final double radius, final Callback<Node[]> callback) {
         NodeState state = unphasedState();
-        final int dim = state.getFromKeyWithDefault(INTERNAL_DIM, key.length);
+        final int dim = state.getFromKeyWithDefault(DIMENSIONS, key.length);
 
         if (key.length != dim) {
             throw new RuntimeException("Key size should always be the same");
@@ -690,10 +690,10 @@ public class KDTree extends AbstractNode {
         nearestRadiusTask.executeUsing(tc);
     }
 
-
+    @Override
     public void nearestN(final double[] key, final int n, final Callback<Node[]> callback) {
         NodeState state = unphasedState();
-        final int dim = state.getFromKeyWithDefault(INTERNAL_DIM, key.length);
+        final int dim = state.getFromKeyWithDefault(DIMENSIONS, key.length);
 
         if (key.length != dim) {
             throw new RuntimeException("Key size should always be the same");

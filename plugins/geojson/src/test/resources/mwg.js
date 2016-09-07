@@ -1250,7 +1250,7 @@ var org;
             function Constants() {
             }
             Constants.isDefined = function (param) {
-                return param != null;
+                return param != undefined && param != null;
             };
             Constants.equals = function (src, other) {
                 return src === other;
@@ -2123,6 +2123,9 @@ var org;
                 Actions.asVar = function (variableName) {
                     return org.mwg.task.Actions.newTask().asGlobalVar(variableName);
                 };
+                Actions.defineVar = function (variableName) {
+                    return org.mwg.task.Actions.newTask().defineVar(variableName);
+                };
                 Actions.addToVar = function (variableName) {
                     return org.mwg.task.Actions.newTask().addToVar(variableName);
                 };
@@ -2221,6 +2224,9 @@ var org;
                 };
                 Actions.lookup = function (nodeId) {
                     return org.mwg.task.Actions.newTask().lookup(nodeId);
+                };
+                Actions.hook = function (fact) {
+                    return org.mwg.task.Actions.newTask().hook(fact);
                 };
                 Actions.clear = function () {
                     return org.mwg.task.Actions.newTask().clear();
@@ -3319,7 +3325,7 @@ var org;
                     if (flatKeyAttributes == null) {
                         throw new Error("flatKeyAttributes should not be null");
                     }
-                    this.getIndexOrCreate(toIndexNode.world(), toIndexNode.time(), indexName, true, function (foundIndex) {
+                    this.getIndexOrCreate(0, 0, indexName, true, function (foundIndex) {
                         if (foundIndex == null) {
                             throw new Error("Index creation failed, cache is probably full !!!");
                         }
@@ -5455,6 +5461,15 @@ var org;
                         };
                         HeapStateChunk.prototype.getFromKeyWithDefault = function (key, defaultValue) {
                             var result = this.getFromKey(key);
+                            if (result == null) {
+                                return defaultValue;
+                            }
+                            else {
+                                return result;
+                            }
+                        };
+                        HeapStateChunk.prototype.getWithDefault = function (key, defaultValue) {
+                            var result = this.get(key);
                             if (result == null) {
                                 return defaultValue;
                             }
@@ -8985,7 +9000,7 @@ var org;
                         if (variableName == null) {
                             throw new Error("variableName should not be null");
                         }
-                        this.addAction(new org.mwg.core.task.ActionAsVar(variableName, true));
+                        this.addAction(new org.mwg.core.task.ActionAsVar(variableName, false));
                         return this;
                     };
                     CoreTask.prototype.defineVar = function (variableName) {
@@ -9502,8 +9517,14 @@ var org;
                         this._localVariables = null;
                         this._nextVariables = null;
                         this._hook = p_hook;
-                        this._world = 0;
-                        this._time = 0;
+                        if (parentContext != null) {
+                            this._time = parentContext.time();
+                            this._world = parentContext.world();
+                        }
+                        else {
+                            this._world = 0;
+                            this._time = 0;
+                        }
                         this._graph = p_graph;
                         this._parent = parentContext;
                         var castedParentContext = parentContext;

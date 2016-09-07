@@ -359,6 +359,7 @@ class HeapStateChunk implements StateChunk {
                 }
             }
         }
+        _dirty = false;
     }
 
     @Override

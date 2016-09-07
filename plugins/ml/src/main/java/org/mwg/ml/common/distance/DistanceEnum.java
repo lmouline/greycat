@@ -6,4 +6,5 @@ package org.mwg.ml.common.distance;
 public class DistanceEnum {
     public static int EUCLIDEAN = 0;
     public static int GAUSSIAN = 1;
+    public static int GEODISTANCE = 2;
 }

@@ -17,7 +17,7 @@ public class BenchmarkParTest {
 
     public static void main(String[] args) {
         Graph g = new GraphBuilder()
-                .withMemorySize(100000)
+                .withMemorySize(1000000)
                 .withScheduler(new HybridScheduler())
                 //.withScheduler(new TrampolineScheduler())
                 //.withScheduler(new ExecutorScheduler())
@@ -32,11 +32,12 @@ public class BenchmarkParTest {
                         .print("{{result}}")
                         .indexNode("nodes", "name")
                         .loop("0", "999", jump("{{i}}").setProperty("val", Type.INT, "{{i}}").clear())
-                        .ifThen(cond("i % 10 == 0"), save())
+                        .ifThen(cond("i % 100 == 0"), save())
                         .clear()
-                ).save().execute(g, new Callback<TaskResult>() {
+                ).save().fromIndexAll("nodes").execute(g, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
+                        System.out.println("indexSize=" + result.size());
                         result.free();
                         long after = System.currentTimeMillis();
                         long afterCache = g.space().available();
@@ -45,7 +46,6 @@ public class BenchmarkParTest {
                         g.disconnect(new Callback<Boolean>() {
                             @Override
                             public void on(Boolean result) {
-
                             }
                         });
                     }

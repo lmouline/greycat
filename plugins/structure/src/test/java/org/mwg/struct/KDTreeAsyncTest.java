@@ -1,4 +1,4 @@
-package org.mwg.ml.common.structure;
+package org.mwg.struct;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -6,11 +6,9 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Node;
-import org.mwg.ml.MLPlugin;
-import org.mwg.ml.common.distance.EuclideanDistance;
+import org.mwg.struct.distance.EuclideanDistance;
+import org.mwg.struct.tree.KDTree;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Random;
 
 /**
@@ -20,7 +18,7 @@ public class KDTreeAsyncTest {
     @Test
     public void KDInsertTest() {
         final Graph graph = new GraphBuilder()
-                .withPlugin(new MLPlugin())
+                .withPlugin(new StructPlugin())
                 //.withScheduler(new NoopScheduler())
                 .withMemorySize(100000)
                 //.withOffHeapMemory()
@@ -32,7 +30,7 @@ public class KDTreeAsyncTest {
                 testTask.set(KDTree.DISTANCE_THRESHOLD, 1e-30);
 
                 KDNodeJava testjava = new KDNodeJava();
-                testjava.setDistance(new EuclideanDistance());
+                testjava.setDistance(EuclideanDistance.INSTANCE);
                 testjava.setThreshold(1e-30);
 
 
@@ -92,48 +90,46 @@ public class KDTreeAsyncTest {
                     }
                 });
 
-
-
-
-             /*  testTask.nearestN(key, 10, new Callback<Node[]>() {
+                /*
+                testTask.nearestN(key, 10, new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result3) {
-                        print(result3,key);
+                        print(result3, key);
                     }
                 });
 
 
-                testTask.nearestNWithinRadius(key, 10, 0.4,new Callback<Node[]>() {
+                testTask.nearestNWithinRadius(key, 10, 0.4, new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result3) {
-                        print(result3,key);
+                        print(result3, key);
                     }
                 });
 
 
-                testTask.nearestWithinRadius(key, 0.4,new Callback<Node[]>() {
+                testTask.nearestWithinRadius(key, 0.4, new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result3) {
-                        print(result3,key);
+                        print(result3, key);
                     }
                 });
                 */
-
 
 
             }
         });
     }
 
-
-  /*  public static void print(Node[] res, double[] key){
+/*
+    public static void print(Node[] res, double[] key) {
         NumberFormat formatter = new DecimalFormat("#0.0000");
-        EuclideanDistance ed = new EuclideanDistance();
+        EuclideanDistance ed = EuclideanDistance.INSTANCE;
         for (int i = 0; i < res.length; i++) {
             double[] val = (double[]) res[i].get("value");
-            System.out.println(formatter.format(val[0])+","+formatter.format(val[1])+","+formatter.format(val[2])+","+formatter.format(val[3])+"  dist: "+formatter.format(ed.measure(key,val)));
+            System.out.println(formatter.format(val[0]) + "," + formatter.format(val[1]) + "," + formatter.format(val[2]) + "," + formatter.format(val[3]) + "  dist: " + formatter.format(ed.measure(key, val)));
             res[i].free();
         }
         System.out.println();
     }*/
+
 }
