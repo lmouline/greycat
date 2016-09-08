@@ -9,13 +9,13 @@ import org.mwg.plugin.Job;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
-public class ActionNearestNWithingRadius extends AbstractTaskAction {
+public class NearestNWithingRadius extends AbstractTaskAction {
 
     public static String NAME = "nearestN";
 
     private final String _name;
 
-    public ActionNearestNWithingRadius(final String p_name) {
+    public NearestNWithingRadius(final String p_name) {
         super();
         this._name = p_name;
     }

@@ -11,8 +11,14 @@ public interface NTree {
 
     void nearestNWithinRadius(final double[] keys, int nbElem, double radius, final Callback<Node[]> callback);
 
-    void insert(final double[] keys, final Node value, final Callback<Boolean> callback);
+    void insertWith(final double[] keys, final Node value, final Callback<Boolean> callback);
+
+    void insert(final Node value, final Callback<Boolean> callback);
 
     int size();
+
+    void setDistance(int distanceType);
+
+    void setFrom(String extractor);
 
 }

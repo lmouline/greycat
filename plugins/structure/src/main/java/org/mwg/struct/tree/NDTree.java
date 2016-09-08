@@ -8,7 +8,7 @@ import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.NodeState;
 import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.Relationship;
-import org.mwg.struct.action.ActionTraverseById;
+import org.mwg.struct.action.TraverseById;
 import org.mwg.struct.distance.Distance;
 import org.mwg.struct.distance.EuclideanDistance;
 import org.mwg.struct.util.NearestNeighborList;
@@ -388,7 +388,7 @@ public class NDTree extends AbstractNode {
         }
 
         //todo check how to traverse on long
-    }, Actions.action(ActionTraverseById.NAME, "{{next}}"));
+    }, Actions.action(TraverseById.NAME, "{{next}}"));
 
     public void insert(final double[] key, final Node value, final Callback<Boolean> callback) {
         NodeState state = unphasedState();
