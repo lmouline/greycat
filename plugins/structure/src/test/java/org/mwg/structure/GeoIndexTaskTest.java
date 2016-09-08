@@ -30,7 +30,7 @@ public class GeoIndexTaskTest {
         return inS.contains(inS2);
     }
 
-    @Test
+    //@Test
     public void test() {
         Graph g = new GraphBuilder().withMemorySize(100000).withPlugin(new StructPlugin()).build();
         g.connect(new Callback<Boolean>() {
