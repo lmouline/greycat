@@ -6,6 +6,8 @@ import org.mwg.GraphBuilder;
 import org.mwg.Type;
 import org.mwg.struct.action.NTreeInsertTo;
 import org.mwg.struct.action.NTreeNearestN;
+import org.mwg.struct.action.NTreeNearestNWithinRadius;
+import org.mwg.struct.action.NTreeNearestWithinRadius;
 import org.mwg.struct.distance.Distances;
 import org.mwg.struct.tree.KDTree;
 import org.mwg.task.Task;
@@ -33,6 +35,10 @@ public class GeoIndexTaskTest {
                     .action(NTreeInsertTo.NAME, "geoIndex")
                     .fromVar("geoIndex")
                     .action(NTreeNearestN.NAME, "1.5,2.5,3")
+                    .print("{{result}}")
+                    .action(NTreeNearestWithinRadius.NAME, "1.5,2.5,100000")
+                    .print("{{result}}")
+                    .action(NTreeNearestNWithinRadius.NAME, "1.5,2.5,3,10000000000000")
                     .print("{{result}}")
                     .execute(g, null);
 
