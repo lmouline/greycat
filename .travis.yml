@@ -17,6 +17,7 @@ notifications:
 branches:
   only:
     - master
+    - cachex
 
 env:
   - TRAVIS_NODE_VERSION="4"

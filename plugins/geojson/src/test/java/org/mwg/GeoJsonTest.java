@@ -1,15 +1,11 @@
 package org.mwg;
 
-import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
-import org.mwg.core.task.CoreTask;
 import org.mwg.ml.MLPlugin;
-import org.mwg.ml.common.structure.KDTree;
-import org.mwg.plugin.geojson.ActionNewNodeFromJson;
 import org.mwg.plugin.geojson.GeoJsonPlugin;
+import org.mwg.struct.tree.KDTree;
 import org.mwg.task.*;
-import org.mwg.utility.HashHelper;
 import org.mwg.utility.VerboseHookFactory;
 import org.mwg.utility.VerbosePlugin;
 
@@ -124,7 +120,7 @@ public class GeoJsonTest {
                                                     public void eval(TaskContext context) {
                                                         KDTree tree = (KDTree) context.variable("tree").get(0);
                                                         Node n = context.resultAsNodes().get(0);
-                                                        tree.insert(
+                                                        tree.insertWith(
                                                                 new double[]{(double) n.get("lat"), (double) n.get("lng")},
                                                                 (Node) context.variable("parent").get(0),
                                                                 new Callback<Boolean>() {
@@ -143,7 +139,7 @@ public class GeoJsonTest {
                                                 KDTree tree = (KDTree) context.variable("tree").get(0);
                                                // tree.set(KDTree.);
                                                 Node n = context.resultAsNodes().get(0);
-                                                tree.insert(
+                                                tree.insertWith(
                                                         new double[]{(double) n.get("lat"), (double) n.get("lng")},
                                                         (Node) context.variable("parent").get(0),
                                                         new Callback<Boolean>() {

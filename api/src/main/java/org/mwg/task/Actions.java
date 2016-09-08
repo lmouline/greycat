@@ -61,6 +61,22 @@ public class Actions {
         return newTask().fromIndex(indexName, query);
     }
 
+    public static Task indexNode(String indexName, String flatKeyAttributes) {
+        return newTask().indexNode(indexName,flatKeyAttributes);
+    }
+
+    public static Task unindexNode(String indexName, String flatKeyAttributes) {
+        return newTask().unindexNode(indexName,flatKeyAttributes);
+    }
+
+    public static Task localIndex(String indexedRelation, String flatKeyAttributes, String varNodeToAdd) {
+        return newTask().localIndex(indexedRelation,flatKeyAttributes, varNodeToAdd);
+    }
+
+    public static Task localUnindex(String indexedRelation, String flatKeyAttributes, String varNodeToAdd) {
+        return newTask().localUnindex(indexedRelation,flatKeyAttributes,varNodeToAdd);
+    }
+
     public static Task parse(String flatTask) {
         return newTask().parse(flatTask);
     }

@@ -755,9 +755,9 @@ public class KDTree extends AbstractNode implements NTree {
         int d = state.getFromKeyWithDefault(DISTANCE, DISTANCE_TYPE_DEF);
         Distance distance;
         if (d == Distances.EUCLIDEAN) {
-            distance = EuclideanDistance.INSTANCE;
+            distance = EuclideanDistance.instance();
         } else if (d == Distances.GEODISTANCE) {
-            distance = GeoDistance.INSTANCE;
+            distance = GeoDistance.instance();
         } else {
             throw new RuntimeException("Unknown distance code metric");
         }

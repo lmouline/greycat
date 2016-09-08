@@ -5,9 +5,8 @@ import org.mwg.Graph;
 import org.mwg.Node;
 import org.mwg.Type;
 import org.mwg.ml.ProfilingNode;
-import org.mwg.ml.common.distance.DistanceEnum;
-import org.mwg.ml.common.structure.KDTree;
 import org.mwg.plugin.NodeState;
+import org.mwg.struct.tree.KDTree;
 
 /**
  * Created by assaad on 04/07/16.
@@ -50,16 +49,16 @@ public class GaussianTreeNode extends GaussianNode implements ProfilingNode {
 
                 if (resolved.getFromKey(INTERNAL_KDROOT) == null) {
                     KDTree root = (KDTree) graph().newTypedNode(world(), time(), KDTree.NAME);
-                    root.setProperty(KDTree.DISTANCE_TYPE, Type.INT, DistanceEnum.GAUSSIAN);
+                   // root.setProperty(KDTree.DISTANCE_TYPE, Type.INT, DistanceEnum.GAUSSIAN);
                     root.setProperty(KDTree.DISTANCE_THRESHOLD, Type.DOUBLE, threshold);
-                    root.setProperty(KDTree.GAUSSIAN_PRECISION, Type.DOUBLE_ARRAY, precisions);
+                  //  root.setProperty(KDTree.GAUSSIAN_PRECISION, Type.DOUBLE_ARRAY, precisions);
                     add(INTERNAL_KDROOT, root);
                     GaussianNode profile = (GaussianNode) graph().newTypedNode(world(), time(), GaussianNode.NAME);
 
                     profile.learnVector(values, new Callback<Boolean>() {
                         @Override
                         public void on(Boolean result) {
-                            root.insert(features, profile, new Callback<Boolean>() {
+                            root.insertWith(features, profile, new Callback<Boolean>() {
                                 @Override
                                 public void on(Boolean result) {
 
@@ -99,7 +98,7 @@ public class GaussianTreeNode extends GaussianNode implements ProfilingNode {
                                         profile.learnVector(values, new Callback<Boolean>() {
                                             @Override
                                             public void on(Boolean result) {
-                                                root.insert(features, profile, new Callback<Boolean>() {
+                                                root.insertWith(features, profile, new Callback<Boolean>() {
                                                     @Override
                                                     public void on(Boolean result) {
                                                         root.free();
@@ -134,7 +133,7 @@ public class GaussianTreeNode extends GaussianNode implements ProfilingNode {
                     res[0] = 0;
                 } else {
                     KDTree root = (KDTree) result[0];
-                    res[0] = (Integer) root.get(KDTree.NUM_NODES);
+                    res[0] = (Integer) root.get(KDTree.SIZE);
                 }
             }
         });

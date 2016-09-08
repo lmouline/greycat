@@ -115,6 +115,11 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.kevoree.mwg.plugins</groupId>
+            <artifactId>structure</artifactId>
+            <version>7-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>

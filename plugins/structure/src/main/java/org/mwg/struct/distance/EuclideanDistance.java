@@ -2,7 +2,14 @@ package org.mwg.struct.distance;
 
 public class EuclideanDistance implements Distance {
 
-    public static EuclideanDistance INSTANCE = new EuclideanDistance();
+    private static EuclideanDistance static_instance = null;
+
+    public static EuclideanDistance instance(){
+        if(static_instance == null){
+            static_instance = new EuclideanDistance();
+        }
+        return static_instance;
+    }
 
     private EuclideanDistance() {
     }

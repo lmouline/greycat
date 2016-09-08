@@ -136,6 +136,7 @@
         -->
 
         <module>plugins/memory</module>
+        <module>plugins/debugger</module>
 
     </modules>
 

@@ -4,15 +4,15 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.Node;
 import org.mwg.Type;
-import org.mwg.ml.common.distance.Distance;
-import org.mwg.ml.common.distance.DistanceEnum;
-import org.mwg.ml.common.distance.EuclideanDistance;
-import org.mwg.ml.common.distance.GaussianDistance;
 import org.mwg.ml.common.matrix.Matrix;
 import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.NodeState;
 import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.Relationship;
+import org.mwg.struct.action.TraverseById;
+import org.mwg.struct.distance.Distance;
+import org.mwg.struct.distance.EuclideanDistance;
+import org.mwg.struct.util.NearestNeighborList;
 import org.mwg.task.*;
 
 
@@ -393,7 +393,7 @@ public class NDTree extends AbstractNode {
         }
 
         //todo check how to traverse on long
-    }, Actions.action(ActionTraverseById.NAME, "{{next}}"));
+    }, Actions.action(TraverseById.NAME, "{{next}}"));
 
     public void insert(final double[] key, final Node value, final Callback<Boolean> callback) {
         NodeState state = unphasedState();
@@ -457,7 +457,7 @@ public class NDTree extends AbstractNode {
 
 
         final NearestNeighborList nnl = new NearestNeighborList(n);
-        Distance distance = new EuclideanDistance();
+        Distance distance = EuclideanDistance.instance();
 
 
         TaskContext tc = nearestTask.prepareWith(graph(), this, new Callback<TaskResult>() {
