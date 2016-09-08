@@ -43,8 +43,7 @@ public class GeoIndexTaskTest {
                     .action(NTreeNearestNWithinRadius.NAME, "49.6116,6.1319,2,100000") //lat,long,nb,meters
                     .print("{{result}}")
                     .execute(g, null);
-
-
+            
         });
 
     }
