@@ -49,8 +49,19 @@ public class GeoIndexTaskTest {
                         .subTask(createTenPoints)
                         .fromVar("points")
                         .action(NTreeInsertTo.NAME, "geoIndex")
+                        /*
                         .fromVar("geoIndex")
+                        .whileDo((new TaskFunctionConditional() {
+                            @Override
+                            public boolean eval(TaskContext context) {
+                                return context.result().size() > 0;
+                            }
+                        }), print("{{result}}").subTasks(new Task[]{traverse("left"), traverse("right")}))
+                        */
+                        .fromVar("geoIndex")
+                        //.print("{{result}}")
                         .action(NTreeNearestN.NAME, "49.6116,6.1319,10") //lat,long,nb
+                        //.print("{{result}}")
                         .then(new Action() {
                             @Override
                             public void eval(TaskContext context) {
@@ -61,28 +72,40 @@ public class GeoIndexTaskTest {
                             }
                         })
                         .fromVar("geoIndex")
-                        .action(NTreeNearestWithinRadius.NAME, "49.6116,6.1319,1000000") //lat,long,meters
+                        .action(NTreeNearestWithinRadius.NAME, "49.6116,6.1319,100000") //lat,long,meters
+
                         .then(new Action() {
                             @Override
                             public void eval(TaskContext context) {
-                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":7,\"lat\":49.5,\"long\":6.5},{\"world\":0,\"time\":0,\"id\":6,\"lat\":49.4,\"long\":6.4}"));
-                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":8,\"lat\":49.6,\"long\":6.6},{\"world\":0,\"time\":0,\"id\":5,\"lat\":49.3,\"long\":6.3}"));
-                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":9,\"lat\":49.7,\"long\":6.7},{\"world\":0,\"time\":0,\"id\":4,\"lat\":49.2,\"long\":6.2}"));
-                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":10,\"lat\":49.8,\"long\":6.8},{\"world\":0,\"time\":0,\"id\":3,\"lat\":49.1,\"long\":6.1}"));
-                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":11,\"lat\":49.9,\"long\":6.9},{\"world\":0,\"time\":0,\"id\":2,\"lat\":49.0,\"long\":6.0}"));
+
+                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":7,\"lat\":49.5,\"long\":6.5}"));
+                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":6,\"lat\":49.4,\"long\":6.4}"));
+
+                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":8,\"lat\":49.6,\"long\":6.6}"));
+                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":5,\"lat\":49.3,\"long\":6.3}"));
+
+                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":9,\"lat\":49.7,\"long\":6.7}"));
+                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":4,\"lat\":49.2,\"long\":6.2}"));
+
+                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":10,\"lat\":49.8,\"long\":6.8}"));
+                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":3,\"lat\":49.1,\"long\":6.1}"));
+
+                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":11,\"lat\":49.9,\"long\":6.9}"));
+                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":2,\"lat\":49.0,\"long\":6.0}")||stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":2,\"lat\":49,\"long\":6}"));
+
                                 context.continueTask();
                             }
                         })
                         .fromVar("geoIndex")
                         .action(NTreeNearestNWithinRadius.NAME, "49.6116,6.1319,2,100000") //lat,long,nb,meters
-                       /* .then(new Action() {
+                        .then(new Action() {
                             @Override
                             public void eval(TaskContext context) {
                                 Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":7,\"lat\":49.5,\"long\":6.5}"));
                                 Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":6,\"lat\":49.4,\"long\":6.4}"));
                                 context.continueTask();
                             }
-                        })*/
+                        })
                         .execute(g, null);
             }
         });
