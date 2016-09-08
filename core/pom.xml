@@ -29,18 +29,16 @@
         </dependency>
     </dependencies>
 
+    <properties>
+        <js.name>mwg</js.name>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.19.1</version>
-                <!--
-                <configuration>
-                    <reuseForks>false</reuseForks>
-                    <forkCount>1</forkCount>
-                </configuration>
-                -->
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -69,6 +67,183 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.kevoree.modeling.j2ts</groupId>
+                <artifactId>mavenplugin</artifactId>
+                <version>${java2typescript.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>compile-api</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>java2ts</goal>
+                        </goals>
+                        <configuration>
+                            <name>api</name>
+                            <copyJRE>true</copyJRE>
+                            <source>${basedir}/../api/src/main/java</source>
+                            <target>${basedir}/target/generated-sources</target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>compile-core</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>java2ts</goal>
+                        </goals>
+                        <configuration>
+                            <name>core</name>
+                            <copyJRE>false</copyJRE>
+                            <moduleImports>
+                                <moduleImport>api.ts</moduleImport>
+                            </moduleImports>
+                            <source>${basedir}/../core/src/main/java</source>
+                            <target>${basedir}/target/generated-sources</target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>compile-test</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>java2ts</goal>
+                        </goals>
+                        <configuration>
+                            <name>test</name>
+                            <copyJRE>false</copyJRE>
+                            <copyJunit>true</copyJunit>
+                            <moduleImports>
+                                <moduleImport>../generated-sources/core.ts</moduleImport>
+                            </moduleImports>
+                            <source>${basedir}/../core/src/test/java</source>
+                            <target>${basedir}/target/generated-test-sources</target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo message="NPM install dependency"/>
+                                <copy file="${basedir}/../share/package.json" todir="${basedir}/target"/>
+                                <exec executable="npm" dir="${basedir}/target">
+                                    <arg value="install"/>
+                                </exec>
+                                <echo message="Compile TypeScript to JavaScript"/>
+                                <exec executable="${basedir}/target/node_modules/typescript/bin/tsc"
+                                      dir="${basedir}/target/generated-sources/">
+                                    <arg value="-d"/>
+                                    <arg value="--sourceMap"/>
+                                    <arg value="--target"/>
+                                    <arg value="es5"/>
+                                    <arg value="${basedir}/target/generated-sources/core.ts"/>
+                                    <arg value="--out"/>
+                                    <arg value="mwg.js"/>
+                                </exec>
+
+                                <copy file="${basedir}/target/generated-sources/mwg.d.ts"
+                                      todir="${basedir}/target/classes-js"/>
+                                <copy file="${basedir}/target/generated-sources/mwg.js"
+                                      todir="${basedir}/target/classes-js"/>
+                                <copy file="${basedir}/target/generated-sources/mwg.js.map"
+                                      todir="${basedir}/target/classes-js"/>
+                                <echo message="Minifying JavaScript"/>
+                                <java jar="${basedir}/../share/compiler.jar" fork="true" failonerror="true">
+                                    <arg value="--js"/>
+                                    <arg value="${basedir}/target/classes-js/mwg.js"/>
+                                    <arg value="--js_output_file"/>
+                                    <arg value="${basedir}/target/classes-js/mwg.min.js"/>
+                                </java>
+                            </target>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>compile-test</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo message="Compile tests TypeScript to JavaScript"/>
+                                <exec executable="${basedir}/target/node_modules/typescript/bin/tsc" failonerror="true">
+                                    <arg value="--target"/>
+                                    <arg value="es5"/>
+                                    <arg value="${basedir}/target/generated-test-sources/test.ts"/>
+                                    <arg value="--out"/>
+                                    <arg value="${basedir}/target/test-classes/mwg.test.js"/>
+                                </exec>
+                                <concat destfile="${basedir}/target/test-classes/test.all.js" force="no">
+                                    <filelist dir="${basedir}/target/classes-js" files="mwg.js"/>
+                                    <filelist dir="${basedir}/../share" files="spacer.js"/>
+                                    <filelist dir="${basedir}/target/test-classes" files="mwg.test.js"/>
+                                    <filelist dir="${basedir}/../share" files="spacer.js"/>
+                                    <filelist dir="${basedir}/target/generated-test-sources/"
+                                              files="testsRunner.js"/>
+                                </concat>
+                                <concat destfile="${basedir}/target/test-classes/test.all.dev.js" force="no">
+                                    <filelist dir="${basedir}/target/classes-js" files="mwg.js"/>
+                                    <filelist dir="${basedir}/../share" files="spacer.js"/>
+                                    <filelist dir="${basedir}/target/test-classes" files="mwg.test.js"/>
+                                    <filelist dir="${basedir}/../share" files="spacer.js"/>
+                                    <filelist dir="${basedir}/target/generated-test-sources/"
+                                              files="testsRunnerDev.js"/>
+                                </concat>
+                                <copy file="${basedir}/../share/test.js" todir="${basedir}/target"/>
+                            </target>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>run-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo message="Execute JS tests"/>
+                                <exec executable="node" dir="${basedir}/target" failonerror="true">
+                                    <arg value="test.js"/>
+                                </exec>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptors>
+                        <descriptor>${basedir}/../share/zip.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
