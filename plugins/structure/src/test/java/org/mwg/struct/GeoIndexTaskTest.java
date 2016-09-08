@@ -19,7 +19,7 @@ public class GeoIndexTaskTest {
     @Test
     public void test() {
         Graph g = new GraphBuilder().withMemorySize(100000).withPlugin(new StructPlugin()).build();
-        g.connect(result -> {
+        g.connect((Boolean result) -> {
 
             Task createGeoIndex = newTypedNode(KDTree.NAME)
                     .setProperty(KDTree.DISTANCE, Type.INT, Distances.GEODISTANCE + "")
