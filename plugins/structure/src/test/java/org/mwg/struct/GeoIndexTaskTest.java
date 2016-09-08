@@ -26,7 +26,7 @@ public class GeoIndexTaskTest {
                     .setProperty(KDTree.FROM, Type.STRING, "lat,long")
                     .asGlobalVar("geoIndex");
 
-            Task createTenPoints = loop("0", "9", newNode().setProperty("lat", Type.DOUBLE, "1.{{i}}").setProperty("long", Type.DOUBLE, "2.{{i}}").addToGlobalVar("points"));
+            Task createTenPoints = loop("0", "9", newNode().setProperty("lat", Type.DOUBLE, "49.{{i}}").setProperty("long", Type.DOUBLE, "6.{{i}}").addToGlobalVar("points"));
 
             newTask()
                     .subTask(createGeoIndex)
@@ -34,30 +34,14 @@ public class GeoIndexTaskTest {
                     .fromVar("points")
                     .action(NTreeInsertTo.NAME, "geoIndex")
                     .fromVar("geoIndex")
-                    .action(NTreeNearestN.NAME, "1.5,2.5,3")
+                    .action(NTreeNearestN.NAME, "49.6116,6.1319,3")
                     .print("{{result}}")
-                    .action(NTreeNearestWithinRadius.NAME, "1.5,2.5,100000")
+                    .action(NTreeNearestWithinRadius.NAME, "49.6116,6.1319,100000")
                     .print("{{result}}")
-                    .action(NTreeNearestNWithinRadius.NAME, "1.5,2.5,3,10000000000000")
+                    .action(NTreeNearestNWithinRadius.NAME, "49.6116,6.1319,3,100000")
                     .print("{{result}}")
                     .execute(g, null);
-
-
-            /*
-            newNode()
-                    .setProperty("name", Type.STRING, "toIndex")
-                    .asVar("toIndex").newTypedNode(KDTree.NAME);
-            //.action(KDT)
-
-
-            NTree kdTree = (NTree) g.newTypedNode(0, 0, KDTree.NAME);
-            kdTree.insert(new double[]{0.3, 0.5}, null, insertRes -> {
-                System.out.println(insertRes);
-            });
-
-            System.out.println(kdTree);
-*/
-
+            
 
         });
 
