@@ -12,11 +12,12 @@ import static org.mwg.task.Actions.*;
 /**
  * @ignore ts
  */
+@SuppressWarnings("Duplicates")
 public class BenchmarkParTest {
 
     public static void main(String[] args) {
         Graph g = new GraphBuilder()
-                .withMemorySize(10000)
+                .withMemorySize(1000000)
                 .withScheduler(new HybridScheduler())
                 //.withScheduler(new TrampolineScheduler())
                 //.withScheduler(new ExecutorScheduler())
@@ -27,15 +28,16 @@ public class BenchmarkParTest {
                 final long previous = System.currentTimeMillis();
                 final long previousCache = g.space().available();
                 loopPar("0", "9999", newNode()
-                        .setProperty("name", Type.STRING, "node_{{it}}")
-                        // .print("{{result}}")
+                        .setProperty("name", Type.STRING, "node_{{i}}")
+                        .print("{{result}}")
                         .indexNode("nodes", "name")
-                        .loop("0", "999", jump("{{it}}").setProperty("val", Type.INT, "{{it}}").clear())
-                        .save()
+                        .loop("0", "999", jump("{{i}}").setProperty("val", Type.INT, "{{i}}").clear())
+                        .ifThen(cond("i % 100 == 0"), save())
                         .clear()
-                ).save().execute(g, new Callback<TaskResult>() {
+                ).save().fromIndexAll("nodes").execute(g, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
+                        System.out.println("indexSize=" + result.size());
                         result.free();
                         long after = System.currentTimeMillis();
                         long afterCache = g.space().available();
@@ -44,19 +46,12 @@ public class BenchmarkParTest {
                         g.disconnect(new Callback<Boolean>() {
                             @Override
                             public void on(Boolean result) {
-
                             }
                         });
                     }
                 });
             }
         });
-        /*
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }*/
     }
 
 

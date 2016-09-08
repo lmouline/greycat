@@ -1,6 +1,7 @@
 package org.mwg.memory.offheap;
 
 import org.mwg.chunk.Stack;
+import org.mwg.memory.offheap.primary.OffHeapLongArray;
 
 final class OffHeapFixedStack implements Stack {
 

@@ -9,6 +9,8 @@ import org.mwg.Node;
 import org.mwg.ml.MLPlugin;
 import org.mwg.ml.common.distance.EuclideanDistance;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Random;
 
 /**
@@ -82,7 +84,7 @@ public class KDTreeAsyncTest {
                                 }
                                 graph.save(null);
                                 long finalcache = graph.space().available();
-                               // System.out.println("init " + initalcache + " end cache: " + finalcache);
+                                // System.out.println("init " + initalcache + " end cache: " + finalcache);
                                 Assert.assertTrue(finalcache == initalcache);
                                 //System.out.println();
                             }
@@ -91,7 +93,47 @@ public class KDTreeAsyncTest {
                 });
 
 
+
+
+             /*  testTask.nearestN(key, 10, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result3) {
+                        print(result3,key);
+                    }
+                });
+
+
+                testTask.nearestNWithinRadius(key, 10, 0.4,new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result3) {
+                        print(result3,key);
+                    }
+                });
+
+
+                testTask.nearestWithinRadius(key, 0.4,new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result3) {
+                        print(result3,key);
+                    }
+                });
+                */
+
+
+
             }
         });
     }
+
+
+  /*  public static void print(Node[] res, double[] key){
+        NumberFormat formatter = new DecimalFormat("#0.0000");
+        EuclideanDistance ed = new EuclideanDistance();
+        for (int i = 0; i < res.length; i++) {
+            double[] val = (double[]) res[i].get("value");
+            System.out.println(formatter.format(val[0])+","+formatter.format(val[1])+","+formatter.format(val[2])+","+formatter.format(val[3])+"  dist: "+formatter.format(ed.measure(key,val)));
+            res[i].free();
+        }
+        System.out.println();
+    }*/
 }

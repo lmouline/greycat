@@ -1,10 +1,11 @@
-package org.mwg.memory.offheap;
+package org.mwg.memory.offheap.primary;
 
+import org.mwg.memory.offheap.OffHeapConstants;
 import org.mwg.struct.Buffer;
 import org.mwg.utility.Base64;
 import org.mwg.utility.Unsafe;
 
-class OffHeapString {
+public class OffHeapString {
 
     private static int COW = 0;
     private static int SIZE = 8;
@@ -14,14 +15,14 @@ class OffHeapString {
 
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
 
-    static void save(final long addr, final Buffer buffer) {
+    public static void save(final long addr, final Buffer buffer) {
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return;
         }
         Base64.encodeStringToBuffer(asObject(addr), buffer);
     }
 
-    static long fromObject(String origin) {
+    public static long fromObject(String origin) {
         final byte[] valueAsByte = origin.getBytes();
         long newStringPtr = unsafe.allocateMemory(SHIFT + valueAsByte.length);
         unsafe.putLong(newStringPtr, 1);
@@ -35,7 +36,7 @@ class OffHeapString {
         return newStringPtr;
     }
 
-    static String asObject(final long addr) {
+    public static String asObject(final long addr) {
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return null;
         }
@@ -47,7 +48,7 @@ class OffHeapString {
         return new String(bytes);
     }
 
-    static long clone(final long addr) {
+    public static long clone(final long addr) {
         long cow;
         long cow_after;
         do {
@@ -57,7 +58,7 @@ class OffHeapString {
         return addr;
     }
 
-    static void free(final long addr) {
+    public static void free(final long addr) {
         long cow;
         long cow_after;
         do {

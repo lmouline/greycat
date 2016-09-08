@@ -173,6 +173,16 @@ class HeapStateChunk implements StateChunk {
     }
 
     @Override
+    public final <A> A getWithDefault(final long key, final A defaultValue) {
+        final Object result = get(key);
+        if (result == null) {
+            return defaultValue;
+        } else {
+            return (A) result;
+        }
+    }
+
+    @Override
     public synchronized final byte getType(final long p_key) {
         if (_size == 0) {
             return -1;
@@ -350,6 +360,7 @@ class HeapStateChunk implements StateChunk {
                 }
             }
         }
+        _dirty = false;
     }
 
     @Override

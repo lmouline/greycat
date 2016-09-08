@@ -1,8 +1,11 @@
 package org.mwg.ml.common.structure;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
 import org.mwg.ml.MLPlugin;
+
+import java.util.Random;
 
 /**
  * Created by assaad on 30/08/16.
@@ -29,23 +32,32 @@ public class NDTreeTest {
 
                 double[] precisions = {0.2, 0.2};
                 double[] boundMin = {0, 0};
-                double[] boundMax = {2, 2};
+                double[] boundMax = {1, 1};
 
 
                 testtree.setProperty(NDTree.BOUNDMIN, Type.DOUBLE_ARRAY, boundMin);
                 testtree.setProperty(NDTree.BOUNDMAX, Type.DOUBLE_ARRAY, boundMax);
                 testtree.setProperty(NDTree.PRECISION, Type.DOUBLE_ARRAY, precisions);
 
-                Node temp= graph.newNode(0,0);
-                temp.setProperty("value",Type.DOUBLE,1.5);
+                Random random = new Random();
+                random.setSeed(125362l);
+                int ins = 100;
 
-                double[] key={1.9,1.9};
-                testtree.insert(key, temp, new Callback<Boolean>() {
-                    @Override
-                    public void on(Boolean result) {
-                    }
-                });
+                graph.save(null);
+                long initcache = graph.space().available();
 
+                for (int i = 0; i < ins; i++) {
+                    Node temp = graph.newNode(0, 0);
+                    temp.setProperty("value", Type.DOUBLE, random.nextDouble());
+
+                    double[] key = {random.nextDouble(), random.nextDouble()};
+                    testtree.insert(key, temp, null);
+                    temp.free();
+                }
+
+
+                graph.save(null);
+                Assert.assertTrue(graph.space().available() == initcache);
 
 
             }

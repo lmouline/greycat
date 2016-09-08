@@ -217,4 +217,24 @@ class NearestNeighborList {
         value = prioritys;
     }
 
+    public long[] getAllNodesWithin(double radius) {
+        int size = Math.min(capacity, count);
+        long[] nbrs = new long[size];
+        int cc=0;
+
+        for (int i = 0; i < size; ++i) {
+            if(getMaxPriority()<=radius) {
+                nbrs[size - cc - 1] = remove();
+                cc++;
+            }
+            else{
+                remove();
+            }
+        }
+
+        long[] trimnbrs=new long[cc];
+        System.arraycopy(nbrs,size-cc,trimnbrs,0,cc);
+        return trimnbrs;
+
+    }
 }

@@ -4,6 +4,7 @@ import org.mwg.Constants;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.TimeTreeChunk;
 import org.mwg.chunk.TreeWalker;
+import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.struct.Buffer;
 import org.mwg.utility.Base64;
 
@@ -243,6 +244,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     private long reallocate(final long addr, final long previousCapacity, final long newCapacity) {
         if (previousCapacity < newCapacity) {
             final long new_addr = OffHeapLongArray.reallocate(addr, OFFSET + (newCapacity * ELEM_SIZE));
+            OffHeapLongArray.set(new_addr,CAPACITY,newCapacity);
             space.setAddrByIndex(index, new_addr);
             return new_addr;
         } else {
@@ -497,16 +499,14 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             }
             addr = reallocate(addr, capacity, nextCapacity);
         }
-        long newIndex = size;
-        if (newIndex == 0) {
-            setKey(addr, newIndex, insertLey);
-            setColor(addr, newIndex, false);
-            setLeft(addr, newIndex, -1);
-            setRight(addr, newIndex, -1);
-            setParent(addr, newIndex, -1);
-            OffHeapLongArray.set(addr, HEAD, newIndex);
-            size = 1;
-            OffHeapLongArray.set(addr, SIZE, size);
+        if (size == 0) {
+            setKey(addr, size, insertLey);
+            setColor(addr, size, false);
+            setLeft(addr, size, -1);
+            setRight(addr, size, -1);
+            setParent(addr, size, -1);
+            OffHeapLongArray.set(addr, HEAD, size);
+            OffHeapLongArray.set(addr, SIZE, 1);
         } else {
             long n = OffHeapLongArray.get(addr, HEAD);
             while (true) {
@@ -514,37 +514,35 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                     return false;
                 } else if (insertLey < key(addr, n)) {
                     if (left(addr, n) == -1) {
-                        setKey(addr, newIndex, insertLey);
-                        setColor(addr, newIndex, false);
-                        setLeft(addr, newIndex, -1);
-                        setRight(addr, newIndex, -1);
-                        setParent(addr, newIndex, -1);
-                        setLeft(addr, n, newIndex);
-                        size++;
-                        OffHeapLongArray.set(addr, SIZE, size);
+                        setKey(addr, size, insertLey);
+                        setColor(addr, size, false);
+                        setLeft(addr, size, -1);
+                        setRight(addr, size, -1);
+                        setParent(addr, size, -1);
+                        setLeft(addr, n, size);
+                        OffHeapLongArray.set(addr, SIZE, size + 1);
                         break;
                     } else {
                         n = left(addr, n);
                     }
                 } else {
                     if (right(addr, n) == -1) {
-                        setKey(addr, newIndex, insertLey);
-                        setColor(addr, newIndex, false);
-                        setLeft(addr, newIndex, -1);
-                        setRight(addr, newIndex, -1);
-                        setParent(addr, newIndex, -1);
-                        setRight(addr, n, newIndex);
-                        size++;
-                        OffHeapLongArray.set(addr, SIZE, size);
+                        setKey(addr, size, insertLey);
+                        setColor(addr, size, false);
+                        setLeft(addr, size, -1);
+                        setRight(addr, size, -1);
+                        setParent(addr, size, -1);
+                        setRight(addr, n, size);
+                        OffHeapLongArray.set(addr, SIZE, size + 1);
                         break;
                     } else {
                         n = right(addr, n);
                     }
                 }
             }
-            setParent(addr, newIndex, n);
+            setParent(addr, size, n);
         }
-        insertCase1(addr, newIndex);
+        insertCase1(addr, size);
         return true;
     }
 

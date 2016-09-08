@@ -5,14 +5,9 @@ import org.junit.Test;
 import org.mwg.chunk.Stack;
 import org.mwg.core.chunk.heap.HeapFixedStack;
 
-public class FixedStackTest {
+public class AbstractFixedStackTest {
 
     protected static final int CAPACITY = 15;
-
-    @Test
-    public void heapFixedStackTest() {
-        test(new HeapFixedStack(CAPACITY, true));
-    }
 
     protected void test(Stack stack) {
         // stack is initially full, dequeue until empty

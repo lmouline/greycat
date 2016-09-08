@@ -23,6 +23,54 @@ public abstract class AbstractStateChunkTest {
     }
 
     @Test
+    public void saveLoadPrimitif() {
+        ChunkSpace space = factory.newSpace(100, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+
+        //init chunk selectWith primitives
+        chunk.set(0, Type.BOOL, true);
+        Assert.assertEquals(chunk.get(0), true);
+
+        chunk.set(1, Type.STRING, "hello");
+        Assert.assertEquals(chunk.get(1), "hello");
+
+        chunk.set(2, Type.DOUBLE, 1.0);
+        Assert.assertEquals(chunk.get(2), 1.0);
+
+        chunk.set(3, Type.LONG, 1000l);
+        Assert.assertEquals(chunk.get(3), 1000l);
+
+        chunk.set(4, Type.INT, 100);
+        Assert.assertEquals(chunk.get(4), 100);
+
+        chunk.set(5, Type.INT, 1);
+        Assert.assertEquals(chunk.get(5), 1);
+
+        chunk.set(5, Type.INT, null);
+        Assert.assertEquals(chunk.get(5), null);
+
+        Buffer buffer = factory.newBuffer();
+        chunk.save(buffer);
+        StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
+        chunk2.load(buffer);
+        Buffer buffer2 = factory.newBuffer();
+        chunk2.save(buffer2);
+
+        Assert.assertTrue(compareBuffers(buffer, buffer2));
+
+        for (int i = 0; i < 5; i++) {
+            Assert.assertEquals(chunk.get(0), chunk2.get(0));
+        }
+
+        space.free(chunk);
+        space.free(chunk2);
+        buffer2.free();
+        buffer.free();
+        space.freeAll();
+
+    }
+
+    @Test
     public void saveLoadTest() {
 
         ChunkSpace space = factory.newSpace(100, null);
@@ -30,13 +78,25 @@ public abstract class AbstractStateChunkTest {
 
         //init chunk selectWith primitives
         chunk.set(0, Type.BOOL, true);
+        Assert.assertEquals(chunk.get(0), true);
+
         chunk.set(1, Type.STRING, "hello");
+        Assert.assertEquals(chunk.get(1), "hello");
+
         chunk.set(2, Type.DOUBLE, 1.0);
+        Assert.assertEquals(chunk.get(2), 1.0);
+
         chunk.set(3, Type.LONG, 1000l);
+        Assert.assertEquals(chunk.get(3), 1000l);
+
         chunk.set(4, Type.INT, 100);
+        Assert.assertEquals(chunk.get(4), 100);
 
         chunk.set(5, Type.INT, 1);
+        Assert.assertEquals(chunk.get(5), 1);
+
         chunk.set(5, Type.INT, null);
+        Assert.assertEquals(chunk.get(5), null);
 
         Buffer buffer = factory.newBuffer();
         chunk.save(buffer);
@@ -81,6 +141,7 @@ public abstract class AbstractStateChunkTest {
         string2longMap.put(Constants.END_OF_TIME + "", Constants.END_OF_TIME);
         string2longMap.put(Constants.BEGINNING_OF_TIME + "", Constants.BEGINNING_OF_TIME);
 
+
         LongLongArrayMap long2longArrayMap = (LongLongArrayMap) chunk.getOrCreate(10, Type.LONG_TO_LONG_ARRAY_MAP);
         long2longArrayMap.put(1, 1);
         long2longArrayMap.put(Constants.END_OF_TIME, Constants.END_OF_TIME);
@@ -98,9 +159,9 @@ public abstract class AbstractStateChunkTest {
         buffer2 = factory.newBuffer();
         chunk2.save(buffer2);
 
-        Assert.assertTrue(((StringLongMap) chunk2.get(9)).size() == 3);
-        Assert.assertTrue(((LongLongMap) chunk2.get(8)).size() == 3);
-        Assert.assertTrue(((LongLongArrayMap) chunk2.get(10)).size() == 4);
+        Assert.assertEquals(((LongLongMap) chunk2.get(8)).size(), 3);
+        Assert.assertEquals(((StringLongMap) chunk2.get(9)).size(), 3);
+        Assert.assertEquals(((LongLongArrayMap) chunk2.get(10)).size(), 4);
 
         Assert.assertTrue(compareBuffers(buffer, buffer2));
         // Assert.assertTrue(1 == nbCount);
@@ -109,10 +170,10 @@ public abstract class AbstractStateChunkTest {
         for (int i = 0; i < 10; i++) {
             chunk.set(1000 + i, Type.INT, i);
         }
-
         for (int i = 0; i < 10; i++) {
             Assert.assertEquals(chunk.get(1000 + i), i);
         }
+
 
         StateChunk chunk3 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 4);
         chunk3.loadFrom(chunk);
@@ -122,6 +183,7 @@ public abstract class AbstractStateChunkTest {
         buffer.free();
         buffer = factory.newBuffer();
         chunk.save(buffer);
+
         Assert.assertTrue(compareBuffers(buffer, buffer3));
 
         buffer3.free();
@@ -197,9 +259,9 @@ public abstract class AbstractStateChunkTest {
         Assert.assertTrue(((int[]) chunk2.get(7))[0] == 1);
 
         //test maps
-        Assert.assertTrue(((LongLongMap) chunk2.get(8)).get(100) == 100);
-        Assert.assertTrue(((LongLongArrayMap) chunk2.get(9)).get(100)[0] == 100);
-        Assert.assertTrue(((StringLongMap) chunk2.get(10)).getValue("100") == 100);
+        Assert.assertEquals(((LongLongMap) chunk2.get(8)).get(100), 100);
+        Assert.assertEquals(((LongLongArrayMap) chunk2.get(9)).get(100)[0], 100);
+        Assert.assertEquals(((StringLongMap) chunk2.get(10)).getValue("100"), 100);
 
         //now we test the co-evolution of clone
 
@@ -226,9 +288,11 @@ public abstract class AbstractStateChunkTest {
         Assert.assertTrue(((int[]) chunk.get(7))[0] == 1);
 
         //MAPS
+
         ((LongLongMap) chunk2.get(8)).put(100, 200);
         Assert.assertTrue(((LongLongMap) chunk2.get(8)).get(100) == 200);
         Assert.assertTrue(((LongLongMap) chunk.get(8)).get(100) == 100);
+
 
         ((LongLongArrayMap) chunk2.get(9)).put(100, 200);
         Assert.assertTrue(((LongLongArrayMap) chunk2.get(9)).get(100)[0] == 200);
@@ -302,7 +366,7 @@ public abstract class AbstractStateChunkTest {
     public void typeSwitchTest() {
         ChunkSpace space = factory.newSpace(100, null);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
-        
+
         //init primitives
         chunk.set(0, Type.BOOL, true);
         chunk.set(1, Type.STRING, "hello");
@@ -325,9 +389,11 @@ public abstract class AbstractStateChunkTest {
         Assert.assertTrue(chunk.getType(10) == Type.BOOL);
         Assert.assertTrue((Boolean) chunk.get(10));
 
+
         chunk.set(0, Type.STRING, "hello");
         Assert.assertTrue(chunk.getType(0) == Type.STRING);
         Assert.assertTrue(HashHelper.equals(chunk.get(0).toString(), "hello"));
+
 
         chunk.set(1, Type.LONG, 1000l);
         Assert.assertTrue(chunk.getType(1) == Type.LONG);

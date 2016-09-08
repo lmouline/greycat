@@ -78,11 +78,11 @@ public class GaussianTreeNode extends GaussianNode implements ProfilingNode {
                         @Override
                         public void on(Node[] result) {
                             KDTree root = (KDTree) result[0];
-                            root.nearestWithinDistance(features, new Callback<Node>() {
+                            root.nearestNWithinRadius(features, 1, threshold, new Callback<Node[]>() {
                                 @Override
-                                public void on(Node result) {
-                                    if (result != null) {
-                                        GaussianNode profile = (GaussianNode) result;
+                                public void on(Node[] result) {
+                                    if (result != null && result.length > 0) {
+                                        GaussianNode profile = (GaussianNode) result[0];
                                         profile.learnVector(values, new Callback<Boolean>() {
                                             @Override
                                             public void on(Boolean result) {
@@ -156,15 +156,16 @@ public class GaussianTreeNode extends GaussianNode implements ProfilingNode {
         if (resolved.getFromKey(INTERNAL_KDROOT) == null) {
             callback.on(null);
         }
+        final double threshold = resolved.getFromKeyWithDefault(THRESHOLD, THRESHOLD_DEF);
         rel(INTERNAL_KDROOT, new Callback<Node[]>() {
             @Override
             public void on(Node[] result) {
                 KDTree root = (KDTree) result[0];
-                root.nearestWithinDistance(features, new Callback<Node>() {
+                root.nearestNWithinRadius(features, 1, threshold, new Callback<Node[]>() {
                     @Override
-                    public void on(Node result) {
-                        if (result != null) {
-                            GaussianNode profile = (GaussianNode) result;
+                    public void on(Node[] result) {
+                        if (result != null && result.length > 0) {
+                            GaussianNode profile = (GaussianNode) result[0];
                             double[] avg = profile.getAvg();
                             Double res = avg[avg.length - 1];
                             profile.free();

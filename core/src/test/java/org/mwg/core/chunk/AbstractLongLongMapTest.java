@@ -8,6 +8,7 @@ import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
 import org.mwg.core.CoreConstants;
 import org.mwg.plugin.MemoryFactory;
+import org.mwg.struct.Buffer;
 import org.mwg.struct.LongLongMap;
 import org.mwg.struct.LongLongMapCallBack;
 
@@ -26,11 +27,17 @@ public abstract class AbstractLongLongMapTest {
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
         LongLongMap map = (LongLongMap) chunk.getOrCreate(0, Type.LONG_TO_LONG_MAP);
 
+        Assert.assertEquals(map.size(), 0);
+
         map.put(0, 0);
+        Assert.assertEquals(map.size(), 1);
         Assert.assertTrue(0 == map.get(0));
+
         map.put(1, 1);
+        Assert.assertEquals(map.size(), 2);
         Assert.assertTrue(0 == map.get(0));
         Assert.assertTrue(1 == map.get(1));
+
         //no effect
         map.put(1, 1);
 
@@ -64,15 +71,26 @@ public abstract class AbstractLongLongMapTest {
         for (int i = 0; i < CoreConstants.MAP_INITIAL_CAPACITY; i++) {
             map.put(i, i);
         }
-
         //test that all values are consistent
         for (int i = 0; i < CoreConstants.MAP_INITIAL_CAPACITY; i++) {
             Assert.assertTrue(map.get(i) == i);
         }
 
-        space.free(chunk);
-        space.freeAll();
+        Buffer buffer = factory.newBuffer();
+        chunk.save(buffer);
+        Assert.assertEquals("C|A,S,Q:A%A:C%C:E%E:G%G:I%I:K%K:M%M:O%O", buffer.toString());
+        StateChunk loaded = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 10, 10, 10);
+        loaded.load(buffer);
+        Buffer buffer2 = factory.newBuffer();
+        chunk.save(buffer2);
+        Assert.assertEquals("C|A,S,Q:A%A:C%C:E%E:G%G:I%I:K%K:M%M:O%O", buffer2.toString());
 
+        buffer.free();
+        buffer2.free();
+        space.free(chunk);
+        space.free(loaded);
+        space.freeAll();
+        
     }
 
 }

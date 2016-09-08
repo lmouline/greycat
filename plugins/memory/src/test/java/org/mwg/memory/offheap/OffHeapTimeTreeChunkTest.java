@@ -4,6 +4,10 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.mwg.core.chunk.AbstractTimeTreeTest;
+import org.mwg.memory.offheap.primary.OffHeapByteArray;
+import org.mwg.memory.offheap.primary.OffHeapDoubleArray;
+import org.mwg.memory.offheap.primary.OffHeapLongArray;
+import org.mwg.memory.offheap.primary.OffHeapString;
 import org.mwg.utility.Unsafe;
 
 public class OffHeapTimeTreeChunkTest extends AbstractTimeTreeTest {
@@ -18,7 +22,6 @@ public class OffHeapTimeTreeChunkTest extends AbstractTimeTreeTest {
         OffHeapDoubleArray.alloc_counter = 0;
         OffHeapLongArray.alloc_counter = 0;
         OffHeapString.alloc_counter = 0;
-        OffHeapStringArray.alloc_counter = 0;
         Unsafe.DEBUG_MODE = true;
     }
 
@@ -28,7 +31,6 @@ public class OffHeapTimeTreeChunkTest extends AbstractTimeTreeTest {
         Assert.assertEquals(OffHeapDoubleArray.alloc_counter, 0);
         Assert.assertEquals(OffHeapLongArray.alloc_counter, 0);
         Assert.assertEquals(OffHeapString.alloc_counter, 0);
-        Assert.assertEquals(OffHeapStringArray.alloc_counter, 0);
     }
 
 

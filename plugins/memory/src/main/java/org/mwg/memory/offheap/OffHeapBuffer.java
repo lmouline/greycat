@@ -1,6 +1,7 @@
 package org.mwg.memory.offheap;
 
 import org.mwg.Constants;
+import org.mwg.memory.offheap.primary.OffHeapByteArray;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
 import org.mwg.utility.DefaultBufferIterator;

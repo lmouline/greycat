@@ -20,7 +20,6 @@ public class SmallWorldTest {
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean isConnected) {
-
                 setTime("0").setWorld("0")
                         .newNode().setProperty("name", Type.STRING, "room0").indexNode("rooms", "name").asVar("room0")
                         .newNode().setProperty("name", Type.STRING, "room01").indexNode("rooms", "name").asVar("room01")
@@ -29,17 +28,16 @@ public class SmallWorldTest {
                         .fromVar("room0").add("rooms", "room01")
                         .fromVar("room01").add("rooms", "room001")
                         .fromVar("room001").add("rooms", "room0001")
-                        .loop("0","9", //loop automatically inject an it variable
+                        .loop("0", "9", //loop automatically inject an it variable
                                 newNode()
                                         .setProperty("id", Type.STRING, "sensor_{{it}}")
                                         .indexNode("sensors", "id")
                                         .defineVar("sensor")
-                                        .ifThenElse(cond("it % 4 == 0"), fromVar("room0").add("sensors", "sensor"),
-                                                ifThenElse(cond("it % 4 == 1"), fromVar("room01").add("sensors", "sensor"),
-                                                        ifThenElse(cond("it % 4 == 2"), fromVar("room001").add("sensors", "sensor"),
-                                                                ifThen(cond("it % 4 == 3"), fromVar("room0001").add("sensors", "sensor")))))
-                        )
-                        /*.hook(new VerboseHookFactory())*/.execute(g, new Callback<TaskResult>() {
+                                        .ifThenElse(cond("i % 4 == 0"), fromVar("room0").add("sensors", "sensor"),
+                                                ifThenElse(cond("i % 4 == 1"), fromVar("room01").add("sensors", "sensor"),
+                                                        ifThenElse(cond("i % 4 == 2"), fromVar("room001").add("sensors", "sensor"),
+                                                                ifThen(cond("i % 4 == 3"), fromVar("room0001").add("sensors", "sensor")))))
+                        ).execute(g, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult taskResult) {
                         if (taskResult != null) {

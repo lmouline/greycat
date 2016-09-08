@@ -624,6 +624,7 @@ declare module org {
                 get(index: number): any;
                 getFromKey(key: string): any;
                 getFromKeyWithDefault<A>(key: string, defaultValue: A): A;
+                getWithDefault<A>(key: number, defaultValue: A): A;
                 getOrCreate(index: number, elemType: number): any;
                 getOrCreateFromKey(key: string, elemType: number): any;
                 getType(index: number): number;
@@ -761,6 +762,7 @@ declare module org {
                 static asGlobalVar(variableName: string): org.mwg.task.Task;
                 static addToGlobalVar(variableName: string): org.mwg.task.Task;
                 static asVar(variableName: string): org.mwg.task.Task;
+                static defineVar(variableName: string): org.mwg.task.Task;
                 static addToVar(variableName: string): org.mwg.task.Task;
                 static map(mapFunction: org.mwg.task.TaskFunctionMap): org.mwg.task.Task;
                 static selectWith(name: string, pattern: string): org.mwg.task.Task;
@@ -794,6 +796,7 @@ declare module org {
                 static doWhile(then: org.mwg.task.Task, cond: org.mwg.task.TaskFunctionConditional): org.mwg.task.Task;
                 static split(splitPattern: string): org.mwg.task.Task;
                 static lookup(nodeId: string): org.mwg.task.Task;
+                static hook(fact: org.mwg.task.TaskHookFactory): org.mwg.task.Task;
                 static clear(): org.mwg.task.Task;
                 static subTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 static isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
@@ -815,7 +818,9 @@ declare module org {
                 fromIndex(indexName: string, query: string): org.mwg.task.Task;
                 fromIndexAll(indexName: string): org.mwg.task.Task;
                 indexNode(indexName: string, flatKeyAttributes: string): org.mwg.task.Task;
+                localIndex(indexedRelation: string, flatKeyAttributes: string, varNodeToAdd: string): org.mwg.task.Task;
                 unindexNode(indexName: string, flatKeyAttributes: string): org.mwg.task.Task;
+                localUnindex(indexedRelation: string, flatKeyAttributes: string, varNodeToAdd: string): org.mwg.task.Task;
                 selectWith(name: string, pattern: string): org.mwg.task.Task;
                 selectWithout(name: string, pattern: string): org.mwg.task.Task;
                 select(filterFunction: org.mwg.task.TaskFunctionSelect): org.mwg.task.Task;
@@ -1350,6 +1355,7 @@ declare module org {
                         setFromKey(key: string, p_elemType: number, p_unsafe_elem: any): void;
                         getFromKey(key: string): any;
                         getFromKeyWithDefault<A>(key: string, defaultValue: A): A;
+                        getWithDefault<A>(key: number, defaultValue: A): A;
                         getType(p_key: number): number;
                         getTypeFromKey(key: string): number;
                         getOrCreate(p_key: number, p_type: number): any;
@@ -1654,6 +1660,14 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
+                class ActionLocalIndexOrUnindex extends org.mwg.plugin.AbstractTaskAction {
+                    private _indexedRelation;
+                    private _flatKeyAttributes;
+                    private _isIndexation;
+                    private _varNodeToAdd;
+                    constructor(indexedRelation: string, flatKeyAttributes: string, varNodeToAdd: string, _isIndexation: boolean);
+                    eval(context: org.mwg.task.TaskContext): void;
+                }
                 class ActionLookup extends org.mwg.plugin.AbstractTaskAction {
                     private _id;
                     constructor(p_id: string);
@@ -1845,7 +1859,9 @@ declare module org {
                     fromIndex(indexName: string, query: string): org.mwg.task.Task;
                     fromIndexAll(indexName: string): org.mwg.task.Task;
                     indexNode(indexName: string, flatKeyAttributes: string): org.mwg.task.Task;
+                    localIndex(indexedRelation: string, flatKeyAttributes: string, varNodeToAdd: string): org.mwg.task.Task;
                     unindexNode(indexName: string, flatKeyAttributes: string): org.mwg.task.Task;
+                    localUnindex(indexedRelation: string, flatKeyAttributes: string, varNodeToAdd: string): org.mwg.task.Task;
                     selectWith(name: string, pattern: string): org.mwg.task.Task;
                     selectWithout(name: string, pattern: string): org.mwg.task.Task;
                     asGlobalVar(variableName: string): org.mwg.task.Task;

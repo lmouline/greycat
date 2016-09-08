@@ -5,13 +5,18 @@ import org.mwg.Graph;
 import org.mwg.Node;
 import org.mwg.Type;
 import org.mwg.ml.common.distance.Distance;
+import org.mwg.ml.common.distance.DistanceEnum;
+import org.mwg.ml.common.distance.EuclideanDistance;
+import org.mwg.ml.common.distance.GaussianDistance;
+import org.mwg.ml.common.matrix.Matrix;
 import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.NodeState;
+import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.Relationship;
 import org.mwg.task.*;
 
-import static org.mwg.task.Actions.traverse;
-import static org.mwg.task.Actions.whileDo;
+
+import static org.mwg.task.Actions.*;
 
 /**
  * Created by assaad on 09/08/16.
@@ -37,7 +42,9 @@ public class NDTree extends AbstractNode {
 
     //to store only on the root node
     private static long _PRECISION = 8;
-    private static long _DIM = 9;
+    private static int _NUMNODES = 9;
+    private static int _DIM = 10;
+
 
     public static String BOUNDMIN = "boundmin";
     public static String BOUNDMAX = "boundmax";
@@ -49,7 +56,7 @@ public class NDTree extends AbstractNode {
 
 
     /**
-     * {@native ts
+     * @native ts
      * var result = Long.UZERO;
      * for(var i = 0; i < centerKey.length; i++) {
      * if(i!=0){
@@ -60,7 +67,6 @@ public class NDTree extends AbstractNode {
      * }
      * }
      * return result.add(Long.fromNumber(org.mwg.ml.common.structure.NDTree._RELCONST, true)).toNumber();
-     * }
      */
     private static long getRelationId(double[] centerKey, double[] keyToInsert) {
         long result = 0;
@@ -138,11 +144,141 @@ public class NDTree extends AbstractNode {
             }
             total++;
             //Store everything
-            state.set(_TOTAL, Type.DOUBLE_ARRAY, total);
+            state.set(_TOTAL, Type.INT, total);
             state.set(_SUM, Type.DOUBLE_ARRAY, sum);
             state.set(_MIN, Type.DOUBLE_ARRAY, min);
             state.set(_MAX, Type.DOUBLE_ARRAY, max);
             state.set(_SUMSQ, Type.DOUBLE_ARRAY, sumsquares);
+        }
+    }
+
+
+    public int getTotal() {
+        Integer x = (Integer) super.getByIndex(_TOTAL);
+        if (x == null) {
+            return 0;
+        } else {
+            return x;
+        }
+    }
+
+
+    public double[] getAvg() {
+        int total = getTotal();
+        if (total == 0) {
+            return null;
+        }
+        if (total == 1) {
+            return (double[]) super.getByIndex(_SUM);
+        } else {
+            double[] avg = (double[]) super.getByIndex(_SUM);
+            for (int i = 0; i < avg.length; i++) {
+                avg[i] = avg[i] / total;
+            }
+            return avg;
+        }
+
+    }
+
+
+    public double[] getCovarianceArray(double[] avg, double[] err) {
+        if (avg == null) {
+            double[] errClone = new double[err.length];
+            System.arraycopy(err, 0, errClone, 0, err.length);
+            return errClone;
+        }
+        if (err == null) {
+            err = new double[avg.length];
+        }
+        int features = avg.length;
+
+        int total = getTotal();
+        if (total == 0) {
+            return null;
+        }
+        if (total > 1) {
+            double[] covariances = new double[features];
+            double[] sumsquares = (double[]) super.getByIndex(_SUMSQ);
+
+            double correction = total;
+            correction = correction / (total - 1);
+
+            int count = 0;
+            for (int i = 0; i < features; i++) {
+                covariances[i] = (sumsquares[count] / total - avg[i] * avg[i]) * correction;
+                if (covariances[i] < err[i]) {
+                    covariances[i] = err[i];
+                }
+                count += features - i;
+            }
+            return covariances;
+        } else {
+            double[] errClone = new double[err.length];
+            System.arraycopy(err, 0, errClone, 0, err.length);
+            return errClone;
+        }
+    }
+
+
+    public Matrix getCovariance(double[] avg, double[] err) {
+        int features = avg.length;
+
+        int total = getTotal();
+        if (total == 0) {
+            return null;
+        }
+        if (err == null) {
+            err = new double[avg.length];
+        }
+        if (total > 1) {
+            double[] covariances = new double[features * features];
+            double[] sumsquares = (double[]) super.getByIndex(_SUMSQ);
+
+            double correction = total;
+            correction = correction / (total - 1);
+
+            int count = 0;
+            for (int i = 0; i < features; i++) {
+                for (int j = i; j < features; j++) {
+                    covariances[i * features + j] = (sumsquares[count] / total - avg[i] * avg[j]) * correction;
+                    covariances[j * features + i] = covariances[i * features + j];
+                    count++;
+                    if (covariances[i * features + i] < err[i]) {
+                        covariances[i * features + i] = err[i];
+                    }
+                }
+            }
+            return new Matrix(covariances, features, features);
+        } else {
+            return null;
+        }
+    }
+
+    public double[] getMin() {
+        int total = getTotal();
+        if (total == 0) {
+            return null;
+        }
+        if (total == 1) {
+            double[] min = (double[]) super.getByIndex(_SUM);
+            return min;
+        } else {
+            double[] min = (double[]) super.getByIndex(_MIN);
+            return min;
+        }
+    }
+
+    public double[] getMax() {
+        int total = getTotal();
+        if (total == 0) {
+            return null;
+        }
+        if (total == 1) {
+            double[] max = (double[]) super.getByIndex(_SUM);
+            return max;
+        } else {
+            double[] max = (double[]) super.getByIndex(_MAX);
+            return max;
         }
     }
 
@@ -168,6 +304,8 @@ public class NDTree extends AbstractNode {
     private static Task insert = whileDo(new TaskFunctionConditional() {
         @Override
         public boolean eval(TaskContext context) {
+
+            Node root = (Node) context.variable("root").get(0);
 
             Node current = context.resultAsNodes().get(0);
             NodeState state = current.graph().resolver().resolveState(current);
@@ -204,7 +342,7 @@ public class NDTree extends AbstractNode {
             if (continueNavigation) {
                 //Set the long to traverse
                 long traverseId = getRelationId(centerKey, keyToInsert);
-                System.out.println(traverseId - _RELCONST);
+                // System.out.println(traverseId-_RELCONST);
                 //Check if there is a node already in this subspace, otherwise create it
                 if (state.get(traverseId) == null) {
                     double[] newBoundMin = new double[dim];
@@ -229,16 +367,26 @@ public class NDTree extends AbstractNode {
                     Relationship relChild = (Relationship) state.getOrCreate(traverseId, Type.RELATION);
                     relChild.add(newChild.id());
                     newChild.free();
+                    if (root.getByIndex(_NUMNODES) != null) {
+                        int count = (int) root.getByIndex(_NUMNODES);
+                        count++;
+                        root.setPropertyByIndex(_NUMNODES, Type.INT, count);
+                    } else {
+                        root.setPropertyByIndex(_NUMNODES, Type.INT, 2);
+                    }
                 }
                 //toDo how to optimzie not to lookup
                 //In all cases we can traverse here
                 context.setVariable("next", traverseId);
             } else {
-                Node valueToInsert = (Node) context.variable("value").get(0);
-                //toDo Validate append relationships
+                try {
+                    Node valueToInsert = (Node) context.variable("value").get(0);
+                    //toDo Validate append relationships
+                    Relationship rel = (Relationship) state.getOrCreate(_VALUES, Type.RELATION);
+                    rel.add(valueToInsert.id());
+                } catch (Exception ex) {
 
-                Relationship rel = (Relationship) state.getOrCreate(_VALUES, Type.RELATION);
-                rel.add(valueToInsert.id());
+                }
             }
 
             return continueNavigation;
@@ -249,24 +397,18 @@ public class NDTree extends AbstractNode {
 
     public void insert(final double[] key, final Node value, final Callback<Boolean> callback) {
         NodeState state = unphasedState();
-
         final double[] precisions = (double[]) state.get(_PRECISION);
 
-//        int dim;
-//        try {
-//            dim = (int) state.get(_DIM);
-//            if(dim==0){
-//                dim = key.length;
-//                state.set(_DIM,Type.INT,dim);
-//            }
-//        }
-//        catch (Exception ex){
-//            dim = key.length;
-//            state.set(_DIM,Type.INT,dim);
-//        }
-//        if (key.length != dim) {
-//            throw new RuntimeException("Key size should always be the same");
-//        }
+        if(state.get(_DIM)==null){
+            state.set(_DIM,Type.INT,key.length);
+        }
+
+        final int dim = state.getWithDefault(_DIM, key.length);
+
+        if (key.length != dim) {
+            throw new RuntimeException("Key size should always be the same");
+        }
+
 
         TaskContext tc = insert.prepareWith(graph(), this, new Callback<TaskResult>() {
             @Override
@@ -283,8 +425,11 @@ public class NDTree extends AbstractNode {
 
         //Set global variables
         tc.setGlobalVariable("key", res);
-        tc.setGlobalVariable("value", value);
+        if (value != null) {
+            tc.setGlobalVariable("value", value);
+        }
 
+        tc.setGlobalVariable("root", this);
         TaskResult resPres = tc.newResult();
         resPres.add(precisions);
         tc.setGlobalVariable("precision", resPres);
@@ -293,4 +438,124 @@ public class NDTree extends AbstractNode {
         insert.executeUsing(tc);
     }
 
+
+
+
+    public void nearestN(final double[] key, final int n, final Callback<Node[]> callback) {
+        NodeState state = unphasedState();
+        int dim;
+        Object tdim = state.get(_DIM);
+        if (tdim == null) {
+            callback.on(null);
+            return;
+        } else {
+            dim = (int) tdim;
+            if (key.length != dim) {
+                throw new RuntimeException("Key size should always be the same");
+            }
+        }
+
+
+        final NearestNeighborList nnl = new NearestNeighborList(n);
+        Distance distance = new EuclideanDistance();
+
+
+        TaskContext tc = nearestTask.prepareWith(graph(), this, new Callback<TaskResult>() {
+            @Override
+            public void on(TaskResult result) {
+
+                //ToDo replace by lookupAll later
+                long[] res = nnl.getAllNodes();
+
+                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").foreach(lookup("{{result}}"));
+                TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
+                    @Override
+                    public void on(TaskResult result) {
+                        final Node[] finalres = new Node[result.size()];
+                        for (int i = 0; i < result.size(); i++) {
+                            finalres[i] = (Node) result.get(i);
+                        }
+                        callback.on(finalres);
+                    }
+                });
+
+                TaskResult tr = tc.wrap(res);
+                tc.addToGlobalVariable("res", tr);
+                lookupall.executeUsing(tc);
+            }
+        });
+
+
+        TaskResult res = tc.newResult();
+        res.add(key);
+
+        // (this, distance, key, hr, max_dist_sqd, 0, dim, err, nnl);
+
+        tc.setGlobalVariable("key", res);
+        tc.setGlobalVariable("distance", distance);
+        tc.setGlobalVariable("dim", dim);
+        tc.setGlobalVariable("parents",this);
+
+        tc.defineVariable("lev", 0);
+
+        nearestTask.executeUsing(tc);
+    }
+
+
+    private static Task nearestTask = whileDo(new TaskFunctionConditional() {
+        @Override
+        public boolean eval(TaskContext context) {
+            return context.variable("parents").size()>0;
+        }
+    },
+            fromVar("parents").foreach(then(new Action() {
+                @Override
+                public void eval(TaskContext context) {
+
+                    TaskResult result=context.newResult();
+                    NDTree current= (NDTree) context.result().get(0);
+
+
+                    //Global variable
+                    double[] target = (double[]) context.variable("key").get(0);
+                    Distance distance = (Distance) context.variable("distance").get(0);
+
+                    current.unphasedState().each(new NodeStateCallback() {
+                        @Override
+                        public void on(long attributeKey, byte elemType, Object elem) {
+                            if(attributeKey>=_RELCONST){
+                                NDResult tempres=new NDResult();
+                                tempres.parent=current;
+                                tempres.relation=attributeKey;
+                                tempres.distance=0; //todo fill with distance to current key
+                                result.add(tempres);
+                            }
+                        }
+                    });
+                    context.continueWith(result);
+                }
+            }))
+
+
+
+
+            .then(new Action() {
+        @Override
+        public void eval(TaskContext context) {
+
+            //here replace parent
+            context.setGlobalVariable("parents",null);
+            context.continueTask();
+        }
+    }));
+
+
+    public int getNumNodes() {
+
+        if (getByIndex(_NUMNODES) != null) {
+            return (int) getByIndex(_NUMNODES);
+        } else {
+            return 1;
+        }
+    }
 }
