@@ -2,7 +2,14 @@ package org.mwg.struct.distance;
 
 public class CosineDistance implements Distance {
 
-    public static CosineDistance INSTANCE = new CosineDistance();
+    private static CosineDistance static_instance = null;
+
+    public static CosineDistance instance(){
+        if(static_instance == null){
+            static_instance = new CosineDistance();
+        }
+        return static_instance;
+    }
 
     private CosineDistance() {
     }

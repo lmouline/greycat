@@ -5,7 +5,14 @@ public class GeoDistance implements Distance {
     //x=[lat,long]
     //y=[lat,long]
 
-    public static GeoDistance INSTANCE = new GeoDistance();
+    private static GeoDistance static_instance = null;
+
+    public static GeoDistance instance(){
+        if(static_instance == null){
+            static_instance = new GeoDistance();
+        }
+        return static_instance;
+    }
 
     private GeoDistance() {
     }

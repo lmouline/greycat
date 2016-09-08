@@ -2,7 +2,14 @@ package org.mwg.struct.distance;
 
 public class PearsonDistance implements Distance {
 
-    public static PearsonDistance INSTANCE = new PearsonDistance();
+    private static PearsonDistance static_instance = null;
+
+    public static PearsonDistance instance() {
+        if (static_instance == null) {
+            static_instance = new PearsonDistance();
+        }
+        return static_instance;
+    }
 
     private PearsonDistance() {
     }
@@ -35,5 +42,5 @@ public class PearsonDistance implements Distance {
     public final double getMaxValue() {
         return 0;
     }
-    
+
 }
