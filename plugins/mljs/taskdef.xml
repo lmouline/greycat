@@ -55,6 +55,8 @@
             <filelist dir="${basedir}/src" files="spacer.js"/>
             <filelist dir="${basedir}/../../corejs/target/classes" files="mwg.js"/>
             <filelist dir="${basedir}/src" files="spacer.js"/>
+            <filelist dir="${basedir}/../../structure/target/classes-js" files="mwg.structure.js"/>
+            <filelist dir="${basedir}/src" files="spacer.js"/>
             <filelist dir="${basedir}/target/test-classes" files="mwg.test.js"/>
             <filelist dir="${basedir}/src" files="spacer.js"/>
             <filelist dir="${basedir}/target/generated-test-sources/"
