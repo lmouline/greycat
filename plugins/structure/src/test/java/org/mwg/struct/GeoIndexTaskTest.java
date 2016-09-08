@@ -34,14 +34,16 @@ public class GeoIndexTaskTest {
                     .fromVar("points")
                     .action(NTreeInsertTo.NAME, "geoIndex")
                     .fromVar("geoIndex")
-                    .action(NTreeNearestN.NAME, "49.6116,6.1319,3")
+                    .action(NTreeNearestN.NAME, "49.6116,6.1319,3") //lat,long,nb
                     .print("{{result}}")
-                    .action(NTreeNearestWithinRadius.NAME, "49.6116,6.1319,100000")
+                    .fromVar("geoIndex")
+                    .action(NTreeNearestWithinRadius.NAME, "49.6116,6.1319,100000") //lat,long,meters
                     .print("{{result}}")
-                    .action(NTreeNearestNWithinRadius.NAME, "49.6116,6.1319,3,100000")
+                    .fromVar("geoIndex")
+                    .action(NTreeNearestNWithinRadius.NAME, "49.6116,6.1319,2,100000") //lat,long,nb,meters
                     .print("{{result}}")
                     .execute(g, null);
-            
+
 
         });
 
