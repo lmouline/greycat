@@ -54,6 +54,7 @@
                         <configuration>
                             <name>mwg.ml</name>
                             <moduleImports>
+                                <moduleImport>mwg.structure.d.ts</moduleImport>
                                 <moduleImport>mwg.d.ts</moduleImport>
                                 <moduleImport>mwg.ml.blas.ts</moduleImport>
                             </moduleImports>
