@@ -48,6 +48,7 @@
                 <executions>
                     <execution>
                         <id>ts-compile-structure</id>
+                        <phase>compile</phase>
                         <goals>
                             <goal>java2ts</goal>
                         </goals>
@@ -94,9 +95,9 @@
                         <configuration>
                             <target>
                                 <echo message="Compile Java to TypeScript"/>
-                                <copy file="${basedir}/../../corejs/target/classes/mwg.d.ts"
+                                <copy file="${basedir}/../../core/target/classes-js/mwg.d.ts"
                                       todir="${basedir}/target/generated-sources/"/>
-                                <copy file="${basedir}/src/js/package.json" todir="${basedir}/target"/>
+                                <copy file="${basedir}/../../share/package.json" todir="${basedir}/target"/>
                                 <exec executable="npm" dir="${basedir}/target">
                                     <arg value="install"/>
                                 </exec>
@@ -111,7 +112,6 @@
                                     <arg value="--out"/>
                                     <arg value="${js.name}.js"/>
                                 </exec>
-
                                 <copy file="${basedir}/target/generated-sources/${js.name}.d.ts"
                                       todir="${basedir}/target/classes-js"/>
                                 <copy file="${basedir}/target/generated-sources/${js.name}.js"
@@ -119,7 +119,7 @@
                                 <copy file="${basedir}/target/generated-sources/${js.name}.js.map"
                                       todir="${basedir}/target/classes-js"/>
                                 <echo message="Minifying JavaScript"/>
-                                <java jar="${basedir}/../../corejs/lib/compiler.jar" fork="true" failonerror="true">
+                                <java jar="${basedir}/../../share/compiler.jar" fork="true" failonerror="true">
                                     <arg value="--js"/>
                                     <arg value="${basedir}/target/classes-js/${js.name}.js"/>
                                     <arg value="--js_output_file"/>
@@ -146,22 +146,22 @@
                                     <arg value="${basedir}/target/test-classes/mwg.test.js"/>
                                 </exec>
                                 <concat destfile="${basedir}/target/test-classes/test.all.js" force="no">
-                                    <filelist dir="${basedir}/../../corejs/target/classes" files="mwg.js"/>
-                                    <filelist dir="${basedir}/src/js" files="spacer.js"/>
+                                    <filelist dir="${basedir}/../../core/target/classes-js" files="mwg.js"/>
+                                    <filelist dir="${basedir}/../../share/" files="spacer.js"/>
                                     <filelist dir="${basedir}/target/test-classes" files="mwg.test.js"/>
-                                    <filelist dir="${basedir}/src/js" files="spacer.js"/>
+                                    <filelist dir="${basedir}/../../share/" files="spacer.js"/>
                                     <filelist dir="${basedir}/target/generated-test-sources/"
                                               files="testsRunner.js"/>
                                 </concat>
                                 <concat destfile="${basedir}/target/test-classes/test.all.dev.js" force="no">
-                                    <filelist dir="${basedir}/../../corejs/target/classes" files="mwg.js"/>
-                                    <filelist dir="${basedir}/src/js" files="spacer.js"/>
+                                    <filelist dir="${basedir}/../../core/target/classes-js" files="mwg.js"/>
+                                    <filelist dir="${basedir}/../../share/" files="spacer.js"/>
                                     <filelist dir="${basedir}/target/test-classes" files="mwg.test.js"/>
-                                    <filelist dir="${basedir}/src/js" files="spacer.js"/>
+                                    <filelist dir="${basedir}/../../share/" files="spacer.js"/>
                                     <filelist dir="${basedir}/target/generated-test-sources/"
                                               files="testsRunnerDev.js"/>
                                 </concat>
-                                <copy file="${basedir}/src/js/test.js" todir="${basedir}/target"/>
+                                <copy file="${basedir}/../../share/test.js" todir="${basedir}/target"/>
                             </target>
                         </configuration>
                     </execution>
@@ -189,7 +189,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <descriptors>
-                        <descriptor>src/main/assembly/zip.xml</descriptor>
+                        <descriptor>${basedir}/../../share/zip.xml</descriptor>
                     </descriptors>
                 </configuration>
                 <executions>

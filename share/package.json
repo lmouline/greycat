@@ -1,5 +1,5 @@
 {
-  "name": "mwg.structure",
+  "name": "mwg.generic.js",
   "version": "1.0.0-SNAPSHOT",
   "devDependencies": {
     "typescript": "*",

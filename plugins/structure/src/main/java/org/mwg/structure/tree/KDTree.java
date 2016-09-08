@@ -780,37 +780,32 @@ public class KDTree extends AbstractNode implements NTree {
             final double[] result = new double[tasks.length];
             final DeferCounter waiter = graph().newCounter(tasks.length);
             for (int i = 0; i < split.length; i++) {
-                final int taskIndex = i;
+                //prepare initial result
                 final TaskResult initial = newTask().emptyResult();
                 initial.add(current);
-
-                System.out.println(i+"-"+taskIndex);
-
-                tasks[i].executeWith(graph(), initial, new Callback<TaskResult>() {
+                //prepare initial context
+                final Callback<Integer> capsule = new Callback<Integer>() {
                     @Override
-                    public void on(TaskResult currentResult) {
-
-                        System.out.println(taskIndex);
-
-                        if (currentResult == null) {
-                            result[taskIndex] = Constants.NULL_LONG;
-                        } else {
-                            result[taskIndex] = Double.parseDouble(currentResult.get(0).toString());
-
-                            System.out.println(result);
-
-                            currentResult.free();
-                        }
-                        waiter.count();
+                    public void on(final Integer i) {
+                        tasks[i].executeWith(graph(), initial, new Callback<TaskResult>() {
+                            @Override
+                            public void on(TaskResult currentResult) {
+                                if (currentResult == null) {
+                                    result[i] = Constants.NULL_LONG;
+                                } else {
+                                    result[i] = Double.parseDouble(currentResult.get(0).toString());
+                                    currentResult.free();
+                                }
+                                waiter.count();
+                            }
+                        });
                     }
-                });
+                };
+                capsule.on(i);
             }
             waiter.then(new Job() {
                 @Override
                 public void run() {
-
-                    System.out.println(result);
-
                     callback.on(result);
                 }
             });
