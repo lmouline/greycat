@@ -7,7 +7,6 @@ import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.plugin.Job;
 import org.mwg.struct.NTree;
 import org.mwg.struct.tree.KDTree;
-import org.mwg.struct.tree.NDTree;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 import org.mwg.task.TaskResultIterator;
@@ -34,7 +33,7 @@ public class NTreeNearestWithinRadius extends AbstractTaskAction {
             final TaskResultIterator previousResultIt = previousResult.iterator();
             Object iter = previousResultIt.next();
             while (iter != null) {
-                if (iter instanceof KDTree || iter instanceof NDTree) {
+                if (iter instanceof KDTree) {
                     ((NTree) iter).nearestWithinRadius(_key, _radius, new Callback<Node[]>() {
                         @Override
                         public void on(Node[] result) {

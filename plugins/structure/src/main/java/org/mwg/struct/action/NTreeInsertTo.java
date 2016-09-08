@@ -8,7 +8,6 @@ import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.plugin.Job;
 import org.mwg.struct.NTree;
 import org.mwg.struct.tree.KDTree;
-import org.mwg.struct.tree.NDTree;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 import org.mwg.task.TaskResultIterator;
@@ -37,7 +36,7 @@ public class NTreeInsertTo extends AbstractTaskAction {
                     final TaskResultIterator savedVarIt = savedVar.iterator();
                     Object toAddIter = savedVarIt.next();
                     while (toAddIter != null) {
-                        if (toAddIter instanceof KDTree || toAddIter instanceof NDTree) {
+                        if (toAddIter instanceof KDTree) {
                             ((NTree) toAddIter).insert((Node) iter, new Callback<Boolean>() {
                                 @Override
                                 public void on(Boolean result) {

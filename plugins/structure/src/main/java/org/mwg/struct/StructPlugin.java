@@ -12,6 +12,8 @@ import org.mwg.task.TaskActionFactory;
 public class StructPlugin extends AbstractPlugin {
 
     public StructPlugin() {
+        super();
+
         /*
         declareNodeType(RBTree.NAME, new NodeFactory() {
             @Override

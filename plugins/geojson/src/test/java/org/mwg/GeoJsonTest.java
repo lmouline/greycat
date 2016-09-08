@@ -141,7 +141,7 @@ public class GeoJsonTest {
                                             @Override
                                             public void eval(TaskContext context) {
                                                 KDTree tree = (KDTree) context.variable("tree").get(0);
-                                                tree.set(KDTree.);
+                                               // tree.set(KDTree.);
                                                 Node n = context.resultAsNodes().get(0);
                                                 tree.insert(
                                                         new double[]{(double) n.get("lat"), (double) n.get("lng")},
