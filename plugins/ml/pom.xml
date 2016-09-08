@@ -120,6 +120,11 @@
             <artifactId>arpack_combined_all</artifactId>
             <version>0.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.kevoree.mwg.plugins</groupId>
+            <artifactId>structure</artifactId>
+            <version>7-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>
