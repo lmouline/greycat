@@ -13,7 +13,7 @@
     <groupId>org.kevoree.mwg.plugins</groupId>
     <artifactId>debuger</artifactId>
     <version>${parent.version}</version>
-    <name>mwg :: Plugins :: Debuger</name>
+    <name>mwg :: Plugins :: Debugger</name>
 
 
 </project>

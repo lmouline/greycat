@@ -3,7 +3,7 @@
     <groupId>org.kevoree.mwg</groupId>
     <artifactId>mwg-sample</artifactId>
     <version>1-SNAPSHOT</version>
-    <name>mwg :: Plugins :: Debuger :: Sample</name>
+    <name>mwg :: Plugins :: Debugger :: Sample</name>
 
     <properties>
         <mwg.version>7-SNAPSHOT</mwg.version>

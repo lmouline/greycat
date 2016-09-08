@@ -13,7 +13,7 @@ public class DebugServer {
     public static void main(String[] args) {
         Graph g = new GraphBuilder()
                 .withMemorySize(100000)
-                //.withStorage(new LevelDBStorage("mwg_db"))
+                //.withStorage(new LevelDBStorage("mwg_db"))z
                 .withPlugin(new MLPlugin())
                 .build();
         g.connect(isConnected -> {
