@@ -783,13 +783,22 @@ public class KDTree extends AbstractNode implements NTree {
                 final int taskIndex = i;
                 final TaskResult initial = newTask().emptyResult();
                 initial.add(current);
+
+                System.out.println(i+"-"+taskIndex);
+
                 tasks[i].executeWith(graph(), initial, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult currentResult) {
+
+                        System.out.println(taskIndex);
+
                         if (currentResult == null) {
                             result[taskIndex] = Constants.NULL_LONG;
                         } else {
                             result[taskIndex] = Double.parseDouble(currentResult.get(0).toString());
+
+                            System.out.println(result);
+
                             currentResult.free();
                         }
                         waiter.count();
@@ -799,6 +808,9 @@ public class KDTree extends AbstractNode implements NTree {
             waiter.then(new Job() {
                 @Override
                 public void run() {
+
+                    System.out.println(result);
+
                     callback.on(result);
                 }
             });

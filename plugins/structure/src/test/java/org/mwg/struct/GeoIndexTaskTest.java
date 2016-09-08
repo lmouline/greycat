@@ -17,6 +17,7 @@ import org.mwg.struct.tree.KDTree;
 import org.mwg.task.Action;
 import org.mwg.task.Task;
 import org.mwg.task.TaskContext;
+import org.mwg.task.TaskFunctionConditional;
 
 import static org.mwg.task.Actions.*;
 
@@ -45,6 +46,7 @@ public class GeoIndexTaskTest {
 
                 Task createTenPoints = loop("0", "9", newNode().setProperty("lat", Type.DOUBLE, "49.{{i}}").setProperty("long", Type.DOUBLE, "6.{{i}}").addToGlobalVar("points"));
 
+                /*
                 double[] y={49.6116,6.1319};
                 double[] x=new double[2];
                 for(int i=0;i<=9;i++){
@@ -52,16 +54,24 @@ public class GeoIndexTaskTest {
                     x[1]=i*0.1+6;
                     System.out.println(GeoDistance.instance().measure(y,x));
                 }
-                System.out.println();
-
+                System.out.println("Hello");
+*/
                 newTask()
                         .subTask(createGeoIndex)
                         .subTask(createTenPoints)
                         .fromVar("points")
                         .action(NTreeInsertTo.NAME, "geoIndex")
                         .fromVar("geoIndex")
+                        .whileDo((new TaskFunctionConditional() {
+                            @Override
+                            public boolean eval(TaskContext context) {
+                                return context.result().size() > 0;
+                            }
+                        }),print("{{result}}").subTasks(new Task[]{traverse("left"),traverse("right")}))
+                        .fromVar("geoIndex")
+                        //.print("{{result}}")
                         .action(NTreeNearestN.NAME, "49.6116,6.1319,10") //lat,long,nb
-                        .print("{{result}}")
+                        //.print("{{result}}")
                         .then(new Action() {
                             @Override
                             public void eval(TaskContext context) {
