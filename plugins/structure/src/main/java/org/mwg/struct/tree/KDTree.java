@@ -1,10 +1,8 @@
 package org.mwg.struct.tree;
 
-import org.mwg.Callback;
-import org.mwg.Graph;
-import org.mwg.Node;
-import org.mwg.Type;
+import org.mwg.*;
 import org.mwg.plugin.AbstractNode;
+import org.mwg.plugin.Job;
 import org.mwg.plugin.NodeState;
 import org.mwg.struct.NTree;
 import org.mwg.struct.Relationship;
@@ -17,18 +15,18 @@ import org.mwg.utility.Enforcer;
 
 import static org.mwg.task.Actions.*;
 
+@SuppressWarnings("Duplicates")
 public class KDTree extends AbstractNode implements NTree {
 
     public static final String NAME = "KDTree";
-
-    private static final String LEFT = "left";
-    private static final String RIGHT = "right";
-    private static final String KEY = "key";
-    private static final String VALUE = "value";
-    private static final String SIZE = "size";
-    private static final String DIMENSIONS = "dimensions";
+    public static final String FROM = "from";
+    public static final String LEFT = "left";
+    public static final String RIGHT = "right";
+    public static final String KEY = "key";
+    public static final String VALUE = "value";
+    public static final String SIZE = "size";
+    public static final String DIMENSIONS = "dimensions";
     public static final String DISTANCE = "distance";
-
     public static final String DISTANCE_THRESHOLD = "threshold";       //Distance threshold to define when 2 keys are not considered the same anymopre
     public static final double DISTANCE_THRESHOLD_DEF = 1e-10;
     public static final int DISTANCE_TYPE_DEF = 0;
@@ -41,22 +39,17 @@ public class KDTree extends AbstractNode implements NTree {
     private static Task insert = whileDo(new TaskFunctionConditional() {
         @Override
         public boolean eval(TaskContext context) {
-
             Node current = context.resultAsNodes().get(0);
             double[] nodeKey = (double[]) current.get(KEY);
-
             //Get variables from context
-
             //toDo optimize the variables here
             int dim = (int) context.variable("dim").get(0);
             double[] keyToInsert = (double[]) context.variable("key").get(0);
-
             Node valueToInsert = (Node) context.variable("value").get(0);
             Node root = (Node) context.variable("root").get(0);
             Distance distance = (Distance) context.variable("distance").get(0);
             double err = (double) context.variable("err").get(0);
             int lev = (int) context.variable("lev").get(0);
-
 
             //Bootstrap, first insert ever
             if (nodeKey == null) {
@@ -513,30 +506,28 @@ public class KDTree extends AbstractNode implements NTree {
         super.setProperty(propertyName, propertyType, propertyValue);
     }
 
-    protected Distance getDistance(NodeState state) {
-        int d = state.getFromKeyWithDefault(DISTANCE, DISTANCE_TYPE_DEF);
-        Distance distance;
-        if (d == Distances.EUCLIDEAN) {
-            distance = EuclideanDistance.INSTANCE;
-        } else if (d == Distances.GEODISTANCE) {
-            distance = GeoDistance.INSTANCE;
-        } else {
-            throw new RuntimeException("Unknown distance code metric");
-        }
-        return distance;
+    @Override
+    public void insert(Node value, Callback<Boolean> callback) {
+        extractFeatures(value, new Callback<double[]>() {
+            @Override
+            public void on(final double[] result) {
+                insertWith(result, value, callback);
+            }
+        });
     }
 
     @Override
-    public void insert(final double[] key, final Node value, final Callback<Boolean> callback) {
-        NodeState state = unphasedState();
+    public void insertWith(final double[] key, final Node value, final Callback<Boolean> callback) {
+        final NodeState state = unphasedState();
         final int dim = state.getFromKeyWithDefault(DIMENSIONS, key.length);
         final double err = state.getFromKeyWithDefault(DISTANCE_THRESHOLD, DISTANCE_THRESHOLD_DEF);
-
         if (key.length != dim) {
             throw new RuntimeException("Key size should always be the same");
         }
+        if (value == null) {
+            throw new RuntimeException("To index node should not be null");
+        }
         Distance distance = getDistance(state);
-
         TaskContext tc = insert.prepareWith(graph(), this, new Callback<TaskResult>() {
             @Override
             public void on(TaskResult result) {
@@ -566,6 +557,16 @@ public class KDTree extends AbstractNode implements NTree {
     @Override
     public int size() {
         return graph().resolver().resolveState(this).getFromKeyWithDefault(SIZE, 0);
+    }
+
+    @Override
+    public void setDistance(int distanceType) {
+        set(DISTANCE, distanceType);
+    }
+
+    @Override
+    public void setFrom(String extractor) {
+        set(FROM, extractor);
     }
 
     @Override
@@ -749,5 +750,62 @@ public class KDTree extends AbstractNode implements NTree {
 
         nearestTask.executeUsing(tc);
     }
+
+    protected Distance getDistance(NodeState state) {
+        int d = state.getFromKeyWithDefault(DISTANCE, DISTANCE_TYPE_DEF);
+        Distance distance;
+        if (d == Distances.EUCLIDEAN) {
+            distance = EuclideanDistance.instance();
+        } else if (d == Distances.GEODISTANCE) {
+            distance = GeoDistance.instance();
+        } else {
+            throw new RuntimeException("Unknown distance code metric");
+        }
+        return distance;
+    }
+
+    protected void extractFeatures(final Node current, final Callback<double[]> callback) {
+        String query = (String) super.get(FROM);
+        if (query != null) {
+            //TODO CACHE TO AVOID PARSING EVERY TIME
+            String[] split = query.split(",");
+            Task[] tasks = new Task[split.length];
+            for (int i = 0; i < split.length; i++) {
+                Task t = setWorld("" + world());
+                t.setTime(time() + "");
+                t.parse(split[i].trim());
+                tasks[i] = t;
+            }
+            //END TODO IN CACHE
+            final double[] result = new double[tasks.length];
+            final DeferCounter waiter = graph().newCounter(tasks.length);
+            for (int i = 0; i < split.length; i++) {
+                final int taskIndex = i;
+                final TaskResult initial = newTask().emptyResult();
+                initial.add(current);
+                tasks[i].executeWith(graph(), initial, new Callback<TaskResult>() {
+                    @Override
+                    public void on(TaskResult currentResult) {
+                        if (currentResult == null) {
+                            result[taskIndex] = Constants.NULL_LONG;
+                        } else {
+                            result[taskIndex] = Double.parseDouble(currentResult.get(0).toString());
+                            currentResult.free();
+                        }
+                        waiter.count();
+                    }
+                });
+            }
+            waiter.then(new Job() {
+                @Override
+                public void run() {
+                    callback.on(result);
+                }
+            });
+        } else {
+            callback.on(null);
+        }
+    }
+
 
 }
