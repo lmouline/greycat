@@ -10,7 +10,9 @@ import org.mwg.struct.action.NTreeInsertTo;
 import org.mwg.struct.action.NTreeNearestN;
 import org.mwg.struct.action.NTreeNearestNWithinRadius;
 import org.mwg.struct.action.NTreeNearestWithinRadius;
+import org.mwg.struct.distance.Distance;
 import org.mwg.struct.distance.Distances;
+import org.mwg.struct.distance.GeoDistance;
 import org.mwg.struct.tree.KDTree;
 import org.mwg.task.Action;
 import org.mwg.task.Task;
@@ -43,13 +45,23 @@ public class GeoIndexTaskTest {
 
                 Task createTenPoints = loop("0", "9", newNode().setProperty("lat", Type.DOUBLE, "49.{{i}}").setProperty("long", Type.DOUBLE, "6.{{i}}").addToGlobalVar("points"));
 
+                double[] y={49.6116,6.1319};
+                double[] x=new double[2];
+                for(int i=0;i<=9;i++){
+                    x[0]=i*0.1+49;
+                    x[1]=i*0.1+6;
+                    System.out.println(GeoDistance.instance().measure(y,x));
+                }
+                System.out.println();
+
                 newTask()
                         .subTask(createGeoIndex)
                         .subTask(createTenPoints)
                         .fromVar("points")
                         .action(NTreeInsertTo.NAME, "geoIndex")
                         .fromVar("geoIndex")
-                        .action(NTreeNearestN.NAME, "49.6116,6.1319,3") //lat,long,nb
+                        .action(NTreeNearestN.NAME, "49.6116,6.1319,10") //lat,long,nb
+                        .print("{{result}}")
                         .then(new Action() {
                             @Override
                             public void eval(TaskContext context) {
@@ -60,7 +72,7 @@ public class GeoIndexTaskTest {
                             }
                         })
                         .fromVar("geoIndex")
-                        .action(NTreeNearestWithinRadius.NAME, "49.6116,6.1319,100000") //lat,long,meters
+                        .action(NTreeNearestWithinRadius.NAME, "49.6116,6.1319,1000000") //lat,long,meters
                         .then(new Action() {
                             @Override
                             public void eval(TaskContext context) {
