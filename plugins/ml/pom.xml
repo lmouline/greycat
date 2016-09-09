@@ -127,6 +127,10 @@
         </dependency>
     </dependencies>
 
+    <properties>
+        <js.name>mwg.ml</js.name>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -157,6 +161,48 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.kevoree.modeling.j2ts</groupId>
+                <artifactId>mavenplugin</artifactId>
+                <version>${java2typescript.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>ts-compile-structure</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>java2ts</goal>
+                        </goals>
+                        <configuration>
+                            <name>${js.name}</name>
+                            <moduleImports>
+                                <moduleImport>mwg.d.ts</moduleImport>
+                                <moduleImport>mwg.structure.d.ts</moduleImport>
+                            </moduleImports>
+                            <source>${basedir}/src/main/java</source>
+                            <target>${basedir}/target/generated-sources</target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>ts-compile-test-structure</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>java2ts</goal>
+                        </goals>
+                        <configuration>
+                            <name>test</name>
+                            <copyJRE>false</copyJRE>
+                            <copyJunit>true</copyJunit>
+                            <moduleImports>
+                                <moduleImport>../generated-sources/${js.name}.ts</moduleImport>
+                            </moduleImports>
+                            <source>${basedir}/src/test/java</source>
+                            <target>${basedir}/target/generated-test-sources</target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 

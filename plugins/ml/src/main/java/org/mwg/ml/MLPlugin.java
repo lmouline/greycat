@@ -11,7 +11,7 @@ import org.mwg.ml.algorithm.regression.LiveLinearRegressionNode;
 import org.mwg.ml.algorithm.regression.PolynomialNode;
 import org.mwg.ml.common.structure.NDTree;
 import org.mwg.plugin.NodeFactory;
-import org.mwg.struct.StructPlugin;
+import org.mwg.structure.StructPlugin;
 
 public class MLPlugin extends StructPlugin {
 
