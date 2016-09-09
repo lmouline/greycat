@@ -22,7 +22,7 @@
 
         <dependency>
             <groupId>org.kevoree.mwg.plugins</groupId>
-            <artifactId>ml</artifactId>
+            <artifactId>structure</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
