@@ -24,6 +24,7 @@ class ActionTraverseIndex extends AbstractTaskAction {
     public void eval(final TaskContext context) {
         final TaskResult finalResult = context.wrap(null);
         final String flatName = context.template(_indexName);
+        final String flatQuery = context.template(_query);
         final TaskResult previousResult = context.result();
         if (previousResult != null) {
             final int previousSize = previousResult.size();
@@ -32,7 +33,7 @@ class ActionTraverseIndex extends AbstractTaskAction {
                 final Object loop = previousResult.get(i);
                 if (loop instanceof AbstractNode) {
                     final Node casted = (Node) loop;
-                    casted.find(flatName, _query, new Callback<Node[]>() {
+                    casted.find(flatName, flatQuery, new Callback<Node[]>() {
                         @Override
                         public void on(Node[] result) {
                             if (result != null) {
