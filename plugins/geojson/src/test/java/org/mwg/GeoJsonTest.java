@@ -4,17 +4,14 @@ import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import org.mwg.ml.MLPlugin;
 import org.mwg.plugin.geojson.GeoJsonPlugin;
-import org.mwg.struct.tree.KDTree;
+import org.mwg.structure.tree.KDTree;
 import org.mwg.task.*;
 import org.mwg.utility.VerboseHookFactory;
 import org.mwg.utility.VerbosePlugin;
 
-
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static org.mwg.plugin.geojson.GeoJsonActions.*;
 import static org.mwg.task.Actions.*;
@@ -40,10 +37,10 @@ public class GeoJsonTest {
             WSServer graphServer = new WSServer(g, 8050);
             graphServer.start();
 
-            while(true) {
+            while (true) {
                 update(g);
                 try {
-                    Thread.sleep(30*1000);
+                    Thread.sleep(30 * 1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -82,7 +79,7 @@ public class GeoJsonTest {
                         //.hook(new VerboseHookFactory())
                         .foreach(
                                 setTime(System.currentTimeMillis() + "")
-                                .asVar("jsonObject")
+                                        .asVar("jsonObject")
                                         .then(new Action() {
                                             @Override
                                             public void eval(TaskContext context) {
@@ -137,7 +134,7 @@ public class GeoJsonTest {
                                             @Override
                                             public void eval(TaskContext context) {
                                                 KDTree tree = (KDTree) context.variable("tree").get(0);
-                                               // tree.set(KDTree.);
+                                                // tree.set(KDTree.);
                                                 Node n = context.resultAsNodes().get(0);
                                                 tree.insertWith(
                                                         new double[]{(double) n.get("lat"), (double) n.get("lng")},
@@ -150,7 +147,7 @@ public class GeoJsonTest {
                                                         });
                                             }
                                         }))
-                                .clear()
+                                        .clear()
                         ).print("Update done.")
                         .clear();
 
@@ -184,7 +181,7 @@ public class GeoJsonTest {
                             } catch (Exception e3) {
                                 try {
                                     n.set(m.getName(), value.asDouble());
-                                }catch (Throwable t) {
+                                } catch (Throwable t) {
                                     t.printStackTrace();
                                 }
                             }
