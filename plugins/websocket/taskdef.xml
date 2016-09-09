@@ -17,7 +17,7 @@
         <copy file="${basedir}/src/main/ts/mwg.ws.ts" todir="${basedir}/target/generated-sources"/>
 
         <!-- Auto update for dev purpose -->
-        <copy file="${basedir}/../../corejs/target/classes/mwg.d.ts" todir="${basedir}/src/main/ts"/>
+        <copy file="${basedir}/../../core/target/classes-js/mwg.d.ts" todir="${basedir}/src/main/ts"/>
         <copy file="${basedir}/src/main/ts/mwg.d.ts" todir="${basedir}/target/generated-sources"/>
 
         <copy file="${basedir}/src/main/ts/package.json" todir="${basedir}/target"/>
@@ -41,7 +41,7 @@
         <copy file="${basedir}/target/generated-sources/mwg.ws.js" todir="${basedir}/target/classes"/>
         <copy file="${basedir}/target/generated-sources/mwg.ws.js.map" todir="${basedir}/target/classes"/>
 
-        <java jar="${basedir}/../../corejs/lib/compiler.jar" fork="true" failonerror="true">
+        <java jar="${basedir}/../../share/compiler.jar" fork="true" failonerror="true">
             <arg value="--js"/>
             <arg value="${basedir}/target/classes/mwg.ws.js"/>
             <arg value="--js_output_file"/>
@@ -53,7 +53,7 @@
         <copy file="${basedir}/src/main/ts/mwg.ws.ts" todir="${basedir}/target/generated-sources"/>
 
         <!-- Auto update for dev purpose -->
-        <copy file="${basedir}/../../corejs/target/classes/mwg.d.ts" todir="${basedir}/src/main/ts"/>
+        <copy file="${basedir}/../../core/target/classes-js/mwg.d.ts" todir="${basedir}/src/main/ts"/>
         <copy file="${basedir}/src/main/ts/mwg.d.ts" todir="${basedir}/target/generated-sources"/>
 
         <copy file="${basedir}/src/main/ts/package.json" todir="${basedir}/target"/>
@@ -78,7 +78,7 @@
         <copy file="${basedir}/target/generated-sources/mwg.ws.js" todir="${basedir}/target/classes"/>
         <copy file="${basedir}/target/generated-sources/mwg.ws.js.map" todir="${basedir}/target/classes"/>
 
-        <java jar="${basedir}/../../corejs/lib/compiler.jar" fork="true" failonerror="true">
+        <java jar="${basedir}/../../share/compiler.jar" fork="true" failonerror="true">
             <arg value="--js"/>
             <arg value="${basedir}/target/classes/mwg.ws.js"/>
             <arg value="--js_output_file"/>

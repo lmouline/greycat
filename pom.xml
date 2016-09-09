@@ -108,6 +108,7 @@
 
         <module>plugins/rest</module>
         <module>plugins/model</module>
+        <module>plugins/debug</module>
         <module>plugins/debugger</module>
         <module>plugins/geojson</module>
 

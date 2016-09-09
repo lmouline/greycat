@@ -758,6 +758,10 @@ declare module org {
                 static fromVarAt(variableName: string, index: number): org.mwg.task.Task;
                 static fromIndexAll(indexName: string): org.mwg.task.Task;
                 static fromIndex(indexName: string, query: string): org.mwg.task.Task;
+                static indexNode(indexName: string, flatKeyAttributes: string): org.mwg.task.Task;
+                static unindexNode(indexName: string, flatKeyAttributes: string): org.mwg.task.Task;
+                static localIndex(indexedRelation: string, flatKeyAttributes: string, varNodeToAdd: string): org.mwg.task.Task;
+                static localUnindex(indexedRelation: string, flatKeyAttributes: string, varNodeToAdd: string): org.mwg.task.Task;
                 static parse(flatTask: string): org.mwg.task.Task;
                 static asGlobalVar(variableName: string): org.mwg.task.Task;
                 static addToGlobalVar(variableName: string): org.mwg.task.Task;
