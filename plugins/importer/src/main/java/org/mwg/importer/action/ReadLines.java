@@ -1,13 +1,14 @@
-package org.mwg.importer;
+package org.mwg.importer.action;
 
+import org.mwg.importer.util.IterableLines;
 import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.task.TaskContext;
 
-class ActionReadLines extends AbstractTaskAction {
+public class ReadLines extends AbstractTaskAction {
 
     private final String _pathOrTemplate;
 
-    ActionReadLines(final String p_pathOrTemplate) {
+    public ReadLines(final String p_pathOrTemplate) {
         this._pathOrTemplate = p_pathOrTemplate;
     }
 
