@@ -3,7 +3,7 @@ package org.mwg;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import org.mwg.plugin.geojson.GeoJsonPlugin;
-import org.mwg.structure.StructPlugin;
+import org.mwg.structure.StructurePlugin;
 import org.mwg.structure.tree.KDTree;
 import org.mwg.task.*;
 import org.mwg.utility.VerboseHookFactory;
@@ -31,7 +31,7 @@ public class GeoJsonTest {
     public void baseTest() {
 
 
-        final Graph g = new GraphBuilder().withPlugin(new GeoJsonPlugin()).withPlugin(new StructPlugin()).withPlugin(new VerbosePlugin()).build();
+        final Graph g = new GraphBuilder().withPlugin(new GeoJsonPlugin()).withPlugin(new StructurePlugin()).withPlugin(new VerbosePlugin()).build();
         g.connect(connectionResult -> {
 
             WSServer graphServer = new WSServer(g, 8050);

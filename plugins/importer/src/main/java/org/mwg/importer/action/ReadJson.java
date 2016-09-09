@@ -7,15 +7,14 @@ import org.mwg.importer.util.JsonResult;
 import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.task.TaskContext;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URI;
 
 public class ReadJson extends AbstractTaskAction {
 
     private final String _pathOrTemplate;
 
-    ReadJson(String _pathOrTemplate) {
+    public ReadJson(String _pathOrTemplate) {
         this._pathOrTemplate = _pathOrTemplate;
     }
 
@@ -23,10 +22,32 @@ public class ReadJson extends AbstractTaskAction {
     public void eval(TaskContext context) {
         JsonValue[] result = null;
         final String path = context.template(_pathOrTemplate);
-        URI uri = URI.create(path);
+        InputStream foundStream = null;
         try {
-            try (InputStreamReader isr = new InputStreamReader(uri.toURL().openStream())) {
-                JsonValue firstElem = Json.parse(isr);
+            File file = new File(path);
+            if (file.exists()) {
+                foundStream = new FileInputStream(file);
+            } else {
+                foundStream = this.getClass().getClassLoader().getResourceAsStream(path);
+            }
+            if (foundStream.available() <= 0) {
+                foundStream = null;
+            }
+        } catch (Exception e) {
+            foundStream = null;
+        }
+        if (foundStream == null) {
+            try {
+                URI uri = URI.create(path);
+                foundStream = uri.toURL().openStream();
+            } catch (Exception e) {
+                foundStream = null;
+            }
+        }
+        if (foundStream != null) {
+            try {
+                InputStreamReader reader = new InputStreamReader(foundStream);
+                JsonValue firstElem = Json.parse(reader);
                 if (firstElem.isArray()) {
                     JsonArray array = firstElem.asArray();
                     JsonValue[] values = new JsonValue[array.size()];
@@ -37,12 +58,18 @@ public class ReadJson extends AbstractTaskAction {
                 } else {
                     result = new JsonValue[]{firstElem};
                 }
-                isr.close();
+                reader.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    foundStream.close();
+                } catch (Exception e) {
+
+                }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            context.continueWith(new JsonResult(result));
         }
+        context.continueWith(new JsonResult(result));
     }
+
 }
