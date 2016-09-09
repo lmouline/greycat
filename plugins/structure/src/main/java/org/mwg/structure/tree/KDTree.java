@@ -108,6 +108,7 @@ public class KDTree extends AbstractNode implements NTree {
                     return;
                 }
 
+
 //                node.graph().save(null);
                 // System.out.println("A- "+node.id()+": "+node.graph().space().available());
 
@@ -125,6 +126,7 @@ public class KDTree extends AbstractNode implements NTree {
 
 //                System.out.println("T1 " + node.id() + " lev " + lev);
 
+                //System.out.println("traversing " + node.id() + " lev: " + lev + ", key: " + pivot[0] + " , " + pivot[1] + " distance: " + distance.measure(pivot, target));
 
                 // 2. s := split field of kd
                 int s = lev % dim;
@@ -254,6 +256,8 @@ public class KDTree extends AbstractNode implements NTree {
                                 //System.out.println("T3 "+node.id()+" insert-> "+((long[]) (node.get(INTERNAL_VALUE)))[0]);
                                 //System.out.println("INSTASK " + ((long[]) (node.get(INTERNAL_VALUE)))[0] + " id: "+node.id());
                                 nnl.insert(((Relationship) (node.get(VALUE))).get(0), dist_sqd);
+                                double[] pivot = (double[]) node.get(KEY);
+                                //System.out.println("INSERT " + node.id() + " lev: " + lev + ", key: " + pivot[0] + " , " + pivot[1] + ", distance: " + distance.measure(pivot, target)+ ", value: "+ ((Relationship) (node.get(VALUE))).get(0)+ ", dist sqd: "+dist_sqd);
 
                                 // 10.1.3 max-dist-sqd = dist-sqd
                                 // max_dist_sqd = dist_sqd;

@@ -49,7 +49,7 @@ public class GeoIndexTaskTest {
                         .subTask(createTenPoints)
                         .fromVar("points")
                         .action(NTreeInsertTo.NAME, "geoIndex")
-                        /*
+/*
                         .fromVar("geoIndex")
                         .whileDo((new TaskFunctionConditional() {
                             @Override
@@ -57,7 +57,7 @@ public class GeoIndexTaskTest {
                                 return context.result().size() > 0;
                             }
                         }), print("{{result}}").subTasks(new Task[]{traverse("left"), traverse("right")}))
-                        */
+*/
                         .fromVar("geoIndex")
                         //.print("{{result}}")
                         .action(NTreeNearestN.NAME, "49.6116,6.1319,10") //lat,long,nb
@@ -73,7 +73,7 @@ public class GeoIndexTaskTest {
                         })
                         .fromVar("geoIndex")
                         .action(NTreeNearestWithinRadius.NAME, "49.6116,6.1319,100000") //lat,long,meters
-
+                        //.print("{{result}}")
                         .then(new Action() {
                             @Override
                             public void eval(TaskContext context) {
@@ -98,6 +98,7 @@ public class GeoIndexTaskTest {
                         })
                         .fromVar("geoIndex")
                         .action(NTreeNearestNWithinRadius.NAME, "49.6116,6.1319,2,100000") //lat,long,nb,meters
+                        //.print("{{result}}")
                         .then(new Action() {
                             @Override
                             public void eval(TaskContext context) {

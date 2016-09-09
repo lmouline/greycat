@@ -46,24 +46,44 @@ public class NearestNeighborList {
     }
 
     public boolean insert(long node, double priority) {
+
         if (count < capacity) {
             add(node, priority);
+            //print();
             return true;
         }
         if (priority > getMaxPriority()) {
             // do not insert - all elements in queue have lower priority
+            //print();
             return false;
         }
         // remove object with highest priority
         remove();
         // add new object
         add(node, priority);
+        //print();
         return true;
+    }
+
+    private void print() {
+        System.out.println(" ");
+        System.out.println("keys: ");
+        for (int i = 0; i < data.length; i++) {
+            System.out.println(data[i]);
+        }
+        System.out.println(" ");
+        System.out.println("dist: ");
+        for (int i = 0; i < value.length; i++) {
+            System.out.println(value[i]);
+        }
+        System.out.println(" ");
     }
 
     public long[] getAllNodes() {
         int size = Math.min(capacity, count);
         long[] nbrs = new long[size];
+
+        //print();
 
         for (int i = 0; i < size; ++i) {
             nbrs[size - i - 1] = remove();
@@ -80,7 +100,7 @@ public class NearestNeighborList {
         return data[1];
     }
 
-    public double getBestDistance(){
+    public double getBestDistance() {
         return value[1];
     }
 
@@ -178,23 +198,18 @@ public class NearestNeighborList {
         data[pos] = element;
     }
 
-    /**
-     * Bubble up is used to place an element relatively low in the queue to it's
-     * rightful place higher in the queue, but only if it's priority allows it
-     * to do so, similar to bubbleDown only in the other direction this swaps
-     * out its parents.
-     *
-     * @param pos the position in the arrays of the object to be bubbled up
-     */
+
     private void bubbleUp(int pos) {
         long element = data[pos];
         double priority = value[pos];
         /* when the parent is not less than the child, end */
-        while (value[pos / 2] < priority) {
+        int halfpos = (int) Math.floor(pos / 2);
+        while (value[halfpos] < priority) {
             /* overwrite the child with the parent */
-            value[pos] = value[pos / 2];
-            data[pos] = data[pos / 2];
-            pos /= 2;
+            value[pos] = value[halfpos];
+            data[pos] = data[halfpos];
+            pos  = (int) Math.floor(pos / 2);
+            halfpos  = (int) Math.floor(pos / 2);
         }
         value[pos] = priority;
         data[pos] = element;
@@ -220,20 +235,19 @@ public class NearestNeighborList {
     public long[] getAllNodesWithin(double radius) {
         int size = Math.min(capacity, count);
         long[] nbrs = new long[size];
-        int cc=0;
+        int cc = 0;
 
         for (int i = 0; i < size; ++i) {
-            if(getMaxPriority()<=radius) {
+            if (getMaxPriority() <= radius) {
                 nbrs[size - cc - 1] = remove();
                 cc++;
-            }
-            else{
+            } else {
                 remove();
             }
         }
 
-        long[] trimnbrs=new long[cc];
-        System.arraycopy(nbrs,size-cc,trimnbrs,0,cc);
+        long[] trimnbrs = new long[cc];
+        System.arraycopy(nbrs, size - cc, trimnbrs, 0, cc);
         return trimnbrs;
 
     }
