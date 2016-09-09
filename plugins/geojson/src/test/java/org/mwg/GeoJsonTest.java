@@ -4,7 +4,7 @@ import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import org.mwg.plugin.geojson.GeoJsonPlugin;
 import org.mwg.plugin.geojson.JsonResult;
-import org.mwg.structure.StructPlugin;
+import org.mwg.structure.StructurePlugin;
 import org.mwg.structure.action.NTreeInsertTo;
 import org.mwg.structure.distance.Distances;
 import org.mwg.structure.tree.KDTree;
@@ -33,7 +33,7 @@ public class GeoJsonTest {
     public void baseTest() {
 
 
-        final Graph g = new GraphBuilder().withMemorySize(10000000).withPlugin(new GeoJsonPlugin()).withPlugin(new StructPlugin()).build();
+        final Graph g = new GraphBuilder().withMemorySize(10000000).withPlugin(new GeoJsonPlugin()).withPlugin(new StructurePlugin()).build();
         g.connect(connectionResult -> {
 
             WSServer graphServer = new WSServer(g, 8050);
