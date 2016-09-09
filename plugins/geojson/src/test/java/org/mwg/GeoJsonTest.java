@@ -3,6 +3,7 @@ package org.mwg;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import org.mwg.plugin.geojson.GeoJsonPlugin;
+import org.mwg.structure.StructPlugin;
 import org.mwg.structure.tree.KDTree;
 import org.mwg.task.*;
 import org.mwg.utility.VerboseHookFactory;
@@ -195,8 +196,6 @@ public class GeoJsonTest {
         update.execute(graph, null);
 
     }
-
-
 
 
     public static void main(String[] args) {
