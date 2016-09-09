@@ -300,7 +300,7 @@
     var optionLists = {};
     var fillOptionListTask = org.mwg.task.Actions
             .hook(hookFactory)
-            .setTime((new Date()).getTime())
+            .setTime("{{processTime}}")
             .fromIndexAll("stations")
             .get("contract_name")
             .then(function (context) {
@@ -320,7 +320,9 @@
             });
     function fillOptionList() {
         console.log("Filling Option List");
-        fillOptionListTask.execute(graph, null);
+        var context = fillOptionListTask.prepareWith(graph, null, null);
+        context.setGlobalVariable("processTime", (new Date()).getTime());
+        fillOptionListTask.executeUsing(context);
     }
 
     document.querySelector(".flatpickr").flatpickr();
@@ -368,8 +370,10 @@
     var markers;
     var displayStationsTask = org.mwg.task.Actions
             .hook(hookFactory)
-            .setTime((new Date()).getTime())
-            .fromIndexAll("stations").selectWith("contract_name", "{{contract_name}}").foreach(
+            .setTime("{{processTime}}")
+            .fromIndexAll("stations")
+            .selectWith("contract_name", "{{contract_name}}")
+            .foreach(
                     org.mwg.task.Actions.asVar("station").traverse("position").asVar("pos").fromVar("station")
                             .then(function (context) {
                                 addMarker(context.result().get(0));
@@ -390,6 +394,8 @@
             result.free();
         });
         context.setVariable("contract_name", contract_name);
+        context.setVariable("processTime", (new Date()).getTime());
+
         displayStationsTask.executeUsing(context);
     }
 
@@ -401,47 +407,32 @@
         updateFilter();
     });
 
-    function updateNearest(e) {
-        var askKDTree = org.mwg.task.Actions
-                .hook(hookFactory)
-                .setTime((new Date()).getTime())
-                .fromIndexAll("positionsTree").then(function (context) {
-                    var kdTree = context.result().get(0);
-                    kdTree.nearestN([e.latlng.lat, e.latlng.lng], 10, function (nodes) {
-                        for (var n in nodes) {
-                            console.log(nodes[n].get("name"));
-                        }
-                        context.continueTask();
-                    });
-                });
-        askKDTree.execute(graph, null);
-    }
-
     function updateFilter() {
         var form = document.querySelector("#filter_form");
         var nbStations = form.querySelector("[name=find_stations_nb]").value;
         var radiusStations = form.querySelector("[name=find_stations_radius]").value;
-        console.log(form.querySelector("[name=find_stations_radius]"));
         filterCircle.setRadius(radiusStations);
 
-        var askKDTree = org.mwg.task.Actions
-                .hook(hookFactory)
-                .setTime((new Date()).getTime())
-                .fromIndexAll("positionsTree").then(function (context) {
-                    var kdTree = context.result().get(0);
-                    kdTree.nearestNWithinRadius([userPositionMarker.getLatLng().lat, userPositionMarker.getLatLng().lng], nbStations, radiusStations, function (nodes) {
-                        if (markers != undefined) {
-                            mymap.removeLayer(markers);
-                        }
-                        markers = new L.FeatureGroup();
 
-                        for (var n in nodes) {
-                            addMarker(nodes[n]);
-                        }
-                        mymap.addLayer(markers);
-                        context.continueTask();
-                    });
-                });
+        var askKDTree = org.mwg.task.Actions
+               // .hook(hookFactory)
+                .setTime((new Date()).getTime())
+                .fromIndexAll("positionsTree")
+                .action(org.mwg.structure.action.NTreeNearestNWithinRadius.NAME,"" + userPositionMarker.getLatLng().lat + "," + userPositionMarker.getLatLng().lng + "," + nbStations + "," + radiusStations)
+                        .then(function(context){
+                            if (markers != undefined) {
+                                mymap.removeLayer(markers);
+                            }
+                            markers = new L.FeatureGroup();
+
+                            var nodes = context.resultAsNodes();
+                            for(var i = 0; i < nodes.size(); i++) {
+                                addMarker(nodes.get(i));
+                            }
+                            mymap.addLayer(markers);
+                            context.continueTask();
+                        })
+                ;
         askKDTree.execute(graph, null);
 
     }

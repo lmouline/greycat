@@ -5,9 +5,10 @@ import com.eclipsesource.json.JsonValue;
 import org.mwg.plugin.geojson.GeoJsonPlugin;
 import org.mwg.plugin.geojson.JsonResult;
 import org.mwg.structure.StructPlugin;
+import org.mwg.structure.action.NTreeInsertTo;
+import org.mwg.structure.distance.Distances;
 import org.mwg.structure.tree.KDTree;
 import org.mwg.task.*;
-import org.mwg.utility.VerbosePlugin;
 
 import java.util.Iterator;
 import java.util.concurrent.Executors;
@@ -42,6 +43,7 @@ public class GeoJsonTest {
 
         });
     }
+
     private void runForDebug(Graph graph) {
         loadJson(_stationsListAddress + _baseParam).execute(graph, new Callback<TaskResult>() {
             @Override
@@ -74,6 +76,7 @@ public class GeoJsonTest {
             }
         });
     }
+
     private void normalRun(Graph graph) {
         executor.scheduleAtFixedRate(new Runnable() {
             @Override
@@ -95,7 +98,11 @@ public class GeoJsonTest {
                         public boolean eval(TaskContext context) {
                             return context.result().size() == 0;
                         }
-                    }, setTime("" + Constants.BEGINNING_OF_TIME).newTypedNode(KDTree.NAME).print("Positions Tree created !").indexNode("positionsTree", ""))
+                    }, setTime("" + Constants.BEGINNING_OF_TIME)
+                            .newTypedNode(KDTree.NAME)
+                            .setProperty(KDTree.DISTANCE, Type.INT, Distances.GEODISTANCE + "")
+                            .setProperty(KDTree.FROM, Type.STRING, "position.lat,position.lng")
+                            .print("Positions Tree created !").indexNode("positionsTree", ""))
                     .asGlobalVar("tree"));
 
     private Action updateJsonFields = new Action() {
@@ -171,51 +178,20 @@ public class GeoJsonTest {
                     }, fromVar("jsonObject")
                             .action(NEW_NODE_FROM_JSON, "")
                             .indexNode("stations", "contract_name,name")
-                            .isolate(asVar("parent").traverse("position").then(new Action() {
-                                @Override
-                                public void eval(TaskContext context) {
-                                    KDTree tree = (KDTree) context.variable("tree").get(0);
-                                    Node n = context.resultAsNodes().get(0);
-                                    tree.insertWith(
-                                            new double[]{(double) n.get("lat"), (double) n.get("lng")},
-                                            (Node) context.variable("parent").get(0),
-                                            new Callback<Boolean>() {
-                                                @Override
-                                                public void on(Boolean result) {
-                                                    context.continueTask();
-                                                }
-                                            });
-                                }
-                            }))
                             .print("New Station Created: {{result}}"))
                     .then(updateJsonFields)
-                    .isolate(asVar("parent").traverse("position").then(new Action() {
-                        @Override
-                        public void eval(TaskContext context) {
-                            KDTree tree = (KDTree) context.variable("tree").get(0);
-                            Node n = context.resultAsNodes().get(0);
-                            tree.insertWith(
-                                    new double[]{(double) n.get("lat"), (double) n.get("lng")},
-                                    (Node) context.variable("parent").get(0),
-                                    new Callback<Boolean>() {
-                                        @Override
-                                        public void on(Boolean result) {
-                                            context.continueTask();
-                                        }
-                                    });
-                        }
-                    }))
+                    .action(NTreeInsertTo.NAME, "tree")
                     .clear();
 
     final Task update =
             //newTask()
             loadJson(_stationsListAddress + _baseParam)
-            //.hook(new VerboseHookFactory())
-            .subTask(getOrCreatePositionsTree)
-            //.action(LOADJSON, _stationsListAddress + _baseParam)
-            .foreach(updateFromJsonValue)
-            .print("Update done.")
-            .clear();
+                    //.hook(new VerboseHookFactory())
+                    .subTask(getOrCreatePositionsTree)
+                    //.action(LOADJSON, _stationsListAddress + _baseParam)
+                    .foreachPar(updateFromJsonValue)
+                    .print("Update done.")
+                    .clear();
 
     private void update(Graph graph) {
 
