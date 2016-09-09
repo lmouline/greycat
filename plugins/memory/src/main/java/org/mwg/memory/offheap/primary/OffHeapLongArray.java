@@ -24,12 +24,12 @@ public class OffHeapLongArray {
     public static long allocate(final long capacity) {
         //create the memory segment
         long newMemorySegment = unsafe.allocateMemory(capacity * 8);
-        /*
+
         if (Unsafe.DEBUG_MODE) {
-            segments.put(newMemorySegment, capacity * 8);
+           // segments.put(newMemorySegment, capacity * 8);
             alloc_counter++;
         }
-        */
+
         //init the memory
         unsafe.setMemory(newMemorySegment, capacity * 8, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
         //return the newly created segment
@@ -73,12 +73,12 @@ public class OffHeapLongArray {
     }
 
     public static void free(final long addr) {
-        /*
+
         if (Unsafe.DEBUG_MODE) {
-            segments.remove(addr);
+           // segments.remove(addr);
             alloc_counter--;
         }
-        */
+
         unsafe.freeMemory(addr);
     }
 
@@ -91,11 +91,11 @@ public class OffHeapLongArray {
             return srcAddr;
         }
         long newAddr = unsafe.allocateMemory(length * 8);
-        /*
+
         if (Unsafe.DEBUG_MODE) {
-            segments.put(newAddr, (length * 8));
+            //segments.put(newAddr, (length * 8));
             alloc_counter++;
-        }*/
+        }
         unsafe.copyMemory(srcAddr, newAddr, (length * 8));
         return newAddr;
     }
