@@ -65,24 +65,24 @@ public class TestDistance {
                 testTask.insertWith(z,valz,null);
                 testTask.insertWith(w,valw,null);
 
-                System.out.println(GeoDistance.instance().measure(x,y));
-                System.out.println(GeoDistance.instance().measure(x,z));
-                System.out.println(GeoDistance.instance().measure(x,w));
+//                System.out.println(GeoDistance.instance().measure(x,y));
+//                System.out.println(GeoDistance.instance().measure(x,z));
+//                System.out.println(GeoDistance.instance().measure(x,w));
 
 
 
-                System.out.println(" ");
+//                System.out.println(" ");
                 testTask.nearestNWithinRadius(x, 10, 200, new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
                         Assert.assertTrue(result.length == 1);
 
-                        for(int i=0;i<result.length;i++){
-                            System.out.println("At 200m: "+result[i]+ "distance: "+GeoDistance.instance().measure(x,(double[])result[i].get("key")));
-                        }
+//                        for(int i=0;i<result.length;i++){
+//                            System.out.println("At 200m: "+result[i]+ " distance: "+GeoDistance.instance().measure(x,(double[])result[i].get("key")));
+//                        }
                     }
                 });
-                System.out.println(" ");
+//                System.out.println(" ");
 
 
                 testTask.nearestNWithinRadius(x, 10, 300, new Callback<Node[]>() {
@@ -90,12 +90,12 @@ public class TestDistance {
                     public void on(Node[] result) {
                         Assert.assertTrue(result.length == 2);
 
-                        for(int i=0;i<result.length;i++){
-                            System.out.println("At 300m: "+result[i]+ "distance: "+GeoDistance.instance().measure(x,(double[])result[i].get("key")));
-                        }
+//                        for(int i=0;i<result.length;i++){
+//                            System.out.println("At 300m: "+result[i]+ " distance: "+GeoDistance.instance().measure(x,(double[])result[i].get("key")));
+//                        }
                     }
                 });
-                System.out.println(" ");
+//                System.out.println(" ");
 
 
                 testTask.nearestNWithinRadius(x, 10, 5000, new Callback<Node[]>() {
@@ -103,9 +103,9 @@ public class TestDistance {
                     public void on(Node[] result) {
                         Assert.assertTrue(result.length == 3);
 
-                        for(int i=0;i<result.length;i++){
-                            System.out.println("At 5000m: "+result[i]+ "distance: "+GeoDistance.instance().measure(x,(double[])result[i].get("key")));
-                        }
+//                        for(int i=0;i<result.length;i++){
+//                            System.out.println("At 5000m: "+result[i]+ " distance: "+GeoDistance.instance().measure(x,(double[])result[i].get("key")));
+//                        }
                     }
                 });
 
