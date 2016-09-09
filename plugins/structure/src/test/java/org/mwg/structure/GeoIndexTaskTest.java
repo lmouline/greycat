@@ -15,7 +15,6 @@ import org.mwg.structure.tree.KDTree;
 import org.mwg.task.Action;
 import org.mwg.task.Task;
 import org.mwg.task.TaskContext;
-import org.mwg.task.TaskFunctionConditional;
 
 import static org.mwg.task.Actions.*;
 
@@ -32,7 +31,7 @@ public class GeoIndexTaskTest {
 
     @Test
     public void test() {
-        Graph g = new GraphBuilder().withMemorySize(100000).withPlugin(new StructPlugin()).build();
+        Graph g = new GraphBuilder().withMemorySize(100000).withPlugin(new StructurePlugin()).build();
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
@@ -91,7 +90,7 @@ public class GeoIndexTaskTest {
                                 Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":3,\"lat\":49.1,\"long\":6.1}"));
 
                                 Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":11,\"lat\":49.9,\"long\":6.9}"));
-                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":2,\"lat\":49.0,\"long\":6.0}")||stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":2,\"lat\":49,\"long\":6}"));
+                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":2,\"lat\":49.0,\"long\":6.0}") || stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":2,\"lat\":49,\"long\":6}"));
 
                                 context.continueTask();
                             }
