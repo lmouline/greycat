@@ -577,17 +577,29 @@ final class MWGResolver implements Resolver {
                         }
                     }
                     final long resolvedTime = nodeTimeTree.previousOrEqual(nodeTime);
-                    castedNode._time_magic = nodeTimeTree.magic();
-                    castedNode._super_time_magic = nodeSuperTimeTree.magic();
+                    //are we still unphased
+                    if (resolvedWorld == nodeWorld && resolvedTime == nodeTime) {
+                        castedNode._world_magic = -1;
+                        castedNode._time_magic = -1;
+                        castedNode._super_time_magic = -1;
+                    } else {
+                        //save magic numbers
+                        castedNode._world_magic = nodeWorldOrder.magic();
+                        castedNode._time_magic = nodeTimeTree.magic();
+                        castedNode._super_time_magic = nodeSuperTimeTree.magic();
+                        //save updated index
+                        castedNode._index_superTimeTree = nodeSuperTimeTree.index();
+                        castedNode._index_timeTree = nodeTimeTree.index();
+                    }
                     stateResult = (StateChunk) this._space.get(castedNode._index_stateChunk);
                     if (resolvedWorld != stateResult.world() || resolvedTime != stateResult.time()) {
                         final StateChunk tempNodeState = (StateChunk) this._space.getAndMark(ChunkType.STATE_CHUNK, resolvedWorld, resolvedTime, nodeId);
                         if (tempNodeState != null) {
                             this._space.unmark(stateResult.index());
                             stateResult = tempNodeState;
-                            castedNode._index_stateChunk = stateResult.index();
                         }
                     }
+                    castedNode._index_stateChunk = stateResult.index();
                     if (safe) {
                         nodeWorldOrder.unlock();
                     }
