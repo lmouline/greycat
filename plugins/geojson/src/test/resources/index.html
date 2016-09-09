@@ -11,7 +11,7 @@
     <link rel="stylesheet" type="text/css" href="flatpickr.material_blue.min.css">
 
     <script src="mwg.js"></script>
-    <script src="mwg.ml.js"></script>
+    <script src="mwg.structure.js"></script>
     <script src="mwg.ws.js"></script>
 
     <style>
@@ -446,7 +446,7 @@
 
     }
 
-    var graph = new org.mwg.GraphBuilder().withStorage(new org.mwg.plugin.WSClient("ws://localhost:8050")).withPlugin(new org.mwg.ml.MLPlugin()).build();
+    var graph = new org.mwg.GraphBuilder().withStorage(new org.mwg.plugin.WSClient("ws://localhost:8050")).withPlugin(new org.mwg.structure.StructPlugin()).build();
     graph.connect(function () {
 
         fillOptionList();

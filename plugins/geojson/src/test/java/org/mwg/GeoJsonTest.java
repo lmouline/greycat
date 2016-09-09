@@ -3,15 +3,16 @@ package org.mwg;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import org.mwg.plugin.geojson.GeoJsonPlugin;
-import org.mwg.structure.StructurePlugin;
+import org.mwg.plugin.geojson.JsonResult;
+import org.mwg.structure.StructPlugin;
 import org.mwg.structure.tree.KDTree;
 import org.mwg.task.*;
-import org.mwg.utility.VerboseHookFactory;
 import org.mwg.utility.VerbosePlugin;
 
 import java.util.Iterator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static org.mwg.plugin.geojson.GeoJsonActions.*;
 import static org.mwg.task.Actions.*;
@@ -31,45 +32,71 @@ public class GeoJsonTest {
     public void baseTest() {
 
 
-        final Graph g = new GraphBuilder().withPlugin(new GeoJsonPlugin()).withPlugin(new StructurePlugin()).withPlugin(new VerbosePlugin()).build();
+        final Graph g = new GraphBuilder().withMemorySize(10000000).withPlugin(new GeoJsonPlugin()).withPlugin(new StructPlugin()).build();
         g.connect(connectionResult -> {
 
             WSServer graphServer = new WSServer(g, 8050);
             graphServer.start();
 
-            while (true) {
-                update(g);
+            normalRun(g);
+
+        });
+    }
+    private void runForDebug(Graph graph) {
+        loadJson(_stationsListAddress + _baseParam).execute(graph, new Callback<TaskResult>() {
+            @Override
+            public void on(TaskResult resultA) {
+
+                executor.scheduleAtFixedRate(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            TaskResultIterator<JsonValue> it = ((JsonResult) resultA).iterator();
+                            JsonValue next = null;
+                            while ((next = it.next()) != null) {
+                                ((JsonObject) next).set("last_update", System.currentTimeMillis());
+                                ((JsonObject) next).set("available_bike_stands", ((JsonObject) next).getInt("available_bike_stands", 0) + 1);
+                            }
+
+                            TaskContext context = update.prepareWith(graph, resultA.asArray(), new Callback<TaskResult>() {
+                                @Override
+                                public void on(TaskResult result) {
+                                    result.free();
+                                }
+                            });
+                            context.setGlobalVariable("processTime", System.currentTimeMillis());
+                            update.executeUsing(context);
+                        } catch (Throwable t) {
+                            t.printStackTrace();
+                        }
+                    }
+                }, 0, 5, TimeUnit.SECONDS);
+            }
+        });
+    }
+    private void normalRun(Graph graph) {
+        executor.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
                 try {
-                    Thread.sleep(30 * 1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    update(graph);
+                } catch (Throwable t) {
+                    t.printStackTrace();
                 }
             }
-            /*
-            executor.scheduleAtFixedRate(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-
-                    } catch (Throwable t) {
-                        t.printStackTrace();
-                    }
-                }
-            }, 0, 30, TimeUnit.SECONDS);
-            */
-        });
+        }, 0, 30, TimeUnit.SECONDS);
     }
 
 
     final Task getOrCreatePositionsTree =
-            fromIndexAll("positionsTree")
+            isolate(fromIndexAll("positionsTree")
                     .ifThen(new TaskFunctionConditional() {
                         @Override
                         public boolean eval(TaskContext context) {
                             return context.result().size() == 0;
                         }
                     }, setTime("" + Constants.BEGINNING_OF_TIME).newTypedNode(KDTree.NAME).print("Positions Tree created !").indexNode("positionsTree", ""))
-                    .asVar("tree");
+                    .asGlobalVar("tree"));
 
     private Action updateJsonFields = new Action() {
         @Override
@@ -110,7 +137,7 @@ public class GeoJsonTest {
     };
 
     final Task updateFromJsonValue =
-            setTime(System.currentTimeMillis() + "")
+            setTime("{{processTime}}")
                     .asVar("jsonObject")
                     .then(new Action() {
                         @Override
@@ -132,7 +159,6 @@ public class GeoJsonTest {
                                         newRes.add(result[0]);
                                     }
                                     context.continueWith(newRes);
-                                    context.graph().freeNodes(result);
                                 }
                             });
                         }
@@ -167,7 +193,6 @@ public class GeoJsonTest {
                         @Override
                         public void eval(TaskContext context) {
                             KDTree tree = (KDTree) context.variable("tree").get(0);
-                            // tree.set(KDTree.);
                             Node n = context.resultAsNodes().get(0);
                             tree.insertWith(
                                     new double[]{(double) n.get("lat"), (double) n.get("lng")},
@@ -183,17 +208,27 @@ public class GeoJsonTest {
                     .clear();
 
     final Task update =
-            hook(new VerboseHookFactory())
-                    .subTask(getOrCreatePositionsTree)
-                    .action(LOADJSON, _stationsListAddress + _baseParam)
-                    .foreach(updateFromJsonValue)
-                    .print("Update done.")
-                    .clear();
+            //newTask()
+            loadJson(_stationsListAddress + _baseParam)
+            //.hook(new VerboseHookFactory())
+            .subTask(getOrCreatePositionsTree)
+            //.action(LOADJSON, _stationsListAddress + _baseParam)
+            .foreach(updateFromJsonValue)
+            .print("Update done.")
+            .clear();
 
     private void update(Graph graph) {
 
         System.out.println("Updating");
-        update.execute(graph, null);
+        TaskContext context = update.prepareWith(graph, null, new Callback<TaskResult>() {
+            @Override
+            public void on(TaskResult result) {
+                result.free();
+            }
+        });
+        context.setGlobalVariable("processTime", System.currentTimeMillis());
+        update.executeUsing(context);
+
 
     }
 

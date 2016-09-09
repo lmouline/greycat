@@ -35,7 +35,6 @@ public class ActionNewNodeFromJson extends AbstractTaskAction {
     private Node buildNodeFromJsonObject(TaskContext context, JsonObject currentObject) {
         Graph g = context.graph();
         Node n = g.newNode(context.world(), context.time());
-        //Node n = g.newNode(0,0);
         Iterator<JsonObject.Member> membersIt = currentObject.iterator();
         while (membersIt.hasNext()) {
             try {
