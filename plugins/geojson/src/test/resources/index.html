@@ -6,178 +6,16 @@
     <link rel="stylesheet" href="https://npmcdn.com/leaflet@1.0.0-rc.3/dist/leaflet.css"/>
     <script src="https://npmcdn.com/leaflet@1.0.0-rc.3/dist/leaflet.js"></script>
 
-    <script src="flatpickr.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="flatpickr.min.css">
-    <link rel="stylesheet" type="text/css" href="flatpickr.material_blue.min.css">
+    <script src="plugins/flatpickr/flatpickr.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="plugins/flatpickr/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="plugins/flatpickr/flatpickr.material_blue.min.css">
 
-    <script src="mwg.js"></script>
-    <script src="mwg.structure.js"></script>
-    <script src="mwg.ws.js"></script>
+    <script src="plugins/mwg/mwg.js"></script>
+    <script src="plugins/mwg/mwg.structure.js"></script>
+    <script src="plugins/mwg/mwg.ws.js"></script>
 
-    <style>
+    <link rel="stylesheet" type="text/css" href="css/demo.css">
 
-        .map {
-            width: calc(100% - 30em);
-            display: inline-block;
-            height: 1000px;
-        }
-
-        .accordion {
-            display: inline-block;
-            vertical-align: top;
-            width: 20em;
-            padding: 0.5em 0.5em 1px 0.5em;
-            margin: 0 auto;
-            background-color: #666;
-            border-radius: 5px;
-            box-shadow: 0 3px 3px rgba(0, 0, 0, 0.3);
-        }
-
-        .accordion panel {
-            display: block;
-            width: 18em;
-            height: 2em;
-            padding: 0 1em;
-            margin: 0 0 0.5em 0;
-            color: #333;
-            background-color: #333;
-            overflow: hidden;
-            border-radius: 3px;
-        }
-
-        .accordion panel h2 {
-            font-size: 1em;
-            font-weight: bold;
-            width: 100%;
-            line-height: 2em;
-            padding: 0;
-            margin: 0;
-            color: #ddd;
-        }
-
-        .accordion panel h2 a {
-            display: block;
-            width: 100%;
-            line-height: 2em;
-            text-decoration: none;
-            color: inherit;
-            outline: 0 none;
-        }
-
-        .accordion panel:target {
-            height: 30em;
-            background-color: #fff;
-        }
-
-        .accordion panel:target h2 {
-            font-size: 1.6em;
-            color: #333;
-        }
-
-        .accordion panel,
-        .accordion panel h2 {
-            -webkit-transition: all 1s ease;
-            -moz-transition: all 1s ease;
-            -ms-transition: all 1s ease;
-            -o-transition: all 1s ease;
-            transition: all 1s ease;
-        }
-    </style>
-    <style type="text/css">
-        .form-style {
-            margin: 10px auto;
-            max-width: 400px;
-            padding: 20px 12px 10px 20px;
-            font: 13px "Lucida Sans Unicode", "Lucida Grande", sans-serif;
-        }
-
-        .form-style li {
-            padding: 0;
-            display: block;
-            list-style: none;
-            margin: 10px 0 0 0;
-        }
-
-        .form-style label {
-            margin: 0 0 3px 0;
-            padding: 0px;
-            display: block;
-            font-weight: bold;
-        }
-
-        .form-style input[type=text],
-        .form-style input[type=date],
-        .form-style input[type=datetime],
-        .form-style input[type=number],
-        .form-style input[type=search],
-        .form-style input[type=time],
-        .form-style input[type=url],
-        .form-style input[type=email],
-        textarea,
-        select {
-            box-sizing: border-box;
-            -webkit-box-sizing: border-box;
-            -moz-box-sizing: border-box;
-            border: 1px solid #BEBEBE;
-            padding: 7px;
-            margin: 0px;
-            -webkit-transition: all 0.30s ease-in-out;
-            -moz-transition: all 0.30s ease-in-out;
-            -ms-transition: all 0.30s ease-in-out;
-            -o-transition: all 0.30s ease-in-out;
-            outline: none;
-        }
-
-        .form-style input[type=text]:focus,
-        .form-style input[type=date]:focus,
-        .form-style input[type=datetime]:focus,
-        .form-style input[type=number]:focus,
-        .form-style input[type=search]:focus,
-        .form-style input[type=time]:focus,
-        .form-style input[type=url]:focus,
-        .form-style input[type=email]:focus,
-        .form-style textarea:focus,
-        .form-style select:focus {
-            -moz-box-shadow: 0 0 8px #88D5E9;
-            -webkit-box-shadow: 0 0 8px #88D5E9;
-            box-shadow: 0 0 8px #88D5E9;
-            border: 1px solid #88D5E9;
-        }
-
-        .form-style .field-divided {
-            width: 49%;
-        }
-
-        .form-style .field-long {
-            width: 100%;
-        }
-
-        .form-style .field-select {
-            width: 100%;
-        }
-
-        .form-style .field-textarea {
-            height: 100px;
-        }
-
-        .form-style input[type=submit], .form-style input[type=button] {
-            background: #4B99AD;
-            padding: 8px 15px 8px 15px;
-            border: none;
-            color: #fff;
-        }
-
-        .form-style input[type=submit]:hover, .form-style input[type=button]:hover {
-            background: #4691A4;
-            box-shadow: none;
-            -moz-box-shadow: none;
-            -webkit-box-shadow: none;
-        }
-
-        .form-style .required {
-            color: red;
-        }
-    </style>
 </head>
 <body>
 
@@ -187,17 +25,20 @@
     <panel id="acc1">
         <h2><a href="#acc1">Change City</a></h2>
         <form class="form-style">
-            <li><select class="field-select" onchange="updateContract(this.value)">
+            <li><select class="field-select" onchange="demo.updateContract(this.value)">
             </select>
             </li>
         </form>
     </panel>
     <panel id="acc2">
         <h2><a href="#acc2">Filter stations</a></h2>
-        <form id="filter_form" class="form-style" action="javascript:;" onsubmit="updateFilter(this)">
-            <li><label>Nb Stations</label><input type="number" class="field-long" name="find_stations_nb" value="10"/></li>
-            <li><label>Radius</label><input type="number" class="field-long" name="find_stations_radius" placeholder="(radius in meters)" value="200"/></li>
-            <li><input type="submit" value="Filter" /></li>
+        <form id="filter_form" class="form-style" action="javascript:;" onsubmit="demo.updateFilter(this)">
+            <li><label>Nb Stations</label><input type="number" class="field-long" name="find_stations_nb" value="10"/>
+            </li>
+            <li>
+                <label>Radius</label><input type="number" class="field-long" name="find_stations_radius" placeholder="(radius in meters)" value="200"/>
+            </li>
+            <li><input type="submit" value="Filter"/></li>
         </form>
     </panel>
     <panel id="acc3">
@@ -224,248 +65,23 @@
     </panel>
 </div>
 
+<div id="openModal" class="modalDialog">
+    <div>
+        <ul>
+            <li id="map_init">Initializing the map</li>
+            <li id="cities_init">Initializing cities</li>
+            <li id="markers_loading">Initializing loading markers</li>
+        </ul>
+    </div>
+</div>
 
+<script src="js/TimerHook.js"></script>
+<script src="js/demo.js"></script>
 <script>
-
-    function HookTimer() {
-        return {
-            stack: [],
-            history: [],
-            level: 0,
-
-            start: function (context) {
-                console.log("Start", context);
-                var record = {context: context, start: (new Date()).getTime(), activity: []}
-                this.stack.push(record);
-                this.history.push(record);
-            },
-            beforeAction: function (action, context) {
-                var record = {context: context, action: action, start: (new Date()).getTime()};
-                this.stack.push(record);
-
-                var activityArray = this.history[this.history.length - 1]["activity"];
-                for (var i = 0; i < this.level; i++) {
-                    activityArray = activityArray[activityArray.length - 1]["activity"];
-                }
-                activityArray.push(record);
-            },
-            afterAction: function (action, context) {
-                var record = this.stack.pop();
-                record["end"] = (new Date()).getTime();
-                record["duration"] = (record["end"] - record["start"]) + "ms";
-                //console.log("Action:" + action.toString(), record);
-            },
-            beforeTask: function (parentContext, context) {
-                var record = {
-                    context: context,
-                    parentContext: parentContext,
-                    start: (new Date()).getTime(),
-                    activity: []
-                };
-                this.stack.push(record);
-
-                var activityArray = this.history[this.history.length - 1]["activity"];
-                for (var i = 0; i < this.level; i++) {
-                    activityArray = activityArray[activityArray.length - 1]["activity"];
-                }
-                activityArray.push(record);
-                this.level++;
-                //console.log("Before task", parentContext, context);
-                //this.timers[parentContext][context] = {startTask:(new Date()).getTime()};
-            },
-            afterTask: function (context) {
-                var record = this.stack.pop();
-                record["end"] = (new Date()).getTime();
-                record["duration"] = (record["end"] - record["start"]) + "ms";
-                //console.log("After task", record);
-                this.level--;
-                //this.timers[context]["endTask"] = (new Date()).getTime();
-            },
-            end: function (context) {
-                var record = this.stack.pop();
-                record["end"] = (new Date()).getTime();
-                record["duration"] = (record["end"] - record["start"]) + "ms";
-                console.log("End", record);
-                //console.log("History", this.history);
-            }
-        }
-    };
-
-    var hookFactory = {
-        newHook: function () {
-            return new HookTimer();
-        }
-    };
-
-    var optionLists = {};
-    var fillOptionListTask = org.mwg.task.Actions
-            .hook(hookFactory)
-            .setTime("{{processTime}}")
-            .fromIndexAll("stations")
-            .get("contract_name")
-            .then(function (context) {
-                var result = context.result();
-                var s = result.size();
-                for (var i = 0; i < s; i++) {
-                    var val = result.get(i);
-                    optionLists[val] = val;
-                }
-                var selector = document.querySelector("select")
-                for (var e in optionLists) {
-                    var opt = document.createElement("option");
-                    opt.textContent = e;
-                    selector.appendChild(opt);
-                }
-                context.continueTask();
-            });
-    function fillOptionList() {
-        console.log("Filling Option List");
-        var context = fillOptionListTask.prepareWith(graph, null, null);
-        context.setGlobalVariable("processTime", (new Date()).getTime());
-        fillOptionListTask.executeUsing(context);
-    }
-
-    document.querySelector(".flatpickr").flatpickr();
-
-    var startMapLoading = (new Date()).getTime();
-    var mymap = L.map('mapid').setView([49.632386, 6.168544], 10);
-    L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v9/tiles/256/{z}/{x}/{y}?access_token={accessToken}', {
-        attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-        maxZoom: 18,
-        id: 'test',
-        accessToken: 'pk.eyJ1IjoiZ25haW4iLCJhIjoiY2lzbG96eWZwMDA3NzJucGtwMTd5bXh2MiJ9.tJUI9PFDrl7eENeVW9kaWw'
-    }).addTo(mymap);
-    var endMapLoading = (new Date()).getTime();
-
-    var userPositionMarker = L.marker([49.632386, 6.168544], {
-        icon: L.icon({
-            iconUrl: 'red_pin.png',
-            iconAnchor: [15,44],
-            iconSize: [30, 44],
-        }),
-        draggable: true,
-        zIndexOffset: 1000
-    }).bindPopup("Your position").addTo(mymap);
-    userPositionMarker.on("drag", function(event){
-       filterCircle.setLatLng([event.latlng.lat, event.latlng.lng]);
-        updateFilter();
-    });
-    userPositionMarker.on("dragend", function(event){
-        updateFilter();
-    });
-
-    var filterCircle = L.circle([49.632386, 6.168544], 200).addTo(mymap);
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position){
-            userPositionMarker.setLatLng([position.coords.latitude, position.coords.longitude]);
-        });
-    } else {
-        console.error("Geolocation is not supported by this browser.");
-    }
-
-
-    console.log("MapLoading:" + (endMapLoading - startMapLoading ) + "ms");
-
-
-    var markers;
-    var displayStationsTask = org.mwg.task.Actions
-            .hook(hookFactory)
-            .setTime("{{processTime}}")
-            .fromIndexAll("stations")
-            .selectWith("contract_name", "{{contract_name}}")
-            .foreach(
-                    org.mwg.task.Actions.asVar("station").traverse("position").asVar("pos").fromVar("station")
-                            .then(function (context) {
-                                addMarker(context.result().get(0));
-                                context.continueTask();
-                            })
-            ).then(function (context) {
-                mymap.addLayer(markers);
-                context.continueTask();
-            });
-    function updateContract(contract_name) {
-        console.log("Updating contract:" + contract_name);
-        if (markers != undefined) {
-            mymap.removeLayer(markers);
-        }
-        markers = new L.FeatureGroup();
-
-        var context = displayStationsTask.prepareWith(graph, null, function (result) {
-            result.free();
-        });
-        context.setVariable("contract_name", contract_name);
-        context.setVariable("processTime", (new Date()).getTime());
-
-        displayStationsTask.executeUsing(context);
-    }
-
-
-    mymap.on('click', function (event) {
-        //updateNearest(e);
-        userPositionMarker.setLatLng([event.latlng.lat, event.latlng.lng]);
-        filterCircle.setLatLng([event.latlng.lat, event.latlng.lng]);
-        updateFilter();
-    });
-
-    function updateFilter() {
-        var form = document.querySelector("#filter_form");
-        var nbStations = form.querySelector("[name=find_stations_nb]").value;
-        var radiusStations = form.querySelector("[name=find_stations_radius]").value;
-        filterCircle.setRadius(radiusStations);
-
-
-        var askKDTree = org.mwg.task.Actions
-               // .hook(hookFactory)
-                .setTime((new Date()).getTime())
-                .fromIndexAll("positionsTree")
-                .action(org.mwg.structure.action.NTreeNearestNWithinRadius.NAME,"" + userPositionMarker.getLatLng().lat + "," + userPositionMarker.getLatLng().lng + "," + nbStations + "," + radiusStations)
-                        .then(function(context){
-                            if (markers != undefined) {
-                                mymap.removeLayer(markers);
-                            }
-                            markers = new L.FeatureGroup();
-
-                            var nodes = context.resultAsNodes();
-                            for(var i = 0; i < nodes.size(); i++) {
-                                addMarker(nodes.get(i));
-                            }
-                            mymap.addLayer(markers);
-                            context.continueTask();
-                        })
-                ;
-        askKDTree.execute(graph, null);
-
-    }
-
-    var graph = new org.mwg.GraphBuilder().withStorage(new org.mwg.plugin.WSClient("ws://localhost:8050")).withPlugin(new org.mwg.structure.StructPlugin()).build();
-    graph.connect(function () {
-
-        fillOptionList();
-        updateContract("Luxembourg");
-
-    });
-
-    function addMarker(node) {
-
-        node.rel("position", function(nodes) {
-            var position = nodes[0];
-            var marker = L.marker([position.get("lat"), position.get("lng")])
-                    .addTo(mymap)
-                    .bindPopup(node.get("name"));
-            marker["node"] = node.id();
-            marker.on('click', function (e) {
-                graph.lookup(0, (new Date()).getTime(), e.target.node, function (node) {
-                    document.querySelector("#all_stands").textContent = node.get("bike_stands");
-                    document.querySelector("#free_stands").textContent = node.get("available_bike_stands");
-                    document.querySelector("#available_bikes").textContent = node.get("available_bikes");
-                });
-
-            });
-            markers.addLayer(marker);
-        });
-    }
-
+    var demo = Demo();
+    demo.init();
 </script>
+
 </body>
 </html>
 
