@@ -13,6 +13,7 @@ class ActionRelations extends AbstractTaskAction {
     private final byte _typeOfRelation;
 
     ActionRelations(byte typeOfRelations) {
+        super();
         this._typeOfRelation = typeOfRelations;
     }
 
