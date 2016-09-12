@@ -183,12 +183,12 @@ public class Actions {
         return newTask().add(relationName, variableNameToAdd);
     }
 
-    public static Task relations() {
-        return newTask().relations();
+    public static Task properties() {
+        return newTask().properties();
     }
 
-    public static Task localIndexes() {
-        return newTask().localIndexes();
+    public static Task propertiesWithType(byte filter) {
+        return newTask().propertiesWithType(filter);
     }
 
     public static Task jump(String time) {

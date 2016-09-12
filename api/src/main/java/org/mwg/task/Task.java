@@ -113,7 +113,8 @@ public interface Task {
      */
     Task indexNode(String indexName, String flatKeyAttributes);
 
-    /** DRAFT
+    /**
+     * DRAFT
      * Create or compliments an index of nodes. <br>
      * These indexes are special relationships for quick access to referred nodes based on some of their attributes values.<br>
      * Index names must be unique within a given node.
@@ -129,7 +130,8 @@ public interface Task {
      */
     Task unindexNode(String indexName, String flatKeyAttributes);
 
-    /** DRAFT
+    /**
+     * DRAFT
      * Create or compliments an index of nodes. <br>
      * These indexes are special relationships for quick access to referred nodes based on some of their attributes values.<br>
      * Index names must be unique within a given node.
@@ -353,16 +355,18 @@ public interface Task {
 
 
     /**
-     * Return all the relations name of node(s) present in the previous result
+     * Return all the properties names of nodes present in the previous result
+     *
      * @return this task to chain actions (fluent API)
      */
-    Task relations();
+    Task properties();
 
     /**
-     * Return all the local indexes of node(s) present in the previous result
+     * Return all the properties names of nodes present in the previous result
+     *
      * @return this task to chain actions (fluent API)
      */
-    Task localIndexes();
+    Task propertiesWithType(byte filterType);
 
     /**
      * Removes a node from a relation of a node or of an array of nodes.

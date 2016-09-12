@@ -794,6 +794,8 @@ declare module org {
                 static action(name: string, params: string): org.mwg.task.Task;
                 static remove(relationName: string, variableNameToRemove: string): org.mwg.task.Task;
                 static add(relationName: string, variableNameToAdd: string): org.mwg.task.Task;
+                static properties(): org.mwg.task.Task;
+                static propertiesWithType(filter: number): org.mwg.task.Task;
                 static jump(time: string): org.mwg.task.Task;
                 static removeProperty(propertyName: string): org.mwg.task.Task;
                 static newNode(): org.mwg.task.Task;
@@ -863,6 +865,8 @@ declare module org {
                 removeProperty(propertyName: string): org.mwg.task.Task;
                 add(relationName: string, variableToAdd: string): org.mwg.task.Task;
                 addTo(relationName: string, variableTarget: string): org.mwg.task.Task;
+                properties(): org.mwg.task.Task;
+                propertiesWithType(filterType: number): org.mwg.task.Task;
                 remove(relationName: string, variableNameToRemove: string): org.mwg.task.Task;
                 jump(time: string): org.mwg.task.Task;
                 parse(flat: string): org.mwg.task.Task;
@@ -1190,6 +1194,7 @@ declare module org {
                 initWorld(parentWorld: number, childWorld: number): void;
                 freeNode(node: org.mwg.Node): void;
                 lookup<A extends org.mwg.Node>(world: number, time: number, id: number, callback: org.mwg.Callback<A>): void;
+                private lookupAll_end(finalResult, callback, sizeIds, worldOrders, superTimes, times, chunks);
                 lookupAll(world: number, time: number, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 private resolve_world(globalWorldOrder, nodeWorldOrder, timeToResolve, originWorld);
                 private getOrLoadAndMarkAll(types, keys, callback);
@@ -1735,6 +1740,11 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
+                class ActionProperties extends org.mwg.plugin.AbstractTaskAction {
+                    private _filter;
+                    constructor(filterType: number);
+                    eval(context: org.mwg.task.TaskContext): void;
+                }
                 class ActionRemove extends org.mwg.plugin.AbstractTaskAction {
                     private _relationName;
                     private _variableNameToRemove;
@@ -1925,6 +1935,8 @@ declare module org {
                     removeProperty(propertyName: string): org.mwg.task.Task;
                     add(relationName: string, variableNameToAdd: string): org.mwg.task.Task;
                     addTo(relationName: string, variableNameTarget: string): org.mwg.task.Task;
+                    properties(): org.mwg.task.Task;
+                    propertiesWithType(filterType: number): org.mwg.task.Task;
                     remove(relationName: string, variableNameToRemove: string): org.mwg.task.Task;
                     jump(time: string): org.mwg.task.Task;
                     math(expression: string): org.mwg.task.Task;
