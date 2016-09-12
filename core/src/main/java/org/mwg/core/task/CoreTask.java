@@ -67,7 +67,7 @@ public class CoreTask implements org.mwg.task.Task {
 
     @Override
     public Task localIndex(String indexedRelation, String flatKeyAttributes, String varNodeToAdd) {
-        addAction(new ActionLocalIndexOrUnindex(indexedRelation,flatKeyAttributes,varNodeToAdd,true));
+        addAction(new ActionLocalIndexOrUnindex(indexedRelation, flatKeyAttributes, varNodeToAdd, true));
         return this;
     }
 
@@ -79,7 +79,7 @@ public class CoreTask implements org.mwg.task.Task {
 
     @Override
     public Task localUnindex(String indexedRelation, String flatKeyAttributes, String varNodeToAdd) {
-        addAction(new ActionLocalIndexOrUnindex(indexedRelation,flatKeyAttributes,varNodeToAdd,false));
+        addAction(new ActionLocalIndexOrUnindex(indexedRelation, flatKeyAttributes, varNodeToAdd, false));
         return this;
     }
 

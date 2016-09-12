@@ -78,6 +78,7 @@ public class ActionGetTest extends AbstractActionTest {
 
         Node root = graph.newNode(0, 0);
         root.setProperty("name", Type.STRING, "root2");
+
         graph.index("rootIndex", root, "name", new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
@@ -95,6 +96,7 @@ public class ActionGetTest extends AbstractActionTest {
             }
         });
 
+        /*
         fromIndex("rootIndex", "name=root2")
                 .traverseIndex("childrenIndexed", "name=node2")
                 .then(new Action() {
@@ -104,6 +106,7 @@ public class ActionGetTest extends AbstractActionTest {
                         Assert.assertEquals("node2", context.resultAsNodes().get(0).get("name"));
                     }
                 }).execute(graph, null);
+*/
 
         fromIndex("rootIndex", "name=root2")
                 .traverseIndex("childrenIndexed", "name=node3")
@@ -114,6 +117,7 @@ public class ActionGetTest extends AbstractActionTest {
                     }
                 }).execute(graph, null);
 
+        /*
         inject(12).asGlobalVar("time").setTime("{{time}}")
                 .fromIndex("rootIndex", "name=root2")
                 .traverseIndex("childrenIndexed", "name=node2")
@@ -148,6 +152,9 @@ public class ActionGetTest extends AbstractActionTest {
                         Assert.assertEquals("node3", context.resultAsNodes().get(2).get("name"));
                     }
                 }).execute(graph, null);
+
+                */
+
         removeGraph();
     }
 

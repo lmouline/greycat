@@ -9,36 +9,36 @@ import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
 
-class ActionRelations extends AbstractTaskAction {
-    private final byte _typeOfRelation;
+class ActionProperties extends AbstractTaskAction {
+    private final byte _filter;
 
-    ActionRelations(byte typeOfRelations) {
+    ActionProperties(byte filterType) {
         super();
-        this._typeOfRelation = typeOfRelations;
+        this._filter = filterType;
     }
 
     @Override
     public void eval(TaskContext context) {
         final TaskResult previous = context.result();
-
         final TaskResult<String> result = context.newResult();
-
-        for(int i=0;i<previous.size();i++) {
-            if(previous.get(i) instanceof AbstractNode) {
+        for (int i = 0; i < previous.size(); i++) {
+            if (previous.get(i) instanceof AbstractNode) {
                 final Node n = (Node) previous.get(i);
-                final NodeState nState= context.graph().resolver().resolveState(n);
+                final NodeState nState = context.graph().resolver().resolveState(n);
                 nState.each(new NodeStateCallback() {
                     @Override
                     public void on(long attributeKey, byte elemType, Object elem) {
-                        if(elemType == _typeOfRelation) {
-                            result.add(context.graph().resolver().hashToString(attributeKey));
+                        if (_filter == -1 || elemType == _filter) {
+                            String retrieved = context.graph().resolver().hashToString(attributeKey);
+                            if (retrieved != null) {
+                                result.add(retrieved);
+                            }
                         }
                     }
                 });
                 n.free();
             }
         }
-
         previous.clear();
         context.continueWith(result);
 

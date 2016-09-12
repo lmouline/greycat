@@ -265,6 +265,18 @@ public abstract class AbstractNode implements Node {
                 callback.on(new Node[0]);
             } else {
                 final int relSize = relationArray.size();
+                final long[] ids = new long[relSize];
+                for (int i = 0; i < relSize; i++) {
+                    ids[i] = relationArray.get(i);
+                }
+                this._resolver.lookupAll(_world, _time, ids, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        callback.on(result);
+                    }
+                });
+
+                /*
                 final Node[] result = new Node[relSize];
                 final DeferCounter counter = _graph.newCounter(relSize);
                 final int[] resultIndex = new int[1];
@@ -291,7 +303,7 @@ public abstract class AbstractNode implements Node {
                             callback.on(toSend);
                         }
                     }
-                });
+                });*/
             }
         } else {
             callback.on(new Node[0]);
@@ -389,70 +401,57 @@ public abstract class AbstractNode implements Node {
         final LongLongArrayMap indexMap = (LongLongArrayMap) currentNodeState.get(this._resolver.stringToHash(indexName, false));
         if (indexMap != null) {
             final AbstractNode selfPointer = this;
-            final long[] foundId = indexMap.get(query.hash());
-            if (foundId == null) {
+            final long[] foundIds = indexMap.get(query.hash());
+            if (foundIds == null) {
                 callback.on(new org.mwg.plugin.AbstractNode[0]);
                 return;
             }
-            final org.mwg.Node[] resolved = new org.mwg.plugin.AbstractNode[foundId.length];
-            final DeferCounter waiter = _graph.newCounter(foundId.length);
-            //TODO replace by a par lookup
-            final AtomicInteger nextResolvedTabIndex = new AtomicInteger(0);
-            for (int i = 0; i < foundId.length; i++) {
-                selfPointer._resolver.lookup(queryWorld, queryTime, foundId[i], new Callback<org.mwg.Node>() {
-                    @Override
-                    public void on(org.mwg.Node resolvedNode) {
-                        if (resolvedNode != null) {
-                            resolved[nextResolvedTabIndex.getAndIncrement()] = resolvedNode;
-                        }
-                        waiter.count();
-                    }
-                });
-            }
-            waiter.then(new Job() {
+            selfPointer._resolver.lookupAll(queryWorld, queryTime, foundIds, new Callback<Node[]>() {
                 @Override
-                public void run() {
+                public void on(Node[] resolved) {
                     //select
-                    Node[] resultSet = new org.mwg.plugin.AbstractNode[nextResolvedTabIndex.get()];
+                    Node[] resultSet = new org.mwg.plugin.AbstractNode[foundIds.length];
                     int resultSetIndex = 0;
                     for (int i = 0; i < resultSet.length; i++) {
-                        org.mwg.Node resolvedNode = resolved[i];
-                        final NodeState resolvedState = selfPointer._resolver.resolveState(resolvedNode);
-                        boolean exact = true;
-                        for (int j = 0; j < query.attributes().length; j++) {
-                            Object obj = resolvedState.get(query.attributes()[j]);
-                            if (query.values()[j] == null) {
-                                if (obj != null) {
-                                    exact = false;
-                                    break;
-                                }
-                            } else {
-                                if (obj == null) {
-                                    exact = false;
-                                    break;
+                        final org.mwg.Node resolvedNode = resolved[i];
+                        if(resolvedNode != null){
+                            final NodeState resolvedState = selfPointer._resolver.resolveState(resolvedNode);
+                            boolean exact = true;
+                            for (int j = 0; j < query.attributes().length; j++) {
+                                Object obj = resolvedState.get(query.attributes()[j]);
+                                if (query.values()[j] == null) {
+                                    if (obj != null) {
+                                        exact = false;
+                                        break;
+                                    }
                                 } else {
-                                    if (obj instanceof long[]) {
-                                        if (query.values()[j] instanceof long[]) {
-                                            if (!Constants.longArrayEquals((long[]) query.values()[j], (long[]) obj)) {
+                                    if (obj == null) {
+                                        exact = false;
+                                        break;
+                                    } else {
+                                        if (obj instanceof long[]) {
+                                            if (query.values()[j] instanceof long[]) {
+                                                if (!Constants.longArrayEquals((long[]) query.values()[j], (long[]) obj)) {
+                                                    exact = false;
+                                                    break;
+                                                }
+                                            } else {
                                                 exact = false;
                                                 break;
                                             }
                                         } else {
-                                            exact = false;
-                                            break;
-                                        }
-                                    } else {
-                                        if (!Constants.equals(query.values()[j].toString(), obj.toString())) {
-                                            exact = false;
-                                            break;
+                                            if (!Constants.equals(query.values()[j].toString(), obj.toString())) {
+                                                exact = false;
+                                                break;
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                        if (exact) {
-                            resultSet[resultSetIndex] = resolvedNode;
-                            resultSetIndex++;
+                            if (exact) {
+                                resultSet[resultSetIndex] = resolvedNode;
+                                resultSetIndex++;
+                            }
                         }
                     }
                     if (resultSet.length == resultSetIndex) {
@@ -487,6 +486,26 @@ public abstract class AbstractNode implements Node {
         }
         final LongLongArrayMap indexMap = (LongLongArrayMap) currentNodeState.get(this._resolver.stringToHash(indexName, false));
         if (indexMap != null) {
+            final long[] ids = new long[(int) indexMap.size()];
+            final int[] idIndex = {0};
+            indexMap.each(new LongLongArrayMapCallBack() {
+                @Override
+                public void on(final long hash, final long nodeId) {
+                    ids[idIndex[0]] = nodeId;
+                    idIndex[0]++;
+                }
+            });
+            _resolver.lookupAll(world(), time(), ids, new Callback<Node[]>() {
+                @Override
+                public void on(Node[] result) {
+                    //TODO shrink result
+                    callback.on(result);
+                }
+            });
+
+
+
+            /*
             final AbstractNode selfPointer = this;
             int mapSize = (int) indexMap.size();
             final Node[] resolved = new org.mwg.plugin.AbstractNode[mapSize];
@@ -517,6 +536,8 @@ public abstract class AbstractNode implements Node {
                     }
                 }
             });
+            */
+
         } else {
             callback.on(new org.mwg.plugin.AbstractNode[0]);
         }

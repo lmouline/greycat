@@ -113,7 +113,8 @@ public interface Task {
      */
     Task indexNode(String indexName, String flatKeyAttributes);
 
-    /** DRAFT
+    /**
+     * DRAFT
      * Create or compliments an index of nodes. <br>
      * These indexes are special relationships for quick access to referred nodes based on some of their attributes values.<br>
      * Index names must be unique within a given node.
@@ -129,7 +130,8 @@ public interface Task {
      */
     Task unindexNode(String indexName, String flatKeyAttributes);
 
-    /** DRAFT
+    /**
+     * DRAFT
      * Create or compliments an index of nodes. <br>
      * These indexes are special relationships for quick access to referred nodes based on some of their attributes values.<br>
      * Index names must be unique within a given node.
