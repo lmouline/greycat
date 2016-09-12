@@ -622,17 +622,14 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public Task propertiesNamesWithTypes(String flatTypes) {
-        if(flatTypes == null) {
-            throw new RuntimeException("flatTypes should not be null");
-        }
-        addAction(new ActionPropertiesNames(flatTypes));
+    public Task propertiesWithType(byte type) {
+        addAction(new ActionPropertiesNames(type));
         return this;
     }
 
     @Override
-    public Task propertiesNames() {
-        addAction(new ActionPropertiesNames(""));
+    public Task properties() {
+        addAction(new ActionPropertiesNames((byte)-1));
         return this;
     }
 

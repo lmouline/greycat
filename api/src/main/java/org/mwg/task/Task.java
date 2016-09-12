@@ -357,16 +357,16 @@ public interface Task {
      * Get all the properties names of nodes present in the previous result
      * @return this task to chain actions (fluent API)
      */
-    Task propertiesNames();
+    Task properties();
 
     /**
      * Get and filter all the properties names of nodes present in the previous result. <br>
-     * The filter is a flat string with all mwg {@link Type}, separate by {@link org.mwg.Constants#QUERY_SEP}
+     * To get all the mwg available type, look at {@link Type}
      *
-     * @param flatTypes types of properties to get
+     * @param type type of properties to get
      * @return this task to chain actions (fluent API)
      */
-    Task propertiesNamesWithTypes(String flatTypes);
+    Task propertiesWithType(byte type);
 
     /**
      * Removes a node from a relation of a node or of an array of nodes.

@@ -39,7 +39,7 @@ public class ActionPropertiesNamesTest {
     public void testNormalRelations() {
         initGraph();
         Actions.fromIndexAll("root")
-                .propertiesNames()
+                .properties()
                 .then(new Action() {
                     @Override
                     public void eval(TaskContext context) {
@@ -61,15 +61,14 @@ public class ActionPropertiesNamesTest {
     public void testLocalIndex() {
         initGraph();
         Actions.fromIndexAll("root")
-                .propertiesNamesWithTypes(Type.RELATION + "," + Type.LONG_TO_LONG_ARRAY_MAP)
+                .propertiesWithType(Type.RELATION)
                 .then(new Action() {
                     @Override
                     public void eval(TaskContext context) {
                         TaskResult<String> result = context.result();
-                        Assert.assertEquals(2,result.size());
+                        Assert.assertEquals(1,result.size());
 
                         Assert.assertEquals("rel1",result.get(0));
-                        Assert.assertEquals("localIindex1",result.get(1));
                     }
                 })
                 .execute(graph,null);

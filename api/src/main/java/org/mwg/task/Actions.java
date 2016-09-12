@@ -183,12 +183,12 @@ public class Actions {
         return newTask().add(relationName, variableNameToAdd);
     }
 
-    public static Task propertiesNames() {
-        return newTask().propertiesNames();
+    public static Task properties() {
+        return newTask().properties();
     }
 
-    public static Task propertiesNamesWithTypes(String flatTypes) {
-        return newTask().propertiesNamesWithTypes(flatTypes);
+    public static Task propertiesWithType(byte type) {
+        return newTask().propertiesWithType(type);
     }
 
     public static Task jump(String time) {
