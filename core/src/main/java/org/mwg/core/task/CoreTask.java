@@ -1,9 +1,6 @@
 package org.mwg.core.task;
 
-import org.mwg.Callback;
-import org.mwg.Constants;
-import org.mwg.DeferCounterSync;
-import org.mwg.Graph;
+import org.mwg.*;
 import org.mwg.core.task.math.MathConditional;
 import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.plugin.Job;
@@ -621,6 +618,18 @@ public class CoreTask implements org.mwg.task.Task {
             throw new RuntimeException("variableNameTarget should not be null");
         }
         addAction(new ActionAddTo(relationName, variableNameTarget));
+        return this;
+    }
+
+    @Override
+    public Task relations() {
+        addAction(new ActionRelations(Type.RELATION));
+        return this;
+    }
+
+    @Override
+    public Task localIndexes() {
+       addAction(new ActionRelations(Type.LONG_TO_LONG_ARRAY_MAP));
         return this;
     }
 

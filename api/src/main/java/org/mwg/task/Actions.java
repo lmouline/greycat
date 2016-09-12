@@ -183,6 +183,14 @@ public class Actions {
         return newTask().add(relationName, variableNameToAdd);
     }
 
+    public static Task relations() {
+        return newTask().relations();
+    }
+
+    public static Task localIndexes() {
+        return newTask().localIndexes();
+    }
+
     public static Task jump(String time) {
         return newTask().jump(time);
     }

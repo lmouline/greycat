@@ -351,6 +351,19 @@ public interface Task {
      */
     Task addTo(String relationName, String variableTarget);
 
+
+    /**
+     * Return all the relations name of node(s) present in the previous result
+     * @return this task to chain actions (fluent API)
+     */
+    Task relations();
+
+    /**
+     * Return all the local indexes of node(s) present in the previous result
+     * @return this task to chain actions (fluent API)
+     */
+    Task localIndexes();
+
     /**
      * Removes a node from a relation of a node or of an array of nodes.
      *
