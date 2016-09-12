@@ -21,11 +21,11 @@ class ActionRelations extends AbstractTaskAction {
     public void eval(TaskContext context) {
         final TaskResult previous = context.result();
 
-        TaskResult<String> result = context.newResult();
+        final TaskResult<String> result = context.newResult();
 
         for(int i=0;i<previous.size();i++) {
             if(previous.get(i) instanceof AbstractNode) {
-                final Node n = (org.mwg.Node) previous.get(i);
+                final Node n = (Node) previous.get(i);
                 final NodeState nState= context.graph().resolver().resolveState(n);
                 nState.each(new NodeStateCallback() {
                     @Override

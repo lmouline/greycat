@@ -1,9 +1,7 @@
 package org.mwg.core.task;
 
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.mwg.*;
 import org.mwg.task.Action;
@@ -14,7 +12,6 @@ import org.mwg.task.TaskResult;
 public class ActionRelationsTest {
     private Graph graph;
 
-    @Before
     public void initGraph() {
         graph = new GraphBuilder().build();
         graph.connect(new Callback<Boolean>() {
@@ -37,13 +34,13 @@ public class ActionRelationsTest {
         });
     }
 
-    @After
     public void deleteGraph() {
         graph.disconnect(null);
     }
 
     @Test
     public void testNormalRelations() {
+        initGraph();
         Actions.fromIndexAll("root")
                 .relations()
                 .then(new Action() {
@@ -59,10 +56,12 @@ public class ActionRelationsTest {
                     }
                 })
                 .execute(graph,null);
+        deleteGraph();
     }
 
     @Test
     public void testLocalIndex() {
+        initGraph();
         Actions.fromIndexAll("root")
                 .localIndexes()
                 .then(new Action() {
@@ -77,5 +76,6 @@ public class ActionRelationsTest {
                     }
                 })
                 .execute(graph,null);
+        deleteGraph();
     }
 }
