@@ -187,8 +187,8 @@ public class Actions {
         return newTask().properties();
     }
 
-    public static Task propertiesWithType(byte type) {
-        return newTask().propertiesWithType(type);
+    public static Task propertiesWithTypes(byte filter) {
+        return newTask().propertiesWithTypes(filter);
     }
 
     public static Task jump(String time) {

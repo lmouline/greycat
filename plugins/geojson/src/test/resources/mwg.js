@@ -2187,8 +2187,8 @@ var org;
                 Actions.properties = function () {
                     return org.mwg.task.Actions.newTask().properties();
                 };
-                Actions.propertiesWithType = function (filter) {
-                    return org.mwg.task.Actions.newTask().propertiesWithType(filter);
+                Actions.propertiesWithTypes = function (filter) {
+                    return org.mwg.task.Actions.newTask().propertiesWithTypes(filter);
                 };
                 Actions.jump = function (time) {
                     return org.mwg.task.Actions.newTask().jump(time);
@@ -9745,12 +9745,12 @@ var org;
                         this.addAction(new org.mwg.core.task.ActionAddTo(relationName, variableNameTarget));
                         return this;
                     };
-                    CoreTask.prototype.properties = function () {
-                        this.addAction(new org.mwg.core.task.ActionProperties(-1));
+                    CoreTask.prototype.propertiesWithTypes = function (filter) {
+                        this.addAction(new org.mwg.core.task.ActionProperties(filter));
                         return this;
                     };
-                    CoreTask.prototype.propertiesWithType = function (filterType) {
-                        this.addAction(new org.mwg.core.task.ActionProperties(filterType));
+                    CoreTask.prototype.properties = function () {
+                        this.addAction(new org.mwg.core.task.ActionProperties(-1));
                         return this;
                     };
                     CoreTask.prototype.remove = function (relationName, variableNameToRemove) {

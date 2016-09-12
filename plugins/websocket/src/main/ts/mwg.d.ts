@@ -795,7 +795,7 @@ declare module org {
                 static remove(relationName: string, variableNameToRemove: string): org.mwg.task.Task;
                 static add(relationName: string, variableNameToAdd: string): org.mwg.task.Task;
                 static properties(): org.mwg.task.Task;
-                static propertiesWithType(filter: number): org.mwg.task.Task;
+                static propertiesWithTypes(filter: number): org.mwg.task.Task;
                 static jump(time: string): org.mwg.task.Task;
                 static removeProperty(propertyName: string): org.mwg.task.Task;
                 static newNode(): org.mwg.task.Task;
@@ -866,7 +866,7 @@ declare module org {
                 add(relationName: string, variableToAdd: string): org.mwg.task.Task;
                 addTo(relationName: string, variableTarget: string): org.mwg.task.Task;
                 properties(): org.mwg.task.Task;
-                propertiesWithType(filterType: number): org.mwg.task.Task;
+                propertiesWithTypes(filterType: number): org.mwg.task.Task;
                 remove(relationName: string, variableNameToRemove: string): org.mwg.task.Task;
                 jump(time: string): org.mwg.task.Task;
                 parse(flat: string): org.mwg.task.Task;
@@ -1935,8 +1935,8 @@ declare module org {
                     removeProperty(propertyName: string): org.mwg.task.Task;
                     add(relationName: string, variableNameToAdd: string): org.mwg.task.Task;
                     addTo(relationName: string, variableNameTarget: string): org.mwg.task.Task;
+                    propertiesWithTypes(filter: number): org.mwg.task.Task;
                     properties(): org.mwg.task.Task;
-                    propertiesWithType(filterType: number): org.mwg.task.Task;
                     remove(relationName: string, variableNameToRemove: string): org.mwg.task.Task;
                     jump(time: string): org.mwg.task.Task;
                     math(expression: string): org.mwg.task.Task;

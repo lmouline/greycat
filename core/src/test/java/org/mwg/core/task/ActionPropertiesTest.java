@@ -4,12 +4,11 @@ package org.mwg.core.task;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
-import org.mwg.task.Action;
-import org.mwg.task.Actions;
-import org.mwg.task.TaskContext;
-import org.mwg.task.TaskResult;
+import org.mwg.task.*;
 
-public class ActionPropertiesNamesTest {
+import static org.mwg.task.Actions.propertiesWithTypes;
+
+public class ActionPropertiesTest {
     private Graph graph;
 
     public void initGraph() {
@@ -61,14 +60,15 @@ public class ActionPropertiesNamesTest {
     public void testLocalIndex() {
         initGraph();
         Actions.fromIndexAll("root")
-                .propertiesWithType(Type.RELATION)
+                .subTasks(new Task[]{propertiesWithTypes(Type.RELATION),propertiesWithTypes(Type.LONG_TO_LONG_ARRAY_MAP)})
                 .then(new Action() {
                     @Override
                     public void eval(TaskContext context) {
                         TaskResult<String> result = context.result();
-                        Assert.assertEquals(1,result.size());
+                        Assert.assertEquals(2,result.size());
 
                         Assert.assertEquals("rel1",result.get(0));
+                        Assert.assertEquals("localIindex1",result.get(1));
                     }
                 })
                 .execute(graph,null);

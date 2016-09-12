@@ -181,27 +181,32 @@ public abstract class AbstractNode implements Node {
     }
 
     @Override
-    public void setProperty(String propertyName, byte propertyType, Object propertyValue) {
+    public void forceProperty(String propertyName, byte propertyType, Object propertyValue) {
         final long hashed = this._resolver.stringToHash(propertyName, true);
-
-
-        //TODO
-        /*
-        final NodeState unphasedState = this._resolver.resolveState(this);
-        final byte previousType = unphasedState.getType(hashed);
-        boolean isTypeDiff = unphasedState.getType(hashed) != previousType;
-        if (!isTypeDiff) {
-
-        }*/
-
-
-        //  final Object previous
-
         final NodeState preciseState = this._resolver.alignState(this);
         if (preciseState != null) {
             preciseState.set(hashed, propertyType, propertyValue);
         } else {
             throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+        }
+    }
+
+    @Override
+    public void setProperty(String propertyName, byte propertyType, Object propertyValue) {
+        final long hashed = this._resolver.stringToHash(propertyName, true);
+        final NodeState unPhasedState = this._resolver.resolveState(this);
+        final byte previousType = unPhasedState.getType(hashed);
+        boolean isDiff = propertyType != previousType;
+        if (!isDiff) {
+            isDiff = !isEquals(unPhasedState.get(hashed), propertyValue, propertyType);
+        }
+        if (isDiff) {
+            final NodeState preciseState = this._resolver.alignState(this);
+            if (preciseState != null) {
+                preciseState.set(hashed, propertyType, propertyValue);
+            } else {
+                throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+            }
         }
     }
 
@@ -220,6 +225,11 @@ public abstract class AbstractNode implements Node {
                 return (((long) obj1) == ((long) obj2));
             case Type.STRING:
                 return (((String) obj1).equals((String) obj2));
+            case Type.RELATION:
+            case Type.STRING_TO_LONG_MAP:
+            case Type.LONG_TO_LONG_MAP:
+            case Type.LONG_TO_LONG_ARRAY_MAP:
+                throw new RuntimeException("Bad API usage: set can't be used with complex type, please use getOrCreate instead.");
         }
         return obj1.equals(obj2);
     }
@@ -414,7 +424,7 @@ public abstract class AbstractNode implements Node {
                     int resultSetIndex = 0;
                     for (int i = 0; i < resultSet.length; i++) {
                         final org.mwg.Node resolvedNode = resolved[i];
-                        if(resolvedNode != null){
+                        if (resolvedNode != null) {
                             final NodeState resolvedState = selfPointer._resolver.resolveState(resolvedNode);
                             boolean exact = true;
                             for (int j = 0; j < query.attributes().length; j++) {

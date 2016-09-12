@@ -361,12 +361,11 @@ public interface Task {
 
     /**
      * Get and filter all the properties names of nodes present in the previous result. <br>
-     * To get all the mwg available type, look at {@link Type}
      *
-     * @param type type of properties to get
+     * @param filterType type of properties to filter
      * @return this task to chain actions (fluent API)
      */
-    Task propertiesWithType(byte type);
+    Task propertiesWithTypes(byte filterType);
 
     /**
      * Removes a node from a relation of a node or of an array of nodes.

@@ -622,14 +622,14 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public Task propertiesWithType(byte type) {
-        addAction(new ActionPropertiesNames(type));
+    public Task propertiesWithTypes(byte filter) {
+        addAction(new ActionProperties(filter));
         return this;
     }
 
     @Override
     public Task properties() {
-        addAction(new ActionPropertiesNames((byte)-1));
+        addAction(new ActionProperties((byte) -1));
         return this;
     }
 
