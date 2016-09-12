@@ -146,23 +146,18 @@ public class NearestNeighborArrayList {
         data.set(pos, element);
     }
 
-    /**
-     * Bubble up is used to place an element relatively low in the queue to it's
-     * rightful place higher in the queue, but only if it's priority allows it
-     * to do so, similar to bubbleDown only in the other direction this swaps
-     * out its parents.
-     *
-     * @param pos the position in the arrays of the object to be bubbled up
-     */
+
     private void bubbleUp(int pos) {
         long element = data.get(pos);
         double priority = value.get(pos);
         /* when the parent is not less than the child, end */
-        while (value.get(pos / 2) < priority) {
+        int halfpos = (int) Math.floor(pos / 2);
+        while (value.get(halfpos) < priority) {
             /* overwrite the child with the parent */
-            value.set(pos, value.get(pos / 2));
-            data.set(pos, data.get(pos / 2));
-            pos /= 2;
+            value.set(pos, value.get(halfpos));
+            data.set(pos, data.get(halfpos));
+            pos = (int) Math.floor(pos / 2);
+            halfpos = (int) Math.floor(pos / 2);
         }
         value.set(pos, priority);
         data.set(pos, element);

@@ -182,12 +182,46 @@ public abstract class AbstractNode implements Node {
 
     @Override
     public void setProperty(String propertyName, byte propertyType, Object propertyValue) {
+        final long hashed = this._resolver.stringToHash(propertyName, true);
+
+
+        //TODO
+        /*
+        final NodeState unphasedState = this._resolver.resolveState(this);
+        final byte previousType = unphasedState.getType(hashed);
+        boolean isTypeDiff = unphasedState.getType(hashed) != previousType;
+        if (!isTypeDiff) {
+
+        }*/
+
+
+        //  final Object previous
+
         final NodeState preciseState = this._resolver.alignState(this);
         if (preciseState != null) {
-            preciseState.set(this._resolver.stringToHash(propertyName, true), propertyType, propertyValue);
+            preciseState.set(hashed, propertyType, propertyValue);
         } else {
             throw new RuntimeException(Constants.CACHE_MISS_ERROR);
         }
+    }
+
+    /**
+     * return obj1 == obj2;
+     */
+    private boolean isEquals(Object obj1, Object obj2, byte type) {
+        switch (type) {
+            case Type.BOOL:
+                return (((boolean) obj1) == ((boolean) obj2));
+            case Type.DOUBLE:
+                return (((double) obj1) == ((double) obj2));
+            case Type.INT:
+                return (((int) obj1) == ((int) obj2));
+            case Type.LONG:
+                return (((long) obj1) == ((long) obj2));
+            case Type.STRING:
+                return (((String) obj1).equals((String) obj2));
+        }
+        return obj1.equals(obj2);
     }
 
     @Override

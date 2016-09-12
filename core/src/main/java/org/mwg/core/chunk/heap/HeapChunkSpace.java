@@ -2,9 +2,11 @@
 package org.mwg.core.chunk.heap;
 
 import org.mwg.Callback;
+import org.mwg.Constants;
 import org.mwg.Graph;
 import org.mwg.chunk.Stack;
 import org.mwg.core.CoreConstants;
+import org.mwg.struct.BufferIterator;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.KeyHelper;
 import org.mwg.chunk.Chunk;
@@ -16,6 +18,8 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.concurrent.atomic.AtomicReferenceArray;
+
+import static org.mwg.Constants.BUFFER_SEP;
 
 public class HeapChunkSpace implements ChunkSpace {
 
@@ -135,6 +139,56 @@ public class HeapChunkSpace implements ChunkSpace {
                     }
                 }
             });
+        }
+    }
+
+    @Override
+    public final void getOrLoadAndMarkAll(final long[] keys, final Callback<Chunk[]> callback) {
+        final int querySize = keys.length / Constants.KEY_SIZE;
+        final Chunk[] finalResult = new Chunk[querySize];
+        int[] reverse = null;
+        int reverseIndex = 0;
+        Buffer toLoadKeys = null;
+        for (int i = 0; i < querySize; i++) {
+            final int offset = i * Constants.KEY_SIZE;
+            final Chunk fromMemory = getAndMark((byte) keys[offset], keys[offset + 1], keys[offset + 2], keys[offset + 3]);
+            if (fromMemory != null) {
+                finalResult[i] = fromMemory;
+            } else {
+                if (reverse == null) {
+                    reverse = new int[querySize];
+                    toLoadKeys = graph().newBuffer();
+                }
+                reverse[i] = reverseIndex;
+                if (reverseIndex != 0) {
+                    toLoadKeys.write(BUFFER_SEP);
+                }
+                KeyHelper.keyToBuffer(toLoadKeys, (byte) keys[offset], keys[offset + 1], keys[offset + 2], keys[offset + 3]);
+                reverseIndex++;
+            }
+        }
+        if (reverse != null) {
+            final int[] finalReverse = reverse;
+            graph().storage().get(toLoadKeys, new Callback<Buffer>() {
+                @Override
+                public void on(final Buffer loadAllResult) {
+                    BufferIterator it = loadAllResult.iterator();
+                    Buffer view = it.next();
+                    int i = 0;
+                    while (view != null) {
+                        int reversedIndex = finalReverse[i];
+                        int reversedOffset = reversedIndex * Constants.KEY_SIZE;
+                        Chunk loadedChunk = createAndMark((byte) keys[reversedOffset], keys[reversedOffset + 1], keys[reversedOffset + 2], keys[reversedOffset + 3]);
+                        loadedChunk.load(view);
+                        view = it.next();
+                        i++;
+                    }
+                    loadAllResult.free();
+                    callback.on(finalResult);
+                }
+            });
+        } else {
+            callback.on(finalResult);
         }
     }
 
@@ -301,11 +355,11 @@ public class HeapChunkSpace implements ChunkSpace {
             if (isFirst) {
                 isFirst = false;
             } else {
-                stream.write(CoreConstants.BUFFER_SEP);
+                stream.write(BUFFER_SEP);
             }
             KeyHelper.keyToBuffer(stream, _chunkTypes.get(tail), _chunkWorlds.get(tail), _chunkTimes.get(tail), _chunkIds.get(tail));
             //Save chunk payload
-            stream.write(CoreConstants.BUFFER_SEP);
+            stream.write(BUFFER_SEP);
             try {
                 loopChunk.save(stream);
                 unmark(tail);

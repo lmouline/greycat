@@ -15,7 +15,6 @@ import org.mwg.structure.tree.KDTree;
 import org.mwg.task.Action;
 import org.mwg.task.Task;
 import org.mwg.task.TaskContext;
-import org.mwg.task.TaskFunctionConditional;
 
 import static org.mwg.task.Actions.*;
 
@@ -32,7 +31,7 @@ public class GeoIndexTaskTest {
 
     @Test
     public void test() {
-        Graph g = new GraphBuilder().withMemorySize(100000).withPlugin(new StructPlugin()).build();
+        Graph g = new GraphBuilder().withMemorySize(100000).withPlugin(new StructurePlugin()).build();
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
@@ -49,7 +48,7 @@ public class GeoIndexTaskTest {
                         .subTask(createTenPoints)
                         .fromVar("points")
                         .action(NTreeInsertTo.NAME, "geoIndex")
-                        /*
+/*
                         .fromVar("geoIndex")
                         .whileDo((new TaskFunctionConditional() {
                             @Override
@@ -57,11 +56,11 @@ public class GeoIndexTaskTest {
                                 return context.result().size() > 0;
                             }
                         }), print("{{result}}").subTasks(new Task[]{traverse("left"), traverse("right")}))
-                        */
+*/
                         .fromVar("geoIndex")
-                        //.print("{{result}}")
+                        .print("{{result}}")
                         .action(NTreeNearestN.NAME, "49.6116,6.1319,10") //lat,long,nb
-                        //.print("{{result}}")
+                        .print("{{result}}")
                         .then(new Action() {
                             @Override
                             public void eval(TaskContext context) {
@@ -73,7 +72,7 @@ public class GeoIndexTaskTest {
                         })
                         .fromVar("geoIndex")
                         .action(NTreeNearestWithinRadius.NAME, "49.6116,6.1319,100000") //lat,long,meters
-
+                        .print("{{result}}")
                         .then(new Action() {
                             @Override
                             public void eval(TaskContext context) {
@@ -91,13 +90,14 @@ public class GeoIndexTaskTest {
                                 Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":3,\"lat\":49.1,\"long\":6.1}"));
 
                                 Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":11,\"lat\":49.9,\"long\":6.9}"));
-                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":2,\"lat\":49.0,\"long\":6.0}")||stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":2,\"lat\":49,\"long\":6}"));
+                                Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":2,\"lat\":49.0,\"long\":6.0}") || stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":2,\"lat\":49,\"long\":6}"));
 
                                 context.continueTask();
                             }
                         })
                         .fromVar("geoIndex")
                         .action(NTreeNearestNWithinRadius.NAME, "49.6116,6.1319,2,100000") //lat,long,nb,meters
+                        //.print("{{result}}")
                         .then(new Action() {
                             @Override
                             public void eval(TaskContext context) {

@@ -320,6 +320,7 @@ declare module org {
             (result: A): void;
         }
         class Constants {
+            static KEY_SIZE: number;
             static LONG_SIZE: number;
             static PREFIX_SIZE: number;
             static BEGINNING_OF_TIME: number;
@@ -360,6 +361,7 @@ declare module org {
             newTypedNode(world: number, time: number, nodeType: string): org.mwg.Node;
             cloneNode(origin: org.mwg.Node): org.mwg.Node;
             lookup<A extends org.mwg.Node>(world: number, time: number, id: number, callback: org.mwg.Callback<A>): void;
+            lookupAll(world: number, time: number, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
             fork(world: number): number;
             save(callback: org.mwg.Callback<boolean>): void;
             connect(callback: org.mwg.Callback<boolean>): void;
@@ -476,6 +478,7 @@ declare module org {
                 createAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
                 getAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
                 getOrLoadAndMark(type: number, world: number, time: number, id: number, callback: org.mwg.Callback<org.mwg.chunk.Chunk>): void;
+                getOrLoadAndMarkAll(keys: Float64Array, callback: org.mwg.Callback<org.mwg.chunk.Chunk[]>): void;
                 get(index: number): org.mwg.chunk.Chunk;
                 unmark(index: number): void;
                 mark(index: number): number;
@@ -557,6 +560,7 @@ declare module org {
                 get(propertyName: string): any;
                 set(propertyName: string, propertyValue: any): void;
                 setProperty(propertyName: string, propertyType: number, propertyValue: any): void;
+                private isEquals(obj1, obj2, type);
                 getOrCreate(propertyName: string, propertyType: number): any;
                 type(propertyName: string): number;
                 removeProperty(attributeName: string): void;
@@ -656,6 +660,7 @@ declare module org {
                 typeName(node: org.mwg.Node): string;
                 typeCode(node: org.mwg.Node): number;
                 lookup<A extends org.mwg.Node>(world: number, time: number, id: number, callback: org.mwg.Callback<A>): void;
+                lookupAll(world: number, time: number, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 resolveState(node: org.mwg.Node): org.mwg.plugin.NodeState;
                 alignState(node: org.mwg.Node): org.mwg.plugin.NodeState;
                 newState(node: org.mwg.Node, world: number, time: number): org.mwg.plugin.NodeState;
@@ -1119,6 +1124,7 @@ declare module org {
                 taskAction(taskActionName: string): org.mwg.task.TaskActionFactory;
                 taskHookFactory(): org.mwg.task.TaskHookFactory;
                 lookup<A extends org.mwg.Node>(world: number, time: number, id: number, callback: org.mwg.Callback<A>): void;
+                lookupAll(world: number, time: number, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 save(callback: org.mwg.Callback<boolean>): void;
                 connect(callback: org.mwg.Callback<boolean>): void;
                 disconnect(callback: org.mwg.Callback<any>): void;
@@ -1184,6 +1190,7 @@ declare module org {
                 initWorld(parentWorld: number, childWorld: number): void;
                 freeNode(node: org.mwg.Node): void;
                 lookup<A extends org.mwg.Node>(world: number, time: number, id: number, callback: org.mwg.Callback<A>): void;
+                lookupAll(world: number, time: number, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 private resolve_world(globalWorldOrder, nodeWorldOrder, timeToResolve, originWorld);
                 private getOrLoadAndMarkAll(types, keys, callback);
                 resolveState(node: org.mwg.Node): org.mwg.plugin.NodeState;
@@ -1227,6 +1234,7 @@ declare module org {
                         getAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
                         get(index: number): org.mwg.chunk.Chunk;
                         getOrLoadAndMark(type: number, world: number, time: number, id: number, callback: org.mwg.Callback<org.mwg.chunk.Chunk>): void;
+                        getOrLoadAndMarkAll(keys: Float64Array, callback: org.mwg.Callback<org.mwg.chunk.Chunk[]>): void;
                         mark(index: number): number;
                         unmark(index: number): void;
                         free(chunk: org.mwg.chunk.Chunk): void;

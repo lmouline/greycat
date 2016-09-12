@@ -9,9 +9,9 @@ import org.mwg.structure.tree.KDTree;
 import org.mwg.task.TaskAction;
 import org.mwg.task.TaskActionFactory;
 
-public class StructPlugin extends AbstractPlugin {
+public class StructurePlugin extends AbstractPlugin {
 
-    public StructPlugin() {
+    public StructurePlugin() {
         super();
         declareNodeType(KDTree.NAME, new NodeFactory() {
             @Override

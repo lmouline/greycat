@@ -5,6 +5,8 @@ package org.mwg;
  */
 public class Constants {
 
+    public static final int KEY_SIZE = 4;
+
     // Limit long lengths to 53 bits because of JS limitation
     public static final int LONG_SIZE = 53;
 

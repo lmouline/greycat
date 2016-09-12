@@ -18,7 +18,7 @@ public class KDTreeAsyncTest {
     @Test
     public void KDInsertTest() {
         final Graph graph = new GraphBuilder()
-                .withPlugin(new StructPlugin())
+                .withPlugin(new StructurePlugin())
                 //.withScheduler(new NoopScheduler())
                 .withMemorySize(100000)
                 //.withOffHeapMemory()

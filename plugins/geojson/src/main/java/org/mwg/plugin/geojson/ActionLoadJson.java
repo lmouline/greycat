@@ -10,6 +10,7 @@ import org.mwg.task.TaskResult;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.util.Arrays;
 
 /**
  * Created by gnain on 01/09/16.
@@ -36,6 +37,7 @@ public class ActionLoadJson extends AbstractTaskAction {
                     for (int i = 0; i < array.size(); i++) {
                         values[i] = array.get(i);
                     }
+                    //result = new JsonResult(Arrays.copyOf(values, 1));
                     result = new JsonResult(values);
                 } else {
                     result = new JsonResult(new JsonValue[]{firstElem});

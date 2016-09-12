@@ -10,12 +10,18 @@ public class ImporterActions {
 
     public static final String READLINES = "readLines";
 
+    public static final String READJSON = "readJson";
+
     public static Task readLines(String path) {
         return newTask().action(READLINES, path);
     }
 
     public static Task readFiles(String pathOrVar) {
-        return newTask().action(READFILES,pathOrVar);
+        return newTask().action(READFILES, pathOrVar);
+    }
+
+    public static Task readJson(String pathOrVar) {
+        return newTask().action(READJSON, pathOrVar);
     }
 
 }

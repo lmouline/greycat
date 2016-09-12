@@ -217,6 +217,14 @@ class CoreGraph implements org.mwg.Graph {
     }
 
     @Override
+    public void lookupAll(long world, long time, long[] ids, Callback<Node[]> callback) {
+        if (!_isConnected.get()) {
+            throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
+        }
+        this._resolver.lookupAll(world, time, ids, callback);
+    }
+
+    @Override
     public void save(Callback<Boolean> callback) {
         _space.save(callback);
     }

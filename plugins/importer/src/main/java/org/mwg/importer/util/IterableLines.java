@@ -1,15 +1,15 @@
-package org.mwg.importer;
+package org.mwg.importer.util;
 
 import org.mwg.task.TaskResult;
 import org.mwg.task.TaskResultIterator;
 
 import java.io.*;
 
-class IterableLines implements TaskResult<String> {
+public class IterableLines implements TaskResult<String> {
 
     private final String _path;
 
-    IterableLines(String p_path) {
+    public IterableLines(String p_path) {
         this._path = p_path;
     }
 
