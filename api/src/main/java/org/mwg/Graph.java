@@ -51,6 +51,17 @@ public interface Graph {
     <A extends Node> void lookup(long world, long time, long id, Callback<A> callback);
 
     /**
+     * Asynchronous lookup of a nodes.<br>
+     * Based on the tuple &lt;World, Time, Node_ID&gt; this method seeks a {@link Node} in the Graph and returns it to the callback.
+     *
+     * @param world    The world identifier in which the Node must be searched.
+     * @param time     The time at which the Node must be resolved.
+     * @param ids       The unique identifier of {@link Node} array ({@link Node#id()}) researched.
+     * @param callback The task to be called when the {@link Node} is retrieved.
+     */
+    void lookupAll(long world, long time, long[] ids, Callback<Node[]> callback);
+
+    /**
      * Creates a spin-off world from the world given as parameter.<br>
      * The forked world can then be altered independently of its parent.<br>
      * Every modification in the parent world will nevertheless be inherited.<br>

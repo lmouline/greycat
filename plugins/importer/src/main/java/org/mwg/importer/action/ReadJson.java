@@ -2,10 +2,13 @@ package org.mwg.importer.action;
 
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
-import org.mwg.importer.util.JsonResult;
+import org.mwg.importer.util.JsonArrayResult;
+import org.mwg.importer.util.JsonObjectResult;
 import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.task.TaskContext;
+import org.mwg.task.TaskResult;
 
 import java.io.*;
 import java.net.URI;
@@ -20,9 +23,9 @@ public class ReadJson extends AbstractTaskAction {
 
     @Override
     public void eval(TaskContext context) {
-        JsonValue[] result = null;
+        TaskResult result = null;
         final String path = context.template(_pathOrTemplate);
-        InputStream foundStream = null;
+        InputStream foundStream;
         try {
             File file = new File(path);
             if (file.exists()) {
@@ -49,14 +52,11 @@ public class ReadJson extends AbstractTaskAction {
                 InputStreamReader reader = new InputStreamReader(foundStream);
                 JsonValue firstElem = Json.parse(reader);
                 if (firstElem.isArray()) {
-                    JsonArray array = firstElem.asArray();
-                    JsonValue[] values = new JsonValue[array.size()];
-                    for (int i = 0; i < array.size(); i++) {
-                        values[i] = array.get(i);
-                    }
-                    result = values;
+                    result = new JsonArrayResult((JsonArray) firstElem);
+                } else if(firstElem.isObject()) {
+                    result = new JsonObjectResult((JsonObject) firstElem);
                 } else {
-                    result = new JsonValue[]{firstElem};
+                    result =
                 }
                 reader.close();
             } catch (Exception e) {
@@ -69,7 +69,7 @@ public class ReadJson extends AbstractTaskAction {
                 }
             }
         }
-        context.continueWith(new JsonResult(result));
+        context.continueWith(new JsonArrayResult(result));
     }
 
 }

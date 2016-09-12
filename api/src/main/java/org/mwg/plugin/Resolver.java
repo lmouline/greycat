@@ -62,7 +62,8 @@ public interface Resolver {
      * @param callback Called when the node is retrieved.
      */
     <A extends Node> void lookup(long world, long time, long id, Callback<A> callback);
-
+    
+    void lookupAll(long world, long time, long ids[], Callback<Node[]> callback);
 
     /**
      * Resolves the state of a node, to access attributes, relations, and indexes.

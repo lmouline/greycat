@@ -1,15 +1,17 @@
 package org.mwg.importer.util;
 
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import org.mwg.task.TaskResult;
 import org.mwg.task.TaskResultIterator;
 
-public class JsonResult implements TaskResult<JsonValue> {
+public class JsonMemberResult implements TaskResult<JsonValue> {
 
-    private final JsonValue[] _content;
+    private final JsonObject.Member _member;
 
-    public JsonResult(JsonValue[] init) {
-        _content = init;
+    public JsonMemberResult(JsonObject.Member member) {
+        _member = member;
     }
 
     @Override
@@ -19,10 +21,22 @@ public class JsonResult implements TaskResult<JsonValue> {
 
             @Override
             public Object next() {
-                if (_content == null) {
-                    return null;
+                Object result = null;
+                if (currentIndex == 0) {
+                    result = _member.getName();
                 }
-                return (currentIndex < _content.length ? _content[currentIndex++] : null);
+                if (currentIndex == 1) {
+                    if (_member.getValue().isObject()) {
+                        result = new JsonObjectResult((JsonObject) _member.getValue());
+                    } else if (_member.getValue().isArray()) {
+                        result = new JsonArrayResult((JsonArray) _member.getValue());
+                    } else {
+                        //TODO
+                    }
+                    result = new JsonV_member.getValue();
+                }
+                currentIndex++;
+                return result;
             }
         };
     }
