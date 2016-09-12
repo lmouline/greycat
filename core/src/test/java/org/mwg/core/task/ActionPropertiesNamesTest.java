@@ -9,7 +9,7 @@ import org.mwg.task.Actions;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
-public class ActionRelationsTest {
+public class ActionPropertiesNamesTest {
     private Graph graph;
 
     public void initGraph() {
@@ -19,17 +19,14 @@ public class ActionRelationsTest {
             public void on(Boolean result) {
                 Node root = graph.newNode(0,0);
                 root.setProperty("id", Type.INT,1);
+                root.setProperty("attribute",Type.BOOL,false);
                 graph.index("root",root,"id",null);
 
                 Node child1 = graph.newNode(0,0);
                 child1.set("name","child1");
                 root.add("rel1",child1);
-                root.add("rel2", child1);
-                root.add("rel3", child1);
 
                 root.index("localIindex1",child1,"name",null);
-                root.index("localIindex2",child1,"name",null);
-                root.index("localIindex3",child1,"name",null);
             }
         });
     }
@@ -42,16 +39,17 @@ public class ActionRelationsTest {
     public void testNormalRelations() {
         initGraph();
         Actions.fromIndexAll("root")
-                .relations()
+                .propertiesNames()
                 .then(new Action() {
                     @Override
                     public void eval(TaskContext context) {
                         TaskResult<String> result = context.result();
-                        Assert.assertEquals(3,result.size());
+                        Assert.assertEquals(4,result.size());
 
-                        Assert.assertEquals("rel1",result.get(0));
-                        Assert.assertEquals("rel2",result.get(1));
-                        Assert.assertEquals("rel3",result.get(2));
+                        Assert.assertEquals("id",result.get(0));
+                        Assert.assertEquals("attribute",result.get(1));
+                        Assert.assertEquals("rel1",result.get(2));
+                        Assert.assertEquals("localIindex1",result.get(3));
                         context.continueTask();
                     }
                 })
@@ -63,16 +61,15 @@ public class ActionRelationsTest {
     public void testLocalIndex() {
         initGraph();
         Actions.fromIndexAll("root")
-                .localIndexes()
+                .propertiesNamesWithTypes(Type.RELATION + "," + Type.LONG_TO_LONG_ARRAY_MAP)
                 .then(new Action() {
                     @Override
                     public void eval(TaskContext context) {
                         TaskResult<String> result = context.result();
-                        Assert.assertEquals(3,result.size());
+                        Assert.assertEquals(2,result.size());
 
-                        Assert.assertEquals("localIindex1",result.get(0));
-                        Assert.assertEquals("localIindex2",result.get(1));
-                        Assert.assertEquals("localIindex3",result.get(2));
+                        Assert.assertEquals("rel1",result.get(0));
+                        Assert.assertEquals("localIindex1",result.get(1));
                     }
                 })
                 .execute(graph,null);

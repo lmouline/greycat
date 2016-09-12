@@ -16,7 +16,7 @@ class ActionDefineVar extends AbstractTaskAction {
     @Override
     public void eval(final TaskContext context) {
         final TaskResult previousResult = context.result();
-        context.setVariable(context.template(_name), previousResult);
+        context.setVariable(context.template(_name), null);
         context.continueTask();
     }
 

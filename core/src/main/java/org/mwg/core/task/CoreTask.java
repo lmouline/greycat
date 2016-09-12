@@ -622,14 +622,17 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public Task relations() {
-        addAction(new ActionRelations(Type.RELATION));
+    public Task propertiesNamesWithTypes(String flatTypes) {
+        if(flatTypes == null) {
+            throw new RuntimeException("flatTypes should not be null");
+        }
+        addAction(new ActionPropertiesNames(flatTypes));
         return this;
     }
 
     @Override
-    public Task localIndexes() {
-       addAction(new ActionRelations(Type.LONG_TO_LONG_ARRAY_MAP));
+    public Task propertiesNames() {
+        addAction(new ActionPropertiesNames(""));
         return this;
     }
 

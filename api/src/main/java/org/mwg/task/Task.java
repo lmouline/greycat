@@ -351,18 +351,20 @@ public interface Task {
      */
     Task addTo(String relationName, String variableTarget);
 
-
     /**
-     * Return all the relations name of node(s) present in the previous result
+     * Get all the properties names of nodes present in the previous result
      * @return this task to chain actions (fluent API)
      */
-    Task relations();
+    Task propertiesNames();
 
     /**
-     * Return all the local indexes of node(s) present in the previous result
+     * Get and filter all the properties names of nodes present in the previous result. <br>
+     * The filter is a flat string with all mwg {@link Type}, separate by {@link org.mwg.Constants#QUERY_SEP}
+     *
+     * @param flatTypes types of properties to get
      * @return this task to chain actions (fluent API)
      */
-    Task localIndexes();
+    Task propertiesNamesWithTypes(String flatTypes);
 
     /**
      * Removes a node from a relation of a node or of an array of nodes.
