@@ -153,6 +153,12 @@
                                     <arg value="mwg.js"/>
                                 </exec>
 
+                                <copy file="${basedir}/target/generated-sources/jre.ts"
+                                      todir="${basedir}/target/classes-js"/>
+                                <copy file="${basedir}/target/generated-sources/api.ts"
+                                      todir="${basedir}/target/classes-js"/>
+                                <copy file="${basedir}/target/generated-sources/core.ts"
+                                      todir="${basedir}/target/classes-js"/>
                                 <copy file="${basedir}/target/generated-sources/mwg.d.ts"
                                       todir="${basedir}/target/classes-js"/>
                                 <copy file="${basedir}/target/generated-sources/mwg.js"

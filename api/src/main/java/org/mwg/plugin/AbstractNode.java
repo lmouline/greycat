@@ -193,12 +193,10 @@ public abstract class AbstractNode implements Node {
 
     @Override
     public void setProperty(String propertyName, byte propertyType, Object propertyValue) {
-
-        /*
+        //hash the property a single time
         final long hashed = this._resolver.stringToHash(propertyName, true);
         final NodeState unPhasedState = this._resolver.resolveState(this);
-        final byte previousType = unPhasedState.getType(hashed);
-        boolean isDiff = propertyType != previousType;
+        boolean isDiff = (propertyType != unPhasedState.getType(hashed));
         if (!isDiff) {
             isDiff = !isEquals(unPhasedState.get(hashed), propertyValue, propertyType);
         }
@@ -210,22 +208,8 @@ public abstract class AbstractNode implements Node {
                 throw new RuntimeException(Constants.CACHE_MISS_ERROR);
             }
         }
-        */
-
-        final long hashed = this._resolver.stringToHash(propertyName, true);
-        final NodeState preciseState = this._resolver.alignState(this);
-        if (preciseState != null) {
-            preciseState.set(hashed, propertyType, propertyValue);
-        } else {
-            throw new RuntimeException(Constants.CACHE_MISS_ERROR);
-        }
-
-
     }
 
-    /**
-     * return obj1 == obj2;
-     */
     private boolean isEquals(Object obj1, Object obj2, byte type) {
         switch (type) {
             case Type.BOOL:
@@ -238,13 +222,53 @@ public abstract class AbstractNode implements Node {
                 return (((long) obj1) == ((long) obj2));
             case Type.STRING:
                 return (((String) obj1).equals((String) obj2));
+            case Type.DOUBLE_ARRAY:
+                double[] obj1_ar_d = (double[]) obj1;
+                double[] obj2_ar_d = (double[]) obj2;
+                if (obj1_ar_d.length != obj2_ar_d.length) {
+                    return false;
+                } else {
+                    for (int i = 0; i < obj1_ar_d.length; i++) {
+                        if (obj1_ar_d[i] != obj2_ar_d[i]) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            case Type.INT_ARRAY:
+                int[] obj1_ar_i = (int[]) obj1;
+                int[] obj2_ar_i = (int[]) obj2;
+                if (obj1_ar_i.length != obj2_ar_i.length) {
+                    return false;
+                } else {
+                    for (int i = 0; i < obj1_ar_i.length; i++) {
+                        if (obj1_ar_i[i] != obj2_ar_i[i]) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            case Type.LONG_ARRAY:
+                long[] obj1_ar_l = (long[]) obj1;
+                long[] obj2_ar_l = (long[]) obj2;
+                if (obj1_ar_l.length != obj2_ar_l.length) {
+                    return false;
+                } else {
+                    for (int i = 0; i < obj1_ar_l.length; i++) {
+                        if (obj1_ar_l[i] != obj2_ar_l[i]) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
             case Type.RELATION:
             case Type.STRING_TO_LONG_MAP:
             case Type.LONG_TO_LONG_MAP:
             case Type.LONG_TO_LONG_ARRAY_MAP:
                 throw new RuntimeException("Bad API usage: set can't be used with complex type, please use getOrCreate instead.");
+            default:
+                throw new RuntimeException("Not managed type " + type);
         }
-        return obj1.equals(obj2);
     }
 
     @Override

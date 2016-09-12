@@ -83,6 +83,11 @@
                                     <arg value="${basedir}/target/generated-sources/mwg.ws.js"/>
                                 </exec>
 
+                                <copy file="${basedir}/target/generated-sources/mwg.ws.ts"
+                                      todir="${basedir}/target/classes-js"/>
+                                <copy file="${basedir}/target/generated-sources/reconnecting-websocket.ts"
+                                      todir="${basedir}/target/classes-js"/>
+
                                 <copy file="${basedir}/target/generated-sources/mwg.ws.d.ts"
                                       todir="${basedir}/target/classes-js"/>
                                 <copy file="${basedir}/target/generated-sources/mwg.ws.js"

@@ -11,6 +11,28 @@ public class TimelineTest {
     @Test
     public void heapTest() {
         test(new GraphBuilder().withScheduler(new NoopScheduler()).build());
+        test2(new GraphBuilder().withScheduler(new NoopScheduler()).build());
+    }
+
+    private void test2(final Graph g) {
+        g.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                Node n = g.newNode(0, 0);
+                n.setProperty("name", Type.STRING, "name");
+
+                n.jump(1, new Callback<Node>() {
+                    @Override
+                    public void on(Node n_t1) {
+                        //should be effect less
+                        n_t1.setProperty("name", Type.STRING, "name");
+                        Assert.assertEquals(n_t1.timeDephasing(), 1);
+                        n_t1.setProperty("name", Type.STRING, "newName");
+                        Assert.assertEquals(n_t1.timeDephasing(), 0);
+                    }
+                });
+            }
+        });
     }
 
     private void test(final Graph graph) {
@@ -18,6 +40,8 @@ public class TimelineTest {
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean o) {
+
+
                 final org.mwg.Node node_t0 = graph.newNode(0, 0);
                 //timeTree should be already filled
                 node_t0.timepoints(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, new Callback<long[]>() {
