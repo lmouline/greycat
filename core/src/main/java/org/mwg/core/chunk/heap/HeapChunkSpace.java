@@ -151,20 +151,25 @@ public class HeapChunkSpace implements ChunkSpace {
         Buffer toLoadKeys = null;
         for (int i = 0; i < querySize; i++) {
             final int offset = i * Constants.KEY_SIZE;
-            final Chunk fromMemory = getAndMark((byte) keys[offset], keys[offset + 1], keys[offset + 2], keys[offset + 3]);
-            if (fromMemory != null) {
-                finalResult[i] = fromMemory;
+            final byte loopType = (byte) keys[offset];
+            if (loopType != -1) {
+                final Chunk fromMemory = getAndMark((byte) keys[offset], keys[offset + 1], keys[offset + 2], keys[offset + 3]);
+                if (fromMemory != null) {
+                    finalResult[i] = fromMemory;
+                } else {
+                    if (reverse == null) {
+                        reverse = new int[querySize];
+                        toLoadKeys = graph().newBuffer();
+                    }
+                    reverse[i] = reverseIndex;
+                    if (reverseIndex != 0) {
+                        toLoadKeys.write(BUFFER_SEP);
+                    }
+                    KeyHelper.keyToBuffer(toLoadKeys, (byte) keys[offset], keys[offset + 1], keys[offset + 2], keys[offset + 3]);
+                    reverseIndex++;
+                }
             } else {
-                if (reverse == null) {
-                    reverse = new int[querySize];
-                    toLoadKeys = graph().newBuffer();
-                }
-                reverse[i] = reverseIndex;
-                if (reverseIndex != 0) {
-                    toLoadKeys.write(BUFFER_SEP);
-                }
-                KeyHelper.keyToBuffer(toLoadKeys, (byte) keys[offset], keys[offset + 1], keys[offset + 2], keys[offset + 3]);
-                reverseIndex++;
+                finalResult[i] = null;
             }
         }
         if (reverse != null) {
@@ -178,8 +183,13 @@ public class HeapChunkSpace implements ChunkSpace {
                     while (view != null) {
                         int reversedIndex = finalReverse[i];
                         int reversedOffset = reversedIndex * Constants.KEY_SIZE;
-                        Chunk loadedChunk = createAndMark((byte) keys[reversedOffset], keys[reversedOffset + 1], keys[reversedOffset + 2], keys[reversedOffset + 3]);
-                        loadedChunk.load(view);
+                        if (view.length() > 0) {
+                            Chunk loadedChunk = createAndMark((byte) keys[reversedOffset], keys[reversedOffset + 1], keys[reversedOffset + 2], keys[reversedOffset + 3]);
+                            loadedChunk.load(view);
+                            finalResult[reversedIndex] = loadedChunk;
+                        } else {
+                            finalResult[reversedIndex] = null;
+                        }
                         view = it.next();
                         i++;
                     }
