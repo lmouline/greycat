@@ -1266,6 +1266,7 @@ var org;
                 }
                 return true;
             };
+            Constants.KEY_SIZE = 4;
             Constants.LONG_SIZE = 53;
             Constants.PREFIX_SIZE = 16;
             Constants.BEGINNING_OF_TIME = -0x001FFFFFFFFFFFFE;
@@ -1480,13 +1481,29 @@ var org;
                     }
                 };
                 AbstractNode.prototype.setProperty = function (propertyName, propertyType, propertyValue) {
+                    var hashed = this._resolver.stringToHash(propertyName, true);
                     var preciseState = this._resolver.alignState(this);
                     if (preciseState != null) {
-                        preciseState.set(this._resolver.stringToHash(propertyName, true), propertyType, propertyValue);
+                        preciseState.set(hashed, propertyType, propertyValue);
                     }
                     else {
                         throw new Error(org.mwg.Constants.CACHE_MISS_ERROR);
                     }
+                };
+                AbstractNode.prototype.isEquals = function (obj1, obj2, type) {
+                    switch (type) {
+                        case org.mwg.Type.BOOL:
+                            return (obj1 == obj2);
+                        case org.mwg.Type.DOUBLE:
+                            return (obj1 == obj2);
+                        case org.mwg.Type.INT:
+                            return (obj1 == obj2);
+                        case org.mwg.Type.LONG:
+                            return (obj1 == obj2);
+                        case org.mwg.Type.STRING:
+                            return (obj1 === obj2);
+                    }
+                    return obj1.equals(obj2);
                 };
                 AbstractNode.prototype.getOrCreate = function (propertyName, propertyType) {
                     var preciseState = this._resolver.alignState(this);
@@ -1522,27 +1539,12 @@ var org;
                         }
                         else {
                             var relSize = relationArray.size();
-                            var result = new Array(relSize);
-                            var counter = this._graph.newCounter(relSize);
-                            var resultIndex = new Int32Array(1);
+                            var ids = new Float64Array(relSize);
                             for (var i = 0; i < relSize; i++) {
-                                this._resolver.lookup(this._world, this._time, relationArray.get(i), function (kNode) {
-                                    if (kNode != null) {
-                                        result[resultIndex[0]] = kNode;
-                                        resultIndex[0]++;
-                                    }
-                                    counter.count();
-                                });
+                                ids[i] = relationArray.get(i);
                             }
-                            counter.then(function () {
-                                if (resultIndex[0] == result.length) {
-                                    callback(result);
-                                }
-                                else {
-                                    var toSend = new Array(resultIndex[0]);
-                                    java.lang.System.arraycopy(result, 0, toSend, 0, toSend.length);
-                                    callback(toSend);
-                                }
+                            this._resolver.lookupAll(this._world, this._time, ids, function (result) {
+                                callback(result);
                             });
                         }
                     }
@@ -1628,67 +1630,58 @@ var org;
                     var indexMap = currentNodeState.get(this._resolver.stringToHash(indexName, false));
                     if (indexMap != null) {
                         var selfPointer = this;
-                        var foundId = indexMap.get(query.hash());
-                        if (foundId == null) {
+                        var foundIds = indexMap.get(query.hash());
+                        if (foundIds == null) {
                             callback(new Array(0));
                             return;
                         }
-                        var resolved = new Array(foundId.length);
-                        var waiter = this._graph.newCounter(foundId.length);
-                        var nextResolvedTabIndex = new java.util.concurrent.atomic.AtomicInteger(0);
-                        for (var i = 0; i < foundId.length; i++) {
-                            selfPointer._resolver.lookup(queryWorld, queryTime, foundId[i], function (resolvedNode) {
-                                if (resolvedNode != null) {
-                                    resolved[nextResolvedTabIndex.getAndIncrement()] = resolvedNode;
-                                }
-                                waiter.count();
-                            });
-                        }
-                        waiter.then(function () {
-                            var resultSet = new Array(nextResolvedTabIndex.get());
+                        selfPointer._resolver.lookupAll(queryWorld, queryTime, foundIds, function (resolved) {
+                            var resultSet = new Array(foundIds.length);
                             var resultSetIndex = 0;
                             for (var i = 0; i < resultSet.length; i++) {
                                 var resolvedNode = resolved[i];
-                                var resolvedState = selfPointer._resolver.resolveState(resolvedNode);
-                                var exact = true;
-                                for (var j = 0; j < query.attributes().length; j++) {
-                                    var obj = resolvedState.get(query.attributes()[j]);
-                                    if (query.values()[j] == null) {
-                                        if (obj != null) {
-                                            exact = false;
-                                            break;
-                                        }
-                                    }
-                                    else {
-                                        if (obj == null) {
-                                            exact = false;
-                                            break;
+                                if (resolvedNode != null) {
+                                    var resolvedState = selfPointer._resolver.resolveState(resolvedNode);
+                                    var exact = true;
+                                    for (var j = 0; j < query.attributes().length; j++) {
+                                        var obj = resolvedState.get(query.attributes()[j]);
+                                        if (query.values()[j] == null) {
+                                            if (obj != null) {
+                                                exact = false;
+                                                break;
+                                            }
                                         }
                                         else {
-                                            if (obj instanceof Float64Array) {
-                                                if (query.values()[j] instanceof Float64Array) {
-                                                    if (!org.mwg.Constants.longArrayEquals(query.values()[j], obj)) {
+                                            if (obj == null) {
+                                                exact = false;
+                                                break;
+                                            }
+                                            else {
+                                                if (obj instanceof Float64Array) {
+                                                    if (query.values()[j] instanceof Float64Array) {
+                                                        if (!org.mwg.Constants.longArrayEquals(query.values()[j], obj)) {
+                                                            exact = false;
+                                                            break;
+                                                        }
+                                                    }
+                                                    else {
                                                         exact = false;
                                                         break;
                                                     }
                                                 }
                                                 else {
-                                                    exact = false;
-                                                    break;
-                                                }
-                                            }
-                                            else {
-                                                if (!org.mwg.Constants.equals(query.values()[j].toString(), obj.toString())) {
-                                                    exact = false;
-                                                    break;
+                                                    if (!org.mwg.Constants.equals(query.values()[j].toString(), obj.toString())) {
+                                                        exact = false;
+                                                        break;
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                }
-                                if (exact) {
-                                    resultSet[resultSetIndex] = resolvedNode;
-                                    resultSetIndex++;
+                                    if (exact) {
+                                        resultSet[resultSetIndex] = resolvedNode;
+                                        resultSetIndex++;
+                                    }
                                 }
                             }
                             if (resultSet.length == resultSetIndex) {
@@ -1714,33 +1707,20 @@ var org;
                     this.findByQuery(queryObj, callback);
                 };
                 AbstractNode.prototype.findAll = function (indexName, callback) {
-                    var _this = this;
                     var currentNodeState = this._resolver.resolveState(this);
                     if (currentNodeState == null) {
                         throw new Error(org.mwg.Constants.CACHE_MISS_ERROR);
                     }
                     var indexMap = currentNodeState.get(this._resolver.stringToHash(indexName, false));
                     if (indexMap != null) {
-                        var selfPointer = this;
-                        var mapSize = indexMap.size();
-                        var resolved = new Array(mapSize);
-                        var waiter = this._graph.newCounter(mapSize);
-                        var loopInteger = new java.util.concurrent.atomic.AtomicInteger(0);
+                        var ids = new Float64Array(indexMap.size());
+                        var idIndex = new Int32Array([0]);
                         indexMap.each(function (hash, nodeId) {
-                            selfPointer._resolver.lookup(_this.world(), _this.time(), nodeId, function (resolvedNode) {
-                                resolved[loopInteger.getAndIncrement()] = resolvedNode;
-                                waiter.count();
-                            });
+                            ids[idIndex[0]] = nodeId;
+                            idIndex[0]++;
                         });
-                        waiter.then(function () {
-                            if (loopInteger.get() == resolved.length) {
-                                callback(resolved);
-                            }
-                            else {
-                                var toSend = new Array(loopInteger.get());
-                                java.lang.System.arraycopy(resolved, 0, toSend, 0, toSend.length);
-                                callback(toSend);
-                            }
+                        this._resolver.lookupAll(this.world(), this.time(), ids, function (result) {
+                            callback(result);
                         });
                     }
                     else {
@@ -2111,6 +2091,18 @@ var org;
                 Actions.fromIndex = function (indexName, query) {
                     return org.mwg.task.Actions.newTask().fromIndex(indexName, query);
                 };
+                Actions.indexNode = function (indexName, flatKeyAttributes) {
+                    return org.mwg.task.Actions.newTask().indexNode(indexName, flatKeyAttributes);
+                };
+                Actions.unindexNode = function (indexName, flatKeyAttributes) {
+                    return org.mwg.task.Actions.newTask().unindexNode(indexName, flatKeyAttributes);
+                };
+                Actions.localIndex = function (indexedRelation, flatKeyAttributes, varNodeToAdd) {
+                    return org.mwg.task.Actions.newTask().localIndex(indexedRelation, flatKeyAttributes, varNodeToAdd);
+                };
+                Actions.localUnindex = function (indexedRelation, flatKeyAttributes, varNodeToAdd) {
+                    return org.mwg.task.Actions.newTask().localUnindex(indexedRelation, flatKeyAttributes, varNodeToAdd);
+                };
                 Actions.parse = function (flatTask) {
                     return org.mwg.task.Actions.newTask().parse(flatTask);
                 };
@@ -2191,6 +2183,12 @@ var org;
                 };
                 Actions.add = function (relationName, variableNameToAdd) {
                     return org.mwg.task.Actions.newTask().add(relationName, variableNameToAdd);
+                };
+                Actions.properties = function () {
+                    return org.mwg.task.Actions.newTask().properties();
+                };
+                Actions.propertiesWithType = function (filter) {
+                    return org.mwg.task.Actions.newTask().propertiesWithType(filter);
                 };
                 Actions.jump = function (time) {
                     return org.mwg.task.Actions.newTask().jump(time);
@@ -2914,7 +2912,7 @@ var org;
         })(utility = mwg.utility || (mwg.utility = {}));
     })(mwg = org.mwg || (org.mwg = {}));
 })(org || (org = {}));
-/// <reference path="./api.ts" />
+/// <reference path="api.ts" />
 var org;
 (function (org) {
     var mwg;
@@ -3178,6 +3176,12 @@ var org;
                     }
                     this._resolver.lookup(world, time, id, callback);
                 };
+                CoreGraph.prototype.lookupAll = function (world, time, ids, callback) {
+                    if (!this._isConnected.get()) {
+                        throw new Error(org.mwg.core.CoreConstants.DISCONNECTED_ERROR);
+                    }
+                    this._resolver.lookupAll(world, time, ids, callback);
+                };
                 CoreGraph.prototype.save = function (callback) {
                     this._space.save(callback);
                 };
@@ -3325,7 +3329,7 @@ var org;
                     if (flatKeyAttributes == null) {
                         throw new Error("flatKeyAttributes should not be null");
                     }
-                    this.getIndexOrCreate(0, 0, indexName, true, function (foundIndex) {
+                    this.getIndexOrCreate(toIndexNode.world(), toIndexNode.time(), indexName, true, function (foundIndex) {
                         if (foundIndex == null) {
                             throw new Error("Index creation failed, cache is probably full !!!");
                         }
@@ -3816,6 +3820,175 @@ var org;
                         }
                     }
                 };
+                MWGResolver.prototype.lookupAll_end = function (finalResult, callback, sizeIds, worldOrders, superTimes, times, chunks) {
+                    if (worldOrders != null || superTimes != null || times != null || chunks != null) {
+                        for (var i = 0; i < sizeIds; i++) {
+                            if (finalResult[i] == null) {
+                                if (worldOrders != null && worldOrders[i] != null) {
+                                    this._space.unmark(worldOrders[i].index());
+                                }
+                                if (superTimes != null && superTimes[i] != null) {
+                                    this._space.unmark(superTimes[i].index());
+                                }
+                                if (superTimes != null && superTimes[i] != null) {
+                                    this._space.unmark(superTimes[i].index());
+                                }
+                                if (times != null && times[i] != null) {
+                                    this._space.unmark(times[i].index());
+                                }
+                                if (chunks != null && chunks[i] != null) {
+                                    this._space.unmark(chunks[i].index());
+                                }
+                            }
+                        }
+                    }
+                    callback(finalResult);
+                };
+                MWGResolver.prototype.lookupAll = function (world, time, ids, callback) {
+                    var _this = this;
+                    var selfPointer = this;
+                    var idsSize = ids.length;
+                    var finalResult = new Array(idsSize);
+                    for (var i = 0; i < idsSize; i++) {
+                        finalResult[i] = null;
+                    }
+                    var isEmpty = [true];
+                    var keys = new Float64Array(idsSize * org.mwg.Constants.KEY_SIZE);
+                    for (var i = 0; i < idsSize; i++) {
+                        isEmpty[0] = false;
+                        keys[i * org.mwg.Constants.KEY_SIZE] = org.mwg.chunk.ChunkType.WORLD_ORDER_CHUNK;
+                        keys[(i * org.mwg.Constants.KEY_SIZE) + 1] = 0;
+                        keys[(i * org.mwg.Constants.KEY_SIZE) + 2] = 0;
+                        keys[(i * org.mwg.Constants.KEY_SIZE) + 3] = ids[i];
+                    }
+                    if (isEmpty[0]) {
+                        this.lookupAll_end(finalResult, callback, idsSize, null, null, null, null);
+                    }
+                    else {
+                        selfPointer._space.getOrLoadAndMarkAll(keys, function (theNodeWorldOrders) {
+                            if (theNodeWorldOrders == null) {
+                                _this.lookupAll_end(finalResult, callback, idsSize, null, null, null, null);
+                            }
+                            else {
+                                isEmpty[0] = true;
+                                for (var i = 0; i < idsSize; i++) {
+                                    if (theNodeWorldOrders[i] != null) {
+                                        isEmpty[0] = false;
+                                        keys[i * org.mwg.Constants.KEY_SIZE] = org.mwg.chunk.ChunkType.TIME_TREE_CHUNK;
+                                        keys[(i * org.mwg.Constants.KEY_SIZE) + 1] = selfPointer.resolve_world(_this.globalWorldOrderChunk, theNodeWorldOrders[i], time, world);
+                                        keys[(i * org.mwg.Constants.KEY_SIZE) + 2] = org.mwg.Constants.NULL_LONG;
+                                    }
+                                    else {
+                                        keys[i * org.mwg.Constants.KEY_SIZE] = -1;
+                                    }
+                                }
+                                if (isEmpty[0]) {
+                                    _this.lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, null, null, null);
+                                }
+                                else {
+                                    selfPointer._space.getOrLoadAndMarkAll(keys, function (theNodeSuperTimeTrees) {
+                                        if (theNodeSuperTimeTrees == null) {
+                                            _this.lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, null, null, null);
+                                        }
+                                        else {
+                                            isEmpty[0] = true;
+                                            for (var i = 0; i < idsSize; i++) {
+                                                if (theNodeSuperTimeTrees[i] != null) {
+                                                    var closestSuperTime = theNodeSuperTimeTrees[i].previousOrEqual(time);
+                                                    if (closestSuperTime == org.mwg.Constants.NULL_LONG) {
+                                                        keys[i * org.mwg.Constants.KEY_SIZE] = -1;
+                                                    }
+                                                    else {
+                                                        isEmpty[0] = false;
+                                                        keys[(i * org.mwg.Constants.KEY_SIZE) + 2] = closestSuperTime;
+                                                    }
+                                                }
+                                                else {
+                                                    keys[i * org.mwg.Constants.KEY_SIZE] = -1;
+                                                }
+                                            }
+                                            if (isEmpty[0]) {
+                                                _this.lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, null, null);
+                                            }
+                                            else {
+                                                selfPointer._space.getOrLoadAndMarkAll(keys, function (theNodeTimeTrees) {
+                                                    if (theNodeTimeTrees == null) {
+                                                        _this.lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, null, null);
+                                                    }
+                                                    else {
+                                                        isEmpty[0] = true;
+                                                        for (var i = 0; i < idsSize; i++) {
+                                                            if (theNodeTimeTrees[i] != null) {
+                                                                var closestTime = theNodeTimeTrees[i].previousOrEqual(time);
+                                                                if (closestTime == org.mwg.Constants.NULL_LONG) {
+                                                                    keys[i * org.mwg.Constants.KEY_SIZE] = -1;
+                                                                }
+                                                                else {
+                                                                    isEmpty[0] = false;
+                                                                    keys[(i * org.mwg.Constants.KEY_SIZE)] = org.mwg.chunk.ChunkType.STATE_CHUNK;
+                                                                    keys[(i * org.mwg.Constants.KEY_SIZE) + 2] = closestTime;
+                                                                }
+                                                            }
+                                                            else {
+                                                                keys[i * org.mwg.Constants.KEY_SIZE] = -1;
+                                                            }
+                                                        }
+                                                        if (isEmpty[0]) {
+                                                            _this.lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, theNodeTimeTrees, null);
+                                                        }
+                                                        else {
+                                                            selfPointer._space.getOrLoadAndMarkAll(keys, function (theObjectChunks) {
+                                                                if (theObjectChunks == null) {
+                                                                    _this.lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, theNodeTimeTrees, null);
+                                                                }
+                                                                else {
+                                                                    for (var i = 0; i < idsSize; i++) {
+                                                                        if (theObjectChunks[i] != null) {
+                                                                            var castedNodeWorldOrder = theNodeWorldOrders[i];
+                                                                            var extraCode = castedNodeWorldOrder.extra();
+                                                                            var resolvedFactory = null;
+                                                                            if (extraCode != org.mwg.Constants.NULL_LONG) {
+                                                                                resolvedFactory = selfPointer._graph.factoryByCode(extraCode);
+                                                                            }
+                                                                            var resolvedNode;
+                                                                            if (resolvedFactory == null) {
+                                                                                resolvedNode = new org.mwg.core.CoreNode(world, time, ids[i], selfPointer._graph);
+                                                                            }
+                                                                            else {
+                                                                                resolvedNode = resolvedFactory(world, time, ids[i], selfPointer._graph);
+                                                                            }
+                                                                            resolvedNode._dead = false;
+                                                                            resolvedNode._index_stateChunk = theObjectChunks[i].index();
+                                                                            resolvedNode._index_superTimeTree = theNodeSuperTimeTrees[i].index();
+                                                                            resolvedNode._index_timeTree = theNodeTimeTrees[i].index();
+                                                                            resolvedNode._index_worldOrder = theNodeWorldOrders[i].index();
+                                                                            if (theObjectChunks[i].world() == world && theObjectChunks[i].time() == time) {
+                                                                                resolvedNode._world_magic = -1;
+                                                                                resolvedNode._super_time_magic = -1;
+                                                                                resolvedNode._time_magic = -1;
+                                                                            }
+                                                                            else {
+                                                                                resolvedNode._world_magic = theNodeWorldOrders[i].magic();
+                                                                                resolvedNode._super_time_magic = theNodeSuperTimeTrees[i].magic();
+                                                                                resolvedNode._time_magic = theNodeTimeTrees[i].magic();
+                                                                            }
+                                                                            finalResult[i] = resolvedNode;
+                                                                        }
+                                                                    }
+                                                                    _this.lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, theNodeTimeTrees, theObjectChunks);
+                                                                }
+                                                            });
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }
+                };
                 MWGResolver.prototype.resolve_world = function (globalWorldOrder, nodeWorldOrder, timeToResolve, originWorld) {
                     if (globalWorldOrder == null || nodeWorldOrder == null) {
                         return originWorld;
@@ -3943,17 +4116,27 @@ var org;
                                     }
                                 }
                                 var resolvedTime = nodeTimeTree.previousOrEqual(nodeTime);
-                                castedNode._time_magic = nodeTimeTree.magic();
-                                castedNode._super_time_magic = nodeSuperTimeTree.magic();
+                                if (resolvedWorld == nodeWorld && resolvedTime == nodeTime) {
+                                    castedNode._world_magic = -1;
+                                    castedNode._time_magic = -1;
+                                    castedNode._super_time_magic = -1;
+                                }
+                                else {
+                                    castedNode._world_magic = nodeWorldOrder.magic();
+                                    castedNode._time_magic = nodeTimeTree.magic();
+                                    castedNode._super_time_magic = nodeSuperTimeTree.magic();
+                                    castedNode._index_superTimeTree = nodeSuperTimeTree.index();
+                                    castedNode._index_timeTree = nodeTimeTree.index();
+                                }
                                 stateResult = this._space.get(castedNode._index_stateChunk);
                                 if (resolvedWorld != stateResult.world() || resolvedTime != stateResult.time()) {
                                     var tempNodeState = this._space.getAndMark(org.mwg.chunk.ChunkType.STATE_CHUNK, resolvedWorld, resolvedTime, nodeId);
                                     if (tempNodeState != null) {
                                         this._space.unmark(stateResult.index());
                                         stateResult = tempNodeState;
-                                        castedNode._index_stateChunk = stateResult.index();
                                     }
                                 }
+                                castedNode._index_stateChunk = stateResult.index();
                                 if (safe) {
                                     nodeWorldOrder.unlock();
                                 }
@@ -4354,6 +4537,65 @@ var org;
                                 });
                             }
                         };
+                        HeapChunkSpace.prototype.getOrLoadAndMarkAll = function (keys, callback) {
+                            var _this = this;
+                            var querySize = keys.length / org.mwg.Constants.KEY_SIZE;
+                            var finalResult = new Array(querySize);
+                            var reverse = null;
+                            var reverseIndex = 0;
+                            var toLoadKeys = null;
+                            for (var i = 0; i < querySize; i++) {
+                                var offset = i * org.mwg.Constants.KEY_SIZE;
+                                var loopType = keys[offset];
+                                if (loopType != -1) {
+                                    var fromMemory = this.getAndMark(keys[offset], keys[offset + 1], keys[offset + 2], keys[offset + 3]);
+                                    if (fromMemory != null) {
+                                        finalResult[i] = fromMemory;
+                                    }
+                                    else {
+                                        if (reverse == null) {
+                                            reverse = new Int32Array(querySize);
+                                            toLoadKeys = this.graph().newBuffer();
+                                        }
+                                        reverse[i] = reverseIndex;
+                                        if (reverseIndex != 0) {
+                                            toLoadKeys.write(org.mwg.Constants.BUFFER_SEP);
+                                        }
+                                        org.mwg.utility.KeyHelper.keyToBuffer(toLoadKeys, keys[offset], keys[offset + 1], keys[offset + 2], keys[offset + 3]);
+                                        reverseIndex++;
+                                    }
+                                }
+                                else {
+                                    finalResult[i] = null;
+                                }
+                            }
+                            if (reverse != null) {
+                                var finalReverse = reverse;
+                                this.graph().storage().get(toLoadKeys, function (loadAllResult) {
+                                    var it = loadAllResult.iterator();
+                                    var i = 0;
+                                    while (it.hasNext()) {
+                                        var view = it.next();
+                                        var reversedIndex = finalReverse[i];
+                                        var reversedOffset = reversedIndex * org.mwg.Constants.KEY_SIZE;
+                                        if (view.length() > 0) {
+                                            var loadedChunk = _this.createAndMark(keys[reversedOffset], keys[reversedOffset + 1], keys[reversedOffset + 2], keys[reversedOffset + 3]);
+                                            loadedChunk.load(view);
+                                            finalResult[reversedIndex] = loadedChunk;
+                                        }
+                                        else {
+                                            finalResult[reversedIndex] = null;
+                                        }
+                                        i++;
+                                    }
+                                    loadAllResult.free();
+                                    callback(finalResult);
+                                });
+                            }
+                            else {
+                                callback(finalResult);
+                            }
+                        };
                         HeapChunkSpace.prototype.mark = function (index) {
                             var castedIndex = index;
                             var before;
@@ -4502,10 +4744,10 @@ var org;
                                     isFirst = false;
                                 }
                                 else {
-                                    stream.write(org.mwg.core.CoreConstants.BUFFER_SEP);
+                                    stream.write(org.mwg.Constants.BUFFER_SEP);
                                 }
                                 org.mwg.utility.KeyHelper.keyToBuffer(stream, this._chunkTypes.get(tail), this._chunkWorlds.get(tail), this._chunkTimes.get(tail), this._chunkIds.get(tail));
-                                stream.write(org.mwg.core.CoreConstants.BUFFER_SEP);
+                                stream.write(org.mwg.Constants.BUFFER_SEP);
                                 try {
                                     loopChunk.save(stream);
                                     this.unmark(tail);
@@ -5639,6 +5881,7 @@ var org;
                                     }
                                 }
                             }
+                            this._dirty = false;
                         };
                         HeapStateChunk.prototype.each = function (callBack) {
                             for (var i = 0; i < this._size; i++) {
@@ -7537,7 +7780,7 @@ var org;
                     }
                     ActionDefineVar.prototype.eval = function (context) {
                         var previousResult = context.result();
-                        context.setVariable(context.template(this._name), previousResult);
+                        context.defineVariable(context.template(this._name), previousResult);
                         context.continueTask();
                     };
                     ActionDefineVar.prototype.toString = function () {
@@ -7977,6 +8220,56 @@ var org;
                     return ActionJump;
                 }(org.mwg.plugin.AbstractTaskAction));
                 task.ActionJump = ActionJump;
+                var ActionLocalIndexOrUnindex = (function (_super) {
+                    __extends(ActionLocalIndexOrUnindex, _super);
+                    function ActionLocalIndexOrUnindex(indexedRelation, flatKeyAttributes, varNodeToAdd, _isIndexation) {
+                        _super.call(this);
+                        this._indexedRelation = indexedRelation;
+                        this._flatKeyAttributes = flatKeyAttributes;
+                        this._isIndexation = _isIndexation;
+                        this._varNodeToAdd = varNodeToAdd;
+                    }
+                    ActionLocalIndexOrUnindex.prototype.eval = function (context) {
+                        var previousResult = context.result();
+                        var templatedIndexName = context.template(this._indexedRelation);
+                        var templatedKeyAttributes = context.template(this._flatKeyAttributes);
+                        var toAdd = context.variable(this._varNodeToAdd);
+                        if (toAdd.size() == 0) {
+                            throw new Error("Error while adding a new node in a local index: '" + this._varNodeToAdd + "' does not contain any element.");
+                        }
+                        var counter = new org.mwg.core.utility.CoreDeferCounter(previousResult.size() * toAdd.size());
+                        var end = function (succeed) {
+                            if (succeed) {
+                                counter.count();
+                            }
+                            else {
+                                throw new Error("Error during indexation of node with id " + previousResult.get(0).id());
+                            }
+                        };
+                        for (var srcNodeIdx = 0; srcNodeIdx < previousResult.size(); srcNodeIdx++) {
+                            var srcNode = previousResult.get(srcNodeIdx);
+                            for (var targetNodeIdx = 0; targetNodeIdx < toAdd.size(); targetNodeIdx++) {
+                                var targetNode = toAdd.get(targetNodeIdx);
+                                if (targetNode instanceof org.mwg.plugin.AbstractNode && srcNode instanceof org.mwg.plugin.AbstractNode) {
+                                    if (this._isIndexation) {
+                                        srcNode.index(templatedIndexName, targetNode, templatedKeyAttributes, end);
+                                    }
+                                    else {
+                                        srcNode.unindex(templatedIndexName, targetNode, templatedKeyAttributes, end);
+                                    }
+                                }
+                                else {
+                                    counter.count();
+                                }
+                            }
+                        }
+                        counter.then(function () {
+                            context.continueTask();
+                        });
+                    };
+                    return ActionLocalIndexOrUnindex;
+                }(org.mwg.plugin.AbstractTaskAction));
+                task.ActionLocalIndexOrUnindex = ActionLocalIndexOrUnindex;
                 var ActionLookup = (function (_super) {
                     __extends(ActionLookup, _super);
                     function ActionLookup(p_id) {
@@ -8009,7 +8302,7 @@ var org;
                         var previous = context.result();
                         var selfPointer = this;
                         var cursor = new java.util.concurrent.atomic.AtomicInteger(lower);
-                        if ((upper - lower) > 0) {
+                        if ((upper - lower) >= 0) {
                             var recursiveAction = new Array(1);
                             recursiveAction[0] = function (res) {
                                 var current = cursor.getAndIncrement();
@@ -8257,6 +8550,37 @@ var org;
                     return ActionPrint;
                 }(org.mwg.plugin.AbstractTaskAction));
                 task.ActionPrint = ActionPrint;
+                var ActionProperties = (function (_super) {
+                    __extends(ActionProperties, _super);
+                    function ActionProperties(filterType) {
+                        _super.call(this);
+                        this._filter = filterType;
+                    }
+                    ActionProperties.prototype.eval = function (context) {
+                        var _this = this;
+                        var previous = context.result();
+                        var result = context.newResult();
+                        for (var i = 0; i < previous.size(); i++) {
+                            if (previous.get(i) instanceof org.mwg.plugin.AbstractNode) {
+                                var n = previous.get(i);
+                                var nState = context.graph().resolver().resolveState(n);
+                                nState.each(function (attributeKey, elemType, elem) {
+                                    if (_this._filter == -1 || elemType == _this._filter) {
+                                        var retrieved = context.graph().resolver().hashToString(attributeKey);
+                                        if (retrieved != null) {
+                                            result.add(retrieved);
+                                        }
+                                    }
+                                });
+                                n.free();
+                            }
+                        }
+                        previous.clear();
+                        context.continueWith(result);
+                    };
+                    return ActionProperties;
+                }(org.mwg.plugin.AbstractTaskAction));
+                task.ActionProperties = ActionProperties;
                 var ActionRemove = (function (_super) {
                     __extends(ActionRemove, _super);
                     function ActionRemove(relationName, variableNameToRemove) {
@@ -8647,6 +8971,7 @@ var org;
                     ActionTraverseIndex.prototype.eval = function (context) {
                         var finalResult = context.wrap(null);
                         var flatName = context.template(this._indexName);
+                        var flatQuery = context.template(this._query);
                         var previousResult = context.result();
                         if (previousResult != null) {
                             var previousSize = previousResult.size();
@@ -8655,7 +8980,7 @@ var org;
                                 var loop = previousResult.get(i);
                                 if (loop instanceof org.mwg.plugin.AbstractNode) {
                                     var casted = loop;
-                                    casted.find(flatName, this._query, function (result) {
+                                    casted.find(flatName, flatQuery, function (result) {
                                         if (result != null) {
                                             for (var j = 0; j < result.length; j++) {
                                                 if (result[j] != null) {
@@ -8971,8 +9296,16 @@ var org;
                         this.addAction(new org.mwg.core.task.ActionIndexOrUnindexNode(indexName, flatKeyAttributes, true));
                         return this;
                     };
+                    CoreTask.prototype.localIndex = function (indexedRelation, flatKeyAttributes, varNodeToAdd) {
+                        this.addAction(new org.mwg.core.task.ActionLocalIndexOrUnindex(indexedRelation, flatKeyAttributes, varNodeToAdd, true));
+                        return this;
+                    };
                     CoreTask.prototype.unindexNode = function (indexName, flatKeyAttributes) {
                         this.addAction(new org.mwg.core.task.ActionIndexOrUnindexNode(indexName, flatKeyAttributes, false));
+                        return this;
+                    };
+                    CoreTask.prototype.localUnindex = function (indexedRelation, flatKeyAttributes, varNodeToAdd) {
+                        this.addAction(new org.mwg.core.task.ActionLocalIndexOrUnindex(indexedRelation, flatKeyAttributes, varNodeToAdd, false));
                         return this;
                     };
                     CoreTask.prototype.selectWith = function (name, pattern) {
@@ -9410,6 +9743,14 @@ var org;
                             throw new Error("variableNameTarget should not be null");
                         }
                         this.addAction(new org.mwg.core.task.ActionAddTo(relationName, variableNameTarget));
+                        return this;
+                    };
+                    CoreTask.prototype.properties = function () {
+                        this.addAction(new org.mwg.core.task.ActionProperties(-1));
+                        return this;
+                    };
+                    CoreTask.prototype.propertiesWithType = function (filterType) {
+                        this.addAction(new org.mwg.core.task.ActionProperties(filterType));
                         return this;
                     };
                     CoreTask.prototype.remove = function (relationName, variableNameToRemove) {
