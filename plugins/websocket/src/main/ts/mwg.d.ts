@@ -415,6 +415,7 @@ declare module org {
             nodeTypeName(): string;
             set(propertyName: string, propertyValue: any): void;
             setProperty(propertyName: string, propertyType: number, propertyValue: any): void;
+            forceProperty(propertyName: string, propertyType: number, propertyValue: any): void;
             setPropertyByIndex(propIndex: number, propertyType: number, propertyValue: any): void;
             getOrCreate(propertyName: string, propertyType: number): any;
             getOrCreateRel(propertyName: string): org.mwg.struct.Relationship;
@@ -559,6 +560,7 @@ declare module org {
                 id(): number;
                 get(propertyName: string): any;
                 set(propertyName: string, propertyValue: any): void;
+                forceProperty(propertyName: string, propertyType: number, propertyValue: any): void;
                 setProperty(propertyName: string, propertyType: number, propertyValue: any): void;
                 private isEquals(obj1, obj2, type);
                 getOrCreate(propertyName: string, propertyType: number): any;

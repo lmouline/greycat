@@ -1480,6 +1480,16 @@ var org;
                         throw new Error("Invalid property type: " + propertyValue + ", please use a Type listed in org.mwg.Type");
                     }
                 };
+                AbstractNode.prototype.forceProperty = function (propertyName, propertyType, propertyValue) {
+                    var hashed = this._resolver.stringToHash(propertyName, true);
+                    var preciseState = this._resolver.alignState(this);
+                    if (preciseState != null) {
+                        preciseState.set(hashed, propertyType, propertyValue);
+                    }
+                    else {
+                        throw new Error(org.mwg.Constants.CACHE_MISS_ERROR);
+                    }
+                };
                 AbstractNode.prototype.setProperty = function (propertyName, propertyType, propertyValue) {
                     var hashed = this._resolver.stringToHash(propertyName, true);
                     var preciseState = this._resolver.alignState(this);
@@ -1502,6 +1512,11 @@ var org;
                             return (obj1 == obj2);
                         case org.mwg.Type.STRING:
                             return (obj1 === obj2);
+                        case org.mwg.Type.RELATION:
+                        case org.mwg.Type.STRING_TO_LONG_MAP:
+                        case org.mwg.Type.LONG_TO_LONG_MAP:
+                        case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
+                            throw new Error("Bad API usage: set can't be used with complex type, please use getOrCreate instead.");
                     }
                     return obj1.equals(obj2);
                 };

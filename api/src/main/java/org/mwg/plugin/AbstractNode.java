@@ -193,6 +193,8 @@ public abstract class AbstractNode implements Node {
 
     @Override
     public void setProperty(String propertyName, byte propertyType, Object propertyValue) {
+
+        /*
         final long hashed = this._resolver.stringToHash(propertyName, true);
         final NodeState unPhasedState = this._resolver.resolveState(this);
         final byte previousType = unPhasedState.getType(hashed);
@@ -208,6 +210,17 @@ public abstract class AbstractNode implements Node {
                 throw new RuntimeException(Constants.CACHE_MISS_ERROR);
             }
         }
+        */
+
+        final long hashed = this._resolver.stringToHash(propertyName, true);
+        final NodeState preciseState = this._resolver.alignState(this);
+        if (preciseState != null) {
+            preciseState.set(hashed, propertyType, propertyValue);
+        } else {
+            throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+        }
+
+
     }
 
     /**
