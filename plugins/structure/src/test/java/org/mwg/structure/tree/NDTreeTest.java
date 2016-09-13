@@ -1,8 +1,9 @@
-package org.mwg.structure;
+package org.mwg.structure.tree;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
+import org.mwg.structure.StructurePlugin;
 import org.mwg.structure.tree.NDTree;
 
 import java.util.Random;
@@ -61,6 +62,14 @@ public class NDTreeTest {
 
 
                 double[] res={0.1,0.35};
+
+                testtree.nearestN(res, 10, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+
+                    }
+                });
+
 
 
 

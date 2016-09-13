@@ -1,4 +1,4 @@
-package org.mwg.ml.common.structure;
+package org.mwg.structure.tree;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -50,31 +50,7 @@ public class TestNDSubs {
         }
 
 
-        for (int ii = 0; ii < 16; ii++) {
-            boolean[] res = NDTree.binaryFromLong(ii + NDTree._RELCONST, 4);
-            //System.out.println(res[0]+" "+res[1]+" "+res[2]+" "+res[3]);
 
-            double[] tempr = NDTree.convertToDistance(ii + NDTree._RELCONST, null, center, min, max, precision, distance);
-            System.out.println(tempr[0]+" "+tempr[1]+" "+tempr[2]+" "+tempr[3]);
-
-            int count = 0;
-
-            for (int i = 0; i < 2; i++) {
-                for (int j = 0; j < 2; j++) {
-                    for (int k = 0; k < 2; k++) {
-                        for (int l = 0; l < 2; l++) {
-                            if (count == ii) {
-                                Assert.assertTrue(res[0] == (i != 0));
-                                Assert.assertTrue(res[1] == (j != 0));
-                                Assert.assertTrue(res[2] == (k != 0));
-                                Assert.assertTrue(res[3] == (l != 0));
-                            }
-                            count++;
-                        }
-                    }
-                }
-            }
-        }
 
 
     }

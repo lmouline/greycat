@@ -8438,6 +8438,64 @@ var org;
                     return ActionIndexOrUnindexNode;
                 }(org.mwg.plugin.AbstractTaskAction));
                 task.ActionIndexOrUnindexNode = ActionIndexOrUnindexNode;
+                var ActionIndexOrUnindexNodeAt = (function (_super) {
+                    __extends(ActionIndexOrUnindexNodeAt, _super);
+                    function ActionIndexOrUnindexNodeAt(world, time, indexName, flatKeyAttributes, isIndexation) {
+                        _super.call(this);
+                        this._indexName = indexName;
+                        this._flatKeyAttributes = flatKeyAttributes;
+                        this._isIndexation = isIndexation;
+                        this._world = world;
+                        this._time = time;
+                    }
+                    ActionIndexOrUnindexNodeAt.prototype.eval = function (context) {
+                        var previousResult = context.result();
+                        var templatedWorld = java.lang.Long.parseLong(context.template(this._world));
+                        var templatedTime = java.lang.Long.parseLong(context.template(this._time));
+                        var templatedIndexName = context.template(this._indexName);
+                        var templatedKeyAttributes = context.template(this._flatKeyAttributes);
+                        var counter = new org.mwg.core.utility.CoreDeferCounter(previousResult.size());
+                        var end = function (succeed) {
+                            {
+                                if (succeed) {
+                                    counter.count();
+                                }
+                                else {
+                                    throw new Error("Error during indexation of node with id " + previousResult.get(0).id());
+                                }
+                            }
+                        };
+                        for (var i = 0; i < previousResult.size(); i++) {
+                            var loop = previousResult.get(i);
+                            if (loop instanceof org.mwg.plugin.AbstractNode) {
+                                if (this._isIndexation) {
+                                    context.graph().indexAt(templatedWorld, templatedTime, templatedIndexName, loop, templatedKeyAttributes, end);
+                                }
+                                else {
+                                    context.graph().unindexAt(templatedWorld, templatedTime, templatedIndexName, loop, templatedKeyAttributes, end);
+                                }
+                            }
+                            else {
+                                counter.count();
+                            }
+                        }
+                        counter.then(function () {
+                            {
+                                context.continueTask();
+                            }
+                        });
+                    };
+                    ActionIndexOrUnindexNodeAt.prototype.toString = function () {
+                        if (this._isIndexation) {
+                            return "indexNodeAt('" + this._world + "','" + this._time + "','" + "'" + this._indexName + "','" + this._flatKeyAttributes + "')";
+                        }
+                        else {
+                            return "unindexNodeAt('" + this._world + "','" + this._time + "','" + "'" + this._indexName + "','" + this._flatKeyAttributes + "')";
+                        }
+                    };
+                    return ActionIndexOrUnindexNodeAt;
+                }(org.mwg.plugin.AbstractTaskAction));
+                task.ActionIndexOrUnindexNodeAt = ActionIndexOrUnindexNodeAt;
                 var ActionInject = (function (_super) {
                     __extends(ActionInject, _super);
                     function ActionInject(value) {
@@ -8892,6 +8950,9 @@ var org;
                                             var retrieved = context.graph().resolver().hashToString(attributeKey);
                                             if (retrieved != null) {
                                                 result.add(retrieved);
+                                            }
+                                            else {
+                                                result.add(attributeKey);
                                             }
                                         }
                                     }
@@ -9667,8 +9728,16 @@ var org;
                         this.addAction(new org.mwg.core.task.ActionIndexOrUnindexNode(indexName, flatKeyAttributes, true));
                         return this;
                     };
+                    CoreTask.prototype.indexNodeAt = function (world, time, indexName, flatKeyAttributes) {
+                        this.addAction(new org.mwg.core.task.ActionIndexOrUnindexNodeAt(world, time, indexName, flatKeyAttributes, true));
+                        return this;
+                    };
                     CoreTask.prototype.localIndex = function (indexedRelation, flatKeyAttributes, varNodeToAdd) {
                         this.addAction(new org.mwg.core.task.ActionLocalIndexOrUnindex(indexedRelation, flatKeyAttributes, varNodeToAdd, true));
+                        return this;
+                    };
+                    CoreTask.prototype.unindexNodeAt = function (world, time, indexName, flatKeyAttributes) {
+                        this.addAction(new org.mwg.core.task.ActionIndexOrUnindexNodeAt(world, time, indexName, flatKeyAttributes, true));
                         return this;
                     };
                     CoreTask.prototype.unindexNode = function (indexName, flatKeyAttributes) {

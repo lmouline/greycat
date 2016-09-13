@@ -5063,6 +5063,60 @@ break;
             }
           }
         }
+        export class ActionIndexOrUnindexNodeAt extends org.mwg.plugin.AbstractTaskAction {
+          private _indexName: string;
+          private _flatKeyAttributes: string;
+          private _isIndexation: boolean;
+          private _world: string;
+          private _time: string;
+          constructor(world: string, time: string, indexName: string, flatKeyAttributes: string, isIndexation: boolean) {
+            super();
+            this._indexName = indexName;
+            this._flatKeyAttributes = flatKeyAttributes;
+            this._isIndexation = isIndexation;
+            this._world = world;
+            this._time = time;
+          }
+          public eval(context: org.mwg.task.TaskContext): void {
+            let previousResult: org.mwg.task.TaskResult<any> = context.result();
+            let templatedWorld: number = java.lang.Long.parseLong(context.template(this._world));
+            let templatedTime: number = java.lang.Long.parseLong(context.template(this._time));
+            let templatedIndexName: string = context.template(this._indexName);
+            let templatedKeyAttributes: string = context.template(this._flatKeyAttributes);
+            let counter: org.mwg.DeferCounter = new org.mwg.core.utility.CoreDeferCounter(previousResult.size());
+            let end: org.mwg.Callback<boolean> = (succeed : boolean) => {
+{
+                if (succeed) {
+                  counter.count();
+                } else {
+                  throw new Error("Error during indexation of node with id " + (<org.mwg.Node>previousResult.get(0)).id());
+                }
+              }            };
+            for (let i: number = 0; i < previousResult.size(); i++) {
+              let loop: any = previousResult.get(i);
+              if (loop instanceof org.mwg.plugin.AbstractNode) {
+                if (this._isIndexation) {
+                  context.graph().indexAt(templatedWorld, templatedTime, templatedIndexName, <org.mwg.Node>loop, templatedKeyAttributes, end);
+                } else {
+                  context.graph().unindexAt(templatedWorld, templatedTime, templatedIndexName, <org.mwg.Node>loop, templatedKeyAttributes, end);
+                }
+              } else {
+                counter.count();
+              }
+            }
+            counter.then(() => {
+{
+                context.continueTask();
+              }            });
+          }
+          public toString(): string {
+            if (this._isIndexation) {
+              return "indexNodeAt('" + this._world + "','" + this._time + "','" + "'" + this._indexName + "','" + this._flatKeyAttributes + "')";
+            } else {
+              return "unindexNodeAt('" + this._world + "','" + this._time + "','" + "'" + this._indexName + "','" + this._flatKeyAttributes + "')";
+            }
+          }
+        }
         export class ActionInject extends org.mwg.plugin.AbstractTaskAction {
           private _value: any;
           constructor(value: any) {
@@ -5459,7 +5513,7 @@ break;
           }
           public eval(context: org.mwg.task.TaskContext): void {
             let previous: org.mwg.task.TaskResult<any> = context.result();
-            let result: org.mwg.task.TaskResult<string> = context.newResult();
+            let result: org.mwg.task.TaskResult<any> = context.newResult();
             for (let i: number = 0; i < previous.size(); i++) {
               if (previous.get(i) instanceof org.mwg.plugin.AbstractNode) {
                 let n: org.mwg.Node = <org.mwg.Node>previous.get(i);
@@ -5470,6 +5524,8 @@ break;
                       let retrieved: string = context.graph().resolver().hashToString(attributeKey);
                       if (retrieved != null) {
                         result.add(retrieved);
+                      } else {
+                        result.add(attributeKey);
                       }
                     }
                   }                });
@@ -6155,8 +6211,16 @@ break;
             this.addAction(new org.mwg.core.task.ActionIndexOrUnindexNode(indexName, flatKeyAttributes, true));
             return this;
           }
+          public indexNodeAt(world: string, time: string, indexName: string, flatKeyAttributes: string): org.mwg.task.Task {
+            this.addAction(new org.mwg.core.task.ActionIndexOrUnindexNodeAt(world, time, indexName, flatKeyAttributes, true));
+            return this;
+          }
           public localIndex(indexedRelation: string, flatKeyAttributes: string, varNodeToAdd: string): org.mwg.task.Task {
             this.addAction(new org.mwg.core.task.ActionLocalIndexOrUnindex(indexedRelation, flatKeyAttributes, varNodeToAdd, true));
+            return this;
+          }
+          public unindexNodeAt(world: string, time: string, indexName: string, flatKeyAttributes: string): org.mwg.task.Task {
+            this.addAction(new org.mwg.core.task.ActionIndexOrUnindexNodeAt(world, time, indexName, flatKeyAttributes, true));
             return this;
           }
           public unindexNode(indexName: string, flatKeyAttributes: string): org.mwg.task.Task {

@@ -230,14 +230,14 @@ public class NDTree extends AbstractNode {
         return result + _RELCONST;
     }
 
-    static boolean[] binaryFromLong(final long value, final int dim){
-        long tempvalue=value-_RELCONST;
-        long shiftvalue=tempvalue>>1;
-        boolean[] res=new boolean[dim];
-        for(int i=0;i<dim;i++){
-            res[dim-i-1]= ((tempvalue-(shiftvalue<<1))==1);
-            tempvalue=shiftvalue;
-            shiftvalue=tempvalue>>1;
+    static boolean[] binaryFromLong(final long value, final int dim) {
+        long tempvalue = value - _RELCONST;
+        long shiftvalue = tempvalue >> 1;
+        boolean[] res = new boolean[dim];
+        for (int i = 0; i < dim; i++) {
+            res[dim - i - 1] = ((tempvalue - (shiftvalue << 1)) == 1);
+            tempvalue = shiftvalue;
+            shiftvalue = tempvalue >> 1;
         }
         return res;
     }
@@ -430,10 +430,11 @@ public class NDTree extends AbstractNode {
                 TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
+
                         final Node[] finalres = new Node[result.size()];
-                        for (int i = 0; i < result.size(); i++) {
+                        /*for (int i = 0; i < result.size(); i++) {
                             finalres[i] = (Node) result.get(i);
-                        }
+                        }*/
                         callback.on(finalres);
                     }
                 });
@@ -453,8 +454,6 @@ public class NDTree extends AbstractNode {
         tc.setGlobalVariable("key", res);
         tc.setGlobalVariable("distance", distance);
         tc.setGlobalVariable("dim", dim);
-        tc.setGlobalVariable("parents", this);
-
         tc.defineVariable("lev", 0);
 
         nearestTask.executeUsing(tc);
@@ -462,11 +461,11 @@ public class NDTree extends AbstractNode {
 
 
     static double convertToDistance(final long attributeKey, final double[] target, final double[] center, final double[] boundMin, final double[] boundMax, final double[] precision, final Distance distance) {
-        double[] childCenter =new double[center.length];
-        double minchild=0;
-        double maxchild=0;
-        boolean[] binaries=binaryFromLong(attributeKey,center.length);
-        for(int i=0;i<childCenter.length;i++){
+        double[] childCenter = new double[center.length];
+        double minchild = 0;
+        double maxchild = 0;
+        boolean[] binaries = binaryFromLong(attributeKey, center.length);
+        for (int i = 0; i < childCenter.length; i++) {
 
             if (!binaries[i]) {
                 minchild = boundMin[i];
@@ -476,133 +475,41 @@ public class NDTree extends AbstractNode {
                 minchild = boundMax[i] - Math.max(boundMax[i] - center[i], precision[i]);
                 maxchild = boundMax[i];
             }
-            childCenter[i]=(minchild+maxchild)/2;
+            childCenter[i] = (minchild + maxchild) / 2;
         }
-        return distance.measure(childCenter,target);
+        return distance.measure(childCenter, target);
     }
 
 
-
-    private static Task nearestTask = ifThen(new TaskFunctionConditional() {
+    private static Task nearestTask = then(new Action() {
         @Override
-        public boolean eval(TaskContext context) {
+        public void eval(TaskContext context) {
+            NDTree current = (NDTree) context.result().get(0);
+            NodeState state = current.graph().resolver().resolveState(current);
 
-            //bootstrap code
-            if(context.variable("parent").size()==0){
-                NearestNeighborList nnl = (NearestNeighborList) context.variable("nnl").get(0);
-
-                NDTree current = (NDTree) context.result().get(0);
-                NodeState state = current.graph().resolver().resolveState(current);
-
-                double[] boundMax = (double[]) state.get(_BOUNDMAX);
-                double[] boundMin = (double[]) state.get(_BOUNDMIN);
-                double[] centerKey = new double[boundMax.length];
-                for (int i = 0; i < centerKey.length; i++) {
-                    centerKey[i] = (boundMax[i] + boundMin[i]) / 2;
-                }
-
-                final double[] target = (double[]) context.variable("key").get(0);
-                final Distance distance = (Distance) context.variable("distance").get(0);
-                double d=distance.measure(target, centerKey);
-                context.variable("currentdistance").set(0, d);
-                nnl.insert(current.id(), d);
-                return true;
+            double[] boundMax = (double[]) state.get(_BOUNDMAX);
+            double[] boundMin = (double[]) state.get(_BOUNDMIN);
+            double[] centerKey = new double[boundMax.length];
+            for (int i = 0; i < centerKey.length; i++) {
+                centerKey[i] = (boundMax[i] + boundMin[i]) / 2;
             }
-            else{
-                //get NNL and check if it is full
-                // if NNL is not full,
-                // Inject the node in NNL then return true
-
-                //if NNL is full check current distance compared to parent
-
-                double currentdistance = (double) context.variable("currentdistance").get(0);
-                double parentdistance = (double) context.variable("parentdistance").get(0);
-                if(currentdistance <= parentdistance){
-                    //Inject the node in NNL
-                    return true;
-                }
-                else{
-                    return false;
-                }
-            }
-
+            final double[] target = (double[]) context.variable("key").get(0);
+            final Distance distance = (Distance) context.variable("distance").get(0);
+            double d = distance.measure(target, centerKey);
+            context.setVariable("parentdistance", d);
+            context.continueTask();
         }
-    },
-            asVar("parent")
-                    .fromVar("currentdistance").asVar("parentdistance")
-                    .fromVar("parent")
-                    .propertiesWithTypes(Type.RELATION).foreach(then(new Action() {
-                @Override
-                public void eval(TaskContext context) {
-                    System.out.println(context.result().get(0));
-                }
-            }))
-
-
-
-
-    );
-
-
-
-
-/*
-    private static Task nearestTask = whileDo(new TaskFunctionConditional() {
-                                                  @Override
-                                                  public boolean eval(TaskContext context) {
-                                                      return context.variable("parents").size() > 0;
-                                                  }
-                                              },
-            fromVar("parents").foreach(then(new Action() {
-                @Override
-                public void eval(TaskContext context) {
-
-                    TaskResult result = context.newResult();
-                    NDTree current = (NDTree) context.result().get(0);
-                    NodeState state = current.graph().resolver().resolveState(current);
-
-                    final double[] boundMax = (double[]) state.get(_BOUNDMAX);
-                    final double[] boundMin = (double[]) state.get(_BOUNDMIN);
-                    final double[] centerKey = new double[boundMax.length];
-                    for (int i = 0; i < centerKey.length; i++) {
-                        centerKey[i] = (boundMax[i] + boundMin[i]) / 2;
-                    }
-                    final double[] precision = (double[]) context.variable("precision").get(0);
-
-
-                    //Global variable
-                    final double[] target = (double[]) context.variable("key").get(0);
-                    final Distance distance = (Distance) context.variable("distance").get(0);
-
-                    state.each(new NodeStateCallback() {
+    })
+            .asVar("parent")
+            .print("{{result}}")
+            .propertiesWithTypes(Type.RELATION)
+            .foreach(ifThen(new TaskFunctionConditional() {
                         @Override
-                        public void on(long attributeKey, byte elemType, Object elem) {
-                            if (attributeKey >= _RELCONST) {
-                                NDResult tempres = new NDResult();
-                                tempres.parent = current;
-                                tempres.relation = attributeKey;
-                                tempres.distance = convertToDistance(attributeKey, target, centerKey, boundMin, boundMax, precision, distance); //todo fill with distance to current key
-                                result.add(tempres);
-                            }
+                        public boolean eval(TaskContext context) {
+                            return true;
                         }
-                    });
-                    context.continueWith(result);
-                }
-            }))
-
-
-                    .then(new Action() {
-                        @Override
-                        public void eval(TaskContext context) {
-
-                            //here replace parent
-                            context.setGlobalVariable("parents", null);
-                            context.continueTask();
-                        }
-                    }));
-
-
-    */
+                    }, print("{{result}}"))
+            );
 
 
     public int getNumNodes() {

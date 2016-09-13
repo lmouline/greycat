@@ -145,6 +145,39 @@ declare module org {
                     getDistance(state: org.mwg.plugin.NodeState): org.mwg.structure.distance.Distance;
                     extractFeatures(current: org.mwg.Node, callback: org.mwg.Callback<Float64Array>): void;
                 }
+                class NDTree extends org.mwg.plugin.AbstractNode {
+                    static NAME: string;
+                    private static _STAT;
+                    private static _TOTAL;
+                    private static _SUM;
+                    private static _SUMSQ;
+                    private static _BOUNDMIN;
+                    private static _BOUNDMAX;
+                    private static _VALUES;
+                    private static _PRECISION;
+                    private static _NUMNODES;
+                    private static _DIM;
+                    static STAT_DEF: boolean;
+                    static BOUNDMIN: string;
+                    static BOUNDMAX: string;
+                    static PRECISION: string;
+                    static _RELCONST: number;
+                    private static insert;
+                    private static nearestTask;
+                    constructor(p_world: number, p_time: number, p_id: number, p_graph: org.mwg.Graph);
+                    setUpdateStat(value: boolean): void;
+                    private static updateGaussian(state, key);
+                    getTotal(): number;
+                    getAvg(): Float64Array;
+                    getCovarianceArray(avg: Float64Array, err: Float64Array): Float64Array;
+                    static getRelationId(centerKey: Float64Array, keyToInsert: Float64Array): number;
+                    static binaryFromLong(value: number, dim: number): boolean[];
+                    setProperty(propertyName: string, propertyType: number, propertyValue: any): void;
+                    insert(key: Float64Array, value: org.mwg.Node, callback: org.mwg.Callback<boolean>): void;
+                    nearestN(key: Float64Array, n: number, callback: org.mwg.Callback<org.mwg.Node[]>): void;
+                    static convertToDistance(attributeKey: number, target: Float64Array, center: Float64Array, boundMin: Float64Array, boundMax: Float64Array, precision: Float64Array, distance: org.mwg.structure.distance.Distance): number;
+                    getNumNodes(): number;
+                }
             }
             module util {
                 class HRect {
@@ -157,6 +190,11 @@ declare module org {
                     intersection(r: org.mwg.structure.util.HRect): org.mwg.structure.util.HRect;
                     area(): number;
                     toString(): string;
+                }
+                class NDResult {
+                    parent: org.mwg.structure.tree.NDTree;
+                    relation: number;
+                    distance: number;
                 }
                 class NearestNeighborArrayList {
                     private maxPriority;
@@ -188,7 +226,7 @@ declare module org {
                     getAllNodes(): Float64Array;
                     isCapacityReached(): boolean;
                     getHighest(): number;
-                    getBestDistance(): number;
+                    getWorstDistance(): number;
                     isEmpty(): boolean;
                     getSize(): number;
                     private add(element, priority);

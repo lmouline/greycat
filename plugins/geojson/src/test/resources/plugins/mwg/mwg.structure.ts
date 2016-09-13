@@ -34,6 +34,10 @@ module org {
 {
               return new org.mwg.structure.tree.KDTree(world, time, id, graph);
             }          });
+          this.declareNodeType(org.mwg.structure.tree.NDTree.NAME, (world : number, time : number, id : number, graph : org.mwg.Graph) => {
+{
+              return new org.mwg.structure.tree.NDTree(world, time, id, graph);
+            }          });
           this.declareTaskAction(org.mwg.structure.action.NTreeInsertTo.NAME, (params : string[]) => {
 {
               if (params.length != 1) {
@@ -927,6 +931,342 @@ module org {
             }
           }
         }
+        export class NDTree extends org.mwg.plugin.AbstractNode {
+          public static NAME: string = "NDTree";
+          private static _STAT: number = 0;
+          private static _TOTAL: number = 1;
+          private static _SUM: number = 2;
+          private static _SUMSQ: number = 3;
+          private static _BOUNDMIN: number = 6;
+          private static _BOUNDMAX: number = 7;
+          private static _VALUES: number = 8;
+          private static _PRECISION: number = 9;
+          private static _NUMNODES: number = 10;
+          private static _DIM: number = 11;
+          public static STAT_DEF: boolean = false;
+          public static BOUNDMIN: string = "boundmin";
+          public static BOUNDMAX: string = "boundmax";
+          public static PRECISION: string = "precision";
+          public static _RELCONST: number = 16;
+          private static insert: org.mwg.task.Task = org.mwg.task.Actions.whileDo((context : org.mwg.task.TaskContext) => {
+{
+              let root: org.mwg.Node = <org.mwg.Node>context.variable("root").get(0);
+              let current: org.mwg.Node = context.resultAsNodes().get(0);
+              let state: org.mwg.plugin.NodeState = current.graph().resolver().resolveState(current);
+              let updateStat: boolean = <boolean>context.variable("updatestat").get(0);
+              let boundMax: Float64Array = <Float64Array>state.get(org.mwg.structure.tree.NDTree._BOUNDMAX);
+              let boundMin: Float64Array = <Float64Array>state.get(org.mwg.structure.tree.NDTree._BOUNDMIN);
+              let centerKey: Float64Array = new Float64Array(boundMax.length);
+              for (let i: number = 0; i < centerKey.length; i++) {
+                centerKey[i] = (boundMax[i] + boundMin[i]) / 2;
+              }
+              let keyToInsert: Float64Array = <Float64Array>context.variable("key").get(0);
+              let precision: Float64Array = <Float64Array>context.variable("precision").get(0);
+              let dim: number = keyToInsert.length;
+              if (updateStat) {
+                org.mwg.structure.tree.NDTree.updateGaussian(state, keyToInsert);
+              }
+              let continueNavigation: boolean = false;
+              for (let i: number = 0; i < dim; i++) {
+                if (boundMax[i] - boundMin[i] > precision[i]) {
+                  continueNavigation = true;
+break;
+                }
+              }
+              if (continueNavigation) {
+                let traverseId: number = org.mwg.structure.tree.NDTree.getRelationId(centerKey, keyToInsert);
+                if (state.get(traverseId) == null) {
+                  let newBoundMin: Float64Array = new Float64Array(dim);
+                  let newBoundMax: Float64Array = new Float64Array(dim);
+                  for (let i: number = 0; i < centerKey.length; i++) {
+                    if (keyToInsert[i] <= centerKey[i]) {
+                      newBoundMin[i] = boundMin[i];
+                      newBoundMax[i] = Math.max(centerKey[i] - boundMin[i], precision[i]) + boundMin[i];
+                    } else {
+                      newBoundMin[i] = boundMax[i] - Math.max(boundMax[i] - centerKey[i], precision[i]);
+                      newBoundMax[i] = boundMax[i];
+                    }
+                  }
+                  let newChild: org.mwg.structure.tree.NDTree = <org.mwg.structure.tree.NDTree>current.graph().newTypedNode(current.world(), current.time(), org.mwg.structure.tree.NDTree.NAME);
+                  let newState: org.mwg.plugin.NodeState = newChild.graph().resolver().resolveState(newChild);
+                  newState.set(org.mwg.structure.tree.NDTree._BOUNDMIN, org.mwg.Type.DOUBLE_ARRAY, newBoundMin);
+                  newState.set(org.mwg.structure.tree.NDTree._BOUNDMAX, org.mwg.Type.DOUBLE_ARRAY, newBoundMax);
+                  let relChild: org.mwg.struct.Relationship = <org.mwg.struct.Relationship>state.getOrCreate(traverseId, org.mwg.Type.RELATION);
+                  relChild.add(newChild.id());
+                  newChild.free();
+                  if (root.getByIndex(org.mwg.structure.tree.NDTree._NUMNODES) != null) {
+                    let count: number = <number>root.getByIndex(org.mwg.structure.tree.NDTree._NUMNODES);
+                    count++;
+                    root.setPropertyByIndex(org.mwg.structure.tree.NDTree._NUMNODES, org.mwg.Type.INT, count);
+                  } else {
+                    root.setPropertyByIndex(org.mwg.structure.tree.NDTree._NUMNODES, org.mwg.Type.INT, 2);
+                  }
+                }
+                context.setVariable("next", traverseId);
+              } else {
+                let valueToInsert: org.mwg.Node = <org.mwg.Node>context.variable("value").get(0);
+                let rel: org.mwg.struct.Relationship = <org.mwg.struct.Relationship>state.getOrCreate(org.mwg.structure.tree.NDTree._VALUES, org.mwg.Type.RELATION);
+                rel.add(valueToInsert.id());
+              }
+              return continueNavigation;
+            }          }, org.mwg.task.Actions.action(org.mwg.structure.action.TraverseById.NAME, "{{next}}"));
+          private static nearestTask: org.mwg.task.Task = org.mwg.task.Actions.then((context : org.mwg.task.TaskContext) => {
+{
+              let current: org.mwg.structure.tree.NDTree = <org.mwg.structure.tree.NDTree>context.result().get(0);
+              let state: org.mwg.plugin.NodeState = current.graph().resolver().resolveState(current);
+              let boundMax: Float64Array = <Float64Array>state.get(org.mwg.structure.tree.NDTree._BOUNDMAX);
+              let boundMin: Float64Array = <Float64Array>state.get(org.mwg.structure.tree.NDTree._BOUNDMIN);
+              let centerKey: Float64Array = new Float64Array(boundMax.length);
+              for (let i: number = 0; i < centerKey.length; i++) {
+                centerKey[i] = (boundMax[i] + boundMin[i]) / 2;
+              }
+              let target: Float64Array = <Float64Array>context.variable("key").get(0);
+              let distance: org.mwg.structure.distance.Distance = <org.mwg.structure.distance.Distance>context.variable("distance").get(0);
+              let d: number = distance.measure(target, centerKey);
+              context.setVariable("parentdistance", d);
+              context.continueTask();
+            }          }).asVar("parent").print("{{result}}").propertiesWithTypes(org.mwg.Type.RELATION).foreach(org.mwg.task.Actions.ifThen((context : org.mwg.task.TaskContext) => {
+{
+              return true;
+            }          }, org.mwg.task.Actions.print("{{result}}")));
+          constructor(p_world: number, p_time: number, p_id: number, p_graph: org.mwg.Graph) {
+            super(p_world, p_time, p_id, p_graph);
+          }
+          public setUpdateStat(value: boolean): void {
+            let state: org.mwg.plugin.NodeState = this.unphasedState();
+            state.set(NDTree._STAT, org.mwg.Type.BOOL, value);
+          }
+          private static updateGaussian(state: org.mwg.plugin.NodeState, key: Float64Array): void {
+            let total: number = 0;
+            let x: number = <number>state.get(NDTree._TOTAL);
+            if (x != null) {
+              total = x;
+            }
+            if (total == 0) {
+              state.set(NDTree._TOTAL, org.mwg.Type.INT, 1);
+              state.set(NDTree._SUM, org.mwg.Type.DOUBLE_ARRAY, key);
+            } else {
+              let features: number = key.length;
+              let sum: Float64Array;
+              let sumsquares: Float64Array;
+              if (total == 1) {
+                sum = <Float64Array>state.get(NDTree._SUM);
+                sumsquares = new Float64Array(features * (features + 1) / 2);
+                let count: number = 0;
+                for (let i: number = 0; i < features; i++) {
+                  for (let j: number = i; j < features; j++) {
+                    sumsquares[count] = sum[i] * sum[j];
+                    count++;
+                  }
+                }
+              } else {
+                sum = <Float64Array>state.get(NDTree._SUM);
+                sumsquares = <Float64Array>state.get(NDTree._SUMSQ);
+              }
+              for (let i: number = 0; i < features; i++) {
+                sum[i] += key[i];
+              }
+              let count: number = 0;
+              for (let i: number = 0; i < features; i++) {
+                for (let j: number = i; j < features; j++) {
+                  sumsquares[count] += key[i] * key[j];
+                  count++;
+                }
+              }
+              total++;
+              state.set(NDTree._TOTAL, org.mwg.Type.INT, total);
+              state.set(NDTree._SUM, org.mwg.Type.DOUBLE_ARRAY, sum);
+              state.set(NDTree._SUMSQ, org.mwg.Type.DOUBLE_ARRAY, sumsquares);
+            }
+          }
+          public getTotal(): number {
+            let x: number = <number>super.getByIndex(NDTree._TOTAL);
+            if (x == null) {
+              return 0;
+            } else {
+              return x;
+            }
+          }
+          public getAvg(): Float64Array {
+            let total: number = this.getTotal();
+            if (total == 0) {
+              return null;
+            }
+            if (total == 1) {
+              return <Float64Array>super.getByIndex(NDTree._SUM);
+            } else {
+              let avg: Float64Array = <Float64Array>super.getByIndex(NDTree._SUM);
+              for (let i: number = 0; i < avg.length; i++) {
+                avg[i] = avg[i] / total;
+              }
+              return avg;
+            }
+          }
+          public getCovarianceArray(avg: Float64Array, err: Float64Array): Float64Array {
+            if (avg == null) {
+              let errClone: Float64Array = new Float64Array(err.length);
+              java.lang.System.arraycopy(err, 0, errClone, 0, err.length);
+              return errClone;
+            }
+            if (err == null) {
+              err = new Float64Array(avg.length);
+            }
+            let features: number = avg.length;
+            let total: number = this.getTotal();
+            if (total == 0) {
+              return null;
+            }
+            if (total > 1) {
+              let covariances: Float64Array = new Float64Array(features);
+              let sumsquares: Float64Array = <Float64Array>super.getByIndex(NDTree._SUMSQ);
+              let correction: number = total;
+              correction = correction / (total - 1);
+              let count: number = 0;
+              for (let i: number = 0; i < features; i++) {
+                covariances[i] = (sumsquares[count] / total - avg[i] * avg[i]) * correction;
+                if (covariances[i] < err[i]) {
+                  covariances[i] = err[i];
+                }
+                count += features - i;
+              }
+              return covariances;
+            } else {
+              let errClone: Float64Array = new Float64Array(err.length);
+              java.lang.System.arraycopy(err, 0, errClone, 0, err.length);
+              return errClone;
+            }
+          }
+          public static getRelationId(centerKey: Float64Array, keyToInsert: Float64Array): number {
+            var result = Long.UZERO;
+            for(var i = 0; i < centerKey.length; i++) {
+            if(i!=0){
+            result = result.shiftLeft(1);
+            }
+            if (keyToInsert[i] > centerKey[i]) {
+            result = result.add(Long.ONE);
+            }
+            }
+            return result.add(Long.fromNumber(org.mwg.structure.tree.NDTree._RELCONST, true)).toNumber();
+          }
+          public static binaryFromLong(value: number, dim: number): boolean[] {
+            let tempvalue: number = value - NDTree._RELCONST;
+            let shiftvalue: number = tempvalue >> 1;
+            let res: boolean[] = [];
+            for (let i: number = 0; i < dim; i++) {
+              res[dim - i - 1] = ((tempvalue - (shiftvalue << 1)) == 1);
+              tempvalue = shiftvalue;
+              shiftvalue = tempvalue >> 1;
+            }
+            return res;
+          }
+          public setProperty(propertyName: string, propertyType: number, propertyValue: any): void {
+            if (propertyName === NDTree.BOUNDMIN) {
+              let state: org.mwg.plugin.NodeState = this.unphasedState();
+              state.set(NDTree._BOUNDMIN, org.mwg.Type.DOUBLE_ARRAY, propertyValue);
+            } else if (propertyName === NDTree.BOUNDMAX) {
+              let state: org.mwg.plugin.NodeState = this.unphasedState();
+              state.set(NDTree._BOUNDMAX, org.mwg.Type.DOUBLE_ARRAY, propertyValue);
+            } else if (propertyName === NDTree.PRECISION) {
+              let state: org.mwg.plugin.NodeState = this.unphasedState();
+              state.set(NDTree._PRECISION, org.mwg.Type.DOUBLE_ARRAY, propertyValue);
+            } else {
+              super.setProperty(propertyName, propertyType, propertyValue);
+            }
+
+
+          }
+          public insert(key: Float64Array, value: org.mwg.Node, callback: org.mwg.Callback<boolean>): void {
+            let state: org.mwg.plugin.NodeState = this.unphasedState();
+            let precisions: Float64Array = <Float64Array>state.get(NDTree._PRECISION);
+            if (state.get(NDTree._DIM) == null) {
+              state.set(NDTree._DIM, org.mwg.Type.INT, key.length);
+            }
+            let dim: number = state.getWithDefault(NDTree._DIM, key.length);
+            if (key.length != dim) {
+              throw new Error("Key size should always be the same");
+            }
+            let tc: org.mwg.task.TaskContext = NDTree.insert.prepareWith(this.graph(), this, (result : org.mwg.task.TaskResult<any>) => {
+{
+                result.free();
+                if (callback != null) {
+                  callback(true);
+                }
+              }            });
+            let res: org.mwg.task.TaskResult<any> = tc.newResult();
+            res.add(key);
+            tc.setGlobalVariable("key", res);
+            if (value != null) {
+              tc.setGlobalVariable("value", value);
+            }
+            let updateStat: boolean = <boolean>state.getWithDefault(NDTree._STAT, NDTree.STAT_DEF);
+            tc.setGlobalVariable("updatestat", updateStat);
+            tc.setGlobalVariable("root", this);
+            let resPres: org.mwg.task.TaskResult<any> = tc.newResult();
+            resPres.add(precisions);
+            tc.setGlobalVariable("precision", resPres);
+            NDTree.insert.executeUsing(tc);
+          }
+          public nearestN(key: Float64Array, n: number, callback: org.mwg.Callback<org.mwg.Node[]>): void {
+            let state: org.mwg.plugin.NodeState = this.unphasedState();
+            let dim: number;
+            let tdim: any = state.get(NDTree._DIM);
+            if (tdim == null) {
+              callback(null);
+              return;
+            } else {
+              dim = <number>tdim;
+              if (key.length != dim) {
+                throw new Error("Key size should always be the same");
+              }
+            }
+            let nnl: org.mwg.structure.util.NearestNeighborList = new org.mwg.structure.util.NearestNeighborList(n);
+            let distance: org.mwg.structure.distance.Distance = org.mwg.structure.distance.EuclideanDistance.instance();
+            let tc: org.mwg.task.TaskContext = NDTree.nearestTask.prepareWith(this.graph(), this, (result : org.mwg.task.TaskResult<any>) => {
+{
+                let res: Float64Array = nnl.getAllNodes();
+                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").foreach(org.mwg.task.Actions.lookup("{{result}}"));
+                let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
+{
+                    let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
+                    callback(finalres);
+                  }                });
+                let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
+                tc.addToGlobalVariable("res", tr);
+                lookupall.executeUsing(tc);
+              }            });
+            let res: org.mwg.task.TaskResult<any> = tc.newResult();
+            res.add(key);
+            tc.setGlobalVariable("key", res);
+            tc.setGlobalVariable("distance", distance);
+            tc.setGlobalVariable("dim", dim);
+            tc.defineVariable("lev", 0);
+            NDTree.nearestTask.executeUsing(tc);
+          }
+          public static convertToDistance(attributeKey: number, target: Float64Array, center: Float64Array, boundMin: Float64Array, boundMax: Float64Array, precision: Float64Array, distance: org.mwg.structure.distance.Distance): number {
+            let childCenter: Float64Array = new Float64Array(center.length);
+            let minchild: number = 0;
+            let maxchild: number = 0;
+            let binaries: boolean[] = org.mwg.structure.tree.NDTree.binaryFromLong(attributeKey, center.length);
+            for (let i: number = 0; i < childCenter.length; i++) {
+              if (!binaries[i]) {
+                minchild = boundMin[i];
+                maxchild = Math.max(center[i] - boundMin[i], precision[i]) + boundMin[i];
+              } else {
+                minchild = boundMax[i] - Math.max(boundMax[i] - center[i], precision[i]);
+                maxchild = boundMax[i];
+              }
+              childCenter[i] = (minchild + maxchild) / 2;
+            }
+            return distance.measure(childCenter, target);
+          }
+          public getNumNodes(): number {
+            if (this.getByIndex(NDTree._NUMNODES) != null) {
+              return <number>this.getByIndex(NDTree._NUMNODES);
+            } else {
+              return 1;
+            }
+          }
+        }
       }
       export module util {
         export class HRect {
@@ -986,6 +1326,11 @@ module org {
           public toString(): string {
             return this.min + "\n" + this.max + "\n";
           }
+        }
+        export class NDResult {
+          public parent: org.mwg.structure.tree.NDTree;
+          public relation: number;
+          public distance: number;
         }
         export class NearestNeighborArrayList {
           private maxPriority: number = java.lang.Double.MAX_VALUE;
@@ -1138,7 +1483,7 @@ break;
           public getHighest(): number {
             return this.data[1];
           }
-          public getBestDistance(): number {
+          public getWorstDistance(): number {
             return this.value[1];
           }
           public isEmpty(): boolean {

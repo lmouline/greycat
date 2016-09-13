@@ -100,7 +100,7 @@ public class NearestNeighborList {
         return data[1];
     }
 
-    public double getBestDistance() {
+    public double getWorstDistance() {
         return value[1];
     }
 
