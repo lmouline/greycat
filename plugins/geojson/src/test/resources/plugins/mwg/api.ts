@@ -39,7 +39,7 @@ module org {
         if (src.length != other.length) {
           return false;
         }
-        for (var i: number = 0; i < src.length; i++) {
+        for (let i: number = 0; i < src.length; i++) {
           if (src[i] != other[i]) {
             return false;
           }
@@ -116,7 +116,7 @@ module org {
           this._plugins = new Array<org.mwg.plugin.Plugin>(1);
           this._plugins[0] = plugin;
         } else {
-          var _plugins2: org.mwg.plugin.Plugin[] = new Array<org.mwg.plugin.Plugin>(this._plugins.length + 1);
+          let _plugins2: org.mwg.plugin.Plugin[] = new Array<org.mwg.plugin.Plugin>(this._plugins.length + 1);
           java.lang.System.arraycopy(this._plugins, 0, _plugins2, 0, this._plugins.length);
           _plugins2[this._plugins.length] = plugin;
           this._plugins = _plugins2;
@@ -196,32 +196,33 @@ module org {
       public static RELATION: number = 12;
       public static typeName(p_type: number): string {
         switch (p_type) {
-          case org.mwg.Type.BOOL: 
-          return "boolean";
-          case org.mwg.Type.STRING: 
-          return "string";
-          case org.mwg.Type.LONG: 
-          return "long";
-          case org.mwg.Type.INT: 
-          return "int";
-          case org.mwg.Type.DOUBLE: 
-          return "double";
-          case org.mwg.Type.DOUBLE_ARRAY: 
-          return "double[]";
-          case org.mwg.Type.LONG_ARRAY: 
-          return "long[]";
-          case org.mwg.Type.INT_ARRAY: 
-          return "int[]";
-          case org.mwg.Type.LONG_TO_LONG_MAP: 
-          return "map(long->long)";
-          case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP: 
-          return "map(long->long[])";
-          case org.mwg.Type.STRING_TO_LONG_MAP: 
-          return "map(string->long)";
-          case org.mwg.Type.RELATION: 
-          return "relation";
+          case org.mwg.Type.BOOL:
+            return "boolean";
+          case org.mwg.Type.STRING:
+            return "string";
+          case org.mwg.Type.LONG:
+            return "long";
+          case org.mwg.Type.INT:
+            return "int";
+          case org.mwg.Type.DOUBLE:
+            return "double";
+          case org.mwg.Type.DOUBLE_ARRAY:
+            return "double[]";
+          case org.mwg.Type.LONG_ARRAY:
+            return "long[]";
+          case org.mwg.Type.INT_ARRAY:
+            return "int[]";
+          case org.mwg.Type.LONG_TO_LONG_MAP:
+            return "map(long->long)";
+          case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
+            return "map(long->long[])";
+          case org.mwg.Type.STRING_TO_LONG_MAP:
+            return "map(string->long)";
+          case org.mwg.Type.RELATION:
+            return "relation";
           default: 
-          return "unknown";
+
+            return "unknown";
         }
       }
     }
@@ -343,7 +344,7 @@ module org {
           return this._id;
         }
         public get(propertyName: string): any {
-          var resolved: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
+          let resolved: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
           if (resolved != null) {
             return resolved.get(this._resolver.stringToHash(propertyName, false));
           }
@@ -369,8 +370,8 @@ module org {
           }
         }
         public forceProperty(propertyName: string, propertyType: number, propertyValue: any): void {
-          var hashed: number = this._resolver.stringToHash(propertyName, true);
-          var preciseState: org.mwg.plugin.NodeState = this._resolver.alignState(this);
+          let hashed: number = this._resolver.stringToHash(propertyName, true);
+          let preciseState: org.mwg.plugin.NodeState = this._resolver.alignState(this);
           if (preciseState != null) {
             preciseState.set(hashed, propertyType, propertyValue);
           } else {
@@ -378,14 +379,14 @@ module org {
           }
         }
         public setProperty(propertyName: string, propertyType: number, propertyValue: any): void {
-          var hashed: number = this._resolver.stringToHash(propertyName, true);
-          var unPhasedState: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
-          var isDiff: boolean = (propertyType != unPhasedState.getType(hashed));
+          let hashed: number = this._resolver.stringToHash(propertyName, true);
+          let unPhasedState: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
+          let isDiff: boolean = (propertyType != unPhasedState.getType(hashed));
           if (!isDiff) {
             isDiff = !this.isEquals(unPhasedState.get(hashed), propertyValue, propertyType);
           }
           if (isDiff) {
-            var preciseState: org.mwg.plugin.NodeState = this._resolver.alignState(this);
+            let preciseState: org.mwg.plugin.NodeState = this._resolver.alignState(this);
             if (preciseState != null) {
               preciseState.set(hashed, propertyType, propertyValue);
             } else {
@@ -395,66 +396,65 @@ module org {
         }
         private isEquals(obj1: any, obj2: any, type: number): boolean {
           switch (type) {
-            case org.mwg.Type.BOOL: 
-            return ((<boolean>obj1) == (<boolean>obj2));
-            case org.mwg.Type.DOUBLE: 
-            return ((<number>obj1) == (<number>obj2));
-            case org.mwg.Type.INT: 
-            return ((<number>obj1) == (<number>obj2));
-            case org.mwg.Type.LONG: 
-            return ((<number>obj1) == (<number>obj2));
-            case org.mwg.Type.STRING: 
-            return ((<string>obj1) === <string>obj2);
-            case org.mwg.Type.DOUBLE_ARRAY: 
-            var obj1_ar_d: Float64Array = <Float64Array>obj1;
-            var obj2_ar_d: Float64Array = <Float64Array>obj2;
+            case org.mwg.Type.BOOL:
+              return ((<boolean>obj1) == (<boolean>obj2));
+            case org.mwg.Type.DOUBLE:
+              return ((<number>obj1) == (<number>obj2));
+            case org.mwg.Type.INT:
+              return ((<number>obj1) == (<number>obj2));
+            case org.mwg.Type.LONG:
+              return ((<number>obj1) == (<number>obj2));
+            case org.mwg.Type.STRING:
+              return ((<string>obj1) === <string>obj2);
+            case org.mwg.Type.DOUBLE_ARRAY:            let obj1_ar_d: Float64Array = <Float64Array>obj1;
+            let obj2_ar_d: Float64Array = <Float64Array>obj2;
             if (obj1_ar_d.length != obj2_ar_d.length) {
               return false;
             } else {
-              for (var i: number = 0; i < obj1_ar_d.length; i++) {
+              for (let i: number = 0; i < obj1_ar_d.length; i++) {
                 if (obj1_ar_d[i] != obj2_ar_d[i]) {
                   return false;
                 }
               }
             }
-            return true;
-            case org.mwg.Type.INT_ARRAY: 
-            var obj1_ar_i: Int32Array = <Int32Array>obj1;
-            var obj2_ar_i: Int32Array = <Int32Array>obj2;
+
+              return true;
+            case org.mwg.Type.INT_ARRAY:            let obj1_ar_i: Int32Array = <Int32Array>obj1;
+            let obj2_ar_i: Int32Array = <Int32Array>obj2;
             if (obj1_ar_i.length != obj2_ar_i.length) {
               return false;
             } else {
-              for (var i: number = 0; i < obj1_ar_i.length; i++) {
+              for (let i: number = 0; i < obj1_ar_i.length; i++) {
                 if (obj1_ar_i[i] != obj2_ar_i[i]) {
                   return false;
                 }
               }
             }
-            return true;
-            case org.mwg.Type.LONG_ARRAY: 
-            var obj1_ar_l: Float64Array = <Float64Array>obj1;
-            var obj2_ar_l: Float64Array = <Float64Array>obj2;
+
+              return true;
+            case org.mwg.Type.LONG_ARRAY:            let obj1_ar_l: Float64Array = <Float64Array>obj1;
+            let obj2_ar_l: Float64Array = <Float64Array>obj2;
             if (obj1_ar_l.length != obj2_ar_l.length) {
               return false;
             } else {
-              for (var i: number = 0; i < obj1_ar_l.length; i++) {
+              for (let i: number = 0; i < obj1_ar_l.length; i++) {
                 if (obj1_ar_l[i] != obj2_ar_l[i]) {
                   return false;
                 }
               }
             }
-            return true;
-            case org.mwg.Type.RELATION: 
-            case org.mwg.Type.STRING_TO_LONG_MAP: 
-            case org.mwg.Type.LONG_TO_LONG_MAP: 
-            case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP: 
-            throw new Error("Bad API usage: set can't be used with complex type, please use getOrCreate instead.");
+
+              return true;
+            case org.mwg.Type.RELATION:
+            case org.mwg.Type.STRING_TO_LONG_MAP:
+            case org.mwg.Type.LONG_TO_LONG_MAP:
+            case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:            throw new Error("Bad API usage: set can't be used with complex type, please use getOrCreate instead.");
             default: 
             throw new Error("Not managed type " + type);
           }
         }
         public getOrCreate(propertyName: string, propertyType: number): any {
-          var preciseState: org.mwg.plugin.NodeState = this._resolver.alignState(this);
+          let preciseState: org.mwg.plugin.NodeState = this._resolver.alignState(this);
           if (preciseState != null) {
             return preciseState.getOrCreate(this._resolver.stringToHash(propertyName, true), propertyType);
           } else {
@@ -462,7 +462,7 @@ module org {
           }
         }
         public type(propertyName: string): number {
-          var resolved: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
+          let resolved: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
           if (resolved != null) {
             return resolved.getType(this._resolver.stringToHash(propertyName, false));
           }
@@ -478,20 +478,21 @@ module org {
           if (callback == null) {
             return;
           }
-          var resolved: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
+          let resolved: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
           if (resolved != null) {
-            var relationArray: org.mwg.struct.Relationship = <org.mwg.struct.Relationship>resolved.get(relationIndex);
+            let relationArray: org.mwg.struct.Relationship = <org.mwg.struct.Relationship>resolved.get(relationIndex);
             if (relationArray == null || relationArray.size() == 0) {
               callback(new Array<org.mwg.Node>(0));
             } else {
-              var relSize: number = relationArray.size();
-              var ids: Float64Array = new Float64Array(relSize);
-              for (var i: number = 0; i < relSize; i++) {
+              let relSize: number = relationArray.size();
+              let ids: Float64Array = new Float64Array(relSize);
+              for (let i: number = 0; i < relSize; i++) {
                 ids[i] = relationArray.get(i);
               }
               this._resolver.lookupAll(this._world, this._time, ids, (result : org.mwg.Node[]) => {
-                callback(result);
-              });
+{
+                  callback(result);
+                }              });
             }
           } else {
             callback(new Array<org.mwg.Node>(0));
@@ -499,10 +500,10 @@ module org {
         }
         public add(relationName: string, relatedNode: org.mwg.Node): void {
           if (relatedNode != null) {
-            var preciseState: org.mwg.plugin.NodeState = this._resolver.alignState(this);
-            var relHash: number = this._resolver.stringToHash(relationName, true);
+            let preciseState: org.mwg.plugin.NodeState = this._resolver.alignState(this);
+            let relHash: number = this._resolver.stringToHash(relationName, true);
             if (preciseState != null) {
-              var relationArray: org.mwg.struct.Relationship = <org.mwg.struct.Relationship>preciseState.getOrCreate(relHash, org.mwg.Type.RELATION);
+              let relationArray: org.mwg.struct.Relationship = <org.mwg.struct.Relationship>preciseState.getOrCreate(relHash, org.mwg.Type.RELATION);
               relationArray.add(relatedNode.id());
             } else {
               throw new Error(org.mwg.Constants.CACHE_MISS_ERROR);
@@ -511,10 +512,10 @@ module org {
         }
         public remove(relationName: string, relatedNode: org.mwg.Node): void {
           if (relatedNode != null) {
-            var preciseState: org.mwg.plugin.NodeState = this._resolver.alignState(this);
-            var relHash: number = this._resolver.stringToHash(relationName, false);
+            let preciseState: org.mwg.plugin.NodeState = this._resolver.alignState(this);
+            let relHash: number = this._resolver.stringToHash(relationName, false);
             if (preciseState != null) {
-              var relationArray: org.mwg.struct.Relationship = <org.mwg.struct.Relationship>preciseState.get(relHash);
+              let relationArray: org.mwg.struct.Relationship = <org.mwg.struct.Relationship>preciseState.get(relHash);
               if (relationArray != null) {
                 relationArray.remove(relatedNode.id());
               }
@@ -527,7 +528,7 @@ module org {
           this._resolver.freeNode(this);
         }
         public timeDephasing(): number {
-          var state: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
+          let state: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
           if (state != null) {
             return (this._time - state.time());
           } else {
@@ -535,7 +536,7 @@ module org {
           }
         }
         public lastModification(): number {
-          var state: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
+          let state: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
           if (state != null) {
             return state.time();
           } else {
@@ -552,89 +553,90 @@ module org {
           this._resolver.lookup(this._world, targetTime, this._id, callback);
         }
         public findByQuery(query: org.mwg.Query, callback: org.mwg.Callback<org.mwg.Node[]>): void {
-          var currentNodeState: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
+          let currentNodeState: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
           if (currentNodeState == null) {
             throw new Error(org.mwg.Constants.CACHE_MISS_ERROR);
           }
-          var indexName: string = query.indexName();
+          let indexName: string = query.indexName();
           if (indexName == null) {
             throw new Error("Please specify indexName in query before first use!");
           }
-          var queryWorld: number = query.world();
+          let queryWorld: number = query.world();
           if (queryWorld == org.mwg.Constants.NULL_LONG) {
             queryWorld = this.world();
           }
-          var queryTime: number = query.time();
+          let queryTime: number = query.time();
           if (queryTime == org.mwg.Constants.NULL_LONG) {
             queryTime = this.time();
           }
-          var indexMap: org.mwg.struct.LongLongArrayMap = <org.mwg.struct.LongLongArrayMap>currentNodeState.get(this._resolver.stringToHash(indexName, false));
+          let indexMap: org.mwg.struct.LongLongArrayMap = <org.mwg.struct.LongLongArrayMap>currentNodeState.get(this._resolver.stringToHash(indexName, false));
           if (indexMap != null) {
-            var selfPointer: org.mwg.plugin.AbstractNode = this;
-            var foundIds: Float64Array = indexMap.get(query.hash());
+            let selfPointer: org.mwg.plugin.AbstractNode = this;
+            let foundIds: Float64Array = indexMap.get(query.hash());
             if (foundIds == null) {
               callback(new Array<org.mwg.plugin.AbstractNode>(0));
               return;
             }
             selfPointer._resolver.lookupAll(queryWorld, queryTime, foundIds, (resolved : org.mwg.Node[]) => {
-              var resultSet: org.mwg.Node[] = new Array<org.mwg.plugin.AbstractNode>(foundIds.length);
-              var resultSetIndex: number = 0;
-              for (var i: number = 0; i < resultSet.length; i++) {
-                var resolvedNode: org.mwg.Node = resolved[i];
-                if (resolvedNode != null) {
-                  var resolvedState: org.mwg.plugin.NodeState = selfPointer._resolver.resolveState(resolvedNode);
-                  var exact: boolean = true;
-                  for (var j: number = 0; j < query.attributes().length; j++) {
-                    var obj: any = resolvedState.get(query.attributes()[j]);
-                    if (query.values()[j] == null) {
-                      if (obj != null) {
-                        exact = false;
-                        break;
-                      }
-                    } else {
-                      if (obj == null) {
-                        exact = false;
-                        break;
+{
+                let resultSet: org.mwg.Node[] = new Array<org.mwg.plugin.AbstractNode>(foundIds.length);
+                let resultSetIndex: number = 0;
+                for (let i: number = 0; i < resultSet.length; i++) {
+                  let resolvedNode: org.mwg.Node = resolved[i];
+                  if (resolvedNode != null) {
+                    let resolvedState: org.mwg.plugin.NodeState = selfPointer._resolver.resolveState(resolvedNode);
+                    let exact: boolean = true;
+                    for (let j: number = 0; j < query.attributes().length; j++) {
+                      let obj: any = resolvedState.get(query.attributes()[j]);
+                      if (query.values()[j] == null) {
+                        if (obj != null) {
+                          exact = false;
+break;
+                        }
                       } else {
-                        if (obj instanceof Float64Array) {
-                          if (query.values()[j] instanceof Float64Array) {
-                            if (!org.mwg.Constants.longArrayEquals(<Float64Array>query.values()[j], <Float64Array>obj)) {
+                        if (obj == null) {
+                          exact = false;
+break;
+                        } else {
+                          if (obj instanceof Float64Array) {
+                            if (query.values()[j] instanceof Float64Array) {
+                              if (!org.mwg.Constants.longArrayEquals(<Float64Array>query.values()[j], <Float64Array>obj)) {
+                                exact = false;
+break;
+                              }
+                            } else {
                               exact = false;
-                              break;
+break;
                             }
                           } else {
-                            exact = false;
-                            break;
-                          }
-                        } else {
-                          if (!org.mwg.Constants.equals(query.values()[j].toString(), obj.toString())) {
-                            exact = false;
-                            break;
+                            if (!org.mwg.Constants.equals(query.values()[j].toString(), obj.toString())) {
+                              exact = false;
+break;
+                            }
                           }
                         }
                       }
                     }
-                  }
-                  if (exact) {
-                    resultSet[resultSetIndex] = resolvedNode;
-                    resultSetIndex++;
+                    if (exact) {
+                      resultSet[resultSetIndex] = resolvedNode;
+                      resultSetIndex++;
+                    }
                   }
                 }
-              }
-              if (resultSet.length == resultSetIndex) {
-                callback(resultSet);
-              } else {
-                var trimmedResultSet: org.mwg.Node[] = new Array<org.mwg.plugin.AbstractNode>(resultSetIndex);
-                java.lang.System.arraycopy(resultSet, 0, trimmedResultSet, 0, resultSetIndex);
-                callback(trimmedResultSet);
-              }
-            });
+                if (resultSet.length == resultSetIndex) {
+                  callback(resultSet);
+                } else {
+                  let trimmedResultSet: org.mwg.Node[] = new Array<org.mwg.plugin.AbstractNode>(resultSetIndex);
+                  java.lang.System.arraycopy(resultSet, 0, trimmedResultSet, 0, resultSetIndex);
+                  callback(trimmedResultSet);
+                }
+              }            });
           } else {
             callback(new Array<org.mwg.plugin.AbstractNode>(0));
           }
         }
         public find(indexName: string, query: string, callback: org.mwg.Callback<org.mwg.Node[]>): void {
-          var queryObj: org.mwg.Query = this._graph.newQuery();
+          let queryObj: org.mwg.Query = this._graph.newQuery();
           queryObj.setWorld(this.world());
           queryObj.setTime(this.time());
           queryObj.setIndexName(indexName);
@@ -642,53 +644,55 @@ module org {
           this.findByQuery(queryObj, callback);
         }
         public findAll(indexName: string, callback: org.mwg.Callback<org.mwg.Node[]>): void {
-          var currentNodeState: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
+          let currentNodeState: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
           if (currentNodeState == null) {
             throw new Error(org.mwg.Constants.CACHE_MISS_ERROR);
           }
-          var indexMap: org.mwg.struct.LongLongArrayMap = <org.mwg.struct.LongLongArrayMap>currentNodeState.get(this._resolver.stringToHash(indexName, false));
+          let indexMap: org.mwg.struct.LongLongArrayMap = <org.mwg.struct.LongLongArrayMap>currentNodeState.get(this._resolver.stringToHash(indexName, false));
           if (indexMap != null) {
-            var ids: Float64Array = new Float64Array(<number>indexMap.size());
-            var idIndex: Int32Array = new Int32Array([0]);
+            let ids: Float64Array = new Float64Array(<number>indexMap.size());
+            let idIndex: Int32Array = new Int32Array([0]);
             indexMap.each((hash : number, nodeId : number) => {
-              ids[idIndex[0]] = nodeId;
-              idIndex[0]++;
-            });
+{
+                ids[idIndex[0]] = nodeId;
+                idIndex[0]++;
+              }            });
             this._resolver.lookupAll(this.world(), this.time(), ids, (result : org.mwg.Node[]) => {
-              callback(result);
-            });
+{
+                callback(result);
+              }            });
           } else {
             callback(new Array<org.mwg.plugin.AbstractNode>(0));
           }
         }
         public index(indexName: string, nodeToIndex: org.mwg.Node, flatKeyAttributes: string, callback: org.mwg.Callback<boolean>): void {
-          var keyAttributes: string[] = flatKeyAttributes.split(org.mwg.Constants.QUERY_SEP + "");
-          var hashName: number = this._resolver.stringToHash(indexName, true);
-          var flatQuery: org.mwg.Query = this._graph.newQuery();
-          var toIndexNodeState: org.mwg.plugin.NodeState = this._resolver.resolveState(nodeToIndex);
-          for (var i: number = 0; i < keyAttributes.length; i++) {
-            var attKey: string = keyAttributes[i];
-            var attValue: any = toIndexNodeState.getFromKey(attKey);
+          let keyAttributes: string[] = flatKeyAttributes.split(org.mwg.Constants.QUERY_SEP + "");
+          let hashName: number = this._resolver.stringToHash(indexName, true);
+          let flatQuery: org.mwg.Query = this._graph.newQuery();
+          let toIndexNodeState: org.mwg.plugin.NodeState = this._resolver.resolveState(nodeToIndex);
+          for (let i: number = 0; i < keyAttributes.length; i++) {
+            let attKey: string = keyAttributes[i];
+            let attValue: any = toIndexNodeState.getFromKey(attKey);
             if (attValue != null) {
               flatQuery.add(keyAttributes[i], attValue.toString());
             } else {
               flatQuery.add(keyAttributes[i], null);
             }
           }
-          var alreadyIndexed: boolean = false;
-          var previousState: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
+          let alreadyIndexed: boolean = false;
+          let previousState: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
           if (previousState != null) {
-            var previousMap: org.mwg.struct.LongLongArrayMap = <org.mwg.struct.LongLongArrayMap>previousState.get(hashName);
+            let previousMap: org.mwg.struct.LongLongArrayMap = <org.mwg.struct.LongLongArrayMap>previousState.get(hashName);
             if (previousMap != null) {
               alreadyIndexed = previousMap.contains(flatQuery.hash(), nodeToIndex.id());
             }
           }
           if (!alreadyIndexed) {
-            var currentNodeState: org.mwg.plugin.NodeState = this._resolver.alignState(this);
+            let currentNodeState: org.mwg.plugin.NodeState = this._resolver.alignState(this);
             if (currentNodeState == null) {
               throw new Error(org.mwg.Constants.CACHE_MISS_ERROR);
             }
-            var indexMap: org.mwg.struct.LongLongArrayMap = <org.mwg.struct.LongLongArrayMap>currentNodeState.getOrCreate(hashName, org.mwg.Type.LONG_TO_LONG_ARRAY_MAP);
+            let indexMap: org.mwg.struct.LongLongArrayMap = <org.mwg.struct.LongLongArrayMap>currentNodeState.getOrCreate(hashName, org.mwg.Type.LONG_TO_LONG_ARRAY_MAP);
             indexMap.put(flatQuery.hash(), nodeToIndex.id());
           }
           if (org.mwg.Constants.isDefined(callback)) {
@@ -696,18 +700,18 @@ module org {
           }
         }
         public unindex(indexName: string, nodeToIndex: org.mwg.Node, flatKeyAttributes: string, callback: org.mwg.Callback<boolean>): void {
-          var keyAttributes: string[] = flatKeyAttributes.split(org.mwg.Constants.QUERY_SEP + "");
-          var currentNodeState: org.mwg.plugin.NodeState = this._resolver.alignState(this);
+          let keyAttributes: string[] = flatKeyAttributes.split(org.mwg.Constants.QUERY_SEP + "");
+          let currentNodeState: org.mwg.plugin.NodeState = this._resolver.alignState(this);
           if (currentNodeState == null) {
             throw new Error(org.mwg.Constants.CACHE_MISS_ERROR);
           }
-          var indexMap: org.mwg.struct.LongLongArrayMap = <org.mwg.struct.LongLongArrayMap>currentNodeState.get(this._resolver.stringToHash(indexName, false));
+          let indexMap: org.mwg.struct.LongLongArrayMap = <org.mwg.struct.LongLongArrayMap>currentNodeState.get(this._resolver.stringToHash(indexName, false));
           if (indexMap != null) {
-            var flatQuery: org.mwg.Query = this._graph.newQuery();
-            var toIndexNodeState: org.mwg.plugin.NodeState = this._resolver.resolveState(nodeToIndex);
-            for (var i: number = 0; i < keyAttributes.length; i++) {
-              var attKey: string = keyAttributes[i];
-              var attValue: any = toIndexNodeState.getFromKey(attKey);
+            let flatQuery: org.mwg.Query = this._graph.newQuery();
+            let toIndexNodeState: org.mwg.plugin.NodeState = this._resolver.resolveState(nodeToIndex);
+            for (let i: number = 0; i < keyAttributes.length; i++) {
+              let attKey: string = keyAttributes[i];
+              let attValue: any = toIndexNodeState.getFromKey(attKey);
               if (attValue != null) {
                 flatQuery.add(attKey, attValue.toString());
               } else {
@@ -724,187 +728,206 @@ module org {
           return isNaN(toTest);
         }
         public toString(): string {
-          var builder: java.lang.StringBuilder = new java.lang.StringBuilder();
+          let builder: java.lang.StringBuilder = new java.lang.StringBuilder();
+          let isFirst: boolean[] = [true];
           builder.append("{\"world\":");
           builder.append(this.world());
           builder.append(",\"time\":");
           builder.append(this.time());
           builder.append(",\"id\":");
           builder.append(this.id());
-          var state: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
+          let state: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
           if (state != null) {
             state.each((attributeKey : number, elemType : number, elem : any) => {
-              if (elem != null) {
-                switch (elemType) {
-                  case org.mwg.Type.BOOL: 
-                  builder.append(",\"");
-                  builder.append(this._resolver.hashToString(attributeKey));
-                  builder.append("\":");
-                  if (<boolean>elem) {
-                    builder.append("0");
-                  } else {
-                    builder.append("1");
-                  }
-                  break;
-                  case org.mwg.Type.STRING: 
-                  builder.append(",\"");
-                  builder.append(this._resolver.hashToString(attributeKey));
-                  builder.append("\":");
-                  builder.append("\"");
-                  builder.append(elem);
-                  builder.append("\"");
-                  break;
-                  case org.mwg.Type.LONG: 
-                  builder.append(",\"");
-                  builder.append(this._resolver.hashToString(attributeKey));
-                  builder.append("\":");
-                  builder.append(elem);
-                  break;
-                  case org.mwg.Type.INT: 
-                  builder.append(",\"");
-                  builder.append(this._resolver.hashToString(attributeKey));
-                  builder.append("\":");
-                  builder.append(elem);
-                  break;
-                  case org.mwg.Type.DOUBLE: 
-                  if (!this.isNaN(<number>elem)) {
-                    builder.append(",\"");
-                    builder.append(this._resolver.hashToString(attributeKey));
-                    builder.append("\":");
-                    builder.append(elem);
-                  }
-                  break;
-                  case org.mwg.Type.DOUBLE_ARRAY: 
-                  builder.append(",\"");
-                  builder.append(this._resolver.hashToString(attributeKey));
-                  builder.append("\":");
-                  builder.append("[");
-                  var castedArr: Float64Array = <Float64Array>elem;
-                  for (var j: number = 0; j < castedArr.length; j++) {
-                    if (j != 0) {
-                      builder.append(",");
+{
+                if (elem != null) {
+                  switch (elemType) {
+                    case org.mwg.Type.BOOL: {
+                      builder.append(",\"");
+                      builder.append(this._resolver.hashToString(attributeKey));
+                      builder.append("\":");
+                      if (<boolean>elem) {
+                        builder.append("0");
+                      } else {
+                        builder.append("1");
+                      }
+break;
                     }
-                    builder.append(castedArr[j]);
-                  }
-                  builder.append("]");
-                  break;
-                  case org.mwg.Type.RELATION: 
-                  builder.append(",\"");
-                  builder.append(this._resolver.hashToString(attributeKey));
-                  builder.append("\":");
-                  builder.append("[");
-                  var castedRelArr: org.mwg.struct.Relationship = <org.mwg.struct.Relationship>elem;
-                  for (var j: number = 0; j < castedRelArr.size(); j++) {
-                    if (j != 0) {
-                      builder.append(",");
+                    case org.mwg.Type.STRING: {
+                      builder.append(",\"");
+                      builder.append(this._resolver.hashToString(attributeKey));
+                      builder.append("\":");
+                      builder.append("\"");
+                      builder.append(elem);
+                      builder.append("\"");
+break;
                     }
-                    builder.append(castedRelArr.get(j));
-                  }
-                  builder.append("]");
-                  break;
-                  case org.mwg.Type.LONG_ARRAY: 
-                  builder.append(",\"");
-                  builder.append(this._resolver.hashToString(attributeKey));
-                  builder.append("\":");
-                  builder.append("[");
-                  var castedArr2: Float64Array = <Float64Array>elem;
-                  for (var j: number = 0; j < castedArr2.length; j++) {
-                    if (j != 0) {
-                      builder.append(",");
+                    case org.mwg.Type.LONG: {
+                      builder.append(",\"");
+                      builder.append(this._resolver.hashToString(attributeKey));
+                      builder.append("\":");
+                      builder.append(elem);
+break;
                     }
-                    builder.append(castedArr2[j]);
-                  }
-                  builder.append("]");
-                  break;
-                  case org.mwg.Type.INT_ARRAY: 
-                  builder.append(",\"");
-                  builder.append(this._resolver.hashToString(attributeKey));
-                  builder.append("\":");
-                  builder.append("[");
-                  var castedArr3: Int32Array = <Int32Array>elem;
-                  for (var j: number = 0; j < castedArr3.length; j++) {
-                    if (j != 0) {
-                      builder.append(",");
+                    case org.mwg.Type.INT: {
+                      builder.append(",\"");
+                      builder.append(this._resolver.hashToString(attributeKey));
+                      builder.append("\":");
+                      builder.append(elem);
+break;
                     }
-                    builder.append(castedArr3[j]);
-                  }
-                  builder.append("]");
-                  break;
-                  case org.mwg.Type.LONG_TO_LONG_MAP: 
-                  builder.append(",\"");
-                  builder.append(this._resolver.hashToString(attributeKey));
-                  builder.append("\":");
-                  builder.append("{");
-                  var castedMapL2L: org.mwg.struct.LongLongMap = <org.mwg.struct.LongLongMap>elem;
-                  var isFirst: boolean[] = [true];
-                  castedMapL2L.each((key : number, value : number) => {
-                    if (!isFirst[0]) {
-                      builder.append(",");
-                    } else {
-                      isFirst[0] = false;
+                    case org.mwg.Type.DOUBLE: {
+                      if (!this.isNaN(<number>elem)) {
+                        builder.append(",\"");
+                        builder.append(this._resolver.hashToString(attributeKey));
+                        builder.append("\":");
+                        builder.append(elem);
+                      }
+break;
                     }
-                    builder.append("\"");
-                    builder.append(key);
-                    builder.append("\":");
-                    builder.append(value);
-                  });
-                  builder.append("}");
-                  break;
-                  case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP: 
-                  builder.append(",\"");
-                  builder.append(this._resolver.hashToString(attributeKey));
-                  builder.append("\":");
-                  builder.append("{");
-                  var castedMapL2LA: org.mwg.struct.LongLongArrayMap = <org.mwg.struct.LongLongArrayMap>elem;
-                  var isFirst: boolean[] = [true];
-                  var keys: java.util.Set<number> = new java.util.HashSet<number>();
-                  castedMapL2LA.each((key : number, value : number) => {
-                    keys.add(key);
-                  });
-                  var flatKeys: number[] = keys.toArray(new Array<number>(keys.size()));
-                  for (var i: number = 0; i < flatKeys.length; i++) {
-                    var values: Float64Array = castedMapL2LA.get(flatKeys[i]);
-                    if (!isFirst[0]) {
-                      builder.append(",");
-                    } else {
-                      isFirst[0] = false;
+                    case org.mwg.Type.DOUBLE_ARRAY: {
+                      builder.append(",\"");
+                      builder.append(this._resolver.hashToString(attributeKey));
+                      builder.append("\":");
+                      builder.append("[");
+                      let castedArr: Float64Array = <Float64Array>elem;
+                      for (let j: number = 0; j < castedArr.length; j++) {
+                        if (j != 0) {
+                          builder.append(",");
+                        }
+                        builder.append(castedArr[j]);
+                      }
+                      builder.append("]");
+break;
                     }
-                    builder.append("\"");
-                    builder.append(flatKeys[i]);
-                    builder.append("\":[");
-                    for (var j: number = 0; j < values.length; j++) {
+                    case org.mwg.Type.RELATION:
+                      builder.append(",\"");
+
+                      builder.append(this._resolver.hashToString(attributeKey));
+
+                      builder.append("\":");
+
+                      builder.append("[");
+                    let castedRelArr: org.mwg.struct.Relationship = <org.mwg.struct.Relationship>elem;
+                    for (let j: number = 0; j < castedRelArr.size(); j++) {
                       if (j != 0) {
                         builder.append(",");
                       }
-                      builder.append(values[j]);
+                      builder.append(castedRelArr.get(j));
                     }
-                    builder.append("]");
-                  }
-                  builder.append("}");
-                  break;
-                  case org.mwg.Type.STRING_TO_LONG_MAP: 
-                  builder.append(",\"");
-                  builder.append(this._resolver.hashToString(attributeKey));
-                  builder.append("\":");
-                  builder.append("{");
-                  var castedMapS2L: org.mwg.struct.StringLongMap = <org.mwg.struct.StringLongMap>elem;
-                  var isFirst: boolean[] = [true];
-                  castedMapS2L.each((key : string, value : number) => {
-                    if (!isFirst[0]) {
-                      builder.append(",");
-                    } else {
-                      isFirst[0] = false;
+
+                      builder.append("]");
+break;
+                    case org.mwg.Type.LONG_ARRAY: {
+                      builder.append(",\"");
+                      builder.append(this._resolver.hashToString(attributeKey));
+                      builder.append("\":");
+                      builder.append("[");
+                      let castedArr2: Float64Array = <Float64Array>elem;
+                      for (let j: number = 0; j < castedArr2.length; j++) {
+                        if (j != 0) {
+                          builder.append(",");
+                        }
+                        builder.append(castedArr2[j]);
+                      }
+                      builder.append("]");
+break;
                     }
-                    builder.append("\"");
-                    builder.append(key);
-                    builder.append("\":");
-                    builder.append(value);
-                  });
-                  builder.append("}");
-                  break;
+                    case org.mwg.Type.INT_ARRAY: {
+                      builder.append(",\"");
+                      builder.append(this._resolver.hashToString(attributeKey));
+                      builder.append("\":");
+                      builder.append("[");
+                      let castedArr3: Int32Array = <Int32Array>elem;
+                      for (let j: number = 0; j < castedArr3.length; j++) {
+                        if (j != 0) {
+                          builder.append(",");
+                        }
+                        builder.append(castedArr3[j]);
+                      }
+                      builder.append("]");
+break;
+                    }
+                    case org.mwg.Type.LONG_TO_LONG_MAP: {
+                      builder.append(",\"");
+                      builder.append(this._resolver.hashToString(attributeKey));
+                      builder.append("\":");
+                      builder.append("{");
+                      let castedMapL2L: org.mwg.struct.LongLongMap = <org.mwg.struct.LongLongMap>elem;
+                      isFirst[0] = true;
+                      castedMapL2L.each((key : number, value : number) => {
+{
+                          if (!isFirst[0]) {
+                            builder.append(",");
+                          } else {
+                            isFirst[0] = false;
+                          }
+                          builder.append("\"");
+                          builder.append(key);
+                          builder.append("\":");
+                          builder.append(value);
+                        }                      });
+                      builder.append("}");
+break;
+                    }
+                    case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP: {
+                      builder.append(",\"");
+                      builder.append(this._resolver.hashToString(attributeKey));
+                      builder.append("\":");
+                      builder.append("{");
+                      let castedMapL2LA: org.mwg.struct.LongLongArrayMap = <org.mwg.struct.LongLongArrayMap>elem;
+                      isFirst[0] = true;
+                      let keys: java.util.Set<number> = new java.util.HashSet<number>();
+                      castedMapL2LA.each((key : number, value : number) => {
+{
+                          keys.add(key);
+                        }                      });
+                      let flatKeys: number[] = keys.toArray(new Array<number>(keys.size()));
+                      for (let i: number = 0; i < flatKeys.length; i++) {
+                        let values: Float64Array = castedMapL2LA.get(flatKeys[i]);
+                        if (!isFirst[0]) {
+                          builder.append(",");
+                        } else {
+                          isFirst[0] = false;
+                        }
+                        builder.append("\"");
+                        builder.append(flatKeys[i]);
+                        builder.append("\":[");
+                        for (let j: number = 0; j < values.length; j++) {
+                          if (j != 0) {
+                            builder.append(",");
+                          }
+                          builder.append(values[j]);
+                        }
+                        builder.append("]");
+                      }
+                      builder.append("}");
+break;
+                    }
+                    case org.mwg.Type.STRING_TO_LONG_MAP: {
+                      builder.append(",\"");
+                      builder.append(this._resolver.hashToString(attributeKey));
+                      builder.append("\":");
+                      builder.append("{");
+                      let castedMapS2L: org.mwg.struct.StringLongMap = <org.mwg.struct.StringLongMap>elem;
+                      isFirst[0] = true;
+                      castedMapS2L.each((key : string, value : number) => {
+{
+                          if (!isFirst[0]) {
+                            builder.append(",");
+                          } else {
+                            isFirst[0] = false;
+                          }
+                          builder.append("\"");
+                          builder.append(key);
+                          builder.append("\":");
+                          builder.append(value);
+                        }                      });
+                      builder.append("}");
+break;
+                    }                  }
                 }
-              }
-            });
+              }            });
             builder.append("}");
           }
           return builder.toString();
@@ -1691,10 +1714,10 @@ module org {
           return this._originSize > 0 && (this._cursor + 1) < this._originSize;
         }
         public next(): org.mwg.struct.Buffer {
-          var previousCursor: number = this._cursor;
-          while ((this._cursor + 1) < this._originSize){
+          let previousCursor: number = this._cursor;
+          while ((this._cursor + 1) < this._originSize) {
             this._cursor++;
-            var current: number = this._origin.read(this._cursor);
+            let current: number = this._origin.read(this._cursor);
             if (current == org.mwg.Constants.BUFFER_SEP) {
               return new org.mwg.utility.BufferView(this._origin, previousCursor + 1, this._cursor - 1);
             }
@@ -1710,186 +1733,197 @@ module org {
         public asBool(propertyName: string): org.mwg.utility.Enforcer {
           return this.declare(propertyName, {
             check: function (inputType: number, input: any) {
-              if (input != null && inputType != org.mwg.Type.BOOL) {
-                throw new Error("Property " + propertyName + " should be Boolean value, currently " + input);
-              }
-            }
+{
+                if (input != null && inputType != org.mwg.Type.BOOL) {
+                  throw new Error("Property " + propertyName + " should be Boolean value, currently " + input);
+                }
+              }            }
           });
         }
         public asString(propertyName: string): org.mwg.utility.Enforcer {
           return this.declare(propertyName, {
             check: function (inputType: number, input: any) {
-              if (input != null && inputType != org.mwg.Type.STRING) {
-                throw new Error("Property " + propertyName + " should be String value, currently " + input);
-              }
-            }
+{
+                if (input != null && inputType != org.mwg.Type.STRING) {
+                  throw new Error("Property " + propertyName + " should be String value, currently " + input);
+                }
+              }            }
           });
         }
         public asLong(propertyName: string): org.mwg.utility.Enforcer {
           return this.declare(propertyName, {
             check: function (inputType: number, input: any) {
-              if (input != null && inputType != org.mwg.Type.LONG && inputType != org.mwg.Type.INT) {
-                throw new Error("Property " + propertyName + " should be long value, currently " + input);
-              }
-            }
+{
+                if (input != null && inputType != org.mwg.Type.LONG && inputType != org.mwg.Type.INT) {
+                  throw new Error("Property " + propertyName + " should be long value, currently " + input);
+                }
+              }            }
           });
         }
         public asLongWithin(propertyName: string, min: number, max: number): org.mwg.utility.Enforcer {
           return this.declare(propertyName, {
             check: function (inputType: number, input: any) {
-              var inputDouble: number = <number>input;
-              if (input != null && ((inputType != org.mwg.Type.LONG && inputType != org.mwg.Type.INT) || inputDouble < min || inputDouble > max)) {
-                throw new Error("Property " + propertyName + " should be long value [" + min + "," + max + "], currently " + input);
-              }
-            }
+{
+                let inputDouble: number = <number>input;
+                if (input != null && ((inputType != org.mwg.Type.LONG && inputType != org.mwg.Type.INT) || inputDouble < min || inputDouble > max)) {
+                  throw new Error("Property " + propertyName + " should be long value [" + min + "," + max + "], currently " + input);
+                }
+              }            }
           });
         }
         public asDouble(propertyName: string): org.mwg.utility.Enforcer {
           return this.declare(propertyName, {
             check: function (inputType: number, input: any) {
-              if (input != null && (inputType != org.mwg.Type.DOUBLE && inputType != org.mwg.Type.INT && inputType != org.mwg.Type.LONG)) {
-                throw new Error("Property " + propertyName + " should be double value, currently " + input);
-              }
-            }
+{
+                if (input != null && (inputType != org.mwg.Type.DOUBLE && inputType != org.mwg.Type.INT && inputType != org.mwg.Type.LONG)) {
+                  throw new Error("Property " + propertyName + " should be double value, currently " + input);
+                }
+              }            }
           });
         }
         public asDoubleWithin(propertyName: string, min: number, max: number): org.mwg.utility.Enforcer {
           return this.declare(propertyName, {
             check: function (inputType: number, input: any) {
-              var inputDouble: number;
-              if (input instanceof Number) {
-                inputDouble = <number><number>input;
-              } else {
+{
+                let inputDouble: number;
                 if (input instanceof Number) {
+                  inputDouble = <number><number>input;
+                } else if (input instanceof Number) {
                   inputDouble = <number><number>input;
                 } else {
                   inputDouble = <number>input;
                 }
-              }
-              if (input != null && ((inputType != org.mwg.Type.DOUBLE && inputType != org.mwg.Type.INT && inputType != org.mwg.Type.LONG) || inputDouble < min || inputDouble > max)) {
-                throw new Error("Property " + propertyName + " should be double value [" + min + "," + max + "], currently " + input);
-              }
-            }
+
+                if (input != null && ((inputType != org.mwg.Type.DOUBLE && inputType != org.mwg.Type.INT && inputType != org.mwg.Type.LONG) || inputDouble < min || inputDouble > max)) {
+                  throw new Error("Property " + propertyName + " should be double value [" + min + "," + max + "], currently " + input);
+                }
+              }            }
           });
         }
         public asInt(propertyName: string): org.mwg.utility.Enforcer {
           return this.declare(propertyName, {
             check: function (inputType: number, input: any) {
-              if (input != null && inputType != org.mwg.Type.INT && inputType != org.mwg.Type.LONG) {
-                throw new Error("Property " + propertyName + " should be integer value, currently " + input);
-              }
-            }
+{
+                if (input != null && inputType != org.mwg.Type.INT && inputType != org.mwg.Type.LONG) {
+                  throw new Error("Property " + propertyName + " should be integer value, currently " + input);
+                }
+              }            }
           });
         }
         public asIntWithin(propertyName: string, min: number, max: number): org.mwg.utility.Enforcer {
           return this.declare(propertyName, {
             check: function (inputType: number, input: any) {
-              var inputInt: number = <number>input;
-              if (input != null && ((inputType != org.mwg.Type.INT && inputType != org.mwg.Type.LONG) || inputInt < min || inputInt > max)) {
-                throw new Error("Property " + propertyName + " should be integer value [" + min + "," + max + "], currently " + input);
-              }
-            }
+{
+                let inputInt: number = <number>input;
+                if (input != null && ((inputType != org.mwg.Type.INT && inputType != org.mwg.Type.LONG) || inputInt < min || inputInt > max)) {
+                  throw new Error("Property " + propertyName + " should be integer value [" + min + "," + max + "], currently " + input);
+                }
+              }            }
           });
         }
         public asIntGreaterOrEquals(propertyName: string, min: number): org.mwg.utility.Enforcer {
           return this.declare(propertyName, {
             check: function (inputType: number, input: any) {
-              var inputInt: number = <number>input;
-              if (input != null && ((inputType != org.mwg.Type.INT && inputType != org.mwg.Type.LONG) || inputInt < min)) {
-                throw new Error("Property " + propertyName + " should be integer value >=" + min + ", currently " + input);
-              }
-            }
+{
+                let inputInt: number = <number>input;
+                if (input != null && ((inputType != org.mwg.Type.INT && inputType != org.mwg.Type.LONG) || inputInt < min)) {
+                  throw new Error("Property " + propertyName + " should be integer value >=" + min + ", currently " + input);
+                }
+              }            }
           });
         }
         public asDoubleArray(propertyName: string): org.mwg.utility.Enforcer {
           return this.declare(propertyName, {
             check: function (inputType: number, input: any) {
-              if (input != null && inputType != org.mwg.Type.DOUBLE_ARRAY) {
-                throw new Error("Property " + propertyName + " should be doubleArray value, currently " + input);
-              }
-            }
+{
+                if (input != null && inputType != org.mwg.Type.DOUBLE_ARRAY) {
+                  throw new Error("Property " + propertyName + " should be doubleArray value, currently " + input);
+                }
+              }            }
           });
         }
         public asPositiveInt(propertyName: string): org.mwg.utility.Enforcer {
           return this.declare(propertyName, {
             check: function (inputType: number, input: any) {
-              var inputInt: number = <number>input;
-              if ((input != null && inputType != org.mwg.Type.INT) || inputInt <= 0) {
-                throw new Error("Property " + propertyName + " should be a positive integer, currently " + input);
-              }
-            }
+{
+                let inputInt: number = <number>input;
+                if ((input != null && inputType != org.mwg.Type.INT) || inputInt <= 0) {
+                  throw new Error("Property " + propertyName + " should be a positive integer, currently " + input);
+                }
+              }            }
           });
         }
         public asNonNegativeDouble(propertyName: string): org.mwg.utility.Enforcer {
           return this.declare(propertyName, {
             check: function (inputType: number, input: any) {
-              var inputDouble: number;
-              if (input instanceof Number) {
-                inputDouble = <number><number>input;
-              } else {
+{
+                let inputDouble: number;
                 if (input instanceof Number) {
+                  inputDouble = <number><number>input;
+                } else if (input instanceof Number) {
                   inputDouble = <number><number>input;
                 } else {
                   inputDouble = <number>input;
                 }
-              }
-              if (input != null && ((inputType != org.mwg.Type.DOUBLE && inputType != org.mwg.Type.INT && inputType != org.mwg.Type.LONG) || !(inputDouble >= 0))) {
-                throw new Error("Property " + propertyName + " should be a non-negative double, currently " + input);
-              }
-            }
+
+                if (input != null && ((inputType != org.mwg.Type.DOUBLE && inputType != org.mwg.Type.INT && inputType != org.mwg.Type.LONG) || !(inputDouble >= 0))) {
+                  throw new Error("Property " + propertyName + " should be a non-negative double, currently " + input);
+                }
+              }            }
           });
         }
         public asPositiveDouble(propertyName: string): org.mwg.utility.Enforcer {
           return this.declare(propertyName, {
             check: function (inputType: number, input: any) {
-              var inputDouble: number;
-              if (input instanceof Number) {
-                inputDouble = <number><number>input;
-              } else {
+{
+                let inputDouble: number;
                 if (input instanceof Number) {
+                  inputDouble = <number><number>input;
+                } else if (input instanceof Number) {
                   inputDouble = <number><number>input;
                 } else {
                   inputDouble = <number>input;
                 }
-              }
-              if (input != null && ((inputType != org.mwg.Type.DOUBLE && inputType != org.mwg.Type.INT && inputType != org.mwg.Type.LONG) || !(inputDouble > 0))) {
-                throw new Error("Property " + propertyName + " should be a positive double, currently " + input);
-              }
-            }
+
+                if (input != null && ((inputType != org.mwg.Type.DOUBLE && inputType != org.mwg.Type.INT && inputType != org.mwg.Type.LONG) || !(inputDouble > 0))) {
+                  throw new Error("Property " + propertyName + " should be a positive double, currently " + input);
+                }
+              }            }
           });
         }
         public asNonNegativeOrNanDouble(propertyName: string): org.mwg.utility.Enforcer {
           return this.declare(propertyName, {
             check: function (inputType: number, input: any) {
-              var inputDouble: number;
-              if (input instanceof Number) {
-                inputDouble = <number><number>input;
-              } else {
+{
+                let inputDouble: number;
                 if (input instanceof Number) {
+                  inputDouble = <number><number>input;
+                } else if (input instanceof Number) {
                   inputDouble = <number><number>input;
                 } else {
                   inputDouble = <number>input;
                 }
-              }
-              if (input != null && ((inputType != org.mwg.Type.DOUBLE && inputType != org.mwg.Type.INT && inputType != org.mwg.Type.LONG) || inputDouble < 0)) {
-                throw new Error("Property " + propertyName + " should be a positive double, currently " + input);
-              }
-            }
+
+                if (input != null && ((inputType != org.mwg.Type.DOUBLE && inputType != org.mwg.Type.INT && inputType != org.mwg.Type.LONG) || inputDouble < 0)) {
+                  throw new Error("Property " + propertyName + " should be a positive double, currently " + input);
+                }
+              }            }
           });
         }
         public asPositiveLong(propertyName: string): org.mwg.utility.Enforcer {
           return this.declare(propertyName, {
             check: function (inputType: number, input: any) {
-              var inputLong: number;
-              if (input instanceof Number) {
-                inputLong = <number><number>input;
-              } else {
-                inputLong = <number>input;
-              }
-              if (input != null && ((inputType != org.mwg.Type.LONG && inputType != org.mwg.Type.INT) || inputLong <= 0)) {
-                throw new Error("Property " + propertyName + " should be a positive long, currently " + input);
-              }
-            }
+{
+                let inputLong: number;
+                if (input instanceof Number) {
+                  inputLong = <number><number>input;
+                } else {
+                  inputLong = <number>input;
+                }
+                if (input != null && ((inputType != org.mwg.Type.LONG && inputType != org.mwg.Type.INT) || inputLong <= 0)) {
+                  throw new Error("Property " + propertyName + " should be a positive long, currently " + input);
+                }
+              }            }
           });
         }
         public declare(propertyName: string, checker: org.mwg.utility.EnforcerChecker): org.mwg.utility.Enforcer {
@@ -1897,7 +1931,7 @@ module org {
           return this;
         }
         public check(propertyName: string, propertyType: number, propertyValue: any): void {
-          var checker: org.mwg.utility.EnforcerChecker = this.checkers.get(propertyName);
+          let checker: org.mwg.utility.EnforcerChecker = this.checkers.get(propertyName);
           if (checker != null) {
             checker.check(propertyType, propertyValue);
           }
@@ -2047,16 +2081,16 @@ module org {
           console.log("StartTask:" + initialContext);
         }
         public beforeAction(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void {
-          var currentPrefix: number = this.ctxIdents.get(context);
-          for (var i: number = 0; i < currentPrefix; i++) {
+          let currentPrefix: number = this.ctxIdents.get(context);
+          for (let i: number = 0; i < currentPrefix; i++) {
             console.log("\t");
           }
-          var taskName: string = action.toString();
+          let taskName: string = action.toString();
           console.log(context.template(taskName));
         }
         public afterAction(action: org.mwg.task.TaskAction, context: org.mwg.task.TaskContext): void {}
         public beforeTask(parentContext: org.mwg.task.TaskContext, context: org.mwg.task.TaskContext): void {
-          var currentPrefix: number = this.ctxIdents.get(parentContext);
+          let currentPrefix: number = this.ctxIdents.get(parentContext);
           this.ctxIdents.put(context, currentPrefix + 1);
         }
         public afterTask(context: org.mwg.task.TaskContext): void {
