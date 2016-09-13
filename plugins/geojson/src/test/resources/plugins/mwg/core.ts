@@ -4802,7 +4802,7 @@ break;
             }
           }
           public toString(): string {
-            return "foreach()";
+            return "flatmap()";
           }
         }
         export class ActionFlatmapPar extends org.mwg.plugin.AbstractTaskAction {
@@ -4842,7 +4842,7 @@ break;
               }            });
           }
           public toString(): string {
-            return "foreachPar()";
+            return "flatmapPar()";
           }
         }
         export class ActionForeach extends org.mwg.plugin.AbstractTaskAction {
@@ -5320,6 +5320,31 @@ break;
           }
           public toString(): string {
             return "lookup(\'" + this._id + "\")";
+          }
+        }
+        export class ActionLookupAll extends org.mwg.plugin.AbstractTaskAction {
+          private _ids: string;
+          constructor(p_ids: string) {
+            super();
+            this._ids = p_ids;
+          }
+          public eval(context: org.mwg.task.TaskContext): void {
+            let afterTemplate: string = context.template(this._ids).trim();
+            if ((afterTemplate.lastIndexOf("[", 0) === 0)) {
+              afterTemplate = afterTemplate.substring(1, afterTemplate.length - 1);
+            }
+            let values: string[] = afterTemplate.split(",");
+            let ids: Float64Array = new Float64Array(values.length);
+            for (let i: number = 0; i < values.length; i++) {
+              ids[i] = java.lang.Long.parseLong(values[i]);
+            }
+            context.graph().lookupAll(context.world(), context.time(), ids, (result : org.mwg.Node[]) => {
+{
+                context.continueWith(context.wrap(result));
+              }            });
+          }
+          public toString(): string {
+            return "lookup(\'" + this._ids + "\")";
           }
         }
         export class ActionLoop extends org.mwg.plugin.AbstractTaskAction {
@@ -6525,6 +6550,10 @@ break;
           }
           public lookup(nodeId: string): org.mwg.task.Task {
             this.addAction(new org.mwg.core.task.ActionLookup(nodeId));
+            return this;
+          }
+          public lookupAll(nodeId: string): org.mwg.task.Task {
+            this.addAction(new org.mwg.core.task.ActionLookupAll(nodeId));
             return this;
           }
           public execute(graph: org.mwg.Graph, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void {

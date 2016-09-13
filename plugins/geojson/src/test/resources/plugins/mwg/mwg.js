@@ -8143,7 +8143,7 @@ var org;
                         }
                     };
                     ActionFlatmap.prototype.toString = function () {
-                        return "foreach()";
+                        return "flatmap()";
                     };
                     return ActionFlatmap;
                 }(org.mwg.plugin.AbstractTaskAction));
@@ -8191,7 +8191,7 @@ var org;
                         });
                     };
                     ActionFlatmapPar.prototype.toString = function () {
-                        return "foreachPar()";
+                        return "flatmapPar()";
                     };
                     return ActionFlatmapPar;
                 }(org.mwg.plugin.AbstractTaskAction));
@@ -8738,6 +8738,34 @@ var org;
                     return ActionLookup;
                 }(org.mwg.plugin.AbstractTaskAction));
                 task.ActionLookup = ActionLookup;
+                var ActionLookupAll = (function (_super) {
+                    __extends(ActionLookupAll, _super);
+                    function ActionLookupAll(p_ids) {
+                        _super.call(this);
+                        this._ids = p_ids;
+                    }
+                    ActionLookupAll.prototype.eval = function (context) {
+                        var afterTemplate = context.template(this._ids).trim();
+                        if ((afterTemplate.lastIndexOf("[", 0) === 0)) {
+                            afterTemplate = afterTemplate.substring(1, afterTemplate.length - 1);
+                        }
+                        var values = afterTemplate.split(",");
+                        var ids = new Float64Array(values.length);
+                        for (var i = 0; i < values.length; i++) {
+                            ids[i] = java.lang.Long.parseLong(values[i]);
+                        }
+                        context.graph().lookupAll(context.world(), context.time(), ids, function (result) {
+                            {
+                                context.continueWith(context.wrap(result));
+                            }
+                        });
+                    };
+                    ActionLookupAll.prototype.toString = function () {
+                        return "lookup(\'" + this._ids + "\")";
+                    };
+                    return ActionLookupAll;
+                }(org.mwg.plugin.AbstractTaskAction));
+                task.ActionLookupAll = ActionLookupAll;
                 var ActionLoop = (function (_super) {
                     __extends(ActionLoop, _super);
                     function ActionLoop(p_lower, p_upper, p_subTask) {
@@ -10058,6 +10086,10 @@ var org;
                     };
                     CoreTask.prototype.lookup = function (nodeId) {
                         this.addAction(new org.mwg.core.task.ActionLookup(nodeId));
+                        return this;
+                    };
+                    CoreTask.prototype.lookupAll = function (nodeId) {
+                        this.addAction(new org.mwg.core.task.ActionLookupAll(nodeId));
                         return this;
                     };
                     CoreTask.prototype.execute = function (graph, callback) {

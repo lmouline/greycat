@@ -1397,6 +1397,7 @@ break;
         action(name: string, params: string): org.mwg.task.Task;
         split(splitPattern: string): org.mwg.task.Task;
         lookup(nodeId: string): org.mwg.task.Task;
+        lookupAll(nodeId: string): org.mwg.task.Task;
         math(expression: string): org.mwg.task.Task;
         loop(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
         loopPar(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;

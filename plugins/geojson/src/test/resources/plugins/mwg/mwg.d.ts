@@ -884,6 +884,7 @@ declare module org {
                 action(name: string, params: string): org.mwg.task.Task;
                 split(splitPattern: string): org.mwg.task.Task;
                 lookup(nodeId: string): org.mwg.task.Task;
+                lookupAll(nodeId: string): org.mwg.task.Task;
                 math(expression: string): org.mwg.task.Task;
                 loop(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                 loopPar(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
@@ -1724,6 +1725,12 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
+                class ActionLookupAll extends org.mwg.plugin.AbstractTaskAction {
+                    private _ids;
+                    constructor(p_ids: string);
+                    eval(context: org.mwg.task.TaskContext): void;
+                    toString(): string;
+                }
                 class ActionLoop extends org.mwg.plugin.AbstractTaskAction {
                     private _subTask;
                     private _lower;
@@ -1957,6 +1964,7 @@ declare module org {
                     save(): org.mwg.task.Task;
                     clear(): org.mwg.task.Task;
                     lookup(nodeId: string): org.mwg.task.Task;
+                    lookupAll(nodeId: string): org.mwg.task.Task;
                     execute(graph: org.mwg.Graph, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                     executeSync(graph: org.mwg.Graph): org.mwg.task.TaskResult<any>;
                     executeWith(graph: org.mwg.Graph, initial: any, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
