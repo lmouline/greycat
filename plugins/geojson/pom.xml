@@ -72,7 +72,7 @@
                                     <version>${project.parent.version}</version>
                                     <classifier>js</classifier>
                                     <type>zip</type>
-                                    <includes>*.js,*.min.js,*.map</includes>
+                                    <includes>*.js,*.min.js,*.map,*.ts</includes>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.basedir}/src/test/resources/plugins/mwg</outputDirectory>
                                 </artifactItem>
@@ -82,7 +82,7 @@
                                     <version>${project.parent.version}</version>
                                     <classifier>js</classifier>
                                     <type>zip</type>
-                                    <includes>*.js,*.min.js,*.map</includes>
+                                    <includes>*.js,*.min.js,*.map,*.ts</includes>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.basedir}/src/test/resources/plugins/mwg</outputDirectory>
                                 </artifactItem>
@@ -92,7 +92,7 @@
                                     <version>${project.parent.version}</version>
                                     <classifier>js</classifier>
                                     <type>zip</type>
-                                    <includes>*.js,*.min.js,*.map</includes>
+                                    <includes>*.js,*.min.js,*.map,*.ts</includes>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.basedir}/src/test/resources/plugins/mwg</outputDirectory>
                                 </artifactItem>

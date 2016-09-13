@@ -1,29 +1,27 @@
 package org.mwg.importer.util;
 
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonValue;
 import org.mwg.task.TaskResult;
 import org.mwg.task.TaskResultIterator;
 
-import java.util.Iterator;
+public class JsonSingleResult implements TaskResult {
 
-public class JsonArrayResult implements TaskResult {
-
-    private final JsonArray _content;
-
-    public JsonArrayResult(JsonArray init) {
-        _content = init;
+    public JsonSingleResult(Object content) {
+        this._content = content;
     }
+
+    private Object _content;
 
     @Override
     public TaskResultIterator iterator() {
         return new TaskResultIterator() {
-            private Iterator<JsonValue> it = _content.iterator();
+
+            private int i = 0;
 
             @Override
             public Object next() {
-                if(it.hasNext()){
-                    return JsonValueResultBuilder.build(it.next());
+                i++;
+                if (i == 1) {
+                    return _content;
                 } else {
                     return null;
                 }
@@ -33,27 +31,34 @@ public class JsonArrayResult implements TaskResult {
 
     @Override
     public Object get(int index) {
-        return JsonValueResultBuilder.build(_content.get(index));
+        if (index == 0) {
+            return _content;
+        }
+        return null;
     }
 
     @Override
     public void set(int index, Object input) {
+
     }
 
     @Override
     public void allocate(int index) {
+
     }
 
     @Override
     public void add(Object input) {
+
     }
 
     @Override
     public void clear() {
+
     }
 
     @Override
-    public TaskResult<JsonValue> clone() {
+    public TaskResult clone() {
         return this;
     }
 
@@ -64,21 +69,16 @@ public class JsonArrayResult implements TaskResult {
 
     @Override
     public int size() {
-        return _content.size();
+        return 1;
     }
 
     @Override
     public Object[] asArray() {
-        Object[] flat = new Object[_content.size()];
-        for (int i = 0; i < _content.size(); i++) {
-            flat[i] = _content.get(i);
-        }
-        return flat;
+        return new Object[]{_content};
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return _content.toString();
     }
-
 }
