@@ -834,7 +834,9 @@ declare module org {
                 fromIndex(indexName: string, query: string): org.mwg.task.Task;
                 fromIndexAll(indexName: string): org.mwg.task.Task;
                 indexNode(indexName: string, flatKeyAttributes: string): org.mwg.task.Task;
+                indexNodeAt(world: string, time: string, indexName: string, flatKeyAttributes: string): org.mwg.task.Task;
                 localIndex(indexedRelation: string, flatKeyAttributes: string, varNodeToAdd: string): org.mwg.task.Task;
+                unindexNodeAt(world: string, time: string, indexName: string, flatKeyAttributes: string): org.mwg.task.Task;
                 unindexNode(indexName: string, flatKeyAttributes: string): org.mwg.task.Task;
                 localUnindex(indexedRelation: string, flatKeyAttributes: string, varNodeToAdd: string): org.mwg.task.Task;
                 selectWith(name: string, pattern: string): org.mwg.task.Task;
@@ -1668,6 +1670,16 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
+                class ActionIndexOrUnindexNodeAt extends org.mwg.plugin.AbstractTaskAction {
+                    private _indexName;
+                    private _flatKeyAttributes;
+                    private _isIndexation;
+                    private _world;
+                    private _time;
+                    constructor(world: string, time: string, indexName: string, flatKeyAttributes: string, isIndexation: boolean);
+                    eval(context: org.mwg.task.TaskContext): void;
+                    toString(): string;
+                }
                 class ActionInject extends org.mwg.plugin.AbstractTaskAction {
                     private _value;
                     constructor(value: any);
@@ -1891,7 +1903,9 @@ declare module org {
                     fromIndex(indexName: string, query: string): org.mwg.task.Task;
                     fromIndexAll(indexName: string): org.mwg.task.Task;
                     indexNode(indexName: string, flatKeyAttributes: string): org.mwg.task.Task;
+                    indexNodeAt(world: string, time: string, indexName: string, flatKeyAttributes: string): org.mwg.task.Task;
                     localIndex(indexedRelation: string, flatKeyAttributes: string, varNodeToAdd: string): org.mwg.task.Task;
+                    unindexNodeAt(world: string, time: string, indexName: string, flatKeyAttributes: string): org.mwg.task.Task;
                     unindexNode(indexName: string, flatKeyAttributes: string): org.mwg.task.Task;
                     localUnindex(indexedRelation: string, flatKeyAttributes: string, varNodeToAdd: string): org.mwg.task.Task;
                     selectWith(name: string, pattern: string): org.mwg.task.Task;
