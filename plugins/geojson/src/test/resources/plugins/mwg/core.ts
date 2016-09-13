@@ -388,20 +388,23 @@ module org {
           return new org.mwg.core.CoreQuery(this, this._resolver);
         }
         public index(indexName: string, toIndexNode: org.mwg.Node, flatKeyAttributes: string, callback: org.mwg.Callback<boolean>): void {
+          this.indexAt(toIndexNode.world(), toIndexNode.time(), indexName, toIndexNode, flatKeyAttributes, callback);
+        }
+        public indexAt(world: number, time: number, indexName: string, nodeToIndex: org.mwg.Node, flatKeyAttributes: string, callback: org.mwg.Callback<boolean>): void {
           if (indexName == null) {
             throw new Error("indexName should not be null");
           }
-          if (toIndexNode == null) {
+          if (nodeToIndex == null) {
             throw new Error("toIndexNode should not be null");
           }
           if (flatKeyAttributes == null) {
             throw new Error("flatKeyAttributes should not be null");
           }
-          this.getIndexOrCreate(toIndexNode.world(), toIndexNode.time(), indexName, true, (foundIndex : org.mwg.Node) => {
+          this.getIndexOrCreate(world, time, indexName, true, (foundIndex : org.mwg.Node) => {
             if (foundIndex == null) {
               throw new Error("Index creation failed, cache is probably full !!!");
             }
-            foundIndex.index(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE, toIndexNode, flatKeyAttributes, (result : boolean) => {
+            foundIndex.index(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE, nodeToIndex, flatKeyAttributes, (result : boolean) => {
               foundIndex.free();
               if (org.mwg.utility.HashHelper.isDefined(callback)) {
                 callback(result);
@@ -410,6 +413,9 @@ module org {
           });
         }
         public unindex(indexName: string, nodeToUnindex: org.mwg.Node, flatKeyAttributes: string, callback: org.mwg.Callback<boolean>): void {
+          this.unindexAt(nodeToUnindex.world(), nodeToUnindex.time(), indexName, nodeToUnindex, flatKeyAttributes, callback);
+        }
+        public unindexAt(world: number, time: number, indexName: string, nodeToUnindex: org.mwg.Node, flatKeyAttributes: string, callback: org.mwg.Callback<boolean>): void {
           if (indexName == null) {
             throw new Error("indexName should not be null");
           }
@@ -419,7 +425,7 @@ module org {
           if (flatKeyAttributes == null) {
             throw new Error("flatKeyAttributes should not be null");
           }
-          this.getIndexOrCreate(nodeToUnindex.world(), nodeToUnindex.time(), indexName, false, (foundIndex : org.mwg.Node) => {
+          this.getIndexOrCreate(world, time, indexName, false, (foundIndex : org.mwg.Node) => {
             if (foundIndex != null) {
               foundIndex.unindex(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE, nodeToUnindex, flatKeyAttributes, (result : boolean) => {
                 foundIndex.free();

@@ -1816,7 +1816,7 @@ var org;
                         }
                     }
                     if (!alreadyIndexed) {
-                        var currentNodeState = this._resolver.resolveState(this);
+                        var currentNodeState = this._resolver.alignState(this);
                         if (currentNodeState == null) {
                             throw new Error(org.mwg.Constants.CACHE_MISS_ERROR);
                         }
@@ -3396,20 +3396,23 @@ var org;
                     return new org.mwg.core.CoreQuery(this, this._resolver);
                 };
                 CoreGraph.prototype.index = function (indexName, toIndexNode, flatKeyAttributes, callback) {
+                    this.indexAt(toIndexNode.world(), toIndexNode.time(), indexName, toIndexNode, flatKeyAttributes, callback);
+                };
+                CoreGraph.prototype.indexAt = function (world, time, indexName, nodeToIndex, flatKeyAttributes, callback) {
                     if (indexName == null) {
                         throw new Error("indexName should not be null");
                     }
-                    if (toIndexNode == null) {
+                    if (nodeToIndex == null) {
                         throw new Error("toIndexNode should not be null");
                     }
                     if (flatKeyAttributes == null) {
                         throw new Error("flatKeyAttributes should not be null");
                     }
-                    this.getIndexOrCreate(toIndexNode.world(), toIndexNode.time(), indexName, true, function (foundIndex) {
+                    this.getIndexOrCreate(world, time, indexName, true, function (foundIndex) {
                         if (foundIndex == null) {
                             throw new Error("Index creation failed, cache is probably full !!!");
                         }
-                        foundIndex.index(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE, toIndexNode, flatKeyAttributes, function (result) {
+                        foundIndex.index(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE, nodeToIndex, flatKeyAttributes, function (result) {
                             foundIndex.free();
                             if (org.mwg.utility.HashHelper.isDefined(callback)) {
                                 callback(result);
@@ -3418,6 +3421,9 @@ var org;
                     });
                 };
                 CoreGraph.prototype.unindex = function (indexName, nodeToUnindex, flatKeyAttributes, callback) {
+                    this.unindexAt(nodeToUnindex.world(), nodeToUnindex.time(), indexName, nodeToUnindex, flatKeyAttributes, callback);
+                };
+                CoreGraph.prototype.unindexAt = function (world, time, indexName, nodeToUnindex, flatKeyAttributes, callback) {
                     if (indexName == null) {
                         throw new Error("indexName should not be null");
                     }
@@ -3427,7 +3433,7 @@ var org;
                     if (flatKeyAttributes == null) {
                         throw new Error("flatKeyAttributes should not be null");
                     }
-                    this.getIndexOrCreate(nodeToUnindex.world(), nodeToUnindex.time(), indexName, false, function (foundIndex) {
+                    this.getIndexOrCreate(world, time, indexName, false, function (foundIndex) {
                         if (foundIndex != null) {
                             foundIndex.unindex(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE, nodeToUnindex, flatKeyAttributes, function (result) {
                                 foundIndex.free();

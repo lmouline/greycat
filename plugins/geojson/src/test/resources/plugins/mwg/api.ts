@@ -67,7 +67,9 @@ module org {
       connect(callback: org.mwg.Callback<boolean>): void;
       disconnect(callback: org.mwg.Callback<boolean>): void;
       index(indexName: string, nodeToIndex: org.mwg.Node, flatKeyAttributes: string, callback: org.mwg.Callback<boolean>): void;
+      indexAt(world: number, time: number, indexName: string, nodeToIndex: org.mwg.Node, flatKeyAttributes: string, callback: org.mwg.Callback<boolean>): void;
       unindex(indexName: string, nodeToUnindex: org.mwg.Node, flatKeyAttributes: string, callback: org.mwg.Callback<boolean>): void;
+      unindexAt(world: number, time: number, indexName: string, nodeToUnindex: org.mwg.Node, flatKeyAttributes: string, callback: org.mwg.Callback<boolean>): void;
       indexes(world: number, time: number, callback: org.mwg.Callback<string[]>): void;
       find(world: number, time: number, indexName: string, query: string, callback: org.mwg.Callback<org.mwg.Node[]>): void;
       findByQuery(query: org.mwg.Query, callback: org.mwg.Callback<org.mwg.Node[]>): void;
@@ -682,7 +684,7 @@ module org {
             }
           }
           if (!alreadyIndexed) {
-            var currentNodeState: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
+            var currentNodeState: org.mwg.plugin.NodeState = this._resolver.alignState(this);
             if (currentNodeState == null) {
               throw new Error(org.mwg.Constants.CACHE_MISS_ERROR);
             }
