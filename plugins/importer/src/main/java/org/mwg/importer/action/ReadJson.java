@@ -6,6 +6,7 @@ import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import org.mwg.importer.util.JsonArrayResult;
 import org.mwg.importer.util.JsonObjectResult;
+import org.mwg.importer.util.JsonValueResultBuilder;
 import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
@@ -50,14 +51,7 @@ public class ReadJson extends AbstractTaskAction {
         if (foundStream != null) {
             try {
                 InputStreamReader reader = new InputStreamReader(foundStream);
-                JsonValue firstElem = Json.parse(reader);
-                if (firstElem.isArray()) {
-                    result = new JsonArrayResult((JsonArray) firstElem);
-                } else if(firstElem.isObject()) {
-                    result = new JsonObjectResult((JsonObject) firstElem);
-                } else {
-                    result =
-                }
+                result = JsonValueResultBuilder.build(Json.parse(reader));
                 reader.close();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -69,7 +63,7 @@ public class ReadJson extends AbstractTaskAction {
                 }
             }
         }
-        context.continueWith(new JsonArrayResult(result));
+        context.continueWith(result);
     }
 
 }

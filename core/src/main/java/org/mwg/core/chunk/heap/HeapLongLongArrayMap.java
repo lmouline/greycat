@@ -154,6 +154,24 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
     }
 
     @Override
+    public boolean contains(long requestKey, long requestValue) {
+        boolean result = false;
+        synchronized (parent) {
+            if (keys != null) {
+                final int hashIndex = (int) HashHelper.longHash(requestKey, capacity * 2);
+                int m = hash(hashIndex);
+                while (m >= 0 && !result) {
+                    if (requestKey == key(m) && requestValue == value(m)) {
+                        result = true;
+                    }
+                    m = next(m);
+                }
+            }
+        }
+        return result;
+    }
+
+    @Override
     public final void each(LongLongArrayMapCallBack callback) {
         synchronized (parent) {
             unsafe_each(callback);

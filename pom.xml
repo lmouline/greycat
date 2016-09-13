@@ -29,7 +29,7 @@
     </parent>
 
     <properties>
-        <java2typescript.plugin.version>74</java2typescript.plugin.version>
+        <java2typescript.plugin.version>76</java2typescript.plugin.version>
     </properties>
 
     <developers>
@@ -104,8 +104,8 @@
 
         <!--
         <module>plugins/memory</module>
-        <module>plugins/importer</module>
         -->
+        <module>plugins/importer</module>
 
         <module>plugins/leveldb</module>
         <module>plugins/rocksdb</module>

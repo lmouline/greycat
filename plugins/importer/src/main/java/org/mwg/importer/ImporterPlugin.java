@@ -1,5 +1,6 @@
 package org.mwg.importer;
 
+import org.mwg.importer.action.JsonMatch;
 import org.mwg.importer.action.ReadFiles;
 import org.mwg.importer.action.ReadJson;
 import org.mwg.importer.action.ReadLines;
@@ -38,6 +39,17 @@ public class ImporterPlugin extends AbstractPlugin {
                 return new ReadJson(params[0]);
             }
         });
+
+        /*
+        declareTaskAction(ImporterActions.JSONMATCH, new TaskActionFactory() {
+            @Override
+            public TaskAction create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException(ImporterActions.JSONMATCH + " action need one parameter");
+                }
+                return new JsonMatch(params[0]);
+            }
+        });*/
 
     }
 }

@@ -2,13 +2,14 @@ package org.mwg.importer.util;
 
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
+import org.mwg.task.Task;
 import org.mwg.task.TaskResult;
 import org.mwg.task.TaskResultIterator;
 
 import java.util.Iterator;
 import java.util.List;
 
-public class JsonObjectResult implements TaskResult<JsonValue> {
+public class JsonObjectResult implements TaskResult<JsonMemberResult> {
 
     private final JsonObject _content;
 
@@ -19,42 +20,38 @@ public class JsonObjectResult implements TaskResult<JsonValue> {
     @Override
     public TaskResultIterator iterator() {
         return new TaskResultIterator() {
-            private int currentIndex = 0;
             private Iterator<JsonObject.Member> subIt = _content.iterator();
 
             @Override
             public Object next() {
-                JsonObject.Member member = subIt.next();
+                if (subIt.hasNext()) {
+                    JsonObject.Member res = subIt.next();
+                    if (res != null) {
+                        return new JsonMemberResult(res);
+                    }
+                }
+                return null;
             }
         };
     }
 
-    private class JsonValueIterator implements TaskResultIterator {
-
-        private int currentIndex = 0;
-
-        public JsonValueIterator() {
-            if (_content.isObject()) {
-                JsonObject
+    @Override
+    public JsonMemberResult get(int index) {
+        Iterator<JsonObject.Member> subIt = _content.iterator();
+        JsonObject.Member result = null;
+        for (int i = 0; i < index; i++) {
+            if (subIt.hasNext()) {
+                result = subIt.next();
             }
         }
-
-        @Override
-        public Object next() {
+        if (result == null) {
             return null;
         }
+        return new JsonMemberResult(result);
     }
 
     @Override
-    public JsonValue get(int index) {
-        if (_content == null) {
-            return null;
-        }
-        return (index < 1 ? _content : null);
-    }
-
-    @Override
-    public void set(int index, JsonValue input) {
+    public void set(int index, JsonMemberResult input) {
     }
 
     @Override
@@ -62,7 +59,7 @@ public class JsonObjectResult implements TaskResult<JsonValue> {
     }
 
     @Override
-    public void add(JsonValue input) {
+    public void add(JsonMemberResult input) {
     }
 
     @Override
@@ -70,25 +67,26 @@ public class JsonObjectResult implements TaskResult<JsonValue> {
     }
 
     @Override
-    public TaskResult<JsonValue> clone() {
+    public TaskResult<JsonMemberResult> clone() {
         return this;
     }
 
     @Override
     public void free() {
-
     }
 
     @Override
     public int size() {
-        if (_content == null) {
-            return 0;
-        }
-        return 1;
+        return _content.size();
     }
 
     @Override
     public Object[] asArray() {
         return new Object[]{_content};
+    }
+
+    @Override
+    public String toString() {
+        return _content.toString();
     }
 }

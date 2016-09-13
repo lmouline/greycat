@@ -121,7 +121,17 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
+    public void indexAt(long world, long time, String indexName, Node nodeToIndex, String flatKeyAttributes, Callback<Boolean> callback) {
+
+    }
+
+    @Override
     public void unindex(String indexName, Node nodeToUnindex, String flatKeyAttributes, Callback<Boolean> callback) {
+
+    }
+
+    @Override
+    public void unindexAt(long world, long time, String indexName, Node nodeToUnindex, String flatKeyAttributes, Callback<Boolean> callback) {
 
     }
 

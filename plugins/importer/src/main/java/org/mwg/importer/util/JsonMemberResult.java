@@ -1,12 +1,10 @@
 package org.mwg.importer.util;
 
-import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
 import org.mwg.task.TaskResult;
 import org.mwg.task.TaskResultIterator;
 
-public class JsonMemberResult implements TaskResult<JsonValue> {
+public class JsonMemberResult implements TaskResult<Object> {
 
     private final JsonObject.Member _member;
 
@@ -26,14 +24,7 @@ public class JsonMemberResult implements TaskResult<JsonValue> {
                     result = _member.getName();
                 }
                 if (currentIndex == 1) {
-                    if (_member.getValue().isObject()) {
-                        result = new JsonObjectResult((JsonObject) _member.getValue());
-                    } else if (_member.getValue().isArray()) {
-                        result = new JsonArrayResult((JsonArray) _member.getValue());
-                    } else {
-                        //TODO
-                    }
-                    result = new JsonV_member.getValue();
+                    result = JsonValueResultBuilder.build(_member.getValue());
                 }
                 currentIndex++;
                 return result;
@@ -42,15 +33,17 @@ public class JsonMemberResult implements TaskResult<JsonValue> {
     }
 
     @Override
-    public JsonValue get(int index) {
-        if (_content == null) {
-            return null;
+    public Object get(int index) {
+        if (index == 0) {
+            return _member.getName();
+        } else {
+            return JsonValueResultBuilder.build(_member.getValue());
         }
-        return (index < _content.length ? _content[index] : null);
     }
 
     @Override
-    public void set(int index, JsonValue input) {
+    public void set(int index, Object input) {
+
     }
 
     @Override
@@ -58,7 +51,7 @@ public class JsonMemberResult implements TaskResult<JsonValue> {
     }
 
     @Override
-    public void add(JsonValue input) {
+    public void add(Object input) {
     }
 
     @Override
@@ -66,7 +59,7 @@ public class JsonMemberResult implements TaskResult<JsonValue> {
     }
 
     @Override
-    public TaskResult<JsonValue> clone() {
+    public TaskResult<Object> clone() {
         return this;
     }
 
@@ -77,14 +70,16 @@ public class JsonMemberResult implements TaskResult<JsonValue> {
 
     @Override
     public int size() {
-        if (_content == null) {
-            return 0;
-        }
-        return _content.length;
+        return 2;
     }
 
     @Override
     public Object[] asArray() {
-        return _content;
+        return new Object[]{_member.getName(), _member.getValue()};
+    }
+
+    @Override
+    public String toString() {
+        return "<" + _member.getName() + "->" + _member.getValue() + ">";
     }
 }

@@ -72,9 +72,9 @@
                                     <version>${project.parent.version}</version>
                                     <classifier>js</classifier>
                                     <type>zip</type>
-                                    <includes>*.js,*.min.js,*.map</includes>
+                                    <includes>*.js,*.min.js,*.map,*.ts</includes>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${project.basedir}/src/test/resources</outputDirectory>
+                                    <outputDirectory>${project.basedir}/src/test/resources/plugins/mwg</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.kevoree.mwg.plugins</groupId>
@@ -82,9 +82,9 @@
                                     <version>${project.parent.version}</version>
                                     <classifier>js</classifier>
                                     <type>zip</type>
-                                    <includes>*.js,*.min.js,*.map</includes>
+                                    <includes>*.js,*.min.js,*.map,*.ts</includes>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${project.basedir}/src/test/resources</outputDirectory>
+                                    <outputDirectory>${project.basedir}/src/test/resources/plugins/mwg</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.kevoree.mwg.plugins</groupId>
@@ -92,9 +92,9 @@
                                     <version>${project.parent.version}</version>
                                     <classifier>js</classifier>
                                     <type>zip</type>
-                                    <includes>*.js,*.min.js,*.map</includes>
+                                    <includes>*.js,*.min.js,*.map,*.ts</includes>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${project.basedir}/src/test/resources</outputDirectory>
+                                    <outputDirectory>${project.basedir}/src/test/resources/plugins/mwg</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>

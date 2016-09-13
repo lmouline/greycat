@@ -56,7 +56,7 @@ public interface Graph {
      *
      * @param world    The world identifier in which the Node must be searched.
      * @param time     The time at which the Node must be resolved.
-     * @param ids       The unique identifier of {@link Node} array ({@link Node#id()}) researched.
+     * @param ids      The unique identifier of {@link Node} array ({@link Node#id()}) researched.
      * @param callback The task to be called when the {@link Node} is retrieved.
      */
     void lookupAll(long world, long time, long[] ids, Callback<Node[]> callback);
@@ -107,6 +107,20 @@ public interface Graph {
     void index(String indexName, Node nodeToIndex, String flatKeyAttributes, Callback<Boolean> callback);
 
     /**
+     * Adds the {@code nodeToIndex} to the global index identified by {@code indexName}.<br>
+     * If the index does not exist, it is created on the fly.<br>
+     * The node is referenced by its {@code keyAttributes} in the index, and can be retrieved with {@link #find(long, long, String, String, Callback)} using the same attributes.
+     *
+     * @param world
+     * @param time
+     * @param indexName         A string uniquely identifying the index in the {@link Graph}.
+     * @param nodeToIndex       The node to add in the index.
+     * @param flatKeyAttributes The set of attributes used as keys to index the node, given as a flat string separated by ','. The order does not matter.
+     * @param callback          Called when the indexing is done. The parameter specifies whether or not the indexing has succeeded.
+     */
+    void indexAt(long world, long time, String indexName, Node nodeToIndex, String flatKeyAttributes, Callback<Boolean> callback);
+
+    /**
      * Removes the {@code nodeToUnindex} from the global index identified by {@code indexName}.<br>
      *
      * @param indexName         A string uniquely identifying the index in the {@link Graph}.
@@ -115,6 +129,18 @@ public interface Graph {
      * @param callback          Called when the unindexing is done. The parameter specifies whether or not the unindexing has succeeded.
      */
     void unindex(String indexName, Node nodeToUnindex, String flatKeyAttributes, Callback<Boolean> callback);
+
+    /**
+     * Removes the {@code nodeToUnindex} from the global index identified by {@code indexName}.<br>
+     *
+     * @param world
+     * @param time
+     * @param indexName         A string uniquely identifying the index in the {@link Graph}.
+     * @param nodeToUnindex     The node to remove from the index.
+     * @param flatKeyAttributes The set of attributes used as keys to index the node, given as a flat string separated by ','. The order does not matter.
+     * @param callback          Called when the unindexing is done. The parameter specifies whether or not the unindexing has succeeded.
+     */
+    void unindexAt(long world, long time, String indexName, Node nodeToUnindex, String flatKeyAttributes, Callback<Boolean> callback);
 
     /**
      * Retrieve the list of indexes.

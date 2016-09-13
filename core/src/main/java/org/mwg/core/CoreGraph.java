@@ -394,23 +394,28 @@ class CoreGraph implements org.mwg.Graph {
     }
 
     @Override
-    public synchronized void index(final String indexName, final org.mwg.Node toIndexNode, final String flatKeyAttributes, final Callback<Boolean> callback) {
+    public void index(final String indexName, final org.mwg.Node toIndexNode, final String flatKeyAttributes, final Callback<Boolean> callback) {
+        indexAt(toIndexNode.world(), toIndexNode.time(), indexName, toIndexNode, flatKeyAttributes, callback);
+    }
+
+    @Override
+    public synchronized void indexAt(long world, long time, String indexName, Node nodeToIndex, String flatKeyAttributes, Callback<Boolean> callback) {
         if (indexName == null) {
             throw new RuntimeException("indexName should not be null");
         }
-        if (toIndexNode == null) {
+        if (nodeToIndex == null) {
             throw new RuntimeException("toIndexNode should not be null");
         }
         if (flatKeyAttributes == null) {
             throw new RuntimeException("flatKeyAttributes should not be null");
         }
-        getIndexOrCreate(toIndexNode.world(), toIndexNode.time(), indexName, true, new Callback<org.mwg.Node>() {
+        getIndexOrCreate(world, time, indexName, true, new Callback<org.mwg.Node>() {
             @Override
             public void on(final org.mwg.Node foundIndex) {
                 if (foundIndex == null) {
                     throw new RuntimeException("Index creation failed, cache is probably full !!!");
                 }
-                foundIndex.index(CoreConstants.INDEX_ATTRIBUTE, toIndexNode, flatKeyAttributes, new Callback<Boolean>() {
+                foundIndex.index(CoreConstants.INDEX_ATTRIBUTE, nodeToIndex, flatKeyAttributes, new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result) {
                         foundIndex.free();
@@ -424,7 +429,12 @@ class CoreGraph implements org.mwg.Graph {
     }
 
     @Override
-    public synchronized void unindex(final String indexName, final org.mwg.Node nodeToUnindex, final String flatKeyAttributes, final Callback<Boolean> callback) {
+    public void unindex(final String indexName, final org.mwg.Node nodeToUnindex, final String flatKeyAttributes, final Callback<Boolean> callback) {
+        unindexAt(nodeToUnindex.world(), nodeToUnindex.time(), indexName, nodeToUnindex, flatKeyAttributes, callback);
+    }
+
+    @Override
+    public synchronized void unindexAt(long world, long time, String indexName, Node nodeToUnindex, String flatKeyAttributes, Callback<Boolean> callback) {
         if (indexName == null) {
             throw new RuntimeException("indexName should not be null");
         }
@@ -434,7 +444,7 @@ class CoreGraph implements org.mwg.Graph {
         if (flatKeyAttributes == null) {
             throw new RuntimeException("flatKeyAttributes should not be null");
         }
-        getIndexOrCreate(nodeToUnindex.world(), nodeToUnindex.time(), indexName, false, new Callback<org.mwg.Node>() {
+        getIndexOrCreate(world, time, indexName, false, new Callback<org.mwg.Node>() {
             @Override
             public void on(final org.mwg.Node foundIndex) {
                 if (foundIndex != null) {

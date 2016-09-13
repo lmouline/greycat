@@ -9,7 +9,7 @@ import org.mwg.ml.algorithm.profiling.GaussianSlotNode;
 import org.mwg.ml.algorithm.profiling.GaussianTreeNode;
 import org.mwg.ml.algorithm.regression.LiveLinearRegressionNode;
 import org.mwg.ml.algorithm.regression.PolynomialNode;
-import org.mwg.ml.common.structure.NDTree;
+import org.mwg.structure.tree.NDTree;
 import org.mwg.plugin.NodeFactory;
 import org.mwg.structure.StructurePlugin;
 
@@ -53,12 +53,7 @@ public class MLPlugin extends StructurePlugin {
             }
         });
 
-        declareNodeType(NDTree.NAME, new NodeFactory() {
-            @Override
-            public Node create(long world, long time, long id, Graph graph) {
-                return new NDTree(world, time, id, graph);
-            }
-        });
+
 
         declareNodeType(GaussianTreeNode.NAME, new NodeFactory() {
             @Override

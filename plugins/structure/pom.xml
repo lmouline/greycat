@@ -113,6 +113,9 @@
                                     <arg value="--out"/>
                                     <arg value="${js.name}.js"/>
                                 </exec>
+
+                                <copy file="${basedir}/target/generated-sources/${js.name}.ts"
+                                      todir="${basedir}/target/classes-js"/>
                                 <copy file="${basedir}/target/generated-sources/${js.name}.d.ts"
                                       todir="${basedir}/target/classes-js"/>
                                 <copy file="${basedir}/target/generated-sources/${js.name}.js"
