@@ -327,6 +327,17 @@ public interface Task {
     Task setProperty(String propertyName, byte propertyType, String variableNameToSet);
 
     /**
+     * Force the value of an attribute of a node or an array of nodes with a variable value
+     * The node (or the array) should be init in the previous task
+     *
+     * @param propertyName      The name of the attribute. Must be unique per node.
+     * @param propertyType      The type of the attribute. Must be one of {@link Type} int value.
+     * @param variableNameToSet The name of the property to set, should be stored previously as a variable in task context.
+     * @return this task to chain actions (fluent API)
+     */
+    Task forceProperty(String propertyName, byte propertyType, String variableNameToSet);
+
+    /**
      * Removes an attribute from a node or an array of nodes.
      * The node (or the array) should be init in the previous task
      *

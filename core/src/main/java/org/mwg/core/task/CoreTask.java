@@ -584,7 +584,19 @@ public class CoreTask implements org.mwg.task.Task {
         if (variableNameToSet == null) {
             throw new RuntimeException("variableNameToSet should not be null");
         }
-        addAction(new ActionSetProperty(propertyName, propertyType, variableNameToSet));
+        addAction(new ActionSetProperty(propertyName, propertyType, variableNameToSet, false));
+        return this;
+    }
+
+    @Override
+    public Task forceProperty(String propertyName, byte propertyType, String variableNameToSet) {
+        if (propertyName == null) {
+            throw new RuntimeException("propertyName should not be null");
+        }
+        if (variableNameToSet == null) {
+            throw new RuntimeException("variableNameToSet should not be null");
+        }
+        addAction(new ActionSetProperty(propertyName, propertyType, variableNameToSet, true));
         return this;
     }
 

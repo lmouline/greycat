@@ -105,11 +105,11 @@ class CoreTaskContext implements TaskContext {
 
     @Override
     public TaskResult wrap(Object input) {
-        if(input instanceof TaskResult){
-            return (TaskResult) input;
-        } else {
+        //if(input instanceof TaskResult){
+        //    return (TaskResult) input;
+        //} else {
             return new CoreTaskResult(input, false);
-        }
+        //}
     }
 
     @Override
