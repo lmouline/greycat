@@ -486,51 +486,51 @@ public class NDTree extends AbstractNode {
     private static Task nearestTask = ifThen(new TaskFunctionConditional() {
         @Override
         public boolean eval(TaskContext context) {
+
+            //bootstrap code
             if(context.variable("parent").size()==0){
-                //Inject the node in 
+                NearestNeighborList nnl = (NearestNeighborList) context.variable("nnl").get(0);
+
+                NDTree current = (NDTree) context.result().get(0);
+                NodeState state = current.graph().resolver().resolveState(current);
+
+                double[] boundMax = (double[]) state.get(_BOUNDMAX);
+                double[] boundMin = (double[]) state.get(_BOUNDMIN);
+                double[] centerKey = new double[boundMax.length];
+                for (int i = 0; i < centerKey.length; i++) {
+                    centerKey[i] = (boundMax[i] + boundMin[i]) / 2;
+                }
+
+                final double[] target = (double[]) context.variable("key").get(0);
+                final Distance distance = (Distance) context.variable("distance").get(0);
+                double d=distance.measure(target, centerKey);
+                context.variable("currentdistance").set(0, d);
+                nnl.insert(current.id(), d);
                 return true;
             }
             else{
                 //get NNL and check if it is full
-                // if NNL is not full return true
-
+                // if NNL is not full,
+                // Inject the node in NNL then return true
 
                 //if NNL is full check current distance compared to parent
+
                 double currentdistance = (double) context.variable("currentdistance").get(0);
                 double parentdistance = (double) context.variable("parentdistance").get(0);
-                return currentdistance <= parentdistance;
+                if(currentdistance <= parentdistance){
+                    //Inject the node in NNL
+                    return true;
+                }
+                else{
+                    return false;
+                }
             }
 
         }
     },
             asVar("parent")
-                    .then(new Action() {
-                @Override
-                public void eval(TaskContext context) {
-
-                    //bootstrap code for first parent
-                    if(context.variable("currentdistance").size()>0){
-                        context.variable("parentdistance").set(0,context.variable("currentdistance").get(0));
-                    }
-                    else {
-                        NDTree current = (NDTree) context.result().get(0);
-                        NodeState state = current.graph().resolver().resolveState(current);
-
-                        double[] boundMax = (double[]) state.get(_BOUNDMAX);
-                        double[] boundMin = (double[]) state.get(_BOUNDMIN);
-                        double[] centerKey = new double[boundMax.length];
-                        for (int i = 0; i < centerKey.length; i++) {
-                            centerKey[i] = (boundMax[i] + boundMin[i]) / 2;
-                        }
-
-                        final double[] target = (double[]) context.variable("key").get(0);
-                        final Distance distance = (Distance) context.variable("distance").get(0);
-
-                        context.variable("parentdistance").set(0, distance.measure(target, centerKey));
-                    }
-                    context.continueTask();
-                }
-            })
+                    .fromVar("currentdistance").asVar("parentdistance")
+                    .fromVar("parent")
                     .propertiesWithTypes(Type.RELATION).foreach(then(new Action() {
                 @Override
                 public void eval(TaskContext context) {
