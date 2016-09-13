@@ -57,7 +57,7 @@ class ActionFlatmapPar extends AbstractTaskAction {
 
     @Override
     public String toString() {
-        return "foreachPar()";
+        return "flatmapPar()";
     }
 
 }

@@ -67,7 +67,7 @@ public class CoreTask implements org.mwg.task.Task {
 
     @Override
     public Task indexNodeAt(String world, String time, String indexName, String flatKeyAttributes) {
-        addAction(new ActionIndexOrUnindexNodeAt(world,time,indexName, flatKeyAttributes, true));
+        addAction(new ActionIndexOrUnindexNodeAt(world, time, indexName, flatKeyAttributes, true));
         return this;
     }
 
@@ -79,7 +79,7 @@ public class CoreTask implements org.mwg.task.Task {
 
     @Override
     public Task unindexNodeAt(String world, String time, String indexName, String flatKeyAttributes) {
-        addAction(new ActionIndexOrUnindexNodeAt(world,time,indexName, flatKeyAttributes, true));
+        addAction(new ActionIndexOrUnindexNodeAt(world, time, indexName, flatKeyAttributes, true));
         return this;
     }
 
@@ -400,6 +400,12 @@ public class CoreTask implements org.mwg.task.Task {
     @Override
     public Task lookup(String nodeId) {
         addAction(new ActionLookup(nodeId));
+        return this;
+    }
+
+    @Override
+    public Task lookupAll(String nodeId) {
+        addAction(new ActionLookupAll(nodeId));
         return this;
     }
 

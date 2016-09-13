@@ -456,6 +456,8 @@ public interface Task {
 
     Task lookup(String nodeId);
 
+    Task lookupAll(String nodeId);
+
     /**
      * Execute a math expression on all nodes given from previous step
      *
