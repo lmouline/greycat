@@ -35,13 +35,6 @@
             <artifactId>structure</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
-        <!-- Test -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <!-- WORKAROUND: https://github.com/sbt/sbt/issues/861 -->
             <groupId>net.sourceforge.f2j</groupId>
