@@ -9,6 +9,7 @@ var Demo = function () {
     var filterCircle;
     var markers;
     var graph;
+    var currentContract;
 
     var init = function () {
 
@@ -30,21 +31,18 @@ var Demo = function () {
     var fillOptionListTask = org.mwg.task.Actions
         .hook(TimerHookFactory())
         .setTime("{{processTime}}")
-        .fromIndexAll("stations")
-        .get("contract_name")
+        .fromIndexAll("cities")
+        .get("name")
         .then(function (context) {
             var result = context.result();
             var s = result.size();
-            var optionLists = {};
+
+            var selector = document.querySelector("select")
             for (var i = 0; i < s; i++) {
                 var val = result.get(i);
-                optionLists[val] = val;
-            }
-            var selector = document.querySelector("select")
-            for (var e in optionLists) {
                 var opt = document.createElement("option");
-                opt.textContent = e;
-                if (e == "Luxembourg") {
+                opt.textContent = val;
+                if (val == "Luxembourg") {
                     opt.setAttribute("selected", "");
                 }
                 selector.appendChild(opt);
@@ -127,8 +125,8 @@ var Demo = function () {
     var displayStationsTask = org.mwg.task.Actions
         .hook(TimerHookFactory())
         .setTime("{{processTime}}")
-        .fromIndexAll("stations")
-        .selectWith("contract_name", "{{contract_name}}")
+        .fromIndex("cities", "name={{contract_name}}")
+        .traverseIndexAll("stations")
         .foreach(
             org.mwg.task.Actions.asVar("station").traverse("position").asVar("pos").fromVar("station")
                 .then(function (context) {
@@ -142,6 +140,7 @@ var Demo = function () {
 
     function updateContract(contract_name) {
         console.log("Updating contract:" + contract_name);
+        currentContract = contract_name;
         if (markers != undefined) {
             mymap.removeLayer(markers);
         }
@@ -161,7 +160,8 @@ var Demo = function () {
     var askKDTree = org.mwg.task.Actions
     // .hook(hookFactory)
         .setTime("{{processTime}}")
-        .fromIndexAll("positionsTree")
+        .fromIndex("cities", "name={{contract_name}}")
+        .traverseIndexAll("positions")
         .action(org.mwg.structure.action.NTreeNearestNWithinRadius.NAME, "{{actionParam}}")
         .then(function (context) {
             if (markers != undefined) {
@@ -189,6 +189,7 @@ var Demo = function () {
         });
         context.setVariable("actionParam", "" + userPositionMarker.getLatLng().lat + "," + userPositionMarker.getLatLng().lng + "," + nbStations + "," + radiusStations);
         context.setVariable("processTime", (new Date()).getTime());
+        context.setVariable("contract_name", currentContract);
         askKDTree.executeUsing(context);
     };
 
@@ -211,12 +212,16 @@ var Demo = function () {
             });
             markers.addLayer(marker);
         });
-    }
+    };
 
+    var getGraph = function() {
+        return graph;
+    };
 
     return {
         init: init,
         updateContract: updateContract,
-        updateFilter: updateFilter
+        updateFilter: updateFilter,
+        graph : getGraph
     };
 };

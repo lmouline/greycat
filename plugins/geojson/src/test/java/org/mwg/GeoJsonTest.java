@@ -9,6 +9,7 @@ import org.mwg.structure.action.NTreeInsertTo;
 import org.mwg.structure.distance.Distances;
 import org.mwg.structure.tree.KDTree;
 import org.mwg.task.*;
+import org.mwg.utility.HashHelper;
 
 import java.util.Iterator;
 import java.util.concurrent.Executors;
@@ -91,20 +92,6 @@ public class GeoJsonTest {
     }
 
 
-    final Task getOrCreatePositionsTree =
-            isolate(fromIndexAll("positionsTree")
-                    .ifThen(new TaskFunctionConditional() {
-                        @Override
-                        public boolean eval(TaskContext context) {
-                            return context.result().size() == 0;
-                        }
-                    }, setTime("" + Constants.BEGINNING_OF_TIME)
-                            .newTypedNode(KDTree.NAME)
-                            .setProperty(KDTree.DISTANCE, Type.INT, Distances.GEODISTANCE + "")
-                            .setProperty(KDTree.FROM, Type.STRING, "position.lat,position.lng")
-                            .print("Positions Tree created !").indexNode("positionsTree", ""))
-                    .asGlobalVar("tree"));
-
     private Action updateJsonFields = new Action() {
         @Override
         public void eval(TaskContext context) {
@@ -143,54 +130,53 @@ public class GeoJsonTest {
         }
     };
 
-    final Task updateFromJsonValue =
-            setTime("{{processTime}}")
-                    .asVar("jsonObject")
-                    .then(new Action() {
-                        @Override
-                        public void eval(TaskContext context) {
-                            JsonObject obj = (JsonObject) context.result().get(0);
-
-                            Query q = context.graph().newQuery();
-                            q.setTime(context.time());
-                            q.setWorld(context.world());
-                            q.setIndexName("stations");
-                            q.add("contract_name", obj.get("contract_name").asString());
-                            q.add("name", obj.get("name").asString());
-
-                            context.graph().findByQuery(q, new Callback<Node[]>() {
-                                @Override
-                                public void on(Node[] result) {
-                                    TaskResult<Node> newRes = context.newResult();
-                                    if (result.length > 0) {
-                                        newRes.add(result[0]);
-                                    }
-                                    context.continueWith(newRes);
-                                }
-                            });
-                        }
-                    })
-                    .ifThen(new TaskFunctionConditional() {
-                        @Override
-                        public boolean eval(TaskContext context) {
-                            return context.result().size() == 0;
-                        }
-                    }, fromVar("jsonObject")
-                            .action(NEW_NODE_FROM_JSON, "")
-                            .indexNode("stations", "contract_name,name")
-                            .print("New Station Created: {{result}}"))
-                    .then(updateJsonFields)
-                    .action(NTreeInsertTo.NAME, "tree")
-                    .clear();
-
     final Task update =
             //newTask()
             loadJson(_stationsListAddress + _baseParam)
-                    //.hook(new VerboseHookFactory())
-                    .subTask(getOrCreatePositionsTree)
-                    //.action(LOADJSON, _stationsListAddress + _baseParam)
-                    .foreachPar(updateFromJsonValue)
-                    .print("Update done.")
+                    .setTime("{{processTime}}")
+                    .asVar("jsonFileContent")
+                    .foreach(
+                            subTask(
+                                    asVar("jsonObject")
+                                            .map(jsonValue -> ((JsonObject) jsonValue).get("contract_name").asString())
+                                            .asVar("cityName")
+                                            .fromVar("jsonObject")
+                                            .map(jsonValue -> ((JsonObject) jsonValue).get("name").asString())
+                                            .asVar("stationName")
+                                            .fromIndex("cities", "name={{cityName}}")
+                                            .ifThen((context -> context.result().size() == 0),
+                                                    newNode()
+                                                            .setProperty("name", Type.STRING, "{{cityName}}")
+                                                            .indexNodeAt("0", "0", "cities", "name")
+                                                            .print("Create City: {{cityName}}")
+                                            ).asVar("city")
+                                            .traverseIndex("stations", "name={{stationName}}")
+                                            .ifThen((context -> context.result().size() == 0),
+                                                    fromVar("jsonObject")
+                                                            .action(NEW_NODE_FROM_JSON, "")
+                                                            .asVar("station")
+                                                            .fromVar("city")
+                                                            .localIndex("stations", "name", "station")
+                                                            .fromVar("station")
+                                                            .print("Create Station: {{stationName}}")
+                                            ).asVar("station")
+                                            .then(updateJsonFields)
+                                            .fromVar("city")
+                                            .traverseIndexAll("positions")
+                                            .ifThen(context -> context.result().size() == 0,
+                                                    setTime("" + Constants.BEGINNING_OF_TIME)
+                                                            .newTypedNode(KDTree.NAME)
+                                                            .setProperty(KDTree.DISTANCE, Type.INT, Distances.GEODISTANCE + "")
+                                                            .setProperty(KDTree.FROM, Type.STRING, "position.lat,position.lng")
+                                                            .asVar("positionsIndex")
+                                                            .fromVar("city")
+                                                            .localIndex("positions", "", "positionsIndex")
+                                                            .fromVar("positionsIndex")
+                                                            .print("Created PositionTree")
+                                            ).localIndex("positions", "", "station")
+                            ).clear()
+                    ).print("Update done.")
+                    .fromIndexAll("cities").print("{{result}}")
                     .clear();
 
     private void update(Graph graph) {

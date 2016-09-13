@@ -5,7 +5,6 @@ import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonValue;
 import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.task.TaskContext;
-import org.mwg.task.TaskResult;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -37,7 +36,7 @@ public class ActionLoadJson extends AbstractTaskAction {
                     for (int i = 0; i < array.size(); i++) {
                         values[i] = array.get(i);
                     }
-                    //result = new JsonResult(Arrays.copyOf(values, 1));
+                    //result = new JsonResult(Arrays.copyOf(values, 500));
                     result = new JsonResult(values);
                 } else {
                     result = new JsonResult(new JsonValue[]{firstElem});
