@@ -114,12 +114,30 @@ public interface Task {
     Task indexNode(String indexName, String flatKeyAttributes);
 
     /**
+     * Index the node (or the array of nodes) present in the result
+     *
+     * @param indexName         index name
+     * @param flatKeyAttributes node attributes used to index
+     * @return this task to chain actions (fluent API)
+     */
+    Task indexNodeAt(String world, String time, String indexName, String flatKeyAttributes);
+
+    /**
      * DRAFT
      * Create or compliments an index of nodes. <br>
      * These indexes are special relationships for quick access to referred nodes based on some of their attributes values.<br>
      * Index names must be unique within a given node.
      */
     Task localIndex(String indexedRelation, String flatKeyAttributes, String varNodeToAdd);
+
+    /**
+     * Unindex the node (or the array of nodes) present in the result
+     *
+     * @param indexName         index name
+     * @param flatKeyAttributes node attributes used to index
+     * @return this task to chain actions (fluent API)
+     */
+    Task unindexNodeAt(String world, String time, String indexName, String flatKeyAttributes);
 
     /**
      * Unindex the node (or the array of nodes) present in the result
@@ -366,6 +384,7 @@ public interface Task {
 
     /**
      * Get all the properties names of nodes present in the previous result
+     *
      * @return this task to chain actions (fluent API)
      */
     Task properties();
