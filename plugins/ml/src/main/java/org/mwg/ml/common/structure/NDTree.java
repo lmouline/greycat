@@ -9,10 +9,10 @@ import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.NodeState;
 import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.Relationship;
-import org.mwg.struct.action.TraverseById;
-import org.mwg.struct.distance.Distance;
-import org.mwg.struct.distance.EuclideanDistance;
-import org.mwg.struct.util.NearestNeighborList;
+import org.mwg.structure.action.TraverseById;
+import org.mwg.structure.distance.Distance;
+import org.mwg.structure.distance.EuclideanDistance;
+import org.mwg.structure.util.NearestNeighborList;
 import org.mwg.task.*;
 
 

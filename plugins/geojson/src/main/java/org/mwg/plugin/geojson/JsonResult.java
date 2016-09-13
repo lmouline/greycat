@@ -4,9 +4,6 @@ import com.eclipsesource.json.JsonValue;
 import org.mwg.task.TaskResult;
 import org.mwg.task.TaskResultIterator;
 
-/**
- * Created by gnain on 02/09/16.
- */
 public class JsonResult implements TaskResult<JsonValue> {
 
     private JsonValue[] _content;
@@ -19,16 +16,17 @@ public class JsonResult implements TaskResult<JsonValue> {
     public TaskResultIterator iterator() {
         return new TaskResultIterator() {
             private int currentIndex = 0;
+
             @Override
             public Object next() {
-                return (currentIndex<_content.length?_content[currentIndex++]:null);
+                return (currentIndex < _content.length ? _content[currentIndex++] : null);
             }
         };
     }
 
     @Override
     public JsonValue get(int index) {
-        return (index<_content.length?_content[index]:null);
+        return (index < _content.length ? _content[index] : null);
     }
 
     @Override

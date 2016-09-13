@@ -35,8 +35,13 @@
         </dependency>
     </dependencies>
 
+    <properties>
+        <js.name>mwg.structure</js.name>
+    </properties>
+
     <build>
         <plugins>
+            
             <plugin>
                 <groupId>org.kevoree.modeling.j2ts</groupId>
                 <artifactId>mavenplugin</artifactId>
@@ -44,11 +49,12 @@
                 <executions>
                     <execution>
                         <id>ts-compile-structure</id>
+                        <phase>compile</phase>
                         <goals>
                             <goal>java2ts</goal>
                         </goals>
                         <configuration>
-                            <name>mwg.structure</name>
+                            <name>${js.name}</name>
                             <moduleImports>
                                 <moduleImport>mwg.d.ts</moduleImport>
                             </moduleImports>
@@ -67,7 +73,7 @@
                             <copyJRE>false</copyJRE>
                             <copyJunit>true</copyJunit>
                             <moduleImports>
-                                <moduleImport>../generated-sources/mwg.structure.ts</moduleImport>
+                                <moduleImport>../generated-sources/${js.name}.ts</moduleImport>
                             </moduleImports>
                             <source>${basedir}/src/test/java</source>
                             <target>${basedir}/target/generated-test-sources</target>
@@ -90,9 +96,9 @@
                         <configuration>
                             <target>
                                 <echo message="Compile Java to TypeScript"/>
-                                <copy file="${basedir}/../../corejs/target/classes/mwg.d.ts"
+                                <copy file="${basedir}/../../core/target/classes-js/mwg.d.ts"
                                       todir="${basedir}/target/generated-sources/"/>
-                                <copy file="${basedir}/src/js/package.json" todir="${basedir}/target"/>
+                                <copy file="${basedir}/../../share/package.json" todir="${basedir}/target"/>
                                 <exec executable="npm" dir="${basedir}/target">
                                     <arg value="install"/>
                                 </exec>
@@ -103,23 +109,25 @@
                                     <arg value="--sourceMap"/>
                                     <arg value="--target"/>
                                     <arg value="es5"/>
-                                    <arg value="${basedir}/target/generated-sources/mwg.structure.ts"/>
+                                    <arg value="${basedir}/target/generated-sources/${js.name}.ts"/>
                                     <arg value="--out"/>
-                                    <arg value="mwg.structure.js"/>
+                                    <arg value="${js.name}.js"/>
                                 </exec>
 
-                                <copy file="${basedir}/target/generated-sources/mwg.structure.d.ts"
+                                <copy file="${basedir}/target/generated-sources/${js.name}.ts"
                                       todir="${basedir}/target/classes-js"/>
-                                <copy file="${basedir}/target/generated-sources/mwg.structure.js"
+                                <copy file="${basedir}/target/generated-sources/${js.name}.d.ts"
                                       todir="${basedir}/target/classes-js"/>
-                                <copy file="${basedir}/target/generated-sources/mwg.structure.js.map"
+                                <copy file="${basedir}/target/generated-sources/${js.name}.js"
+                                      todir="${basedir}/target/classes-js"/>
+                                <copy file="${basedir}/target/generated-sources/${js.name}.js.map"
                                       todir="${basedir}/target/classes-js"/>
                                 <echo message="Minifying JavaScript"/>
-                                <java jar="${basedir}/../../corejs/lib/compiler.jar" fork="true" failonerror="true">
+                                <java jar="${basedir}/../../share/compiler.jar" fork="true" failonerror="true">
                                     <arg value="--js"/>
-                                    <arg value="${basedir}/target/classes-js/mwg.structure.js"/>
+                                    <arg value="${basedir}/target/classes-js/${js.name}.js"/>
                                     <arg value="--js_output_file"/>
-                                    <arg value="${basedir}/target/classes-js/mwg.structure.min.js"/>
+                                    <arg value="${basedir}/target/classes-js/${js.name}.min.js"/>
                                 </java>
                             </target>
                         </configuration>
@@ -142,22 +150,22 @@
                                     <arg value="${basedir}/target/test-classes/mwg.test.js"/>
                                 </exec>
                                 <concat destfile="${basedir}/target/test-classes/test.all.js" force="no">
-                                    <filelist dir="${basedir}/../../corejs/target/classes" files="mwg.js"/>
-                                    <filelist dir="${basedir}/src/js" files="spacer.js"/>
+                                    <filelist dir="${basedir}/../../core/target/classes-js" files="mwg.js"/>
+                                    <filelist dir="${basedir}/../../share/" files="spacer.js"/>
                                     <filelist dir="${basedir}/target/test-classes" files="mwg.test.js"/>
-                                    <filelist dir="${basedir}/src/js" files="spacer.js"/>
+                                    <filelist dir="${basedir}/../../share/" files="spacer.js"/>
                                     <filelist dir="${basedir}/target/generated-test-sources/"
                                               files="testsRunner.js"/>
                                 </concat>
                                 <concat destfile="${basedir}/target/test-classes/test.all.dev.js" force="no">
-                                    <filelist dir="${basedir}/../../corejs/target/classes" files="mwg.js"/>
-                                    <filelist dir="${basedir}/src/js" files="spacer.js"/>
+                                    <filelist dir="${basedir}/../../core/target/classes-js" files="mwg.js"/>
+                                    <filelist dir="${basedir}/../../share/" files="spacer.js"/>
                                     <filelist dir="${basedir}/target/test-classes" files="mwg.test.js"/>
-                                    <filelist dir="${basedir}/src/js" files="spacer.js"/>
+                                    <filelist dir="${basedir}/../../share/" files="spacer.js"/>
                                     <filelist dir="${basedir}/target/generated-test-sources/"
                                               files="testsRunnerDev.js"/>
                                 </concat>
-                                <copy file="${basedir}/src/js/test.js" todir="${basedir}/target"/>
+                                <copy file="${basedir}/../../share/test.js" todir="${basedir}/target"/>
                             </target>
                         </configuration>
                     </execution>
@@ -179,6 +187,26 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptors>
+                        <descriptor>${basedir}/../../share/zip.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
 
         </plugins>
     </build>

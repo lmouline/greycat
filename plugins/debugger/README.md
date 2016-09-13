@@ -1,16 +1,27 @@
-# mwg-debugger
-Graphical debugger for [Many World Graph](https://github.com/kevoree-modeling/mwDB) and its demo example.
+Mwg graphical debugger
+===
 
-This version currently works for mwg API v7.
-## Install
-`npm install && bower install`
+It is a web based Mwg debugger.
 
-Example of a Java application that launches a server and a client, which is located in the *java* directory.
-## Demo
-1. Launch the DebugServer in Java first (will listen on port 8050).
-2. (Optional) Launch your client in Java as well.
-3. `gulp`
+# Requirement
+- npm
+- bower: `npm install [-g] bower`
+- gulp: `npm install [-g] gulp-cli`
+- sass: `[sudo] gem install sass`
+- [WebSocket plugin](../websocket)
 
-This example will fetch the indexed nodes in Java.
+# Launch
+- `npm install`
+- `bower install`
+- `gulp`
 
-Choose demo.html once the server has started to visualize your graph.
+Now a web page will open at `localhost:8080`, you can close it.
+Open `index.html` file in your favorite browser. A WS client is running, and try to connect to a server on port `8050`.
+Thus, you just need to run one in our program :
+```java
+ WSServer serverDebug = new WSServer([YOUR GRAPH],8050);
+ serverDebug.start();
+```
+
+
+

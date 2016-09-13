@@ -13,12 +13,14 @@ class ActionSetProperty extends AbstractTaskAction {
     private final String _relationName;
     private final String _variableNameToSet;
     private final byte _propertyType;
+    private final boolean _force;
 
-    ActionSetProperty(final String relationName, final byte propertyType, final String variableNameToSet) {
+    ActionSetProperty(final String relationName, final byte propertyType, final String variableNameToSet, final boolean force) {
         super();
         this._relationName = relationName;
         this._variableNameToSet = variableNameToSet;
         this._propertyType = propertyType;
+        this._force = force;
     }
 
     @Override
@@ -48,7 +50,11 @@ class ActionSetProperty extends AbstractTaskAction {
                 Object loopObj = previousResult.get(i);
                 if (loopObj instanceof AbstractNode) {
                     Node loopNode = (Node) loopObj;
-                    loopNode.setProperty(flatRelationName, _propertyType, toSet);
+                    if(_force){
+                        loopNode.forceProperty(flatRelationName, _propertyType, toSet);
+                    } else {
+                        loopNode.setProperty(flatRelationName, _propertyType, toSet);
+                    }
                 }
             }
         }

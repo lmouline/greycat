@@ -1,6 +1,6 @@
 package org.mwg.ml.common.distance;
 
-import org.mwg.struct.distance.Distance;
+import org.mwg.structure.distance.Distance;
 
 /**
  * Created by assaad on 29/06/16.

@@ -1,9 +1,6 @@
 package org.mwg.core.task;
 
-import org.mwg.Callback;
-import org.mwg.Constants;
-import org.mwg.DeferCounterSync;
-import org.mwg.Graph;
+import org.mwg.*;
 import org.mwg.core.task.math.MathConditional;
 import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.plugin.Job;
@@ -70,7 +67,7 @@ public class CoreTask implements org.mwg.task.Task {
 
     @Override
     public Task localIndex(String indexedRelation, String flatKeyAttributes, String varNodeToAdd) {
-        addAction(new ActionLocalIndexOrUnindex(indexedRelation,flatKeyAttributes,varNodeToAdd,true));
+        addAction(new ActionLocalIndexOrUnindex(indexedRelation, flatKeyAttributes, varNodeToAdd, true));
         return this;
     }
 
@@ -82,7 +79,7 @@ public class CoreTask implements org.mwg.task.Task {
 
     @Override
     public Task localUnindex(String indexedRelation, String flatKeyAttributes, String varNodeToAdd) {
-        addAction(new ActionLocalIndexOrUnindex(indexedRelation,flatKeyAttributes,varNodeToAdd,false));
+        addAction(new ActionLocalIndexOrUnindex(indexedRelation, flatKeyAttributes, varNodeToAdd, false));
         return this;
     }
 
@@ -587,7 +584,19 @@ public class CoreTask implements org.mwg.task.Task {
         if (variableNameToSet == null) {
             throw new RuntimeException("variableNameToSet should not be null");
         }
-        addAction(new ActionSetProperty(propertyName, propertyType, variableNameToSet));
+        addAction(new ActionSetProperty(propertyName, propertyType, variableNameToSet, false));
+        return this;
+    }
+
+    @Override
+    public Task forceProperty(String propertyName, byte propertyType, String variableNameToSet) {
+        if (propertyName == null) {
+            throw new RuntimeException("propertyName should not be null");
+        }
+        if (variableNameToSet == null) {
+            throw new RuntimeException("variableNameToSet should not be null");
+        }
+        addAction(new ActionSetProperty(propertyName, propertyType, variableNameToSet, true));
         return this;
     }
 
@@ -621,6 +630,18 @@ public class CoreTask implements org.mwg.task.Task {
             throw new RuntimeException("variableNameTarget should not be null");
         }
         addAction(new ActionAddTo(relationName, variableNameTarget));
+        return this;
+    }
+
+    @Override
+    public Task propertiesWithTypes(byte filter) {
+        addAction(new ActionProperties(filter));
+        return this;
+    }
+
+    @Override
+    public Task properties() {
+        addAction(new ActionProperties((byte) -1));
         return this;
     }
 

@@ -28,7 +28,7 @@ class ActionLoop extends AbstractTaskAction {
         final TaskResult previous = context.result();
         final ActionLoop selfPointer = this;
         final AtomicInteger cursor = new AtomicInteger(lower);
-        if ((upper - lower) > 0) {
+        if ((upper - lower) >= 0) {
             final Callback[] recursiveAction = new Callback[1];
             recursiveAction[0] = new Callback<TaskResult>() {
                 @Override

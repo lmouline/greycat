@@ -186,6 +186,14 @@ public class Actions {
         return newTask().add(relationName, variableNameToAdd);
     }
 
+    public static Task properties() {
+        return newTask().properties();
+    }
+
+    public static Task propertiesWithTypes(byte filter) {
+        return newTask().propertiesWithTypes(filter);
+    }
+
     public static Task jump(String time) {
         return newTask().jump(time);
     }

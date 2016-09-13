@@ -113,7 +113,8 @@ public interface Task {
      */
     Task indexNode(String indexName, String flatKeyAttributes);
 
-    /** DRAFT
+    /**
+     * DRAFT
      * Create or compliments an index of nodes. <br>
      * These indexes are special relationships for quick access to referred nodes based on some of their attributes values.<br>
      * Index names must be unique within a given node.
@@ -129,7 +130,8 @@ public interface Task {
      */
     Task unindexNode(String indexName, String flatKeyAttributes);
 
-    /** DRAFT
+    /**
+     * DRAFT
      * Create or compliments an index of nodes. <br>
      * These indexes are special relationships for quick access to referred nodes based on some of their attributes values.<br>
      * Index names must be unique within a given node.
@@ -328,6 +330,17 @@ public interface Task {
     Task setProperty(String propertyName, byte propertyType, String variableNameToSet);
 
     /**
+     * Force the value of an attribute of a node or an array of nodes with a variable value
+     * The node (or the array) should be init in the previous task
+     *
+     * @param propertyName      The name of the attribute. Must be unique per node.
+     * @param propertyType      The type of the attribute. Must be one of {@link Type} int value.
+     * @param variableNameToSet The name of the property to set, should be stored previously as a variable in task context.
+     * @return this task to chain actions (fluent API)
+     */
+    Task forceProperty(String propertyName, byte propertyType, String variableNameToSet);
+
+    /**
      * Removes an attribute from a node or an array of nodes.
      * The node (or the array) should be init in the previous task
      *
@@ -353,6 +366,20 @@ public interface Task {
      * @return                  this task to chain actions (fluent API)
      */
     Task addTo(String relationName, String variableTarget);
+
+    /**
+     * Get all the properties names of nodes present in the previous result
+     * @return this task to chain actions (fluent API)
+     */
+    Task properties();
+
+    /**
+     * Get and filter all the properties names of nodes present in the previous result. <br>
+     *
+     * @param filterType type of properties to filter
+     * @return this task to chain actions (fluent API)
+     */
+    Task propertiesWithTypes(byte filterType);
 
     /**
      * Removes a node from a relation of a node or of an array of nodes.

@@ -16,15 +16,15 @@ public class QueryTest implements Resolver, Graph {
     @Test
     public void test() {
 
-        CoreQuery query = new CoreQuery(this,this);
+        CoreQuery query = new CoreQuery(this, this);
         query.add("name", "Hello");
         Assert.assertEquals(query.hash(), 3074775135214424L);
 
-        CoreQuery query2 = new CoreQuery(this,this);
+        CoreQuery query2 = new CoreQuery(this, this);
         query2.add("id", "Hello");
         Assert.assertEquals(query2.hash(), 1115038540081133L);
 
-        CoreQuery query3 = new CoreQuery(this,this);
+        CoreQuery query3 = new CoreQuery(this, this);
         query3.add("id", "Hello2");
         Assert.assertEquals(query3.hash(), 8950810462547208L);
 
@@ -32,7 +32,7 @@ public class QueryTest implements Resolver, Graph {
         Assert.assertTrue(query2.hash() != query.hash());
         Assert.assertTrue(query3.hash() != query2.hash());
 
-        CoreQuery query4 = new CoreQuery(this,this);
+        CoreQuery query4 = new CoreQuery(this, this);
         query4.add("id", "Hello2");
         Assert.assertEquals(query4.hash(), 8950810462547208L);
         Assert.assertEquals(query3.hash(), query4.hash());
@@ -91,6 +91,11 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
+    public void lookupAll(long world, long time, long[] ids, Callback<Node[]> callback) {
+
+    }
+
+    @Override
     public long fork(long world) {
         return 0;
     }
@@ -116,7 +121,17 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
+    public void indexAt(long world, long time, String indexName, Node nodeToIndex, String flatKeyAttributes, Callback<Boolean> callback) {
+
+    }
+
+    @Override
     public void unindex(String indexName, Node nodeToUnindex, String flatKeyAttributes, Callback<Boolean> callback) {
+
+    }
+
+    @Override
+    public void unindexAt(long world, long time, String indexName, Node nodeToUnindex, String flatKeyAttributes, Callback<Boolean> callback) {
 
     }
 

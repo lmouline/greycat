@@ -35,6 +35,8 @@ public interface ChunkSpace {
      */
     void getOrLoadAndMark(byte type, long world, long time, long id, Callback<Chunk> callback);
 
+    void getOrLoadAndMarkAll(long[] keys, Callback<Chunk[]> callback);
+
     /**
      * Retrieves the chunk for the given index
      * @param index index of the chunk
@@ -82,7 +84,7 @@ public interface ChunkSpace {
     void clear();
 
     void freeAll();
-    
+
     long available();
 
 }

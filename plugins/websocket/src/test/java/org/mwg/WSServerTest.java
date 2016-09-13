@@ -7,6 +7,8 @@ import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.plugin.AbstractNode;
 import org.mwg.struct.Buffer;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.concurrent.CountDownLatch;
 
 public class WSServerTest {
@@ -61,6 +63,8 @@ public class WSServerTest {
     @Test
     public void test() {
 
+
+
         final Graph graph = new GraphBuilder()
                 .withMemorySize(10000)
                 .build();
@@ -73,10 +77,19 @@ public class WSServerTest {
 
                 Assert.assertEquals("{\"world\":0,\"time\":0,\"id\":1,\"name\":\"hello\"}", node.toString());
 
-                WSServer graphServer = new WSServer(graph, 8050);
+                int port = 8050;
+                try {
+                    ServerSocket servSock = new ServerSocket(0);
+                    port = servSock.getLocalPort();
+                    servSock.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                WSServer graphServer = new WSServer(graph, port);
                 graphServer.start();
                 final CountDownLatch latch = new CountDownLatch(1);
-                final Graph graph2 = new GraphBuilder().withMemorySize(10000).withStorage(new WSClient("ws://localhost:8050")).build();
+                final Graph graph2 = new GraphBuilder().withMemorySize(10000).withStorage(new WSClient("ws://localhost:" + port)).build();
                 graph2.connect(new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result1) {

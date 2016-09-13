@@ -18,7 +18,7 @@ var gChildrenNodes = [];
 var gRootNodes = [];
 var gNodesWithChildren = [];
 var gTree = {_id: 'root',
-             childNodes: []};
+    childNodes: []};
 
 // these variables need to be cleared at every change in the graph
 var gNodesDisplayed = [];
@@ -27,14 +27,14 @@ var childrenNodes = [];
 
 
 var globalFunc = { setNodeDetailOnClick: function(){},
-                    addNodesInList: function(){},
-                    loadNextNodesInList: function(){},
-                    setTypesInList: function(){},
-                    initTable: function(){},
-                    loadRootNodesInTree: function(){},
-                    selectNodeFromTree: function(){},
-                    loadTree: function(){}
-                };
+    addNodesInList: function(){},
+    loadNextNodesInList: function(){},
+    setTypesInList: function(){},
+    initTable: function(){},
+    loadRootNodesInTree: function(){},
+    selectNodeFromTree: function(){},
+    loadTree: function(){}
+};
 
 var renderer = {};
 var graphics = {};
@@ -46,7 +46,7 @@ var prevNodeUI;
 var myLayout;
 
 /**
- * Initializes the vivagraph graph, iterate through the mwg (indexed) nodes and calls  
+ * Initializes the vivagraph graph, iterate through the mwg (indexed) nodes and calls
  * addToGlobalNodes to get a list of all the nodes, then add each node and relationship to build the graph.
  * This function is called from demo_mwg.js
  */
@@ -64,8 +64,8 @@ function initVivaGraph(){
         for (var i = 0; i < indexNames.length; ++i) {
             const indexName = indexNames[i];
             /*graph.getIndexNode(WORLD, TIME, indexName, function (node) {
-                console.log(node.toString());
-            });*/
+             console.log(node.toString());
+             });*/
             graph.findAll(WORLD, TIME, indexName, function (nodes) {
                 // transform every mwg nodes and add them to a global array
                 for (var j = 0; j < nodes.length; ++j){
@@ -448,15 +448,24 @@ function addToGlobalNodes(node){
     // add all the attributes of the node to the JSON
     graph.resolver().resolveState(node, false).each(function (attributeKey, elemType, elem) {
         var key = graph.resolver().hashToString(attributeKey);
-        if (typeof elem === 'object'){
+
+        if(elemType == org.mwg.Type.BOOL || elemType == org.mwg.Type.STRING || elemType == org.mwg.Type.INT
+            || elemType == org.mwg.Type.LONG || elemType == org.mwg.Type.DOUBLE) { //primitive types
+            nodeToAdd[key] = elem;
+        } else if(elemType == org.mwg.Type.RELATION) { //classic relation
             nodeToAdd[key] = [];
-            console.log(elem);
             for (var i = 0; i < elem.size(); ++i){
                 nodeToAdd[key].push(elem.get(i));
             }
             containsRel = true;
+        } else if(elemType == org.mwg.Type.LONG_TO_LONG_ARRAY_MAP) { //indexed relation
+            nodeToAdd[key] = [];
+            elem.each(function(relKey,relIdNode) {
+                nodeToAdd[key].push(relIdNode);
+            });
+            containsRel = true;
         } else {
-            nodeToAdd[key] = elem;
+            throw "Type(" + elemType + ") is not yet managed. Please update the debugger."
         }
     });
     // if the node contains a relationship, we add them into a global variable to deal with the relationships later
@@ -473,6 +482,7 @@ function addToGlobalNodes(node){
 
     // finally we add them to the global array containing all the nodes
     gAllNodes.push(nodeToAdd);
+
 }
 
 /**
@@ -501,13 +511,15 @@ function addRelToGraph(node){
     var children = [];
     for (var prop in node){
         if(node.hasOwnProperty(prop)){
-            if (typeof node[prop] === 'object'){
+            if (typeof node[prop] === 'object') {
+
                 var linkedNodes = node[prop];
                 // same for links
                 if (colorsByLinkType[prop] == null) {
                     colorsByLinkType[prop] = getRandomColor();
                 }
-                for (var i = 0; i < linkedNodes.length; ++i) {
+                
+                for (var i = 0; i < linkedNodes.length; i++) {
                     //find node by id in the array (using jQuery)
                     const linkedNode = linkedNodes[i];
                     var nodeResult = getNodeFromId(linkedNode);
@@ -519,6 +531,8 @@ function addRelToGraph(node){
                     } else {
                         nodesToBeLinked[nodeResult._id] = delayLinkCreation(node._id, nodeResult._id, prop);
                     }
+
+
                 }
             }
         }

@@ -181,12 +181,93 @@ public abstract class AbstractNode implements Node {
     }
 
     @Override
-    public void setProperty(String propertyName, byte propertyType, Object propertyValue) {
+    public void forceProperty(String propertyName, byte propertyType, Object propertyValue) {
+        final long hashed = this._resolver.stringToHash(propertyName, true);
         final NodeState preciseState = this._resolver.alignState(this);
         if (preciseState != null) {
-            preciseState.set(this._resolver.stringToHash(propertyName, true), propertyType, propertyValue);
+            preciseState.set(hashed, propertyType, propertyValue);
         } else {
             throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+        }
+    }
+
+    @Override
+    public void setProperty(String propertyName, byte propertyType, Object propertyValue) {
+        //hash the property a single time
+        final long hashed = this._resolver.stringToHash(propertyName, true);
+        final NodeState unPhasedState = this._resolver.resolveState(this);
+        boolean isDiff = (propertyType != unPhasedState.getType(hashed));
+        if (!isDiff) {
+            isDiff = !isEquals(unPhasedState.get(hashed), propertyValue, propertyType);
+        }
+        if (isDiff) {
+            final NodeState preciseState = this._resolver.alignState(this);
+            if (preciseState != null) {
+                preciseState.set(hashed, propertyType, propertyValue);
+            } else {
+                throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+            }
+        }
+    }
+
+    private boolean isEquals(Object obj1, Object obj2, byte type) {
+        switch (type) {
+            case Type.BOOL:
+                return (((boolean) obj1) == ((boolean) obj2));
+            case Type.DOUBLE:
+                return (((double) obj1) == ((double) obj2));
+            case Type.INT:
+                return (((int) obj1) == ((int) obj2));
+            case Type.LONG:
+                return (((long) obj1) == ((long) obj2));
+            case Type.STRING:
+                return (((String) obj1).equals((String) obj2));
+            case Type.DOUBLE_ARRAY:
+                double[] obj1_ar_d = (double[]) obj1;
+                double[] obj2_ar_d = (double[]) obj2;
+                if (obj1_ar_d.length != obj2_ar_d.length) {
+                    return false;
+                } else {
+                    for (int i = 0; i < obj1_ar_d.length; i++) {
+                        if (obj1_ar_d[i] != obj2_ar_d[i]) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            case Type.INT_ARRAY:
+                int[] obj1_ar_i = (int[]) obj1;
+                int[] obj2_ar_i = (int[]) obj2;
+                if (obj1_ar_i.length != obj2_ar_i.length) {
+                    return false;
+                } else {
+                    for (int i = 0; i < obj1_ar_i.length; i++) {
+                        if (obj1_ar_i[i] != obj2_ar_i[i]) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            case Type.LONG_ARRAY:
+                long[] obj1_ar_l = (long[]) obj1;
+                long[] obj2_ar_l = (long[]) obj2;
+                if (obj1_ar_l.length != obj2_ar_l.length) {
+                    return false;
+                } else {
+                    for (int i = 0; i < obj1_ar_l.length; i++) {
+                        if (obj1_ar_l[i] != obj2_ar_l[i]) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            case Type.RELATION:
+            case Type.STRING_TO_LONG_MAP:
+            case Type.LONG_TO_LONG_MAP:
+            case Type.LONG_TO_LONG_ARRAY_MAP:
+                throw new RuntimeException("Bad API usage: set can't be used with complex type, please use getOrCreate instead.");
+            default:
+                throw new RuntimeException("Not managed type " + type);
         }
     }
 
@@ -231,6 +312,18 @@ public abstract class AbstractNode implements Node {
                 callback.on(new Node[0]);
             } else {
                 final int relSize = relationArray.size();
+                final long[] ids = new long[relSize];
+                for (int i = 0; i < relSize; i++) {
+                    ids[i] = relationArray.get(i);
+                }
+                this._resolver.lookupAll(_world, _time, ids, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        callback.on(result);
+                    }
+                });
+
+                /*
                 final Node[] result = new Node[relSize];
                 final DeferCounter counter = _graph.newCounter(relSize);
                 final int[] resultIndex = new int[1];
@@ -257,7 +350,7 @@ public abstract class AbstractNode implements Node {
                             callback.on(toSend);
                         }
                     }
-                });
+                });*/
             }
         } else {
             callback.on(new Node[0]);
@@ -355,70 +448,57 @@ public abstract class AbstractNode implements Node {
         final LongLongArrayMap indexMap = (LongLongArrayMap) currentNodeState.get(this._resolver.stringToHash(indexName, false));
         if (indexMap != null) {
             final AbstractNode selfPointer = this;
-            final long[] foundId = indexMap.get(query.hash());
-            if (foundId == null) {
+            final long[] foundIds = indexMap.get(query.hash());
+            if (foundIds == null) {
                 callback.on(new org.mwg.plugin.AbstractNode[0]);
                 return;
             }
-            final org.mwg.Node[] resolved = new org.mwg.plugin.AbstractNode[foundId.length];
-            final DeferCounter waiter = _graph.newCounter(foundId.length);
-            //TODO replace by a par lookup
-            final AtomicInteger nextResolvedTabIndex = new AtomicInteger(0);
-            for (int i = 0; i < foundId.length; i++) {
-                selfPointer._resolver.lookup(queryWorld, queryTime, foundId[i], new Callback<org.mwg.Node>() {
-                    @Override
-                    public void on(org.mwg.Node resolvedNode) {
-                        if (resolvedNode != null) {
-                            resolved[nextResolvedTabIndex.getAndIncrement()] = resolvedNode;
-                        }
-                        waiter.count();
-                    }
-                });
-            }
-            waiter.then(new Job() {
+            selfPointer._resolver.lookupAll(queryWorld, queryTime, foundIds, new Callback<Node[]>() {
                 @Override
-                public void run() {
+                public void on(Node[] resolved) {
                     //select
-                    Node[] resultSet = new org.mwg.plugin.AbstractNode[nextResolvedTabIndex.get()];
+                    Node[] resultSet = new org.mwg.plugin.AbstractNode[foundIds.length];
                     int resultSetIndex = 0;
                     for (int i = 0; i < resultSet.length; i++) {
-                        org.mwg.Node resolvedNode = resolved[i];
-                        final NodeState resolvedState = selfPointer._resolver.resolveState(resolvedNode);
-                        boolean exact = true;
-                        for (int j = 0; j < query.attributes().length; j++) {
-                            Object obj = resolvedState.get(query.attributes()[j]);
-                            if (query.values()[j] == null) {
-                                if (obj != null) {
-                                    exact = false;
-                                    break;
-                                }
-                            } else {
-                                if (obj == null) {
-                                    exact = false;
-                                    break;
+                        final org.mwg.Node resolvedNode = resolved[i];
+                        if (resolvedNode != null) {
+                            final NodeState resolvedState = selfPointer._resolver.resolveState(resolvedNode);
+                            boolean exact = true;
+                            for (int j = 0; j < query.attributes().length; j++) {
+                                Object obj = resolvedState.get(query.attributes()[j]);
+                                if (query.values()[j] == null) {
+                                    if (obj != null) {
+                                        exact = false;
+                                        break;
+                                    }
                                 } else {
-                                    if (obj instanceof long[]) {
-                                        if (query.values()[j] instanceof long[]) {
-                                            if (!Constants.longArrayEquals((long[]) query.values()[j], (long[]) obj)) {
+                                    if (obj == null) {
+                                        exact = false;
+                                        break;
+                                    } else {
+                                        if (obj instanceof long[]) {
+                                            if (query.values()[j] instanceof long[]) {
+                                                if (!Constants.longArrayEquals((long[]) query.values()[j], (long[]) obj)) {
+                                                    exact = false;
+                                                    break;
+                                                }
+                                            } else {
                                                 exact = false;
                                                 break;
                                             }
                                         } else {
-                                            exact = false;
-                                            break;
-                                        }
-                                    } else {
-                                        if (!Constants.equals(query.values()[j].toString(), obj.toString())) {
-                                            exact = false;
-                                            break;
+                                            if (!Constants.equals(query.values()[j].toString(), obj.toString())) {
+                                                exact = false;
+                                                break;
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                        if (exact) {
-                            resultSet[resultSetIndex] = resolvedNode;
-                            resultSetIndex++;
+                            if (exact) {
+                                resultSet[resultSetIndex] = resolvedNode;
+                                resultSetIndex++;
+                            }
                         }
                     }
                     if (resultSet.length == resultSetIndex) {
@@ -453,34 +533,20 @@ public abstract class AbstractNode implements Node {
         }
         final LongLongArrayMap indexMap = (LongLongArrayMap) currentNodeState.get(this._resolver.stringToHash(indexName, false));
         if (indexMap != null) {
-            final AbstractNode selfPointer = this;
-            int mapSize = (int) indexMap.size();
-            final Node[] resolved = new org.mwg.plugin.AbstractNode[mapSize];
-            final DeferCounter waiter = _graph.newCounter(mapSize);
-            //TODO replace by a parralel lookup
-            final AtomicInteger loopInteger = new AtomicInteger(0);
+            final long[] ids = new long[(int) indexMap.size()];
+            final int[] idIndex = {0};
             indexMap.each(new LongLongArrayMapCallBack() {
                 @Override
                 public void on(final long hash, final long nodeId) {
-                    selfPointer._resolver.lookup(world(), time(), nodeId, new Callback<org.mwg.Node>() {
-                        @Override
-                        public void on(org.mwg.Node resolvedNode) {
-                            resolved[loopInteger.getAndIncrement()] = resolvedNode;
-                            waiter.count();
-                        }
-                    });
+                    ids[idIndex[0]] = nodeId;
+                    idIndex[0]++;
                 }
             });
-            waiter.then(new Job() {
+            _resolver.lookupAll(world(), time(), ids, new Callback<Node[]>() {
                 @Override
-                public void run() {
-                    if (loopInteger.get() == resolved.length) {
-                        callback.on(resolved);
-                    } else {
-                        final Node[] toSend = new org.mwg.plugin.AbstractNode[loopInteger.get()];
-                        System.arraycopy(resolved, 0, toSend, 0, toSend.length);
-                        callback.on(toSend);
-                    }
+                public void on(Node[] result) {
+                    //TODO shrink result
+                    callback.on(result);
                 }
             });
         } else {
@@ -491,11 +557,7 @@ public abstract class AbstractNode implements Node {
     @Override
     public void index(String indexName, org.mwg.Node nodeToIndex, String flatKeyAttributes, Callback<Boolean> callback) {
         final String[] keyAttributes = flatKeyAttributes.split(Constants.QUERY_SEP + "");
-        final NodeState currentNodeState = this._resolver.alignState(this);
-        if (currentNodeState == null) {
-            throw new RuntimeException(Constants.CACHE_MISS_ERROR);
-        }
-        LongLongArrayMap indexMap = (LongLongArrayMap) currentNodeState.getOrCreate(this._resolver.stringToHash(indexName, true), Type.LONG_TO_LONG_ARRAY_MAP);
+        final long hashName = this._resolver.stringToHash(indexName, true);
         Query flatQuery = _graph.newQuery();
         final NodeState toIndexNodeState = this._resolver.resolveState(nodeToIndex);
         for (int i = 0; i < keyAttributes.length; i++) {
@@ -507,8 +569,23 @@ public abstract class AbstractNode implements Node {
                 flatQuery.add(keyAttributes[i], null);
             }
         }
+        boolean alreadyIndexed = false;
+        final NodeState previousState = this._resolver.resolveState(this);
+        if (previousState != null) {
+            LongLongArrayMap previousMap = (LongLongArrayMap) previousState.get(hashName);
+            if(previousMap != null){
+                alreadyIndexed = previousMap.contains(flatQuery.hash(), nodeToIndex.id());
+            }
+        }
+        if(!alreadyIndexed){
+            final NodeState currentNodeState = this._resolver.alignState(this);
+            if (currentNodeState == null) {
+                throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+            }
+            LongLongArrayMap indexMap = (LongLongArrayMap) currentNodeState.getOrCreate(hashName, Type.LONG_TO_LONG_ARRAY_MAP);
+            indexMap.put(flatQuery.hash(), nodeToIndex.id());
+        }
         //TODO AUTOMATIC UPDATE
-        indexMap.put(flatQuery.hash(), nodeToIndex.id());
         if (Constants.isDefined(callback)) {
             callback.on(true);
         }
@@ -553,6 +630,7 @@ public abstract class AbstractNode implements Node {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
+        final boolean[] isFirst = {true};
         builder.append("{\"world\":");
         builder.append(world());
         builder.append(",\"time\":");
@@ -674,7 +752,7 @@ public abstract class AbstractNode implements Node {
                                 builder.append("\":");
                                 builder.append("{");
                                 LongLongMap castedMapL2L = (LongLongMap) elem;
-                                final boolean[] isFirst = {true};
+                                isFirst[0] = true;
                                 castedMapL2L.each(new LongLongMapCallBack() {
                                     @Override
                                     public void on(long key, long value) {
@@ -698,8 +776,7 @@ public abstract class AbstractNode implements Node {
                                 builder.append("\":");
                                 builder.append("{");
                                 LongLongArrayMap castedMapL2LA = (LongLongArrayMap) elem;
-                                final boolean[] isFirst = {true};
-
+                                isFirst[0] = true;
                                 Set<Long> keys = new HashSet<Long>();
                                 castedMapL2LA.each(new LongLongArrayMapCallBack() {
                                     @Override
@@ -735,7 +812,7 @@ public abstract class AbstractNode implements Node {
                                 builder.append("\":");
                                 builder.append("{");
                                 StringLongMap castedMapS2L = (StringLongMap) elem;
-                                final boolean[] isFirst = {true};
+                                isFirst[0] = true;
                                 castedMapS2L.each(new StringLongMapCallBack() {
                                     @Override
                                     public void on(String key, long value) {

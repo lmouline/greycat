@@ -6,11 +6,8 @@ import org.mwg.Node;
 import org.mwg.Type;
 import org.mwg.ml.ProfilingNode;
 import org.mwg.plugin.NodeState;
-import org.mwg.struct.tree.KDTree;
+import org.mwg.structure.tree.KDTree;
 
-/**
- * Created by assaad on 04/07/16.
- */
 public class GaussianTreeNode extends GaussianNode implements ProfilingNode {
 
     public static String NAME = "GaussianTreeNode";

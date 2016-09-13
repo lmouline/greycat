@@ -88,6 +88,16 @@ public interface Node {
      * Sets the value of an attribute of this node, for its current world and time.<br>
      * This method hasField to be used for primitive types.
      *
+     * @param propertyName  The name of the attribute. Must be unique per node.
+     * @param propertyType  The type of the attribute. Must be one of {@link Type} int value.
+     * @param propertyValue The value of the attribute. Must be consistent with the propertyType.
+     */
+    void forceProperty(String propertyName, byte propertyType, Object propertyValue);
+
+    /**
+     * Sets the value of an attribute of this node, for its current world and time.<br>
+     * This method hasField to be used for primitive types.
+     *
      * @param propIndex     The index of the attribute. Must be unique per node.
      * @param propertyType  The type of the attribute. Must be one of {@link Type} int value.
      * @param propertyValue The value of the attribute. Must be consistent with the propertyType.

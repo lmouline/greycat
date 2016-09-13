@@ -11,8 +11,11 @@ import org.mwg.chunk.Stack;
 import org.mwg.memory.offheap.primary.OffHeapByteArray;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.struct.Buffer;
+import org.mwg.struct.BufferIterator;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.KeyHelper;
+
+import static org.mwg.Constants.BUFFER_SEP;
 
 class OffHeapChunkSpace implements ChunkSpace {
 
@@ -167,6 +170,66 @@ class OffHeapChunkSpace implements ChunkSpace {
                     }
                 }
             });
+        }
+    }
+
+    @Override
+    public final void getOrLoadAndMarkAll(final long[] keys, final Callback<Chunk[]> callback) {
+        final int querySize = keys.length / Constants.KEY_SIZE;
+        final Chunk[] finalResult = new Chunk[querySize];
+        int[] reverse = null;
+        int reverseIndex = 0;
+        Buffer toLoadKeys = null;
+        for (int i = 0; i < querySize; i++) {
+            final int offset = i * Constants.KEY_SIZE;
+            final byte loopType = (byte) keys[offset];
+            if (loopType != -1) {
+                final Chunk fromMemory = getAndMark((byte) keys[offset], keys[offset + 1], keys[offset + 2], keys[offset + 3]);
+                if (fromMemory != null) {
+                    finalResult[i] = fromMemory;
+                } else {
+                    if (reverse == null) {
+                        reverse = new int[querySize];
+                        toLoadKeys = graph().newBuffer();
+                    }
+                    reverse[i] = reverseIndex;
+                    if (reverseIndex != 0) {
+                        toLoadKeys.write(BUFFER_SEP);
+                    }
+                    KeyHelper.keyToBuffer(toLoadKeys, (byte) keys[offset], keys[offset + 1], keys[offset + 2], keys[offset + 3]);
+                    reverseIndex++;
+                }
+            } else {
+                finalResult[i] = null;
+            }
+        }
+        if (reverse != null) {
+            final int[] finalReverse = reverse;
+            graph().storage().get(toLoadKeys, new Callback<Buffer>() {
+                @Override
+                public void on(final Buffer loadAllResult) {
+                    BufferIterator it = loadAllResult.iterator();
+                    Buffer view = it.next();
+                    int i = 0;
+                    while (view != null) {
+                        int reversedIndex = finalReverse[i];
+                        int reversedOffset = reversedIndex * Constants.KEY_SIZE;
+                        if (view.length() > 0) {
+                            Chunk loadedChunk = createAndMark((byte) keys[reversedOffset], keys[reversedOffset + 1], keys[reversedOffset + 2], keys[reversedOffset + 3]);
+                            loadedChunk.load(view);
+                            finalResult[reversedIndex] = loadedChunk;
+                        } else {
+                            finalResult[reversedIndex] = null;
+                        }
+                        view = it.next();
+                        i++;
+                    }
+                    loadAllResult.free();
+                    callback.on(finalResult);
+                }
+            });
+        } else {
+            callback.on(finalResult);
         }
     }
 
