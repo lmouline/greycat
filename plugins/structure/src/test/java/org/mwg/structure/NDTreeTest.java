@@ -1,9 +1,9 @@
-package org.mwg.ml.common.structure;
+package org.mwg.structure;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
-import org.mwg.ml.MLPlugin;
+import org.mwg.structure.tree.NDTree;
 
 import java.util.Random;
 
@@ -15,7 +15,7 @@ public class NDTreeTest {
     @Test
     public void NDInsertTest() {
         final Graph graph = new GraphBuilder()
-                .withPlugin(new MLPlugin())
+                .withPlugin(new StructurePlugin())
                 //.withScheduler(new NoopScheduler())
                 .withMemorySize(100000)
                 //.withOffHeapMemory()
@@ -58,6 +58,11 @@ public class NDTreeTest {
 
                 graph.save(null);
                 Assert.assertTrue(graph.space().available() == initcache);
+
+
+                double[] res={0.1,0.35};
+
+
 
 
             }

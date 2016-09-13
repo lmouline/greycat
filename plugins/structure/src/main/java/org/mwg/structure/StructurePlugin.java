@@ -6,6 +6,7 @@ import org.mwg.plugin.AbstractPlugin;
 import org.mwg.plugin.NodeFactory;
 import org.mwg.structure.action.*;
 import org.mwg.structure.tree.KDTree;
+import org.mwg.structure.tree.NDTree;
 import org.mwg.task.TaskAction;
 import org.mwg.task.TaskActionFactory;
 
@@ -19,6 +20,14 @@ public class StructurePlugin extends AbstractPlugin {
                 return new KDTree(world, time, id, graph);
             }
         });
+
+        declareNodeType(NDTree.NAME, new NodeFactory() {
+            @Override
+            public Node create(long world, long time, long id, Graph graph) {
+                return new NDTree(world, time, id, graph);
+            }
+        });
+
         declareTaskAction(NTreeInsertTo.NAME, new TaskActionFactory() {
             @Override
             public TaskAction create(String[] params) {
