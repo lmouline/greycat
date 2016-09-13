@@ -245,11 +245,6 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public final org.mwg.task.Task flatMap(TaskFunctionFlatMap flatMapFunction) {
-        throw new RuntimeException("Not implemented yet");
-    }
-
-    @Override
     public final org.mwg.task.Task group(TaskFunctionGroup groupFunction) {
         throw new RuntimeException("Not implemented yet");
     }
@@ -364,11 +359,29 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
+    public Task flatmap(Task subTask) {
+        if (subTask == null) {
+            throw new RuntimeException("subTask should not be null");
+        }
+        addAction(new ActionFlatmap(subTask));
+        return this;
+    }
+
+    @Override
     public final org.mwg.task.Task foreachPar(Task subTask) {
         if (subTask == null) {
             throw new RuntimeException("subTask should not be null");
         }
         addAction(new ActionForeachPar(subTask));
+        return this;
+    }
+
+    @Override
+    public Task flatmapPar(Task subTask) {
+        if (subTask == null) {
+            throw new RuntimeException("subTask should not be null");
+        }
+        addAction(new ActionFlatmapPar(subTask));
         return this;
     }
 

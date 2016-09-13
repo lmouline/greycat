@@ -62,19 +62,19 @@ public class Actions {
     }
 
     public static Task indexNode(String indexName, String flatKeyAttributes) {
-        return newTask().indexNode(indexName,flatKeyAttributes);
+        return newTask().indexNode(indexName, flatKeyAttributes);
     }
 
     public static Task unindexNode(String indexName, String flatKeyAttributes) {
-        return newTask().unindexNode(indexName,flatKeyAttributes);
+        return newTask().unindexNode(indexName, flatKeyAttributes);
     }
 
     public static Task localIndex(String indexedRelation, String flatKeyAttributes, String varNodeToAdd) {
-        return newTask().localIndex(indexedRelation,flatKeyAttributes, varNodeToAdd);
+        return newTask().localIndex(indexedRelation, flatKeyAttributes, varNodeToAdd);
     }
 
     public static Task localUnindex(String indexedRelation, String flatKeyAttributes, String varNodeToAdd) {
-        return newTask().localUnindex(indexedRelation,flatKeyAttributes,varNodeToAdd);
+        return newTask().localUnindex(indexedRelation, flatKeyAttributes, varNodeToAdd);
     }
 
     public static Task parse(String flatTask) {
@@ -168,6 +168,14 @@ public class Actions {
 
     public static Task foreachPar(Task subTask) {
         return newTask().foreachPar(subTask);
+    }
+
+    public static Task flatmap(Task subTask) {
+        return newTask().flatmap(subTask);
+    }
+
+    public static Task flatmapPar(Task subTask) {
+        return newTask().flatmapPar(subTask);
     }
 
     public static Task math(String expression) {

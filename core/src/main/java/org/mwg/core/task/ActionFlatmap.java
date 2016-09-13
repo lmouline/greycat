@@ -4,53 +4,65 @@ import org.mwg.Callback;
 import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.SchedulerAffinity;
-import org.mwg.task.*;
+import org.mwg.task.Task;
+import org.mwg.task.TaskContext;
+import org.mwg.task.TaskResult;
+import org.mwg.task.TaskResultIterator;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
-class ActionForeach extends AbstractTaskAction {
+class ActionFlatmap extends AbstractTaskAction {
 
     private final Task _subTask;
 
-    ActionForeach(final Task p_subTask) {
+    ActionFlatmap(final Task p_subTask) {
         super();
         _subTask = p_subTask;
     }
 
     @Override
     public void eval(final TaskContext context) {
-        final ActionForeach selfPointer = this;
+        final ActionFlatmap selfPointer = this;
         final TaskResult previousResult = context.result();
         if (previousResult == null) {
             context.continueTask();
         } else {
             final TaskResultIterator it = previousResult.iterator();
+            final TaskResult finalResult = context.newResult();
+            finalResult.allocate(previousResult.size());
             final Callback[] recursiveAction = new Callback[1];
+            final TaskResult[] loopRes = new TaskResult[1];
             recursiveAction[0] = new Callback<TaskResult>() {
                 @Override
                 public void on(final TaskResult res) {
-                    //we don't keep result
                     if (res != null) {
-                        res.free();
+                        for (int i = 0; i < res.size(); i++) {
+                            finalResult.add(res.get(i));
+                        }
                     }
+                    loopRes[0].free();
                     Object nextResult = it.next();
-                    if (nextResult == null) {
-                        context.continueTask();
+                    if (nextResult != null) {
+                        loopRes[0] = context.wrap(nextResult);
                     } else {
-                        selfPointer._subTask.executeFrom(context, context.wrap(nextResult), SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+                        loopRes[0] = null;
+                    }
+                    if (nextResult == null) {
+                        context.continueWith(finalResult);
+                    } else {
+                        selfPointer._subTask.executeFrom(context, loopRes[0], SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
                     }
                 }
             };
             Object nextRes = it.next();
+            loopRes[0] = context.wrap(nextRes);
             if (nextRes != null) {
                 context.graph().scheduler().dispatch(SchedulerAffinity.SAME_THREAD, new Job() {
                     @Override
                     public void run() {
-                        _subTask.executeFrom(context, context.wrap(nextRes), SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+                        _subTask.executeFrom(context, context.wrap(loopRes[0]), SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
                     }
                 });
             } else {
-                context.continueTask();
+                context.continueWith(finalResult);
             }
         }
     }

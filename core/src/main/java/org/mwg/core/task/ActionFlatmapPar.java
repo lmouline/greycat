@@ -5,13 +5,16 @@ import org.mwg.DeferCounter;
 import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.SchedulerAffinity;
-import org.mwg.task.*;
+import org.mwg.task.Task;
+import org.mwg.task.TaskContext;
+import org.mwg.task.TaskResult;
+import org.mwg.task.TaskResultIterator;
 
-class ActionForeachPar extends AbstractTaskAction {
+class ActionFlatmapPar extends AbstractTaskAction {
 
     private final Task _subTask;
 
-    ActionForeachPar(final Task p_subTask) {
+    ActionFlatmapPar(final Task p_subTask) {
         super();
         _subTask = p_subTask;
     }
@@ -19,20 +22,26 @@ class ActionForeachPar extends AbstractTaskAction {
     @Override
     public void eval(final TaskContext context) {
         final TaskResult previousResult = context.result();
+        final TaskResult finalResult = context.wrap(null);
         final TaskResultIterator it = previousResult.iterator();
         final int previousSize = previousResult.size();
         if (previousSize == -1) {
             throw new RuntimeException("Foreach on non array structure are not supported yet!");
         }
+        finalResult.allocate(previousSize);
         final DeferCounter waiter = context.graph().newCounter(previousSize);
         Object loop = it.next();
         while (loop != null) {
-            _subTask.executeFrom(context, context.wrap(loop), SchedulerAffinity.ANY_LOCAL_THREAD, new Callback<TaskResult>() {
+            final TaskResult loopResult = context.wrap(loop);
+            _subTask.executeFrom(context, loopResult, SchedulerAffinity.ANY_LOCAL_THREAD, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult result) {
                     if (result != null) {
-                        result.free();
+                        for (int i = 0; i < result.size(); i++) {
+                            finalResult.add(result.get(i));
+                        }
                     }
+                    loopResult.free();
                     waiter.count();
                 }
             });
@@ -41,7 +50,7 @@ class ActionForeachPar extends AbstractTaskAction {
         waiter.then(new Job() {
             @Override
             public void run() {
-                context.continueTask();
+                context.continueWith(finalResult);
             }
         });
     }

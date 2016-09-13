@@ -25,7 +25,7 @@ public class ActionWhileDoTest extends AbstractActionTest {
                                                                         //System.out.println("condition while");
                                                                         return context.result().size() != 0;
                                                                     }
-                                                                }, foreach(ifThenElse(new TaskFunctionConditional() {
+                                                                }, flatmap(ifThenElse(new TaskFunctionConditional() {
                                                                                           @Override
                                                                                           public boolean eval(TaskContext context) {
                                                                                               return context.resultAsNodes().get(0).get("child") != null;
@@ -71,7 +71,7 @@ public class ActionWhileDoTest extends AbstractActionTest {
 
                 final long cache1 = graph.space().available();
                 Task whiletask = newTask().inject(root).doWhile(
-                        foreach(ifThenElse(new TaskFunctionConditional() {
+                        flatmap(ifThenElse(new TaskFunctionConditional() {
                             @Override
                             public boolean eval(TaskContext context) {
                                 return context.resultAsNodes().get(0).get("child") != null;
