@@ -35,4 +35,7 @@ public interface LongLongArrayMap extends Map {
      */
     void each(LongLongArrayMapCallBack callback);
 
+
+    boolean contains(long key, long value);
+
 }

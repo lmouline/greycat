@@ -715,6 +715,7 @@ declare module org {
                 put(key: number, value: number): void;
                 remove(key: number, value: number): void;
                 each(callback: org.mwg.struct.LongLongArrayMapCallBack): void;
+                contains(key: number, value: number): boolean;
             }
             interface LongLongArrayMapCallBack {
                 (key: number, value: number): void;
@@ -864,6 +865,7 @@ declare module org {
                 newNode(): org.mwg.task.Task;
                 newTypedNode(typeNode: string): org.mwg.task.Task;
                 setProperty(propertyName: string, propertyType: number, variableNameToSet: string): org.mwg.task.Task;
+                forceProperty(propertyName: string, propertyType: number, variableNameToSet: string): org.mwg.task.Task;
                 removeProperty(propertyName: string): org.mwg.task.Task;
                 add(relationName: string, variableToAdd: string): org.mwg.task.Task;
                 addTo(relationName: string, variableTarget: string): org.mwg.task.Task;
@@ -1303,6 +1305,7 @@ declare module org {
                         reallocate(newCapacity: number): void;
                         cloneFor(newParent: org.mwg.core.chunk.heap.HeapStateChunk): org.mwg.core.chunk.heap.HeapLongLongArrayMap;
                         get(requestKey: number): Float64Array;
+                        contains(requestKey: number, requestValue: number): boolean;
                         each(callback: org.mwg.struct.LongLongArrayMapCallBack): void;
                         unsafe_each(callback: org.mwg.struct.LongLongArrayMapCallBack): void;
                         size(): number;
@@ -1780,7 +1783,8 @@ declare module org {
                     private _relationName;
                     private _variableNameToSet;
                     private _propertyType;
-                    constructor(relationName: string, propertyType: number, variableNameToSet: string);
+                    private _force;
+                    constructor(relationName: string, propertyType: number, variableNameToSet: string, force: boolean);
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                     private parseBoolean(booleanValue);
@@ -1934,6 +1938,7 @@ declare module org {
                     newNode(): org.mwg.task.Task;
                     newTypedNode(typeNode: string): org.mwg.task.Task;
                     setProperty(propertyName: string, propertyType: number, variableNameToSet: string): org.mwg.task.Task;
+                    forceProperty(propertyName: string, propertyType: number, variableNameToSet: string): org.mwg.task.Task;
                     removeProperty(propertyName: string): org.mwg.task.Task;
                     add(relationName: string, variableNameToAdd: string): org.mwg.task.Task;
                     addTo(relationName: string, variableNameTarget: string): org.mwg.task.Task;

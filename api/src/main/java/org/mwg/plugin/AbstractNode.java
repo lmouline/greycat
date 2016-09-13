@@ -549,42 +549,6 @@ public abstract class AbstractNode implements Node {
                     callback.on(result);
                 }
             });
-
-
-
-            /*
-            final AbstractNode selfPointer = this;
-            int mapSize = (int) indexMap.size();
-            final Node[] resolved = new org.mwg.plugin.AbstractNode[mapSize];
-            final DeferCounter waiter = _graph.newCounter(mapSize);
-            //TODO replace by a parralel lookup
-            final AtomicInteger loopInteger = new AtomicInteger(0);
-            indexMap.each(new LongLongArrayMapCallBack() {
-                @Override
-                public void on(final long hash, final long nodeId) {
-                    selfPointer._resolver.lookup(world(), time(), nodeId, new Callback<org.mwg.Node>() {
-                        @Override
-                        public void on(org.mwg.Node resolvedNode) {
-                            resolved[loopInteger.getAndIncrement()] = resolvedNode;
-                            waiter.count();
-                        }
-                    });
-                }
-            });
-            waiter.then(new Job() {
-                @Override
-                public void run() {
-                    if (loopInteger.get() == resolved.length) {
-                        callback.on(resolved);
-                    } else {
-                        final Node[] toSend = new org.mwg.plugin.AbstractNode[loopInteger.get()];
-                        System.arraycopy(resolved, 0, toSend, 0, toSend.length);
-                        callback.on(toSend);
-                    }
-                }
-            });
-            */
-
         } else {
             callback.on(new org.mwg.plugin.AbstractNode[0]);
         }
@@ -593,11 +557,7 @@ public abstract class AbstractNode implements Node {
     @Override
     public void index(String indexName, org.mwg.Node nodeToIndex, String flatKeyAttributes, Callback<Boolean> callback) {
         final String[] keyAttributes = flatKeyAttributes.split(Constants.QUERY_SEP + "");
-        final NodeState currentNodeState = this._resolver.alignState(this);
-        if (currentNodeState == null) {
-            throw new RuntimeException(Constants.CACHE_MISS_ERROR);
-        }
-        LongLongArrayMap indexMap = (LongLongArrayMap) currentNodeState.getOrCreate(this._resolver.stringToHash(indexName, true), Type.LONG_TO_LONG_ARRAY_MAP);
+        final long hashName = this._resolver.stringToHash(indexName, true);
         Query flatQuery = _graph.newQuery();
         final NodeState toIndexNodeState = this._resolver.resolveState(nodeToIndex);
         for (int i = 0; i < keyAttributes.length; i++) {
@@ -609,8 +569,23 @@ public abstract class AbstractNode implements Node {
                 flatQuery.add(keyAttributes[i], null);
             }
         }
+        boolean alreadyIndexed = false;
+        final NodeState previousState = this._resolver.resolveState(this);
+        if (previousState != null) {
+            LongLongArrayMap previousMap = (LongLongArrayMap) previousState.get(hashName);
+            if(previousMap != null){
+                alreadyIndexed = previousMap.contains(flatQuery.hash(), nodeToIndex.id());
+            }
+        }
+        if(!alreadyIndexed){
+            final NodeState currentNodeState = this._resolver.alignState(this);
+            if (currentNodeState == null) {
+                throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+            }
+            LongLongArrayMap indexMap = (LongLongArrayMap) currentNodeState.getOrCreate(hashName, Type.LONG_TO_LONG_ARRAY_MAP);
+            indexMap.put(flatQuery.hash(), nodeToIndex.id());
+        }
         //TODO AUTOMATIC UPDATE
-        indexMap.put(flatQuery.hash(), nodeToIndex.id());
         if (Constants.isDefined(callback)) {
             callback.on(true);
         }

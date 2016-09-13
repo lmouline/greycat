@@ -661,11 +661,7 @@ module org {
         }
         public index(indexName: string, nodeToIndex: org.mwg.Node, flatKeyAttributes: string, callback: org.mwg.Callback<boolean>): void {
           var keyAttributes: string[] = flatKeyAttributes.split(org.mwg.Constants.QUERY_SEP + "");
-          var currentNodeState: org.mwg.plugin.NodeState = this._resolver.alignState(this);
-          if (currentNodeState == null) {
-            throw new Error(org.mwg.Constants.CACHE_MISS_ERROR);
-          }
-          var indexMap: org.mwg.struct.LongLongArrayMap = <org.mwg.struct.LongLongArrayMap>currentNodeState.getOrCreate(this._resolver.stringToHash(indexName, true), org.mwg.Type.LONG_TO_LONG_ARRAY_MAP);
+          var hashName: number = this._resolver.stringToHash(indexName, true);
           var flatQuery: org.mwg.Query = this._graph.newQuery();
           var toIndexNodeState: org.mwg.plugin.NodeState = this._resolver.resolveState(nodeToIndex);
           for (var i: number = 0; i < keyAttributes.length; i++) {
@@ -677,7 +673,22 @@ module org {
               flatQuery.add(keyAttributes[i], null);
             }
           }
-          indexMap.put(flatQuery.hash(), nodeToIndex.id());
+          var alreadyIndexed: boolean = false;
+          var previousState: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
+          if (previousState != null) {
+            var previousMap: org.mwg.struct.LongLongArrayMap = <org.mwg.struct.LongLongArrayMap>previousState.get(hashName);
+            if (previousMap != null) {
+              alreadyIndexed = previousMap.contains(flatQuery.hash(), nodeToIndex.id());
+            }
+          }
+          if (!alreadyIndexed) {
+            var currentNodeState: org.mwg.plugin.NodeState = this._resolver.resolveState(this);
+            if (currentNodeState == null) {
+              throw new Error(org.mwg.Constants.CACHE_MISS_ERROR);
+            }
+            var indexMap: org.mwg.struct.LongLongArrayMap = <org.mwg.struct.LongLongArrayMap>currentNodeState.getOrCreate(hashName, org.mwg.Type.LONG_TO_LONG_ARRAY_MAP);
+            indexMap.put(flatQuery.hash(), nodeToIndex.id());
+          }
           if (org.mwg.Constants.isDefined(callback)) {
             callback(true);
           }
@@ -1067,6 +1078,7 @@ module org {
         put(key: number, value: number): void;
         remove(key: number, value: number): void;
         each(callback: org.mwg.struct.LongLongArrayMapCallBack): void;
+        contains(key: number, value: number): boolean;
       }
       export interface LongLongArrayMapCallBack {
         (key: number, value: number): void;
@@ -1339,6 +1351,7 @@ module org {
         newNode(): org.mwg.task.Task;
         newTypedNode(typeNode: string): org.mwg.task.Task;
         setProperty(propertyName: string, propertyType: number, variableNameToSet: string): org.mwg.task.Task;
+        forceProperty(propertyName: string, propertyType: number, variableNameToSet: string): org.mwg.task.Task;
         removeProperty(propertyName: string): org.mwg.task.Task;
         add(relationName: string, variableToAdd: string): org.mwg.task.Task;
         addTo(relationName: string, variableTarget: string): org.mwg.task.Task;

@@ -6,6 +6,8 @@ import org.mwg.*;
 import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.utility.HashHelper;
 
+import java.util.Arrays;
+
 public class TimelineTest {
 
     @Test
@@ -20,16 +22,32 @@ public class TimelineTest {
             public void on(Boolean result) {
                 Node n = g.newNode(0, 0);
                 n.setProperty("name", Type.STRING, "name");
+                g.index("nodes", n, "name", indexResult -> {
+                    n.jump(1, new Callback<Node>() {
+                        @Override
+                        public void on(Node n_t1) {
+                            //should be effect less
+                            n_t1.setProperty("name", Type.STRING, "name");
+                            Assert.assertEquals(n_t1.timeDephasing(), 1);
+                            g.index("nodes", n_t1, "name", index2Callback -> {
+                                g.getIndexNode(0, 1, "nodes", resolvedGlobalIndex -> {
+                                    resolvedGlobalIndex.timepoints(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, timepoints -> {
+                                        Assert.assertEquals(timepoints.length, 1);
+                                        //now we test a real modification
+                                        n_t1.setProperty("name", Type.STRING, "newName");
+                                        Assert.assertEquals(n_t1.timeDephasing(), 0);
+                                        g.index("nodes", n_t1, "name", index3Callback -> {
+                                            resolvedGlobalIndex.timepoints(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, timepoints2 -> {
+                                                Assert.assertEquals(timepoints2.length, 2);
+                                            });
+                                        });
+                                    });
 
-                n.jump(1, new Callback<Node>() {
-                    @Override
-                    public void on(Node n_t1) {
-                        //should be effect less
-                        n_t1.setProperty("name", Type.STRING, "name");
-                        Assert.assertEquals(n_t1.timeDephasing(), 1);
-                        n_t1.setProperty("name", Type.STRING, "newName");
-                        Assert.assertEquals(n_t1.timeDephasing(), 0);
-                    }
+                                });
+
+                            });
+                        }
+                    });
                 });
             }
         });

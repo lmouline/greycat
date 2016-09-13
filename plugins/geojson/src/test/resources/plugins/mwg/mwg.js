@@ -1794,11 +1794,7 @@ var org;
                 };
                 AbstractNode.prototype.index = function (indexName, nodeToIndex, flatKeyAttributes, callback) {
                     var keyAttributes = flatKeyAttributes.split(org.mwg.Constants.QUERY_SEP + "");
-                    var currentNodeState = this._resolver.alignState(this);
-                    if (currentNodeState == null) {
-                        throw new Error(org.mwg.Constants.CACHE_MISS_ERROR);
-                    }
-                    var indexMap = currentNodeState.getOrCreate(this._resolver.stringToHash(indexName, true), org.mwg.Type.LONG_TO_LONG_ARRAY_MAP);
+                    var hashName = this._resolver.stringToHash(indexName, true);
                     var flatQuery = this._graph.newQuery();
                     var toIndexNodeState = this._resolver.resolveState(nodeToIndex);
                     for (var i = 0; i < keyAttributes.length; i++) {
@@ -1811,7 +1807,22 @@ var org;
                             flatQuery.add(keyAttributes[i], null);
                         }
                     }
-                    indexMap.put(flatQuery.hash(), nodeToIndex.id());
+                    var alreadyIndexed = false;
+                    var previousState = this._resolver.resolveState(this);
+                    if (previousState != null) {
+                        var previousMap = previousState.get(hashName);
+                        if (previousMap != null) {
+                            alreadyIndexed = previousMap.contains(flatQuery.hash(), nodeToIndex.id());
+                        }
+                    }
+                    if (!alreadyIndexed) {
+                        var currentNodeState = this._resolver.resolveState(this);
+                        if (currentNodeState == null) {
+                            throw new Error(org.mwg.Constants.CACHE_MISS_ERROR);
+                        }
+                        var indexMap = currentNodeState.getOrCreate(hashName, org.mwg.Type.LONG_TO_LONG_ARRAY_MAP);
+                        indexMap.put(flatQuery.hash(), nodeToIndex.id());
+                    }
                     if (org.mwg.Constants.isDefined(callback)) {
                         callback(true);
                     }
@@ -5170,6 +5181,20 @@ var org;
                                     var shrinkedResult = new Float64Array(resultIndex);
                                     java.lang.System.arraycopy(result, 0, shrinkedResult, 0, resultIndex);
                                     result = shrinkedResult;
+                                }
+                            }
+                            return result;
+                        };
+                        HeapLongLongArrayMap.prototype.contains = function (requestKey, requestValue) {
+                            var result = false;
+                            if (this.keys != null) {
+                                var hashIndex = org.mwg.utility.HashHelper.longHash(requestKey, this.capacity * 2);
+                                var m = this.hash(hashIndex);
+                                while (m >= 0 && !result) {
+                                    if (requestKey == this.key(m) && requestValue == this.value(m)) {
+                                        result = true;
+                                    }
+                                    m = this.next(m);
                                 }
                             }
                             return result;
@@ -8791,11 +8816,12 @@ var org;
                 task.ActionSelectObject = ActionSelectObject;
                 var ActionSetProperty = (function (_super) {
                     __extends(ActionSetProperty, _super);
-                    function ActionSetProperty(relationName, propertyType, variableNameToSet) {
+                    function ActionSetProperty(relationName, propertyType, variableNameToSet, force) {
                         _super.call(this);
                         this._relationName = relationName;
                         this._variableNameToSet = variableNameToSet;
                         this._propertyType = propertyType;
+                        this._force = force;
                     }
                     ActionSetProperty.prototype.eval = function (context) {
                         var previousResult = context.result();
@@ -8823,7 +8849,12 @@ var org;
                                 var loopObj = previousResult.get(i);
                                 if (loopObj instanceof org.mwg.plugin.AbstractNode) {
                                     var loopNode = loopObj;
-                                    loopNode.setProperty(flatRelationName, this._propertyType, toSet);
+                                    if (this._force) {
+                                        loopNode.forceProperty(flatRelationName, this._propertyType, toSet);
+                                    }
+                                    else {
+                                        loopNode.setProperty(flatRelationName, this._propertyType, toSet);
+                                    }
                                 }
                             }
                         }
@@ -9780,7 +9811,17 @@ var org;
                         if (variableNameToSet == null) {
                             throw new Error("variableNameToSet should not be null");
                         }
-                        this.addAction(new org.mwg.core.task.ActionSetProperty(propertyName, propertyType, variableNameToSet));
+                        this.addAction(new org.mwg.core.task.ActionSetProperty(propertyName, propertyType, variableNameToSet, false));
+                        return this;
+                    };
+                    CoreTask.prototype.forceProperty = function (propertyName, propertyType, variableNameToSet) {
+                        if (propertyName == null) {
+                            throw new Error("propertyName should not be null");
+                        }
+                        if (variableNameToSet == null) {
+                            throw new Error("variableNameToSet should not be null");
+                        }
+                        this.addAction(new org.mwg.core.task.ActionSetProperty(propertyName, propertyType, variableNameToSet, true));
                         return this;
                     };
                     CoreTask.prototype.removeProperty = function (propertyName) {

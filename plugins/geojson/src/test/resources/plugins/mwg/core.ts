@@ -2114,6 +2114,20 @@ module org {
               }
               return result;
             }
+            public contains(requestKey: number, requestValue: number): boolean {
+              var result: boolean = false;
+              if (this.keys != null) {
+                var hashIndex: number = <number>org.mwg.utility.HashHelper.longHash(requestKey, this.capacity * 2);
+                var m: number = this.hash(hashIndex);
+                while (m >= 0 && !result){
+                  if (requestKey == this.key(m) && requestValue == this.value(m)) {
+                    result = true;
+                  }
+                  m = this.next(m);
+                }
+              }
+              return result;
+            }
             public each(callback: org.mwg.struct.LongLongArrayMapCallBack): void {
               this.unsafe_each(callback);
             }
@@ -5511,11 +5525,13 @@ module org {
           private _relationName: string;
           private _variableNameToSet: string;
           private _propertyType: number;
-          constructor(relationName: string, propertyType: number, variableNameToSet: string) {
+          private _force: boolean;
+          constructor(relationName: string, propertyType: number, variableNameToSet: string, force: boolean) {
             super();
             this._relationName = relationName;
             this._variableNameToSet = variableNameToSet;
             this._propertyType = propertyType;
+            this._force = force;
           }
           public eval(context: org.mwg.task.TaskContext): void {
             var previousResult: org.mwg.task.TaskResult<any> = context.result();
@@ -5543,7 +5559,11 @@ module org {
                 var loopObj: any = previousResult.get(i);
                 if (loopObj instanceof org.mwg.plugin.AbstractNode) {
                   var loopNode: org.mwg.Node = <org.mwg.Node>loopObj;
-                  loopNode.setProperty(flatRelationName, this._propertyType, toSet);
+                  if (this._force) {
+                    loopNode.forceProperty(flatRelationName, this._propertyType, toSet);
+                  } else {
+                    loopNode.setProperty(flatRelationName, this._propertyType, toSet);
+                  }
                 }
               }
             }
@@ -6440,7 +6460,17 @@ module org {
             if (variableNameToSet == null) {
               throw new Error("variableNameToSet should not be null");
             }
-            this.addAction(new org.mwg.core.task.ActionSetProperty(propertyName, propertyType, variableNameToSet));
+            this.addAction(new org.mwg.core.task.ActionSetProperty(propertyName, propertyType, variableNameToSet, false));
+            return this;
+          }
+          public forceProperty(propertyName: string, propertyType: number, variableNameToSet: string): org.mwg.task.Task {
+            if (propertyName == null) {
+              throw new Error("propertyName should not be null");
+            }
+            if (variableNameToSet == null) {
+              throw new Error("variableNameToSet should not be null");
+            }
+            this.addAction(new org.mwg.core.task.ActionSetProperty(propertyName, propertyType, variableNameToSet, true));
             return this;
           }
           public removeProperty(propertyName: string): org.mwg.task.Task {
