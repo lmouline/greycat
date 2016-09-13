@@ -1250,7 +1250,7 @@ var org;
             function Constants() {
             }
             Constants.isDefined = function (param) {
-                return param != undefined && param != null;
+                return param != null;
             };
             Constants.equals = function (src, other) {
                 return src === other;

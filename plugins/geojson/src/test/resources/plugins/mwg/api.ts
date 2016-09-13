@@ -30,10 +30,10 @@ module org {
       public static BOOL_TRUE : number = "1".charCodeAt(0);
       public static BOOL_FALSE : number = "0".charCodeAt(0);
       public static isDefined(param: any): boolean {
-        return param != undefined && param != null;
+        return param != null;
       }
       public static equals(src: string, other: string): boolean {
-        return src === other
+        return src === other;
       }
       public static longArrayEquals(src: Float64Array, other: Float64Array): boolean {
         if (src.length != other.length) {
