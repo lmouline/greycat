@@ -85,33 +85,6 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
         }
     }
 
-    /*
-    @Override
-    public final long get(final long requestKey) {
-        long result = Constants.NULL_LONG;
-        chunk.lock();
-        try {
-            final long addr = chunk.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                final long capacity = OffHeapLongArray.get(addr, CAPACITY);
-                final long subHash = OffHeapLongArray.get(addr, SUBHASH);
-                final long hashIndex = HashHelper.longHash(requestKey, capacity * 2);
-                long m = hash(subHash, capacity, hashIndex);
-                while (m >= 0) {
-                    if (requestKey == key(addr, m)) {
-                        result = value(addr, m);
-                        break;
-                    }
-                    m = next(subHash, m);
-                }
-            }
-        } finally {
-            chunk.unlock();
-        }
-        return result;
-    }
-    */
-
     @Override
     public final long[] get(final long requestKey) {
         long[] result = new long[0];
@@ -159,6 +132,31 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
         return result;
     }
 
+    @Override
+    public final boolean contains(final long requestKey, final long requestValue) {
+        boolean result = false;
+        chunk.lock();
+        try {
+            final long addr = chunk.addrByIndex(index);
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+
+                final long capacity = OffHeapLongArray.get(addr, CAPACITY);
+                final long subHash = OffHeapLongArray.get(addr, SUBHASH);
+                final long hashIndex = HashHelper.longHash(requestKey, capacity * 2);
+
+                long m = hash(subHash, capacity, hashIndex);
+                while (m >= 0 && !result) {
+                    if (requestKey == key(addr, m) && requestKey == key(addr, m)) {
+                        result = true;
+                    }
+                    m = next(subHash, m);
+                }
+            }
+        } finally {
+            chunk.unlock();
+        }
+        return result;
+    }
 
     @Override
     public final void each(final LongLongArrayMapCallBack callback) {

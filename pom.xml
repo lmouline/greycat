@@ -102,9 +102,7 @@
 
         <!-- Plugin Java -->
 
-        <!--
         <module>plugins/memory</module>
-        -->
         <module>plugins/importer</module>
 
         <module>plugins/leveldb</module>
