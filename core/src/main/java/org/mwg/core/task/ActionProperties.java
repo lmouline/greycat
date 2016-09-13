@@ -20,7 +20,7 @@ class ActionProperties extends AbstractTaskAction {
     @Override
     public void eval(TaskContext context) {
         final TaskResult previous = context.result();
-        final TaskResult<String> result = context.newResult();
+        final TaskResult result = context.newResult();
         for (int i = 0; i < previous.size(); i++) {
             if (previous.get(i) instanceof AbstractNode) {
                 final Node n = (Node) previous.get(i);
@@ -32,6 +32,8 @@ class ActionProperties extends AbstractTaskAction {
                             String retrieved = context.graph().resolver().hashToString(attributeKey);
                             if (retrieved != null) {
                                 result.add(retrieved);
+                            } else {
+                                result.add(attributeKey);
                             }
                         }
                     }
