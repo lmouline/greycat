@@ -12,7 +12,6 @@
 
     <groupId>org.kevoree.mwg.plugins</groupId>
     <artifactId>debugger</artifactId>
-    <version>${parent.version}</version>
     <name>mwg :: Plugins :: Visualizer</name>
 
 
