@@ -656,7 +656,7 @@ public class KDTree extends AbstractNode implements NTree {
             public void on(TaskResult result) {
 
                 //ToDo replace by lookupAll later
-                long[] res = nnl.getAllNodes();
+                long[] res = nnl.distroyAndGetAllNodes();
 
                 Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").flatmap(lookup("{{result}}"));
                 TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {

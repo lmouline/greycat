@@ -54,7 +54,7 @@ public class NearestNeighborArrayList {
         return true;
     }
 
-    public long[] getAllNodes() {
+    public long[] distroyAndGetAllNodes() {
         int size = count;
         long[] nbrs = new long[count];
 
@@ -64,6 +64,37 @@ public class NearestNeighborArrayList {
         return nbrs;
     }
 
+    public void sort(){
+        for(int i=1;i<count;i++){
+            for(int j=i+1;j<count;j++){
+                if(value.get(i)<value.get(j)){
+                    double tempv=value.get(i);
+                    value.set(i,value.get(j));
+                    value.set(j,tempv);
+
+                    long templ=data.get(i);
+                    data.set(i,data.get(j));
+                    data.set(j,templ);
+                }
+            }
+        }
+    }
+
+    public long[] getNodes(){
+        long[] nbrs = new long[count];
+        for(int i=0;i<count;i++){
+            nbrs[i]=data.get(count-i);
+        }
+        return nbrs;
+    }
+
+    public double[] getDistances(){
+        double[] nbrs = new double[count];
+        for(int i=0;i<count;i++){
+            nbrs[i]=value.get(count-i);
+        }
+        return nbrs;
+    }
 
     public long getHighest() {
         return data.get(1);
@@ -115,7 +146,7 @@ public class NearestNeighborArrayList {
      *
      * @param pos is the position within the arrays of the element and priority
      */
-    private void bubbleDown(int pos) {
+    public void bubbleDown(int pos) {
         long element = data.get(pos);
         double priority = value.get(pos);
         int child;

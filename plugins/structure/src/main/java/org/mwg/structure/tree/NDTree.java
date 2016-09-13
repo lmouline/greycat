@@ -11,7 +11,7 @@ import org.mwg.struct.Relationship;
 import org.mwg.structure.action.TraverseById;
 import org.mwg.structure.distance.Distance;
 import org.mwg.structure.distance.EuclideanDistance;
-import org.mwg.structure.util.NDResult;
+import org.mwg.structure.util.NearestNeighborArrayList;
 import org.mwg.structure.util.NearestNeighborList;
 import org.mwg.task.*;
 
@@ -466,30 +466,34 @@ public class NDTree extends AbstractNode {
         tc.setGlobalVariable("distance", distance);
         tc.setGlobalVariable("dim", dim);
         tc.defineVariable("lev", 0);
+        final double[] precisions = (double[]) state.get(_PRECISION);
+        TaskResult resPres = tc.newResult();
+        resPres.add(precisions);
+        tc.setGlobalVariable("precision", resPres);
 
         nearestTask.executeUsing(tc);
     }
 
 
-    static double convertToDistance(final long attributeKey, final double[] target, final double[] center, final double[] boundMin, final double[] boundMax, final double[] precision, final Distance distance) {
-        double[] childCenter = new double[center.length];
-        double minchild = 0;
-        double maxchild = 0;
-        boolean[] binaries = binaryFromLong(attributeKey, center.length);
-        for (int i = 0; i < childCenter.length; i++) {
-
-            if (!binaries[i]) {
-                minchild = boundMin[i];
-                maxchild = Math.max(center[i] - boundMin[i], precision[i]) + boundMin[i];
-
-            } else {
-                minchild = boundMax[i] - Math.max(boundMax[i] - center[i], precision[i]);
-                maxchild = boundMax[i];
+    private static double getclosestDistance(double[] target, double[] boundMin, double[] boundMax, Distance distance){
+        double[] closest=new double[target.length];
+        for(int i=0;i<target.length;i++){
+            if(target[i]>=boundMax[i]){
+                closest[i]=boundMax[i];
             }
-            childCenter[i] = (minchild + maxchild) / 2;
+            else if(target[i]<=boundMin[i]){
+                closest[i]=boundMin[i];
+            }
+            else {
+                closest[i]=target[i];
+            }
         }
-        return distance.measure(childCenter, target);
+        return distance.measure(closest,target);
     }
+
+
+
+
 
 
     private static Task initNearestTask() {
@@ -501,6 +505,7 @@ public class NDTree extends AbstractNode {
             public void eval(TaskContext context) {
                 NDTree current = (NDTree) context.result().get(0);
                 NodeState state = current.graph().resolver().resolveState(current);
+                NearestNeighborList nnl = (NearestNeighborList) context.variable("nnl").get(0);
 
                 Relationship values = (Relationship) state.get(_VALUES);
 
@@ -512,7 +517,6 @@ public class NDTree extends AbstractNode {
 
                     double[] target = (double[]) context.variable("key").get(0);
                     Distance distance = (Distance) context.variable("distance").get(0);
-                    NearestNeighborList nnl = (NearestNeighborList) context.variable("nnl").get(0);
 
                     for (int i = 0; i < values.size(); i++) {
                         for (int j = 0; j < dim; j++) {
@@ -523,11 +527,52 @@ public class NDTree extends AbstractNode {
                     context.continueWith(null);
 
                 } else {
-                    double[] boundMax = (double[]) state.get(_BOUNDMAX);
-                    double[] boundMin = (double[]) state.get(_BOUNDMIN);
+                    final double[] boundMax = (double[]) state.get(_BOUNDMAX);
+                    final double[] boundMin = (double[]) state.get(_BOUNDMIN);
                     final double[] target = (double[]) context.variable("key").get(0);
                     final Distance distance = (Distance) context.variable("distance").get(0);
+                    final double worst= nnl.getWorstDistance();
 
+
+                    if(getclosestDistance(target,boundMin,boundMax,distance)<=worst) {
+                        final double[] precision = (double[]) context.variable("precision").get(0);
+                        final int dim=boundMin.length;
+                        final double[] childMin=new double[dim];
+                        final double[] childMax=new double[dim];
+
+                        final NearestNeighborArrayList temp=new NearestNeighborArrayList();
+
+                        state.each(new NodeStateCallback() {
+                            @Override
+                            public void on(long attributeKey, byte elemType, Object elem) {
+                                if (attributeKey < _RELCONST) {
+                                    return;
+                                } else {
+                                    boolean[] binaries = binaryFromLong(attributeKey, dim);
+                                    for (int i = 0; i < dim; i++) {
+                                        if (!binaries[i]) {
+                                            childMin[i] = boundMin[i];
+                                            childMax[i] = Math.max((boundMax[i] - boundMin[i])/2, precision[i]) + boundMin[i];
+
+                                        } else {
+                                            childMin[i] = boundMax[i] - Math.max((boundMax[i] - boundMin[i])/2, precision[i]);
+                                            childMax[i] = boundMax[i];
+                                        }
+                                    }
+                                    temp.insert(attributeKey,getclosestDistance(target,childMin,childMax,distance));
+                                }
+                            }
+                        });
+                        long[] tempres= temp.distroyAndGetAllNodes();
+
+
+                        final boolean nnlfull=nnl.isCapacityReached();
+                        final TaskResult newRes=context.newResult();
+                        context.continueWith(newRes);
+                    }
+                    else{
+                        context.continueWith(null);
+                    }
                 }
             }
         });
