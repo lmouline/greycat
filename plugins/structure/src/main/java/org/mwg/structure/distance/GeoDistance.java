@@ -20,7 +20,7 @@ public class GeoDistance implements Distance {
 
     @Override
     public final double measure(double[] x, double[] y) {
-        double earthRadius = 6371000; //meters
+        double earthRadius = 6371000; //in meters
         double dLat = toRadians(y[0] - x[0]);
         double dLng = toRadians(y[1] - x[1]);
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
