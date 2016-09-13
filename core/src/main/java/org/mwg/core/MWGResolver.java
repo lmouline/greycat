@@ -209,12 +209,9 @@ final class MWGResolver implements Resolver {
     private void lookupAll_end(final Node[] finalResult, final Callback<Node[]> callback, final int sizeIds, final Chunk[] worldOrders, final Chunk[] superTimes, final Chunk[] times, final Chunk[] chunks) {
         if (worldOrders != null || superTimes != null || times != null || chunks != null) {
             for (int i = 0; i < sizeIds; i++) {
-                if(finalResult[i] == null){
+                if (finalResult[i] == null) {
                     if (worldOrders != null && worldOrders[i] != null) {
                         _space.unmark(worldOrders[i].index());
-                    }
-                    if (superTimes != null && superTimes[i] != null) {
-                        _space.unmark(superTimes[i].index());
                     }
                     if (superTimes != null && superTimes[i] != null) {
                         _space.unmark(superTimes[i].index());
