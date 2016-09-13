@@ -33,53 +33,65 @@ var org;
                 function StructurePlugin() {
                     _super.call(this);
                     this.declareNodeType(org.mwg.structure.tree.KDTree.NAME, function (world, time, id, graph) {
-                        return new org.mwg.structure.tree.KDTree(world, time, id, graph);
+                        {
+                            return new org.mwg.structure.tree.KDTree(world, time, id, graph);
+                        }
                     });
                     this.declareTaskAction(org.mwg.structure.action.NTreeInsertTo.NAME, function (params) {
-                        if (params.length != 1) {
-                            throw new Error("Bad param number!");
+                        {
+                            if (params.length != 1) {
+                                throw new Error("Bad param number!");
+                            }
+                            return new org.mwg.structure.action.NTreeInsertTo(params[0]);
                         }
-                        return new org.mwg.structure.action.NTreeInsertTo(params[0]);
                     });
                     this.declareTaskAction(org.mwg.structure.action.TraverseById.NAME, function (params) {
-                        if (params.length != 1) {
-                            throw new Error("Bad param number!");
+                        {
+                            if (params.length != 1) {
+                                throw new Error("Bad param number!");
+                            }
+                            return new org.mwg.structure.action.TraverseById(params[0]);
                         }
-                        return new org.mwg.structure.action.TraverseById(params[0]);
                     });
                     this.declareTaskAction(org.mwg.structure.action.NTreeNearestN.NAME, function (params) {
-                        if (params.length < 2) {
-                            throw new Error("Bad param number!");
+                        {
+                            if (params.length < 2) {
+                                throw new Error("Bad param number!");
+                            }
+                            var n = java.lang.Integer.parseInt(params[params.length - 1]);
+                            var key = new Float64Array(params.length - 1);
+                            for (var i = 0; i < params.length - 1; i++) {
+                                key[i] = parseFloat(params[i]);
+                            }
+                            return new org.mwg.structure.action.NTreeNearestN(key, n);
                         }
-                        var n = java.lang.Integer.parseInt(params[params.length - 1]);
-                        var key = new Float64Array(params.length - 1);
-                        for (var i = 0; i < params.length - 1; i++) {
-                            key[i] = parseFloat(params[i]);
-                        }
-                        return new org.mwg.structure.action.NTreeNearestN(key, n);
                     });
                     this.declareTaskAction(org.mwg.structure.action.NTreeNearestWithinRadius.NAME, function (params) {
-                        if (params.length < 2) {
-                            throw new Error("Bad param number!");
+                        {
+                            if (params.length < 2) {
+                                throw new Error("Bad param number!");
+                            }
+                            var radius = parseFloat(params[params.length - 1]);
+                            var key = new Float64Array(params.length - 1);
+                            for (var i = 0; i < params.length - 1; i++) {
+                                key[i] = parseFloat(params[i]);
+                            }
+                            return new org.mwg.structure.action.NTreeNearestWithinRadius(key, radius);
                         }
-                        var radius = parseFloat(params[params.length - 1]);
-                        var key = new Float64Array(params.length - 1);
-                        for (var i = 0; i < params.length - 1; i++) {
-                            key[i] = parseFloat(params[i]);
-                        }
-                        return new org.mwg.structure.action.NTreeNearestWithinRadius(key, radius);
                     });
                     this.declareTaskAction(org.mwg.structure.action.NTreeNearestNWithinRadius.NAME, function (params) {
-                        if (params.length < 3) {
-                            throw new Error("Bad param number!");
+                        {
+                            if (params.length < 3) {
+                                throw new Error("Bad param number!");
+                            }
+                            var radius = parseFloat(params[params.length - 1]);
+                            var n = java.lang.Integer.parseInt(params[params.length - 2]);
+                            var key = new Float64Array(params.length - 2);
+                            for (var i = 0; i < params.length - 2; i++) {
+                                key[i] = parseFloat(params[i]);
+                            }
+                            return new org.mwg.structure.action.NTreeNearestNWithinRadius(key, n, radius);
                         }
-                        var radius = parseFloat(params[params.length - 1]);
-                        var n = java.lang.Integer.parseInt(params[params.length - 2]);
-                        var key = new Float64Array(params.length - 2);
-                        for (var i = 0; i < params.length - 2; i++) {
-                            key[i] = parseFloat(params[i]);
-                        }
-                        return new org.mwg.structure.action.NTreeNearestNWithinRadius(key, n, radius);
                     });
                 }
                 return StructurePlugin;
@@ -97,7 +109,7 @@ var org;
                         var previousResult = context.result();
                         var savedVar = context.variable(context.template(this._variableName));
                         if (previousResult != null && savedVar != null) {
-                            var defer = context.graph().newCounter(previousResult.size());
+                            var defer_1 = context.graph().newCounter(previousResult.size());
                             var previousResultIt = previousResult.iterator();
                             var iter = previousResultIt.next();
                             while (iter != null) {
@@ -107,22 +119,26 @@ var org;
                                     while (toAddIter != null) {
                                         if (toAddIter instanceof org.mwg.structure.tree.KDTree) {
                                             toAddIter.insert(iter, function (result) {
-                                                defer.count();
+                                                {
+                                                    defer_1.count();
+                                                }
                                             });
                                         }
                                         else {
-                                            defer.count();
+                                            defer_1.count();
                                         }
                                         toAddIter = savedVarIt.next();
                                     }
                                 }
                                 else {
-                                    defer.count();
+                                    defer_1.count();
                                 }
                                 iter = previousResultIt.next();
                             }
-                            defer.then(function () {
-                                context.continueTask();
+                            defer_1.then(function () {
+                                {
+                                    context.continueTask();
+                                }
                             });
                         }
                         else {
@@ -147,25 +163,29 @@ var org;
                         var previousResult = context.result();
                         var nextResult = context.newResult();
                         if (previousResult != null) {
-                            var defer = context.graph().newCounter(previousResult.size());
+                            var defer_2 = context.graph().newCounter(previousResult.size());
                             var previousResultIt = previousResult.iterator();
                             var iter = previousResultIt.next();
                             while (iter != null) {
                                 if (iter instanceof org.mwg.structure.tree.KDTree) {
                                     iter.nearestN(this._key, this._n, function (result) {
-                                        for (var i = 0; i < result.length; i++) {
-                                            nextResult.add(result[i]);
+                                        {
+                                            for (var i = 0; i < result.length; i++) {
+                                                nextResult.add(result[i]);
+                                            }
+                                            defer_2.count();
                                         }
-                                        defer.count();
                                     });
                                 }
                                 else {
-                                    defer.count();
+                                    defer_2.count();
                                 }
                                 iter = previousResultIt.next();
                             }
-                            defer.then(function () {
-                                context.continueWith(nextResult);
+                            defer_2.then(function () {
+                                {
+                                    context.continueWith(nextResult);
+                                }
                             });
                         }
                         else {
@@ -191,25 +211,29 @@ var org;
                         var previousResult = context.result();
                         var nextResult = context.newResult();
                         if (previousResult != null) {
-                            var defer = context.graph().newCounter(previousResult.size());
+                            var defer_3 = context.graph().newCounter(previousResult.size());
                             var previousResultIt = previousResult.iterator();
                             var iter = previousResultIt.next();
                             while (iter != null) {
                                 if (iter instanceof org.mwg.structure.tree.KDTree) {
                                     iter.nearestNWithinRadius(this._key, this._n, this._radius, function (result) {
-                                        for (var i = 0; i < result.length; i++) {
-                                            nextResult.add(result[i]);
+                                        {
+                                            for (var i = 0; i < result.length; i++) {
+                                                nextResult.add(result[i]);
+                                            }
+                                            defer_3.count();
                                         }
-                                        defer.count();
                                     });
                                 }
                                 else {
-                                    defer.count();
+                                    defer_3.count();
                                 }
                                 iter = previousResultIt.next();
                             }
-                            defer.then(function () {
-                                context.continueWith(nextResult);
+                            defer_3.then(function () {
+                                {
+                                    context.continueWith(nextResult);
+                                }
                             });
                         }
                         else {
@@ -234,25 +258,29 @@ var org;
                         var previousResult = context.result();
                         var nextResult = context.newResult();
                         if (previousResult != null) {
-                            var defer = context.graph().newCounter(previousResult.size());
+                            var defer_4 = context.graph().newCounter(previousResult.size());
                             var previousResultIt = previousResult.iterator();
                             var iter = previousResultIt.next();
                             while (iter != null) {
                                 if (iter instanceof org.mwg.structure.tree.KDTree) {
                                     iter.nearestWithinRadius(this._key, this._radius, function (result) {
-                                        for (var i = 0; i < result.length; i++) {
-                                            nextResult.add(result[i]);
+                                        {
+                                            for (var i = 0; i < result.length; i++) {
+                                                nextResult.add(result[i]);
+                                            }
+                                            defer_4.count();
                                         }
-                                        defer.count();
                                     });
                                 }
                                 else {
-                                    defer.count();
+                                    defer_4.count();
                                 }
                                 iter = previousResultIt.next();
                             }
-                            defer.then(function () {
-                                context.continueWith(nextResult);
+                            defer_4.then(function () {
+                                {
+                                    context.continueWith(nextResult);
+                                }
                             });
                         }
                         else {
@@ -278,29 +306,36 @@ var org;
                         var previousResult = context.result();
                         if (previousResult != null) {
                             var previousSize = previousResult.size();
-                            var defer = context.graph().newCounter(previousSize);
-                            for (var i = 0; i < previousSize; i++) {
+                            var defer_5 = context.graph().newCounter(previousSize);
+                            var _loop_1 = function(i) {
                                 var loop = previousResult.get(i);
                                 if (loop instanceof org.mwg.plugin.AbstractNode) {
-                                    var casted = loop;
-                                    casted.relByIndex(flatlongName, function (result) {
-                                        if (result != null) {
-                                            for (var j = 0; j < result.length; j++) {
-                                                finalResult.add(result[j]);
+                                    var casted_1 = loop;
+                                    casted_1.relByIndex(flatlongName, function (result) {
+                                        {
+                                            if (result != null) {
+                                                for (var j = 0; j < result.length; j++) {
+                                                    finalResult.add(result[j]);
+                                                }
                                             }
+                                            casted_1.free();
+                                            defer_5.count();
                                         }
-                                        casted.free();
-                                        defer.count();
                                     });
                                 }
                                 else {
                                     finalResult.add(loop);
-                                    defer.count();
+                                    defer_5.count();
                                 }
+                            };
+                            for (var i = 0; i < previousSize; i++) {
+                                _loop_1(i);
                             }
-                            defer.then(function () {
-                                previousResult.clear();
-                                context.continueWith(finalResult);
+                            defer_5.then(function () {
+                                {
+                                    previousResult.clear();
+                                    context.continueWith(finalResult);
+                                }
                             });
                         }
                         else {
@@ -470,207 +505,223 @@ var org;
                     KDTree.initFindNear = function () {
                         var reccursiveDown = org.mwg.task.Actions.newTask();
                         reccursiveDown.then(function (context) {
-                            var node = context.resultAsNodes().get(0);
-                            if (node == null) {
-                                context.continueTask();
-                                return;
-                            }
-                            var pivot = node.get(org.mwg.structure.tree.KDTree.KEY);
-                            var dim = context.variable("dim").get(0);
-                            var target = context.variable("key").get(0);
-                            var distance = context.variable("distance").get(0);
-                            var lev = context.variable("lev").get(0);
-                            var hr = context.variable("hr").get(0);
-                            var max_dist_sqd = context.variable("max_dist_sqd").get(0);
-                            var s = lev % dim;
-                            var pivot_to_target = distance.measure(pivot, target);
-                            var left_hr = hr;
-                            var right_hr = hr.clone();
-                            left_hr.max[s] = pivot[s];
-                            right_hr.min[s] = pivot[s];
-                            var target_in_left = target[s] < pivot[s];
-                            var nearer_kd;
-                            var nearer_hr;
-                            var further_kd;
-                            var further_hr;
-                            var nearer_st;
-                            var farther_st;
-                            if (target_in_left) {
-                                nearer_kd = node.get(org.mwg.structure.tree.KDTree.LEFT);
-                                nearer_st = org.mwg.structure.tree.KDTree.LEFT;
-                                nearer_hr = left_hr;
-                                further_kd = node.get(org.mwg.structure.tree.KDTree.RIGHT);
-                                further_hr = right_hr;
-                                farther_st = org.mwg.structure.tree.KDTree.RIGHT;
-                            }
-                            else {
-                                nearer_kd = node.get(org.mwg.structure.tree.KDTree.RIGHT);
-                                nearer_hr = right_hr;
-                                nearer_st = org.mwg.structure.tree.KDTree.RIGHT;
-                                further_kd = node.get(org.mwg.structure.tree.KDTree.LEFT);
-                                further_hr = left_hr;
-                                farther_st = org.mwg.structure.tree.KDTree.LEFT;
-                            }
-                            context.defineVariable("further_hr", further_hr);
-                            context.defineVariable("pivot_to_target", pivot_to_target);
-                            if (nearer_kd != null && nearer_kd.size() != 0) {
-                                context.defineVariable("near", nearer_st);
-                                context.defineVariableForSubTask("hr", nearer_hr);
-                                context.defineVariableForSubTask("max_dist_sqd", max_dist_sqd);
-                                context.defineVariableForSubTask("lev", lev + 1);
-                            }
-                            else {
-                                context.defineVariableForSubTask("near", context.newResult());
-                            }
-                            if (further_kd != null && further_kd.size() != 0) {
-                                context.defineVariableForSubTask("far", farther_st);
-                            }
-                            else {
-                                context.defineVariableForSubTask("far", context.newResult());
-                            }
-                            context.continueTask();
-                        }).isolate(org.mwg.task.Actions.ifThen(function (context) {
-                            return context.variable("near").size() > 0;
-                        }, org.mwg.task.Actions.traverse("{{near}}").isolate(reccursiveDown))).then(function (context) {
-                            var nnl = context.variable("nnl").get(0);
-                            var target = context.variable("key").get(0);
-                            var distance = context.variable("distance").get(0);
-                            var max_dist_sqd = context.variable("max_dist_sqd").get(0);
-                            var further_hr = context.variable("further_hr").get(0);
-                            var pivot_to_target = context.variable("pivot_to_target").get(0);
-                            var lev = context.variable("lev").get(0);
-                            var node = context.resultAsNodes().get(0);
-                            var dist_sqd;
-                            if (!nnl.isCapacityReached()) {
-                                dist_sqd = java.lang.Double.MAX_VALUE;
-                            }
-                            else {
-                                dist_sqd = nnl.getMaxPriority();
-                            }
-                            var max_dist_sqd2 = Math.min(max_dist_sqd, dist_sqd);
-                            var closest = further_hr.closest(target);
-                            if (distance.measure(closest, target) < max_dist_sqd) {
-                                if (pivot_to_target < dist_sqd) {
-                                    dist_sqd = pivot_to_target;
-                                    nnl.insert((node.get(org.mwg.structure.tree.KDTree.VALUE)).get(0), dist_sqd);
-                                    var pivot = node.get(org.mwg.structure.tree.KDTree.KEY);
-                                    if (nnl.isCapacityReached()) {
-                                        max_dist_sqd2 = nnl.getMaxPriority();
-                                    }
-                                    else {
-                                        max_dist_sqd2 = java.lang.Double.MAX_VALUE;
-                                    }
+                            {
+                                var node = context.resultAsNodes().get(0);
+                                if (node == null) {
+                                    context.continueTask();
+                                    return;
                                 }
-                                context.defineVariableForSubTask("hr", further_hr);
-                                context.defineVariableForSubTask("max_dist_sqd", max_dist_sqd2);
-                                context.defineVariableForSubTask("lev", lev + 1);
-                                context.defineVariable("continueFar", true);
+                                var pivot = node.get(org.mwg.structure.tree.KDTree.KEY);
+                                var dim = context.variable("dim").get(0);
+                                var target = context.variable("key").get(0);
+                                var distance_1 = context.variable("distance").get(0);
+                                var lev = context.variable("lev").get(0);
+                                var hr = context.variable("hr").get(0);
+                                var max_dist_sqd = context.variable("max_dist_sqd").get(0);
+                                var s = lev % dim;
+                                var pivot_to_target = distance_1.measure(pivot, target);
+                                var left_hr = hr;
+                                var right_hr = hr.clone();
+                                left_hr.max[s] = pivot[s];
+                                right_hr.min[s] = pivot[s];
+                                var target_in_left = target[s] < pivot[s];
+                                var nearer_kd = void 0;
+                                var nearer_hr = void 0;
+                                var further_kd = void 0;
+                                var further_hr = void 0;
+                                var nearer_st = void 0;
+                                var farther_st = void 0;
+                                if (target_in_left) {
+                                    nearer_kd = node.get(org.mwg.structure.tree.KDTree.LEFT);
+                                    nearer_st = org.mwg.structure.tree.KDTree.LEFT;
+                                    nearer_hr = left_hr;
+                                    further_kd = node.get(org.mwg.structure.tree.KDTree.RIGHT);
+                                    further_hr = right_hr;
+                                    farther_st = org.mwg.structure.tree.KDTree.RIGHT;
+                                }
+                                else {
+                                    nearer_kd = node.get(org.mwg.structure.tree.KDTree.RIGHT);
+                                    nearer_hr = right_hr;
+                                    nearer_st = org.mwg.structure.tree.KDTree.RIGHT;
+                                    further_kd = node.get(org.mwg.structure.tree.KDTree.LEFT);
+                                    further_hr = left_hr;
+                                    farther_st = org.mwg.structure.tree.KDTree.LEFT;
+                                }
+                                context.defineVariable("further_hr", further_hr);
+                                context.defineVariable("pivot_to_target", pivot_to_target);
+                                if (nearer_kd != null && nearer_kd.size() != 0) {
+                                    context.defineVariable("near", nearer_st);
+                                    context.defineVariableForSubTask("hr", nearer_hr);
+                                    context.defineVariableForSubTask("max_dist_sqd", max_dist_sqd);
+                                    context.defineVariableForSubTask("lev", lev + 1);
+                                }
+                                else {
+                                    context.defineVariableForSubTask("near", context.newResult());
+                                }
+                                if (further_kd != null && further_kd.size() != 0) {
+                                    context.defineVariableForSubTask("far", farther_st);
+                                }
+                                else {
+                                    context.defineVariableForSubTask("far", context.newResult());
+                                }
+                                context.continueTask();
                             }
-                            else {
-                                context.defineVariable("continueFar", false);
-                            }
-                            context.continueTask();
                         }).isolate(org.mwg.task.Actions.ifThen(function (context) {
-                            return (context.variable("continueFar").get(0) && context.variable("far").size() > 0);
+                            {
+                                return context.variable("near").size() > 0;
+                            }
+                        }, org.mwg.task.Actions.traverse("{{near}}").isolate(reccursiveDown))).then(function (context) {
+                            {
+                                var nnl = context.variable("nnl").get(0);
+                                var target = context.variable("key").get(0);
+                                var distance_2 = context.variable("distance").get(0);
+                                var max_dist_sqd = context.variable("max_dist_sqd").get(0);
+                                var further_hr = context.variable("further_hr").get(0);
+                                var pivot_to_target = context.variable("pivot_to_target").get(0);
+                                var lev = context.variable("lev").get(0);
+                                var node = context.resultAsNodes().get(0);
+                                var dist_sqd = void 0;
+                                if (!nnl.isCapacityReached()) {
+                                    dist_sqd = java.lang.Double.MAX_VALUE;
+                                }
+                                else {
+                                    dist_sqd = nnl.getMaxPriority();
+                                }
+                                var max_dist_sqd2 = Math.min(max_dist_sqd, dist_sqd);
+                                var closest = further_hr.closest(target);
+                                if (distance_2.measure(closest, target) < max_dist_sqd) {
+                                    if (pivot_to_target < dist_sqd) {
+                                        dist_sqd = pivot_to_target;
+                                        nnl.insert((node.get(org.mwg.structure.tree.KDTree.VALUE)).get(0), dist_sqd);
+                                        var pivot = node.get(org.mwg.structure.tree.KDTree.KEY);
+                                        if (nnl.isCapacityReached()) {
+                                            max_dist_sqd2 = nnl.getMaxPriority();
+                                        }
+                                        else {
+                                            max_dist_sqd2 = java.lang.Double.MAX_VALUE;
+                                        }
+                                    }
+                                    context.defineVariableForSubTask("hr", further_hr);
+                                    context.defineVariableForSubTask("max_dist_sqd", max_dist_sqd2);
+                                    context.defineVariableForSubTask("lev", lev + 1);
+                                    context.defineVariable("continueFar", true);
+                                }
+                                else {
+                                    context.defineVariable("continueFar", false);
+                                }
+                                context.continueTask();
+                            }
+                        }).isolate(org.mwg.task.Actions.ifThen(function (context) {
+                            {
+                                return (context.variable("continueFar").get(0) && context.variable("far").size() > 0);
+                            }
                         }, org.mwg.task.Actions.traverse("{{far}}").isolate(reccursiveDown)));
                         return reccursiveDown;
                     };
                     KDTree.initFindRadius = function () {
                         var reccursiveDown = org.mwg.task.Actions.newTask();
                         reccursiveDown.then(function (context) {
-                            var node = context.resultAsNodes().get(0);
-                            if (node == null) {
-                                context.continueTask();
-                                return;
-                            }
-                            var pivot = node.get(org.mwg.structure.tree.KDTree.KEY);
-                            var dim = context.variable("dim").get(0);
-                            var target = context.variable("key").get(0);
-                            var distance = context.variable("distance").get(0);
-                            var lev = context.variable("lev").get(0);
-                            var hr = context.variable("hr").get(0);
-                            var max_dist_sqd = context.variable("max_dist_sqd").get(0);
-                            var s = lev % dim;
-                            var pivot_to_target = distance.measure(pivot, target);
-                            var left_hr = hr;
-                            var right_hr = hr.clone();
-                            left_hr.max[s] = pivot[s];
-                            right_hr.min[s] = pivot[s];
-                            var target_in_left = target[s] < pivot[s];
-                            var nearer_kd;
-                            var nearer_hr;
-                            var further_kd;
-                            var further_hr;
-                            var nearer_st;
-                            var farther_st;
-                            if (target_in_left) {
-                                nearer_kd = node.get(org.mwg.structure.tree.KDTree.LEFT);
-                                nearer_st = org.mwg.structure.tree.KDTree.LEFT;
-                                nearer_hr = left_hr;
-                                further_kd = node.get(org.mwg.structure.tree.KDTree.RIGHT);
-                                further_hr = right_hr;
-                                farther_st = org.mwg.structure.tree.KDTree.RIGHT;
-                            }
-                            else {
-                                nearer_kd = node.get(org.mwg.structure.tree.KDTree.RIGHT);
-                                nearer_hr = right_hr;
-                                nearer_st = org.mwg.structure.tree.KDTree.RIGHT;
-                                further_kd = node.get(org.mwg.structure.tree.KDTree.LEFT);
-                                further_hr = left_hr;
-                                farther_st = org.mwg.structure.tree.KDTree.LEFT;
-                            }
-                            context.defineVariable("further_hr", further_hr);
-                            context.defineVariable("pivot_to_target", pivot_to_target);
-                            if (nearer_kd != null && nearer_kd.size() != 0) {
-                                context.defineVariable("near", nearer_st);
-                                context.defineVariableForSubTask("hr", nearer_hr);
-                                context.defineVariableForSubTask("max_dist_sqd", max_dist_sqd);
-                                context.defineVariableForSubTask("lev", lev + 1);
-                            }
-                            else {
-                                context.defineVariableForSubTask("near", context.newResult());
-                            }
-                            if (further_kd != null && further_kd.size() != 0) {
-                                context.defineVariableForSubTask("far", farther_st);
-                            }
-                            else {
-                                context.defineVariableForSubTask("far", context.newResult());
-                            }
-                            context.continueTask();
-                        }).isolate(org.mwg.task.Actions.ifThen(function (context) {
-                            return context.variable("near").size() > 0;
-                        }, org.mwg.task.Actions.traverse("{{near}}").isolate(reccursiveDown))).then(function (context) {
-                            var nnl = context.variable("nnl").get(0);
-                            var target = context.variable("key").get(0);
-                            var distance = context.variable("distance").get(0);
-                            var radius = context.variable("radius").get(0);
-                            var max_dist_sqd = context.variable("max_dist_sqd").get(0);
-                            var further_hr = context.variable("further_hr").get(0);
-                            var pivot_to_target = context.variable("pivot_to_target").get(0);
-                            var lev = context.variable("lev").get(0);
-                            var node = context.resultAsNodes().get(0);
-                            var dist_sqd = java.lang.Double.MAX_VALUE;
-                            var max_dist_sqd2 = Math.min(max_dist_sqd, dist_sqd);
-                            var closest = further_hr.closest(target);
-                            if (distance.measure(closest, target) < max_dist_sqd) {
-                                if (pivot_to_target < dist_sqd) {
-                                    dist_sqd = pivot_to_target;
-                                    if (dist_sqd <= radius) {
-                                        nnl.insert((node.get(org.mwg.structure.tree.KDTree.VALUE)).get(0), dist_sqd);
-                                    }
-                                    max_dist_sqd2 = java.lang.Double.MAX_VALUE;
+                            {
+                                var node = context.resultAsNodes().get(0);
+                                if (node == null) {
+                                    context.continueTask();
+                                    return;
                                 }
-                                context.defineVariableForSubTask("hr", further_hr);
-                                context.defineVariableForSubTask("max_dist_sqd", max_dist_sqd2);
-                                context.defineVariableForSubTask("lev", lev + 1);
-                                context.defineVariable("continueFar", true);
+                                var pivot = node.get(org.mwg.structure.tree.KDTree.KEY);
+                                var dim = context.variable("dim").get(0);
+                                var target = context.variable("key").get(0);
+                                var distance_3 = context.variable("distance").get(0);
+                                var lev = context.variable("lev").get(0);
+                                var hr = context.variable("hr").get(0);
+                                var max_dist_sqd = context.variable("max_dist_sqd").get(0);
+                                var s = lev % dim;
+                                var pivot_to_target = distance_3.measure(pivot, target);
+                                var left_hr = hr;
+                                var right_hr = hr.clone();
+                                left_hr.max[s] = pivot[s];
+                                right_hr.min[s] = pivot[s];
+                                var target_in_left = target[s] < pivot[s];
+                                var nearer_kd = void 0;
+                                var nearer_hr = void 0;
+                                var further_kd = void 0;
+                                var further_hr = void 0;
+                                var nearer_st = void 0;
+                                var farther_st = void 0;
+                                if (target_in_left) {
+                                    nearer_kd = node.get(org.mwg.structure.tree.KDTree.LEFT);
+                                    nearer_st = org.mwg.structure.tree.KDTree.LEFT;
+                                    nearer_hr = left_hr;
+                                    further_kd = node.get(org.mwg.structure.tree.KDTree.RIGHT);
+                                    further_hr = right_hr;
+                                    farther_st = org.mwg.structure.tree.KDTree.RIGHT;
+                                }
+                                else {
+                                    nearer_kd = node.get(org.mwg.structure.tree.KDTree.RIGHT);
+                                    nearer_hr = right_hr;
+                                    nearer_st = org.mwg.structure.tree.KDTree.RIGHT;
+                                    further_kd = node.get(org.mwg.structure.tree.KDTree.LEFT);
+                                    further_hr = left_hr;
+                                    farther_st = org.mwg.structure.tree.KDTree.LEFT;
+                                }
+                                context.defineVariable("further_hr", further_hr);
+                                context.defineVariable("pivot_to_target", pivot_to_target);
+                                if (nearer_kd != null && nearer_kd.size() != 0) {
+                                    context.defineVariable("near", nearer_st);
+                                    context.defineVariableForSubTask("hr", nearer_hr);
+                                    context.defineVariableForSubTask("max_dist_sqd", max_dist_sqd);
+                                    context.defineVariableForSubTask("lev", lev + 1);
+                                }
+                                else {
+                                    context.defineVariableForSubTask("near", context.newResult());
+                                }
+                                if (further_kd != null && further_kd.size() != 0) {
+                                    context.defineVariableForSubTask("far", farther_st);
+                                }
+                                else {
+                                    context.defineVariableForSubTask("far", context.newResult());
+                                }
+                                context.continueTask();
                             }
-                            else {
-                                context.defineVariable("continueFar", false);
-                            }
-                            context.continueTask();
                         }).isolate(org.mwg.task.Actions.ifThen(function (context) {
-                            return (context.variable("continueFar").get(0) && context.variable("far").size() > 0);
+                            {
+                                return context.variable("near").size() > 0;
+                            }
+                        }, org.mwg.task.Actions.traverse("{{near}}").isolate(reccursiveDown))).then(function (context) {
+                            {
+                                var nnl = context.variable("nnl").get(0);
+                                var target = context.variable("key").get(0);
+                                var distance_4 = context.variable("distance").get(0);
+                                var radius = context.variable("radius").get(0);
+                                var max_dist_sqd = context.variable("max_dist_sqd").get(0);
+                                var further_hr = context.variable("further_hr").get(0);
+                                var pivot_to_target = context.variable("pivot_to_target").get(0);
+                                var lev = context.variable("lev").get(0);
+                                var node = context.resultAsNodes().get(0);
+                                var dist_sqd = java.lang.Double.MAX_VALUE;
+                                var max_dist_sqd2 = Math.min(max_dist_sqd, dist_sqd);
+                                var closest = further_hr.closest(target);
+                                if (distance_4.measure(closest, target) < max_dist_sqd) {
+                                    if (pivot_to_target < dist_sqd) {
+                                        dist_sqd = pivot_to_target;
+                                        if (dist_sqd <= radius) {
+                                            nnl.insert((node.get(org.mwg.structure.tree.KDTree.VALUE)).get(0), dist_sqd);
+                                        }
+                                        max_dist_sqd2 = java.lang.Double.MAX_VALUE;
+                                    }
+                                    context.defineVariableForSubTask("hr", further_hr);
+                                    context.defineVariableForSubTask("max_dist_sqd", max_dist_sqd2);
+                                    context.defineVariableForSubTask("lev", lev + 1);
+                                    context.defineVariable("continueFar", true);
+                                }
+                                else {
+                                    context.defineVariable("continueFar", false);
+                                }
+                                context.continueTask();
+                            }
+                        }).isolate(org.mwg.task.Actions.ifThen(function (context) {
+                            {
+                                return (context.variable("continueFar").get(0) && context.variable("far").size() > 0);
+                            }
                         }, org.mwg.task.Actions.traverse("{{far}}").isolate(reccursiveDown)));
                         return reccursiveDown;
                     };
@@ -681,7 +732,9 @@ var org;
                     KDTree.prototype.insert = function (value, callback) {
                         var _this = this;
                         this.extractFeatures(value, function (result) {
-                            _this.insertWith(result, value, callback);
+                            {
+                                _this.insertWith(result, value, callback);
+                            }
                         });
                     };
                     KDTree.prototype.insertWith = function (key, value, callback) {
@@ -696,9 +749,11 @@ var org;
                         }
                         var distance = this.getDistance(state);
                         var tc = KDTree.insert.prepareWith(this.graph(), this, function (result) {
-                            result.free();
-                            if (callback != null) {
-                                callback(true);
+                            {
+                                result.free();
+                                if (callback != null) {
+                                    callback(true);
+                                }
                             }
                         });
                         var res = tc.newResult();
@@ -733,18 +788,22 @@ var org;
                         var nnl = new org.mwg.structure.util.NearestNeighborList(n);
                         var distance = this.getDistance(state);
                         var tc = KDTree.nearestTask.prepareWith(this.graph(), this, function (result) {
-                            var res = nnl.getAllNodesWithin(radius);
-                            var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").foreach(org.mwg.task.Actions.lookup("{{result}}"));
-                            var tc = lookupall.prepareWith(_this.graph(), null, function (result) {
-                                var finalres = new Array(result.size());
-                                for (var i = 0; i < result.size(); i++) {
-                                    finalres[i] = result.get(i);
-                                }
-                                callback(finalres);
-                            });
-                            var tr = tc.wrap(res);
-                            tc.addToGlobalVariable("res", tr);
-                            lookupall.executeUsing(tc);
+                            {
+                                var res_1 = nnl.getAllNodesWithin(radius);
+                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").foreach(org.mwg.task.Actions.lookup("{{result}}"));
+                                var tc_1 = lookupall.prepareWith(_this.graph(), null, function (result) {
+                                    {
+                                        var finalres = new Array(result.size());
+                                        for (var i = 0; i < result.size(); i++) {
+                                            finalres[i] = result.get(i);
+                                        }
+                                        callback(finalres);
+                                    }
+                                });
+                                var tr = tc_1.wrap(res_1);
+                                tc_1.addToGlobalVariable("res", tr);
+                                lookupall.executeUsing(tc_1);
+                            }
                         });
                         var res = tc.newResult();
                         res.add(key);
@@ -769,18 +828,22 @@ var org;
                         var nnl = new org.mwg.structure.util.NearestNeighborArrayList();
                         var distance = this.getDistance(state);
                         var tc = KDTree.nearestRadiusTask.prepareWith(this.graph(), this, function (result) {
-                            var res = nnl.getAllNodes();
-                            var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").foreach(org.mwg.task.Actions.lookup("{{result}}"));
-                            var tc = lookupall.prepareWith(_this.graph(), null, function (result) {
-                                var finalres = new Array(result.size());
-                                for (var i = 0; i < result.size(); i++) {
-                                    finalres[i] = result.get(i);
-                                }
-                                callback(finalres);
-                            });
-                            var tr = tc.wrap(res);
-                            tc.addToGlobalVariable("res", tr);
-                            lookupall.executeUsing(tc);
+                            {
+                                var res_2 = nnl.getAllNodes();
+                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").foreach(org.mwg.task.Actions.lookup("{{result}}"));
+                                var tc_2 = lookupall.prepareWith(_this.graph(), null, function (result) {
+                                    {
+                                        var finalres = new Array(result.size());
+                                        for (var i = 0; i < result.size(); i++) {
+                                            finalres[i] = result.get(i);
+                                        }
+                                        callback(finalres);
+                                    }
+                                });
+                                var tr = tc_2.wrap(res_2);
+                                tc_2.addToGlobalVariable("res", tr);
+                                lookupall.executeUsing(tc_2);
+                            }
                         });
                         var res = tc.newResult();
                         res.add(key);
@@ -806,18 +869,22 @@ var org;
                         var nnl = new org.mwg.structure.util.NearestNeighborList(n);
                         var distance = this.getDistance(state);
                         var tc = KDTree.nearestTask.prepareWith(this.graph(), this, function (result) {
-                            var res = nnl.getAllNodes();
-                            var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").foreach(org.mwg.task.Actions.lookup("{{result}}"));
-                            var tc = lookupall.prepareWith(_this.graph(), null, function (result) {
-                                var finalres = new Array(result.size());
-                                for (var i = 0; i < result.size(); i++) {
-                                    finalres[i] = result.get(i);
-                                }
-                                callback(finalres);
-                            });
-                            var tr = tc.wrap(res);
-                            tc.addToGlobalVariable("res", tr);
-                            lookupall.executeUsing(tc);
+                            {
+                                var res_3 = nnl.getAllNodes();
+                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").foreach(org.mwg.task.Actions.lookup("{{result}}"));
+                                var tc_3 = lookupall.prepareWith(_this.graph(), null, function (result) {
+                                    {
+                                        var finalres = new Array(result.size());
+                                        for (var i = 0; i < result.size(); i++) {
+                                            finalres[i] = result.get(i);
+                                        }
+                                        callback(finalres);
+                                    }
+                                });
+                                var tr = tc_3.wrap(res_3);
+                                tc_3.addToGlobalVariable("res", tr);
+                                lookupall.executeUsing(tc_3);
+                            }
                         });
                         var res = tc.newResult();
                         res.add(key);
@@ -836,13 +903,11 @@ var org;
                         if (d == org.mwg.structure.distance.Distances.EUCLIDEAN) {
                             distance = org.mwg.structure.distance.EuclideanDistance.instance();
                         }
+                        else if (d == org.mwg.structure.distance.Distances.GEODISTANCE) {
+                            distance = org.mwg.structure.distance.GeoDistance.instance();
+                        }
                         else {
-                            if (d == org.mwg.structure.distance.Distances.GEODISTANCE) {
-                                distance = org.mwg.structure.distance.GeoDistance.instance();
-                            }
-                            else {
-                                throw new Error("Unknown distance code metric");
-                            }
+                            throw new Error("Unknown distance code metric");
                         }
                         return distance;
                     };
@@ -851,34 +916,43 @@ var org;
                         var query = _super.prototype.get.call(this, KDTree.FROM);
                         if (query != null) {
                             var split = query.split(",");
-                            var tasks = new Array(split.length);
+                            var tasks_1 = new Array(split.length);
                             for (var i = 0; i < split.length; i++) {
                                 var t = org.mwg.task.Actions.setWorld("" + this.world());
                                 t.setTime(this.time() + "");
                                 t.parse(split[i].trim());
-                                tasks[i] = t;
+                                tasks_1[i] = t;
                             }
-                            var result = new Float64Array(tasks.length);
-                            var waiter = this.graph().newCounter(tasks.length);
-                            for (var i = 0; i < split.length; i++) {
+                            var result_1 = new Float64Array(tasks_1.length);
+                            var waiter_1 = this.graph().newCounter(tasks_1.length);
+                            var _loop_2 = function(i) {
                                 var initial = org.mwg.task.Actions.newTask().emptyResult();
                                 initial.add(current);
                                 var capsule = function (i) {
-                                    tasks[i].executeWith(_this.graph(), initial, function (currentResult) {
-                                        if (currentResult == null) {
-                                            result[i] = org.mwg.Constants.NULL_LONG;
-                                        }
-                                        else {
-                                            result[i] = parseFloat(currentResult.get(0).toString());
-                                            currentResult.free();
-                                        }
-                                        waiter.count();
-                                    });
+                                    {
+                                        tasks_1[i].executeWith(_this.graph(), initial, function (currentResult) {
+                                            {
+                                                if (currentResult == null) {
+                                                    result_1[i] = org.mwg.Constants.NULL_LONG;
+                                                }
+                                                else {
+                                                    result_1[i] = parseFloat(currentResult.get(0).toString());
+                                                    currentResult.free();
+                                                }
+                                                waiter_1.count();
+                                            }
+                                        });
+                                    }
                                 };
                                 capsule(i);
+                            };
+                            for (var i = 0; i < split.length; i++) {
+                                _loop_2(i);
                             }
-                            waiter.then(function () {
-                                callback(result);
+                            waiter_1.then(function () {
+                                {
+                                    callback(result_1);
+                                }
                             });
                         }
                         else {
@@ -898,30 +972,30 @@ var org;
                     KDTree.DISTANCE_THRESHOLD_DEF = 1e-10;
                     KDTree.DISTANCE_TYPE_DEF = 0;
                     KDTree.insert = org.mwg.task.Actions.whileDo(function (context) {
-                        var current = context.resultAsNodes().get(0);
-                        var nodeKey = current.get(org.mwg.structure.tree.KDTree.KEY);
-                        var dim = context.variable("dim").get(0);
-                        var keyToInsert = context.variable("key").get(0);
-                        var valueToInsert = context.variable("value").get(0);
-                        var root = context.variable("root").get(0);
-                        var distance = context.variable("distance").get(0);
-                        var err = context.variable("err").get(0);
-                        var lev = context.variable("lev").get(0);
-                        if (nodeKey == null) {
-                            current.setProperty(org.mwg.structure.tree.KDTree.DIMENSIONS, org.mwg.Type.INT, dim);
-                            current.setProperty(org.mwg.structure.tree.KDTree.KEY, org.mwg.Type.DOUBLE_ARRAY, keyToInsert);
-                            current.getOrCreateRel(org.mwg.structure.tree.KDTree.VALUE).clear().add(valueToInsert.id());
-                            current.setProperty(org.mwg.structure.tree.KDTree.SIZE, org.mwg.Type.INT, 1);
-                            return false;
-                        }
-                        else {
-                            if (distance.measure(keyToInsert, nodeKey) < err) {
+                        {
+                            var current = context.resultAsNodes().get(0);
+                            var nodeKey = current.get(org.mwg.structure.tree.KDTree.KEY);
+                            var dim = context.variable("dim").get(0);
+                            var keyToInsert = context.variable("key").get(0);
+                            var valueToInsert = context.variable("value").get(0);
+                            var root = context.variable("root").get(0);
+                            var distance_5 = context.variable("distance").get(0);
+                            var err = context.variable("err").get(0);
+                            var lev = context.variable("lev").get(0);
+                            if (nodeKey == null) {
+                                current.setProperty(org.mwg.structure.tree.KDTree.DIMENSIONS, org.mwg.Type.INT, dim);
+                                current.setProperty(org.mwg.structure.tree.KDTree.KEY, org.mwg.Type.DOUBLE_ARRAY, keyToInsert);
+                                current.getOrCreateRel(org.mwg.structure.tree.KDTree.VALUE).clear().add(valueToInsert.id());
+                                current.setProperty(org.mwg.structure.tree.KDTree.SIZE, org.mwg.Type.INT, 1);
+                                return false;
+                            }
+                            else if (distance_5.measure(keyToInsert, nodeKey) < err) {
                                 current.getOrCreateRel(org.mwg.structure.tree.KDTree.VALUE).clear().add(valueToInsert.id());
                                 return false;
                             }
                             else {
-                                var child;
-                                var nextRel;
+                                var child = void 0;
+                                var nextRel = void 0;
                                 if (keyToInsert[lev] > nodeKey[lev]) {
                                     child = current.get(org.mwg.structure.tree.KDTree.RIGHT);
                                     nextRel = org.mwg.structure.tree.KDTree.RIGHT;
@@ -972,13 +1046,11 @@ var org;
                             if (t[i] <= this.min[i]) {
                                 p[i] = this.min[i];
                             }
+                            else if (t[i] >= this.max[i]) {
+                                p[i] = this.max[i];
+                            }
                             else {
-                                if (t[i] >= this.max[i]) {
-                                    p[i] = this.max[i];
-                                }
-                                else {
-                                    p[i] = t[i];
-                                }
+                                p[i] = t[i];
                             }
                         }
                         return p;
@@ -998,9 +1070,8 @@ var org;
                         for (var i = 0; i < this.min.length; ++i) {
                             newmin[i] = Math.max(this.min[i], r.min[i]);
                             newmax[i] = Math.min(this.max[i], r.max[i]);
-                            if (newmin[i] >= newmax[i]) {
+                            if (newmin[i] >= newmax[i])
                                 return null;
-                            }
                         }
                         return new org.mwg.structure.util.HRect(newmin, newmax);
                     };
@@ -1060,9 +1131,8 @@ var org;
                         return this.count;
                     };
                     NearestNeighborArrayList.prototype.remove = function () {
-                        if (this.count == 0) {
+                        if (this.count == 0)
                             return 0;
-                        }
                         var element = this.data.get(1);
                         this.data.set(1, this.data.get(this.count));
                         this.value.set(1, this.value.get(this.count));
@@ -1078,11 +1148,9 @@ var org;
                         var child;
                         for (; pos * 2 <= this.count; pos = child) {
                             child = pos * 2;
-                            if (child != this.count) {
-                                if (this.value.get(child) < this.value.get(child + 1)) {
+                            if (child != this.count)
+                                if (this.value.get(child) < this.value.get(child + 1))
                                     child++;
-                                }
-                            }
                             if (priority < this.value.get(child)) {
                                 this.value.set(pos, this.value.get(child));
                                 this.data.set(pos, this.data.get(child));
@@ -1182,9 +1250,8 @@ var org;
                         this.bubbleUp(this.count);
                     };
                     NearestNeighborList.prototype.remove = function () {
-                        if (this.count == 0) {
+                        if (this.count == 0)
                             return 0;
-                        }
                         var element = this.data[1];
                         this.data[1] = this.data[this.count];
                         this.value[1] = this.value[this.count];
@@ -1200,11 +1267,9 @@ var org;
                         var child;
                         for (; pos * 2 <= this.count; pos = child) {
                             child = pos * 2;
-                            if (child != this.count) {
-                                if (this.value[child] < this.value[child + 1]) {
+                            if (child != this.count)
+                                if (this.value[child] < this.value[child + 1])
                                     child++;
-                                }
-                            }
                             if (priority < this.value[child]) {
                                 this.value[pos] = this.value[child];
                                 this.data[pos] = this.data[child];

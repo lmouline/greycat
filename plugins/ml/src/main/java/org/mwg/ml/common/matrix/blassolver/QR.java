@@ -70,7 +70,6 @@ class QR {
         int lwork;
 
         // CoreQuery optimal workspace. First for computing the factorization
-        {
             work = new double[1];
             int[] info = new int[1];
             info[0] = 0;
@@ -83,12 +82,9 @@ class QR {
                 lwork = (int) work[0];
             lwork = Math.max(1, lwork);
             work = new double[lwork];
-        }
 
         // Workspace needed for generating an explicit orthogonal matrix
-        {
             workGen = new double[1];
-            int[] info = new int[1];
             info[0] = 0;
             _blas.dorgqr(m, n, k, new double[0], 0, m, new double[0], 0, workGen, 0, -1, info);
 
@@ -98,12 +94,10 @@ class QR {
                 lwork = (int) workGen[0];
             lwork = Math.max(1, lwork);
             workGen = new double[lwork];
-        }
 
         /*
          * Calculate factorisation, and extract the triangular factor
          */
-        int[] info = new int[1];
         info[0] = 0;
         _blas.dgeqrf(m, n, A.data(), 0, m, tau, 0, work, 0, work.length, info);
 
