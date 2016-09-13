@@ -16,12 +16,7 @@ public class ActionMapTest extends AbstractActionTest {
     public void test() {
         initGraph();
         fromIndexAll("nodes")
-                .map(new TaskFunctionMap() {
-                    @Override
-                    public Object map(Node node) {
-                        return node.get("name");
-                    }
-                })
+                .map(node -> ((Node)node).get("name"))
                 .then(new Action() {
                     @Override
                     public void eval(TaskContext context) {
