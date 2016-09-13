@@ -630,6 +630,7 @@ public abstract class AbstractNode implements Node {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
+        final boolean[] isFirst = {true};
         builder.append("{\"world\":");
         builder.append(world());
         builder.append(",\"time\":");
@@ -751,7 +752,7 @@ public abstract class AbstractNode implements Node {
                                 builder.append("\":");
                                 builder.append("{");
                                 LongLongMap castedMapL2L = (LongLongMap) elem;
-                                final boolean[] isFirst = {true};
+                                isFirst[0] = true;
                                 castedMapL2L.each(new LongLongMapCallBack() {
                                     @Override
                                     public void on(long key, long value) {
@@ -775,8 +776,7 @@ public abstract class AbstractNode implements Node {
                                 builder.append("\":");
                                 builder.append("{");
                                 LongLongArrayMap castedMapL2LA = (LongLongArrayMap) elem;
-                                final boolean[] isFirst = {true};
-
+                                isFirst[0] = true;
                                 Set<Long> keys = new HashSet<Long>();
                                 castedMapL2LA.each(new LongLongArrayMapCallBack() {
                                     @Override
@@ -812,7 +812,7 @@ public abstract class AbstractNode implements Node {
                                 builder.append("\":");
                                 builder.append("{");
                                 StringLongMap castedMapS2L = (StringLongMap) elem;
-                                final boolean[] isFirst = {true};
+                                isFirst[0] = true;
                                 castedMapS2L.each(new StringLongMapCallBack() {
                                     @Override
                                     public void on(String key, long value) {
