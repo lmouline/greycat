@@ -45,7 +45,37 @@ public class NearestNeighborList {
         return value[1];
     }
 
-    public boolean insert(long node, double priority) {
+
+    public synchronized boolean removeNode(long node){
+        int pos=-1;
+        for(int i=1;i<capacity+1;i++){
+            if(data[i]==node){
+                pos=i;
+                break;
+            }
+        }
+        if(pos==-1){
+            return false;
+        }
+        else if(pos==1){
+            remove();
+        }
+        else if(pos==capacity+1){
+            data[pos]=0;
+            value[pos]=0;
+            count--;
+        }
+        else{
+            for(int i=pos;i<capacity;i++){
+                data[i]=data[i+1];
+                value[i]=value[i+1];
+            }
+            count--;
+        }
+        return true;
+    }
+
+    public synchronized boolean insert(long node, double priority) {
 
         if (count < capacity) {
             add(node, priority);

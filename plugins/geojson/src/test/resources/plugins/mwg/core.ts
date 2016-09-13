@@ -909,9 +909,6 @@ module org {
                 if (superTimes != null && superTimes[i] != null) {
                   this._space.unmark(superTimes[i].index());
                 }
-                if (superTimes != null && superTimes[i] != null) {
-                  this._space.unmark(superTimes[i].index());
-                }
                 if (times != null && times[i] != null) {
                   this._space.unmark(times[i].index());
                 }
@@ -4755,14 +4752,14 @@ break;
             return "doWhile()";
           }
         }
-        export class ActionForeach extends org.mwg.plugin.AbstractTaskAction {
+        export class ActionFlatmap extends org.mwg.plugin.AbstractTaskAction {
           private _subTask: org.mwg.task.Task;
           constructor(p_subTask: org.mwg.task.Task) {
             super();
             this._subTask = p_subTask;
           }
           public eval(context: org.mwg.task.TaskContext): void {
-            let selfPointer: org.mwg.core.task.ActionForeach = this;
+            let selfPointer: org.mwg.core.task.ActionFlatmap = this;
             let previousResult: org.mwg.task.TaskResult<any> = context.result();
             if (previousResult == null) {
               context.continueTask();
@@ -4808,7 +4805,7 @@ break;
             return "foreach()";
           }
         }
-        export class ActionForeachPar extends org.mwg.plugin.AbstractTaskAction {
+        export class ActionFlatmapPar extends org.mwg.plugin.AbstractTaskAction {
           private _subTask: org.mwg.task.Task;
           constructor(p_subTask: org.mwg.task.Task) {
             super();
@@ -4825,26 +4822,98 @@ break;
             finalResult.allocate(previousSize);
             let waiter: org.mwg.DeferCounter = context.graph().newCounter(previousSize);
             let loop: any = it.next();
-            let index: number = 0;
             while (loop != null) {
-              let finalIndex: number = index;
               let loopResult: org.mwg.task.TaskResult<any> = context.wrap(loop);
               this._subTask.executeFrom(context, loopResult, org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, (result : org.mwg.task.TaskResult<any>) => {
 {
-                  loopResult.free();
-                  if (result != null && result.size() == 1) {
-                    finalResult.set(finalIndex, result.get(0));
-                  } else {
-                    finalResult.set(finalIndex, result);
+                  if (result != null) {
+                    for (let i: number = 0; i < result.size(); i++) {
+                      finalResult.add(result.get(i));
+                    }
                   }
+                  loopResult.free();
                   waiter.count();
                 }              });
-              index++;
               loop = it.next();
             }
             waiter.then(() => {
 {
                 context.continueWith(finalResult);
+              }            });
+          }
+          public toString(): string {
+            return "foreachPar()";
+          }
+        }
+        export class ActionForeach extends org.mwg.plugin.AbstractTaskAction {
+          private _subTask: org.mwg.task.Task;
+          constructor(p_subTask: org.mwg.task.Task) {
+            super();
+            this._subTask = p_subTask;
+          }
+          public eval(context: org.mwg.task.TaskContext): void {
+            let selfPointer: org.mwg.core.task.ActionForeach = this;
+            let previousResult: org.mwg.task.TaskResult<any> = context.result();
+            if (previousResult == null) {
+              context.continueTask();
+            } else {
+              let it: org.mwg.task.TaskResultIterator<any> = previousResult.iterator();
+              let recursiveAction: org.mwg.Callback<any>[] = new Array<org.mwg.Callback<any>>(1);
+              recursiveAction[0] = (res : org.mwg.task.TaskResult<any>) => {
+{
+                  if (res != null) {
+                    res.free();
+                  }
+                  let nextResult: any = it.next();
+                  if (nextResult == null) {
+                    context.continueTask();
+                  } else {
+                    selfPointer._subTask.executeFrom(context, context.wrap(nextResult), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+                  }
+                }              };
+              let nextRes: any = it.next();
+              if (nextRes != null) {
+                context.graph().scheduler().dispatch(org.mwg.plugin.SchedulerAffinity.SAME_THREAD, () => {
+{
+                    this._subTask.executeFrom(context, context.wrap(nextRes), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+                  }                });
+              } else {
+                context.continueTask();
+              }
+            }
+          }
+          public toString(): string {
+            return "foreach()";
+          }
+        }
+        export class ActionForeachPar extends org.mwg.plugin.AbstractTaskAction {
+          private _subTask: org.mwg.task.Task;
+          constructor(p_subTask: org.mwg.task.Task) {
+            super();
+            this._subTask = p_subTask;
+          }
+          public eval(context: org.mwg.task.TaskContext): void {
+            let previousResult: org.mwg.task.TaskResult<any> = context.result();
+            let it: org.mwg.task.TaskResultIterator<any> = previousResult.iterator();
+            let previousSize: number = previousResult.size();
+            if (previousSize == -1) {
+              throw new Error("Foreach on non array structure are not supported yet!");
+            }
+            let waiter: org.mwg.DeferCounter = context.graph().newCounter(previousSize);
+            let loop: any = it.next();
+            while (loop != null) {
+              this._subTask.executeFrom(context, context.wrap(loop), org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, (result : org.mwg.task.TaskResult<any>) => {
+{
+                  if (result != null) {
+                    result.free();
+                  }
+                  waiter.count();
+                }              });
+              loop = it.next();
+            }
+            waiter.then(() => {
+{
+                context.continueTask();
               }            });
           }
           public toString(): string {
@@ -5343,8 +5412,8 @@ break;
           }
         }
         export class ActionMap extends org.mwg.plugin.AbstractTaskAction {
-          private _map: org.mwg.task.TaskFunctionMap;
-          constructor(p_map: org.mwg.task.TaskFunctionMap) {
+          private _map: org.mwg.task.TaskFunctionMap<any, any>;
+          constructor(p_map: org.mwg.task.TaskFunctionMap<any, any>) {
             super();
             this._map = p_map;
           }
@@ -5353,12 +5422,7 @@ break;
             let next: org.mwg.task.TaskResult<any> = context.wrap(null);
             let previousSize: number = previous.size();
             for (let i: number = 0; i < previousSize; i++) {
-              let loop: any = previous.get(i);
-              if (loop instanceof org.mwg.plugin.AbstractNode) {
-                next.add(this._map(<org.mwg.Node>loop));
-              } else {
-                next.add(loop);
-              }
+              next.add(this._map(previous.get(i)));
             }
             context.continueWith(next);
           }
@@ -6337,15 +6401,12 @@ break;
             this.addAction(new org.mwg.core.task.ActionTraverseIndexAll(indexName));
             return this;
           }
-          public map(mapFunction: org.mwg.task.TaskFunctionMap): org.mwg.task.Task {
+          public map(mapFunction: org.mwg.task.TaskFunctionMap<any, any>): org.mwg.task.Task {
             if (mapFunction == null) {
               throw new Error("mapFunction should not be null");
             }
             this.addAction(new org.mwg.core.task.ActionMap(mapFunction));
             return this;
-          }
-          public flatMap(flatMapFunction: org.mwg.task.TaskFunctionFlatMap): org.mwg.task.Task {
-            throw new Error("Not implemented yet");
           }
           public group(groupFunction: org.mwg.task.TaskFunctionGroup): org.mwg.task.Task {
             throw new Error("Not implemented yet");
@@ -6433,11 +6494,25 @@ break;
             this.addAction(new org.mwg.core.task.ActionForeach(subTask));
             return this;
           }
+          public flatmap(subTask: org.mwg.task.Task): org.mwg.task.Task {
+            if (subTask == null) {
+              throw new Error("subTask should not be null");
+            }
+            this.addAction(new org.mwg.core.task.ActionFlatmap(subTask));
+            return this;
+          }
           public foreachPar(subTask: org.mwg.task.Task): org.mwg.task.Task {
             if (subTask == null) {
               throw new Error("subTask should not be null");
             }
             this.addAction(new org.mwg.core.task.ActionForeachPar(subTask));
+            return this;
+          }
+          public flatmapPar(subTask: org.mwg.task.Task): org.mwg.task.Task {
+            if (subTask == null) {
+              throw new Error("subTask should not be null");
+            }
+            this.addAction(new org.mwg.core.task.ActionFlatmapPar(subTask));
             return this;
           }
           public save(): org.mwg.task.Task {

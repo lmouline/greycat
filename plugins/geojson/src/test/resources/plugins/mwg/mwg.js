@@ -2275,6 +2275,12 @@ var org;
                 Actions.foreachPar = function (subTask) {
                     return org.mwg.task.Actions.newTask().foreachPar(subTask);
                 };
+                Actions.flatmap = function (subTask) {
+                    return org.mwg.task.Actions.newTask().flatmap(subTask);
+                };
+                Actions.flatmapPar = function (subTask) {
+                    return org.mwg.task.Actions.newTask().flatmapPar(subTask);
+                };
                 Actions.math = function (expression) {
                     return org.mwg.task.Actions.newTask().math(expression);
                 };
@@ -4010,9 +4016,6 @@ var org;
                             if (finalResult[i] == null) {
                                 if (worldOrders != null && worldOrders[i] != null) {
                                     this._space.unmark(worldOrders[i].index());
-                                }
-                                if (superTimes != null && superTimes[i] != null) {
-                                    this._space.unmark(superTimes[i].index());
                                 }
                                 if (superTimes != null && superTimes[i] != null) {
                                     this._space.unmark(superTimes[i].index());
@@ -8083,13 +8086,13 @@ var org;
                     return ActionDoWhile;
                 }(org.mwg.plugin.AbstractTaskAction));
                 task.ActionDoWhile = ActionDoWhile;
-                var ActionForeach = (function (_super) {
-                    __extends(ActionForeach, _super);
-                    function ActionForeach(p_subTask) {
+                var ActionFlatmap = (function (_super) {
+                    __extends(ActionFlatmap, _super);
+                    function ActionFlatmap(p_subTask) {
                         _super.call(this);
                         this._subTask = p_subTask;
                     }
-                    ActionForeach.prototype.eval = function (context) {
+                    ActionFlatmap.prototype.eval = function (context) {
                         var _this = this;
                         var selfPointer = this;
                         var previousResult = context.result();
@@ -8139,6 +8142,103 @@ var org;
                             }
                         }
                     };
+                    ActionFlatmap.prototype.toString = function () {
+                        return "foreach()";
+                    };
+                    return ActionFlatmap;
+                }(org.mwg.plugin.AbstractTaskAction));
+                task.ActionFlatmap = ActionFlatmap;
+                var ActionFlatmapPar = (function (_super) {
+                    __extends(ActionFlatmapPar, _super);
+                    function ActionFlatmapPar(p_subTask) {
+                        _super.call(this);
+                        this._subTask = p_subTask;
+                    }
+                    ActionFlatmapPar.prototype.eval = function (context) {
+                        var previousResult = context.result();
+                        var finalResult = context.wrap(null);
+                        var it = previousResult.iterator();
+                        var previousSize = previousResult.size();
+                        if (previousSize == -1) {
+                            throw new Error("Foreach on non array structure are not supported yet!");
+                        }
+                        finalResult.allocate(previousSize);
+                        var waiter = context.graph().newCounter(previousSize);
+                        var loop = it.next();
+                        var _loop_4 = function() {
+                            var loopResult = context.wrap(loop);
+                            this_2._subTask.executeFrom(context, loopResult, org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (result) {
+                                {
+                                    if (result != null) {
+                                        for (var i = 0; i < result.size(); i++) {
+                                            finalResult.add(result.get(i));
+                                        }
+                                    }
+                                    loopResult.free();
+                                    waiter.count();
+                                }
+                            });
+                            loop = it.next();
+                        };
+                        var this_2 = this;
+                        while (loop != null) {
+                            _loop_4();
+                        }
+                        waiter.then(function () {
+                            {
+                                context.continueWith(finalResult);
+                            }
+                        });
+                    };
+                    ActionFlatmapPar.prototype.toString = function () {
+                        return "foreachPar()";
+                    };
+                    return ActionFlatmapPar;
+                }(org.mwg.plugin.AbstractTaskAction));
+                task.ActionFlatmapPar = ActionFlatmapPar;
+                var ActionForeach = (function (_super) {
+                    __extends(ActionForeach, _super);
+                    function ActionForeach(p_subTask) {
+                        _super.call(this);
+                        this._subTask = p_subTask;
+                    }
+                    ActionForeach.prototype.eval = function (context) {
+                        var _this = this;
+                        var selfPointer = this;
+                        var previousResult = context.result();
+                        if (previousResult == null) {
+                            context.continueTask();
+                        }
+                        else {
+                            var it_2 = previousResult.iterator();
+                            var recursiveAction_2 = new Array(1);
+                            recursiveAction_2[0] = function (res) {
+                                {
+                                    if (res != null) {
+                                        res.free();
+                                    }
+                                    var nextResult = it_2.next();
+                                    if (nextResult == null) {
+                                        context.continueTask();
+                                    }
+                                    else {
+                                        selfPointer._subTask.executeFrom(context, context.wrap(nextResult), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, recursiveAction_2[0]);
+                                    }
+                                }
+                            };
+                            var nextRes_1 = it_2.next();
+                            if (nextRes_1 != null) {
+                                context.graph().scheduler().dispatch(org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function () {
+                                    {
+                                        _this._subTask.executeFrom(context, context.wrap(nextRes_1), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, recursiveAction_2[0]);
+                                    }
+                                });
+                            }
+                            else {
+                                context.continueTask();
+                            }
+                        }
+                    };
                     ActionForeach.prototype.toString = function () {
                         return "foreach()";
                     };
@@ -8153,41 +8253,27 @@ var org;
                     }
                     ActionForeachPar.prototype.eval = function (context) {
                         var previousResult = context.result();
-                        var finalResult = context.wrap(null);
                         var it = previousResult.iterator();
                         var previousSize = previousResult.size();
                         if (previousSize == -1) {
                             throw new Error("Foreach on non array structure are not supported yet!");
                         }
-                        finalResult.allocate(previousSize);
                         var waiter = context.graph().newCounter(previousSize);
                         var loop = it.next();
-                        var index = 0;
-                        var _loop_4 = function() {
-                            var finalIndex = index;
-                            var loopResult = context.wrap(loop);
-                            this_2._subTask.executeFrom(context, loopResult, org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (result) {
+                        while (loop != null) {
+                            this._subTask.executeFrom(context, context.wrap(loop), org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (result) {
                                 {
-                                    loopResult.free();
-                                    if (result != null && result.size() == 1) {
-                                        finalResult.set(finalIndex, result.get(0));
-                                    }
-                                    else {
-                                        finalResult.set(finalIndex, result);
+                                    if (result != null) {
+                                        result.free();
                                     }
                                     waiter.count();
                                 }
                             });
-                            index++;
                             loop = it.next();
-                        };
-                        var this_2 = this;
-                        while (loop != null) {
-                            _loop_4();
                         }
                         waiter.then(function () {
                             {
-                                context.continueWith(finalResult);
+                                context.continueTask();
                             }
                         });
                     };
@@ -8667,8 +8753,8 @@ var org;
                         var selfPointer = this;
                         var cursor = new java.util.concurrent.atomic.AtomicInteger(lower);
                         if ((upper - lower) >= 0) {
-                            var recursiveAction_2 = new Array(1);
-                            recursiveAction_2[0] = function (res) {
+                            var recursiveAction_3 = new Array(1);
+                            recursiveAction_3[0] = function (res) {
                                 {
                                     var current_1 = cursor.getAndIncrement();
                                     if (res != null) {
@@ -8682,7 +8768,7 @@ var org;
                                             {
                                                 result.defineVariable("i", current_1);
                                             }
-                                        }, recursiveAction_2[0]);
+                                        }, recursiveAction_3[0]);
                                     }
                                 }
                             };
@@ -8690,7 +8776,7 @@ var org;
                                 {
                                     result.defineVariable("i", cursor.getAndIncrement());
                                 }
-                            }, recursiveAction_2[0]);
+                            }, recursiveAction_3[0]);
                         }
                         else {
                             context.continueTask();
@@ -8765,13 +8851,7 @@ var org;
                         var next = context.wrap(null);
                         var previousSize = previous.size();
                         for (var i = 0; i < previousSize; i++) {
-                            var loop = previous.get(i);
-                            if (loop instanceof org.mwg.plugin.AbstractNode) {
-                                next.add(this._map(loop));
-                            }
-                            else {
-                                next.add(loop);
-                            }
+                            next.add(this._map(previous.get(i)));
                         }
                         context.continueWith(next);
                     };
@@ -9861,9 +9941,6 @@ var org;
                         this.addAction(new org.mwg.core.task.ActionMap(mapFunction));
                         return this;
                     };
-                    CoreTask.prototype.flatMap = function (flatMapFunction) {
-                        throw new Error("Not implemented yet");
-                    };
                     CoreTask.prototype.group = function (groupFunction) {
                         throw new Error("Not implemented yet");
                     };
@@ -9950,11 +10027,25 @@ var org;
                         this.addAction(new org.mwg.core.task.ActionForeach(subTask));
                         return this;
                     };
+                    CoreTask.prototype.flatmap = function (subTask) {
+                        if (subTask == null) {
+                            throw new Error("subTask should not be null");
+                        }
+                        this.addAction(new org.mwg.core.task.ActionFlatmap(subTask));
+                        return this;
+                    };
                     CoreTask.prototype.foreachPar = function (subTask) {
                         if (subTask == null) {
                             throw new Error("subTask should not be null");
                         }
                         this.addAction(new org.mwg.core.task.ActionForeachPar(subTask));
+                        return this;
+                    };
+                    CoreTask.prototype.flatmapPar = function (subTask) {
+                        if (subTask == null) {
+                            throw new Error("subTask should not be null");
+                        }
+                        this.addAction(new org.mwg.core.task.ActionFlatmapPar(subTask));
                         return this;
                     };
                     CoreTask.prototype.save = function () {

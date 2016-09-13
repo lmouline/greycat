@@ -43,11 +43,14 @@ public class NDTree extends AbstractNode {
     private static long _BOUNDMIN = 6;
     private static long _BOUNDMAX = 7;
     private static long _VALUES = 8;
+    private static String _VALUES_STR = "8";
+    private static long _KEYS = 9;
+    private static String _KEYS_STR = "9";
 
     //to store only on the root node
-    private static long _PRECISION = 9;
-    private static int _NUMNODES = 10;
-    private static int _DIM = 11;
+    private static long _PRECISION = 10;
+    private static int _NUMNODES = 11;
+    private static int _DIM = 12;
 
 
     public static boolean STAT_DEF = false;
@@ -341,9 +344,17 @@ public class NDTree extends AbstractNode {
                 context.setVariable("next", traverseId);
             } else {
                 Node valueToInsert = (Node) context.variable("value").get(0);
-                //toDo Validate append relationships
                 Relationship rel = (Relationship) state.getOrCreate(_VALUES, Type.RELATION);
                 rel.add(valueToInsert.id());
+                double[] keys = (double[]) state.get(_KEYS);
+                if (keys != null) {
+                    double[] newkeys = new double[keys.length + dim];
+                    System.arraycopy(keys, 0, newkeys, 0, keys.length);
+                    System.arraycopy(keyToInsert, 0, newkeys, keys.length, dim);
+                    state.set(_KEYS, Type.DOUBLE_ARRAY, newkeys);
+                } else {
+                    state.set(_KEYS, Type.DOUBLE_ARRAY, keyToInsert);
+                }
                 //In case we want an reverse relationship we should set it here
             }
 
@@ -426,7 +437,7 @@ public class NDTree extends AbstractNode {
                 //ToDo replace by lookupAll later
                 long[] res = nnl.getAllNodes();
 
-                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").foreach(lookup("{{result}}"));
+                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").flatmap(lookup("{{result}}"));
                 TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
@@ -481,35 +492,51 @@ public class NDTree extends AbstractNode {
     }
 
 
-    private static Task nearestTask = then(new Action() {
-        @Override
-        public void eval(TaskContext context) {
-            NDTree current = (NDTree) context.result().get(0);
-            NodeState state = current.graph().resolver().resolveState(current);
+    private static Task initNearestTask() {
+        Task reccursiveDown = newTask();
 
-            double[] boundMax = (double[]) state.get(_BOUNDMAX);
-            double[] boundMin = (double[]) state.get(_BOUNDMIN);
-            double[] centerKey = new double[boundMax.length];
-            for (int i = 0; i < centerKey.length; i++) {
-                centerKey[i] = (boundMax[i] + boundMin[i]) / 2;
-            }
-            final double[] target = (double[]) context.variable("key").get(0);
-            final Distance distance = (Distance) context.variable("distance").get(0);
-            double d = distance.measure(target, centerKey);
-            context.setVariable("parentdistance", d);
-            context.continueTask();
-        }
-    })
-            .asVar("parent")
-            .print("{{result}}")
-            .propertiesWithTypes(Type.RELATION)
-            .foreach(ifThen(new TaskFunctionConditional() {
-                        @Override
-                        public boolean eval(TaskContext context) {
-                            return true;
+
+        reccursiveDown.then(new Action() {
+            @Override
+            public void eval(TaskContext context) {
+                NDTree current = (NDTree) context.result().get(0);
+                NodeState state = current.graph().resolver().resolveState(current);
+
+                Relationship values = (Relationship) state.get(_VALUES);
+
+                //Leave node
+                if (values != null) {
+                    int dim = (int) context.variable("dim").get(0);
+                    double[] k = new double[dim];
+                    double[] keys = (double[]) state.get(_KEYS);
+
+                    double[] target = (double[]) context.variable("key").get(0);
+                    Distance distance = (Distance) context.variable("distance").get(0);
+                    NearestNeighborList nnl = (NearestNeighborList) context.variable("nnl").get(0);
+
+                    for (int i = 0; i < values.size(); i++) {
+                        for (int j = 0; j < dim; j++) {
+                            k[j] = keys[i * dim + j];
                         }
-                    }, print("{{result}}"))
-            );
+                        nnl.insert(values.get(i),distance.measure(k,target));
+                    }
+                    context.continueWith(null);
+
+                } else {
+                    double[] boundMax = (double[]) state.get(_BOUNDMAX);
+                    double[] boundMin = (double[]) state.get(_BOUNDMIN);
+                    final double[] target = (double[]) context.variable("key").get(0);
+                    final Distance distance = (Distance) context.variable("distance").get(0);
+
+                }
+            }
+        });
+
+
+        return reccursiveDown;
+    }
+
+    private static Task nearestTask = initNearestTask();
 
 
     public int getNumNodes() {

@@ -597,7 +597,7 @@ public class KDTree extends AbstractNode implements NTree {
                 //ToDo replace by lookupAll later
                 long[] res = nnl.getAllNodesWithin(radius);
 
-                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").foreach(lookup("{{result}}"));
+                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").flatmap(lookup("{{result}}"));
                 TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
@@ -658,7 +658,7 @@ public class KDTree extends AbstractNode implements NTree {
                 //ToDo replace by lookupAll later
                 long[] res = nnl.getAllNodes();
 
-                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").foreach(lookup("{{result}}"));
+                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").flatmap(lookup("{{result}}"));
                 TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
@@ -719,7 +719,7 @@ public class KDTree extends AbstractNode implements NTree {
                 //ToDo replace by lookupAll later
                 long[] res = nnl.getAllNodes();
 
-                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").foreach(lookup("{{result}}"));
+                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").flatmap(lookup("{{result}}"));
                 TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {

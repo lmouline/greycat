@@ -1205,7 +1205,7 @@ break;
         public static addToVar(variableName: string): org.mwg.task.Task {
           return org.mwg.task.Actions.newTask().addToVar(variableName);
         }
-        public static map(mapFunction: org.mwg.task.TaskFunctionMap): org.mwg.task.Task {
+        public static map(mapFunction: org.mwg.task.TaskFunctionMap<any, any>): org.mwg.task.Task {
           return org.mwg.task.Actions.newTask().map(mapFunction);
         }
         public static selectWith(name: string, pattern: string): org.mwg.task.Task {
@@ -1255,6 +1255,12 @@ break;
         }
         public static foreachPar(subTask: org.mwg.task.Task): org.mwg.task.Task {
           return org.mwg.task.Actions.newTask().foreachPar(subTask);
+        }
+        public static flatmap(subTask: org.mwg.task.Task): org.mwg.task.Task {
+          return org.mwg.task.Actions.newTask().flatmap(subTask);
+        }
+        public static flatmapPar(subTask: org.mwg.task.Task): org.mwg.task.Task {
+          return org.mwg.task.Actions.newTask().flatmapPar(subTask);
         }
         public static math(expression: string): org.mwg.task.Task {
           return org.mwg.task.Actions.newTask().math(expression);
@@ -1358,12 +1364,13 @@ break;
         traverseOrKeep(relationName: string): org.mwg.task.Task;
         traverseIndex(indexName: string, query: string): org.mwg.task.Task;
         traverseIndexAll(indexName: string): org.mwg.task.Task;
-        map(mapFunction: org.mwg.task.TaskFunctionMap): org.mwg.task.Task;
-        flatMap(flatMapFunction: org.mwg.task.TaskFunctionFlatMap): org.mwg.task.Task;
+        map(mapFunction: org.mwg.task.TaskFunctionMap<any, any>): org.mwg.task.Task;
         group(groupFunction: org.mwg.task.TaskFunctionGroup): org.mwg.task.Task;
         groupWhere(groupSubTask: org.mwg.task.Task): org.mwg.task.Task;
         foreach(subTask: org.mwg.task.Task): org.mwg.task.Task;
+        flatmap(subTask: org.mwg.task.Task): org.mwg.task.Task;
         foreachPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
+        flatmapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
         subTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
         isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
         subTasks(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
@@ -1439,14 +1446,11 @@ break;
       export interface TaskFunctionConditional {
         (context: org.mwg.task.TaskContext): boolean;
       }
-      export interface TaskFunctionFlatMap {
-        (nodes: org.mwg.Node[]): any;
-      }
       export interface TaskFunctionGroup {
         (nodes: org.mwg.Node): number;
       }
-      export interface TaskFunctionMap {
-        (node: org.mwg.Node): any;
+      export interface TaskFunctionMap<A, B> {
+        (node: A): B;
       }
       export interface TaskFunctionSelect {
         (node: org.mwg.Node): boolean;

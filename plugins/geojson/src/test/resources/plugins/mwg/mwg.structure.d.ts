@@ -154,6 +154,9 @@ declare module org {
                     private static _BOUNDMIN;
                     private static _BOUNDMAX;
                     private static _VALUES;
+                    private static _VALUES_STR;
+                    private static _KEYS;
+                    private static _KEYS_STR;
                     private static _PRECISION;
                     private static _NUMNODES;
                     private static _DIM;
@@ -176,6 +179,7 @@ declare module org {
                     insert(key: Float64Array, value: org.mwg.Node, callback: org.mwg.Callback<boolean>): void;
                     nearestN(key: Float64Array, n: number, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                     static convertToDistance(attributeKey: number, target: Float64Array, center: Float64Array, boundMin: Float64Array, boundMax: Float64Array, precision: Float64Array, distance: org.mwg.structure.distance.Distance): number;
+                    private static initNearestTask();
                     getNumNodes(): number;
                 }
             }
@@ -221,6 +225,7 @@ declare module org {
                     private capacity;
                     constructor(capacity: number);
                     getMaxPriority(): number;
+                    removeNode(node: number): boolean;
                     insert(node: number, priority: number): boolean;
                     private print();
                     getAllNodes(): Float64Array;

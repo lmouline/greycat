@@ -778,7 +778,7 @@ declare module org {
                 static asVar(variableName: string): org.mwg.task.Task;
                 static defineVar(variableName: string): org.mwg.task.Task;
                 static addToVar(variableName: string): org.mwg.task.Task;
-                static map(mapFunction: org.mwg.task.TaskFunctionMap): org.mwg.task.Task;
+                static map(mapFunction: org.mwg.task.TaskFunctionMap<any, any>): org.mwg.task.Task;
                 static selectWith(name: string, pattern: string): org.mwg.task.Task;
                 static selectWithout(name: string, pattern: string): org.mwg.task.Task;
                 static select(filterFunction: org.mwg.task.TaskFunctionSelect): org.mwg.task.Task;
@@ -795,6 +795,8 @@ declare module org {
                 static selectWhere(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 static foreach(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 static foreachPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                static flatmap(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                static flatmapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 static math(expression: string): org.mwg.task.Task;
                 static action(name: string, params: string): org.mwg.task.Task;
                 static remove(relationName: string, variableNameToRemove: string): org.mwg.task.Task;
@@ -849,12 +851,13 @@ declare module org {
                 traverseOrKeep(relationName: string): org.mwg.task.Task;
                 traverseIndex(indexName: string, query: string): org.mwg.task.Task;
                 traverseIndexAll(indexName: string): org.mwg.task.Task;
-                map(mapFunction: org.mwg.task.TaskFunctionMap): org.mwg.task.Task;
-                flatMap(flatMapFunction: org.mwg.task.TaskFunctionFlatMap): org.mwg.task.Task;
+                map(mapFunction: org.mwg.task.TaskFunctionMap<any, any>): org.mwg.task.Task;
                 group(groupFunction: org.mwg.task.TaskFunctionGroup): org.mwg.task.Task;
                 groupWhere(groupSubTask: org.mwg.task.Task): org.mwg.task.Task;
                 foreach(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                flatmap(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 foreachPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                flatmapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 subTask(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 subTasks(subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
@@ -930,14 +933,11 @@ declare module org {
             interface TaskFunctionConditional {
                 (context: org.mwg.task.TaskContext): boolean;
             }
-            interface TaskFunctionFlatMap {
-                (nodes: org.mwg.Node[]): any;
-            }
             interface TaskFunctionGroup {
                 (nodes: org.mwg.Node): number;
             }
-            interface TaskFunctionMap {
-                (node: org.mwg.Node): any;
+            interface TaskFunctionMap<A, B> {
+                (node: A): B;
             }
             interface TaskFunctionSelect {
                 (node: org.mwg.Node): boolean;
@@ -1609,6 +1609,18 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
+                class ActionFlatmap extends org.mwg.plugin.AbstractTaskAction {
+                    private _subTask;
+                    constructor(p_subTask: org.mwg.task.Task);
+                    eval(context: org.mwg.task.TaskContext): void;
+                    toString(): string;
+                }
+                class ActionFlatmapPar extends org.mwg.plugin.AbstractTaskAction {
+                    private _subTask;
+                    constructor(p_subTask: org.mwg.task.Task);
+                    eval(context: org.mwg.task.TaskContext): void;
+                    toString(): string;
+                }
                 class ActionForeach extends org.mwg.plugin.AbstractTaskAction {
                     private _subTask;
                     constructor(p_subTask: org.mwg.task.Task);
@@ -1730,7 +1742,7 @@ declare module org {
                 }
                 class ActionMap extends org.mwg.plugin.AbstractTaskAction {
                     private _map;
-                    constructor(p_map: org.mwg.task.TaskFunctionMap);
+                    constructor(p_map: org.mwg.task.TaskFunctionMap<any, any>);
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
@@ -1925,8 +1937,7 @@ declare module org {
                     traverseOrKeep(relationName: string): org.mwg.task.Task;
                     traverseIndex(indexName: string, query: string): org.mwg.task.Task;
                     traverseIndexAll(indexName: string): org.mwg.task.Task;
-                    map(mapFunction: org.mwg.task.TaskFunctionMap): org.mwg.task.Task;
-                    flatMap(flatMapFunction: org.mwg.task.TaskFunctionFlatMap): org.mwg.task.Task;
+                    map(mapFunction: org.mwg.task.TaskFunctionMap<any, any>): org.mwg.task.Task;
                     group(groupFunction: org.mwg.task.TaskFunctionGroup): org.mwg.task.Task;
                     groupWhere(groupSubTask: org.mwg.task.Task): org.mwg.task.Task;
                     inject(inputValue: any): org.mwg.task.Task;
@@ -1940,7 +1951,9 @@ declare module org {
                     doWhile(then: org.mwg.task.Task, cond: org.mwg.task.TaskFunctionConditional): org.mwg.task.Task;
                     then(p_action: org.mwg.task.Action): org.mwg.task.Task;
                     foreach(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                    flatmap(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     foreachPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                    flatmapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     save(): org.mwg.task.Task;
                     clear(): org.mwg.task.Task;
                     lookup(nodeId: string): org.mwg.task.Task;
