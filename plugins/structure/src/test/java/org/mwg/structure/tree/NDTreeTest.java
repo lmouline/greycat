@@ -34,7 +34,7 @@ public class NDTreeTest {
                 KDTreeJava kdtreejava = new KDTreeJava();
                 kdtreejava.setThreshold(KDTree.DISTANCE_THRESHOLD_DEF);
 
-                boolean print=true;
+                boolean print = true;
 
 
                 kdtreejava.setDistance(GeoDistance.instance());
@@ -44,13 +44,13 @@ public class NDTreeTest {
                 int dim = 2;
 
                 double[] precisions = new double[dim];
-                double[] boundMin  = new double[dim];
-                double[] boundMax  = new double[dim];
+                double[] boundMin = new double[dim];
+                double[] boundMax = new double[dim];
 
-                for(int i=0;i<dim;i++){
-                    precisions[i]=0.25;
-                    boundMin[i]=0;
-                    boundMax[i]=1;
+                for (int i = 0; i < dim; i++) {
+                    precisions[i] = 0.25;
+                    boundMin[i] = 0;
+                    boundMax[i] = 1;
                 }
 
 
@@ -76,8 +76,8 @@ public class NDTreeTest {
                     //temp.setProperty("value", Type.DOUBLE, random.nextDouble());
 
                     double[] key = new double[dim];
-                    for(int j=0;j<dim;j++){
-                        key[j]=random.nextDouble();
+                    for (int j = 0; j < dim; j++) {
+                        key[j] = random.nextDouble();
                     }
 
                     temp.set("key", key);
@@ -92,33 +92,29 @@ public class NDTreeTest {
                 }
 
 
+                for (int j = 0; j < ins; j++) {
 
-                double[] res = new double[dim];
-                for(int j=0;j<dim;j++){
-                    res[j]=j*(1.0/dim);
-                }
-
-                ndTree.nearestN(res, 10, new Callback<Node[]>() {
-                            @Override
-                            public void on(Node[] result) {
-                                kdtree.nearestN(res, 10, new Callback<Node[]>() {
-                                    @Override
-                                    public void on(Node[] result2) {
-                                        for(int i=0;i<result.length;i++){
-                                            Assert.assertTrue(result[i].id()==result2[i].id());
-                                        }
+                    final double[] res = keys[j];
+                    ndTree.nearestN(res, 10, new Callback<Node[]>() {
+                        @Override
+                        public void on(Node[] result) {
+                            kdtree.nearestN(res, 10, new Callback<Node[]>() {
+                                @Override
+                                public void on(Node[] result2) {
+                                    for (int i = 0; i < result.length; i++) {
+                                        Assert.assertTrue(result[i].id() == result2[i].id());
                                     }
-                                });
+                                }
+                            });
 
-                            }
-                        });
-
+                        }
+                    });
+                }
 
 
             }
         });
     }
-
 
 
     public void NDInsertTest() {
@@ -137,7 +133,7 @@ public class NDTreeTest {
                 KDTreeJava kdtreejava = new KDTreeJava();
                 kdtreejava.setThreshold(KDTree.DISTANCE_THRESHOLD_DEF);
 
-                boolean print=true;
+                boolean print = true;
 
 
 //                kdtreejava.setDistance(EuclideanDistance.instance());
@@ -157,13 +153,13 @@ public class NDTreeTest {
                 int dim = 3;
 
                 double[] precisions = new double[dim];
-                double[] boundMin  = new double[dim];
-                double[] boundMax  = new double[dim];
+                double[] boundMin = new double[dim];
+                double[] boundMax = new double[dim];
 
-                for(int i=0;i<dim;i++){
-                    precisions[i]=0.5;
-                    boundMin[i]=0;
-                    boundMax[i]=1;
+                for (int i = 0; i < dim; i++) {
+                    precisions[i] = 0.5;
+                    boundMin[i] = 0;
+                    boundMax[i] = 1;
                 }
 
 
@@ -189,8 +185,8 @@ public class NDTreeTest {
                     //temp.setProperty("value", Type.DOUBLE, random.nextDouble());
 
                     double[] key = new double[dim];
-                    for(int j=0;j<dim;j++){
-                        key[j]=random.nextDouble();
+                    for (int j = 0; j < dim; j++) {
+                        key[j] = random.nextDouble();
                     }
 
                     temp.set("key", key);
@@ -230,8 +226,8 @@ public class NDTreeTest {
 
 
                 double[] res = new double[dim];
-                for(int j=0;j<dim;j++){
-                    res[j]=j*(1.0/dim);
+                for (int j = 0; j < dim; j++) {
+                    res[j] = j * (1.0 / dim);
                 }
 
                 System.out.println("ND TREE");
@@ -240,7 +236,7 @@ public class NDTreeTest {
                 ndTree.nearestN(res, 10, new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
-                        if(print) {
+                        if (print) {
                             for (int i = 0; i < result.length; i++) {
                                 System.out.println(result[i] + " dist: " + EuclideanDistance.instance().measure(res, (double[]) result[i].get("key")));
                             }
@@ -259,7 +255,7 @@ public class NDTreeTest {
                 kdtree.nearestN(res, 10, new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
-                        if(print) {
+                        if (print) {
                             for (int i = 0; i < result.length; i++) {
                                 System.out.println(result[i] + " dist: " + EuclideanDistance.instance().measure(res, (double[]) result[i].get("key")));
                             }
@@ -279,7 +275,7 @@ public class NDTreeTest {
                 kdtreejava.nearestN(res, 10, new Callback<Object[]>() {
                     @Override
                     public void on(Object[] result) {
-                        if(print) {
+                        if (print) {
                             for (int i = 0; i < result.length; i++) {
                                 System.out.println(result[i] + " dist: " + EuclideanDistance.instance().measure(res, (double[]) ((Node) result[i]).get("key")));
                             }
@@ -294,7 +290,7 @@ public class NDTreeTest {
 
 
                 starttime = System.currentTimeMillis();
-                for(int i=0;i<ins;i++){
+                for (int i = 0; i < ins; i++) {
                     ndTree.nearestN(keys[i], 10, new Callback<Node[]>() {
                         @Override
                         public void on(Node[] result) {
@@ -306,9 +302,8 @@ public class NDTreeTest {
                 System.out.println("nd tree all search: " + exectime + " ms");
 
 
-
                 starttime = System.currentTimeMillis();
-                for(int i=0;i<ins;i++){
+                for (int i = 0; i < ins; i++) {
                     kdtree.nearestN(keys[i], 10, new Callback<Node[]>() {
                         @Override
                         public void on(Node[] result) {
@@ -320,9 +315,8 @@ public class NDTreeTest {
                 System.out.println("kd tree all search: " + exectime + " ms");
 
 
-
                 starttime = System.currentTimeMillis();
-                for(int i=0;i<ins;i++){
+                for (int i = 0; i < ins; i++) {
                     kdtreejava.nearestN(keys[i], 10, new Callback<Object[]>() {
                         @Override
                         public void on(Object[] result) {
