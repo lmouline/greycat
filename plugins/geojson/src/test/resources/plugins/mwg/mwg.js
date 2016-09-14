@@ -76,11 +76,7 @@ var java;
             String.isEmpty = function (str) {
                 return str.length === 0;
             };
-            String.join = function (delimiter) {
-                var elements = [];
-                for (var _i = 1; _i < arguments.length; _i++) {
-                    elements[_i - 1] = arguments[_i];
-                }
+            String.join = function (delimiter, elements) {
                 return elements.join(delimiter);
             };
             return String;
@@ -375,7 +371,7 @@ var java;
                     return Math.random();
                 }
                 else {
-                    return this.nextSeeded(Number.MIN_VALUE, Number.MAX_VALUE);
+                    return this.nextSeeded();
                 }
             };
             Random.prototype.nextBoolean = function () {

@@ -67,7 +67,7 @@ module java {
                 return str.length === 0;
             }
 
-            static join(delimiter: string, ...elements: string[]): string {
+            static join(delimiter: string, elements: string[]): string {
                 return elements.join(delimiter);
             }
         }
@@ -368,7 +368,7 @@ module java {
                 if (this.seed == undefined) {
                     return Math.random();
                 } else {
-                    return this.nextSeeded(Number.MIN_VALUE, Number.MAX_VALUE);
+                    return this.nextSeeded();
                 }
             }
 

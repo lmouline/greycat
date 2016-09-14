@@ -15,7 +15,7 @@ declare module java {
             static valueOf(data: any, offset?: number, count?: number): string;
             static hashCode(str: string): number;
             static isEmpty(str: string): boolean;
-            static join(delimiter: string, ...elements: string[]): string;
+            static join(delimiter: string, elements: string[]): string;
         }
         class Thread {
             static sleep(time: number): void;

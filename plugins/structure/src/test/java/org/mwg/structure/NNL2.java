@@ -1,5 +1,7 @@
 package org.mwg.structure;
 
+import java.util.Objects;
+
 public class NNL2 {
     /**
      * The maximum priority possible in this priority queue.
@@ -184,15 +186,18 @@ public class NNL2 {
      *
      * @param pos the position in the arrays of the object to be bubbled up
      */
+
     private void bubbleUp(int pos) {
         Object element = data[pos];
         double priority = value[pos];
         /* when the parent is not less than the child, end */
-        while (value[pos / 2] < priority) {
+        int halfpos = (int) Math.floor(pos / 2);
+        while (value[halfpos] < priority) {
             /* overwrite the child with the parent */
-            value[pos] = value[pos / 2];
-            data[pos] = data[pos / 2];
-            pos /= 2;
+            value[pos] = value[halfpos];
+            data[pos] = data[halfpos];
+            pos  = (int) Math.floor(pos / 2);
+            halfpos  = (int) Math.floor(pos / 2);
         }
         value[pos] = priority;
         data[pos] = element;
