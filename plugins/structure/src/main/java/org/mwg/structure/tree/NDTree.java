@@ -587,23 +587,26 @@ public class NDTree extends AbstractNode implements NTree {
             public void on(TaskResult result) {
 
                 long[] res = nnl.getNodes();
+                if (res.length != 0) {
+                    Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
+                    TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
+                        @Override
+                        public void on(TaskResult result) {
 
-                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
-                TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
-                    @Override
-                    public void on(TaskResult result) {
-
-                        final Node[] finalres = new Node[result.size()];
-                        for (int i = 0; i < result.size(); i++) {
-                            finalres[i] = (Node) result.get(i);
+                            final Node[] finalres = new Node[result.size()];
+                            for (int i = 0; i < result.size(); i++) {
+                                finalres[i] = (Node) result.get(i);
+                            }
+                            callback.on(finalres);
                         }
-                        callback.on(finalres);
-                    }
-                });
+                    });
 
-                TaskResult tr = tc.wrap(res);
-                tc.addToGlobalVariable("res", tr);
-                lookupall.executeUsing(tc);
+                    TaskResult tr = tc.wrap(res);
+                    tc.addToGlobalVariable("res", tr);
+                    lookupall.executeUsing(tc);
+                } else {
+                    callback.on(new Node[0]);
+                }
             }
         });
 
@@ -648,23 +651,26 @@ public class NDTree extends AbstractNode implements NTree {
             public void on(TaskResult result) {
 
                 long[] res = nnl.getNodes();
+                if (res.length != 0) {
+                    Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
+                    TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
+                        @Override
+                        public void on(TaskResult result) {
 
-                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
-                TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
-                    @Override
-                    public void on(TaskResult result) {
-
-                        final Node[] finalres = new Node[result.size()];
-                        for (int i = 0; i < result.size(); i++) {
-                            finalres[i] = (Node) result.get(i);
+                            final Node[] finalres = new Node[result.size()];
+                            for (int i = 0; i < result.size(); i++) {
+                                finalres[i] = (Node) result.get(i);
+                            }
+                            callback.on(finalres);
                         }
-                        callback.on(finalres);
-                    }
-                });
+                    });
 
-                TaskResult tr = tc.wrap(res);
-                tc.addToGlobalVariable("res", tr);
-                lookupall.executeUsing(tc);
+                    TaskResult tr = tc.wrap(res);
+                    tc.addToGlobalVariable("res", tr);
+                    lookupall.executeUsing(tc);
+                } else {
+                    callback.on(new Node[0]);
+                }
             }
         });
 
@@ -710,23 +716,27 @@ public class NDTree extends AbstractNode implements NTree {
             public void on(TaskResult result) {
 
                 long[] res = nnl.getAllNodesWithin(radius);
+                if (res.length != 0) {
+                    Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
+                    TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
+                        @Override
+                        public void on(TaskResult result) {
 
-                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
-                TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
-                    @Override
-                    public void on(TaskResult result) {
-
-                        final Node[] finalres = new Node[result.size()];
-                        for (int i = 0; i < result.size(); i++) {
-                            finalres[i] = (Node) result.get(i);
+                            final Node[] finalres = new Node[result.size()];
+                            for (int i = 0; i < result.size(); i++) {
+                                finalres[i] = (Node) result.get(i);
+                            }
+                            callback.on(finalres);
                         }
-                        callback.on(finalres);
-                    }
-                });
+                    });
 
-                TaskResult tr = tc.wrap(res);
-                tc.addToGlobalVariable("res", tr);
-                lookupall.executeUsing(tc);
+                    TaskResult tr = tc.wrap(res);
+                    tc.addToGlobalVariable("res", tr);
+                    lookupall.executeUsing(tc);
+                }
+                else{
+                    callback.on(new Node[0]);
+                }
             }
         });
 

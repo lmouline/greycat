@@ -111,7 +111,7 @@ module org {
                   let savedVarIt: org.mwg.task.TaskResultIterator<any> = savedVar.iterator();
                   let toAddIter: any = savedVarIt.next();
                   while (toAddIter != null) {
-                    if (toAddIter instanceof org.mwg.structure.tree.KDTree) {
+                    if (toAddIter instanceof org.mwg.structure.tree.KDTree || toAddIter instanceof org.mwg.structure.tree.NDTree) {
                       (<org.mwg.structure.NTree>toAddIter).insert(<org.mwg.Node>iter, (result : boolean) => {
 {
                           defer.count();
@@ -155,11 +155,13 @@ module org {
               let previousResultIt: org.mwg.task.TaskResultIterator<any> = previousResult.iterator();
               let iter: any = previousResultIt.next();
               while (iter != null) {
-                if (iter instanceof org.mwg.structure.tree.KDTree) {
+                if (iter instanceof org.mwg.structure.tree.KDTree || iter instanceof org.mwg.structure.tree.NDTree) {
                   (<org.mwg.structure.NTree>iter).nearestN(this._key, this._n, (result : org.mwg.Node[]) => {
 {
                       for (let i: number = 0; i < result.length; i++) {
-                        nextResult.add(result[i]);
+                        if (result[i] != null) {
+                          nextResult.add(result[i]);
+                        }
                       }
                       defer.count();
                     }                  });
@@ -199,11 +201,13 @@ module org {
               let previousResultIt: org.mwg.task.TaskResultIterator<any> = previousResult.iterator();
               let iter: any = previousResultIt.next();
               while (iter != null) {
-                if (iter instanceof org.mwg.structure.tree.KDTree) {
+                if (iter instanceof org.mwg.structure.tree.KDTree || iter instanceof org.mwg.structure.tree.NDTree) {
                   (<org.mwg.structure.NTree>iter).nearestNWithinRadius(this._key, this._n, this._radius, (result : org.mwg.Node[]) => {
 {
                       for (let i: number = 0; i < result.length; i++) {
-                        nextResult.add(result[i]);
+                        if (result[i] != null) {
+                          nextResult.add(result[i]);
+                        }
                       }
                       defer.count();
                     }                  });
@@ -241,11 +245,13 @@ module org {
               let previousResultIt: org.mwg.task.TaskResultIterator<any> = previousResult.iterator();
               let iter: any = previousResultIt.next();
               while (iter != null) {
-                if (iter instanceof org.mwg.structure.tree.KDTree) {
+                if (iter instanceof org.mwg.structure.tree.KDTree || iter instanceof org.mwg.structure.tree.NDTree) {
                   (<org.mwg.structure.NTree>iter).nearestWithinRadius(this._key, this._radius, (result : org.mwg.Node[]) => {
 {
                       for (let i: number = 0; i < result.length; i++) {
-                        nextResult.add(result[i]);
+                        if (result[i] != null) {
+                          nextResult.add(result[i]);
+                        }
                       }
                       defer.count();
                     }                  });
@@ -779,18 +785,22 @@ module org {
             let tc: org.mwg.task.TaskContext = KDTree.nearestTask.prepareWith(this.graph(), this, (result : org.mwg.task.TaskResult<any>) => {
 {
                 let res: Float64Array = nnl.getAllNodesWithin(radius);
-                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
-                let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
+                if (res.length != 0) {
+                  let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
+                  let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
 {
-                    let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
-                    for (let i: number = 0; i < result.size(); i++) {
-                      finalres[i] = <org.mwg.Node>result.get(i);
-                    }
-                    callback(finalres);
-                  }                });
-                let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
-                tc.addToGlobalVariable("res", tr);
-                lookupall.executeUsing(tc);
+                      let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
+                      for (let i: number = 0; i < result.size(); i++) {
+                        finalres[i] = <org.mwg.Node>result.get(i);
+                      }
+                      callback(finalres);
+                    }                  });
+                  let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
+                  tc.addToGlobalVariable("res", tr);
+                  lookupall.executeUsing(tc);
+                } else {
+                  callback(new Array<org.mwg.Node>(0));
+                }
               }            });
             let res: org.mwg.task.TaskResult<any> = tc.newResult();
             res.add(key);
@@ -816,18 +826,22 @@ module org {
             let tc: org.mwg.task.TaskContext = KDTree.nearestRadiusTask.prepareWith(this.graph(), this, (result : org.mwg.task.TaskResult<any>) => {
 {
                 let res: Float64Array = nnl.distroyAndGetAllNodes();
-                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
-                let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
+                if (res.length != 0) {
+                  let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
+                  let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
 {
-                    let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
-                    for (let i: number = 0; i < result.size(); i++) {
-                      finalres[i] = <org.mwg.Node>result.get(i);
-                    }
-                    callback(finalres);
-                  }                });
-                let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
-                tc.addToGlobalVariable("res", tr);
-                lookupall.executeUsing(tc);
+                      let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
+                      for (let i: number = 0; i < result.size(); i++) {
+                        finalres[i] = <org.mwg.Node>result.get(i);
+                      }
+                      callback(finalres);
+                    }                  });
+                  let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
+                  tc.addToGlobalVariable("res", tr);
+                  lookupall.executeUsing(tc);
+                } else {
+                  callback(new Array<org.mwg.Node>(0));
+                }
               }            });
             let res: org.mwg.task.TaskResult<any> = tc.newResult();
             res.add(key);
@@ -854,18 +868,22 @@ module org {
             let tc: org.mwg.task.TaskContext = KDTree.nearestTask.prepareWith(this.graph(), this, (result : org.mwg.task.TaskResult<any>) => {
 {
                 let res: Float64Array = nnl.getNodes();
-                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
-                let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
+                if (res.length != 0) {
+                  let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
+                  let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
 {
-                    let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
-                    for (let i: number = 0; i < result.size(); i++) {
-                      finalres[i] = <org.mwg.Node>result.get(i);
-                    }
-                    callback(finalres);
-                  }                });
-                let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
-                tc.addToGlobalVariable("res", tr);
-                lookupall.executeUsing(tc);
+                      let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
+                      for (let i: number = 0; i < result.size(); i++) {
+                        finalres[i] = <org.mwg.Node>result.get(i);
+                      }
+                      callback(finalres);
+                    }                  });
+                  let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
+                  tc.addToGlobalVariable("res", tr);
+                  lookupall.executeUsing(tc);
+                } else {
+                  callback(new Array<org.mwg.Node>(0));
+                }
               }            });
             let res: org.mwg.task.TaskResult<any> = tc.newResult();
             res.add(key);
@@ -1331,18 +1349,22 @@ break;
             let tc: org.mwg.task.TaskContext = NDTree.nearestTask.prepareWith(this.graph(), this, (result : org.mwg.task.TaskResult<any>) => {
 {
                 let res: Float64Array = nnl.getNodes();
-                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
-                let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
+                if (res.length != 0) {
+                  let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
+                  let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
 {
-                    let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
-                    for (let i: number = 0; i < result.size(); i++) {
-                      finalres[i] = <org.mwg.Node>result.get(i);
-                    }
-                    callback(finalres);
-                  }                });
-                let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
-                tc.addToGlobalVariable("res", tr);
-                lookupall.executeUsing(tc);
+                      let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
+                      for (let i: number = 0; i < result.size(); i++) {
+                        finalres[i] = <org.mwg.Node>result.get(i);
+                      }
+                      callback(finalres);
+                    }                  });
+                  let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
+                  tc.addToGlobalVariable("res", tr);
+                  lookupall.executeUsing(tc);
+                } else {
+                  callback(new Array<org.mwg.Node>(0));
+                }
               }            });
             let res: org.mwg.task.TaskResult<any> = tc.newResult();
             res.add(key);
@@ -1374,18 +1396,22 @@ break;
             let tc: org.mwg.task.TaskContext = NDTree.nearestRadiusTask.prepareWith(this.graph(), this, (result : org.mwg.task.TaskResult<any>) => {
 {
                 let res: Float64Array = nnl.getNodes();
-                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
-                let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
+                if (res.length != 0) {
+                  let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
+                  let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
 {
-                    let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
-                    for (let i: number = 0; i < result.size(); i++) {
-                      finalres[i] = <org.mwg.Node>result.get(i);
-                    }
-                    callback(finalres);
-                  }                });
-                let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
-                tc.addToGlobalVariable("res", tr);
-                lookupall.executeUsing(tc);
+                      let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
+                      for (let i: number = 0; i < result.size(); i++) {
+                        finalres[i] = <org.mwg.Node>result.get(i);
+                      }
+                      callback(finalres);
+                    }                  });
+                  let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
+                  tc.addToGlobalVariable("res", tr);
+                  lookupall.executeUsing(tc);
+                } else {
+                  callback(new Array<org.mwg.Node>(0));
+                }
               }            });
             let res: org.mwg.task.TaskResult<any> = tc.newResult();
             res.add(key);
@@ -1418,18 +1444,22 @@ break;
             let tc: org.mwg.task.TaskContext = NDTree.nearestTask.prepareWith(this.graph(), this, (result : org.mwg.task.TaskResult<any>) => {
 {
                 let res: Float64Array = nnl.getAllNodesWithin(radius);
-                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
-                let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
+                if (res.length != 0) {
+                  let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
+                  let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
 {
-                    let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
-                    for (let i: number = 0; i < result.size(); i++) {
-                      finalres[i] = <org.mwg.Node>result.get(i);
-                    }
-                    callback(finalres);
-                  }                });
-                let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
-                tc.addToGlobalVariable("res", tr);
-                lookupall.executeUsing(tc);
+                      let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
+                      for (let i: number = 0; i < result.size(); i++) {
+                        finalres[i] = <org.mwg.Node>result.get(i);
+                      }
+                      callback(finalres);
+                    }                  });
+                  let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
+                  tc.addToGlobalVariable("res", tr);
+                  lookupall.executeUsing(tc);
+                } else {
+                  callback(new Array<org.mwg.Node>(0));
+                }
               }            });
             let res: org.mwg.task.TaskResult<any> = tc.newResult();
             res.add(key);

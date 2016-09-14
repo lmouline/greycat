@@ -122,7 +122,7 @@ var org;
                                     var savedVarIt = savedVar.iterator();
                                     var toAddIter = savedVarIt.next();
                                     while (toAddIter != null) {
-                                        if (toAddIter instanceof org.mwg.structure.tree.KDTree) {
+                                        if (toAddIter instanceof org.mwg.structure.tree.KDTree || toAddIter instanceof org.mwg.structure.tree.NDTree) {
                                             toAddIter.insert(iter, function (result) {
                                                 {
                                                     defer_1.count();
@@ -172,11 +172,13 @@ var org;
                             var previousResultIt = previousResult.iterator();
                             var iter = previousResultIt.next();
                             while (iter != null) {
-                                if (iter instanceof org.mwg.structure.tree.KDTree) {
+                                if (iter instanceof org.mwg.structure.tree.KDTree || iter instanceof org.mwg.structure.tree.NDTree) {
                                     iter.nearestN(this._key, this._n, function (result) {
                                         {
                                             for (var i = 0; i < result.length; i++) {
-                                                nextResult.add(result[i]);
+                                                if (result[i] != null) {
+                                                    nextResult.add(result[i]);
+                                                }
                                             }
                                             defer_2.count();
                                         }
@@ -220,11 +222,13 @@ var org;
                             var previousResultIt = previousResult.iterator();
                             var iter = previousResultIt.next();
                             while (iter != null) {
-                                if (iter instanceof org.mwg.structure.tree.KDTree) {
+                                if (iter instanceof org.mwg.structure.tree.KDTree || iter instanceof org.mwg.structure.tree.NDTree) {
                                     iter.nearestNWithinRadius(this._key, this._n, this._radius, function (result) {
                                         {
                                             for (var i = 0; i < result.length; i++) {
-                                                nextResult.add(result[i]);
+                                                if (result[i] != null) {
+                                                    nextResult.add(result[i]);
+                                                }
                                             }
                                             defer_3.count();
                                         }
@@ -267,11 +271,13 @@ var org;
                             var previousResultIt = previousResult.iterator();
                             var iter = previousResultIt.next();
                             while (iter != null) {
-                                if (iter instanceof org.mwg.structure.tree.KDTree) {
+                                if (iter instanceof org.mwg.structure.tree.KDTree || iter instanceof org.mwg.structure.tree.NDTree) {
                                     iter.nearestWithinRadius(this._key, this._radius, function (result) {
                                         {
                                             for (var i = 0; i < result.length; i++) {
-                                                nextResult.add(result[i]);
+                                                if (result[i] != null) {
+                                                    nextResult.add(result[i]);
+                                                }
                                             }
                                             defer_4.count();
                                         }
@@ -795,19 +801,24 @@ var org;
                         var tc = KDTree.nearestTask.prepareWith(this.graph(), this, function (result) {
                             {
                                 var res_1 = nnl.getAllNodesWithin(radius);
-                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
-                                var tc_1 = lookupall.prepareWith(_this.graph(), null, function (result) {
-                                    {
-                                        var finalres = new Array(result.size());
-                                        for (var i = 0; i < result.size(); i++) {
-                                            finalres[i] = result.get(i);
+                                if (res_1.length != 0) {
+                                    var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
+                                    var tc_1 = lookupall.prepareWith(_this.graph(), null, function (result) {
+                                        {
+                                            var finalres = new Array(result.size());
+                                            for (var i = 0; i < result.size(); i++) {
+                                                finalres[i] = result.get(i);
+                                            }
+                                            callback(finalres);
                                         }
-                                        callback(finalres);
-                                    }
-                                });
-                                var tr = tc_1.wrap(res_1);
-                                tc_1.addToGlobalVariable("res", tr);
-                                lookupall.executeUsing(tc_1);
+                                    });
+                                    var tr = tc_1.wrap(res_1);
+                                    tc_1.addToGlobalVariable("res", tr);
+                                    lookupall.executeUsing(tc_1);
+                                }
+                                else {
+                                    callback(new Array(0));
+                                }
                             }
                         });
                         var res = tc.newResult();
@@ -835,19 +846,24 @@ var org;
                         var tc = KDTree.nearestRadiusTask.prepareWith(this.graph(), this, function (result) {
                             {
                                 var res_2 = nnl.distroyAndGetAllNodes();
-                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
-                                var tc_2 = lookupall.prepareWith(_this.graph(), null, function (result) {
-                                    {
-                                        var finalres = new Array(result.size());
-                                        for (var i = 0; i < result.size(); i++) {
-                                            finalres[i] = result.get(i);
+                                if (res_2.length != 0) {
+                                    var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
+                                    var tc_2 = lookupall.prepareWith(_this.graph(), null, function (result) {
+                                        {
+                                            var finalres = new Array(result.size());
+                                            for (var i = 0; i < result.size(); i++) {
+                                                finalres[i] = result.get(i);
+                                            }
+                                            callback(finalres);
                                         }
-                                        callback(finalres);
-                                    }
-                                });
-                                var tr = tc_2.wrap(res_2);
-                                tc_2.addToGlobalVariable("res", tr);
-                                lookupall.executeUsing(tc_2);
+                                    });
+                                    var tr = tc_2.wrap(res_2);
+                                    tc_2.addToGlobalVariable("res", tr);
+                                    lookupall.executeUsing(tc_2);
+                                }
+                                else {
+                                    callback(new Array(0));
+                                }
                             }
                         });
                         var res = tc.newResult();
@@ -876,19 +892,24 @@ var org;
                         var tc = KDTree.nearestTask.prepareWith(this.graph(), this, function (result) {
                             {
                                 var res_3 = nnl.getNodes();
-                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
-                                var tc_3 = lookupall.prepareWith(_this.graph(), null, function (result) {
-                                    {
-                                        var finalres = new Array(result.size());
-                                        for (var i = 0; i < result.size(); i++) {
-                                            finalres[i] = result.get(i);
+                                if (res_3.length != 0) {
+                                    var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
+                                    var tc_3 = lookupall.prepareWith(_this.graph(), null, function (result) {
+                                        {
+                                            var finalres = new Array(result.size());
+                                            for (var i = 0; i < result.size(); i++) {
+                                                finalres[i] = result.get(i);
+                                            }
+                                            callback(finalres);
                                         }
-                                        callback(finalres);
-                                    }
-                                });
-                                var tr = tc_3.wrap(res_3);
-                                tc_3.addToGlobalVariable("res", tr);
-                                lookupall.executeUsing(tc_3);
+                                    });
+                                    var tr = tc_3.wrap(res_3);
+                                    tc_3.addToGlobalVariable("res", tr);
+                                    lookupall.executeUsing(tc_3);
+                                }
+                                else {
+                                    callback(new Array(0));
+                                }
                             }
                         });
                         var res = tc.newResult();
@@ -1354,19 +1375,24 @@ var org;
                         var tc = NDTree.nearestTask.prepareWith(this.graph(), this, function (result) {
                             {
                                 var res_4 = nnl.getNodes();
-                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
-                                var tc_4 = lookupall.prepareWith(_this.graph(), null, function (result) {
-                                    {
-                                        var finalres = new Array(result.size());
-                                        for (var i = 0; i < result.size(); i++) {
-                                            finalres[i] = result.get(i);
+                                if (res_4.length != 0) {
+                                    var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
+                                    var tc_4 = lookupall.prepareWith(_this.graph(), null, function (result) {
+                                        {
+                                            var finalres = new Array(result.size());
+                                            for (var i = 0; i < result.size(); i++) {
+                                                finalres[i] = result.get(i);
+                                            }
+                                            callback(finalres);
                                         }
-                                        callback(finalres);
-                                    }
-                                });
-                                var tr = tc_4.wrap(res_4);
-                                tc_4.addToGlobalVariable("res", tr);
-                                lookupall.executeUsing(tc_4);
+                                    });
+                                    var tr = tc_4.wrap(res_4);
+                                    tc_4.addToGlobalVariable("res", tr);
+                                    lookupall.executeUsing(tc_4);
+                                }
+                                else {
+                                    callback(new Array(0));
+                                }
                             }
                         });
                         var res = tc.newResult();
@@ -1401,19 +1427,24 @@ var org;
                         var tc = NDTree.nearestRadiusTask.prepareWith(this.graph(), this, function (result) {
                             {
                                 var res_5 = nnl.getNodes();
-                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
-                                var tc_5 = lookupall.prepareWith(_this.graph(), null, function (result) {
-                                    {
-                                        var finalres = new Array(result.size());
-                                        for (var i = 0; i < result.size(); i++) {
-                                            finalres[i] = result.get(i);
+                                if (res_5.length != 0) {
+                                    var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
+                                    var tc_5 = lookupall.prepareWith(_this.graph(), null, function (result) {
+                                        {
+                                            var finalres = new Array(result.size());
+                                            for (var i = 0; i < result.size(); i++) {
+                                                finalres[i] = result.get(i);
+                                            }
+                                            callback(finalres);
                                         }
-                                        callback(finalres);
-                                    }
-                                });
-                                var tr = tc_5.wrap(res_5);
-                                tc_5.addToGlobalVariable("res", tr);
-                                lookupall.executeUsing(tc_5);
+                                    });
+                                    var tr = tc_5.wrap(res_5);
+                                    tc_5.addToGlobalVariable("res", tr);
+                                    lookupall.executeUsing(tc_5);
+                                }
+                                else {
+                                    callback(new Array(0));
+                                }
                             }
                         });
                         var res = tc.newResult();
@@ -1449,19 +1480,24 @@ var org;
                         var tc = NDTree.nearestTask.prepareWith(this.graph(), this, function (result) {
                             {
                                 var res_6 = nnl.getAllNodesWithin(radius);
-                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
-                                var tc_6 = lookupall.prepareWith(_this.graph(), null, function (result) {
-                                    {
-                                        var finalres = new Array(result.size());
-                                        for (var i = 0; i < result.size(); i++) {
-                                            finalres[i] = result.get(i);
+                                if (res_6.length != 0) {
+                                    var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
+                                    var tc_6 = lookupall.prepareWith(_this.graph(), null, function (result) {
+                                        {
+                                            var finalres = new Array(result.size());
+                                            for (var i = 0; i < result.size(); i++) {
+                                                finalres[i] = result.get(i);
+                                            }
+                                            callback(finalres);
                                         }
-                                        callback(finalres);
-                                    }
-                                });
-                                var tr = tc_6.wrap(res_6);
-                                tc_6.addToGlobalVariable("res", tr);
-                                lookupall.executeUsing(tc_6);
+                                    });
+                                    var tr = tc_6.wrap(res_6);
+                                    tc_6.addToGlobalVariable("res", tr);
+                                    lookupall.executeUsing(tc_6);
+                                }
+                                else {
+                                    callback(new Array(0));
+                                }
                             }
                         });
                         var res = tc.newResult();

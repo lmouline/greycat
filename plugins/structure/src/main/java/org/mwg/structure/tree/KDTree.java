@@ -597,22 +597,26 @@ public class KDTree extends AbstractNode implements NTree {
 
                 //ToDo replace by lookupAll later
                 long[] res = nnl.getAllNodesWithin(radius);
+                if (res.length != 0) {
 
-                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
-                TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
-                    @Override
-                    public void on(TaskResult result) {
-                        final Node[] finalres = new Node[result.size()];
-                        for (int i = 0; i < result.size(); i++) {
-                            finalres[i] = (Node) result.get(i);
+                    Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
+                    TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
+                        @Override
+                        public void on(TaskResult result) {
+                            final Node[] finalres = new Node[result.size()];
+                            for (int i = 0; i < result.size(); i++) {
+                                finalres[i] = (Node) result.get(i);
+                            }
+                            callback.on(finalres);
                         }
-                        callback.on(finalres);
-                    }
-                });
+                    });
 
-                TaskResult tr = tc.wrap(res);
-                tc.addToGlobalVariable("res", tr);
-                lookupall.executeUsing(tc);
+                    TaskResult tr = tc.wrap(res);
+                    tc.addToGlobalVariable("res", tr);
+                    lookupall.executeUsing(tc);
+                } else {
+                    callback.on(new Node[0]);
+                }
             }
         });
 
@@ -658,22 +662,26 @@ public class KDTree extends AbstractNode implements NTree {
 
                 //ToDo replace by lookupAll later
                 long[] res = nnl.distroyAndGetAllNodes();
+                if (res.length != 0) {
 
-                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
-                TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
-                    @Override
-                    public void on(TaskResult result) {
-                        final Node[] finalres = new Node[result.size()];
-                        for (int i = 0; i < result.size(); i++) {
-                            finalres[i] = (Node) result.get(i);
+                    Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
+                    TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
+                        @Override
+                        public void on(TaskResult result) {
+                            final Node[] finalres = new Node[result.size()];
+                            for (int i = 0; i < result.size(); i++) {
+                                finalres[i] = (Node) result.get(i);
+                            }
+                            callback.on(finalres);
                         }
-                        callback.on(finalres);
-                    }
-                });
+                    });
 
-                TaskResult tr = tc.wrap(res);
-                tc.addToGlobalVariable("res", tr);
-                lookupall.executeUsing(tc);
+                    TaskResult tr = tc.wrap(res);
+                    tc.addToGlobalVariable("res", tr);
+                    lookupall.executeUsing(tc);
+                } else {
+                    callback.on(new Node[0]);
+                }
             }
         });
 
@@ -720,21 +728,25 @@ public class KDTree extends AbstractNode implements NTree {
                 //ToDo replace by lookupAll later
                 long[] res = nnl.getNodes();
 
-                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
-                TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
-                    @Override
-                    public void on(TaskResult result) {
-                        final Node[] finalres = new Node[result.size()];
-                        for (int i = 0; i < result.size(); i++) {
-                            finalres[i] = (Node) result.get(i);
+                if (res.length != 0) {
+                    Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
+                    TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
+                        @Override
+                        public void on(TaskResult result) {
+                            final Node[] finalres = new Node[result.size()];
+                            for (int i = 0; i < result.size(); i++) {
+                                finalres[i] = (Node) result.get(i);
+                            }
+                            callback.on(finalres);
                         }
-                        callback.on(finalres);
-                    }
-                });
+                    });
 
-                TaskResult tr = tc.wrap(res);
-                tc.addToGlobalVariable("res", tr);
-                lookupall.executeUsing(tc);
+                    TaskResult tr = tc.wrap(res);
+                    tc.addToGlobalVariable("res", tr);
+                    lookupall.executeUsing(tc);
+                } else {
+                    callback.on(new Node[0]);
+                }
             }
         });
 
