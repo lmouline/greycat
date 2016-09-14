@@ -3845,7 +3845,8 @@ break;
               while (cursor < payloadSize) {
                 let current: number = buffer.read(cursor);
                 if (current == org.mwg.core.CoreConstants.CHUNK_SUB_SEP) {
-                  isDirty = isDirty || this.internal_insert(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                  let insertResult: boolean = this.internal_insert(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                  isDirty = isDirty || insertResult;
                   previous = cursor + 1;
                 } else if (current == org.mwg.core.CoreConstants.CHUNK_SEP) {
                   this.reallocate(<number>org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -3854,7 +3855,8 @@ break;
 
                 cursor++;
               }
-              isDirty = isDirty || this.internal_insert(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+              let insertResult: boolean = this.internal_insert(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+              isDirty = isDirty || insertResult;
               if (isDirty && !initial && !this._dirty) {
                 this._dirty = true;
                 if (this._space != null) {

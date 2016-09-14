@@ -2983,7 +2983,7 @@ var org;
                 function KeyHelper() {
                 }
                 KeyHelper.keyToBuffer = function (buffer, chunkType, world, time, id) {
-                    buffer.write(chunkType);
+                    org.mwg.utility.Base64.encodeIntToBuffer(chunkType, buffer);
                     buffer.write(org.mwg.Constants.KEY_SEP);
                     org.mwg.utility.Base64.encodeLongToBuffer(world, buffer);
                     buffer.write(org.mwg.Constants.KEY_SEP);
@@ -7114,7 +7114,8 @@ var org;
                             while (cursor < payloadSize) {
                                 var current = buffer.read(cursor);
                                 if (current == org.mwg.core.CoreConstants.CHUNK_SUB_SEP) {
-                                    isDirty = isDirty || this.internal_insert(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                    var insertResult_1 = this.internal_insert(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                    isDirty = isDirty || insertResult_1;
                                     previous = cursor + 1;
                                 }
                                 else if (current == org.mwg.core.CoreConstants.CHUNK_SEP) {
@@ -7123,7 +7124,8 @@ var org;
                                 }
                                 cursor++;
                             }
-                            isDirty = isDirty || this.internal_insert(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                            var insertResult = this.internal_insert(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                            isDirty = isDirty || insertResult;
                             if (isDirty && !initial && !this._dirty) {
                                 this._dirty = true;
                                 if (this._space != null) {

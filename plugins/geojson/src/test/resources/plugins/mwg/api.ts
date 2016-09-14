@@ -2073,7 +2073,7 @@ break;
       }
       export class KeyHelper {
         public static keyToBuffer(buffer: org.mwg.struct.Buffer, chunkType: number, world: number, time: number, id: number): void {
-          buffer.write(chunkType);
+          org.mwg.utility.Base64.encodeIntToBuffer(<number>chunkType, buffer);
           buffer.write(org.mwg.Constants.KEY_SEP);
           org.mwg.utility.Base64.encodeLongToBuffer(world, buffer);
           buffer.write(org.mwg.Constants.KEY_SEP);
