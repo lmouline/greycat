@@ -11,7 +11,7 @@ What-if oriented graph database for prescriptive analytics....
 Getting started
 ==============
 
-Please visit [http://mwdb.kevoree.org/book](http://mwdb.kevoree.org/book)
+Please visit [http://mwdb.kevoree.org/doc](http://mwdb.kevoree.org/doc)
 
 Scientific Publications:
 -------------
