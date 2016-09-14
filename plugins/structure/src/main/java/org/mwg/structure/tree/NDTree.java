@@ -534,7 +534,7 @@ public class NDTree extends AbstractNode {
                     final double worst= nnl.getWorstDistance();
 
 
-                    if(getclosestDistance(target,boundMin,boundMax,distance)<=worst) {
+                    if(!nnl.isCapacityReached() || getclosestDistance(target,boundMin,boundMax,distance)<=worst) {
                         final double[] precision = (double[]) context.variable("precision").get(0);
                         final int dim=boundMin.length;
                         final double[] childMin=new double[dim];
@@ -563,11 +563,12 @@ public class NDTree extends AbstractNode {
                                 }
                             }
                         });
-                        long[] tempres= temp.distroyAndGetAllNodes();
 
-
-                        final boolean nnlfull=nnl.isCapacityReached();
                         final TaskResult newRes=context.newResult();
+                        temp.sort();
+                        long[] relations=temp.getNodes();
+                        //double[] distances =temp.getDistances();
+
                         context.continueWith(newRes);
                     }
                     else{

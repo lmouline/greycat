@@ -65,7 +65,7 @@ public class NearestNeighborArrayList {
     }
 
     public void sort(){
-        for(int i=1;i<count;i++){
+        for(int i=2;i<count;i++){
             for(int j=i+1;j<count;j++){
                 if(value.get(i)<value.get(j)){
                     double tempv=value.get(i);
