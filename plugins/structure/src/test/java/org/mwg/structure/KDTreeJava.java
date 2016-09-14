@@ -4,10 +4,10 @@ import org.mwg.Callback;
 import org.mwg.structure.distance.Distance;
 import org.mwg.structure.util.HRect;
 
-public class KDNodeJava {
+public class KDTreeJava {
 
-    KDNodeJava right;
-    KDNodeJava left;
+    KDTreeJava right;
+    KDTreeJava left;
     double[] key;
     Object value;
     private int _id;
@@ -18,7 +18,7 @@ public class KDNodeJava {
         idgen++;
     }
 
-    public KDNodeJava() {
+    public KDTreeJava() {
         setId();
     }
 
@@ -104,7 +104,7 @@ public class KDNodeJava {
     }
 
 
-    private static void internalNearest(KDNodeJava node, final Distance distance, double[] target, HRect hr, double max_dist_sqd, int lev, int dim, double err, NNL2 nnl) {
+    private static void internalNearest(KDTreeJava node, final Distance distance, double[] target, HRect hr, double max_dist_sqd, int lev, int dim, double err, NNL2 nnl) {
         // 1. if kd is empty exit.
         if (node == null) {
             return;
@@ -136,9 +136,9 @@ public class KDNodeJava {
         // 5. target-in-left := target_s <= pivot_s
         boolean target_in_left = target[s] < pivot[s];
 
-        KDNodeJava nearer_kd;
+        KDTreeJava nearer_kd;
         HRect nearer_hr;
-        KDNodeJava further_kd;
+        KDTreeJava further_kd;
         HRect further_hr;
 
         // 6. if target-in-left then
@@ -217,7 +217,7 @@ public class KDNodeJava {
     }
 
 
-    private static void internalInsert(final KDNodeJava node, final KDNodeJava root, final Distance distance, final double[] key, final int lev, final int dim, final double err, final Object value, final Callback<Boolean> callback) {
+    private static void internalInsert(final KDTreeJava node, final KDTreeJava root, final Distance distance, final double[] key, final int lev, final int dim, final double err, final Object value, final Callback<Boolean> callback) {
 
         double[] tk = node.key;
         if (tk == null) {
@@ -244,7 +244,7 @@ public class KDNodeJava {
         } else if (key[lev] > tk[lev]) {
             //check right
             if (node.right == null) {
-                KDNodeJava rightNode = new KDNodeJava();
+                KDTreeJava rightNode = new KDTreeJava();
                 rightNode.key = new double[key.length];
                 System.arraycopy(key, 0, rightNode.key, 0, key.length);
 
@@ -262,7 +262,7 @@ public class KDNodeJava {
 
         } else {
             if (node.left == null) {
-                KDNodeJava leftNode = new KDNodeJava();
+                KDTreeJava leftNode = new KDTreeJava();
                 leftNode.key = new double[key.length];
                 System.arraycopy(key, 0, leftNode.key, 0, key.length);
                 leftNode.value = value;

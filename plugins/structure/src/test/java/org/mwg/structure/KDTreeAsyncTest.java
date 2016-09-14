@@ -29,7 +29,7 @@ public class KDTreeAsyncTest {
                 KDTree testTask = (KDTree) graph.newTypedNode(0, 0, KDTree.NAME);
                 testTask.set(KDTree.DISTANCE_THRESHOLD, 1e-30);
 
-                KDNodeJava testjava = new KDNodeJava();
+                KDTreeJava testjava = new KDTreeJava();
                 testjava.setDistance(EuclideanDistance.instance());
                 testjava.setThreshold(1e-30);
 

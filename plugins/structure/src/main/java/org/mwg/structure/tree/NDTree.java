@@ -10,7 +10,9 @@ import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.Relationship;
 import org.mwg.structure.action.TraverseById;
 import org.mwg.structure.distance.Distance;
+import org.mwg.structure.distance.Distances;
 import org.mwg.structure.distance.EuclideanDistance;
+import org.mwg.structure.distance.GeoDistance;
 import org.mwg.structure.util.NearestNeighborArrayList;
 import org.mwg.structure.util.NearestNeighborList;
 import org.mwg.task.*;
@@ -51,7 +53,12 @@ public class NDTree extends AbstractNode {
     private static long _PRECISION = 10;
     private static int _NUMNODES = 11;
     private static int _DIM = 12;
+    private static int _DISTANCE=13;
+    private static int _DISTANCETHRESHOLD=14;
 
+    public static final String DISTANCE_THRESHOLD = "threshold";       //Distance threshold to define when 2 keys are not considered the same anymopre
+    public static final double DISTANCE_THRESHOLD_DEF = 1e-10;
+    public static final int DISTANCE_TYPE_DEF = 0;
 
     public static boolean STAT_DEF = false;
 
@@ -262,6 +269,24 @@ public class NDTree extends AbstractNode {
     }
 
 
+    protected Distance getDistance(NodeState state) {
+        int d = state.getWithDefault(_DISTANCE, DISTANCE_TYPE_DEF);
+        Distance distance;
+        if (d == Distances.EUCLIDEAN) {
+            distance = EuclideanDistance.instance();
+        } else if (d == Distances.GEODISTANCE) {
+            distance = GeoDistance.instance();
+        } else {
+            throw new RuntimeException("Unknown distance code metric");
+        }
+        return distance;
+    }
+
+
+    public void setDistance(int distanceType) {
+        setPropertyByIndex(_DISTANCE, Type.INT, distanceType);
+    }
+
     //Insert key/value task
     private static Task insert = whileDo(new TaskFunctionConditional() {
         @Override
@@ -427,7 +452,7 @@ public class NDTree extends AbstractNode {
 
 
         final NearestNeighborList nnl = new NearestNeighborList(n);
-        Distance distance = EuclideanDistance.instance();
+        Distance distance = getDistance(state);
 
 
         TaskContext tc = nearestTask.prepareWith(graph(), this, new Callback<TaskResult>() {
@@ -443,9 +468,9 @@ public class NDTree extends AbstractNode {
                     public void on(TaskResult result) {
 
                         final Node[] finalres = new Node[result.size()];
-                        /*for (int i = 0; i < result.size(); i++) {
+                        for (int i = 0; i < result.size(); i++) {
                             finalres[i] = (Node) result.get(i);
-                        }*/
+                        }
                         callback.on(finalres);
                     }
                 });
@@ -470,6 +495,7 @@ public class NDTree extends AbstractNode {
         TaskResult resPres = tc.newResult();
         resPres.add(precisions);
         tc.setGlobalVariable("precision", resPres);
+        tc.setGlobalVariable("nnl", nnl);
 
         nearestTask.executeUsing(tc);
     }
@@ -500,7 +526,7 @@ public class NDTree extends AbstractNode {
         Task reccursiveDown = newTask();
 
 
-        reccursiveDown.then(new Action() {
+        reccursiveDown.defineVar("parent").then(new Action() {
             @Override
             public void eval(TaskContext context) {
                 NDTree current = (NDTree) context.result().get(0);
@@ -545,9 +571,7 @@ public class NDTree extends AbstractNode {
                         state.each(new NodeStateCallback() {
                             @Override
                             public void on(long attributeKey, byte elemType, Object elem) {
-                                if (attributeKey < _RELCONST) {
-                                    return;
-                                } else {
+                                if (attributeKey >= _RELCONST) {
                                     boolean[] binaries = binaryFromLong(attributeKey, dim);
                                     for (int i = 0; i < dim; i++) {
                                         if (!binaries[i]) {
@@ -564,19 +588,17 @@ public class NDTree extends AbstractNode {
                             }
                         });
 
-                        final TaskResult newRes=context.newResult();
                         temp.sort();
                         long[] relations=temp.getNodes();
                         //double[] distances =temp.getDistances();
-
-                        context.continueWith(newRes);
+                        context.continueWith(context.wrap(relations));
                     }
                     else{
                         context.continueWith(null);
                     }
                 }
             }
-        });
+        }).foreach(defineVar("relid").fromVar("parent").action(TraverseById.NAME,"{{relid}}").subTask(reccursiveDown));
 
 
         return reccursiveDown;

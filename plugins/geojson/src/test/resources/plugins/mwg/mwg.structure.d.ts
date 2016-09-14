@@ -160,6 +160,11 @@ declare module org {
                     private static _PRECISION;
                     private static _NUMNODES;
                     private static _DIM;
+                    private static _DISTANCE;
+                    private static _DISTANCETHRESHOLD;
+                    static DISTANCE_THRESHOLD: string;
+                    static DISTANCE_THRESHOLD_DEF: number;
+                    static DISTANCE_TYPE_DEF: number;
                     static STAT_DEF: boolean;
                     static BOUNDMIN: string;
                     static BOUNDMAX: string;
@@ -176,9 +181,11 @@ declare module org {
                     static getRelationId(centerKey: Float64Array, keyToInsert: Float64Array): number;
                     static binaryFromLong(value: number, dim: number): boolean[];
                     setProperty(propertyName: string, propertyType: number, propertyValue: any): void;
+                    getDistance(state: org.mwg.plugin.NodeState): org.mwg.structure.distance.Distance;
+                    setDistance(distanceType: number): void;
                     insert(key: Float64Array, value: org.mwg.Node, callback: org.mwg.Callback<boolean>): void;
                     nearestN(key: Float64Array, n: number, callback: org.mwg.Callback<org.mwg.Node[]>): void;
-                    static convertToDistance(attributeKey: number, target: Float64Array, center: Float64Array, boundMin: Float64Array, boundMax: Float64Array, precision: Float64Array, distance: org.mwg.structure.distance.Distance): number;
+                    private static getclosestDistance(target, boundMin, boundMax, distance);
                     private static initNearestTask();
                     getNumNodes(): number;
                 }
@@ -208,13 +215,16 @@ declare module org {
                     constructor();
                     getMaxPriority(): number;
                     insert(node: number, priority: number): boolean;
-                    getAllNodes(): Float64Array;
+                    distroyAndGetAllNodes(): Float64Array;
+                    sort(): void;
+                    getNodes(): Float64Array;
+                    getDistances(): Float64Array;
                     getHighest(): number;
                     getBestDistance(): number;
                     isEmpty(): boolean;
                     getSize(): number;
                     private remove();
-                    private bubbleDown(pos);
+                    bubbleDown(pos: number): void;
                     private bubbleUp(pos);
                 }
                 class NearestNeighborList {

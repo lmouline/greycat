@@ -3,7 +3,11 @@ package org.mwg.structure.tree;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
+import org.mwg.structure.KDTreeJava;
 import org.mwg.structure.StructurePlugin;
+import org.mwg.structure.distance.Distances;
+import org.mwg.structure.distance.EuclideanDistance;
+import org.mwg.structure.distance.GeoDistance;
 import org.mwg.structure.tree.NDTree;
 
 import java.util.Random;
@@ -18,61 +22,163 @@ public class NDTreeTest {
         final Graph graph = new GraphBuilder()
                 .withPlugin(new StructurePlugin())
                 //.withScheduler(new NoopScheduler())
-                .withMemorySize(100000)
+                .withMemorySize(50000)
                 //.withOffHeapMemory()
                 .build();
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                NDTree testtree = (NDTree) graph.newTypedNode(0, 0, NDTree.NAME);
+                NDTree ndTree = (NDTree) graph.newTypedNode(0, 0, NDTree.NAME);
+                KDTree kdtree = (KDTree) graph.newTypedNode(0, 0, KDTree.NAME);
+
+                KDTreeJava kdtreejava = new KDTreeJava();
+                kdtreejava.setThreshold(KDTree.DISTANCE_THRESHOLD_DEF);
+
+
+//                kdtreejava.setDistance(EuclideanDistance.instance());
+//                kdtree.setDistance(Distances.EUCLIDEAN);
+//                ndTree.setDistance(Distances.EUCLIDEAN);
+
+
+                kdtreejava.setDistance(GeoDistance.instance());
+                kdtree.setDistance(Distances.GEODISTANCE);
+                ndTree.setDistance(Distances.GEODISTANCE);
 
                 //Day - Hours - Temperature - Power
              /*   double[] precisions = {1, 0.25, 1, 50};
                 double[] boundMin = {0, 0, -10, 0};
                 double[] boundMax = {6, 24, 30, 3000};*/
 
-                double[] precisions = {0.2, 0.2};
-                double[] boundMin = {0, 0};
-                double[] boundMax = {1, 1};
+                int dim = 2;
+
+                double[] precisions = new double[dim];
+                double[] boundMin  = new double[dim];
+                double[] boundMax  = new double[dim];
+
+                for(int i=0;i<dim;i++){
+                    precisions[i]=0.2;
+                    boundMin[i]=0;
+                    boundMax[i]=1;
+                }
 
 
-                testtree.setProperty(NDTree.BOUNDMIN, Type.DOUBLE_ARRAY, boundMin);
-                testtree.setProperty(NDTree.BOUNDMAX, Type.DOUBLE_ARRAY, boundMax);
-                testtree.setProperty(NDTree.PRECISION, Type.DOUBLE_ARRAY, precisions);
+                ndTree.setProperty(NDTree.BOUNDMIN, Type.DOUBLE_ARRAY, boundMin);
+                ndTree.setProperty(NDTree.BOUNDMAX, Type.DOUBLE_ARRAY, boundMax);
+                ndTree.setProperty(NDTree.PRECISION, Type.DOUBLE_ARRAY, precisions);
+
 
                 Random random = new Random();
                 random.setSeed(125362l);
-                int ins = 100;
+                int ins = 3700;
 
                 graph.save(null);
                 long initcache = graph.space().available();
 
+
+                double[][] keys = new double[ins][];
+                Node[] values = new Node[ins];
+
+
                 for (int i = 0; i < ins; i++) {
                     Node temp = graph.newNode(0, 0);
-                    temp.setProperty("value", Type.DOUBLE, random.nextDouble());
+                    //temp.setProperty("value", Type.DOUBLE, random.nextDouble());
 
-                    double[] key = {random.nextDouble(), random.nextDouble()};
-                    testtree.insert(key, temp, null);
-                    temp.free();
+                    double[] key = new double[dim];
+                    for(int j=0;j<dim;j++){
+                        key[j]=random.nextDouble();
+                    }
+
+                    temp.set("key", key);
+                    keys[i] = key;
+                    values[i] = temp;
                 }
 
+                long starttime = System.currentTimeMillis();
+                for (int i = 0; i < ins; i++) {
+                    ndTree.insert(keys[i], values[i], null);
+                }
+                long endtime = System.currentTimeMillis();
+                double exectime = endtime - starttime;
+                System.out.println("Nd tree insert: " + exectime + " ms");
 
-                graph.save(null);
-                Assert.assertTrue(graph.space().available() == initcache);
+
+                starttime = System.currentTimeMillis();
+                for (int i = 0; i < ins; i++) {
+                    kdtree.insertWith(keys[i], values[i], null);
+                }
+                endtime = System.currentTimeMillis();
+                exectime = endtime - starttime;
+                System.out.println("kd tree insert: " + exectime + " ms");
 
 
-                double[] res={0.1,0.35};
+                starttime = System.currentTimeMillis();
+                for (int i = 0; i < ins; i++) {
+                    kdtreejava.insert(keys[i], values[i], null);
+                }
+                endtime = System.currentTimeMillis();
+                exectime = endtime - starttime;
+                System.out.println("kd tree java insert: " + exectime + " ms");
 
-                testtree.nearestN(res, 10, new Callback<Node[]>() {
+
+//                graph.save(null);
+//                Assert.assertTrue(graph.space().available() == initcache);
+
+
+                double[] res = new double[dim];
+                for(int j=0;j<dim;j++){
+                    res[j]=j*(1.0/dim);
+                }
+
+                System.out.println("ND TREE");
+
+                starttime = System.currentTimeMillis();
+                ndTree.nearestN(res, 10, new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
+                        for (int i = 0; i < result.length; i++) {
+                            System.out.println(result[i] + " dist: " + EuclideanDistance.instance().measure(res, (double[]) result[i].get("key")));
+                        }
+                    }
+                });
+                endtime = System.currentTimeMillis();
+                exectime = endtime - starttime;
+                System.out.println("nd tree search: " + exectime + " ms");
+
+
+                System.out.println("");
+                System.out.println("KD TREE");
+
+                starttime = System.currentTimeMillis();
+                kdtree.nearestN(res, 10, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        for (int i = 0; i < result.length; i++) {
+                            System.out.println(result[i] + " dist: " + EuclideanDistance.instance().measure(res, (double[]) result[i].get("key")));
+                        }
 
                     }
                 });
+                endtime = System.currentTimeMillis();
+                exectime = endtime - starttime;
+                System.out.println("kd tree search: " + exectime + " ms");
+
+                System.out.println("");
+                System.out.println("KD TREE java");
 
 
+                starttime = System.currentTimeMillis();
+                kdtreejava.nearestN(res, 10, new Callback<Object[]>() {
+                    @Override
+                    public void on(Object[] result) {
+                        for (int i = 0; i < result.length; i++) {
+                            System.out.println(result[i] + " dist: " + EuclideanDistance.instance().measure(res, (double[]) ((Node)result[i]).get("key")));
+                        }
 
-
+                    }
+                });
+                endtime = System.currentTimeMillis();
+                exectime = endtime - starttime;
+                System.out.println("kd tree java search: " + exectime + " ms");
 
             }
         });
