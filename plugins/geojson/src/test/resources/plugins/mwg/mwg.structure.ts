@@ -779,7 +779,7 @@ module org {
             let tc: org.mwg.task.TaskContext = KDTree.nearestTask.prepareWith(this.graph(), this, (result : org.mwg.task.TaskResult<any>) => {
 {
                 let res: Float64Array = nnl.getAllNodesWithin(radius);
-                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").flatmap(org.mwg.task.Actions.lookup("{{result}}"));
+                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
                 let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
 {
                     let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
@@ -816,7 +816,7 @@ module org {
             let tc: org.mwg.task.TaskContext = KDTree.nearestRadiusTask.prepareWith(this.graph(), this, (result : org.mwg.task.TaskResult<any>) => {
 {
                 let res: Float64Array = nnl.distroyAndGetAllNodes();
-                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").flatmap(org.mwg.task.Actions.lookup("{{result}}"));
+                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
                 let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
 {
                     let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
@@ -853,8 +853,8 @@ module org {
             let distance: org.mwg.structure.distance.Distance = this.getDistance(state);
             let tc: org.mwg.task.TaskContext = KDTree.nearestTask.prepareWith(this.graph(), this, (result : org.mwg.task.TaskResult<any>) => {
 {
-                let res: Float64Array = nnl.getAllNodes();
-                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").flatmap(org.mwg.task.Actions.lookup("{{result}}"));
+                let res: Float64Array = nnl.getNodes();
+                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
                 let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
 {
                     let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
@@ -931,7 +931,7 @@ module org {
             }
           }
         }
-        export class NDTree extends org.mwg.plugin.AbstractNode {
+        export class NDTree extends org.mwg.plugin.AbstractNode implements org.mwg.structure.NTree {
           public static NAME: string = "NDTree";
           private static _STAT: number = 0;
           private static _TOTAL: number = 1;
@@ -940,14 +940,15 @@ module org {
           private static _BOUNDMIN: number = 6;
           private static _BOUNDMAX: number = 7;
           private static _VALUES: number = 8;
-          private static _VALUES_STR: string = "8";
           private static _KEYS: number = 9;
+          private static _VALUES_STR: string = "8";
           private static _KEYS_STR: string = "9";
           private static _PRECISION: number = 10;
           private static _NUMNODES: number = 11;
           private static _DIM: number = 12;
           private static _DISTANCE: number = 13;
           private static _DISTANCETHRESHOLD: number = 14;
+          private static _FROM: number = 15;
           public static DISTANCE_THRESHOLD: string = "threshold";
           public static DISTANCE_THRESHOLD_DEF: number = 1e-10;
           public static DISTANCE_TYPE_DEF: number = 0;
@@ -956,6 +957,8 @@ module org {
           public static BOUNDMAX: string = "boundmax";
           public static PRECISION: string = "precision";
           public static _RELCONST: number = 16;
+          private static nearestTask: org.mwg.task.Task = NDTree.initNearestTask();
+          private static nearestRadiusTask: org.mwg.task.Task = NDTree.initRadusTask();
           private static insert: org.mwg.task.Task = org.mwg.task.Actions.whileDo((context : org.mwg.task.TaskContext) => {
 {
               let root: org.mwg.Node = <org.mwg.Node>context.variable("root").get(0);
@@ -1027,9 +1030,126 @@ break;
               }
               return continueNavigation;
             }          }, org.mwg.task.Actions.action(org.mwg.structure.action.TraverseById.NAME, "{{next}}"));
-          private static nearestTask: org.mwg.task.Task = NDTree.initNearestTask();
           constructor(p_world: number, p_time: number, p_id: number, p_graph: org.mwg.Graph) {
             super(p_world, p_time, p_id, p_graph);
+          }
+          private static initNearestTask(): org.mwg.task.Task {
+            let reccursiveDown: org.mwg.task.Task = org.mwg.task.Actions.newTask();
+            reccursiveDown.defineVar("parent").then((context : org.mwg.task.TaskContext) => {
+{
+                let current: org.mwg.structure.tree.NDTree = <org.mwg.structure.tree.NDTree>context.result().get(0);
+                let state: org.mwg.plugin.NodeState = current.graph().resolver().resolveState(current);
+                let nnl: org.mwg.structure.util.NearestNeighborList = <org.mwg.structure.util.NearestNeighborList>context.variable("nnl").get(0);
+                let values: org.mwg.struct.Relationship = <org.mwg.struct.Relationship>state.get(org.mwg.structure.tree.NDTree._VALUES);
+                if (values != null) {
+                  let dim: number = <number>context.variable("dim").get(0);
+                  let k: Float64Array = new Float64Array(dim);
+                  let keys: Float64Array = <Float64Array>state.get(org.mwg.structure.tree.NDTree._KEYS);
+                  let target: Float64Array = <Float64Array>context.variable("key").get(0);
+                  let distance: org.mwg.structure.distance.Distance = <org.mwg.structure.distance.Distance>context.variable("distance").get(0);
+                  for (let i: number = 0; i < values.size(); i++) {
+                    for (let j: number = 0; j < dim; j++) {
+                      k[j] = keys[i * dim + j];
+                    }
+                    nnl.insert(values.get(i), distance.measure(k, target));
+                  }
+                  context.continueWith(null);
+                } else {
+                  let boundMax: Float64Array = <Float64Array>state.get(org.mwg.structure.tree.NDTree._BOUNDMAX);
+                  let boundMin: Float64Array = <Float64Array>state.get(org.mwg.structure.tree.NDTree._BOUNDMIN);
+                  let target: Float64Array = <Float64Array>context.variable("key").get(0);
+                  let distance: org.mwg.structure.distance.Distance = <org.mwg.structure.distance.Distance>context.variable("distance").get(0);
+                  let worst: number = nnl.getWorstDistance();
+                  if (!nnl.isCapacityReached() || org.mwg.structure.tree.NDTree.getclosestDistance(target, boundMin, boundMax, distance) <= worst) {
+                    let precision: Float64Array = <Float64Array>context.variable("precision").get(0);
+                    let dim: number = boundMin.length;
+                    let childMin: Float64Array = new Float64Array(dim);
+                    let childMax: Float64Array = new Float64Array(dim);
+                    let temp: org.mwg.structure.util.NearestNeighborArrayList = new org.mwg.structure.util.NearestNeighborArrayList();
+                    state.each((attributeKey : number, elemType : number, elem : any) => {
+{
+                        if (attributeKey >= org.mwg.structure.tree.NDTree._RELCONST) {
+                          let binaries: boolean[] = org.mwg.structure.tree.NDTree.binaryFromLong(attributeKey, dim);
+                          for (let i: number = 0; i < dim; i++) {
+                            if (!binaries[i]) {
+                              childMin[i] = boundMin[i];
+                              childMax[i] = Math.max((boundMax[i] - boundMin[i]) / 2, precision[i]) + boundMin[i];
+                            } else {
+                              childMin[i] = boundMax[i] - Math.max((boundMax[i] - boundMin[i]) / 2, precision[i]);
+                              childMax[i] = boundMax[i];
+                            }
+                          }
+                          temp.insert(attributeKey, org.mwg.structure.tree.NDTree.getclosestDistance(target, childMin, childMax, distance));
+                        }
+                      }                    });
+                    temp.sort();
+                    let relations: Float64Array = temp.getNodes();
+                    context.continueWith(context.wrap(relations));
+                  } else {
+                    context.continueWith(null);
+                  }
+                }
+              }            }).foreach(org.mwg.task.Actions.defineVar("relid").fromVar("parent").action(org.mwg.structure.action.TraverseById.NAME, "{{relid}}").subTask(reccursiveDown));
+            return reccursiveDown;
+          }
+          private static initRadusTask(): org.mwg.task.Task {
+            let reccursiveDown: org.mwg.task.Task = org.mwg.task.Actions.newTask();
+            reccursiveDown.defineVar("parent").then((context : org.mwg.task.TaskContext) => {
+{
+                let current: org.mwg.structure.tree.NDTree = <org.mwg.structure.tree.NDTree>context.result().get(0);
+                let state: org.mwg.plugin.NodeState = current.graph().resolver().resolveState(current);
+                let nnl: org.mwg.structure.util.NearestNeighborArrayList = <org.mwg.structure.util.NearestNeighborArrayList>context.variable("nnl").get(0);
+                let values: org.mwg.struct.Relationship = <org.mwg.struct.Relationship>state.get(org.mwg.structure.tree.NDTree._VALUES);
+                if (values != null) {
+                  let dim: number = <number>context.variable("dim").get(0);
+                  let k: Float64Array = new Float64Array(dim);
+                  let keys: Float64Array = <Float64Array>state.get(org.mwg.structure.tree.NDTree._KEYS);
+                  let target: Float64Array = <Float64Array>context.variable("key").get(0);
+                  let distance: org.mwg.structure.distance.Distance = <org.mwg.structure.distance.Distance>context.variable("distance").get(0);
+                  for (let i: number = 0; i < values.size(); i++) {
+                    for (let j: number = 0; j < dim; j++) {
+                      k[j] = keys[i * dim + j];
+                    }
+                    nnl.insert(values.get(i), distance.measure(k, target));
+                  }
+                  context.continueWith(null);
+                } else {
+                  let boundMax: Float64Array = <Float64Array>state.get(org.mwg.structure.tree.NDTree._BOUNDMAX);
+                  let boundMin: Float64Array = <Float64Array>state.get(org.mwg.structure.tree.NDTree._BOUNDMIN);
+                  let target: Float64Array = <Float64Array>context.variable("key").get(0);
+                  let distance: org.mwg.structure.distance.Distance = <org.mwg.structure.distance.Distance>context.variable("distance").get(0);
+                  let radius: number = <number>context.variable("radius").get(0);
+                  if (org.mwg.structure.tree.NDTree.getclosestDistance(target, boundMin, boundMax, distance) <= radius) {
+                    let precision: Float64Array = <Float64Array>context.variable("precision").get(0);
+                    let dim: number = boundMin.length;
+                    let childMin: Float64Array = new Float64Array(dim);
+                    let childMax: Float64Array = new Float64Array(dim);
+                    let temp: org.mwg.structure.util.NearestNeighborArrayList = new org.mwg.structure.util.NearestNeighborArrayList();
+                    state.each((attributeKey : number, elemType : number, elem : any) => {
+{
+                        if (attributeKey >= org.mwg.structure.tree.NDTree._RELCONST) {
+                          let binaries: boolean[] = org.mwg.structure.tree.NDTree.binaryFromLong(attributeKey, dim);
+                          for (let i: number = 0; i < dim; i++) {
+                            if (!binaries[i]) {
+                              childMin[i] = boundMin[i];
+                              childMax[i] = Math.max((boundMax[i] - boundMin[i]) / 2, precision[i]) + boundMin[i];
+                            } else {
+                              childMin[i] = boundMax[i] - Math.max((boundMax[i] - boundMin[i]) / 2, precision[i]);
+                              childMax[i] = boundMax[i];
+                            }
+                          }
+                          temp.insert(attributeKey, org.mwg.structure.tree.NDTree.getclosestDistance(target, childMin, childMax, distance));
+                        }
+                      }                    });
+                    temp.sort();
+                    let relations: Float64Array = temp.getNodes();
+                    context.continueWith(context.wrap(relations));
+                  } else {
+                    context.continueWith(null);
+                  }
+                }
+              }            }).foreach(org.mwg.task.Actions.defineVar("relid").fromVar("parent").action(org.mwg.structure.action.TraverseById.NAME, "{{relid}}").subTask(reccursiveDown));
+            return reccursiveDown;
           }
           public setUpdateStat(value: boolean): void {
             let state: org.mwg.plugin.NodeState = this.unphasedState();
@@ -1190,7 +1310,140 @@ break;
           public setDistance(distanceType: number): void {
             this.setPropertyByIndex(NDTree._DISTANCE, org.mwg.Type.INT, distanceType);
           }
-          public insert(key: Float64Array, value: org.mwg.Node, callback: org.mwg.Callback<boolean>): void {
+          public setFrom(extractor: string): void {
+            this.setPropertyByIndex(NDTree._FROM, org.mwg.Type.STRING, extractor);
+          }
+          public nearestN(key: Float64Array, n: number, callback: org.mwg.Callback<org.mwg.Node[]>): void {
+            let state: org.mwg.plugin.NodeState = this.unphasedState();
+            let dim: number;
+            let tdim: any = state.get(NDTree._DIM);
+            if (tdim == null) {
+              callback(null);
+              return;
+            } else {
+              dim = <number>tdim;
+              if (key.length != dim) {
+                throw new Error("Key size should always be the same");
+              }
+            }
+            let nnl: org.mwg.structure.util.NearestNeighborList = new org.mwg.structure.util.NearestNeighborList(n);
+            let distance: org.mwg.structure.distance.Distance = this.getDistance(state);
+            let tc: org.mwg.task.TaskContext = NDTree.nearestTask.prepareWith(this.graph(), this, (result : org.mwg.task.TaskResult<any>) => {
+{
+                let res: Float64Array = nnl.getNodes();
+                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
+                let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
+{
+                    let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
+                    for (let i: number = 0; i < result.size(); i++) {
+                      finalres[i] = <org.mwg.Node>result.get(i);
+                    }
+                    callback(finalres);
+                  }                });
+                let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
+                tc.addToGlobalVariable("res", tr);
+                lookupall.executeUsing(tc);
+              }            });
+            let res: org.mwg.task.TaskResult<any> = tc.newResult();
+            res.add(key);
+            tc.setGlobalVariable("key", res);
+            tc.setGlobalVariable("distance", distance);
+            tc.setGlobalVariable("dim", dim);
+            let precisions: Float64Array = <Float64Array>state.get(NDTree._PRECISION);
+            let resPres: org.mwg.task.TaskResult<any> = tc.newResult();
+            resPres.add(precisions);
+            tc.setGlobalVariable("precision", resPres);
+            tc.setGlobalVariable("nnl", nnl);
+            NDTree.nearestTask.executeUsing(tc);
+          }
+          public nearestWithinRadius(key: Float64Array, radius: number, callback: org.mwg.Callback<org.mwg.Node[]>): void {
+            let state: org.mwg.plugin.NodeState = this.unphasedState();
+            let dim: number;
+            let tdim: any = state.get(NDTree._DIM);
+            if (tdim == null) {
+              callback(null);
+              return;
+            } else {
+              dim = <number>tdim;
+              if (key.length != dim) {
+                throw new Error("Key size should always be the same");
+              }
+            }
+            let nnl: org.mwg.structure.util.NearestNeighborArrayList = new org.mwg.structure.util.NearestNeighborArrayList();
+            let distance: org.mwg.structure.distance.Distance = this.getDistance(state);
+            let tc: org.mwg.task.TaskContext = NDTree.nearestRadiusTask.prepareWith(this.graph(), this, (result : org.mwg.task.TaskResult<any>) => {
+{
+                let res: Float64Array = nnl.getNodes();
+                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
+                let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
+{
+                    let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
+                    for (let i: number = 0; i < result.size(); i++) {
+                      finalres[i] = <org.mwg.Node>result.get(i);
+                    }
+                    callback(finalres);
+                  }                });
+                let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
+                tc.addToGlobalVariable("res", tr);
+                lookupall.executeUsing(tc);
+              }            });
+            let res: org.mwg.task.TaskResult<any> = tc.newResult();
+            res.add(key);
+            tc.setGlobalVariable("key", res);
+            tc.setGlobalVariable("distance", distance);
+            tc.setGlobalVariable("dim", dim);
+            tc.setGlobalVariable("radius", radius);
+            let precisions: Float64Array = <Float64Array>state.get(NDTree._PRECISION);
+            let resPres: org.mwg.task.TaskResult<any> = tc.newResult();
+            resPres.add(precisions);
+            tc.setGlobalVariable("precision", resPres);
+            tc.setGlobalVariable("nnl", nnl);
+            NDTree.nearestRadiusTask.executeUsing(tc);
+          }
+          public nearestNWithinRadius(key: Float64Array, nbElem: number, radius: number, callback: org.mwg.Callback<org.mwg.Node[]>): void {
+            let state: org.mwg.plugin.NodeState = this.unphasedState();
+            let dim: number;
+            let tdim: any = state.get(NDTree._DIM);
+            if (tdim == null) {
+              callback(null);
+              return;
+            } else {
+              dim = <number>tdim;
+              if (key.length != dim) {
+                throw new Error("Key size should always be the same");
+              }
+            }
+            let nnl: org.mwg.structure.util.NearestNeighborList = new org.mwg.structure.util.NearestNeighborList(nbElem);
+            let distance: org.mwg.structure.distance.Distance = this.getDistance(state);
+            let tc: org.mwg.task.TaskContext = NDTree.nearestTask.prepareWith(this.graph(), this, (result : org.mwg.task.TaskResult<any>) => {
+{
+                let res: Float64Array = nnl.getAllNodesWithin(radius);
+                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").lookupAll("{{result}}");
+                let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
+{
+                    let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
+                    for (let i: number = 0; i < result.size(); i++) {
+                      finalres[i] = <org.mwg.Node>result.get(i);
+                    }
+                    callback(finalres);
+                  }                });
+                let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
+                tc.addToGlobalVariable("res", tr);
+                lookupall.executeUsing(tc);
+              }            });
+            let res: org.mwg.task.TaskResult<any> = tc.newResult();
+            res.add(key);
+            tc.setGlobalVariable("key", res);
+            tc.setGlobalVariable("distance", distance);
+            tc.setGlobalVariable("dim", dim);
+            let precisions: Float64Array = <Float64Array>state.get(NDTree._PRECISION);
+            let resPres: org.mwg.task.TaskResult<any> = tc.newResult();
+            resPres.add(precisions);
+            tc.setGlobalVariable("precision", resPres);
+            tc.setGlobalVariable("nnl", nnl);
+            NDTree.nearestTask.executeUsing(tc);
+          }
+          public insertWith(key: Float64Array, value: org.mwg.Node, callback: org.mwg.Callback<boolean>): void {
             let state: org.mwg.plugin.NodeState = this.unphasedState();
             let precisions: Float64Array = <Float64Array>state.get(NDTree._PRECISION);
             if (state.get(NDTree._DIM) == null) {
@@ -1221,49 +1474,57 @@ break;
             tc.setGlobalVariable("precision", resPres);
             NDTree.insert.executeUsing(tc);
           }
-          public nearestN(key: Float64Array, n: number, callback: org.mwg.Callback<org.mwg.Node[]>): void {
-            let state: org.mwg.plugin.NodeState = this.unphasedState();
-            let dim: number;
-            let tdim: any = state.get(NDTree._DIM);
-            if (tdim == null) {
-              callback(null);
-              return;
-            } else {
-              dim = <number>tdim;
-              if (key.length != dim) {
-                throw new Error("Key size should always be the same");
+          public extractFeatures(current: org.mwg.Node, callback: org.mwg.Callback<Float64Array>): void {
+            let query: string = <string>super.getByIndex(NDTree._FROM);
+            if (query != null) {
+              let split: string[] = query.split(",");
+              let tasks: org.mwg.task.Task[] = new Array<org.mwg.task.Task>(split.length);
+              for (let i: number = 0; i < split.length; i++) {
+                let t: org.mwg.task.Task = org.mwg.task.Actions.setWorld("" + this.world());
+                t.setTime(this.time() + "");
+                t.parse(split[i].trim());
+                tasks[i] = t;
               }
+              let result: Float64Array = new Float64Array(tasks.length);
+              let waiter: org.mwg.DeferCounter = this.graph().newCounter(tasks.length);
+              for (let i: number = 0; i < split.length; i++) {
+                let initial: org.mwg.task.TaskResult<any> = org.mwg.task.Actions.newTask().emptyResult();
+                initial.add(current);
+                let capsule: org.mwg.Callback<number> = (i : number) => {
+{
+                    tasks[i].executeWith(this.graph(), initial, (currentResult : org.mwg.task.TaskResult<any>) => {
+{
+                        if (currentResult == null) {
+                          result[i] = org.mwg.Constants.NULL_LONG;
+                        } else {
+                          result[i] = parseFloat(currentResult.get(0).toString());
+                          currentResult.free();
+                        }
+                        waiter.count();
+                      }                    });
+                  }                };
+                capsule(i);
+              }
+              waiter.then(() => {
+{
+                  callback(result);
+                }              });
+            } else {
+              callback(null);
             }
-            let nnl: org.mwg.structure.util.NearestNeighborList = new org.mwg.structure.util.NearestNeighborList(n);
-            let distance: org.mwg.structure.distance.Distance = this.getDistance(state);
-            let tc: org.mwg.task.TaskContext = NDTree.nearestTask.prepareWith(this.graph(), this, (result : org.mwg.task.TaskResult<any>) => {
+          }
+          public insert(value: org.mwg.Node, callback: org.mwg.Callback<boolean>): void {
+            this.extractFeatures(value, (result : Float64Array) => {
 {
-                let res: Float64Array = nnl.getAllNodes();
-                let lookupall: org.mwg.task.Task = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(this.world())).setTime(java.lang.String.valueOf(this.time())).fromVar("res").flatmap(org.mwg.task.Actions.lookup("{{result}}"));
-                let tc: org.mwg.task.TaskContext = lookupall.prepareWith(this.graph(), null, (result : org.mwg.task.TaskResult<any>) => {
-{
-                    let finalres: org.mwg.Node[] = new Array<org.mwg.Node>(result.size());
-                    for (let i: number = 0; i < result.size(); i++) {
-                      finalres[i] = <org.mwg.Node>result.get(i);
-                    }
-                    callback(finalres);
-                  }                });
-                let tr: org.mwg.task.TaskResult<any> = tc.wrap(res);
-                tc.addToGlobalVariable("res", tr);
-                lookupall.executeUsing(tc);
+                this.insertWith(result, value, callback);
               }            });
-            let res: org.mwg.task.TaskResult<any> = tc.newResult();
-            res.add(key);
-            tc.setGlobalVariable("key", res);
-            tc.setGlobalVariable("distance", distance);
-            tc.setGlobalVariable("dim", dim);
-            tc.defineVariable("lev", 0);
-            let precisions: Float64Array = <Float64Array>state.get(NDTree._PRECISION);
-            let resPres: org.mwg.task.TaskResult<any> = tc.newResult();
-            resPres.add(precisions);
-            tc.setGlobalVariable("precision", resPres);
-            tc.setGlobalVariable("nnl", nnl);
-            NDTree.nearestTask.executeUsing(tc);
+          }
+          public size(): number {
+            if (this.getByIndex(NDTree._NUMNODES) != null) {
+              return <number>this.getByIndex(NDTree._NUMNODES);
+            } else {
+              return 1;
+            }
           }
           private static getclosestDistance(target: Float64Array, boundMin: Float64Array, boundMax: Float64Array, distance: org.mwg.structure.distance.Distance): number {
             let closest: Float64Array = new Float64Array(target.length);
@@ -1278,72 +1539,6 @@ break;
 
             }
             return distance.measure(closest, target);
-          }
-          private static initNearestTask(): org.mwg.task.Task {
-            let reccursiveDown: org.mwg.task.Task = org.mwg.task.Actions.newTask();
-            reccursiveDown.defineVar("parent").then((context : org.mwg.task.TaskContext) => {
-{
-                let current: org.mwg.structure.tree.NDTree = <org.mwg.structure.tree.NDTree>context.result().get(0);
-                let state: org.mwg.plugin.NodeState = current.graph().resolver().resolveState(current);
-                let nnl: org.mwg.structure.util.NearestNeighborList = <org.mwg.structure.util.NearestNeighborList>context.variable("nnl").get(0);
-                let values: org.mwg.struct.Relationship = <org.mwg.struct.Relationship>state.get(org.mwg.structure.tree.NDTree._VALUES);
-                if (values != null) {
-                  let dim: number = <number>context.variable("dim").get(0);
-                  let k: Float64Array = new Float64Array(dim);
-                  let keys: Float64Array = <Float64Array>state.get(org.mwg.structure.tree.NDTree._KEYS);
-                  let target: Float64Array = <Float64Array>context.variable("key").get(0);
-                  let distance: org.mwg.structure.distance.Distance = <org.mwg.structure.distance.Distance>context.variable("distance").get(0);
-                  for (let i: number = 0; i < values.size(); i++) {
-                    for (let j: number = 0; j < dim; j++) {
-                      k[j] = keys[i * dim + j];
-                    }
-                    nnl.insert(values.get(i), distance.measure(k, target));
-                  }
-                  context.continueWith(null);
-                } else {
-                  let boundMax: Float64Array = <Float64Array>state.get(org.mwg.structure.tree.NDTree._BOUNDMAX);
-                  let boundMin: Float64Array = <Float64Array>state.get(org.mwg.structure.tree.NDTree._BOUNDMIN);
-                  let target: Float64Array = <Float64Array>context.variable("key").get(0);
-                  let distance: org.mwg.structure.distance.Distance = <org.mwg.structure.distance.Distance>context.variable("distance").get(0);
-                  let worst: number = nnl.getWorstDistance();
-                  if (!nnl.isCapacityReached() || org.mwg.structure.tree.NDTree.getclosestDistance(target, boundMin, boundMax, distance) <= worst) {
-                    let precision: Float64Array = <Float64Array>context.variable("precision").get(0);
-                    let dim: number = boundMin.length;
-                    let childMin: Float64Array = new Float64Array(dim);
-                    let childMax: Float64Array = new Float64Array(dim);
-                    let temp: org.mwg.structure.util.NearestNeighborArrayList = new org.mwg.structure.util.NearestNeighborArrayList();
-                    state.each((attributeKey : number, elemType : number, elem : any) => {
-{
-                        if (attributeKey >= org.mwg.structure.tree.NDTree._RELCONST) {
-                          let binaries: boolean[] = org.mwg.structure.tree.NDTree.binaryFromLong(attributeKey, dim);
-                          for (let i: number = 0; i < dim; i++) {
-                            if (!binaries[i]) {
-                              childMin[i] = boundMin[i];
-                              childMax[i] = Math.max((boundMax[i] - boundMin[i]) / 2, precision[i]) + boundMin[i];
-                            } else {
-                              childMin[i] = boundMax[i] - Math.max((boundMax[i] - boundMin[i]) / 2, precision[i]);
-                              childMax[i] = boundMax[i];
-                            }
-                          }
-                          temp.insert(attributeKey, org.mwg.structure.tree.NDTree.getclosestDistance(target, childMin, childMax, distance));
-                        }
-                      }                    });
-                    temp.sort();
-                    let relations: Float64Array = temp.getNodes();
-                    context.continueWith(context.wrap(relations));
-                  } else {
-                    context.continueWith(null);
-                  }
-                }
-              }            }).foreach(org.mwg.task.Actions.defineVar("relid").fromVar("parent").action(org.mwg.structure.action.TraverseById.NAME, "{{relid}}").subTask(reccursiveDown));
-            return reccursiveDown;
-          }
-          public getNumNodes(): number {
-            if (this.getByIndex(NDTree._NUMNODES) != null) {
-              return <number>this.getByIndex(NDTree._NUMNODES);
-            } else {
-              return 1;
-            }
           }
         }
       }
@@ -1457,6 +1652,9 @@ break;
                 }
               }
             }
+          }
+          public getWorstDistance(): number {
+            return this.value.get(1);
           }
           public getNodes(): Float64Array {
             let nbrs: Float64Array = new Float64Array(this.count);
@@ -1603,7 +1801,7 @@ break;
             }
             console.log(" ");
           }
-          public getAllNodes(): Float64Array {
+          public getNodes(): Float64Array {
             let size: number = Math.min(this.capacity, this.count);
             let nbrs: Float64Array = new Float64Array(size);
             for (let i: number = 0; i < size; ++i) {

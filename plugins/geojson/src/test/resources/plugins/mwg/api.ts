@@ -674,9 +674,9 @@ break;
             let attKey: string = keyAttributes[i];
             let attValue: any = toIndexNodeState.getFromKey(attKey);
             if (attValue != null) {
-              flatQuery.add(keyAttributes[i], attValue.toString());
+              flatQuery.add(attKey, attValue.toString());
             } else {
-              flatQuery.add(keyAttributes[i], null);
+              flatQuery.add(attKey, null);
             }
           }
           let alreadyIndexed: boolean = false;

@@ -1,13 +1,12 @@
 package org.mwg.structure.tree;
 
-import org.mwg.Callback;
-import org.mwg.Graph;
-import org.mwg.Node;
-import org.mwg.Type;
+import org.mwg.*;
 import org.mwg.plugin.AbstractNode;
+import org.mwg.plugin.Job;
 import org.mwg.plugin.NodeState;
 import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.Relationship;
+import org.mwg.structure.NTree;
 import org.mwg.structure.action.TraverseById;
 import org.mwg.structure.distance.Distance;
 import org.mwg.structure.distance.Distances;
@@ -23,7 +22,7 @@ import static org.mwg.task.Actions.*;
 /**
  * Created by assaad on 09/08/16.
  */
-public class NDTree extends AbstractNode {
+public class NDTree extends AbstractNode implements NTree {
     public static final String NAME = "NDTree";
 
     public NDTree(long p_world, long p_time, long p_id, Graph p_graph) {
@@ -45,16 +44,18 @@ public class NDTree extends AbstractNode {
     private static long _BOUNDMIN = 6;
     private static long _BOUNDMAX = 7;
     private static long _VALUES = 8;
-    private static String _VALUES_STR = "8";
     private static long _KEYS = 9;
+
+    private static String _VALUES_STR = "8";
     private static String _KEYS_STR = "9";
 
     //to store only on the root node
     private static long _PRECISION = 10;
     private static int _NUMNODES = 11;
     private static int _DIM = 12;
-    private static int _DISTANCE=13;
-    private static int _DISTANCETHRESHOLD=14;
+    private static int _DISTANCE = 13;
+    private static int _DISTANCETHRESHOLD = 14;
+    private static int _FROM = 15;
 
     public static final String DISTANCE_THRESHOLD = "threshold";       //Distance threshold to define when 2 keys are not considered the same anymopre
     public static final double DISTANCE_THRESHOLD_DEF = 1e-10;
@@ -69,6 +70,274 @@ public class NDTree extends AbstractNode {
 
     //The beginning of relations navigation
     static long _RELCONST = 16; //Should be always a power of 2
+
+
+    //region insert and nearest tasks
+    private static Task nearestTask = initNearestTask();
+    private static Task nearestRadiusTask = initRadusTask();
+    //Insert key/value task
+    private static Task insert = whileDo(new TaskFunctionConditional() {
+        @Override
+        public boolean eval(TaskContext context) {
+
+            Node root = (Node) context.variable("root").get(0);
+
+            Node current = context.resultAsNodes().get(0);
+            NodeState state = current.graph().resolver().resolveState(current);
+            boolean updateStat = (boolean) context.variable("updatestat").get(0);
+
+            //Get state variables here
+
+            double[] boundMax = (double[]) state.get(_BOUNDMAX);
+            double[] boundMin = (double[]) state.get(_BOUNDMIN);
+            double[] centerKey = new double[boundMax.length];
+            for (int i = 0; i < centerKey.length; i++) {
+                centerKey[i] = (boundMax[i] + boundMin[i]) / 2;
+            }
+
+            //Get variables from context
+            //toDo optimize the variables here
+            double[] keyToInsert = (double[]) context.variable("key").get(0);
+
+            double[] precision = (double[]) context.variable("precision").get(0);
+            int dim = keyToInsert.length;
+
+            //Update the gaussian of the current node
+            if (updateStat) {
+                updateGaussian(state, keyToInsert);
+            }
+
+            //Check if we can go deeper or not:
+            boolean continueNavigation = false;
+            for (int i = 0; i < dim; i++) {
+                if (boundMax[i] - boundMin[i] > precision[i]) {
+                    continueNavigation = true;
+                    break;
+                }
+            }
+
+            if (continueNavigation) {
+                //Set the long to traverse
+                long traverseId = getRelationId(centerKey, keyToInsert);
+                // System.out.println(traverseId-_RELCONST);
+                //Check if there is a node already in this subspace, otherwise create it
+                if (state.get(traverseId) == null) {
+                    double[] newBoundMin = new double[dim];
+                    double[] newBoundMax = new double[dim];
+
+                    for (int i = 0; i < centerKey.length; i++) {
+                        //Update the bounds in a way that they have always minimum precision[i] of width
+                        if (keyToInsert[i] <= centerKey[i]) {
+                            newBoundMin[i] = boundMin[i];
+                            newBoundMax[i] = Math.max(centerKey[i] - boundMin[i], precision[i]) + boundMin[i];
+
+                        } else {
+                            newBoundMin[i] = boundMax[i] - Math.max(boundMax[i] - centerKey[i], precision[i]);
+                            newBoundMax[i] = boundMax[i];
+                        }
+                    }
+                    //Create the new subspace node
+                    NDTree newChild = (NDTree) current.graph().newTypedNode(current.world(), current.time(), NAME);
+                    NodeState newState = newChild.graph().resolver().resolveState(newChild);
+                    newState.set(_BOUNDMIN, Type.DOUBLE_ARRAY, newBoundMin);
+                    newState.set(_BOUNDMAX, Type.DOUBLE_ARRAY, newBoundMax);
+                    Relationship relChild = (Relationship) state.getOrCreate(traverseId, Type.RELATION);
+                    relChild.add(newChild.id());
+                    newChild.free();
+                    if (root.getByIndex(_NUMNODES) != null) {
+                        int count = (int) root.getByIndex(_NUMNODES);
+                        count++;
+                        root.setPropertyByIndex(_NUMNODES, Type.INT, count);
+                    } else {
+                        root.setPropertyByIndex(_NUMNODES, Type.INT, 2);
+                    }
+                }
+                //toDo how to optimize not to lookup
+                //In all cases we can traverse here
+                context.setVariable("next", traverseId);
+            } else {
+                Node valueToInsert = (Node) context.variable("value").get(0);
+                Relationship rel = (Relationship) state.getOrCreate(_VALUES, Type.RELATION);
+                rel.add(valueToInsert.id());
+                double[] keys = (double[]) state.get(_KEYS);
+                if (keys != null) {
+                    double[] newkeys = new double[keys.length + dim];
+                    System.arraycopy(keys, 0, newkeys, 0, keys.length);
+                    System.arraycopy(keyToInsert, 0, newkeys, keys.length, dim);
+                    state.set(_KEYS, Type.DOUBLE_ARRAY, newkeys);
+                } else {
+                    state.set(_KEYS, Type.DOUBLE_ARRAY, keyToInsert);
+                }
+                //In case we want an reverse relationship we should set it here
+            }
+
+            return continueNavigation;
+        }
+
+        //todo check how to traverse on long
+    }, Actions.action(TraverseById.NAME, "{{next}}"));
+
+
+    private static Task initNearestTask() {
+        Task reccursiveDown = newTask();
+        reccursiveDown.defineVar("parent").then(new Action() {
+            @Override
+            public void eval(TaskContext context) {
+                NDTree current = (NDTree) context.result().get(0);
+                NodeState state = current.graph().resolver().resolveState(current);
+                NearestNeighborList nnl = (NearestNeighborList) context.variable("nnl").get(0);
+
+                Relationship values = (Relationship) state.get(_VALUES);
+
+                //Leave node
+                if (values != null) {
+                    int dim = (int) context.variable("dim").get(0);
+                    double[] k = new double[dim];
+                    double[] keys = (double[]) state.get(_KEYS);
+
+                    double[] target = (double[]) context.variable("key").get(0);
+                    Distance distance = (Distance) context.variable("distance").get(0);
+
+                    for (int i = 0; i < values.size(); i++) {
+                        for (int j = 0; j < dim; j++) {
+                            k[j] = keys[i * dim + j];
+                        }
+                        nnl.insert(values.get(i), distance.measure(k, target));
+                    }
+                    context.continueWith(null);
+
+                } else {
+                    final double[] boundMax = (double[]) state.get(_BOUNDMAX);
+                    final double[] boundMin = (double[]) state.get(_BOUNDMIN);
+                    final double[] target = (double[]) context.variable("key").get(0);
+                    final Distance distance = (Distance) context.variable("distance").get(0);
+                    final double worst = nnl.getWorstDistance();
+
+
+                    if (!nnl.isCapacityReached() || getclosestDistance(target, boundMin, boundMax, distance) <= worst) {
+                        final double[] precision = (double[]) context.variable("precision").get(0);
+                        final int dim = boundMin.length;
+                        final double[] childMin = new double[dim];
+                        final double[] childMax = new double[dim];
+
+                        final NearestNeighborArrayList temp = new NearestNeighborArrayList();
+
+                        state.each(new NodeStateCallback() {
+                            @Override
+                            public void on(long attributeKey, byte elemType, Object elem) {
+                                if (attributeKey >= _RELCONST) {
+                                    boolean[] binaries = binaryFromLong(attributeKey, dim);
+                                    for (int i = 0; i < dim; i++) {
+                                        if (!binaries[i]) {
+                                            childMin[i] = boundMin[i];
+                                            childMax[i] = Math.max((boundMax[i] - boundMin[i]) / 2, precision[i]) + boundMin[i];
+
+                                        } else {
+                                            childMin[i] = boundMax[i] - Math.max((boundMax[i] - boundMin[i]) / 2, precision[i]);
+                                            childMax[i] = boundMax[i];
+                                        }
+                                    }
+                                    temp.insert(attributeKey, getclosestDistance(target, childMin, childMax, distance));
+                                }
+                            }
+                        });
+
+                        temp.sort();
+                        long[] relations = temp.getNodes();
+                        //double[] distances =temp.getDistances();
+                        context.continueWith(context.wrap(relations));
+                    } else {
+                        context.continueWith(null);
+                    }
+                }
+            }
+        }).foreach(defineVar("relid").fromVar("parent").action(TraverseById.NAME, "{{relid}}").subTask(reccursiveDown));
+
+
+        return reccursiveDown;
+    }
+
+    private static Task initRadusTask() {
+        Task reccursiveDown = newTask();
+        reccursiveDown.defineVar("parent").then(new Action() {
+            @Override
+            public void eval(TaskContext context) {
+                NDTree current = (NDTree) context.result().get(0);
+                NodeState state = current.graph().resolver().resolveState(current);
+                NearestNeighborArrayList nnl = (NearestNeighborArrayList) context.variable("nnl").get(0);
+
+                Relationship values = (Relationship) state.get(_VALUES);
+
+                //Leave node
+                if (values != null) {
+                    int dim = (int) context.variable("dim").get(0);
+                    double[] k = new double[dim];
+                    double[] keys = (double[]) state.get(_KEYS);
+
+                    double[] target = (double[]) context.variable("key").get(0);
+                    Distance distance = (Distance) context.variable("distance").get(0);
+
+                    for (int i = 0; i < values.size(); i++) {
+                        for (int j = 0; j < dim; j++) {
+                            k[j] = keys[i * dim + j];
+                        }
+                        nnl.insert(values.get(i), distance.measure(k, target));
+                    }
+                    context.continueWith(null);
+
+                } else {
+                    final double[] boundMax = (double[]) state.get(_BOUNDMAX);
+                    final double[] boundMin = (double[]) state.get(_BOUNDMIN);
+                    final double[] target = (double[]) context.variable("key").get(0);
+                    final Distance distance = (Distance) context.variable("distance").get(0);
+                    final double radius = (double) context.variable("radius").get(0);
+
+
+                    if (getclosestDistance(target, boundMin, boundMax, distance) <= radius) {
+                        final double[] precision = (double[]) context.variable("precision").get(0);
+                        final int dim = boundMin.length;
+                        final double[] childMin = new double[dim];
+                        final double[] childMax = new double[dim];
+
+                        final NearestNeighborArrayList temp = new NearestNeighborArrayList();
+
+                        state.each(new NodeStateCallback() {
+                            @Override
+                            public void on(long attributeKey, byte elemType, Object elem) {
+                                if (attributeKey >= _RELCONST) {
+                                    boolean[] binaries = binaryFromLong(attributeKey, dim);
+                                    for (int i = 0; i < dim; i++) {
+                                        if (!binaries[i]) {
+                                            childMin[i] = boundMin[i];
+                                            childMax[i] = Math.max((boundMax[i] - boundMin[i]) / 2, precision[i]) + boundMin[i];
+
+                                        } else {
+                                            childMin[i] = boundMax[i] - Math.max((boundMax[i] - boundMin[i]) / 2, precision[i]);
+                                            childMax[i] = boundMax[i];
+                                        }
+                                    }
+                                    temp.insert(attributeKey, getclosestDistance(target, childMin, childMax, distance));
+                                }
+                            }
+                        });
+
+                        temp.sort();
+                        long[] relations = temp.getNodes();
+                        //double[] distances =temp.getDistances();
+                        context.continueWith(context.wrap(relations));
+                    } else {
+                        context.continueWith(null);
+                    }
+                }
+            }
+        }).foreach(defineVar("relid").fromVar("parent").action(TraverseById.NAME, "{{relid}}").subTask(reccursiveDown));
+
+
+        return reccursiveDown;
+    }
+
+
+    //endregion
 
 
     //region Gaussian and stat related code for each node subspace
@@ -283,113 +552,204 @@ public class NDTree extends AbstractNode {
     }
 
 
+    @Override
     public void setDistance(int distanceType) {
         setPropertyByIndex(_DISTANCE, Type.INT, distanceType);
     }
 
-    //Insert key/value task
-    private static Task insert = whileDo(new TaskFunctionConditional() {
-        @Override
-        public boolean eval(TaskContext context) {
+    @Override
+    public void setFrom(String extractor) {
+        setPropertyByIndex(_FROM, Type.STRING, extractor);
+    }
 
-            Node root = (Node) context.variable("root").get(0);
 
-            Node current = context.resultAsNodes().get(0);
-            NodeState state = current.graph().resolver().resolveState(current);
-            boolean updateStat = (boolean) context.variable("updatestat").get(0);
-
-            //Get state variables here
-
-            double[] boundMax = (double[]) state.get(_BOUNDMAX);
-            double[] boundMin = (double[]) state.get(_BOUNDMIN);
-            double[] centerKey = new double[boundMax.length];
-            for (int i = 0; i < centerKey.length; i++) {
-                centerKey[i] = (boundMax[i] + boundMin[i]) / 2;
+    @Override
+    public void nearestN(final double[] key, final int n, final Callback<Node[]> callback) {
+        NodeState state = unphasedState();
+        int dim;
+        Object tdim = state.get(_DIM);
+        if (tdim == null) {
+            callback.on(null);
+            return;
+        } else {
+            dim = (int) tdim;
+            if (key.length != dim) {
+                throw new RuntimeException("Key size should always be the same");
             }
-
-            //Get variables from context
-            //toDo optimize the variables here
-            double[] keyToInsert = (double[]) context.variable("key").get(0);
-
-            double[] precision = (double[]) context.variable("precision").get(0);
-            int dim = keyToInsert.length;
-
-            //Update the gaussian of the current node
-            if (updateStat) {
-                updateGaussian(state, keyToInsert);
-            }
-
-            //Check if we can go deeper or not:
-            boolean continueNavigation = false;
-            for (int i = 0; i < dim; i++) {
-                if (boundMax[i] - boundMin[i] > precision[i]) {
-                    continueNavigation = true;
-                    break;
-                }
-            }
-
-            if (continueNavigation) {
-                //Set the long to traverse
-                long traverseId = getRelationId(centerKey, keyToInsert);
-                // System.out.println(traverseId-_RELCONST);
-                //Check if there is a node already in this subspace, otherwise create it
-                if (state.get(traverseId) == null) {
-                    double[] newBoundMin = new double[dim];
-                    double[] newBoundMax = new double[dim];
-
-                    for (int i = 0; i < centerKey.length; i++) {
-                        //Update the bounds in a way that they have always minimum precision[i] of width
-                        if (keyToInsert[i] <= centerKey[i]) {
-                            newBoundMin[i] = boundMin[i];
-                            newBoundMax[i] = Math.max(centerKey[i] - boundMin[i], precision[i]) + boundMin[i];
-
-                        } else {
-                            newBoundMin[i] = boundMax[i] - Math.max(boundMax[i] - centerKey[i], precision[i]);
-                            newBoundMax[i] = boundMax[i];
-                        }
-                    }
-                    //Create the new subspace node
-                    NDTree newChild = (NDTree) current.graph().newTypedNode(current.world(), current.time(), NAME);
-                    NodeState newState = newChild.graph().resolver().resolveState(newChild);
-                    newState.set(_BOUNDMIN, Type.DOUBLE_ARRAY, newBoundMin);
-                    newState.set(_BOUNDMAX, Type.DOUBLE_ARRAY, newBoundMax);
-                    Relationship relChild = (Relationship) state.getOrCreate(traverseId, Type.RELATION);
-                    relChild.add(newChild.id());
-                    newChild.free();
-                    if (root.getByIndex(_NUMNODES) != null) {
-                        int count = (int) root.getByIndex(_NUMNODES);
-                        count++;
-                        root.setPropertyByIndex(_NUMNODES, Type.INT, count);
-                    } else {
-                        root.setPropertyByIndex(_NUMNODES, Type.INT, 2);
-                    }
-                }
-                //toDo how to optimize not to lookup
-                //In all cases we can traverse here
-                context.setVariable("next", traverseId);
-            } else {
-                Node valueToInsert = (Node) context.variable("value").get(0);
-                Relationship rel = (Relationship) state.getOrCreate(_VALUES, Type.RELATION);
-                rel.add(valueToInsert.id());
-                double[] keys = (double[]) state.get(_KEYS);
-                if (keys != null) {
-                    double[] newkeys = new double[keys.length + dim];
-                    System.arraycopy(keys, 0, newkeys, 0, keys.length);
-                    System.arraycopy(keyToInsert, 0, newkeys, keys.length, dim);
-                    state.set(_KEYS, Type.DOUBLE_ARRAY, newkeys);
-                } else {
-                    state.set(_KEYS, Type.DOUBLE_ARRAY, keyToInsert);
-                }
-                //In case we want an reverse relationship we should set it here
-            }
-
-            return continueNavigation;
         }
 
-        //todo check how to traverse on long
-    }, Actions.action(TraverseById.NAME, "{{next}}"));
+        final NearestNeighborList nnl = new NearestNeighborList(n);
+        Distance distance = getDistance(state);
 
-    public void insert(final double[] key, final Node value, final Callback<Boolean> callback) {
+
+        TaskContext tc = nearestTask.prepareWith(graph(), this, new Callback<TaskResult>() {
+            @Override
+            public void on(TaskResult result) {
+
+                long[] res = nnl.getNodes();
+
+                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
+                TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
+                    @Override
+                    public void on(TaskResult result) {
+
+                        final Node[] finalres = new Node[result.size()];
+                        for (int i = 0; i < result.size(); i++) {
+                            finalres[i] = (Node) result.get(i);
+                        }
+                        callback.on(finalres);
+                    }
+                });
+
+                TaskResult tr = tc.wrap(res);
+                tc.addToGlobalVariable("res", tr);
+                lookupall.executeUsing(tc);
+            }
+        });
+
+        TaskResult res = tc.newResult();
+        res.add(key);
+
+        // (this, distance, key, hr, max_dist_sqd, 0, dim, err, nnl);
+
+        tc.setGlobalVariable("key", res);
+        tc.setGlobalVariable("distance", distance);
+        tc.setGlobalVariable("dim", dim);
+        final double[] precisions = (double[]) state.get(_PRECISION);
+        TaskResult resPres = tc.newResult();
+        resPres.add(precisions);
+        tc.setGlobalVariable("precision", resPres);
+        tc.setGlobalVariable("nnl", nnl);
+
+        nearestTask.executeUsing(tc);
+    }
+
+    @Override
+    public void nearestWithinRadius(double[] key, double radius, Callback<Node[]> callback) {
+        NodeState state = unphasedState();
+        int dim;
+        Object tdim = state.get(_DIM);
+        if (tdim == null) {
+            callback.on(null);
+            return;
+        } else {
+            dim = (int) tdim;
+            if (key.length != dim) {
+                throw new RuntimeException("Key size should always be the same");
+            }
+        }
+
+        final NearestNeighborArrayList nnl = new NearestNeighborArrayList();
+        Distance distance = getDistance(state);
+
+
+        TaskContext tc = nearestRadiusTask.prepareWith(graph(), this, new Callback<TaskResult>() {
+            @Override
+            public void on(TaskResult result) {
+
+                long[] res = nnl.getNodes();
+
+                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
+                TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
+                    @Override
+                    public void on(TaskResult result) {
+
+                        final Node[] finalres = new Node[result.size()];
+                        for (int i = 0; i < result.size(); i++) {
+                            finalres[i] = (Node) result.get(i);
+                        }
+                        callback.on(finalres);
+                    }
+                });
+
+                TaskResult tr = tc.wrap(res);
+                tc.addToGlobalVariable("res", tr);
+                lookupall.executeUsing(tc);
+            }
+        });
+
+        TaskResult res = tc.newResult();
+        res.add(key);
+
+        // (this, distance, key, hr, max_dist_sqd, 0, dim, err, nnl);
+
+        tc.setGlobalVariable("key", res);
+        tc.setGlobalVariable("distance", distance);
+        tc.setGlobalVariable("dim", dim);
+        tc.setGlobalVariable("radius", radius);
+        final double[] precisions = (double[]) state.get(_PRECISION);
+        TaskResult resPres = tc.newResult();
+        resPres.add(precisions);
+        tc.setGlobalVariable("precision", resPres);
+        tc.setGlobalVariable("nnl", nnl);
+
+        nearestRadiusTask.executeUsing(tc);
+    }
+
+    @Override
+    public void nearestNWithinRadius(double[] key, int nbElem, double radius, Callback<Node[]> callback) {
+        NodeState state = unphasedState();
+        int dim;
+        Object tdim = state.get(_DIM);
+        if (tdim == null) {
+            callback.on(null);
+            return;
+        } else {
+            dim = (int) tdim;
+            if (key.length != dim) {
+                throw new RuntimeException("Key size should always be the same");
+            }
+        }
+
+        final NearestNeighborList nnl = new NearestNeighborList(nbElem);
+        Distance distance = getDistance(state);
+
+
+        TaskContext tc = nearestTask.prepareWith(graph(), this, new Callback<TaskResult>() {
+            @Override
+            public void on(TaskResult result) {
+
+                long[] res = nnl.getAllNodesWithin(radius);
+
+                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
+                TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
+                    @Override
+                    public void on(TaskResult result) {
+
+                        final Node[] finalres = new Node[result.size()];
+                        for (int i = 0; i < result.size(); i++) {
+                            finalres[i] = (Node) result.get(i);
+                        }
+                        callback.on(finalres);
+                    }
+                });
+
+                TaskResult tr = tc.wrap(res);
+                tc.addToGlobalVariable("res", tr);
+                lookupall.executeUsing(tc);
+            }
+        });
+
+        TaskResult res = tc.newResult();
+        res.add(key);
+
+        // (this, distance, key, hr, max_dist_sqd, 0, dim, err, nnl);
+
+        tc.setGlobalVariable("key", res);
+        tc.setGlobalVariable("distance", distance);
+        tc.setGlobalVariable("dim", dim);
+//        tc.defineVariable("lev", 0);
+        final double[] precisions = (double[]) state.get(_PRECISION);
+        TaskResult resPres = tc.newResult();
+        resPres.add(precisions);
+        tc.setGlobalVariable("precision", resPres);
+        tc.setGlobalVariable("nnl", nnl);
+
+        nearestTask.executeUsing(tc);
+    }
+
+    @Override
+    public void insertWith(double[] key, Node value, Callback<Boolean> callback) {
         NodeState state = unphasedState();
         final double[] precisions = (double[]) state.get(_PRECISION);
 
@@ -436,183 +796,90 @@ public class NDTree extends AbstractNode {
     }
 
 
-    public void nearestN(final double[] key, final int n, final Callback<Node[]> callback) {
-        NodeState state = unphasedState();
-        int dim;
-        Object tdim = state.get(_DIM);
-        if (tdim == null) {
-            callback.on(null);
-            return;
-        } else {
-            dim = (int) tdim;
-            if (key.length != dim) {
-                throw new RuntimeException("Key size should always be the same");
+    protected void extractFeatures(final Node current, final Callback<double[]> callback) {
+        String query = (String) super.getByIndex(_FROM);
+        if (query != null) {
+            //TODO CACHE TO AVOID PARSING EVERY TIME
+            String[] split = query.split(",");
+            Task[] tasks = new Task[split.length];
+            for (int i = 0; i < split.length; i++) {
+                Task t = setWorld("" + world());
+                t.setTime(time() + "");
+                t.parse(split[i].trim());
+                tasks[i] = t;
             }
-        }
-
-
-        final NearestNeighborList nnl = new NearestNeighborList(n);
-        Distance distance = getDistance(state);
-
-
-        TaskContext tc = nearestTask.prepareWith(graph(), this, new Callback<TaskResult>() {
-            @Override
-            public void on(TaskResult result) {
-
-                //ToDo replace by lookupAll later
-                long[] res = nnl.getAllNodes();
-
-                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").flatmap(lookup("{{result}}"));
-                TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
+            //END TODO IN CACHE
+            final double[] result = new double[tasks.length];
+            final DeferCounter waiter = graph().newCounter(tasks.length);
+            for (int i = 0; i < split.length; i++) {
+                //prepare initial result
+                final TaskResult initial = newTask().emptyResult();
+                initial.add(current);
+                //prepare initial context
+                final Callback<Integer> capsule = new Callback<Integer>() {
                     @Override
-                    public void on(TaskResult result) {
-
-                        final Node[] finalres = new Node[result.size()];
-                        for (int i = 0; i < result.size(); i++) {
-                            finalres[i] = (Node) result.get(i);
-                        }
-                        callback.on(finalres);
-                    }
-                });
-
-                TaskResult tr = tc.wrap(res);
-                tc.addToGlobalVariable("res", tr);
-                lookupall.executeUsing(tc);
-            }
-        });
-
-
-        TaskResult res = tc.newResult();
-        res.add(key);
-
-        // (this, distance, key, hr, max_dist_sqd, 0, dim, err, nnl);
-
-        tc.setGlobalVariable("key", res);
-        tc.setGlobalVariable("distance", distance);
-        tc.setGlobalVariable("dim", dim);
-        tc.defineVariable("lev", 0);
-        final double[] precisions = (double[]) state.get(_PRECISION);
-        TaskResult resPres = tc.newResult();
-        resPres.add(precisions);
-        tc.setGlobalVariable("precision", resPres);
-        tc.setGlobalVariable("nnl", nnl);
-
-        nearestTask.executeUsing(tc);
-    }
-
-
-    private static double getclosestDistance(double[] target, double[] boundMin, double[] boundMax, Distance distance){
-        double[] closest=new double[target.length];
-        for(int i=0;i<target.length;i++){
-            if(target[i]>=boundMax[i]){
-                closest[i]=boundMax[i];
-            }
-            else if(target[i]<=boundMin[i]){
-                closest[i]=boundMin[i];
-            }
-            else {
-                closest[i]=target[i];
-            }
-        }
-        return distance.measure(closest,target);
-    }
-
-
-
-
-
-
-    private static Task initNearestTask() {
-        Task reccursiveDown = newTask();
-
-
-        reccursiveDown.defineVar("parent").then(new Action() {
-            @Override
-            public void eval(TaskContext context) {
-                NDTree current = (NDTree) context.result().get(0);
-                NodeState state = current.graph().resolver().resolveState(current);
-                NearestNeighborList nnl = (NearestNeighborList) context.variable("nnl").get(0);
-
-                Relationship values = (Relationship) state.get(_VALUES);
-
-                //Leave node
-                if (values != null) {
-                    int dim = (int) context.variable("dim").get(0);
-                    double[] k = new double[dim];
-                    double[] keys = (double[]) state.get(_KEYS);
-
-                    double[] target = (double[]) context.variable("key").get(0);
-                    Distance distance = (Distance) context.variable("distance").get(0);
-
-                    for (int i = 0; i < values.size(); i++) {
-                        for (int j = 0; j < dim; j++) {
-                            k[j] = keys[i * dim + j];
-                        }
-                        nnl.insert(values.get(i),distance.measure(k,target));
-                    }
-                    context.continueWith(null);
-
-                } else {
-                    final double[] boundMax = (double[]) state.get(_BOUNDMAX);
-                    final double[] boundMin = (double[]) state.get(_BOUNDMIN);
-                    final double[] target = (double[]) context.variable("key").get(0);
-                    final Distance distance = (Distance) context.variable("distance").get(0);
-                    final double worst= nnl.getWorstDistance();
-
-
-                    if(!nnl.isCapacityReached() || getclosestDistance(target,boundMin,boundMax,distance)<=worst) {
-                        final double[] precision = (double[]) context.variable("precision").get(0);
-                        final int dim=boundMin.length;
-                        final double[] childMin=new double[dim];
-                        final double[] childMax=new double[dim];
-
-                        final NearestNeighborArrayList temp=new NearestNeighborArrayList();
-
-                        state.each(new NodeStateCallback() {
+                    public void on(final Integer i) {
+                        tasks[i].executeWith(graph(), initial, new Callback<TaskResult>() {
                             @Override
-                            public void on(long attributeKey, byte elemType, Object elem) {
-                                if (attributeKey >= _RELCONST) {
-                                    boolean[] binaries = binaryFromLong(attributeKey, dim);
-                                    for (int i = 0; i < dim; i++) {
-                                        if (!binaries[i]) {
-                                            childMin[i] = boundMin[i];
-                                            childMax[i] = Math.max((boundMax[i] - boundMin[i])/2, precision[i]) + boundMin[i];
-
-                                        } else {
-                                            childMin[i] = boundMax[i] - Math.max((boundMax[i] - boundMin[i])/2, precision[i]);
-                                            childMax[i] = boundMax[i];
-                                        }
-                                    }
-                                    temp.insert(attributeKey,getclosestDistance(target,childMin,childMax,distance));
+                            public void on(TaskResult currentResult) {
+                                if (currentResult == null) {
+                                    result[i] = Constants.NULL_LONG;
+                                } else {
+                                    result[i] = Double.parseDouble(currentResult.get(0).toString());
+                                    currentResult.free();
                                 }
+                                waiter.count();
                             }
                         });
-
-                        temp.sort();
-                        long[] relations=temp.getNodes();
-                        //double[] distances =temp.getDistances();
-                        context.continueWith(context.wrap(relations));
                     }
-                    else{
-                        context.continueWith(null);
-                    }
-                }
+                };
+                capsule.on(i);
             }
-        }).foreach(defineVar("relid").fromVar("parent").action(TraverseById.NAME,"{{relid}}").subTask(reccursiveDown));
-
-
-        return reccursiveDown;
+            waiter.then(new Job() {
+                @Override
+                public void run() {
+                    callback.on(result);
+                }
+            });
+        } else {
+            callback.on(null);
+        }
     }
 
-    private static Task nearestTask = initNearestTask();
+    @Override
+    public void insert(Node value, Callback<Boolean> callback) {
+        extractFeatures(value, new Callback<double[]>() {
+            @Override
+            public void on(final double[] result) {
+                insertWith(result, value, callback);
+            }
+        });
+    }
 
 
-    public int getNumNodes() {
-
+    @Override
+    public int size() {
         if (getByIndex(_NUMNODES) != null) {
             return (int) getByIndex(_NUMNODES);
         } else {
             return 1;
         }
     }
+
+
+    private static double getclosestDistance(double[] target, double[] boundMin, double[] boundMax, Distance distance) {
+        double[] closest = new double[target.length];
+        for (int i = 0; i < target.length; i++) {
+            if (target[i] >= boundMax[i]) {
+                closest[i] = boundMax[i];
+            } else if (target[i] <= boundMin[i]) {
+                closest[i] = boundMin[i];
+            } else {
+                closest[i] = target[i];
+            }
+        }
+        return distance.measure(closest, target);
+    }
+
+
 }

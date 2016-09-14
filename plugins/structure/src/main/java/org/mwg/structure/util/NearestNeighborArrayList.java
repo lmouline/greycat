@@ -80,6 +80,10 @@ public class NearestNeighborArrayList {
         }
     }
 
+    public double getWorstDistance() {
+        return value.get(1);
+    }
+
     public long[] getNodes(){
         long[] nbrs = new long[count];
         for(int i=0;i<count;i++){

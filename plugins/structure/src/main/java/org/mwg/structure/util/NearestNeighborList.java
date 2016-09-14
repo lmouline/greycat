@@ -109,7 +109,7 @@ public class NearestNeighborList {
         System.out.println(" ");
     }
 
-    public long[] getAllNodes() {
+    public long[] getNodes() {
         int size = Math.min(capacity, count);
         long[] nbrs = new long[size];
 

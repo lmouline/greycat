@@ -1804,10 +1804,10 @@ var org;
                         var attKey = keyAttributes[i];
                         var attValue = toIndexNodeState.getFromKey(attKey);
                         if (attValue != null) {
-                            flatQuery.add(keyAttributes[i], attValue.toString());
+                            flatQuery.add(attKey, attValue.toString());
                         }
                         else {
-                            flatQuery.add(keyAttributes[i], null);
+                            flatQuery.add(attKey, null);
                         }
                     }
                     var alreadyIndexed = false;
@@ -9493,19 +9493,20 @@ var org;
                         _super.call(this);
                         this._queryParams = queryParams;
                         this._indexName = indexName;
+                        this._resolvedQueryParams = new Array(queryParams.length);
                     }
                     ActionTraverseIndex.prototype.eval = function (context) {
                         var finalResult = context.wrap(null);
                         var flatName = context.template(this._indexName);
                         for (var i = 0; i < this._queryParams.length; i++) {
-                            this._queryParams[i] = context.template(this._queryParams[i]);
+                            this._resolvedQueryParams[i] = context.template(this._queryParams[i]);
                         }
                         var query = context.graph().newQuery();
                         query.setWorld(context.world());
                         query.setTime(context.time());
                         query.setIndexName(flatName);
-                        for (var i = 0; i < this._queryParams.length; i = i + 2) {
-                            query.add(this._queryParams[i], this._queryParams[i + 1]);
+                        for (var i = 0; i < this._resolvedQueryParams.length; i = i + 2) {
+                            query.add(this._resolvedQueryParams[i], this._resolvedQueryParams[i + 1]);
                         }
                         var previousResult = context.result();
                         if (previousResult != null) {
@@ -9549,7 +9550,7 @@ var org;
                         }
                     };
                     ActionTraverseIndex.prototype.toString = function () {
-                        return "traverseIndex(\'" + this._indexName + org.mwg.core.CoreConstants.QUERY_SEP + java.lang.String.join(",", this._queryParams) + "\')";
+                        return "traverseIndex(\'" + this._indexName + org.mwg.core.CoreConstants.QUERY_SEP + java.lang.String.join(",", this._resolvedQueryParams) + "\')";
                     };
                     return ActionTraverseIndex;
                 }(org.mwg.plugin.AbstractTaskAction));

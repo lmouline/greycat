@@ -22,7 +22,7 @@ public class NDTreeTest {
         final Graph graph = new GraphBuilder()
                 .withPlugin(new StructurePlugin())
                 //.withScheduler(new NoopScheduler())
-                .withMemorySize(50000)
+                .withMemorySize(100000)
                 //.withOffHeapMemory()
                 .build();
         graph.connect(new Callback<Boolean>() {
@@ -33,6 +33,8 @@ public class NDTreeTest {
 
                 KDTreeJava kdtreejava = new KDTreeJava();
                 kdtreejava.setThreshold(KDTree.DISTANCE_THRESHOLD_DEF);
+
+                boolean print=true;
 
 
 //                kdtreejava.setDistance(EuclideanDistance.instance());
@@ -49,14 +51,14 @@ public class NDTreeTest {
                 double[] boundMin = {0, 0, -10, 0};
                 double[] boundMax = {6, 24, 30, 3000};*/
 
-                int dim = 2;
+                int dim = 3;
 
                 double[] precisions = new double[dim];
                 double[] boundMin  = new double[dim];
                 double[] boundMax  = new double[dim];
 
                 for(int i=0;i<dim;i++){
-                    precisions[i]=0.2;
+                    precisions[i]=0.5;
                     boundMin[i]=0;
                     boundMax[i]=1;
                 }
@@ -69,7 +71,7 @@ public class NDTreeTest {
 
                 Random random = new Random();
                 random.setSeed(125362l);
-                int ins = 3700;
+                int ins = 1000;
 
                 graph.save(null);
                 long initcache = graph.space().available();
@@ -95,7 +97,7 @@ public class NDTreeTest {
 
                 long starttime = System.currentTimeMillis();
                 for (int i = 0; i < ins; i++) {
-                    ndTree.insert(keys[i], values[i], null);
+                    ndTree.insertWith(keys[i], values[i], null);
                 }
                 long endtime = System.currentTimeMillis();
                 double exectime = endtime - starttime;
@@ -135,8 +137,10 @@ public class NDTreeTest {
                 ndTree.nearestN(res, 10, new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
-                        for (int i = 0; i < result.length; i++) {
-                            System.out.println(result[i] + " dist: " + EuclideanDistance.instance().measure(res, (double[]) result[i].get("key")));
+                        if(print) {
+                            for (int i = 0; i < result.length; i++) {
+                                System.out.println(result[i] + " dist: " + EuclideanDistance.instance().measure(res, (double[]) result[i].get("key")));
+                            }
                         }
                     }
                 });
@@ -152,8 +156,10 @@ public class NDTreeTest {
                 kdtree.nearestN(res, 10, new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
-                        for (int i = 0; i < result.length; i++) {
-                            System.out.println(result[i] + " dist: " + EuclideanDistance.instance().measure(res, (double[]) result[i].get("key")));
+                        if(print) {
+                            for (int i = 0; i < result.length; i++) {
+                                System.out.println(result[i] + " dist: " + EuclideanDistance.instance().measure(res, (double[]) result[i].get("key")));
+                            }
                         }
 
                     }
@@ -170,8 +176,10 @@ public class NDTreeTest {
                 kdtreejava.nearestN(res, 10, new Callback<Object[]>() {
                     @Override
                     public void on(Object[] result) {
-                        for (int i = 0; i < result.length; i++) {
-                            System.out.println(result[i] + " dist: " + EuclideanDistance.instance().measure(res, (double[]) ((Node)result[i]).get("key")));
+                        if(print) {
+                            for (int i = 0; i < result.length; i++) {
+                                System.out.println(result[i] + " dist: " + EuclideanDistance.instance().measure(res, (double[]) ((Node) result[i]).get("key")));
+                            }
                         }
 
                     }
@@ -179,6 +187,48 @@ public class NDTreeTest {
                 endtime = System.currentTimeMillis();
                 exectime = endtime - starttime;
                 System.out.println("kd tree java search: " + exectime + " ms");
+                System.out.println("");
+
+
+                starttime = System.currentTimeMillis();
+                for(int i=0;i<ins;i++){
+                    ndTree.nearestN(keys[i], 10, new Callback<Node[]>() {
+                        @Override
+                        public void on(Node[] result) {
+                        }
+                    });
+                }
+                endtime = System.currentTimeMillis();
+                exectime = endtime - starttime;
+                System.out.println("nd tree all search: " + exectime + " ms");
+
+
+
+                starttime = System.currentTimeMillis();
+                for(int i=0;i<ins;i++){
+                    kdtree.nearestN(keys[i], 10, new Callback<Node[]>() {
+                        @Override
+                        public void on(Node[] result) {
+                        }
+                    });
+                }
+                endtime = System.currentTimeMillis();
+                exectime = endtime - starttime;
+                System.out.println("kd tree all search: " + exectime + " ms");
+
+
+
+                starttime = System.currentTimeMillis();
+                for(int i=0;i<ins;i++){
+                    kdtreejava.nearestN(keys[i], 10, new Callback<Object[]>() {
+                        @Override
+                        public void on(Object[] result) {
+                        }
+                    });
+                }
+                endtime = System.currentTimeMillis();
+                exectime = endtime - starttime;
+                System.out.println("kd tree java all search: " + exectime + " ms");
 
             }
         });

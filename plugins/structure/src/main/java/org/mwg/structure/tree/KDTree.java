@@ -573,6 +573,7 @@ public class KDTree extends AbstractNode implements NTree {
         set(FROM, extractor);
     }
 
+
     @Override
     public void nearestNWithinRadius(final double[] key, int n, double radius, final Callback<Node[]> callback) {
         NodeState state = unphasedState();
@@ -597,7 +598,7 @@ public class KDTree extends AbstractNode implements NTree {
                 //ToDo replace by lookupAll later
                 long[] res = nnl.getAllNodesWithin(radius);
 
-                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").flatmap(lookup("{{result}}"));
+                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
                 TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
@@ -658,7 +659,7 @@ public class KDTree extends AbstractNode implements NTree {
                 //ToDo replace by lookupAll later
                 long[] res = nnl.distroyAndGetAllNodes();
 
-                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").flatmap(lookup("{{result}}"));
+                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
                 TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
@@ -717,9 +718,9 @@ public class KDTree extends AbstractNode implements NTree {
             public void on(TaskResult result) {
 
                 //ToDo replace by lookupAll later
-                long[] res = nnl.getAllNodes();
+                long[] res = nnl.getNodes();
 
-                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").flatmap(lookup("{{result}}"));
+                Task lookupall = setWorld(String.valueOf(world())).setTime(String.valueOf(time())).fromVar("res").lookupAll("{{result}}");
                 TaskContext tc = lookupall.prepareWith(graph(), null, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {

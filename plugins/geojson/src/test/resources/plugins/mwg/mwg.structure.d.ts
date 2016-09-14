@@ -145,7 +145,7 @@ declare module org {
                     getDistance(state: org.mwg.plugin.NodeState): org.mwg.structure.distance.Distance;
                     extractFeatures(current: org.mwg.Node, callback: org.mwg.Callback<Float64Array>): void;
                 }
-                class NDTree extends org.mwg.plugin.AbstractNode {
+                class NDTree extends org.mwg.plugin.AbstractNode implements org.mwg.structure.NTree {
                     static NAME: string;
                     private static _STAT;
                     private static _TOTAL;
@@ -154,14 +154,15 @@ declare module org {
                     private static _BOUNDMIN;
                     private static _BOUNDMAX;
                     private static _VALUES;
-                    private static _VALUES_STR;
                     private static _KEYS;
+                    private static _VALUES_STR;
                     private static _KEYS_STR;
                     private static _PRECISION;
                     private static _NUMNODES;
                     private static _DIM;
                     private static _DISTANCE;
                     private static _DISTANCETHRESHOLD;
+                    private static _FROM;
                     static DISTANCE_THRESHOLD: string;
                     static DISTANCE_THRESHOLD_DEF: number;
                     static DISTANCE_TYPE_DEF: number;
@@ -170,9 +171,12 @@ declare module org {
                     static BOUNDMAX: string;
                     static PRECISION: string;
                     static _RELCONST: number;
-                    private static insert;
                     private static nearestTask;
+                    private static nearestRadiusTask;
+                    private static insert;
                     constructor(p_world: number, p_time: number, p_id: number, p_graph: org.mwg.Graph);
+                    private static initNearestTask();
+                    private static initRadusTask();
                     setUpdateStat(value: boolean): void;
                     private static updateGaussian(state, key);
                     getTotal(): number;
@@ -183,11 +187,15 @@ declare module org {
                     setProperty(propertyName: string, propertyType: number, propertyValue: any): void;
                     getDistance(state: org.mwg.plugin.NodeState): org.mwg.structure.distance.Distance;
                     setDistance(distanceType: number): void;
-                    insert(key: Float64Array, value: org.mwg.Node, callback: org.mwg.Callback<boolean>): void;
+                    setFrom(extractor: string): void;
                     nearestN(key: Float64Array, n: number, callback: org.mwg.Callback<org.mwg.Node[]>): void;
+                    nearestWithinRadius(key: Float64Array, radius: number, callback: org.mwg.Callback<org.mwg.Node[]>): void;
+                    nearestNWithinRadius(key: Float64Array, nbElem: number, radius: number, callback: org.mwg.Callback<org.mwg.Node[]>): void;
+                    insertWith(key: Float64Array, value: org.mwg.Node, callback: org.mwg.Callback<boolean>): void;
+                    extractFeatures(current: org.mwg.Node, callback: org.mwg.Callback<Float64Array>): void;
+                    insert(value: org.mwg.Node, callback: org.mwg.Callback<boolean>): void;
+                    size(): number;
                     private static getclosestDistance(target, boundMin, boundMax, distance);
-                    private static initNearestTask();
-                    getNumNodes(): number;
                 }
             }
             module util {
@@ -217,6 +225,7 @@ declare module org {
                     insert(node: number, priority: number): boolean;
                     distroyAndGetAllNodes(): Float64Array;
                     sort(): void;
+                    getWorstDistance(): number;
                     getNodes(): Float64Array;
                     getDistances(): Float64Array;
                     getHighest(): number;
@@ -238,7 +247,7 @@ declare module org {
                     removeNode(node: number): boolean;
                     insert(node: number, priority: number): boolean;
                     private print();
-                    getAllNodes(): Float64Array;
+                    getNodes(): Float64Array;
                     isCapacityReached(): boolean;
                     getHighest(): number;
                     getWorstDistance(): number;

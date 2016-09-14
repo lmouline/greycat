@@ -1863,6 +1863,7 @@ declare module org {
                 class ActionTraverseIndex extends org.mwg.plugin.AbstractTaskAction {
                     private _indexName;
                     private _queryParams;
+                    private _resolvedQueryParams;
                     constructor(indexName: string, ...queryParams: string[]);
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;

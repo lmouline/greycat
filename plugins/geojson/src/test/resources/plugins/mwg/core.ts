@@ -5988,23 +5988,25 @@ break;
         export class ActionTraverseIndex extends org.mwg.plugin.AbstractTaskAction {
           private _indexName: string;
           private _queryParams: string[];
+          private _resolvedQueryParams: string[];
           constructor(indexName: string, ...queryParams: string[]) {
             super();
             this._queryParams = queryParams;
             this._indexName = indexName;
+            this._resolvedQueryParams = new Array<string>(queryParams.length);
           }
           public eval(context: org.mwg.task.TaskContext): void {
             let finalResult: org.mwg.task.TaskResult<any> = context.wrap(null);
             let flatName: string = context.template(this._indexName);
             for (let i: number = 0; i < this._queryParams.length; i++) {
-              this._queryParams[i] = context.template(this._queryParams[i]);
+              this._resolvedQueryParams[i] = context.template(this._queryParams[i]);
             }
             let query: org.mwg.Query = context.graph().newQuery();
             query.setWorld(context.world());
             query.setTime(context.time());
             query.setIndexName(flatName);
-            for (let i: number = 0; i < this._queryParams.length; i = i + 2) {
-              query.add(this._queryParams[i], this._queryParams[i + 1]);
+            for (let i: number = 0; i < this._resolvedQueryParams.length; i = i + 2) {
+              query.add(this._resolvedQueryParams[i], this._resolvedQueryParams[i + 1]);
             }
             let previousResult: org.mwg.task.TaskResult<any> = context.result();
             if (previousResult != null) {
@@ -6041,7 +6043,7 @@ break;
             }
           }
           public toString(): string {
-            return "traverseIndex(\'" + this._indexName + org.mwg.core.CoreConstants.QUERY_SEP + java.lang.String.join(",", this._queryParams) + "\')";
+            return "traverseIndex(\'" + this._indexName + org.mwg.core.CoreConstants.QUERY_SEP + java.lang.String.join(",", this._resolvedQueryParams) + "\')";
           }
         }
         export class ActionTraverseIndexAll extends org.mwg.plugin.AbstractTaskAction {

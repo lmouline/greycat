@@ -795,7 +795,7 @@ var org;
                         var tc = KDTree.nearestTask.prepareWith(this.graph(), this, function (result) {
                             {
                                 var res_1 = nnl.getAllNodesWithin(radius);
-                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").flatmap(org.mwg.task.Actions.lookup("{{result}}"));
+                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
                                 var tc_1 = lookupall.prepareWith(_this.graph(), null, function (result) {
                                     {
                                         var finalres = new Array(result.size());
@@ -835,7 +835,7 @@ var org;
                         var tc = KDTree.nearestRadiusTask.prepareWith(this.graph(), this, function (result) {
                             {
                                 var res_2 = nnl.distroyAndGetAllNodes();
-                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").flatmap(org.mwg.task.Actions.lookup("{{result}}"));
+                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
                                 var tc_2 = lookupall.prepareWith(_this.graph(), null, function (result) {
                                     {
                                         var finalres = new Array(result.size());
@@ -875,8 +875,8 @@ var org;
                         var distance = this.getDistance(state);
                         var tc = KDTree.nearestTask.prepareWith(this.graph(), this, function (result) {
                             {
-                                var res_3 = nnl.getAllNodes();
-                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").flatmap(org.mwg.task.Actions.lookup("{{result}}"));
+                                var res_3 = nnl.getNodes();
+                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
                                 var tc_3 = lookupall.prepareWith(_this.graph(), null, function (result) {
                                     {
                                         var finalres = new Array(result.size());
@@ -1037,6 +1037,134 @@ var org;
                     function NDTree(p_world, p_time, p_id, p_graph) {
                         _super.call(this, p_world, p_time, p_id, p_graph);
                     }
+                    NDTree.initNearestTask = function () {
+                        var reccursiveDown = org.mwg.task.Actions.newTask();
+                        reccursiveDown.defineVar("parent").then(function (context) {
+                            {
+                                var current = context.result().get(0);
+                                var state = current.graph().resolver().resolveState(current);
+                                var nnl = context.variable("nnl").get(0);
+                                var values = state.get(org.mwg.structure.tree.NDTree._VALUES);
+                                if (values != null) {
+                                    var dim = context.variable("dim").get(0);
+                                    var k = new Float64Array(dim);
+                                    var keys = state.get(org.mwg.structure.tree.NDTree._KEYS);
+                                    var target = context.variable("key").get(0);
+                                    var distance_6 = context.variable("distance").get(0);
+                                    for (var i = 0; i < values.size(); i++) {
+                                        for (var j = 0; j < dim; j++) {
+                                            k[j] = keys[i * dim + j];
+                                        }
+                                        nnl.insert(values.get(i), distance_6.measure(k, target));
+                                    }
+                                    context.continueWith(null);
+                                }
+                                else {
+                                    var boundMax_1 = state.get(org.mwg.structure.tree.NDTree._BOUNDMAX);
+                                    var boundMin_1 = state.get(org.mwg.structure.tree.NDTree._BOUNDMIN);
+                                    var target_1 = context.variable("key").get(0);
+                                    var distance_7 = context.variable("distance").get(0);
+                                    var worst = nnl.getWorstDistance();
+                                    if (!nnl.isCapacityReached() || org.mwg.structure.tree.NDTree.getclosestDistance(target_1, boundMin_1, boundMax_1, distance_7) <= worst) {
+                                        var precision_1 = context.variable("precision").get(0);
+                                        var dim_1 = boundMin_1.length;
+                                        var childMin_1 = new Float64Array(dim_1);
+                                        var childMax_1 = new Float64Array(dim_1);
+                                        var temp_1 = new org.mwg.structure.util.NearestNeighborArrayList();
+                                        state.each(function (attributeKey, elemType, elem) {
+                                            {
+                                                if (attributeKey >= org.mwg.structure.tree.NDTree._RELCONST) {
+                                                    var binaries = org.mwg.structure.tree.NDTree.binaryFromLong(attributeKey, dim_1);
+                                                    for (var i = 0; i < dim_1; i++) {
+                                                        if (!binaries[i]) {
+                                                            childMin_1[i] = boundMin_1[i];
+                                                            childMax_1[i] = Math.max((boundMax_1[i] - boundMin_1[i]) / 2, precision_1[i]) + boundMin_1[i];
+                                                        }
+                                                        else {
+                                                            childMin_1[i] = boundMax_1[i] - Math.max((boundMax_1[i] - boundMin_1[i]) / 2, precision_1[i]);
+                                                            childMax_1[i] = boundMax_1[i];
+                                                        }
+                                                    }
+                                                    temp_1.insert(attributeKey, org.mwg.structure.tree.NDTree.getclosestDistance(target_1, childMin_1, childMax_1, distance_7));
+                                                }
+                                            }
+                                        });
+                                        temp_1.sort();
+                                        var relations = temp_1.getNodes();
+                                        context.continueWith(context.wrap(relations));
+                                    }
+                                    else {
+                                        context.continueWith(null);
+                                    }
+                                }
+                            }
+                        }).foreach(org.mwg.task.Actions.defineVar("relid").fromVar("parent").action(org.mwg.structure.action.TraverseById.NAME, "{{relid}}").subTask(reccursiveDown));
+                        return reccursiveDown;
+                    };
+                    NDTree.initRadusTask = function () {
+                        var reccursiveDown = org.mwg.task.Actions.newTask();
+                        reccursiveDown.defineVar("parent").then(function (context) {
+                            {
+                                var current = context.result().get(0);
+                                var state = current.graph().resolver().resolveState(current);
+                                var nnl = context.variable("nnl").get(0);
+                                var values = state.get(org.mwg.structure.tree.NDTree._VALUES);
+                                if (values != null) {
+                                    var dim = context.variable("dim").get(0);
+                                    var k = new Float64Array(dim);
+                                    var keys = state.get(org.mwg.structure.tree.NDTree._KEYS);
+                                    var target = context.variable("key").get(0);
+                                    var distance_8 = context.variable("distance").get(0);
+                                    for (var i = 0; i < values.size(); i++) {
+                                        for (var j = 0; j < dim; j++) {
+                                            k[j] = keys[i * dim + j];
+                                        }
+                                        nnl.insert(values.get(i), distance_8.measure(k, target));
+                                    }
+                                    context.continueWith(null);
+                                }
+                                else {
+                                    var boundMax_2 = state.get(org.mwg.structure.tree.NDTree._BOUNDMAX);
+                                    var boundMin_2 = state.get(org.mwg.structure.tree.NDTree._BOUNDMIN);
+                                    var target_2 = context.variable("key").get(0);
+                                    var distance_9 = context.variable("distance").get(0);
+                                    var radius = context.variable("radius").get(0);
+                                    if (org.mwg.structure.tree.NDTree.getclosestDistance(target_2, boundMin_2, boundMax_2, distance_9) <= radius) {
+                                        var precision_2 = context.variable("precision").get(0);
+                                        var dim_2 = boundMin_2.length;
+                                        var childMin_2 = new Float64Array(dim_2);
+                                        var childMax_2 = new Float64Array(dim_2);
+                                        var temp_2 = new org.mwg.structure.util.NearestNeighborArrayList();
+                                        state.each(function (attributeKey, elemType, elem) {
+                                            {
+                                                if (attributeKey >= org.mwg.structure.tree.NDTree._RELCONST) {
+                                                    var binaries = org.mwg.structure.tree.NDTree.binaryFromLong(attributeKey, dim_2);
+                                                    for (var i = 0; i < dim_2; i++) {
+                                                        if (!binaries[i]) {
+                                                            childMin_2[i] = boundMin_2[i];
+                                                            childMax_2[i] = Math.max((boundMax_2[i] - boundMin_2[i]) / 2, precision_2[i]) + boundMin_2[i];
+                                                        }
+                                                        else {
+                                                            childMin_2[i] = boundMax_2[i] - Math.max((boundMax_2[i] - boundMin_2[i]) / 2, precision_2[i]);
+                                                            childMax_2[i] = boundMax_2[i];
+                                                        }
+                                                    }
+                                                    temp_2.insert(attributeKey, org.mwg.structure.tree.NDTree.getclosestDistance(target_2, childMin_2, childMax_2, distance_9));
+                                                }
+                                            }
+                                        });
+                                        temp_2.sort();
+                                        var relations = temp_2.getNodes();
+                                        context.continueWith(context.wrap(relations));
+                                    }
+                                    else {
+                                        context.continueWith(null);
+                                    }
+                                }
+                            }
+                        }).foreach(org.mwg.task.Actions.defineVar("relid").fromVar("parent").action(org.mwg.structure.action.TraverseById.NAME, "{{relid}}").subTask(reccursiveDown));
+                        return reccursiveDown;
+                    };
                     NDTree.prototype.setUpdateStat = function (value) {
                         var state = this.unphasedState();
                         state.set(NDTree._STAT, org.mwg.Type.BOOL, value);
@@ -1203,7 +1331,152 @@ var org;
                     NDTree.prototype.setDistance = function (distanceType) {
                         this.setPropertyByIndex(NDTree._DISTANCE, org.mwg.Type.INT, distanceType);
                     };
-                    NDTree.prototype.insert = function (key, value, callback) {
+                    NDTree.prototype.setFrom = function (extractor) {
+                        this.setPropertyByIndex(NDTree._FROM, org.mwg.Type.STRING, extractor);
+                    };
+                    NDTree.prototype.nearestN = function (key, n, callback) {
+                        var _this = this;
+                        var state = this.unphasedState();
+                        var dim;
+                        var tdim = state.get(NDTree._DIM);
+                        if (tdim == null) {
+                            callback(null);
+                            return;
+                        }
+                        else {
+                            dim = tdim;
+                            if (key.length != dim) {
+                                throw new Error("Key size should always be the same");
+                            }
+                        }
+                        var nnl = new org.mwg.structure.util.NearestNeighborList(n);
+                        var distance = this.getDistance(state);
+                        var tc = NDTree.nearestTask.prepareWith(this.graph(), this, function (result) {
+                            {
+                                var res_4 = nnl.getNodes();
+                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
+                                var tc_4 = lookupall.prepareWith(_this.graph(), null, function (result) {
+                                    {
+                                        var finalres = new Array(result.size());
+                                        for (var i = 0; i < result.size(); i++) {
+                                            finalres[i] = result.get(i);
+                                        }
+                                        callback(finalres);
+                                    }
+                                });
+                                var tr = tc_4.wrap(res_4);
+                                tc_4.addToGlobalVariable("res", tr);
+                                lookupall.executeUsing(tc_4);
+                            }
+                        });
+                        var res = tc.newResult();
+                        res.add(key);
+                        tc.setGlobalVariable("key", res);
+                        tc.setGlobalVariable("distance", distance);
+                        tc.setGlobalVariable("dim", dim);
+                        var precisions = state.get(NDTree._PRECISION);
+                        var resPres = tc.newResult();
+                        resPres.add(precisions);
+                        tc.setGlobalVariable("precision", resPres);
+                        tc.setGlobalVariable("nnl", nnl);
+                        NDTree.nearestTask.executeUsing(tc);
+                    };
+                    NDTree.prototype.nearestWithinRadius = function (key, radius, callback) {
+                        var _this = this;
+                        var state = this.unphasedState();
+                        var dim;
+                        var tdim = state.get(NDTree._DIM);
+                        if (tdim == null) {
+                            callback(null);
+                            return;
+                        }
+                        else {
+                            dim = tdim;
+                            if (key.length != dim) {
+                                throw new Error("Key size should always be the same");
+                            }
+                        }
+                        var nnl = new org.mwg.structure.util.NearestNeighborArrayList();
+                        var distance = this.getDistance(state);
+                        var tc = NDTree.nearestRadiusTask.prepareWith(this.graph(), this, function (result) {
+                            {
+                                var res_5 = nnl.getNodes();
+                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
+                                var tc_5 = lookupall.prepareWith(_this.graph(), null, function (result) {
+                                    {
+                                        var finalres = new Array(result.size());
+                                        for (var i = 0; i < result.size(); i++) {
+                                            finalres[i] = result.get(i);
+                                        }
+                                        callback(finalres);
+                                    }
+                                });
+                                var tr = tc_5.wrap(res_5);
+                                tc_5.addToGlobalVariable("res", tr);
+                                lookupall.executeUsing(tc_5);
+                            }
+                        });
+                        var res = tc.newResult();
+                        res.add(key);
+                        tc.setGlobalVariable("key", res);
+                        tc.setGlobalVariable("distance", distance);
+                        tc.setGlobalVariable("dim", dim);
+                        tc.setGlobalVariable("radius", radius);
+                        var precisions = state.get(NDTree._PRECISION);
+                        var resPres = tc.newResult();
+                        resPres.add(precisions);
+                        tc.setGlobalVariable("precision", resPres);
+                        tc.setGlobalVariable("nnl", nnl);
+                        NDTree.nearestRadiusTask.executeUsing(tc);
+                    };
+                    NDTree.prototype.nearestNWithinRadius = function (key, nbElem, radius, callback) {
+                        var _this = this;
+                        var state = this.unphasedState();
+                        var dim;
+                        var tdim = state.get(NDTree._DIM);
+                        if (tdim == null) {
+                            callback(null);
+                            return;
+                        }
+                        else {
+                            dim = tdim;
+                            if (key.length != dim) {
+                                throw new Error("Key size should always be the same");
+                            }
+                        }
+                        var nnl = new org.mwg.structure.util.NearestNeighborList(nbElem);
+                        var distance = this.getDistance(state);
+                        var tc = NDTree.nearestTask.prepareWith(this.graph(), this, function (result) {
+                            {
+                                var res_6 = nnl.getAllNodesWithin(radius);
+                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").lookupAll("{{result}}");
+                                var tc_6 = lookupall.prepareWith(_this.graph(), null, function (result) {
+                                    {
+                                        var finalres = new Array(result.size());
+                                        for (var i = 0; i < result.size(); i++) {
+                                            finalres[i] = result.get(i);
+                                        }
+                                        callback(finalres);
+                                    }
+                                });
+                                var tr = tc_6.wrap(res_6);
+                                tc_6.addToGlobalVariable("res", tr);
+                                lookupall.executeUsing(tc_6);
+                            }
+                        });
+                        var res = tc.newResult();
+                        res.add(key);
+                        tc.setGlobalVariable("key", res);
+                        tc.setGlobalVariable("distance", distance);
+                        tc.setGlobalVariable("dim", dim);
+                        var precisions = state.get(NDTree._PRECISION);
+                        var resPres = tc.newResult();
+                        resPres.add(precisions);
+                        tc.setGlobalVariable("precision", resPres);
+                        tc.setGlobalVariable("nnl", nnl);
+                        NDTree.nearestTask.executeUsing(tc);
+                    };
+                    NDTree.prototype.insertWith = function (key, value, callback) {
                         var state = this.unphasedState();
                         var precisions = state.get(NDTree._PRECISION);
                         if (state.get(NDTree._DIM) == null) {
@@ -1235,53 +1508,69 @@ var org;
                         tc.setGlobalVariable("precision", resPres);
                         NDTree.insert.executeUsing(tc);
                     };
-                    NDTree.prototype.nearestN = function (key, n, callback) {
+                    NDTree.prototype.extractFeatures = function (current, callback) {
                         var _this = this;
-                        var state = this.unphasedState();
-                        var dim;
-                        var tdim = state.get(NDTree._DIM);
-                        if (tdim == null) {
-                            callback(null);
-                            return;
+                        var query = _super.prototype.getByIndex.call(this, NDTree._FROM);
+                        if (query != null) {
+                            var split = query.split(",");
+                            var tasks_2 = new Array(split.length);
+                            for (var i = 0; i < split.length; i++) {
+                                var t = org.mwg.task.Actions.setWorld("" + this.world());
+                                t.setTime(this.time() + "");
+                                t.parse(split[i].trim());
+                                tasks_2[i] = t;
+                            }
+                            var result_2 = new Float64Array(tasks_2.length);
+                            var waiter_2 = this.graph().newCounter(tasks_2.length);
+                            var _loop_3 = function(i) {
+                                var initial = org.mwg.task.Actions.newTask().emptyResult();
+                                initial.add(current);
+                                var capsule = function (i) {
+                                    {
+                                        tasks_2[i].executeWith(_this.graph(), initial, function (currentResult) {
+                                            {
+                                                if (currentResult == null) {
+                                                    result_2[i] = org.mwg.Constants.NULL_LONG;
+                                                }
+                                                else {
+                                                    result_2[i] = parseFloat(currentResult.get(0).toString());
+                                                    currentResult.free();
+                                                }
+                                                waiter_2.count();
+                                            }
+                                        });
+                                    }
+                                };
+                                capsule(i);
+                            };
+                            for (var i = 0; i < split.length; i++) {
+                                _loop_3(i);
+                            }
+                            waiter_2.then(function () {
+                                {
+                                    callback(result_2);
+                                }
+                            });
                         }
                         else {
-                            dim = tdim;
-                            if (key.length != dim) {
-                                throw new Error("Key size should always be the same");
-                            }
+                            callback(null);
                         }
-                        var nnl = new org.mwg.structure.util.NearestNeighborList(n);
-                        var distance = this.getDistance(state);
-                        var tc = NDTree.nearestTask.prepareWith(this.graph(), this, function (result) {
+                    };
+                    NDTree.prototype.insert = function (value, callback) {
+                        var _this = this;
+                        this.extractFeatures(value, function (result) {
                             {
-                                var res_4 = nnl.getAllNodes();
-                                var lookupall = org.mwg.task.Actions.setWorld(java.lang.String.valueOf(_this.world())).setTime(java.lang.String.valueOf(_this.time())).fromVar("res").flatmap(org.mwg.task.Actions.lookup("{{result}}"));
-                                var tc_4 = lookupall.prepareWith(_this.graph(), null, function (result) {
-                                    {
-                                        var finalres = new Array(result.size());
-                                        for (var i = 0; i < result.size(); i++) {
-                                            finalres[i] = result.get(i);
-                                        }
-                                        callback(finalres);
-                                    }
-                                });
-                                var tr = tc_4.wrap(res_4);
-                                tc_4.addToGlobalVariable("res", tr);
-                                lookupall.executeUsing(tc_4);
+                                _this.insertWith(result, value, callback);
                             }
                         });
-                        var res = tc.newResult();
-                        res.add(key);
-                        tc.setGlobalVariable("key", res);
-                        tc.setGlobalVariable("distance", distance);
-                        tc.setGlobalVariable("dim", dim);
-                        tc.defineVariable("lev", 0);
-                        var precisions = state.get(NDTree._PRECISION);
-                        var resPres = tc.newResult();
-                        resPres.add(precisions);
-                        tc.setGlobalVariable("precision", resPres);
-                        tc.setGlobalVariable("nnl", nnl);
-                        NDTree.nearestTask.executeUsing(tc);
+                    };
+                    NDTree.prototype.size = function () {
+                        if (this.getByIndex(NDTree._NUMNODES) != null) {
+                            return this.getByIndex(NDTree._NUMNODES);
+                        }
+                        else {
+                            return 1;
+                        }
                     };
                     NDTree.getclosestDistance = function (target, boundMin, boundMax, distance) {
                         var closest = new Float64Array(target.length);
@@ -1298,78 +1587,6 @@ var org;
                         }
                         return distance.measure(closest, target);
                     };
-                    NDTree.initNearestTask = function () {
-                        var reccursiveDown = org.mwg.task.Actions.newTask();
-                        reccursiveDown.defineVar("parent").then(function (context) {
-                            {
-                                var current = context.result().get(0);
-                                var state = current.graph().resolver().resolveState(current);
-                                var nnl = context.variable("nnl").get(0);
-                                var values = state.get(org.mwg.structure.tree.NDTree._VALUES);
-                                if (values != null) {
-                                    var dim = context.variable("dim").get(0);
-                                    var k = new Float64Array(dim);
-                                    var keys = state.get(org.mwg.structure.tree.NDTree._KEYS);
-                                    var target = context.variable("key").get(0);
-                                    var distance_6 = context.variable("distance").get(0);
-                                    for (var i = 0; i < values.size(); i++) {
-                                        for (var j = 0; j < dim; j++) {
-                                            k[j] = keys[i * dim + j];
-                                        }
-                                        nnl.insert(values.get(i), distance_6.measure(k, target));
-                                    }
-                                    context.continueWith(null);
-                                }
-                                else {
-                                    var boundMax_1 = state.get(org.mwg.structure.tree.NDTree._BOUNDMAX);
-                                    var boundMin_1 = state.get(org.mwg.structure.tree.NDTree._BOUNDMIN);
-                                    var target_1 = context.variable("key").get(0);
-                                    var distance_7 = context.variable("distance").get(0);
-                                    var worst = nnl.getWorstDistance();
-                                    if (!nnl.isCapacityReached() || org.mwg.structure.tree.NDTree.getclosestDistance(target_1, boundMin_1, boundMax_1, distance_7) <= worst) {
-                                        var precision_1 = context.variable("precision").get(0);
-                                        var dim_1 = boundMin_1.length;
-                                        var childMin_1 = new Float64Array(dim_1);
-                                        var childMax_1 = new Float64Array(dim_1);
-                                        var temp_1 = new org.mwg.structure.util.NearestNeighborArrayList();
-                                        state.each(function (attributeKey, elemType, elem) {
-                                            {
-                                                if (attributeKey >= org.mwg.structure.tree.NDTree._RELCONST) {
-                                                    var binaries = org.mwg.structure.tree.NDTree.binaryFromLong(attributeKey, dim_1);
-                                                    for (var i = 0; i < dim_1; i++) {
-                                                        if (!binaries[i]) {
-                                                            childMin_1[i] = boundMin_1[i];
-                                                            childMax_1[i] = Math.max((boundMax_1[i] - boundMin_1[i]) / 2, precision_1[i]) + boundMin_1[i];
-                                                        }
-                                                        else {
-                                                            childMin_1[i] = boundMax_1[i] - Math.max((boundMax_1[i] - boundMin_1[i]) / 2, precision_1[i]);
-                                                            childMax_1[i] = boundMax_1[i];
-                                                        }
-                                                    }
-                                                    temp_1.insert(attributeKey, org.mwg.structure.tree.NDTree.getclosestDistance(target_1, childMin_1, childMax_1, distance_7));
-                                                }
-                                            }
-                                        });
-                                        temp_1.sort();
-                                        var relations = temp_1.getNodes();
-                                        context.continueWith(context.wrap(relations));
-                                    }
-                                    else {
-                                        context.continueWith(null);
-                                    }
-                                }
-                            }
-                        }).foreach(org.mwg.task.Actions.defineVar("relid").fromVar("parent").action(org.mwg.structure.action.TraverseById.NAME, "{{relid}}").subTask(reccursiveDown));
-                        return reccursiveDown;
-                    };
-                    NDTree.prototype.getNumNodes = function () {
-                        if (this.getByIndex(NDTree._NUMNODES) != null) {
-                            return this.getByIndex(NDTree._NUMNODES);
-                        }
-                        else {
-                            return 1;
-                        }
-                    };
                     NDTree.NAME = "NDTree";
                     NDTree._STAT = 0;
                     NDTree._TOTAL = 1;
@@ -1378,14 +1595,15 @@ var org;
                     NDTree._BOUNDMIN = 6;
                     NDTree._BOUNDMAX = 7;
                     NDTree._VALUES = 8;
-                    NDTree._VALUES_STR = "8";
                     NDTree._KEYS = 9;
+                    NDTree._VALUES_STR = "8";
                     NDTree._KEYS_STR = "9";
                     NDTree._PRECISION = 10;
                     NDTree._NUMNODES = 11;
                     NDTree._DIM = 12;
                     NDTree._DISTANCE = 13;
                     NDTree._DISTANCETHRESHOLD = 14;
+                    NDTree._FROM = 15;
                     NDTree.DISTANCE_THRESHOLD = "threshold";
                     NDTree.DISTANCE_THRESHOLD_DEF = 1e-10;
                     NDTree.DISTANCE_TYPE_DEF = 0;
@@ -1394,6 +1612,8 @@ var org;
                     NDTree.BOUNDMAX = "boundmax";
                     NDTree.PRECISION = "precision";
                     NDTree._RELCONST = 16;
+                    NDTree.nearestTask = NDTree.initNearestTask();
+                    NDTree.nearestRadiusTask = NDTree.initRadusTask();
                     NDTree.insert = org.mwg.task.Actions.whileDo(function (context) {
                         {
                             var root = context.variable("root").get(0);
@@ -1470,7 +1690,6 @@ var org;
                             return continueNavigation;
                         }
                     }, org.mwg.task.Actions.action(org.mwg.structure.action.TraverseById.NAME, "{{next}}"));
-                    NDTree.nearestTask = NDTree.initNearestTask();
                     return NDTree;
                 }(org.mwg.plugin.AbstractNode));
                 tree.NDTree = NDTree;
@@ -1584,6 +1803,9 @@ var org;
                                 }
                             }
                         }
+                    };
+                    NearestNeighborArrayList.prototype.getWorstDistance = function () {
+                        return this.value.get(1);
                     };
                     NearestNeighborArrayList.prototype.getNodes = function () {
                         var nbrs = new Float64Array(this.count);
@@ -1727,7 +1949,7 @@ var org;
                         }
                         console.log(" ");
                     };
-                    NearestNeighborList.prototype.getAllNodes = function () {
+                    NearestNeighborList.prototype.getNodes = function () {
                         var size = Math.min(this.capacity, this.count);
                         var nbrs = new Float64Array(size);
                         for (var i = 0; i < size; ++i) {
