@@ -156,6 +156,7 @@
                                     <arg value="${basedir}/target/classes-js/mwg.js"/>
                                     <arg value="--js_output_file"/>
                                     <arg value="${basedir}/target/classes-js/mwg.min.js"/>
+                                    <arg value="--jscomp_off=uselessCode"/>
                                 </java>
                             </target>
                         </configuration>
