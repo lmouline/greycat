@@ -78,7 +78,7 @@ public class ActionTraverseTest extends AbstractActionTest {
         });
 
         fromIndex("rootIndex", "name=root2")
-                .traverseIndex("childrenIndexed", "name=node2")
+                .traverseIndex("childrenIndexed", "name","node2")
                 .then(new Action() {
                     @Override
                     public void eval(TaskContext context) {
@@ -88,7 +88,7 @@ public class ActionTraverseTest extends AbstractActionTest {
                 }).execute(graph, null);
 
         fromIndex("rootIndex", "name=root2")
-                .traverseIndex("childrenIndexed", "name=node3")
+                .traverseIndex("childrenIndexed", "name","node3")
                 .then(new Action() {
                     @Override
                     public void eval(TaskContext context) {
@@ -98,7 +98,7 @@ public class ActionTraverseTest extends AbstractActionTest {
 
         inject(12).asGlobalVar("time").setTime("{{time}}")
                 .fromIndex("rootIndex", "name=root2")
-                .traverseIndex("childrenIndexed", "name=node2")
+                .traverseIndex("childrenIndexed", "name","node2")
                 .then(new Action() {
                     @Override
                     public void eval(TaskContext context) {

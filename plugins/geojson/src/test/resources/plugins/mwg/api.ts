@@ -1226,8 +1226,9 @@ break;
         public static get(name: string): org.mwg.task.Task {
           return org.mwg.task.Actions.newTask().get(name);
         }
-        public static traverseIndex(indexName: string, query: string): org.mwg.task.Task {
-          return org.mwg.task.Actions.newTask().traverseIndex(indexName, query);
+        public static traverseIndex(indexName: string, ...queryParams: string[]): org.mwg.task.Task {
+          let t: org.mwg.task.Task = org.mwg.task.Actions.newTask().traverseIndex(indexName, ...queryParams);
+          return t;
         }
         public static traverseOrKeep(relationName: string): org.mwg.task.Task {
           return org.mwg.task.Actions.newTask().traverseOrKeep(relationName);
@@ -1362,7 +1363,7 @@ break;
         traverse(relationName: string): org.mwg.task.Task;
         get(name: string): org.mwg.task.Task;
         traverseOrKeep(relationName: string): org.mwg.task.Task;
-        traverseIndex(indexName: string, query: string): org.mwg.task.Task;
+        traverseIndex(indexName: string, ...queryArgs: string[]): org.mwg.task.Task;
         traverseIndexAll(indexName: string): org.mwg.task.Task;
         map(mapFunction: org.mwg.task.TaskFunctionMap<any, any>): org.mwg.task.Task;
         group(groupFunction: org.mwg.task.TaskFunctionGroup): org.mwg.task.Task;

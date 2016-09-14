@@ -2241,8 +2241,14 @@ var org;
                 Actions.get = function (name) {
                     return org.mwg.task.Actions.newTask().get(name);
                 };
-                Actions.traverseIndex = function (indexName, query) {
-                    return org.mwg.task.Actions.newTask().traverseIndex(indexName, query);
+                Actions.traverseIndex = function (indexName) {
+                    var queryParams = [];
+                    for (var _i = 1; _i < arguments.length; _i++) {
+                        queryParams[_i - 1] = arguments[_i];
+                    }
+                    var t = (_a = org.mwg.task.Actions.newTask()).traverseIndex.apply(_a, [indexName].concat(queryParams));
+                    return t;
+                    var _a;
                 };
                 Actions.traverseOrKeep = function (relationName) {
                     return org.mwg.task.Actions.newTask().traverseOrKeep(relationName);
@@ -9479,15 +9485,28 @@ var org;
                 task.ActionTraverse = ActionTraverse;
                 var ActionTraverseIndex = (function (_super) {
                     __extends(ActionTraverseIndex, _super);
-                    function ActionTraverseIndex(indexName, query) {
+                    function ActionTraverseIndex(indexName) {
+                        var queryParams = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            queryParams[_i - 1] = arguments[_i];
+                        }
                         _super.call(this);
-                        this._query = query;
+                        this._queryParams = queryParams;
                         this._indexName = indexName;
                     }
                     ActionTraverseIndex.prototype.eval = function (context) {
                         var finalResult = context.wrap(null);
                         var flatName = context.template(this._indexName);
-                        var flatQuery = context.template(this._query);
+                        for (var i = 0; i < this._queryParams.length; i++) {
+                            this._queryParams[i] = context.template(this._queryParams[i]);
+                        }
+                        var query = context.graph().newQuery();
+                        query.setWorld(context.world());
+                        query.setTime(context.time());
+                        query.setIndexName(flatName);
+                        for (var i = 0; i < this._queryParams.length; i = i + 2) {
+                            query.add(this._queryParams[i], this._queryParams[i + 1]);
+                        }
                         var previousResult = context.result();
                         if (previousResult != null) {
                             var previousSize = previousResult.size();
@@ -9496,7 +9515,7 @@ var org;
                                 var loop = previousResult.get(i);
                                 if (loop instanceof org.mwg.plugin.AbstractNode) {
                                     var casted_3 = loop;
-                                    casted_3.find(flatName, flatQuery, function (result) {
+                                    casted_3.findByQuery(query, function (result) {
                                         {
                                             if (result != null) {
                                                 for (var j = 0; j < result.length; j++) {
@@ -9530,7 +9549,7 @@ var org;
                         }
                     };
                     ActionTraverseIndex.prototype.toString = function () {
-                        return "traverseIndex(\'" + this._indexName + org.mwg.core.CoreConstants.QUERY_SEP + this._query + "\')";
+                        return "traverseIndex(\'" + this._indexName + org.mwg.core.CoreConstants.QUERY_SEP + java.lang.String.join(",", this._queryParams) + "\')";
                     };
                     return ActionTraverseIndex;
                 }(org.mwg.plugin.AbstractTaskAction));
@@ -9944,12 +9963,20 @@ var org;
                         this.addAction(new org.mwg.core.task.ActionTraverseOrKeep(relationName));
                         return this;
                     };
-                    CoreTask.prototype.traverseIndex = function (indexName, query) {
+                    CoreTask.prototype.traverseIndex = function (indexName) {
+                        var queryParams = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            queryParams[_i - 1] = arguments[_i];
+                        }
                         if (indexName == null) {
                             throw new Error("indexName should not be null");
                         }
-                        this.addAction(new org.mwg.core.task.ActionTraverseIndex(indexName, query));
+                        if (queryParams.length % 2 != 0) {
+                            throw new Error("The number of arguments in the queryParams MUST be even, because it should be a sequence of \"key\",\"value\". Current size: " + queryParams.length);
+                        }
+                        this.addAction(new ((_a = org.mwg.core.task.ActionTraverseIndex).bind.apply(_a, [void 0].concat([indexName], queryParams)))());
                         return this;
+                        var _a;
                     };
                     CoreTask.prototype.traverseIndexAll = function (indexName) {
                         if (indexName == null) {

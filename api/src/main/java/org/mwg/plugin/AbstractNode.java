@@ -564,9 +564,9 @@ public abstract class AbstractNode implements Node {
             String attKey = keyAttributes[i];
             Object attValue = toIndexNodeState.getFromKey(attKey);
             if (attValue != null) {
-                flatQuery.add(keyAttributes[i], attValue.toString());
+                flatQuery.add(attKey, attValue.toString());
             } else {
-                flatQuery.add(keyAttributes[i], null);
+                flatQuery.add(attKey, null);
             }
         }
         boolean alreadyIndexed = false;

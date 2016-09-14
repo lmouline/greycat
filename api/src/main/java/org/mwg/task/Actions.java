@@ -130,8 +130,9 @@ public class Actions {
         return newTask().get(name);
     }
 
-    public static Task traverseIndex(String indexName, String query) {
-        return newTask().traverseIndex(indexName, query);
+    public static Task traverseIndex(String indexName, String... queryParams) {
+        Task t = newTask().traverseIndex(indexName, queryParams);
+        return t;
     }
 
     public static Task traverseOrKeep(String relationName) {

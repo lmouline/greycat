@@ -238,7 +238,7 @@ final class MWGResolver implements Resolver {
             finalResult[i] = null;
         }
         final boolean[] isEmpty = {true};
-        long[] keys = new long[idsSize * Constants.KEY_SIZE];
+        final long[] keys = new long[idsSize * Constants.KEY_SIZE];
         for (int i = 0; i < idsSize; i++) {
             isEmpty[0] = false;
             keys[i * Constants.KEY_SIZE] = ChunkType.WORLD_ORDER_CHUNK;

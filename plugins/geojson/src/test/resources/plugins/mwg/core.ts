@@ -5987,16 +5987,25 @@ break;
         }
         export class ActionTraverseIndex extends org.mwg.plugin.AbstractTaskAction {
           private _indexName: string;
-          private _query: string;
-          constructor(indexName: string, query: string) {
+          private _queryParams: string[];
+          constructor(indexName: string, ...queryParams: string[]) {
             super();
-            this._query = query;
+            this._queryParams = queryParams;
             this._indexName = indexName;
           }
           public eval(context: org.mwg.task.TaskContext): void {
             let finalResult: org.mwg.task.TaskResult<any> = context.wrap(null);
             let flatName: string = context.template(this._indexName);
-            let flatQuery: string = context.template(this._query);
+            for (let i: number = 0; i < this._queryParams.length; i++) {
+              this._queryParams[i] = context.template(this._queryParams[i]);
+            }
+            let query: org.mwg.Query = context.graph().newQuery();
+            query.setWorld(context.world());
+            query.setTime(context.time());
+            query.setIndexName(flatName);
+            for (let i: number = 0; i < this._queryParams.length; i = i + 2) {
+              query.add(this._queryParams[i], this._queryParams[i + 1]);
+            }
             let previousResult: org.mwg.task.TaskResult<any> = context.result();
             if (previousResult != null) {
               let previousSize: number = previousResult.size();
@@ -6005,7 +6014,7 @@ break;
                 let loop: any = previousResult.get(i);
                 if (loop instanceof org.mwg.plugin.AbstractNode) {
                   let casted: org.mwg.Node = <org.mwg.Node>loop;
-                  casted.find(flatName, flatQuery, (result : org.mwg.Node[]) => {
+                  casted.findByQuery(query, (result : org.mwg.Node[]) => {
 {
                       if (result != null) {
                         for (let j: number = 0; j < result.length; j++) {
@@ -6032,7 +6041,7 @@ break;
             }
           }
           public toString(): string {
-            return "traverseIndex(\'" + this._indexName + org.mwg.core.CoreConstants.QUERY_SEP + this._query + "\')";
+            return "traverseIndex(\'" + this._indexName + org.mwg.core.CoreConstants.QUERY_SEP + java.lang.String.join(",", this._queryParams) + "\')";
           }
         }
         export class ActionTraverseIndexAll extends org.mwg.plugin.AbstractTaskAction {
@@ -6412,11 +6421,14 @@ break;
             this.addAction(new org.mwg.core.task.ActionTraverseOrKeep(relationName));
             return this;
           }
-          public traverseIndex(indexName: string, query: string): org.mwg.task.Task {
+          public traverseIndex(indexName: string, ...queryParams: string[]): org.mwg.task.Task {
             if (indexName == null) {
               throw new Error("indexName should not be null");
             }
-            this.addAction(new org.mwg.core.task.ActionTraverseIndex(indexName, query));
+            if (queryParams.length % 2 != 0) {
+              throw new Error("The number of arguments in the queryParams MUST be even, because it should be a sequence of \"key\",\"value\". Current size: " + queryParams.length);
+            }
+            this.addAction(new org.mwg.core.task.ActionTraverseIndex(indexName, ...queryParams));
             return this;
           }
           public traverseIndexAll(indexName: string): org.mwg.task.Task {

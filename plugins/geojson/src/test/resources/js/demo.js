@@ -161,7 +161,8 @@ var Demo = function () {
     // .hook(hookFactory)
         .setTime("{{processTime}}")
         .fromIndex("cities", "name={{contract_name}}")
-        .traverseIndexAll("positions")
+        .traverse("positions")
+        .print("{{result}}")
         .action(org.mwg.structure.action.NTreeNearestNWithinRadius.NAME, "{{actionParam}}")
         .then(function (context) {
             if (markers != undefined) {

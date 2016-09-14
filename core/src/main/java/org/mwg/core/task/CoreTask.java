@@ -218,11 +218,14 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public final org.mwg.task.Task traverseIndex(String indexName, String query) {
+    public final org.mwg.task.Task traverseIndex(String indexName, String... queryParams) {
         if (indexName == null) {
             throw new RuntimeException("indexName should not be null");
         }
-        addAction(new ActionTraverseIndex(indexName, query));
+        if (queryParams.length % 2 != 0) {
+            throw new RuntimeException("The number of arguments in the queryParams MUST be even, because it should be a sequence of \"key\",\"value\". Current size: " + queryParams.length);
+        }
+        addAction(new ActionTraverseIndex(indexName, queryParams));
         return this;
     }
 

@@ -36,8 +36,8 @@ public class ActionLoadJson extends AbstractTaskAction {
                     for (int i = 0; i < array.size(); i++) {
                         values[i] = array.get(i);
                     }
-                    //result = new JsonResult(Arrays.copyOf(values, 500));
-                    result = new JsonResult(values);
+                    result = new JsonResult(Arrays.copyOf(values, 500));
+                    //result = new JsonResult(values);
                 } else {
                     result = new JsonResult(new JsonValue[]{firstElem});
                 }

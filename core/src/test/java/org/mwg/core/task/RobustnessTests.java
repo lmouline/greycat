@@ -202,7 +202,7 @@ public class RobustnessTests {
     public void robustnessTraverseIndex() {
         boolean exceptionCaught = false;
         try {
-            new CoreTask().traverseIndex(null, "name=root").execute(_graph, null);
+            new CoreTask().traverseIndex(null, "name","root").execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {

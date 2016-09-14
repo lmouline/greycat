@@ -229,10 +229,10 @@ public interface Task {
      * Traverse a relation indexed by {@code indexName} and retrieve specific node thanks to the {@code query}
      *
      * @param indexName index name of indexed relation
-     * @param query     query to retrieve specific nodes
-     * @return this task to chain actions (fluent API)
+     * @param queryArgs arguments of the query. Must be an even number, in form of: "&lt;att1&gt;","&lt;value1&gt;","&lt;att2&gt;","&lt;value2&gt;"
+     * @return          this task to chain actions (fluent API)
      */
-    Task traverseIndex(String indexName, String query);
+    Task traverseIndex(String indexName, String... queryArgs);
 
     /**
      * Traverse a relation indexed by {@code indexName}

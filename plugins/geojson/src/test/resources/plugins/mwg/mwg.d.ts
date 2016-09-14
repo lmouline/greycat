@@ -785,7 +785,7 @@ declare module org {
                 static selectObject(filterFunction: org.mwg.task.TaskFunctionSelectObject): org.mwg.task.Task;
                 static traverse(relationName: string): org.mwg.task.Task;
                 static get(name: string): org.mwg.task.Task;
-                static traverseIndex(indexName: string, query: string): org.mwg.task.Task;
+                static traverseIndex(indexName: string, ...queryParams: string[]): org.mwg.task.Task;
                 static traverseOrKeep(relationName: string): org.mwg.task.Task;
                 static traverseIndexAll(indexName: string): org.mwg.task.Task;
                 static loop(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
@@ -849,7 +849,7 @@ declare module org {
                 traverse(relationName: string): org.mwg.task.Task;
                 get(name: string): org.mwg.task.Task;
                 traverseOrKeep(relationName: string): org.mwg.task.Task;
-                traverseIndex(indexName: string, query: string): org.mwg.task.Task;
+                traverseIndex(indexName: string, ...queryArgs: string[]): org.mwg.task.Task;
                 traverseIndexAll(indexName: string): org.mwg.task.Task;
                 map(mapFunction: org.mwg.task.TaskFunctionMap<any, any>): org.mwg.task.Task;
                 group(groupFunction: org.mwg.task.TaskFunctionGroup): org.mwg.task.Task;
@@ -1862,8 +1862,8 @@ declare module org {
                 }
                 class ActionTraverseIndex extends org.mwg.plugin.AbstractTaskAction {
                     private _indexName;
-                    private _query;
-                    constructor(indexName: string, query: string);
+                    private _queryParams;
+                    constructor(indexName: string, ...queryParams: string[]);
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
@@ -1942,7 +1942,7 @@ declare module org {
                     get(name: string): org.mwg.task.Task;
                     traverse(relationName: string): org.mwg.task.Task;
                     traverseOrKeep(relationName: string): org.mwg.task.Task;
-                    traverseIndex(indexName: string, query: string): org.mwg.task.Task;
+                    traverseIndex(indexName: string, ...queryParams: string[]): org.mwg.task.Task;
                     traverseIndexAll(indexName: string): org.mwg.task.Task;
                     map(mapFunction: org.mwg.task.TaskFunctionMap<any, any>): org.mwg.task.Task;
                     group(groupFunction: org.mwg.task.TaskFunctionGroup): org.mwg.task.Task;
