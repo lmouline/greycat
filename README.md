@@ -8,58 +8,14 @@ Short presentation
 
 What-if oriented graph database for prescriptive analytics....
 
-Design Principles and Features
-------------------------------
-As a main design principle KMF was from the beginning designed with strict memory usage, runtime performance, and thread safety requirements in mind.
-KMF takes efficiency seriously.
-This includes implementing custom versions of internal core data structures, like hash maps and red-black trees backed by primitive arrays, to improve performance and memory usage.
-To cope at the same time with the large-scale, distributed, and constantly changing nature of modern applications the design of KMF combines ideas from reactive programming, peer-to-peer distribution, big data management, and machine learning.
-The distributed aspect of many modern applications lead to the decision to design a completely asynchronous core for KMF.
-Models are defined as observable streams of chunks that are exchanged between nodes in a peer-to-peer manner.
-A lazy loading strategy allows to transparently access the complete virtual model from every node, although chunks are actually distributed across nodes.
-Observers and automatic reloading of chunks enable a reactive programming style.
-
-Features:
-
-* native support for temporal data and reasoning
-* asynchronous method calls
-* support for Java and JavaScript
-* code generation based on a meta model definition **and** dynamically instantiated meta models
-* easy-to-use API to traverse models
-* native mechanisms for distribution
-* native versioning of models on a per-object basis
-* ...
-
-Changelog
-=========
-
-## Versions:
-
-The strategy to version mwg is lead by the version of the API.
-It means that the API version will follow an incremental number (*e.g* like 1 then 2 then 3...) that define the compatibility with user code.
-According to that, all compatible core runtime and plugins will have a version prefixed by this number, such as 1.1.
-In short the version schema of mwg bundle will have the form <API_VERSION>.<BUGFIX_VERSION>.
-
-### 1.x
-
-Initial API version (issued from the fork of KMF 4.27 ): (planned for beginning of June)
-
-Modules
-=============
-
-* Core **(https://github.com/kevoree-modeling/mwDB/tree/master/core)**
-* CoreJS **(https://github.com/kevoree-modeling/mwDB/tree/master/corejs)**
-* Plugins **(https://github.com/kevoree-modeling/mwDB/tree/master/plugins)**
-
-
 Getting started
 ==============
 
-Coming soon...
+Please visit [http://mwdb.kevoree.org/book](http://mwdb.kevoree.org/book)
 
-Publications:
+Scientific Publications:
 -------------
-Within the scope of the mwdb project several research papers have been published:
+Within the scope of the MWG project several research papers have been published:
 
 **Foundation papers:**
 

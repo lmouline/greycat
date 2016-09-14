@@ -1,7 +1,11 @@
 # Summary
 
 * [Introduction](README.md)
-* [Quick start](start.md)
+* [Quick start](start/README.md)
+	* [First minimal graph](start/minimal.md)
+	* [Temporal graph](start/temporal.md)
+	* [Many World graph](start/manyworld.md)
+	* [Distributed graph](start/distributed.md)
 * [Tasks](tasks/README.md)
 	* [Context and variables](tasks/Context.md)
 	* [Actions](tasks/actions/README.md)
