@@ -18,6 +18,7 @@ var Demo = function () {
 
             initOptionList();
             updateContract("Luxembourg");
+            //console.log(graph);
 
         });
         initFlatpickr();
@@ -111,7 +112,7 @@ var Demo = function () {
 
     };
     var addFilterCircle = function () {
-        filterCircle = L.circle([49.632386, 6.168544], 200).addTo(mymap);
+        filterCircle = L.circle([49.632386, 6.168544], 2000).addTo(mymap);
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function (position) {
                 userPositionMarker.setLatLng([position.coords.latitude, position.coords.longitude]);
@@ -162,7 +163,7 @@ var Demo = function () {
         .setTime("{{processTime}}")
         .fromIndex("cities", "name={{contract_name}}")
         .traverse("positions")
-        .print("{{result}}")
+        //.print("{{result}}")
         .action(org.mwg.structure.action.NTreeNearestNWithinRadius.NAME, "{{actionParam}}")
         .then(function (context) {
             if (markers != undefined) {
