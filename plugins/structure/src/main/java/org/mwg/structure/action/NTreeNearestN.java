@@ -7,6 +7,7 @@ import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.plugin.Job;
 import org.mwg.structure.NTree;
 import org.mwg.structure.tree.KDTree;
+import org.mwg.structure.tree.NDTree;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 import org.mwg.task.TaskResultIterator;
@@ -33,12 +34,14 @@ public class NTreeNearestN extends AbstractTaskAction {
             final TaskResultIterator previousResultIt = previousResult.iterator();
             Object iter = previousResultIt.next();
             while (iter != null) {
-                if (iter instanceof KDTree) {
+                if (iter instanceof KDTree || iter instanceof NDTree) {
                     ((NTree) iter).nearestN(_key, _n, new Callback<Node[]>() {
                         @Override
                         public void on(Node[] result) {
                             for (int i = 0; i < result.length; i++) {
-                                nextResult.add(result[i]);
+                                if (result[i] != null) {
+                                    nextResult.add(result[i]);
+                                }
                             }
                             defer.count();
                         }
