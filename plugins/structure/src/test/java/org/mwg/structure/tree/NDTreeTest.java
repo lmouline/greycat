@@ -17,7 +17,110 @@ import java.util.Random;
  */
 
 public class NDTreeTest {
+
     @Test
+    public void NDTest() {
+        final Graph graph = new GraphBuilder()
+                .withPlugin(new StructurePlugin())
+                .withMemorySize(1000)
+                //.withOffHeapMemory()
+                .build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                NDTree ndTree = (NDTree) graph.newTypedNode(0, 0, NDTree.NAME);
+                KDTree kdtree = (KDTree) graph.newTypedNode(0, 0, KDTree.NAME);
+
+                KDTreeJava kdtreejava = new KDTreeJava();
+                kdtreejava.setThreshold(KDTree.DISTANCE_THRESHOLD_DEF);
+
+                boolean print=true;
+
+
+                kdtreejava.setDistance(GeoDistance.instance());
+                kdtree.setDistance(Distances.GEODISTANCE);
+                ndTree.setDistance(Distances.GEODISTANCE);
+
+                int dim = 2;
+
+                double[] precisions = new double[dim];
+                double[] boundMin  = new double[dim];
+                double[] boundMax  = new double[dim];
+
+                for(int i=0;i<dim;i++){
+                    precisions[i]=0.25;
+                    boundMin[i]=0;
+                    boundMax[i]=1;
+                }
+
+
+                ndTree.setProperty(NDTree.BOUNDMIN, Type.DOUBLE_ARRAY, boundMin);
+                ndTree.setProperty(NDTree.BOUNDMAX, Type.DOUBLE_ARRAY, boundMax);
+                ndTree.setProperty(NDTree.PRECISION, Type.DOUBLE_ARRAY, precisions);
+
+
+                Random random = new Random();
+                random.setSeed(125362l);
+                int ins = 100;
+
+                graph.save(null);
+                long initcache = graph.space().available();
+
+
+                double[][] keys = new double[ins][];
+                Node[] values = new Node[ins];
+
+
+                for (int i = 0; i < ins; i++) {
+                    Node temp = graph.newNode(0, 0);
+                    //temp.setProperty("value", Type.DOUBLE, random.nextDouble());
+
+                    double[] key = new double[dim];
+                    for(int j=0;j<dim;j++){
+                        key[j]=random.nextDouble();
+                    }
+
+                    temp.set("key", key);
+                    keys[i] = key;
+                    values[i] = temp;
+                }
+
+                for (int i = 0; i < ins; i++) {
+                    ndTree.insertWith(keys[i], values[i], null);
+                    kdtree.insertWith(keys[i], values[i], null);
+                    kdtreejava.insert(keys[i], values[i], null);
+                }
+
+
+
+                double[] res = new double[dim];
+                for(int j=0;j<dim;j++){
+                    res[j]=j*(1.0/dim);
+                }
+
+                ndTree.nearestN(res, 10, new Callback<Node[]>() {
+                            @Override
+                            public void on(Node[] result) {
+                                kdtree.nearestN(res, 10, new Callback<Node[]>() {
+                                    @Override
+                                    public void on(Node[] result2) {
+                                        for(int i=0;i<result.length;i++){
+                                            Assert.assertTrue(result[i].id()==result2[i].id());
+                                        }
+                                    }
+                                });
+
+                            }
+                        });
+
+
+
+            }
+        });
+    }
+
+
+
     public void NDInsertTest() {
         final Graph graph = new GraphBuilder()
                 .withPlugin(new StructurePlugin())
