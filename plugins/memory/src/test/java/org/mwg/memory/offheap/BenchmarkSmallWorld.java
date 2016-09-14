@@ -15,8 +15,6 @@ public class BenchmarkSmallWorld {
 
     public static void main(String[] args) {
 
-        Unsafe.DEBUG_MODE = true;
-
         Graph g = new GraphBuilder()
                 .withMemorySize(100000)
                 .withPlugin(new OffHeapMemoryPlugin())

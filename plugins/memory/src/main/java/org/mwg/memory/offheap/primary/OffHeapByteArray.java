@@ -5,17 +5,14 @@ import org.mwg.utility.Unsafe;
 
 public class OffHeapByteArray {
 
-    public static long alloc_counter = 0;
-
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
 
     public static long allocate(final long capacity) {
-        if (Unsafe.DEBUG_MODE) {
-            alloc_counter++;
-        }
-
         //create the memory segment
         long newMemorySegment = unsafe.allocateMemory(capacity);
+        if (OffHeapConstants.DEBUG_MODE) {
+            OffHeapConstants.SEGMENTS.put(newMemorySegment, capacity);
+        }
         //init the memory
         unsafe.setMemory(newMemorySegment, capacity, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
         //return the newly created segment
@@ -23,7 +20,12 @@ public class OffHeapByteArray {
     }
 
     public static long reallocate(final long addr, final long nextCapacity) {
-        return unsafe.reallocateMemory(addr, nextCapacity);
+        long new_segment = unsafe.reallocateMemory(addr, nextCapacity);
+        if (OffHeapConstants.DEBUG_MODE) {
+            OffHeapConstants.SEGMENTS.remove(addr);
+            OffHeapConstants.SEGMENTS.put(new_segment, nextCapacity);
+        }
+        return new_segment;
     }
 
     /**
@@ -36,32 +38,44 @@ public class OffHeapByteArray {
     public static void copyArray(final Object src, final long destAddr, final long nbElements) {
         int baseOffset = unsafe.arrayBaseOffset(src.getClass());
         int scaleOffset = unsafe.arrayIndexScale(src.getClass());
-
         unsafe.copyMemory(src, baseOffset, null, destAddr, nbElements * scaleOffset);
     }
 
     public static void set(final long addr, final long index, final byte valueToInsert) {
+        if (OffHeapConstants.DEBUG_MODE) {
+            Long allocated = OffHeapConstants.SEGMENTS.get(addr);
+            if (allocated == null || index < 0 || (index) > allocated) {
+                throw new RuntimeException("set: bad address " + index + "(" + index + ")" + " in " + allocated);
+            }
+        }
         unsafe.putByteVolatile(null, addr + index, valueToInsert);
     }
 
     public static byte get(final long addr, final long index) {
+        if (OffHeapConstants.DEBUG_MODE) {
+            Long allocated = OffHeapConstants.SEGMENTS.get(addr);
+            if (allocated == null || index < 0 || (index) > allocated) {
+                throw new RuntimeException("get: bad address " + index + " in " + allocated);
+            }
+        }
         return unsafe.getByteVolatile(null, addr + index);
     }
 
     public static void free(final long addr) {
-        if (Unsafe.DEBUG_MODE) {
-            alloc_counter--;
+        if (OffHeapConstants.DEBUG_MODE) {
+            OffHeapConstants.SEGMENTS.remove(addr);
         }
-
         unsafe.freeMemory(addr);
     }
 
     static long cloneArray(final long srcAddr, final long length) {
-        if (Unsafe.DEBUG_MODE) {
-            alloc_counter++;
+        if (srcAddr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            return srcAddr;
         }
-
         long newAddr = unsafe.allocateMemory(length);
+        if (OffHeapConstants.DEBUG_MODE) {
+            OffHeapConstants.SEGMENTS.put(newAddr, length);
+        }
         unsafe.copyMemory(srcAddr, newAddr, length);
         return newAddr;
     }

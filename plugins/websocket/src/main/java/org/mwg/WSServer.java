@@ -9,6 +9,7 @@ import org.mwg.chunk.Chunk;
 import org.mwg.plugin.Job;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
+import org.mwg.utility.KeyHelper;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -161,7 +162,7 @@ public class WSServer implements WebSocketConnectionCallback {
                             notificationBuffer.write(WSConstants.REQ_UPDATE);
                             for (int i = 0; i < collectedKeys.length; i++) {
                                 notificationBuffer.write(Constants.BUFFER_SEP);
-                                collectedKeys[i].write(notificationBuffer);
+                                KeyHelper.keyToBuffer(notificationBuffer, collectedKeys[i].type, collectedKeys[i].world, collectedKeys[i].time, collectedKeys[i].id);
                             }
                             byte[] notificationMsg = notificationBuffer.data();
                             notificationBuffer.free();
@@ -200,7 +201,7 @@ public class WSServer implements WebSocketConnectionCallback {
                         graph.space().unmark(memoryChunk.index());
                     } else {
                         Chunk newChunk = graph.space().createAndMark(tuple.type, tuple.world, tuple.time, tuple.id);
-                        if(newChunk != null){
+                        if (newChunk != null) {
                             newChunk.load(values[finalI]);
                             graph.space().unmark(newChunk.index());
                         }

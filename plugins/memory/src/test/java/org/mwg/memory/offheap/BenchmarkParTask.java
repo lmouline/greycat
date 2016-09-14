@@ -15,8 +15,6 @@ public class BenchmarkParTask {
 
     public static void main(String[] args) {
 
-        //Unsafe.DEBUG_MODE = true;
-
         Graph g = new GraphBuilder()
                 .withMemorySize(1000000)
                 .withPlugin(new OffHeapMemoryPlugin())

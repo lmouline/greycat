@@ -17,17 +17,20 @@ public class OffHeapBufferTest extends AbstractBufferTest {
 
     @Before
     public void setUp() throws Exception {
-        OffHeapByteArray.alloc_counter = 0;
-        OffHeapDoubleArray.alloc_counter = 0;
-        OffHeapLongArray.alloc_counter = 0;
-        Unsafe.DEBUG_MODE = true;
+        if (OffHeapConstants.DEBUG_MODE) {
+            OffHeapByteArray.alloc_counter = 0;
+            OffHeapDoubleArray.alloc_counter = 0;
+            OffHeapLongArray.alloc_counter = 0;
+        }
     }
 
     @After
     public void tearDown() throws Exception {
-        Assert.assertTrue(OffHeapByteArray.alloc_counter == 0);
-        Assert.assertTrue(OffHeapDoubleArray.alloc_counter == 0);
-        Assert.assertTrue(OffHeapLongArray.alloc_counter == 0);
+        if (OffHeapConstants.DEBUG_MODE) {
+            Assert.assertTrue(OffHeapByteArray.alloc_counter == 0);
+            Assert.assertTrue(OffHeapDoubleArray.alloc_counter == 0);
+            Assert.assertTrue(OffHeapLongArray.alloc_counter == 0);
+        }
     }
 
 }

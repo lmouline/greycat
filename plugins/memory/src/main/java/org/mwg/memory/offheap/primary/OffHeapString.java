@@ -11,8 +11,6 @@ public class OffHeapString {
     private static int SIZE = 8;
     private static int SHIFT = 12;
 
-    public static long alloc_counter = 0;
-
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
 
     public static void save(final long addr, final Buffer buffer) {
@@ -24,14 +22,15 @@ public class OffHeapString {
 
     public static long fromObject(String origin) {
         final byte[] valueAsByte = origin.getBytes();
-        long newStringPtr = unsafe.allocateMemory(SHIFT + valueAsByte.length);
+        final long allocationSize = SHIFT + valueAsByte.length;
+        final long newStringPtr = unsafe.allocateMemory(allocationSize);
+        if (OffHeapConstants.DEBUG_MODE) {
+            OffHeapConstants.SEGMENTS.put(newStringPtr, allocationSize);
+        }
         unsafe.putLong(newStringPtr, 1);
         unsafe.putInt(newStringPtr + 8, valueAsByte.length);
         for (int i = 0; i < valueAsByte.length; i++) {
-            unsafe.putByte(8 + 4 + newStringPtr + i, valueAsByte[i]);
-        }
-        if (Unsafe.DEBUG_MODE) {
-            alloc_counter++;
+            unsafe.putByte(newStringPtr + SHIFT + i, valueAsByte[i]);
         }
         return newStringPtr;
     }
@@ -67,8 +66,8 @@ public class OffHeapString {
         } while (!unsafe.compareAndSwapLong(null, addr + COW, cow, cow_after));
         if (cow == 1 && cow_after == 0) {
             unsafe.freeMemory(addr);
-            if (Unsafe.DEBUG_MODE) {
-                alloc_counter--;
+            if (OffHeapConstants.DEBUG_MODE) {
+                OffHeapConstants.SEGMENTS.remove(addr);
             }
         }
     }

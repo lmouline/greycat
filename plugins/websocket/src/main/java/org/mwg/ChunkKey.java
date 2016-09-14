@@ -24,7 +24,7 @@ class ChunkKey {
             if (current == Constants.KEY_SEP) {
                 switch (index) {
                     case 0:
-                        tuple.type = buffer.read(previous);
+                        tuple.type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
                         break;
                     case 1:
                         tuple.world = Base64.decodeToLongWithBounds(buffer, previous, cursor);
@@ -44,7 +44,7 @@ class ChunkKey {
         //collect last
         switch (index) {
             case 0:
-                tuple.type = buffer.read(previous);
+                tuple.type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
                 break;
             case 1:
                 tuple.world = Base64.decodeToLongWithBounds(buffer, previous, cursor);
@@ -57,16 +57,6 @@ class ChunkKey {
                 break;
         }
         return tuple;
-    }
-
-    public void write(org.mwg.struct.Buffer buffer) {
-        buffer.write(type);
-        buffer.write(Constants.KEY_SEP);
-        Base64.encodeLongToBuffer(world, buffer);
-        buffer.write(Constants.KEY_SEP);
-        Base64.encodeLongToBuffer(time, buffer);
-        buffer.write(Constants.KEY_SEP);
-        Base64.encodeLongToBuffer(id, buffer);
     }
 
 }

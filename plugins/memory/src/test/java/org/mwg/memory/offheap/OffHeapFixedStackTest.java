@@ -13,17 +13,13 @@ public class OffHeapFixedStackTest extends AbstractFixedStackTest {
     @Test
     public void offHeapFixedStackTest() {
 
-        OffHeapByteArray.alloc_counter = 0;
-        OffHeapLongArray.alloc_counter = 0;
-
-        Unsafe.DEBUG_MODE = true;
-
         Stack stack = new OffHeapFixedStack(CAPACITY, true);
         test(stack);
         stack.free();
 
-        Assert.assertTrue(OffHeapByteArray.alloc_counter == 0);
-        Assert.assertTrue(OffHeapLongArray.alloc_counter == 0);
+        if (OffHeapConstants.DEBUG_MODE) {
+            Assert.assertEquals(OffHeapConstants.SEGMENTS.size(), 1);
+        }
 
     }
 

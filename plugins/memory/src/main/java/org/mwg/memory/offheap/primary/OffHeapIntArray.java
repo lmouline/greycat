@@ -17,11 +17,11 @@ public class OffHeapIntArray {
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
 
     public static long allocate(final long capacity) {
-        if (Unsafe.DEBUG_MODE) {
-            alloc_counter++;
-        }
         //create the memory segment
         long newMemorySegment = unsafe.allocateMemory(capacity * 4);
+        if (OffHeapConstants.DEBUG_MODE) {
+            OffHeapConstants.SEGMENTS.put(newMemorySegment, capacity * 4);
+        }
         //init the memory
         unsafe.setMemory(newMemorySegment, capacity * 4, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
         //return the newly created segment
@@ -33,20 +33,37 @@ public class OffHeapIntArray {
     }
 
     public static long reallocate(final long addr, final long nextCapacity) {
-        return unsafe.reallocateMemory(addr, nextCapacity * 4);
+        long new_segment = unsafe.reallocateMemory(addr, nextCapacity * 4);
+        if (OffHeapConstants.DEBUG_MODE) {
+            OffHeapConstants.SEGMENTS.remove(addr);
+            OffHeapConstants.SEGMENTS.put(new_segment, nextCapacity * 4);
+        }
+        return new_segment;
     }
 
     public static void set(final long addr, final long index, final int valueToInsert) {
+        if (OffHeapConstants.DEBUG_MODE) {
+            Long allocated = OffHeapConstants.SEGMENTS.get(addr);
+            if (allocated == null || index < 0 || (index * 4) > allocated) {
+                throw new RuntimeException("set: bad address " + index + "(" + index * 4 + ")" + " in " + allocated);
+            }
+        }
         unsafe.putIntVolatile(null, addr + index * 4, valueToInsert);
     }
 
     public static int get(final long addr, final long index) {
+        if (OffHeapConstants.DEBUG_MODE) {
+            Long allocated = OffHeapConstants.SEGMENTS.get(addr);
+            if (allocated == null || index < 0 || (index * 4) > allocated) {
+                throw new RuntimeException("get: bad address " + index + " in " + allocated);
+            }
+        }
         return unsafe.getIntVolatile(null, addr + index * 4);
     }
 
     public static void free(final long addr) {
-        if (Unsafe.DEBUG_MODE) {
-            alloc_counter--;
+        if (OffHeapConstants.DEBUG_MODE) {
+            OffHeapConstants.SEGMENTS.remove(addr);
         }
         unsafe.freeMemory(addr);
     }
@@ -108,8 +125,8 @@ public class OffHeapIntArray {
         } while (!compareAndSwap(addr, COW_INDEX, cow, cow_after));
         if (cow == 1 && cow_after == 0) {
             unsafe.freeMemory(addr);
-            if (Unsafe.DEBUG_MODE) {
-                alloc_counter--;
+            if (OffHeapConstants.DEBUG_MODE) {
+                OffHeapConstants.SEGMENTS.remove(addr);
             }
         }
     }

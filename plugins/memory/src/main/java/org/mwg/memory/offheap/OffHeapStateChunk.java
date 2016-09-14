@@ -499,6 +499,7 @@ class OffHeapStateChunk implements StateChunk {
                         throw new RuntimeException("Internal Exception, unknown type");
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 throw new RuntimeException("mwDB usage error, set method called with type " + Type.typeName(p_type) + " while param object is " + p_unsafe_elem);
             }
         }
