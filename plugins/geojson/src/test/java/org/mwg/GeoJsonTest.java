@@ -182,7 +182,7 @@ public class GeoJsonTest {
                                             //.print("{{positionsNode}}")
                             ).clear()
                     ).print("Update done.")
-                    .fromIndexAll("cities").print("{{result}}")
+                    //.fromIndexAll("cities").print("{{result}}")
                     .clear();
 
     private void update(Graph graph) {

@@ -18,7 +18,6 @@ var Demo = function () {
 
             initOptionList();
             updateContract("Luxembourg");
-            //console.log(graph);
 
         });
         initFlatpickr();
