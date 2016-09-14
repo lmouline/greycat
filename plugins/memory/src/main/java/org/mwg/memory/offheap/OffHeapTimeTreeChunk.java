@@ -151,7 +151,8 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             while (cursor < payloadSize) {
                 byte current = buffer.read(cursor);
                 if (current == Constants.CHUNK_SUB_SEP) {
-                    isDirty = isDirty || internal_insert(addr, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    boolean insertResult = internal_insert(addr, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    isDirty = isDirty || insertResult;
                     previous = cursor + 1;
                 } else if (current == Constants.CHUNK_SEP) {
                     final long treeSize = Base64.decodeToLongWithBounds(buffer, previous, cursor);
@@ -161,7 +162,8 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                 }
                 cursor++;
             }
-            isDirty = isDirty || internal_insert(addr, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+            boolean insertResult = internal_insert(addr, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+            isDirty = isDirty || insertResult;
             if (isDirty && !initial && OffHeapLongArray.get(addr, DIRTY) != 1) {
                 OffHeapLongArray.set(addr, DIRTY, 1);
                 space.notifyUpdate(index);

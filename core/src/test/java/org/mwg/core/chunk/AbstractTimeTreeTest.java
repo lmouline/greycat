@@ -77,7 +77,7 @@ public abstract class AbstractTimeTreeTest {
         space.freeAll();
 
     }
-    
+
     @Test
     public void massiveTest() {
         ChunkSpace space = factory.newSpace(100, null);
@@ -153,5 +153,21 @@ public abstract class AbstractTimeTreeTest {
         }
         return true;
     }
+
+
+    /*
+    @Test
+    public void loadTest() {
+        ChunkSpace space = factory.newSpace(100, null);
+        TimeTreeChunk chunk = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
+
+        Buffer buffer = factory.newBuffer();
+        buffer.writeAll("W|////////9,q5RzhfA,q5RzwIe,q5Rz+x+,q5R0Nba,q5R0cE4,q5R0quU,q5R05Xs,q5R1IBK,q5R1Wqo,q5R1lUM".getBytes());
+        chunk.load(buffer);
+
+        space.free(chunk);
+        space.freeAll();
+    }
+*/
 
 }

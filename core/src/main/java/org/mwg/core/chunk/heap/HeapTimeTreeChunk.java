@@ -94,7 +94,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         while (cursor < payloadSize) {
             byte current = buffer.read(cursor);
             if (current == CoreConstants.CHUNK_SUB_SEP) {
-                isDirty = isDirty || internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                isDirty = isDirty || insertResult;
                 previous = cursor + 1;
             } else if (current == CoreConstants.CHUNK_SEP) {
                 reallocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -102,7 +103,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             }
             cursor++;
         }
-        isDirty = isDirty || internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        isDirty = isDirty || insertResult;
         if (isDirty && !initial && !_dirty) {
             _dirty = true;
             if (_space != null) {
