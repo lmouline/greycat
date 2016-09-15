@@ -1041,11 +1041,11 @@ declare module org {
                 check(inputType: number, input: any): void;
             }
             class HashHelper {
-                static PRIME1: Long;
-                static PRIME2: Long;
-                static PRIME3: Long;
-                static PRIME4: Long;
-                static PRIME5: Long;
+                private static PRIME1;
+                private static PRIME2;
+                private static PRIME3;
+                private static PRIME4;
+                private static PRIME5;
                 private static len;
                 private static byteTable;
                 private static HSTART;
