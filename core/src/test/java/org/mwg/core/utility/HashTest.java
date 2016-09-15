@@ -5,11 +5,9 @@ import org.mwg.utility.HashHelper;
 
 import java.util.Random;
 
-/**
- * Created by assaad on 15/09/16.
- */
 public class HashTest {
 
+    /*
     @Test
     public void hashing(){
         int testTimes=1000000;
@@ -66,12 +64,10 @@ public class HashTest {
         double cov=(sumsq/dim - sum*sum)*(dim/(dim-1));
         double covr=(sumsqr/dim - sumr*sumr)*(dim/(dim-1));
 
-
-
         System.out.println("Triple hash");
         System.out.println("max dev: "+max+" avg dev: "+sum+ " ,std: "+Math.sqrt(cov));
         System.out.println("Random");
         System.out.println("max dev: "+maxr+" avg dev: "+sumr+ " ,std: "+Math.sqrt(covr));
-    }
+    }*/
 }
 

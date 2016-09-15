@@ -18,15 +18,17 @@ public class QueryTest implements Resolver, Graph {
 
         CoreQuery query = new CoreQuery(this, this);
         query.add("name", "Hello");
-        Assert.assertEquals(query.hash(), 3074775135214424L);
+        //64 bits version/
+        Assert.assertEquals(query.hash(), 8429737982204714L);
+        //Assert.assertEquals(query.hash(), 3074775135214424L);
 
         CoreQuery query2 = new CoreQuery(this, this);
         query2.add("id", "Hello");
-        Assert.assertEquals(query2.hash(), 1115038540081133L);
+        Assert.assertEquals(query2.hash(), -4949475811985026L);
 
         CoreQuery query3 = new CoreQuery(this, this);
         query3.add("id", "Hello2");
-        Assert.assertEquals(query3.hash(), 8950810462547208L);
+        Assert.assertEquals(query3.hash(), 5227124363167243L);
 
         Assert.assertTrue(query3.hash() != query.hash());
         Assert.assertTrue(query2.hash() != query.hash());
@@ -34,7 +36,7 @@ public class QueryTest implements Resolver, Graph {
 
         CoreQuery query4 = new CoreQuery(this, this);
         query4.add("id", "Hello2");
-        Assert.assertEquals(query4.hash(), 8950810462547208L);
+        Assert.assertEquals(query4.hash(), 5227124363167243L);
         Assert.assertEquals(query3.hash(), query4.hash());
 
     }

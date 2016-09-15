@@ -216,7 +216,7 @@ public class HashHelper {
      * @return The hash value
      */
     /**
-     * {@native ts
+     * {native ts
      * var h = org.mwg.utility.HashHelper.HSTART;
      * var dataLength = data.length;
      * for (var i = 0; i < dataLength; i++) {
@@ -225,7 +225,22 @@ public class HashHelper {
      * return h.mod(org.mwg.core.CoreConstants.END_OF_TIME).toNumber();
      * }
      */
+
+
+    /**
+     * {@native ts
+     * var hash = 0, i, chr, len;
+     * if (data.length === 0) return hash;
+     * for (i = 0, len = data.length; i < len; i++) {
+     * chr   = data.charCodeAt(i);
+     * hash  = ((hash << 5) - hash) + chr;
+     * hash |= 0; // Convert to 32bit integer
+     * }
+     * return hash;
+     * }
+     */
     public static long hash(String data) {
+        /*
         long h = HSTART;
         final long hmult = HMULT;
         final long[] ht = byteTable;
@@ -234,6 +249,8 @@ public class HashHelper {
             h = (h * hmult) ^ ht[data.codePointAt(i) & 0xff];
         }
         return h % Constants.END_OF_TIME;
+        */
+        return data.hashCode();
     }
 
     /**
