@@ -50,7 +50,6 @@ class ActionTraverse extends AbstractTaskAction {
             final String flatName = context.template(_name);
             if (isConsistent) {
                 //lookupAll usage
-
                 final ArrayList<Long> collected = new ArrayList<Long>();
                 for (int i = 0; i < previousSize; i++) {
                     final Object loop = previousResult.get(i);
@@ -75,7 +74,7 @@ class ActionTraverse extends AbstractTaskAction {
                 context.graph().lookupAll(world, time, flatCollected, new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
-
+                        context.continueWith(context.wrap(result));
                     }
                 });
             } else {
