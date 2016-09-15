@@ -549,7 +549,7 @@ public class NDTree extends AbstractNode implements NTree {
         return res;
     }
 
-  
+
     protected Distance getDistance(NodeState state) {
         int d = state.getWithDefault(_DISTANCE, DISTANCE_TYPE_DEF);
         Distance distance;
@@ -578,17 +578,9 @@ public class NDTree extends AbstractNode implements NTree {
     @Override
     public void nearestN(final double[] key, final int n, final Callback<Node[]> callback) {
         NodeState state = unphasedState();
-        int dim;
-        Object tdim = state.get(_DIM);
-        if (tdim == null) {
-            callback.on(null);
-            return;
-        } else {
-            dim = (int) tdim;
-            if (key.length != dim) {
-                throw new RuntimeException("Key size should always be the same");
-            }
-        }
+        int dim=state.getWithDefault(_DIM,key.length);
+
+        checkKey(state, key, dim);
 
         final NearestNeighborList nnl = new NearestNeighborList(n);
         Distance distance = getDistance(state);
@@ -642,17 +634,8 @@ public class NDTree extends AbstractNode implements NTree {
     @Override
     public void nearestWithinRadius(double[] key, double radius, Callback<Node[]> callback) {
         NodeState state = unphasedState();
-        int dim;
-        Object tdim = state.get(_DIM);
-        if (tdim == null) {
-            callback.on(null);
-            return;
-        } else {
-            dim = (int) tdim;
-            if (key.length != dim) {
-                throw new RuntimeException("Key size should always be the same");
-            }
-        }
+        int dim=state.getWithDefault(_DIM,key.length);
+        checkKey(state, key, dim);
 
         final NearestNeighborArrayList nnl = new NearestNeighborArrayList();
         Distance distance = getDistance(state);
@@ -707,17 +690,8 @@ public class NDTree extends AbstractNode implements NTree {
     @Override
     public void nearestNWithinRadius(double[] key, int nbElem, double radius, Callback<Node[]> callback) {
         NodeState state = unphasedState();
-        int dim;
-        Object tdim = state.get(_DIM);
-        if (tdim == null) {
-            callback.on(null);
-            return;
-        } else {
-            dim = (int) tdim;
-            if (key.length != dim) {
-                throw new RuntimeException("Key size should always be the same");
-            }
-        }
+        int dim=state.getWithDefault(_DIM,key.length);
+        checkKey(state, key, dim);
 
         final NearestNeighborList nnl = new NearestNeighborList(nbElem);
         Distance distance = getDistance(state);
