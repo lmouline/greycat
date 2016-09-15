@@ -18,7 +18,7 @@ public class OffHeapFixedStackTest extends AbstractFixedStackTest {
         stack.free();
 
         if (OffHeapConstants.DEBUG_MODE) {
-            Assert.assertEquals(OffHeapConstants.SEGMENTS.size(), 1);
+            Assert.assertEquals(OffHeapConstants.SEGMENTS.size(), 0);
         }
 
     }

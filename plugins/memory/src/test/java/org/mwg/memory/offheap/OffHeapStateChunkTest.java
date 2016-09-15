@@ -19,7 +19,7 @@ public class OffHeapStateChunkTest extends AbstractStateChunkTest {
     @After
     public void tearDown() throws Exception {
         if (OffHeapConstants.DEBUG_MODE) {
-            Assert.assertEquals(OffHeapConstants.SEGMENTS.size(),1);
+            Assert.assertEquals(OffHeapConstants.SEGMENTS.size(),0);
         }
     }
 

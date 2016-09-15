@@ -14,6 +14,7 @@ public abstract class AbstractChunkSpaceTest {
 
     @Test
     public void globalTest() {
+        
         ChunkSpace space = factory.newSpace(100, null);
 
         StateChunk stateChunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
@@ -24,7 +25,13 @@ public abstract class AbstractChunkSpaceTest {
 
         GenChunk genChunk = (GenChunk) space.createAndMark(ChunkType.GEN_CHUNK, 1, 1, 1);
 
+        space.free(stateChunk);
+        space.free(worldOrderChunk);
+        space.free(timeTreeChunk);
+        space.free(genChunk);
+
         space.freeAll();
+
     }
 
 }

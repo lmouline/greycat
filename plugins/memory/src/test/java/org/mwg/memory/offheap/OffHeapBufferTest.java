@@ -15,21 +15,10 @@ public class OffHeapBufferTest extends AbstractBufferTest {
         super(new OffHeapMemoryFactory());
     }
 
-    @Before
-    public void setUp() throws Exception {
-        if (OffHeapConstants.DEBUG_MODE) {
-            OffHeapByteArray.alloc_counter = 0;
-            OffHeapDoubleArray.alloc_counter = 0;
-            OffHeapLongArray.alloc_counter = 0;
-        }
-    }
-
     @After
     public void tearDown() throws Exception {
         if (OffHeapConstants.DEBUG_MODE) {
-            Assert.assertTrue(OffHeapByteArray.alloc_counter == 0);
-            Assert.assertTrue(OffHeapDoubleArray.alloc_counter == 0);
-            Assert.assertTrue(OffHeapLongArray.alloc_counter == 0);
+            Assert.assertEquals(OffHeapConstants.SEGMENTS.size(),0);
         }
     }
 
