@@ -55,7 +55,6 @@ public class HashHelperTest {
     /* HASH TESTS */
 
 
-
     @Test
     public void longHash_3Test() {
         long hash = HashHelper.longHash(CoreConstants.END_OF_TIME, CoreConstants.END_OF_TIME);
@@ -168,19 +167,18 @@ public class HashHelperTest {
     }
 */
 
-
-    /*
+/*
     @Test
     public void bench() {
 
-        System.out.println(HashHelper.tripleHash((byte) 0,10,10,10,1000000));
-
+        //System.out.println(HashHelper.tripleHash((byte) 0, 10, 10, 10, 1000000000));
         long before = System.currentTimeMillis();
-        for(long i=0;i<10000;i++){
-            long hashed = HashHelper.tripleHash((byte)0,i,i*2,i*3,10000);
+        long sum = 0;
+        for (long i = 0; i < 1000000000; i++) {
+            sum += HashHelper.tripleHash((byte) 0, i, i * 2, i * 3, 1000000000);
         }
         long after = System.currentTimeMillis();
-        System.out.println(after - before+" ms");
+        System.out.println(sum+"/"+(after - before) + " ms");
     }
 */
 
