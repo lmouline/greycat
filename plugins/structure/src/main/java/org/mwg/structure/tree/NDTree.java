@@ -63,13 +63,41 @@ public class NDTree extends AbstractNode implements NTree {
 
     public static boolean STAT_DEF = false;
 
-    public static String BOUNDMIN = "boundmin";
-    public static String BOUNDMAX = "boundmax";
-    public static String PRECISION = "precision";
-
 
     //The beginning of relations navigation
     static long _RELCONST = 16; //Should be always a power of 2
+
+
+
+    public void setBounds(double[] min, double[] max, double[] precisions){
+
+        NodeState state=unphasedState();
+        if(state.get(_BOUNDMIN)!=null){
+            throw new RuntimeException("Bounds can't be changed!, you need to re-index");
+        }
+
+        if(min.length!=max.length){
+            throw new RuntimeException("Min and max bounds should be the same array length");
+        }
+        if(precisions.length!=max.length){
+            throw new RuntimeException("Max and precision should be the same array length");
+        }
+
+        for(int i=0;i<min.length;i++){
+            if(min[i]>=max[i]){
+                throw new RuntimeException("Min should be always exclusively smaller than max");
+            }
+            if(precisions[i]>(max[i]-min[i])){
+                throw new RuntimeException("Precision should always be smaller than max-min");
+            }
+        }
+
+        state.set(_DIM,Type.INT,min.length);
+        state.set(_BOUNDMIN,Type.DOUBLE_ARRAY,min);
+        state.set(_BOUNDMAX,Type.DOUBLE_ARRAY,max);
+        state.set(_PRECISION,Type.DOUBLE_ARRAY,precisions);
+
+    }
 
 
     //region insert and nearest tasks
@@ -521,23 +549,7 @@ public class NDTree extends AbstractNode implements NTree {
         return res;
     }
 
-    @Override
-    public void setProperty(String propertyName, byte propertyType, Object propertyValue) {
-        if (propertyName.equals(BOUNDMIN)) {
-            NodeState state = unphasedState();
-            state.set(_BOUNDMIN, Type.DOUBLE_ARRAY, propertyValue);
-        } else if (propertyName.equals(BOUNDMAX)) {
-            NodeState state = unphasedState();
-            state.set(_BOUNDMAX, Type.DOUBLE_ARRAY, propertyValue);
-        } else if (propertyName.equals(PRECISION)) {
-            NodeState state = unphasedState();
-            state.set(_PRECISION, Type.DOUBLE_ARRAY, propertyValue);
-        } else {
-            super.setProperty(propertyName, propertyType, propertyValue);
-        }
-    }
-
-
+  
     protected Distance getDistance(NodeState state) {
         int d = state.getWithDefault(_DISTANCE, DISTANCE_TYPE_DEF);
         Distance distance;
@@ -758,20 +770,43 @@ public class NDTree extends AbstractNode implements NTree {
         nearestTask.executeUsing(tc);
     }
 
+
+    private boolean checkKey(NodeState state, double[] key, int dim) {
+        if (key.length != dim) {
+            throw new RuntimeException("Key size should always be the same");
+        }
+
+        double[] min = (double[]) state.get(_BOUNDMIN);
+        double[] max = (double[]) state.get(_BOUNDMAX);
+
+        if (min == null || max == null) {
+            throw new RuntimeException("Please set min and max boundary before inserting in the tree");
+        }
+
+        for (int i = 0; i < dim; i++) {
+            if (key[i] < min[i] || key[i] > max[i]) {
+                throw new RuntimeException("Key should be between min and max boundaries");
+            }
+        }
+
+        return true;
+    }
+
+
     @Override
     public void insertWith(double[] key, Node value, Callback<Boolean> callback) {
         NodeState state = unphasedState();
-        final double[] precisions = (double[]) state.get(_PRECISION);
+
+        if (value == null || key == null) {
+            return;
+        }
 
         if (state.get(_DIM) == null) {
             state.set(_DIM, Type.INT, key.length);
         }
 
         final int dim = state.getWithDefault(_DIM, key.length);
-
-        if (key.length != dim) {
-            throw new RuntimeException("Key size should always be the same");
-        }
+        checkKey(state, key, dim);
 
 
         TaskContext tc = insert.prepareWith(graph(), this, new Callback<TaskResult>() {
@@ -789,9 +824,10 @@ public class NDTree extends AbstractNode implements NTree {
 
         //Set global variables
         tc.setGlobalVariable("key", res);
-        if (value != null) {
-            tc.setGlobalVariable("value", value);
-        }
+        tc.setGlobalVariable("value", value);
+
+
+        final double[] precisions = (double[]) state.get(_PRECISION);
 
         final boolean updateStat = (boolean) state.getWithDefault(_STAT, STAT_DEF);
         tc.setGlobalVariable("updatestat", updateStat);

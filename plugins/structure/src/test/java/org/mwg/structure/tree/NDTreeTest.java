@@ -54,9 +54,7 @@ public class NDTreeTest {
                 }
 
 
-                ndTree.setProperty(NDTree.BOUNDMIN, Type.DOUBLE_ARRAY, boundMin);
-                ndTree.setProperty(NDTree.BOUNDMAX, Type.DOUBLE_ARRAY, boundMax);
-                ndTree.setProperty(NDTree.PRECISION, Type.DOUBLE_ARRAY, precisions);
+                ndTree.setBounds(boundMin,boundMax,precisions);
 
 
                 Random random = new Random();
@@ -162,11 +160,7 @@ public class NDTreeTest {
                     boundMax[i] = 1;
                 }
 
-
-                ndTree.setProperty(NDTree.BOUNDMIN, Type.DOUBLE_ARRAY, boundMin);
-                ndTree.setProperty(NDTree.BOUNDMAX, Type.DOUBLE_ARRAY, boundMax);
-                ndTree.setProperty(NDTree.PRECISION, Type.DOUBLE_ARRAY, precisions);
-
+                ndTree.setBounds(boundMin,boundMax,precisions);
 
                 Random random = new Random();
                 random.setSeed(125362l);
