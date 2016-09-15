@@ -38,7 +38,7 @@ public class OffHeapByteArray {
      * @param destAddr   start of address to store the source object
      * @param nbElements offset of destination address
      */
-    public static void copyArray(final Object src, final long destAddr, final long nbElements) {
+    public static void copyArray(final Object src, final long destAddr, final long index, final long nbElements) {
         int baseOffset = unsafe.arrayBaseOffset(src.getClass());
         int scaleOffset = unsafe.arrayIndexScale(src.getClass());
         if (OffHeapConstants.DEBUG_MODE) {
@@ -47,7 +47,7 @@ public class OffHeapByteArray {
                 throw new RuntimeException("set: bad address in " + allocated);
             }
         }
-        unsafe.copyMemory(src, baseOffset, null, destAddr, nbElements * scaleOffset);
+        unsafe.copyMemory(src, baseOffset, null, destAddr + index, nbElements * scaleOffset);
     }
 
     public static void set(final long addr, final long index, final byte valueToInsert) {
@@ -78,18 +78,6 @@ public class OffHeapByteArray {
             OffHeapConstants.SEGMENTS.remove(addr);
         }
         unsafe.freeMemory(addr);
-    }
-
-    static long cloneArray(final long srcAddr, final long length) {
-        if (srcAddr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-            return srcAddr;
-        }
-        long newAddr = unsafe.allocateMemory(length);
-        if (OffHeapConstants.DEBUG_MODE) {
-            OffHeapConstants.SEGMENTS.put(newAddr, length);
-        }
-        unsafe.copyMemory(srcAddr, newAddr, length);
-        return newAddr;
     }
 
 }

@@ -51,7 +51,7 @@ public class OffHeapByteArrayTest {
         int[] heapTable = new int[]{Integer.MAX_VALUE, Integer.MIN_VALUE, 3, 4, 5};
 
         final long offHeapTableAddr = OffHeapByteArray.allocate(heapTable.length * 4); //int on 4 bytes
-        OffHeapByteArray.copyArray(heapTable, offHeapTableAddr, heapTable.length);
+        OffHeapByteArray.copyArray(heapTable, offHeapTableAddr,0, heapTable.length);
 
         byte[] data = new byte[heapTable.length * 4];
         for (int i = 0; i < data.length; i++) {
@@ -71,7 +71,7 @@ public class OffHeapByteArrayTest {
         float[] heapTable = new float[]{Float.MAX_VALUE, Float.MIN_VALUE, 3.7f, 4.2f, 5.4f};
 
         final long offHeapTableAddr = OffHeapByteArray.allocate(heapTable.length * 4); //float on 4 bytes
-        OffHeapByteArray.copyArray(heapTable, offHeapTableAddr, heapTable.length);
+        OffHeapByteArray.copyArray(heapTable, offHeapTableAddr,0, heapTable.length);
 
         byte[] data = new byte[heapTable.length * 4];
         for (int i = 0; i < data.length; i++) {
@@ -93,7 +93,7 @@ public class OffHeapByteArrayTest {
         byte[] byteTable = new byte[]{127, 127, 8, 9};
 
         final long offHeapTableAddr = OffHeapByteArray.allocate(byteTable.length); //byte on 1 bytes
-        OffHeapByteArray.copyArray(byteTable, offHeapTableAddr, byteTable.length);
+        OffHeapByteArray.copyArray(byteTable, offHeapTableAddr,0, byteTable.length);
 
         byte[] data = new byte[byteTable.length];
         for (int i = 0; i < data.length; i++) {
