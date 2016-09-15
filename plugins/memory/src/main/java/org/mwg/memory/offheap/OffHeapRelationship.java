@@ -84,6 +84,22 @@ class OffHeapRelationship implements Relationship {
     }
 
     @Override
+    public void set(int index, long value) {
+        chunk.lock();
+        try {
+            final long addr = chunk.addrByIndex(index);
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                final long size = OffHeapLongArray.get(addr, SIZE);
+                if (index < size) {
+                    OffHeapLongArray.set(addr, index + SHIFT, value);
+                }
+            }
+        } finally {
+            chunk.unlock();
+        }
+    }
+
+    @Override
     public final Relationship add(final long newValue) {
         chunk.lock();
         try {
