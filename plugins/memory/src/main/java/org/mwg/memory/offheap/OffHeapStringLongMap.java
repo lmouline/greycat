@@ -303,7 +303,8 @@ class OffHeapStringLongMap implements StringLongMap {
             OffHeapLongArray.set(addr, SIZE, 1);
             OffHeapLongArray.set(addr, CAPACITY, capacity);
             OffHeapLongArray.set(addr, SUBHASH, subHash);
-            setKey(addr, 0, OffHeapString.fromObject(insertStringKey));
+            final long keyAddr = OffHeapString.fromObject(insertStringKey);
+            setKey(addr, 0, keyAddr);
             setKeyHash(addr, 0, keyHash);
             setValue(addr, 0, insertValue);
             setHash(subHash, capacity, (int) HashHelper.longHash(keyHash, capacity * 2), 0);
@@ -374,14 +375,26 @@ class OffHeapStringLongMap implements StringLongMap {
         if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
             final long size = OffHeapLongArray.get(addr, SIZE);
             for (long i = 0; i < size; i++) {
-                long keyAddr = key(addr, i);
-                if(keyAddr != OffHeapConstants.OFFHEAP_NULL_PTR){
+                final long keyAddr = key(addr, i);
+                if (keyAddr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                     OffHeapString.free(keyAddr);
                 }
             }
             final long previousHash = OffHeapLongArray.get(addr, SUBHASH);
             if (previousHash != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                if (OffHeapConstants.DEBUG_MODE) {
+                    if (!OffHeapConstants.SEGMENTS.containsKey(previousHash)) {
+                        throw new RuntimeException("Bad ADDR!");
+                    }
+                    OffHeapConstants.SEGMENTS.remove(previousHash);
+                }
                 OffHeapLongArray.free(previousHash);
+            }
+            if (OffHeapConstants.DEBUG_MODE) {
+                if (!OffHeapConstants.SEGMENTS.containsKey(addr)) {
+                    throw new RuntimeException("Bad ADDR!");
+                }
+                OffHeapConstants.SEGMENTS.remove(addr);
             }
             OffHeapLongArray.free(addr);
         }

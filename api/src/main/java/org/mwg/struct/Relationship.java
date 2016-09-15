@@ -6,6 +6,8 @@ public interface Relationship {
 
     long get(int index);
 
+    void set(int index, long value);
+
     Relationship add(long newValue);
 
     Relationship remove(long oldValue);

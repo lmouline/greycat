@@ -27,11 +27,7 @@ public class OffHeapIntArray {
         //return the newly created segment
         return newMemorySegment;
     }
-
-    public static void reset(final long addr, final long capacity) {
-        unsafe.setMemory(addr, capacity * 4, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
-    }
-
+    
     public static long reallocate(final long addr, final long nextCapacity) {
         long new_segment = unsafe.reallocateMemory(addr, nextCapacity * 4);
         if (OffHeapConstants.DEBUG_MODE) {

@@ -46,16 +46,16 @@ class OffHeapBuffer implements Buffer {
         if (bufferPtr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             capacity = getNewSize(Constants.MAP_INITIAL_CAPACITY, bytes.length);
             bufferPtr = OffHeapByteArray.allocate(capacity);
-            OffHeapByteArray.copyArray(bytes, bufferPtr, bytes.length);
+            OffHeapByteArray.copyArray(bytes, bufferPtr, writeCursor, bytes.length);
             writeCursor = bytes.length;
         } else if (writeCursor + bytes.length > capacity) {
             long newCapacity = getNewSize(capacity, capacity + bytes.length);
             bufferPtr = OffHeapByteArray.reallocate(bufferPtr, newCapacity);
-            OffHeapByteArray.copyArray(bytes, bufferPtr + writeCursor, bytes.length);
+            OffHeapByteArray.copyArray(bytes, bufferPtr, writeCursor, bytes.length);
             capacity = newCapacity;
             writeCursor = writeCursor + bytes.length;
         } else {
-            OffHeapByteArray.copyArray(bytes, bufferPtr + writeCursor, bytes.length);
+            OffHeapByteArray.copyArray(bytes, bufferPtr, writeCursor, bytes.length);
             writeCursor = writeCursor + bytes.length;
         }
     }

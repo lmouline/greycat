@@ -737,6 +737,7 @@ declare module org {
             interface Relationship {
                 size(): number;
                 get(index: number): number;
+                set(index: number, value: number): void;
                 add(newValue: number): org.mwg.struct.Relationship;
                 remove(oldValue: number): org.mwg.struct.Relationship;
                 clear(): org.mwg.struct.Relationship;
@@ -1354,6 +1355,7 @@ declare module org {
                         allocate(_capacity: number): void;
                         size(): number;
                         get(index: number): number;
+                        set(index: number, value: number): void;
                         unsafe_get(index: number): number;
                         add(newValue: number): org.mwg.struct.Relationship;
                         remove(oldValue: number): org.mwg.struct.Relationship;

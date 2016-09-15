@@ -595,7 +595,6 @@ class OffHeapStateChunk implements StateChunk {
                     }
                     OffHeapLongArray.set(addr, SIZE, size - 1);
                 } else {
-                    final byte previous_type = type(addr, entry);
                     final long previous_value = value(addr, entry);
                     //freeThePreviousValue
                     if (p_type == Type.DOUBLE) {
@@ -603,8 +602,8 @@ class OffHeapStateChunk implements StateChunk {
                     } else {
                         setValue(addr, entry, toAddr(p_type, p_unsafe_elem));
                     }
-                    freeElement(previous_value, previous_type);
-                    if (previous_type != p_type) {
+                    freeElement(previous_value, found_type);
+                    if (found_type != p_type) {
                         setType(addr, entry, p_type);
                     }
                 }

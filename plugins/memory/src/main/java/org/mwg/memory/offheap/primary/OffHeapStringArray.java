@@ -36,21 +36,22 @@ public class OffHeapStringArray {
         for (long i = 0; i < capacity; i++) {
             long stringPtr = OffHeapLongArray.get(addr, i);
             if (stringPtr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                if (OffHeapConstants.DEBUG_MODE) {
+                    if (!OffHeapConstants.SEGMENTS.containsKey(stringPtr)) {
+                        throw new RuntimeException("Bad ADDR!");
+                    }
+                    OffHeapConstants.SEGMENTS.remove(stringPtr);
+                }
                 OffHeapString.free(stringPtr);
             }
         }
-        OffHeapLongArray.free(addr);
-    }
-
-    public static long cloneArray(final long srcAddr, final long length) {
-        final long clonedArray = OffHeapLongArray.cloneArray(srcAddr, length);
-        for (long i = 0; i < length; i++) {
-            final long stringPtr = OffHeapLongArray.get(clonedArray, i);
-            if (stringPtr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                OffHeapString.clone(stringPtr);
+        if (OffHeapConstants.DEBUG_MODE) {
+            if (!OffHeapConstants.SEGMENTS.containsKey(addr)) {
+                throw new RuntimeException("Bad ADDR!");
             }
+            OffHeapConstants.SEGMENTS.remove(addr);
         }
-        return clonedArray;
+        OffHeapLongArray.free(addr);
     }
 
 }

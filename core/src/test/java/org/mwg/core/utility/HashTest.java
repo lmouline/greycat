@@ -5,16 +5,14 @@ import org.mwg.utility.HashHelper;
 
 import java.util.Random;
 
-/**
- * Created by assaad on 15/09/16.
- */
 public class HashTest {
 
+    /*
     @Test
     public void hashing(){
-        int testTimes=100000;
+        int testTimes=1000000;
 
-        int dim=100;
+        int dim=1000;
         int[] values=new int[dim];
         int[] rndval=new int[dim];
 
@@ -36,18 +34,40 @@ public class HashTest {
         int maxr=0;
         int tr=0;
 
+        double sum=0;
+        double sumsq=0;
+
+        double sumr=0;
+        double sumsqr=0;
+
+
         for(int i=0;i<dim;i++){
             t=Math.abs(values[i]-avg);
             if(t>max){
                 max=t;
             }
+            sum+=t;
+            sumsq+=t*t;
 
             tr=Math.abs(rndval[i]-avg);
             if(tr>maxr){
                 maxr=tr;
             }
+
+            sumr+=tr;
+            sumsqr+=tr*tr;
         }
-        System.out.println("max hash deviation: "+max+", random deviation: "+maxr);
-    }
+
+        sum=sum/dim;
+        sumr=sumr/dim;
+
+        double cov=(sumsq/dim - sum*sum)*(dim/(dim-1));
+        double covr=(sumsqr/dim - sumr*sumr)*(dim/(dim-1));
+
+        System.out.println("Triple hash");
+        System.out.println("max dev: "+max+" avg dev: "+sum+ " ,std: "+Math.sqrt(cov));
+        System.out.println("Random");
+        System.out.println("max dev: "+maxr+" avg dev: "+sumr+ " ,std: "+Math.sqrt(covr));
+    }*/
 }
 

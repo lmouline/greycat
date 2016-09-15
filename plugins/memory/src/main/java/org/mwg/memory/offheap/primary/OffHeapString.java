@@ -65,10 +65,13 @@ public class OffHeapString {
             cow_after = cow - 1;
         } while (!unsafe.compareAndSwapLong(null, addr + COW, cow, cow_after));
         if (cow == 1 && cow_after == 0) {
-            unsafe.freeMemory(addr);
             if (OffHeapConstants.DEBUG_MODE) {
+                if (!OffHeapConstants.SEGMENTS.containsKey(addr)) {
+                    throw new RuntimeException("Bad ADDR! "+addr);
+                }
                 OffHeapConstants.SEGMENTS.remove(addr);
             }
+            unsafe.freeMemory(addr);
         }
     }
 

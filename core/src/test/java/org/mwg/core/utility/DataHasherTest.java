@@ -11,14 +11,18 @@ public class DataHasherTest {
     public void dataHash_1Test() {
         long hash = HashHelper.hash(CoreConstants.END_OF_TIME + "");
         //System.out.println("dataHash_1Test: " + hash);
-        Assert.assertTrue(hash == 1749261374604296L);
+        //64 bits
+        //Assert.assertTrue(hash == 1749261374604296L);
+        Assert.assertEquals(hash,1160719163);
     }
 
     @Test
     public void dataHash_2Test() {
         long hash = HashHelper.hash(CoreConstants.BEGINNING_OF_TIME + "");
         //System.out.println("dataHash_2Test: " + hash);
-        Assert.assertTrue(hash == -7914587012082605L);
+        //64 bits
+        //Assert.assertTrue(hash == -7914587012082605L);
+        Assert.assertEquals(hash,1930113384);
     }
 
     @Test

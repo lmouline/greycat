@@ -46,6 +46,13 @@ class HeapRelationship implements Relationship {
         return result;
     }
 
+    @Override
+    public void set(int index, long value) {
+        synchronized (parent) {
+            _back[index] = value;
+        }
+    }
+
     final long unsafe_get(int index) {
         return _back[index];
     }
