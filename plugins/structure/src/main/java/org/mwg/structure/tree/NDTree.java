@@ -99,6 +99,18 @@ public class NDTree extends AbstractNode implements NTree {
 
     }
 
+    private static void updateCount(boolean updateCount, Node root) {
+        if (!updateCount) {
+            return;
+        }
+        if (root.getByIndex(_NUMNODES) != null) {
+            int count = (int) root.getByIndex(_NUMNODES);
+            count++;
+            root.setPropertyByIndex(_NUMNODES, Type.INT, count);
+        } else {
+            root.setPropertyByIndex(_NUMNODES, Type.INT, 1);
+        }
+    }
 
     //region insert and nearest tasks
     private static Task nearestTask = initNearestTask();
@@ -172,13 +184,6 @@ public class NDTree extends AbstractNode implements NTree {
                     Relationship relChild = (Relationship) state.getOrCreate(traverseId, Type.RELATION);
                     relChild.add(newChild.id());
                     newChild.free();
-                    if (root.getByIndex(_NUMNODES) != null) {
-                        int count = (int) root.getByIndex(_NUMNODES);
-                        count++;
-                        root.setPropertyByIndex(_NUMNODES, Type.INT, count);
-                    } else {
-                        root.setPropertyByIndex(_NUMNODES, Type.INT, 2);
-                    }
                 }
                 //toDo how to optimize not to lookup
                 //In all cases we can traverse here
@@ -196,6 +201,7 @@ public class NDTree extends AbstractNode implements NTree {
                 } else {
                     state.set(_KEYS, Type.DOUBLE_ARRAY, keyToInsert);
                 }
+                updateCount(true, root);
                 //In case we want an reverse relationship we should set it here
             }
 
