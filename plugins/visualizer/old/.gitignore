@@ -1,9 +1,0 @@
-.idea/
-.sass-cache/
-.DS_Store
-
-node_modules
-bower_components
-build/
-
-src/js/react_layout.babelify.js

@@ -1,0 +1,9 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "outDir": "../website/js"
+  },
+  "exclude": [
+    "mwg"
+  ]
+}
