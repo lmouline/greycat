@@ -374,14 +374,32 @@ class OffHeapStringLongMap implements StringLongMap {
         if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
             final long size = OffHeapLongArray.get(addr, SIZE);
             for (long i = 0; i < size; i++) {
-                long keyAddr = key(addr, i);
-                if(keyAddr != OffHeapConstants.OFFHEAP_NULL_PTR){
+                final long keyAddr = key(addr, i);
+                if (keyAddr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                    if (OffHeapConstants.DEBUG_MODE) {
+                        if (!OffHeapConstants.SEGMENTS.containsKey(keyAddr)) {
+                            throw new RuntimeException("Bad ADDR!");
+                        }
+                        OffHeapConstants.SEGMENTS.remove(keyAddr);
+                    }
                     OffHeapString.free(keyAddr);
                 }
             }
             final long previousHash = OffHeapLongArray.get(addr, SUBHASH);
             if (previousHash != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                if (OffHeapConstants.DEBUG_MODE) {
+                    if (!OffHeapConstants.SEGMENTS.containsKey(previousHash)) {
+                        throw new RuntimeException("Bad ADDR!");
+                    }
+                    OffHeapConstants.SEGMENTS.remove(previousHash);
+                }
                 OffHeapLongArray.free(previousHash);
+            }
+            if (OffHeapConstants.DEBUG_MODE) {
+                if (!OffHeapConstants.SEGMENTS.containsKey(addr)) {
+                    throw new RuntimeException("Bad ADDR!");
+                }
+                OffHeapConstants.SEGMENTS.remove(addr);
             }
             OffHeapLongArray.free(addr);
         }

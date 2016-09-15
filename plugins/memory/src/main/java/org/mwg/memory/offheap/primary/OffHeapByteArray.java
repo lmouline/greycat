@@ -22,6 +22,9 @@ public class OffHeapByteArray {
     public static long reallocate(final long addr, final long nextCapacity) {
         long new_segment = unsafe.reallocateMemory(addr, nextCapacity);
         if (OffHeapConstants.DEBUG_MODE) {
+            if(!OffHeapConstants.SEGMENTS.containsKey(addr)){
+                throw new RuntimeException("Bad ADDR!");
+            }
             OffHeapConstants.SEGMENTS.remove(addr);
             OffHeapConstants.SEGMENTS.put(new_segment, nextCapacity);
         }
@@ -38,6 +41,12 @@ public class OffHeapByteArray {
     public static void copyArray(final Object src, final long destAddr, final long nbElements) {
         int baseOffset = unsafe.arrayBaseOffset(src.getClass());
         int scaleOffset = unsafe.arrayIndexScale(src.getClass());
+        if (OffHeapConstants.DEBUG_MODE) {
+            Long allocated = OffHeapConstants.SEGMENTS.get(destAddr);
+            if (allocated == null || destAddr < 0 || (nbElements * scaleOffset) > allocated) {
+                throw new RuntimeException("set: bad address in " + allocated);
+            }
+        }
         unsafe.copyMemory(src, baseOffset, null, destAddr, nbElements * scaleOffset);
     }
 
@@ -63,6 +72,9 @@ public class OffHeapByteArray {
 
     public static void free(final long addr) {
         if (OffHeapConstants.DEBUG_MODE) {
+            if(!OffHeapConstants.SEGMENTS.containsKey(addr)){
+                throw new RuntimeException("Bad ADDR!");
+            }
             OffHeapConstants.SEGMENTS.remove(addr);
         }
         unsafe.freeMemory(addr);

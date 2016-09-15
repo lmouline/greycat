@@ -137,10 +137,13 @@ public class OffHeapLongArray {
             cow_after = cow - 1;
         } while (!compareAndSwap(addr, COW_INDEX, cow, cow_after));
         if (cow == 1 && cow_after == 0) {
-            unsafe.freeMemory(addr);
             if (OffHeapConstants.DEBUG_MODE) {
+                if (!OffHeapConstants.SEGMENTS.containsKey(addr)) {
+                    throw new RuntimeException("Bad ADDR!");
+                }
                 OffHeapConstants.SEGMENTS.remove(addr);
             }
+            unsafe.freeMemory(addr);
         }
     }
 
