@@ -26,6 +26,7 @@ class ActionForeach extends AbstractTaskAction {
         } else {
             final TaskResultIterator it = previousResult.iterator();
             final Callback[] recursiveAction = new Callback[1];
+            final AtomicInteger cursor = new AtomicInteger(0);
             recursiveAction[0] = new Callback<TaskResult>() {
                 @Override
                 public void on(final TaskResult res) {
@@ -37,18 +38,25 @@ class ActionForeach extends AbstractTaskAction {
                     if (nextResult == null) {
                         context.continueTask();
                     } else {
-                        selfPointer._subTask.executeFrom(context, context.wrap(nextResult), SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+
+                        selfPointer._subTask.executeFromUsing(context, context.wrap(nextResult), SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
+                            @Override
+                            public void on(TaskContext result) {
+                                result.defineVariable("i", cursor.getAndIncrement());
+                            }
+                        }, recursiveAction[0]);
+                        
                     }
                 }
             };
             Object nextRes = it.next();
             if (nextRes != null) {
-                context.graph().scheduler().dispatch(SchedulerAffinity.SAME_THREAD, new Job() {
+                _subTask.executeFromUsing(context, context.wrap(nextRes), SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
                     @Override
-                    public void run() {
-                        _subTask.executeFrom(context, context.wrap(nextRes), SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+                    public void on(TaskContext result) {
+                        result.defineVariable("i", cursor.getAndIncrement());
                     }
-                });
+                }, recursiveAction[0]);
             } else {
                 context.continueTask();
             }
