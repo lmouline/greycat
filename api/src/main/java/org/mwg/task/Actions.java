@@ -77,6 +77,10 @@ public class Actions {
         return newTask().localUnindex(indexedRelation, flatKeyAttributes, varNodeToAdd);
     }
 
+    public static Task indexesNames() {
+        return newTask().indexesNames();
+    }
+
     public static Task parse(String flatTask) {
         return newTask().parse(flatTask);
     }

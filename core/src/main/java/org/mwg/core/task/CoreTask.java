@@ -96,6 +96,12 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
+    public Task indexesNames() {
+        addAction(new ActionIndexesNames());
+        return this;
+    }
+
+    @Override
     public final org.mwg.task.Task selectWith(String name, String pattern) {
         if (pattern == null) {
             throw new RuntimeException("pattern should not be null");

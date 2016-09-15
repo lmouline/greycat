@@ -157,6 +157,13 @@ public interface Task {
     Task localUnindex(String indexedRelation, String flatKeyAttributes, String varNodeToAdd);
 
     /**
+     * Get all the index names
+     *
+     * @return this task to chain actions (fluent API)x
+     */
+    Task indexesNames();
+
+    /**
      * Filters the previous result to keep nodes which named attribute has a specific value
      *
      * @param name    the name of the attribute used to filter
