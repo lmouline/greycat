@@ -30,6 +30,7 @@ public class NDTreeTest {
             public void on(Boolean result) {
                 NDTree ndTree = (NDTree) graph.newTypedNode(0, 0, NDTree.NAME);
                 KDTree kdtree = (KDTree) graph.newTypedNode(0, 0, KDTree.NAME);
+                NDTree2 ndTree2 = (NDTree2) graph.newTypedNode(0, 0, NDTree2.NAME);
 
                 KDTreeJava kdtreejava = new KDTreeJava();
                 kdtreejava.setThreshold(KDTree.DISTANCE_THRESHOLD_DEF);
@@ -40,6 +41,7 @@ public class NDTreeTest {
                 kdtreejava.setDistance(GeoDistance.instance());
                 kdtree.setDistance(Distances.GEODISTANCE);
                 ndTree.setDistance(Distances.GEODISTANCE);
+                ndTree2.setDistance(Distances.GEODISTANCE);
 
                 int dim = 2;
 
@@ -54,7 +56,8 @@ public class NDTreeTest {
                 }
 
 
-                ndTree.setBounds(boundMin,boundMax,precisions);
+                ndTree.setBounds(boundMin, boundMax, precisions);
+                ndTree2.setBounds(boundMin, boundMax);
 
 
                 Random random = new Random();
@@ -87,8 +90,15 @@ public class NDTreeTest {
                     ndTree.insertWith(keys[i], values[i], null);
                     kdtree.insertWith(keys[i], values[i], null);
                     kdtreejava.insert(keys[i], values[i], null);
+                    ndTree2.insertWith(keys[i], values[i], null);
                 }
 
+
+                System.out.println("ndtree: " + ndTree.size());
+                System.out.println("ndtree2: " + ndTree2.size());
+
+
+                int[] count =new int[2];
 
                 for (int j = 0; j < ins; j++) {
 
@@ -96,11 +106,25 @@ public class NDTreeTest {
                     ndTree.nearestN(res, 10, new Callback<Node[]>() {
                         @Override
                         public void on(Node[] result) {
-                            kdtree.nearestN(res, 10, new Callback<Node[]>() {
+                            ndTree2.nearestN(res, 10, new Callback<Node[]>() {
                                 @Override
                                 public void on(Node[] result2) {
+
+                                    Assert.assertTrue(result2.length == result.length);
+
+
                                     for (int i = 0; i < result.length; i++) {
-                                        Assert.assertTrue(result[i].id() == result2[i].id());
+                                        if (result[i].id() != result2[i].id()) {
+
+                                            System.out.println("nd " + result[i] + " dist " + GeoDistance.instance().measure(res, (double[]) result[i].get("key")));
+                                            System.out.println("nd2 " + result2[i] + " dist " + GeoDistance.instance().measure(res, (double[]) result2[i].get("key")));
+                                            System.out.println("");
+                                            count[0]++;
+                                            // System.out.println("nd "+result[i].id()+" nd2 "+result2[i].id());
+                                        } else {
+                                            Assert.assertTrue(result[i].id() == result2[i].id());
+                                            count[1]++;
+                                        }
                                     }
                                 }
                             });
@@ -108,6 +132,8 @@ public class NDTreeTest {
                         }
                     });
                 }
+
+                System.out.println(count[0]+" // "+count[1]);
 
 
             }
@@ -160,7 +186,7 @@ public class NDTreeTest {
                     boundMax[i] = 1;
                 }
 
-                ndTree.setBounds(boundMin,boundMax,precisions);
+                ndTree.setBounds(boundMin, boundMax, precisions);
 
                 Random random = new Random();
                 random.setSeed(125362l);
