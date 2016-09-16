@@ -1,9 +1,6 @@
 package org.mwg.ml.algorithm.profiling;
 
-import org.mwg.Callback;
-import org.mwg.Graph;
-import org.mwg.Node;
-import org.mwg.Type;
+import org.mwg.*;
 import org.mwg.ml.AbstractMLNode;
 import org.mwg.ml.ProfilingNode;
 import org.mwg.utility.Enforcer;
@@ -39,9 +36,15 @@ public class GaussianSlotNode extends AbstractMLNode implements ProfilingNode {
         final long insTime = time();
         final long periodSize = (long) this.get(PERIOD_SIZE);
 
-        long newTime = floor(insTime, periodSize);
+        final long[] newTime = {floor(insTime, periodSize)};
 
-        this.jump(newTime, new Callback<Node>() {
+        timepoints(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, result -> {
+            if (newTime[0] < result[0]) {
+                newTime[0] = result[0];
+            }
+        });
+
+        this.jump(newTime[0], new Callback<Node>() {
             @Override
             public void on(Node result) {
                 final NodeState resolved = result.graph().resolver().resolveState(result);
