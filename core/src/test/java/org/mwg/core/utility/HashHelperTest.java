@@ -23,6 +23,13 @@ public class HashHelperTest {
     }
 
     @Test
+    public void stringHash_1Test() {
+        int hash = HashHelper.hash("aVeryLongStringThatCanGoOverTheIntegerLimitAfterAHash");
+        System.out.println("stringHash_0Test: " + hash);
+        Assert.assertTrue(hash == -302989728);
+    }
+
+    @Test
     public void longHash_0Test() {
         try {
             HashHelper.longHash(1, 0);
