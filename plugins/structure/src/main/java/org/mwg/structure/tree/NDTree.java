@@ -51,11 +51,11 @@ public class NDTree extends AbstractNode implements NTree {
 
     //to store only on the root node
     private static long _PRECISION = 10;
-    private static int _NUMNODES = 11;
-    private static int _DIM = 12;
-    private static int _DISTANCE = 13;
-    private static int _DISTANCETHRESHOLD = 14;
-    private static int _FROM = 15;
+    private static long _NUMNODES = 11;
+    private static long _DIM = 12;
+    private static long _DISTANCE = 13;
+    private static long _DISTANCETHRESHOLD = 14;
+    private static long _FROM = 15;
 
     public static final String DISTANCE_THRESHOLD = "threshold";       //Distance threshold to define when 2 keys are not considered the same anymopre
     public static final double DISTANCE_THRESHOLD_DEF = 1e-10;
@@ -72,6 +72,7 @@ public class NDTree extends AbstractNode implements NTree {
     public void setBounds(double[] min, double[] max, double[] precisions){
 
         NodeState state=unphasedState();
+
         if(state.get(_BOUNDMIN)!=null){
             throw new RuntimeException("Bounds can't be changed!, you need to re-index");
         }
