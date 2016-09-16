@@ -573,11 +573,11 @@ public abstract class AbstractNode implements Node {
         final NodeState previousState = this._resolver.resolveState(this);
         if (previousState != null) {
             LongLongArrayMap previousMap = (LongLongArrayMap) previousState.get(hashName);
-            if(previousMap != null){
+            if (previousMap != null) {
                 alreadyIndexed = previousMap.contains(flatQuery.hash(), nodeToIndex.id());
             }
         }
-        if(!alreadyIndexed){
+        if (!alreadyIndexed) {
             final NodeState currentNodeState = this._resolver.alignState(this);
             if (currentNodeState == null) {
                 throw new RuntimeException(Constants.CACHE_MISS_ERROR);
@@ -643,10 +643,14 @@ public abstract class AbstractNode implements Node {
                 @Override
                 public void on(long attributeKey, byte elemType, Object elem) {
                     if (elem != null) {
+                        String resolveName = _resolver.hashToString(attributeKey);
+                        if (resolveName == null) {
+                            resolveName = attributeKey + "";
+                        }
                         switch (elemType) {
                             case Type.BOOL: {
                                 builder.append(",\"");
-                                builder.append(_resolver.hashToString(attributeKey));
+                                builder.append(resolveName);
                                 builder.append("\":");
                                 if ((Boolean) elem) {
                                     builder.append("0");
@@ -657,7 +661,7 @@ public abstract class AbstractNode implements Node {
                             }
                             case Type.STRING: {
                                 builder.append(",\"");
-                                builder.append(_resolver.hashToString(attributeKey));
+                                builder.append(resolveName);
                                 builder.append("\":");
                                 builder.append("\"");
                                 builder.append(elem);
@@ -666,14 +670,14 @@ public abstract class AbstractNode implements Node {
                             }
                             case Type.LONG: {
                                 builder.append(",\"");
-                                builder.append(_resolver.hashToString(attributeKey));
+                                builder.append(resolveName);
                                 builder.append("\":");
                                 builder.append(elem);
                                 break;
                             }
                             case Type.INT: {
                                 builder.append(",\"");
-                                builder.append(_resolver.hashToString(attributeKey));
+                                builder.append(resolveName);
                                 builder.append("\":");
                                 builder.append(elem);
                                 break;
@@ -681,7 +685,7 @@ public abstract class AbstractNode implements Node {
                             case Type.DOUBLE: {
                                 if (!isNaN((double) elem)) {
                                     builder.append(",\"");
-                                    builder.append(_resolver.hashToString(attributeKey));
+                                    builder.append(resolveName);
                                     builder.append("\":");
                                     builder.append(elem);
                                 }
@@ -689,7 +693,7 @@ public abstract class AbstractNode implements Node {
                             }
                             case Type.DOUBLE_ARRAY: {
                                 builder.append(",\"");
-                                builder.append(_resolver.hashToString(attributeKey));
+                                builder.append(resolveName);
                                 builder.append("\":");
                                 builder.append("[");
                                 double[] castedArr = (double[]) elem;
@@ -704,7 +708,7 @@ public abstract class AbstractNode implements Node {
                             }
                             case Type.RELATION:
                                 builder.append(",\"");
-                                builder.append(_resolver.hashToString(attributeKey));
+                                builder.append(resolveName);
                                 builder.append("\":");
                                 builder.append("[");
                                 Relationship castedRelArr = (Relationship) elem;
@@ -718,7 +722,7 @@ public abstract class AbstractNode implements Node {
                                 break;
                             case Type.LONG_ARRAY: {
                                 builder.append(",\"");
-                                builder.append(_resolver.hashToString(attributeKey));
+                                builder.append(resolveName);
                                 builder.append("\":");
                                 builder.append("[");
                                 long[] castedArr2 = (long[]) elem;
@@ -733,7 +737,7 @@ public abstract class AbstractNode implements Node {
                             }
                             case Type.INT_ARRAY: {
                                 builder.append(",\"");
-                                builder.append(_resolver.hashToString(attributeKey));
+                                builder.append(resolveName);
                                 builder.append("\":");
                                 builder.append("[");
                                 int[] castedArr3 = (int[]) elem;
@@ -748,7 +752,7 @@ public abstract class AbstractNode implements Node {
                             }
                             case Type.LONG_TO_LONG_MAP: {
                                 builder.append(",\"");
-                                builder.append(_resolver.hashToString(attributeKey));
+                                builder.append(resolveName);
                                 builder.append("\":");
                                 builder.append("{");
                                 LongLongMap castedMapL2L = (LongLongMap) elem;
@@ -772,7 +776,7 @@ public abstract class AbstractNode implements Node {
                             }
                             case Type.LONG_TO_LONG_ARRAY_MAP: {
                                 builder.append(",\"");
-                                builder.append(_resolver.hashToString(attributeKey));
+                                builder.append(resolveName);
                                 builder.append("\":");
                                 builder.append("{");
                                 LongLongArrayMap castedMapL2LA = (LongLongArrayMap) elem;
@@ -808,7 +812,7 @@ public abstract class AbstractNode implements Node {
                             }
                             case Type.STRING_TO_LONG_MAP: {
                                 builder.append(",\"");
-                                builder.append(_resolver.hashToString(attributeKey));
+                                builder.append(resolveName);
                                 builder.append("\":");
                                 builder.append("{");
                                 StringLongMap castedMapS2L = (StringLongMap) elem;
