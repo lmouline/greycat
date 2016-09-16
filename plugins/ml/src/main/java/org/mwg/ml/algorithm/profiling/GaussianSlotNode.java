@@ -2,6 +2,7 @@ package org.mwg.ml.algorithm.profiling;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
+import org.mwg.Node;
 import org.mwg.Type;
 import org.mwg.ml.AbstractMLNode;
 import org.mwg.ml.ProfilingNode;
@@ -24,73 +25,95 @@ public class GaussianSlotNode extends AbstractMLNode implements ProfilingNode {
         });
     }
 
+
+    /**
+     * @native ts
+     * return Math.floor(t/s)*s;
+     */
+    private static long floor(long t, long s) {
+        return Math.floorDiv(t, s) * s;
+    }
+
     public void learnArray(double[] values) {
-        final NodeState resolved = this._resolver.alignState(this);
-        int numOfSlot = resolved.getFromKeyWithDefault(SLOTS_NUMBER, SLOTS_NUMBER_DEF);
 
-        int[] total;
-        double[] min;
-        double[] max;
-        double[] sum;
-        double[] sumSquare;
-        int features = values.length;
+        final long insTime = time();
+        final long periodSize = (long) this.get(PERIOD_SIZE);
+
+        long newTime = floor(insTime, periodSize);
+
+        this.jump(newTime, new Callback<Node>() {
+            @Override
+            public void on(Node result) {
+                final NodeState resolved = result.graph().resolver().resolveState(result);
+                int numOfSlot = resolved.getFromKeyWithDefault(SLOTS_NUMBER, SLOTS_NUMBER_DEF);
+
+                int[] total;
+                double[] min;
+                double[] max;
+                double[] sum;
+                double[] sumSquare;
+                int features = values.length;
 
 
-        total = (int[]) resolved.getFromKey(INTERNAL_TOTAL_KEY);
+                total = (int[]) resolved.getFromKey(INTERNAL_TOTAL_KEY);
 
-        if (numOfSlot == 1 || numOfSlot == 0) {
-            if (total == null) {
+                if (numOfSlot == 1 || numOfSlot == 0) {
+                    if (total == null) {
+                        resolved.setFromKey(INTERNAL_FEATURES_NUMBER, Type.INT, features);
+                        total = new int[1];
+                        min = new double[features];
+                        max = new double[features];
+                        sum = new double[features];
+                        sumSquare = new double[features * (features + 1) / 2];
+                    } else {
+                        min = (double[]) resolved.getFromKey(INTERNAL_MIN_KEY);
+                        max = (double[]) resolved.getFromKey(INTERNAL_MAX_KEY);
+                        sum = (double[]) resolved.getFromKey(INTERNAL_SUM_KEY);
+                        sumSquare = (double[]) resolved.getFromKey(INTERNAL_SUMSQUARE_KEY);
+                    }
+                    update(total, min, max, sum, sumSquare, values, 0, features, 0, 0);
+                    return;
+
+                } else {
+
+                    if (total == null) {
+                        resolved.setFromKey(INTERNAL_FEATURES_NUMBER, Type.INT, features);
+                        total = new int[numOfSlot + 1];
+                        min = new double[(numOfSlot + 1) * features];
+                        max = new double[(numOfSlot + 1) * features];
+                        sum = new double[(numOfSlot + 1) * features];
+                        sumSquare = new double[(numOfSlot + 1) * features * (features + 1) / 2];
+                    } else {
+                        min = (double[]) resolved.getFromKey(INTERNAL_MIN_KEY);
+                        max = (double[]) resolved.getFromKey(INTERNAL_MAX_KEY);
+                        sum = (double[]) resolved.getFromKey(INTERNAL_SUM_KEY);
+                        sumSquare = (double[]) resolved.getFromKey(INTERNAL_SUMSQUARE_KEY);
+                    }
+
+                    //update the profile
+                    long periodSize = resolved.getFromKeyWithDefault(PERIOD_SIZE, PERIOD_SIZE_DEF);
+                    int slot = getIntTime(insTime, numOfSlot, periodSize);
+                    int index = slot * features;
+                    int indexSquare = slot * features * (features + 1) / 2;
+                    int indexTot = numOfSlot * features;
+                    int indexSquareTot = numOfSlot * features * (features + 1) / 2;
+
+                    update(total, min, max, sum, sumSquare, values, slot, features, index, indexSquare);
+                    update(total, min, max, sum, sumSquare, values, numOfSlot, features, indexTot, indexSquareTot);
+                }
+
+
+                //Save the state
                 resolved.setFromKey(INTERNAL_FEATURES_NUMBER, Type.INT, features);
-                total = new int[1];
-                min = new double[features];
-                max = new double[features];
-                sum = new double[features];
-                sumSquare = new double[features * (features + 1) / 2];
-            } else {
-                min = (double[]) resolved.getFromKey(INTERNAL_MIN_KEY);
-                max = (double[]) resolved.getFromKey(INTERNAL_MAX_KEY);
-                sum = (double[]) resolved.getFromKey(INTERNAL_SUM_KEY);
-                sumSquare = (double[]) resolved.getFromKey(INTERNAL_SUMSQUARE_KEY);
+                resolved.setFromKey(INTERNAL_TOTAL_KEY, Type.INT_ARRAY, total);
+                resolved.setFromKey(INTERNAL_MIN_KEY, Type.DOUBLE_ARRAY, min);
+                resolved.setFromKey(INTERNAL_MAX_KEY, Type.DOUBLE_ARRAY, max);
+                resolved.setFromKey(INTERNAL_SUM_KEY, Type.DOUBLE_ARRAY, sum);
+                resolved.setFromKey(INTERNAL_SUMSQUARE_KEY, Type.DOUBLE_ARRAY, sumSquare);
             }
-            update(total, min, max, sum, sumSquare, values, 0, features, 0, 0);
-            return;
-
-        } else {
-
-            if (total == null) {
-                resolved.setFromKey(INTERNAL_FEATURES_NUMBER, Type.INT, features);
-                total = new int[numOfSlot + 1];
-                min = new double[(numOfSlot + 1) * features];
-                max = new double[(numOfSlot + 1) * features];
-                sum = new double[(numOfSlot + 1) * features];
-                sumSquare = new double[(numOfSlot + 1) * features * (features + 1) / 2];
-            } else {
-                min = (double[]) resolved.getFromKey(INTERNAL_MIN_KEY);
-                max = (double[]) resolved.getFromKey(INTERNAL_MAX_KEY);
-                sum = (double[]) resolved.getFromKey(INTERNAL_SUM_KEY);
-                sumSquare = (double[]) resolved.getFromKey(INTERNAL_SUMSQUARE_KEY);
-            }
-
-            //update the profile
-            long periodSize = resolved.getFromKeyWithDefault(PERIOD_SIZE, PERIOD_SIZE_DEF);
-            int slot = getIntTime(time(), numOfSlot, periodSize);
-            int index = slot * features;
-            int indexSquare = slot * features * (features + 1) / 2;
-            int indexTot = numOfSlot * features;
-            int indexSquareTot = numOfSlot * features * (features + 1) / 2;
-
-            update(total, min, max, sum, sumSquare, values, slot, features, index, indexSquare);
-            update(total, min, max, sum, sumSquare, values, numOfSlot, features, indexTot, indexSquareTot);
-        }
+        });
 
 
-        //Save the state
-        resolved.setFromKey(INTERNAL_FEATURES_NUMBER, Type.INT, features);
-        resolved.setFromKey(INTERNAL_TOTAL_KEY, Type.INT_ARRAY, total);
-        resolved.setFromKey(INTERNAL_MIN_KEY, Type.DOUBLE_ARRAY, min);
-        resolved.setFromKey(INTERNAL_MAX_KEY, Type.DOUBLE_ARRAY, max);
-        resolved.setFromKey(INTERNAL_SUM_KEY, Type.DOUBLE_ARRAY, sum);
-        resolved.setFromKey(INTERNAL_SUMSQUARE_KEY, Type.DOUBLE_ARRAY, sumSquare);
     }
 
     @Override

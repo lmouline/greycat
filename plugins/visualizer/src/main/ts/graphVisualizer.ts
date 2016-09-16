@@ -66,7 +66,11 @@ function printNodeDetails(nodeId: number, graphVisu : GraphVisu) {
         .foreach(Actions.then(function(context : TaskContext) {
             var res : String = context.variable("string").get(0);
             var n : org.mwg.Node = context.variable("node").get(0);
-            res += "  " + context.result().get(0) + "=" + n.get(context.result().get(0)) + "\n";
+            if(typeof context.result().get(0) != "number") {
+                res += "  " + context.result().get(0) + "=" + n.get(context.result().get(0)) + "\n";
+            } else {
+                res += "  " + context.result().get(0) + "=" + n.getByIndex(context.result().get(0)) + "\n";
+            }
             context.setGlobalVariable("string",res);
             context.continueTask();
         }))
