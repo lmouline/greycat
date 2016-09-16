@@ -15,7 +15,7 @@ public class NativeHasherHelper {
             sum += tripleHash((byte) 0, i, i * 2, i * 3, 1000000000L);
         }
         long after = System.currentTimeMillis();
-        System.out.println(sum+"/"+(after - before) + " ms");
+        System.out.println(sum + "/" + (after - before) + " ms");
     }
 
 }
