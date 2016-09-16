@@ -9,14 +9,21 @@ class ActionPrint extends AbstractTaskAction {
 
     private final String _name;
 
-    ActionPrint(final String p_name) {
+    private final boolean _withLineBreak;
+
+    ActionPrint(final String p_name, boolean withLineBreak) {
         super();
         this._name = p_name;
+        this._withLineBreak = withLineBreak;
     }
 
     @Override
     public void eval(final TaskContext context) {
-        System.out.println(context.template(_name));
+        if (_withLineBreak) {
+            System.out.println(context.template(_name));
+        } else {
+            System.out.print(context.template(_name));
+        }
         context.continueTask();
     }
 

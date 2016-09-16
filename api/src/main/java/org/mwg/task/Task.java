@@ -479,6 +479,8 @@ public interface Task {
 
     Task print(String name);
 
+    Task println(String name);
+
     Task hook(TaskHookFactory hookFactory);
 
     void execute(final Graph graph, final Callback<TaskResult> callback);
