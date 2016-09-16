@@ -22,7 +22,13 @@ class ActionJump extends AbstractTaskAction {
     @Override
     public void eval(final TaskContext context) {
         final String flatTime = context.template(_time);
-        final long parsedTime = Long.parseLong(flatTime);
+        long parsedTime;
+        try {
+            parsedTime = Long.parseLong(flatTime);
+        }catch(Throwable t) {
+            Double d = Double.parseDouble(flatTime);
+            parsedTime = d.longValue();
+        }
         final TaskResult previous = context.result();
         final DeferCounter defer = new CoreDeferCounter(previous.size());
         final int previousSize = previous.size();
