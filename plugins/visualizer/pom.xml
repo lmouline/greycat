@@ -14,6 +14,27 @@
     <artifactId>visualizer</artifactId>
     <name>mwg :: Plugins :: Visualizer</name>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.kevoree.mwg</groupId>
+            <artifactId>core</artifactId>
+            <version>7-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.kevoree.mwg.plugins</groupId>
+            <artifactId>websocket</artifactId>
+            <version>7-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.kevoree.mwg.plugins</groupId>
+            <artifactId>ml</artifactId>
+            <version>7-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -29,6 +50,7 @@
                         </goals>
                         <configuration>
                             <artifactItems>
+                                <!--Copy TS file in src folder-->
                                 <artifactItem>
                                     <groupId>org.kevoree.mwg</groupId>
                                     <artifactId>core</artifactId>
@@ -37,8 +59,9 @@
                                     <type>zip</type>
                                     <includes>*.ts</includes>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${project.basedir}/ts/mwg</outputDirectory>
+                                    <outputDirectory>${project.basedir}/src/main/ts/mwg</outputDirectory>
                                 </artifactItem>
+                                <!--Copy JS file in production folder -->
                                 <artifactItem>
                                     <groupId>org.kevoree.mwg</groupId>
                                     <artifactId>core</artifactId>
@@ -47,7 +70,28 @@
                                     <type>zip</type>
                                     <includes>*.js</includes>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${project.basedir}/website/js/mwg</outputDirectory>
+                                    <outputDirectory>${project.basedir}/src/main/resources/website/js/mwg</outputDirectory>
+                                </artifactItem>
+                                <!--Get WebSocket TS/JS files -->
+                                <artifactItem>
+                                    <groupId>org.kevoree.mwg.plugins</groupId>
+                                    <artifactId>websocket</artifactId>
+                                    <version>${project.parent.version}</version>
+                                    <classifier>js</classifier>
+                                    <type>zip</type>
+                                    <includes>*.ts</includes>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.basedir}/src/main/ts/mwg</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.kevoree.mwg.plugins</groupId>
+                                    <artifactId>websocket</artifactId>
+                                    <version>${project.parent.version}</version>
+                                    <classifier>js</classifier>
+                                    <type>zip</type>
+                                    <includes>*.js</includes>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.basedir}/src/main/resources/website/js/mwg</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
@@ -68,7 +112,7 @@
                         </goals>
                         <configuration>
                             <target>
-                                <exec executable="tsc" dir="${basedir}/ts"/>
+                                <exec executable="tsc" dir="${basedir}/src/main/ts"/>
                             </target>
                         </configuration>
                     </execution>

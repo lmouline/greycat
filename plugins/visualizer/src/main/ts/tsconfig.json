@@ -1,7 +1,7 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "outDir": "../website/js"
+    "outDir": "../resources/website/js"
   },
   "exclude": [
     "mwg"

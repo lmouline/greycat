@@ -1,0 +1,30 @@
+.graphVisu {
+    width: 100%;
+    height: 100%;
+}
+
+.lm_content {
+    background-color: white;
+}
+
+#wrapper {
+    width: 100%;
+    height: 100%;
+}
+
+#header {
+    height: 10%;
+}
+
+#header button, input{
+    height: 50%;
+}
+
+#goldenLayout {
+    width: 100%;
+    height: 90%;
+}
+
+html, body {
+    height: 100%;
+}
