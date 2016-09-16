@@ -26,7 +26,7 @@ public class ActionLoadJson extends AbstractTaskAction {
     public void eval(TaskContext context) {
         JsonResult result = null;
         final String path = context.template(_pathOrTemplate);
-        URI uri = URI.create(path);
+        URI uri = URI.create((path.contains("://")?path:"file://" + path));
         try {
             try (InputStreamReader isr = new InputStreamReader(uri.toURL().openStream())) {
                 JsonValue firstElem = Json.parse(isr);

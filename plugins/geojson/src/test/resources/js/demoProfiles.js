@@ -13,15 +13,30 @@ var Demo = function () {
 
     var init = function () {
 
-        graph = new org.mwg.GraphBuilder().withStorage(new org.mwg.plugin.WSClient("ws://localhost:8050")).withPlugin(new org.mwg.structure.StructurePlugin()).build();
+        graph = new org.mwg.GraphBuilder().withStorage(new org.mwg.plugin.WSClient("ws://localhost:8050")).withPlugin(new org.mwg.structure.StructurePlugin()).withPlugin(new org.mwg.ml.MLPlugin()).build();
         graph.connect(function () {
 
-            initOptionList();
+            document.querySelector(".modalDialog").style.setProperty("opacity", 0);
+
+            var getStation = org.mwg.task.Actions
+                .setTime((new Date()).getTime())
+                //.print("{{context}}")
+                .fromIndex("cities", "name=Luxembourg")
+                //.print("{{result}}")
+                .traverseIndex("stations", "name", "BRICHERHAFF")
+                //.print("{{result}}");
+            getStation.execute(graph, null);
+
+           /*
+           initOptionList();
             updateContract("Luxembourg");
+            */
 
         });
+        /*
         initFlatpickr();
         initMap();
+        */
     };
 
     var initFlatpickr = function () {
