@@ -16,6 +16,13 @@ public class HashHelperTest {
     /* MAX TESTS */
 
     @Test
+    public void stringHash_0Test() {
+        int hash = HashHelper.hash("helloMWG");
+        //System.out.println("stringHash_0Test: " + hash);
+        Assert.assertTrue(hash == -792688181L);
+    }
+
+    @Test
     public void longHash_0Test() {
         try {
             HashHelper.longHash(1, 0);

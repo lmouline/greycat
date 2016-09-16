@@ -239,7 +239,7 @@ public class HashHelper {
      * return hash;
      * }
      */
-    public static long hash(String data) {
+    public static int hash(String data) {
         /*
         long h = HSTART;
         final long hmult = HMULT;
