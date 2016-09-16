@@ -63,7 +63,7 @@ public class NDTree2 extends AbstractNode implements NTree {
 
     public static boolean STAT_DEF = false;
 
-    private static int MAXINSIDE = 3;
+    private static int MAXINSIDE = 2;
 
 
     //The beginning of relations navigation
@@ -122,7 +122,6 @@ public class NDTree2 extends AbstractNode implements NTree {
     private static Task insert = whileDo(new TaskFunctionConditional() {
         @Override
         public boolean eval(TaskContext context) {
-
             Node root = (Node) context.variable("root").get(0);
             Node current = context.resultAsNodes().get(0);
             NodeState state = current.graph().resolver().resolveState(current);
@@ -235,7 +234,6 @@ public class NDTree2 extends AbstractNode implements NTree {
                             tc.setGlobalVariable("key", res);
                             //System.out.println("trying: " + tempsk[0] + " " + tempsk[1]);
 
-
                             tc.setGlobalVariable("value", rel.get(i));
                             //Set local variables
                             insert.executeUsing(tc);
@@ -250,8 +248,6 @@ public class NDTree2 extends AbstractNode implements NTree {
 
                             }
                         });
-
-
                         return false;
                     }
 
@@ -262,7 +258,6 @@ public class NDTree2 extends AbstractNode implements NTree {
                     updateGaussian(updateStat, state, keyToInsert);
                     return false;
                 }
-
             }
         }
     }, Actions.action(TraverseById.NAME, "{{next}}"));
@@ -306,7 +301,7 @@ public class NDTree2 extends AbstractNode implements NTree {
                     final double worst = nnl.getWorstDistance();
 
 
-                    if (getclosestDistance(target, boundMin, boundMax, distance) <= worst) {
+                    if (!nnl.isCapacityReached() || getclosestDistance(target, boundMin, boundMax, distance) <= worst) {
                         final int dim = boundMin.length;
                         final double[] childMin = new double[dim];
                         final double[] childMax = new double[dim];
@@ -342,7 +337,8 @@ public class NDTree2 extends AbstractNode implements NTree {
                     }
                 }
             }
-        }).foreach(defineVar("relid").fromVar("parent").action(TraverseById.NAME, "{{relid}}").subTask(reccursiveDown));
+        }).foreach(
+                defineVar("relid").fromVar("parent").action(TraverseById.NAME, "{{relid}}").subTask(reccursiveDown));
 
 
         return reccursiveDown;

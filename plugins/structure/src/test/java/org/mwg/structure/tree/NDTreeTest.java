@@ -3,14 +3,25 @@ package org.mwg.structure.tree;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
+import org.mwg.plugin.NodeState;
 import org.mwg.structure.KDTreeJava;
+import org.mwg.structure.NTree;
 import org.mwg.structure.StructurePlugin;
+import org.mwg.structure.action.TraverseById;
 import org.mwg.structure.distance.Distances;
 import org.mwg.structure.distance.EuclideanDistance;
 import org.mwg.structure.distance.GeoDistance;
 import org.mwg.structure.tree.NDTree;
+import org.mwg.task.Action;
+import org.mwg.task.Task;
+import org.mwg.task.TaskContext;
+import org.mwg.task.TaskResult;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Random;
+
+import static org.mwg.task.Actions.*;
 
 /**
  * Created by assaad on 30/08/16.
@@ -18,11 +29,93 @@ import java.util.Random;
 
 public class NDTreeTest {
 
+    private static void printArray(double[] key, NumberFormat formatter){
+        System.out.print("[");
+        for(int i=0;i<key.length;i++){
+            System.out.print(formatter.format(key[i]));
+            if(i!=(key.length-1)){
+                System.out.print(",");
+            }
+        }
+        System.out.print("] ");
+    }
+
+    private static void printgraph(Node root, String name){
+        Task printer= newTask();
+
+        printer
+                .defineVar("parent")
+                .loop("0","{{tabs}}",print("\t"))
+                .then(new Action() {
+                    @Override
+                    public void eval(TaskContext context) {
+                        String name=(String) context.variable("name").get(0);
+                        NumberFormat formatter = new DecimalFormat("#.#####");
+                        TaskResult res=context.result();
+                        if(res.get(0) instanceof NTree){
+                            Node temp= (Node) res.get(0);
+
+                            System.out.print(name+" - id: "+temp.id()+", min: ");
+                            double[] min=(double[]) temp.getByIndex(6);
+                            double[] max=(double[]) temp.getByIndex(7);
+                            printArray(min,formatter);
+                            System.out.print("max: ");
+                            printArray(max,formatter);
+
+                            if(temp instanceof NDTree2){
+                                Object o=temp.getByIndex(10);
+                                if(o!=null) {
+                                    System.out.print((boolean) temp.getByIndex(10));
+                                }
+                                else{
+                                    System.out.print("false");
+                                }
+                            }
+
+                            System.out.println();
+
+                        }
+                        else{
+
+                            Node temp= (Node) res.get(0);
+                            System.out.print("FINALNODE - id: "+temp.id()+", key: ");
+                            double[] key=(double[]) temp.get("key");
+                            printArray(key,formatter);
+                            System.out.println();
+
+                        }
+
+                        context.continueTask();
+                    }
+                })
+                .fromVar("tabs")
+                .math("tabs+1")
+                .defineVar("tabs")
+                .fromVar("parent")
+                .propertiesWithTypes(Type.RELATION)
+                .foreach(defineVar("traverseID").fromVar("parent").action(TraverseById.NAME,"{{traverseID}}").foreach(isolate(printer)));
+
+        TaskContext tc=printer.prepareWith(root.graph(), root, new Callback<TaskResult>() {
+            @Override
+            public void on(TaskResult result) {
+                System.out.println("--");
+                result.free();
+            }
+        });
+
+        tc.defineVariable("tabs",-1);
+        tc.defineVariable("name",name);
+
+        printer.executeUsing(tc);
+
+
+    }
+
     @Test
     public void NDTest() {
         final Graph graph = new GraphBuilder()
                 .withPlugin(new StructurePlugin())
-                .withMemorySize(1000)
+                .withMemorySize(10000)
                 //.withOffHeapMemory()
                 .build();
         graph.connect(new Callback<Boolean>() {
@@ -98,11 +191,13 @@ public class NDTreeTest {
                 System.out.println("ndtree2: " + ndTree2.size());
 
 
-                int[] count =new int[2];
+//                printgraph(ndTree, "ndtree");
+//                printgraph(ndTree2, "ndtree2");
 
                 for (int j = 0; j < ins; j++) {
 
                     final double[] res = keys[j];
+                    int finalJ = j;
                     ndTree.nearestN(res, 10, new Callback<Node[]>() {
                         @Override
                         public void on(Node[] result) {
@@ -110,22 +205,37 @@ public class NDTreeTest {
                                 @Override
                                 public void on(Node[] result2) {
 
+//                                    if(result.length!=result2.length){
+//                                        for(int i=0;i<result.length;i++){
+//                                            System.out.println("nd " + result[i] + " dist " + GeoDistance.instance().measure(res, (double[]) result[i].get("key")));
+//                                        }
+//
+//                                        System.out.println();
+//                                        for(int i=0;i<result2.length;i++){
+//                                            System.out.println("nd2 " + result2[i] + " dist " + GeoDistance.instance().measure(res, (double[]) result2[i].get("key")));
+//                                        }
+//
+//                                    }
                                     Assert.assertTrue(result2.length == result.length);
 
 
-                                    for (int i = 0; i < result.length; i++) {
-                                        if (result[i].id() != result2[i].id()) {
-
-                                            System.out.println("nd " + result[i] + " dist " + GeoDistance.instance().measure(res, (double[]) result[i].get("key")));
-                                            System.out.println("nd2 " + result2[i] + " dist " + GeoDistance.instance().measure(res, (double[]) result2[i].get("key")));
-                                            System.out.println("");
-                                            count[0]++;
-                                            // System.out.println("nd "+result[i].id()+" nd2 "+result2[i].id());
-                                        } else {
-                                            Assert.assertTrue(result[i].id() == result2[i].id());
-                                            count[1]++;
-                                        }
+                                   for (int i = 0; i < result.length; i++) {
+//                                        if (result[i].id() != result2[i].id()) {
+//
+//                                            System.out.println("nd " + result[i] + " dist " + GeoDistance.instance().measure(res, (double[]) result[i].get("key")));
+//                                            System.out.println("nd2 " + result2[i] + " dist " + GeoDistance.instance().measure(res, (double[]) result2[i].get("key")));
+//                                            System.out.println("");
+//                                            count[0]++;
+//                                            // System.out.println("nd "+result[i].id()+" nd2 "+result2[i].id());
+//                                        } else {
+//                                            Assert.assertTrue(result[i].id() == result2[i].id());
+//                                            count[1]++;
+//                                        }
+                                       Assert.assertTrue(result[i].id() == result2[i].id());
                                     }
+
+
+
                                 }
                             });
 
@@ -133,7 +243,6 @@ public class NDTreeTest {
                     });
                 }
 
-                System.out.println(count[0]+" // "+count[1]);
 
 
             }
