@@ -892,6 +892,7 @@ declare module org {
                 loop(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                 loopPar(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                 print(name: string): org.mwg.task.Task;
+                println(name: string): org.mwg.task.Task;
                 hook(hookFactory: org.mwg.task.TaskHookFactory): org.mwg.task.Task;
                 execute(graph: org.mwg.Graph, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                 executeSync(graph: org.mwg.Graph): org.mwg.task.TaskResult<any>;
@@ -1784,7 +1785,8 @@ declare module org {
                 }
                 class ActionPrint extends org.mwg.plugin.AbstractTaskAction {
                     private _name;
-                    constructor(p_name: string);
+                    private _withLineBreak;
+                    constructor(p_name: string, withLineBreak: boolean);
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
@@ -2000,6 +2002,7 @@ declare module org {
                     loop(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                     loopPar(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                     print(name: string): org.mwg.task.Task;
+                    println(name: string): org.mwg.task.Task;
                     hook(p_hookFactory: org.mwg.task.TaskHookFactory): org.mwg.task.Task;
                     emptyResult(): org.mwg.task.TaskResult<any>;
                     mathConditional(mathExpression: string): org.mwg.task.TaskFunctionConditional;

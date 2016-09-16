@@ -3,7 +3,6 @@ package org.mwg.structure.tree;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
-import org.mwg.plugin.NodeState;
 import org.mwg.structure.KDTreeJava;
 import org.mwg.structure.NTree;
 import org.mwg.structure.StructurePlugin;
@@ -11,14 +10,11 @@ import org.mwg.structure.action.TraverseById;
 import org.mwg.structure.distance.Distances;
 import org.mwg.structure.distance.EuclideanDistance;
 import org.mwg.structure.distance.GeoDistance;
-import org.mwg.structure.tree.NDTree;
 import org.mwg.task.Action;
 import org.mwg.task.Task;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Random;
 
 import static org.mwg.task.Actions.*;
@@ -29,10 +25,10 @@ import static org.mwg.task.Actions.*;
 
 public class NDTreeTest {
 
-    private static void printArray(double[] key, NumberFormat formatter){
+    private static void printArray(double[] key){
         System.out.print("[");
         for(int i=0;i<key.length;i++){
-            System.out.print(formatter.format(key[i]));
+            System.out.print(key[i]);
             if(i!=(key.length-1)){
                 System.out.print(",");
             }
@@ -46,48 +42,48 @@ public class NDTreeTest {
         printer
                 .defineVar("parent")
                 .loop("0","{{tabs}}",print("\t"))
-                .then(new Action() {
-                    @Override
-                    public void eval(TaskContext context) {
-                        String name=(String) context.variable("name").get(0);
-                        NumberFormat formatter = new DecimalFormat("#.#####");
-                        TaskResult res=context.result();
-                        if(res.get(0) instanceof NTree){
-                            Node temp= (Node) res.get(0);
-
-                            System.out.print(name+" - id: "+temp.id()+", min: ");
-                            double[] min=(double[]) temp.getByIndex(6);
-                            double[] max=(double[]) temp.getByIndex(7);
-                            printArray(min,formatter);
-                            System.out.print("max: ");
-                            printArray(max,formatter);
-
-                            if(temp instanceof NDTree2){
-                                Object o=temp.getByIndex(10);
-                                if(o!=null) {
-                                    System.out.print((boolean) temp.getByIndex(10));
-                                }
-                                else{
-                                    System.out.print("false");
-                                }
-                            }
-
-                            System.out.println();
-
-                        }
-                        else{
-
-                            Node temp= (Node) res.get(0);
-                            System.out.print("FINALNODE - id: "+temp.id()+", key: ");
-                            double[] key=(double[]) temp.get("key");
-                            printArray(key,formatter);
-                            System.out.println();
-
-                        }
-
-                        context.continueTask();
-                    }
-                })
+//                .then(new Action() {
+//                    @Override
+//                    public void eval(TaskContext context) {
+//                        String name=(String) context.variable("name").get(0);
+//                        TaskResult res=context.result();
+//                        if(res.get(0) instanceof NTree){
+//                            Node temp= (Node) res.get(0);
+//
+//                            System.out.print(name+" - id: "+temp.id()+", min: ");
+//                            double[] min=(double[]) temp.getByIndex(6);
+//                            double[] max=(double[]) temp.getByIndex(7);
+//                            printArray(min);
+//                            System.out.print("max: ");
+//                            printArray(max);
+//
+//                            if(temp instanceof NDTree2){
+//                                Object o=temp.getByIndex(10);
+//                                if(o!=null) {
+//                                    System.out.print((boolean) temp.getByIndex(10));
+//                                }
+//                                else{
+//                                    System.out.print("false");
+//                                }
+//                            }
+//
+//                            System.out.println();
+//
+//                        }
+//                        else{
+//
+//                            Node temp= (Node) res.get(0);
+//                            System.out.print("FINALNODE - id: "+temp.id()+", key: ");
+//                            double[] key=(double[]) temp.get("key");
+//                            printArray(key);
+//                            System.out.println();
+//
+//                        }
+//
+//                        context.continueTask();
+//                    }
+//                })
+                .println("{{result}}")
                 .fromVar("tabs")
                 .math("tabs+1")
                 .defineVar("tabs")
