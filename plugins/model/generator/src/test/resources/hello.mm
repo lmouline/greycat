@@ -21,6 +21,6 @@ class sample.Software {
     }
     att load : Double {
         using "Polynomial"
-        with precision 0.1
+        with precision "0.1"
     }
 }

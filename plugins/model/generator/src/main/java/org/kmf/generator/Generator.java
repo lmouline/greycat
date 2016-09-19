@@ -87,8 +87,7 @@ public class Generator {
                 constructor.addParameter("long", "p_time");
                 constructor.addParameter("long", "p_id");
                 constructor.addParameter(Graph.class, "p_graph");
-                constructor.addParameter("long[]", "currentResolution");
-                constructor.setBody("super(p_world, p_time, p_id, p_graph, currentResolution);");
+                constructor.setBody("super(p_world, p_time, p_id, p_graph);");
                 constructor.setVisibility(Visibility.PUBLIC);
 
                 //add helper name
@@ -286,8 +285,8 @@ public class Generator {
                 String fqn = classifier.fqn();
                 constructorContent.append("\t\tdeclareNodeType(" + fqn + ".NODE_NAME, new org.mwg.plugin.NodeFactory() {\n" +
                         "\t\t\t@Override\n" +
-                        "\t\t\tpublic org.mwg.Node create(long world, long time, long id, org.mwg.Graph graph, long[] initialResolution) {\n" +
-                        "\t\t\t\treturn (org.mwg.Node)new " + fqn + "(world,time,id,graph,initialResolution);\n" +
+                        "\t\t\tpublic org.mwg.Node create(long world, long time, long id, org.mwg.Graph graph) {\n" +
+                        "\t\t\t\treturn (org.mwg.Node)new " + fqn + "(world,time,id,graph);\n" +
                         "\t\t\t}\n" +
                         "\t\t});");
             }
