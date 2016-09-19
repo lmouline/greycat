@@ -69,7 +69,7 @@ public class Generator {
                 }
                 sources.add(javaEnum);
             } else if (classifier instanceof KClass) {
-                final JavaClassSource javaClass = Roaster.create(JavaClassSource.class).setFinal(true);
+                final JavaClassSource javaClass = Roaster.create(JavaClassSource.class);
                 KClass loopClass = (KClass) classifier;
                 if (classifier.pack() != null) {
                     javaClass.setPackage(classifier.pack());
