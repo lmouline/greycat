@@ -115,6 +115,7 @@ function connect(graphVisu : GraphVisu, idDiv : string) {
 
             window.Viva.Graph.webglInputEvents(graphics,graphVisu._graphVisu)
                 .click(function(selectedNode : any) {
+                    console.log("Selected");
                     if(selectedNode.id != graphVisu._previousSelect) {
                         printNodeDetails(selectedNode.id, graphVisu);
                         var selectedNodeUI = graphVisu._renderer.getGraphics().getNodeUI(selectedNode.id);
@@ -136,10 +137,10 @@ function connect(graphVisu : GraphVisu, idDiv : string) {
                 graphics: graphics
             });
             graphVisu._renderer.run();
-
-            setTimeout(function(){
-                graphVisu._renderer.pause();
-            },10000);
+            //
+            // setTimeout(function(){
+            //     graphVisu._renderer.pause();
+            // },10000);
 
 
             drawGraph(graphVisu);
@@ -168,16 +169,21 @@ function drawGraph(graphVisu : GraphVisu) {
                     if(graphVisu._mapTypeColor[nodeType] == null) {
                         graphVisu._mapTypeColor[nodeType] = getRandomColor();
                     }
-                    context.addToGlobalVariable("alreadyVisit",id);
                     context.continueTask();
                 }))
                 .fromVar("toVisit")
                 .loop("1",graphVisu._depth + "",
-                    Actions.defineVar("nextToVisit")
+                    Actions
+                        .defineVar("nextToVisit")
                         .fromVar("toVisit")
                         .foreach(
-                            Actions.asGlobalVar("currentNode")
-                                .addToGlobalVar("alreadyVisit")
+                            Actions
+                                .asGlobalVar("currentNode")
+                                .then(function(context : TaskContext) {
+                                    var node : org.mwg.Node = context.result().get(0);
+                                    context.addToGlobalVariable("alreadyVisit",node.id())
+                                    context.continueTask();
+                                })
                                 .propertiesWithTypes(Type.RELATION)
                                 .foreach(
                                     Actions.asVar("relationName")
@@ -188,25 +194,39 @@ function drawGraph(graphVisu : GraphVisu) {
                                         },Actions.foreach(
                                             Actions.then(function(context : TaskContext) {
                                                 var alreadyVisit : TaskResult<number> = context.variable("alreadyVisit");
+                                                var srcNode : number = context.variable("currentNode").get(0).id();
                                                 var result : org.mwg.Node = context.resultAsNodes().get(0);
+
+                                                var alreadyVisited : boolean = false;
                                                 for(var i=0;i<alreadyVisit.size();i++) {
-                                                    if( result.id() == alreadyVisit.get(i)) {
-                                                        context.continueTask();
+                                                    alreadyVisited = alreadyVisited || (result.id() == alreadyVisit.get(i))
+                                                    if(alreadyVisited) {
+                                                        break;
                                                     }
                                                 }
-                                                var srcNode : number = context.variable("currentNode").get(0).id();
+                                                if(!alreadyVisited) {
+                                                    var nodeType : string = result.nodeTypeName() || 'default';
+                                                    if(graphVisu._mapTypeColor[nodeType] == null) {
+                                                        graphVisu._mapTypeColor[nodeType] = getRandomColor();
+                                                    }
 
-                                                var nodeType : string = result.nodeTypeName() || 'default';
-                                                if(graphVisu._mapTypeColor[nodeType] == null) {
-                                                    graphVisu._mapTypeColor[nodeType] = getRandomColor();
+                                                    graphVisu._graphVisu.addNode(result.id(),{_type: nodeType});
+                                                    var nextToVisit : TaskResult<org.mwg.Node> = context.variable("nextToVisit");
+                                                    var alreadyAdded :boolean = false;
+                                                    for(var ntv=0;ntv<nextToVisit.size();ntv++) {
+                                                        alreadyAdded = alreadyAdded || (result.id() == nextToVisit.get(ntv).id());
+                                                        if(alreadyAdded) {
+                                                            break;
+                                                        }
+                                                    }
+                                                    if(!alreadyAdded) {
+                                                        context.addToGlobalVariable("nextToVisit", result);
+                                                    }
                                                 }
 
-                                                graphVisu._graphVisu.addNode(result.id(),{_type: nodeType});
                                                 graphVisu._graphVisu.addLink(srcNode,result.id());
-
-
-                                                context.addToGlobalVariable("nextToVisit",result);
                                                 context.continueTask();
+
                                             })
                                         ),Actions.then(function(context: TaskContext) {
                                             var node : org.mwg.Node = context.variable("currentNode").get(0);
@@ -215,29 +235,42 @@ function drawGraph(graphVisu : GraphVisu) {
 
                                             node.relByIndex(hashReation, function(nodes: Array<org.mwg.Node>) {
                                                 var alreadyVisit : TaskResult<number> = context.variable("alreadyVisit");
-
+                                                var srcNode : number = context.variable("currentNode").get(0).id();
 
                                                 for(var i=0;i<nodes.length;i++) {
                                                     var result : org.mwg.Node = nodes[i];
+                                                    var alreadyVisited : boolean = false;
                                                     for(var i=0;i<alreadyVisit.size();i++) {
-                                                        if( result.id() == alreadyVisit.get(i)) {
-                                                            continue;
-                                                        } else {
-                                                            var nodeType : string = result.nodeTypeName() || 'default';
-                                                            if(graphVisu._mapTypeColor[nodeType] == null) {
-                                                                graphVisu._mapTypeColor[nodeType] = getRandomColor();
+                                                        alreadyVisited = alreadyVisited || (result.id() == alreadyVisit.get(i))
+                                                        if(alreadyVisited) {
+                                                            break;
+                                                        }
+                                                    }
+                                                    if(!alreadyVisited) {
+                                                        var nodeType : string = result.nodeTypeName() || 'default';
+                                                        if(graphVisu._mapTypeColor[nodeType] == null) {
+                                                            graphVisu._mapTypeColor[nodeType] = getRandomColor();
+                                                        }
+
+                                                        graphVisu._graphVisu.addNode(result.id(),{_type: nodeType});
+                                                        var nextToVisit : TaskResult<org.mwg.Node> = context.variable("nextToVisit");
+                                                        var alreadyAdded :boolean = false;
+                                                        for(var ntv=0;ntv<nextToVisit.size();ntv++) {
+                                                            alreadyAdded = alreadyAdded || (result.id() == nextToVisit.get(ntv).id());
+                                                            if(alreadyAdded) {
+                                                                break;
                                                             }
-                                                            //
-                                                            graphVisu._graphVisu.addNode(result.id(),{_type: nodeType});
-                                                            graphVisu._graphVisu.addLink(node.id(),result.id());
-                                                            context.addToGlobalVariable("nextToVisit",result);
+                                                        }
+                                                        if(!alreadyAdded) {
+                                                            context.addToGlobalVariable("nextToVisit", result);
                                                         }
                                                     }
 
+                                                    graphVisu._graphVisu.addLink(srcNode,result.id());
                                                 }
                                                 context.continueTask();
                                             });
-                                            
+
                                         }))
                                 )
                                 .fromVar("currentNode")
@@ -249,37 +282,64 @@ function drawGraph(graphVisu : GraphVisu) {
                                         .foreach(
                                             Actions.then(function(context : TaskContext){
                                                 var alreadyVisit : TaskResult<number> = context.variable("alreadyVisit");
+                                                var srcNode : number = context.variable("currentNode").get(0).id();
                                                 var result : org.mwg.Node = context.resultAsNodes().get(0);
+
+                                                var alreadyVisited : boolean = false;
                                                 for(var i=0;i<alreadyVisit.size();i++) {
-                                                    if( result.id() == alreadyVisit.get(0)) {
-                                                        context.continueTask();
+                                                    alreadyVisited = alreadyVisited || (result.id() == alreadyVisit.get(i))
+                                                    if(alreadyVisited) {
+                                                        break;
                                                     }
                                                 }
-                                                var srcNode : number = context.variable("currentNode").get(0).id();
-                                                var nodeType : string = result.nodeTypeName() || 'default';
+                                                if(!alreadyVisited) {
+                                                    var nodeType : string = result.nodeTypeName() || 'default';
+                                                    if(graphVisu._mapTypeColor[nodeType] == null) {
+                                                        graphVisu._mapTypeColor[nodeType] = getRandomColor();
+                                                    }
 
-                                                if(graphVisu._mapTypeColor[nodeType] == null) {
-                                                    graphVisu._mapTypeColor[nodeType] = getRandomColor();
+                                                    graphVisu._graphVisu.addNode(result.id(),{_type: nodeType});
+                                                    var nextToVisit : TaskResult<org.mwg.Node> = context.variable("nextToVisit");
+                                                    var alreadyAdded :boolean = false;
+                                                    for(var ntv=0;ntv<nextToVisit.size();ntv++) {
+                                                        alreadyAdded = alreadyAdded || (result.id() == nextToVisit.get(ntv).id());
+                                                        if(alreadyAdded) {
+                                                            break;
+                                                        }
+                                                    }
+                                                    if(!alreadyAdded) {
+                                                        context.addToGlobalVariable("nextToVisit", result);
+                                                    }
                                                 }
 
-                                                graphVisu._graphVisu.addNode(result.id(),{_type: nodeType});
                                                 graphVisu._graphVisu.addLink(srcNode,result.id());
-
-                                                context.addToGlobalVariable("nextToVisit",result);
                                                 context.continueTask();
                                             })
                                         )
                                 )
 
                         )
+
                         .fromVar("nextToVisit")
                         .asGlobalVar("toVisit")
                         .fromVar("nextToVisit")
                         .clear()
                         .asGlobalVar("nextToVisit")
+                        .then(function(context : TaskContext) {
+                            var nextToVist : TaskResult<org.mwg.Node> = context.variable("toVisit");
+                            var toShow : string = "Next round: [";
+                            for(var i=0;i<nextToVist.size();i++) {
+                                toShow += nextToVist.get(i).id() + ", ";
+                            }
+                            toShow += "]";
+                            console.log(toShow);
+                            context.continueTask();
+                        })
                 )
         )
-        .execute(graphVisu._graph,null);
+        .execute(graphVisu._graph,function() {
+            console.log("Draw ended");
+        });
 
 }
 
@@ -298,5 +358,10 @@ function initVivaGraph(url: string, idDiv : string) {
 
 
 function getRandomColor() {
-    return '#'+Math.floor(Math.random()*16777215).toString(16);
+    var letters = '789ABCD'.split('');
+    var color = "#";
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.round(Math.random() * 6)];
+    }
+    return color;
 }
