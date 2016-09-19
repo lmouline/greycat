@@ -28,7 +28,6 @@ public class DummyTest {
             root.add("child",g.newNode(0,0));
             root.add("child",g.newNode(0,0));
 
-
             Node idx1 = g.newNode(0,0);
             idx1.setProperty("name", Type.STRING,"idx1");
 

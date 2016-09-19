@@ -10,6 +10,8 @@ import TaskContext = org.mwg.task.TaskContext;
 import Type = org.mwg.Type;
 import TaskResult = org.mwg.task.TaskResult;
 import Graph = org.mwg.Graph;
+import HeapRelationship = org.mwg.core.chunk.heap.HeapRelationship;
+import CoreDeferCounterSync = org.mwg.core.utility.CoreDeferCounterSync;
 
 interface Window {
     Viva? : any
@@ -134,6 +136,7 @@ function connect(graphVisu : GraphVisu, idDiv : string) {
                 graphics: graphics
             });
             graphVisu._renderer.run();
+            
 
             drawGraph(graphVisu);
         } else {
@@ -158,7 +161,6 @@ function drawGraph(graphVisu : GraphVisu) {
 
                     var nodeType : string = node.nodeTypeName() || 'default';
                     graphVisu._graphVisu.addNode(id,{_type: nodeType});
-                    console.log("Node added: " + id);
                     if(graphVisu._mapTypeColor[nodeType] == null) {
                         graphVisu._mapTypeColor[nodeType] = getRandomColor();
                     }
@@ -177,12 +179,14 @@ function drawGraph(graphVisu : GraphVisu) {
                                     Actions.asVar("relationName")
                                         .fromVar("currentNode")
                                         .traverse("{{relationName}}")
-                                        .foreach(
+                                        .ifThenElse(function (context:TaskContext) : boolean {
+                                            return context.result().size() > 0;
+                                        },Actions.foreach(
                                             Actions.then(function(context : TaskContext) {
                                                 var alreadyVisit : TaskResult<number> = context.variable("alreadyVisit");
                                                 var result : org.mwg.Node = context.resultAsNodes().get(0);
                                                 for(var i=0;i<alreadyVisit.size();i++) {
-                                                    if( result.id() == alreadyVisit.get(0)) {
+                                                    if( result.id() == alreadyVisit.get(i)) {
                                                         context.continueTask();
                                                     }
                                                 }
@@ -200,7 +204,39 @@ function drawGraph(graphVisu : GraphVisu) {
                                                 context.addToGlobalVariable("nextToVisit",result);
                                                 context.continueTask();
                                             })
-                                        )
+                                        ),Actions.then(function(context: TaskContext) {
+                                            console.log("else");
+
+                                            var node : org.mwg.Node = context.variable("currentNode").get(0);
+                                            var hashReation : number = context.variable("relationName").get(0);
+
+
+                                            node.relByIndex(hashReation, function(nodes: Array<org.mwg.Node>) {
+                                                var alreadyVisit : TaskResult<number> = context.variable("alreadyVisit");
+
+
+                                                for(var i=0;i<nodes.length;i++) {
+                                                    var result : org.mwg.Node = nodes[i];
+                                                    for(var i=0;i<alreadyVisit.size();i++) {
+                                                        if( result.id() == alreadyVisit.get(i)) {
+                                                            continue;
+                                                        } else {
+                                                            var nodeType : string = result.nodeTypeName() || 'default';
+                                                            if(graphVisu._mapTypeColor[nodeType] == null) {
+                                                                graphVisu._mapTypeColor[nodeType] = getRandomColor();
+                                                            }
+                                                            //
+                                                            graphVisu._graphVisu.addNode(result.id(),{_type: nodeType});
+                                                            graphVisu._graphVisu.addLink(node.id(),result.id());
+                                                            context.addToGlobalVariable("nextToVisit",result);
+                                                        }
+                                                    }
+
+                                                }
+                                                context.continueTask();
+                                            });
+                                            
+                                        }))
                                 )
                                 .fromVar("currentNode")
                                 .propertiesWithTypes(Type.LONG_TO_LONG_ARRAY_MAP)
