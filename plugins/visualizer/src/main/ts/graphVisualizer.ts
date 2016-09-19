@@ -136,7 +136,11 @@ function connect(graphVisu : GraphVisu, idDiv : string) {
                 graphics: graphics
             });
             graphVisu._renderer.run();
-            
+
+            setTimeout(function(){
+                graphVisu._renderer.pause();
+            },10000);
+
 
             drawGraph(graphVisu);
         } else {
@@ -205,8 +209,6 @@ function drawGraph(graphVisu : GraphVisu) {
                                                 context.continueTask();
                                             })
                                         ),Actions.then(function(context: TaskContext) {
-                                            console.log("else");
-
                                             var node : org.mwg.Node = context.variable("currentNode").get(0);
                                             var hashReation : number = context.variable("relationName").get(0);
 
