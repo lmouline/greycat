@@ -43,12 +43,15 @@ public class JClient {
                     .asVar("node")
                     .println("{{result}}")
                     .traverse("available_bikes")
+                    .println("{{result}}")
                     .asVar("available_bikes")
                     .fromVar("node")
                     .traverse("available_bike_stands")
+                    .println("{{result}}")
                     .asVar("available_bike_stands")
                     .fromVar("node")
                     .traverse("station_profile")
+                    .println("{{result}}")
                     .asVar("station_profile")
                     .then(context->{
                         context.variable("node").get(0);
