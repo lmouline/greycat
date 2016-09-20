@@ -1,23 +1,13 @@
 package org.mwg;
 
-import org.mwg.chunk.StateChunk;
-import org.mwg.chunk.TimeTreeChunk;
 import org.mwg.ml.MLPlugin;
 import org.mwg.ml.algorithm.profiling.GaussianSlotNode;
-import org.mwg.ml.algorithm.regression.PolynomialNode;
-import org.mwg.plugin.AbstractNode;
-import org.mwg.plugin.Job;
-import org.mwg.struct.Buffer;
 import org.mwg.structure.StructurePlugin;
 import org.mwg.task.Task;
 import org.mwg.task.TaskContext;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoField;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.mwg.task.Actions.*;
 
