@@ -10,37 +10,23 @@ var Demo = function () {
     var markers;
     var graph;
     var currentContract;
+    var flatpickr;
 
     var init = function () {
 
         graph = new org.mwg.GraphBuilder().withStorage(new org.mwg.plugin.WSClient("ws://localhost:8050")).withPlugin(new org.mwg.structure.StructurePlugin()).withPlugin(new org.mwg.ml.MLPlugin()).build();
         graph.connect(function () {
 
-            document.querySelector(".modalDialog").style.setProperty("opacity", 0);
-
-            var getStation = org.mwg.task.Actions
-                .setTime((new Date()).getTime())
-                //.print("{{context}}")
-                .fromIndex("cities", "name=Luxembourg")
-                //.print("{{result}}")
-                .traverseIndex("stations", "name", "BRICHERHAFF")
-                //.print("{{result}}");
-            getStation.execute(graph, null);
-
-           /*
            initOptionList();
             updateContract("Luxembourg");
-            */
 
         });
-        /*
         initFlatpickr();
         initMap();
-        */
     };
 
     var initFlatpickr = function () {
-        document.querySelector(".flatpickr").flatpickr();
+        flatpickr = document.querySelector(".flatpickr").flatpickr({defaultDate:(new Date())});
     };
 
     var fillOptionListTask = org.mwg.task.Actions
@@ -52,7 +38,7 @@ var Demo = function () {
             var result = context.result();
             var s = result.size();
 
-            var selector = document.querySelector("select")
+            var selector = document.querySelector("select");
             for (var i = 0; i < s; i++) {
                 var val = result.get(i);
                 var opt = document.createElement("option");
@@ -226,15 +212,46 @@ var Demo = function () {
             .bindPopup(node.get("name"));
         marker["node"] = node.id();
         marker.on('click', function (e) {
-            graph.lookup(0, (new Date()).getTime(), e.target.node, function (node) {
-                document.querySelector("#all_stands").textContent = node.get("bike_stands");
-                document.querySelector("#free_stands").textContent = node.get("available_bike_stands");
-                document.querySelector("#available_bikes").textContent = node.get("available_bikes");
-            });
+            showAvailabilities(e.target.node, flatpickr.selectedDateObj.getTime());
         });
         markers.addLayer(marker);
         context.continueTask();
     };
+
+
+    var showAvailabilitiesTask = org.mwg.task.Actions
+    // .hook(hookFactory)
+        .setTime("{{processTime}}")
+        .lookup("{{nodeId}}")
+        .asVar("node")
+        .println("{{result}}")
+        .traverse("available_bikes")
+        .asVar("available_bikes")
+        .fromVar("node")
+        .traverse("available_bike_stands")
+        .asVar("available_bike_stands")
+        .fromVar("node")
+        .traverse("station_profile")
+        .asVar("station_profile")
+        .then(function(context){
+            document.querySelector("#all_stands").textContent = context.variable("node").get(0).get("bike_stands");
+            document.querySelector("#free_stands").textContent = context.variable("available_bike_stands").get(0).get("value");
+            document.querySelector("#available_bikes").textContent = context.variable("available_bikes").get(0).get("value");
+            context.continueTask();
+        });
+
+    var showAvailabilities = function(nodeId, time) {
+        var context = showAvailabilitiesTask.prepareWith(graph, null, function (result) {
+            result.free();
+        });
+        context.setVariable("nodeId", nodeId);
+        context.setVariable("processTime", ( time==undefined ? (new Date()).getTime() : time));
+        showAvailabilitiesTask.executeUsing(context);
+
+    };
+
+
+
 
     var getGraph = function () {
         return graph;

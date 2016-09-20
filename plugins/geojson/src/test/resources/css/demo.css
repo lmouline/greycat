@@ -47,7 +47,7 @@
 }
 
 .accordion panel:target {
-    height: 30em;
+    height: 40em;
     background-color: #fff;
 }
 
