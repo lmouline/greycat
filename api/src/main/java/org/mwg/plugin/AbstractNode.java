@@ -140,7 +140,7 @@ public abstract class AbstractNode implements Node {
      * if (typeof propertyValue === 'string' || propertyValue instanceof String) {
      * this.setProperty(propertyName, org.mwg.Type.STRING, propertyValue);
      * } else if(typeof propertyValue === 'number' || propertyValue instanceof Number) {
-     * if(propertyValue % 1 != 0) {
+     * if(((<number>propertyValue) % 1) != 0) {
      * this.setProperty(propertyName, org.mwg.Type.DOUBLE, propertyValue);
      * } else {
      * this.setProperty(propertyName, org.mwg.Type.LONG, propertyValue);
