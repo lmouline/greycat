@@ -15,11 +15,6 @@ public class ExecutorScheduler implements Scheduler {
     private ExecutorService service;
     private int _workers = -1;
 
-    public ExecutorScheduler workers(int p_workers) {
-        this._workers = p_workers;
-        return this;
-    }
-
     @Override
     public void dispatch(final byte affinity, final Job job) {
         service.submit(new Runnable() {
@@ -47,6 +42,11 @@ public class ExecutorScheduler implements Scheduler {
     public void stop() {
         this.service.shutdown();
         this.service = null;
+    }
+
+    @Override
+    public int workers() {
+        return _workers;
     }
 
 }

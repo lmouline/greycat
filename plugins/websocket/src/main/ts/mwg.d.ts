@@ -679,6 +679,7 @@ declare module org {
                 dispatch(affinity: number, job: org.mwg.plugin.Job): void;
                 start(): void;
                 stop(): void;
+                workers(): number;
             }
             class SchedulerAffinity {
                 static SAME_THREAD: number;
@@ -1560,6 +1561,7 @@ declare module org {
                     dispatch(affinity: number, job: org.mwg.plugin.Job): void;
                     start(): void;
                     stop(): void;
+                    workers(): number;
                 }
                 class TrampolineScheduler implements org.mwg.plugin.Scheduler {
                     private queue;
@@ -1567,6 +1569,7 @@ declare module org {
                     dispatch(affinity: number, job: org.mwg.plugin.Job): void;
                     start(): void;
                     stop(): void;
+                    workers(): number;
                 }
             }
             module task {
