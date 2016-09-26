@@ -17,7 +17,7 @@ public class Buffer {
 
 
     public Buffer(int capacity, int dimension, boolean lastWeightIsOne, boolean clearAfterFull) {
-        this._index = new HashMap<>(capacity);
+        this._index = new HashMap<>(); // capacity
         this._counts = new int[capacity];
         this._values = new double[capacity][_dim];
         this._dim = dimension;

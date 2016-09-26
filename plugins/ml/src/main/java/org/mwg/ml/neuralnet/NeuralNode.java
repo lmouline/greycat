@@ -34,7 +34,7 @@ public class NeuralNode extends AbstractNode {
 
     public NeuralNode configure(int inputs, int outputs, int hiddenlayers, int nodesPerLayer) {
 
-        ArrayList<NeuralNode> internalNodes = new ArrayList<NeuralNode>(inputs + outputs + hiddenlayers * nodesPerLayer + 1);
+        ArrayList<NeuralNode> internalNodes = new ArrayList<NeuralNode>();//inputs + outputs + hiddenlayers * nodesPerLayer + 1
         internalNodes.add(this);
         int layer = 0;
 
