@@ -3,7 +3,6 @@ package org.mwg.core.scheduler;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.Scheduler;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
