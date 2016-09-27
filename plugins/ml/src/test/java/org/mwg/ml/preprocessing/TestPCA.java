@@ -10,7 +10,7 @@ import java.util.Random;
  * Created by assaad on 27/09/16.
  */
 public class TestPCA {
-    private static DecimalFormat formatter = new DecimalFormat("#.######");
+    //private static DecimalFormat formatter = new DecimalFormat("#.######");
 
     /*
     public static void print(Matrix A, String name){
@@ -83,7 +83,7 @@ public class TestPCA {
         Matrix trainingData = new Matrix(temp,len,dim);
 
 
-        long starttime = System.nanoTime();
+        long starttime = System.currentTimeMillis();
         PCA pca = new PCA(trainingData,true);
         /** Test data to be transformed. The same convention of representing
          * data points as in the training data matrix is used. */
@@ -92,9 +92,8 @@ public class TestPCA {
 //        Matrix transformedData =
 //                pca.transform(testData, PCA.TransformationType.ROTATION);
 //        Matrix reversed=pca.inverseTransform(transformedData,PCA.TransformationType.ROTATION);
-        long endtime = System.nanoTime();
+        long endtime = System.currentTimeMillis();
         double d=endtime-starttime;
-        d=d/1000000;
         System.out.println("Took "+d +" ms");
 //
 //
