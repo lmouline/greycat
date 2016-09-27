@@ -35,7 +35,11 @@ class CoreTaskResultIterator<A> implements TaskResultIterator<A> {
     public Tuple<Integer, A> nextWithIndex() {
         final int cursor = _current.getAndIncrement();
         if (cursor < _size) {
-            return new Tuple<Integer, A>(cursor, (A) _backend[cursor]);
+            if (_backend[cursor] != null) {
+                return new Tuple<Integer, A>(cursor, (A) _backend[cursor]);
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
