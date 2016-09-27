@@ -176,7 +176,7 @@ public class PCA {
         }
         System.out.println("");
 
-        System.out.println("To retain: "+retain(singularValues,percentToRetain)+" dimensions to preserve "+percentToRetain*100+" % of energy");
+        System.out.println("To retain: "+retain(singularValues,percentToRetain)+" dimensions to preserve at least "+percentToRetain*100+" % of energy");
 
         int x = 0;
 
