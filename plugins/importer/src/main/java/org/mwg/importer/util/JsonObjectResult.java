@@ -22,9 +22,11 @@ public class JsonObjectResult implements TaskResult<JsonMemberResult> {
     public TaskResultIterator iterator() {
         return new TaskResultIterator() {
             private Iterator<JsonObject.Member> subIt = _content.iterator();
+            private int i=0;
 
             @Override
-            public Object next() {
+            public synchronized Object next() {
+                i++;
                 if (subIt.hasNext()) {
                     JsonObject.Member res = subIt.next();
                     if (res != null) {
@@ -35,7 +37,15 @@ public class JsonObjectResult implements TaskResult<JsonMemberResult> {
             }
 
             @Override
-            public Tuple nextWithIndex() {
+            public synchronized Tuple nextWithIndex() {
+                final int cursor = i;
+                i++;
+                if (subIt.hasNext()) {
+                    JsonObject.Member res = subIt.next();
+                    if (res != null) {
+                        return new Tuple(cursor,new JsonMemberResult(res));
+                    }
+                }
                 return null;
             }
         };

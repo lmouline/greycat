@@ -57,8 +57,10 @@ public class IterableLines implements TaskResult<String> {
                     String line = final_buffer.readLine();
                     if (line == null) {
                         final_buffer.close();
+                        return null;
+                    } else {
+                        return new Tuple(c_i, line);
                     }
-                    return new Tuple(c_i, line);
                 } catch (IOException e) {
                     e.printStackTrace();
                     return null;

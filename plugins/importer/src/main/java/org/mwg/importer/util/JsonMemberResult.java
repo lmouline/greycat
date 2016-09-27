@@ -19,7 +19,7 @@ public class JsonMemberResult implements TaskResult<Object> {
             private int currentIndex = 0;
 
             @Override
-            public Object next() {
+            public synchronized Object next() {
                 Object result = null;
                 if (currentIndex == 0) {
                     result = _member.getName();
@@ -32,8 +32,16 @@ public class JsonMemberResult implements TaskResult<Object> {
             }
 
             @Override
-            public Tuple nextWithIndex() {
-                return null;
+            public synchronized Tuple nextWithIndex() {
+                Tuple result = null;
+                if (currentIndex == 0) {
+                    result = new Tuple(currentIndex, _member.getName());
+                }
+                if (currentIndex == 1) {
+                    result = new Tuple(currentIndex, JsonValueResultBuilder.build(_member.getValue()));
+                }
+                currentIndex++;
+                return result;
             }
         };
     }
