@@ -1,6 +1,9 @@
 package org.mwg.ml.common.matrix;
 
 
+import org.mwg.ml.common.matrix.blassolver.BlasMatrixEngine;
+import org.mwg.ml.common.matrix.jamasolver.JamaMatrixEngine;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.Random;
@@ -157,7 +160,7 @@ public class Matrix {
      */
     public static MatrixEngine defaultEngine() {
         if (_defaultEngine == null) {
-            _defaultEngine = new HybridMatrixEngine();
+            _defaultEngine = new BlasMatrixEngine();
 
         }
         return _defaultEngine;
