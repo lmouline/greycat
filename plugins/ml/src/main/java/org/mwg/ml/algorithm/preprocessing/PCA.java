@@ -170,13 +170,14 @@ public class PCA {
         double[] singularValues = _svdDecompose.getS();
 
 
-        System.out.println("Singular values");
-        for (int i = 0; i < singularValues.length; i++) {
-            System.out.println(singularValues[i]);
-        }
-        System.out.println("");
+//        System.out.println("Singular values");
+//        for (int i = 0; i < singularValues.length; i++) {
+//            System.out.println(singularValues[i]);
+//        }
+//        System.out.println("");
 
-        System.out.println("To retain: "+retain(singularValues,percentToRetain)+" dimensions to preserve at least "+percentToRetain*100+" % of energy");
+
+        System.out.println("Need to retain: "+retain(singularValues,percentToRetain)+" / "+data.columns()+" dimensions to preserve at least "+percentToRetain*100+" % of the signal energy");
 
         int x = 0;
 

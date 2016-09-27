@@ -77,7 +77,7 @@ public class TestPCA2 {
 //        Matrix reversed=pca.inverseTransform(transformedData,PCA.TransformationType.ROTATION);
         long endtime = System.currentTimeMillis();
         double d = endtime - starttime;
-        System.out.println("Took " + d + " ms");
+        System.out.println("Analysis took " + d + " ms");
 //
 //
 //        double error=0;
