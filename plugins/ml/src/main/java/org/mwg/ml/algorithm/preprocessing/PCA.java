@@ -123,7 +123,7 @@ public class PCA {
     }
 
 
-    public static int retainDynamic(double[] svector){
+    public int retainDynamic(double[] svector){
         double d=0;
         for(int i=0;i<svector.length;i++){
             d+=svector[i]*svector[i];
@@ -137,7 +137,7 @@ public class PCA {
         for(int i=2;i<svector.length;i++){
             t=svector[i]*svector[i]/(svector[i-1]*svector[i-1]);
             if(t/previoust<0.5){
-                System.out.println("Energy retained: "+integrator*100/d+ " %");
+                _percentToRetain=integrator*100/d;
                 return i;
             }
             integrator+=svector[i]*svector[i];
@@ -196,14 +196,15 @@ public class PCA {
         double[] singularValues = _svdDecompose.getS();
 
 
-        System.out.println("Singular values");
-        for (int i = 0; i < singularValues.length; i++) {
-            System.out.println(singularValues[i]);
-        }
-        System.out.println("");
+//        System.out.println("Singular values");
+//        for (int i = 0; i < singularValues.length; i++) {
+//            System.out.println(singularValues[i]);
+//        }
+//        System.out.println("");
 
 
         System.out.println("Need to retain: "+retainDynamic(singularValues)+" / "+data.columns()+" dimensions");
+        System.out.println("Energy retained: "+_percentToRetain+ " %");
 
         int x = 0;
 

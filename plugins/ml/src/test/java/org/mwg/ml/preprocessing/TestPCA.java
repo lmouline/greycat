@@ -31,7 +31,7 @@ public class TestPCA {
 
 
         int dim = 100;                  // Total dimensions in the data
-        int realdim = 20;               // Actual real dimensions in the data, the rest are linear correlation plus some noise
+        int realdim = 50;               // Actual real dimensions in the data, the rest are linear correlation plus some noise
         double randomness = 0.2;       // Strength of the noise from 0 to 1 on the correlated dims
 
 
@@ -77,7 +77,7 @@ public class TestPCA {
 //        Matrix reversed=pca.inverseTransform(transformedData,PCA.TransformationType.ROTATION);
         long endtime = System.currentTimeMillis();
         double d = endtime - starttime;
-        System.out.println("Analysis took " + d + " ms");
+        System.out.println("Analysis took " + d + " ms for a matrix of size: "+trainingData.rows()+"x"+trainingData.columns());
 //
 //
 //        double error=0;
