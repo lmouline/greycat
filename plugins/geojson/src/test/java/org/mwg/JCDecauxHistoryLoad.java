@@ -2,6 +2,7 @@ package org.mwg;
 
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
+import org.mwg.core.scheduler.HybridScheduler;
 import org.mwg.importer.ImporterPlugin;
 import org.mwg.importer.action.ReadFiles;
 import org.mwg.memory.offheap.OffHeapMemoryPlugin;
@@ -41,7 +42,8 @@ public class JCDecauxHistoryLoad {
     public void baseTest() {
 
 
-        final Graph g = new GraphBuilder().withStorage(new LevelDBStorage("fullTempStorage2")).withMemorySize(2000000).withPlugin(new ImporterPlugin()).withPlugin(new GeoJsonPlugin()).withPlugin(new StructurePlugin()).withPlugin(new MLPlugin()).build();
+        //final Graph g = new GraphBuilder().withStorage(new LevelDBStorage("fullTempStorage2")).withScheduler(new HybridScheduler()).withMemorySize(1000000).withPlugin(new ImporterPlugin()).withPlugin(new GeoJsonPlugin()).withPlugin(new StructurePlugin()).withPlugin(new MLPlugin()).build();
+        final Graph g = new GraphBuilder().withStorage(new LevelDBStorage("fullTempStorage2")).withPlugin(new OffHeapMemoryPlugin()).withMemorySize(8000000).withPlugin(new ImporterPlugin()).withPlugin(new GeoJsonPlugin()).withPlugin(new StructurePlugin()).withPlugin(new MLPlugin()).build();
         g.connect(connectionResult -> {
 
             WSServer graphServer = new WSServer(g, 8050);
@@ -55,9 +57,9 @@ public class JCDecauxHistoryLoad {
                     .inject(dataSetFolder)
                     .subTask(updateIndexes)
                     .fromVar("stationsPaths")
-                    .foreach(
+                    .foreachPar(
                             isolate(processFile)
-                            //.ifThen(context -> ((int)context.variable("i").get(0)) %250 == 0, save())
+                            .ifThen(context -> ((int)context.variable("i").get(0))%100 == 99, save())
                     ).then(context -> {
                         long start = (long) context.variable("processStartTime").get(0);
                         long duration = System.currentTimeMillis() - start;
@@ -79,7 +81,7 @@ public class JCDecauxHistoryLoad {
 
     private Task updateIndexes = newTask()
             .action(READFILES, "{{result}}")
-            .foreach(
+            .foreachPar(
                     isolate(
                             asVar("folderPath")
                                     .map(obj -> {
@@ -106,7 +108,7 @@ public class JCDecauxHistoryLoad {
                                     )
                                     .asVar(CITY_NODE)
                                     .action(READFILES, "{{folderPath}}")
-                                    .foreach(
+                                    .foreachPar(
                                             isolate(
                                                     asVar("stationFilePath")
                                                             .addToGlobalVar("stationsPaths")
@@ -152,7 +154,7 @@ public class JCDecauxHistoryLoad {
                     .fromVar("stationFilePath")
                     .action(LOADJSON, "{{result}}")
                     .asVar("jsonFileContent")
-                    .setTime("{{processTime}}")
+                    //.setTime("{{processTime}}")
                     .foreach(
                             asVar("jsonObject")
                                     .math("count+1")
@@ -186,10 +188,13 @@ public class JCDecauxHistoryLoad {
                                     //.println("{{result}}")
                                     .fromVar(STATION_NODE)
                                     .then(context -> updateStationValues(context))
+                                    .println("after update")
                                     /*
                                     .action(NTreeInsertTo.NAME, POSITIONS_TREE)
                                         */
-                    ).save();
+                    )
+                    //.save()
+            ;
 
 
     public void createStationNode(TaskContext context) {
@@ -229,21 +234,19 @@ public class JCDecauxHistoryLoad {
 
         KDTree positionsTree = (KDTree) context.variable(POSITIONS_TREE).get(0);
 
-        if(stationProfileNode == null) {
-            System.out.println("");
-        }
-
-
         JsonObject obj = (JsonObject) context.variable("jsonObject").get(0);
         double[] profileValues = new double[2];
         profileValues[0] = obj.get(AVAILABLE_BIKES).asDouble();
         profileValues[1] = obj.get(AVAILABLE_STANDS).asDouble();
         stationProfileNode.learnArray(profileValues);
 
+
+
         boolean index = false;
         Iterator<JsonObject.Member> mIt = obj.iterator();
         while (mIt.hasNext()) {
             JsonObject.Member m = mIt.next();
+
             JsonValue value = m.getValue();
             String name = m.getName();
             if (name.equals(POSITION)) {
@@ -259,6 +262,7 @@ public class JCDecauxHistoryLoad {
                 while (mIt2.hasNext()) {
                     JsonObject.Member p = mIt2.next();
                     positionNode.set(p.getName(), p.getValue().asDouble());
+                    System.out.println("Position set " + p.getName() + " at " + positionNode.time() + " in stationNodeTime: " + stationNode.time());
                 }
                 //System.out.println(positionNode.toString());
             } else if (name.equals(AVAILABLE_BIKES)) {
@@ -293,7 +297,9 @@ public class JCDecauxHistoryLoad {
             }
         }
         if (index) {
-            positionsTree.insert(stationNode, result -> context.continueTask());
+            positionsTree.insert(stationNode, result -> {
+                context.continueTask();
+            });
         } else {
             context.continueTask();
         }
