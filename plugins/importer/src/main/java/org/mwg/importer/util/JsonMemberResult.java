@@ -3,6 +3,7 @@ package org.mwg.importer.util;
 import com.eclipsesource.json.JsonObject;
 import org.mwg.task.TaskResult;
 import org.mwg.task.TaskResultIterator;
+import org.mwg.utility.Tuple;
 
 public class JsonMemberResult implements TaskResult<Object> {
 
@@ -28,6 +29,11 @@ public class JsonMemberResult implements TaskResult<Object> {
                 }
                 currentIndex++;
                 return result;
+            }
+
+            @Override
+            public Tuple nextWithIndex() {
+                return null;
             }
         };
     }

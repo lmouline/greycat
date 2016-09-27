@@ -6,6 +6,7 @@ import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.SchedulerAffinity;
 import org.mwg.task.*;
+import org.mwg.utility.Tuple;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -23,7 +24,6 @@ class ActionForeachPar extends AbstractTaskAction {
         final TaskResult previousResult = context.result();
         final TaskResultIterator it = previousResult.iterator();
         final int previousSize = previousResult.size();
-        final AtomicInteger cursor = new AtomicInteger(0);
         if (previousSize == -1) {
             throw new RuntimeException("Foreach on non array structure are not supported yet!");
         }
@@ -32,12 +32,12 @@ class ActionForeachPar extends AbstractTaskAction {
         dequeueJob[0] = new Job() {
             @Override
             public void run() {
-                final Object loop = it.next();
+                final Tuple<Integer, Object> loop = it.nextWithIndex();
                 if (loop != null) {
-                    _subTask.executeFromUsing(context, context.wrap(loop), SchedulerAffinity.ANY_LOCAL_THREAD, new Callback<TaskContext>() {
+                    _subTask.executeFromUsing(context, context.wrap(loop.right()), SchedulerAffinity.ANY_LOCAL_THREAD, new Callback<TaskContext>() {
                         @Override
                         public void on(TaskContext result) {
-                            result.defineVariable("i", cursor.getAndIncrement());
+                            result.defineVariable("i", loop.left());
                         }
                     }, new Callback<TaskResult>() {
                         @Override

@@ -4,6 +4,7 @@ import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonValue;
 import org.mwg.task.TaskResult;
 import org.mwg.task.TaskResultIterator;
+import org.mwg.utility.Tuple;
 
 import java.util.Iterator;
 
@@ -18,6 +19,7 @@ public class JsonArrayResult implements TaskResult {
     @Override
     public TaskResultIterator iterator() {
         return new TaskResultIterator() {
+
             private Iterator<JsonValue> it = _content.iterator();
 
             @Override
@@ -27,6 +29,11 @@ public class JsonArrayResult implements TaskResult {
                 } else {
                     return null;
                 }
+            }
+
+            @Override
+            public Tuple nextWithIndex() {
+                return null;
             }
         };
     }

@@ -1,6 +1,7 @@
 package org.mwg.core.task;
 
 import org.mwg.task.TaskResultIterator;
+import org.mwg.utility.Tuple;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -25,6 +26,16 @@ class CoreTaskResultIterator<A> implements TaskResultIterator<A> {
         final int cursor = _current.getAndIncrement();
         if (cursor < _size) {
             return (A) _backend[cursor];
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public Tuple<Integer, A> nextWithIndex() {
+        final int cursor = _current.getAndIncrement();
+        if (cursor < _size) {
+            return new Tuple<Integer, A>(cursor, (A) _backend[cursor]);
         } else {
             return null;
         }
