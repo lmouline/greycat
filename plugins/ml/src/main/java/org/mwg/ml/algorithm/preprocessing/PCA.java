@@ -123,6 +123,33 @@ public class PCA {
     }
 
 
+    public static int retainDynamic(double[] svector){
+        double d=0;
+        for(int i=0;i<svector.length;i++){
+            d+=svector[i]*svector[i];
+        }
+
+
+        double integrator=0;
+        double t=0;
+        double previoust=svector[1]*svector[1]/(svector[0]*svector[0]);
+        integrator=svector[0]*svector[0]+svector[1]*svector[1];
+        for(int i=2;i<svector.length;i++){
+            t=svector[i]*svector[i]/(svector[i-1]*svector[i-1]);
+            if(t/previoust<0.5){
+                System.out.println("Energy retained: "+integrator*100/d+ " %");
+                return i;
+            }
+            integrator+=svector[i]*svector[i];
+//            System.out.println(i+" "+t/previoust);
+            previoust=t;
+        }
+        System.out.println("");
+        return svector.length;
+    }
+
+
+
     public static int retain(double[] svector, double percent){
         double d=0;
         for(int i=0;i<svector.length;i++){
@@ -142,10 +169,9 @@ public class PCA {
 
 
 
-    public PCA(Matrix data, int processType, double percentToRetain) {
+    public PCA(Matrix data, int processType) {
         this._data = data;
         this._processType = processType;
-        this._percentToRetain=percentToRetain;
         calculateMinMaxAvg();
 
         if(processType==CENTER_ON_AVG){
@@ -170,14 +196,14 @@ public class PCA {
         double[] singularValues = _svdDecompose.getS();
 
 
-//        System.out.println("Singular values");
-//        for (int i = 0; i < singularValues.length; i++) {
-//            System.out.println(singularValues[i]);
-//        }
-//        System.out.println("");
+        System.out.println("Singular values");
+        for (int i = 0; i < singularValues.length; i++) {
+            System.out.println(singularValues[i]);
+        }
+        System.out.println("");
 
 
-        System.out.println("Need to retain: "+retain(singularValues,percentToRetain)+" / "+data.columns()+" dimensions to preserve at least "+percentToRetain*100+" % of the signal energy");
+        System.out.println("Need to retain: "+retainDynamic(singularValues)+" / "+data.columns()+" dimensions");
 
         int x = 0;
 
