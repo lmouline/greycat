@@ -131,19 +131,21 @@ public class PCA {
 
 
         double integrator=0;
-        double t=0;
-        double previoust=svector[1]*svector[1]/(svector[0]*svector[0]);
+        double previoust=0;
+        double t=svector[1]*svector[1]/(svector[0]*svector[0]);
         integrator=svector[0]*svector[0]+svector[1]*svector[1];
         for(int i=2;i<svector.length;i++){
+            previoust=t;
             t=svector[i]*svector[i]/(svector[i-1]*svector[i-1]);
-            if(t/previoust<0.5){
+            System.out.println(i+" "+t/previoust+" , energy: "+integrator*100/d+" %");
+            if(t/previoust<0.98){
                 _percentToRetain=integrator*100/d;
                 return i;
             }
             integrator+=svector[i]*svector[i];
-//            System.out.println(i+" "+t/previoust);
-            previoust=t;
         }
+        _percentToRetain=integrator*100/d;
+        System.out.println(svector.length+" "+t/previoust+" , energy: "+integrator*100/d+" %");
         System.out.println("");
         return svector.length;
     }
