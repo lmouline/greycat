@@ -2,15 +2,16 @@ package org.mwg.core.task;
 
 import org.mwg.task.TaskResultIterator;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 class CoreTaskResultIterator<A> implements TaskResultIterator<A> {
 
     private final Object[] _backend;
-
     private final int _size;
-
-    private int _current = 0;
+    private final AtomicInteger _current;
 
     CoreTaskResultIterator(Object[] p_backend) {
+        _current = new AtomicInteger(0);
         if (p_backend != null) {
             this._backend = p_backend;
         } else {
@@ -20,11 +21,10 @@ class CoreTaskResultIterator<A> implements TaskResultIterator<A> {
     }
 
     @Override
-    public synchronized A next() {
-        if (_current < _size) {
-            Object result = _backend[_current];
-            _current++;
-            return (A) result;
+    public A next() {
+        final int cursor = _current.getAndIncrement();
+        if (cursor < _size) {
+            return (A) _backend[cursor];
         } else {
             return null;
         }
