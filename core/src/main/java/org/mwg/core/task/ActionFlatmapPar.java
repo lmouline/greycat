@@ -30,6 +30,9 @@ class ActionFlatmapPar extends AbstractTaskAction {
         }
         finalResult.allocate(previousSize);
         final DeferCounter waiter = context.graph().newCounter(previousSize);
+
+
+        /*
         Object loop = it.next();
         while (loop != null) {
             final TaskResult loopResult = context.wrap(loop);
@@ -46,7 +49,9 @@ class ActionFlatmapPar extends AbstractTaskAction {
                 }
             });
             loop = it.next();
-        }
+        }*/
+
+
         waiter.then(new Job() {
             @Override
             public void run() {
@@ -57,7 +62,7 @@ class ActionFlatmapPar extends AbstractTaskAction {
 
     @Override
     public String toString() {
-        return "flatmapPar()";
+        return "flatMapPar()";
     }
 
 }
