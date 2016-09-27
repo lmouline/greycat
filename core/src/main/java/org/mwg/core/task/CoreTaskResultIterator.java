@@ -11,7 +11,7 @@ class CoreTaskResultIterator<A> implements TaskResultIterator<A> {
     private int _current = 0;
 
     CoreTaskResultIterator(Object[] p_backend) {
-        if(p_backend != null) {
+        if (p_backend != null) {
             this._backend = p_backend;
         } else {
             _backend = new Object[0];
@@ -20,7 +20,7 @@ class CoreTaskResultIterator<A> implements TaskResultIterator<A> {
     }
 
     @Override
-    public A next() {
+    public synchronized A next() {
         if (_current < _size) {
             Object result = _backend[_current];
             _current++;

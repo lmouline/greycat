@@ -25,18 +25,28 @@ class ActionForeachPar extends AbstractTaskAction {
             throw new RuntimeException("Foreach on non array structure are not supported yet!");
         }
         final DeferCounter waiter = context.graph().newCounter(previousSize);
-        Object loop = it.next();
-        while (loop != null) {
-            _subTask.executeFrom(context, context.wrap(loop), SchedulerAffinity.ANY_LOCAL_THREAD, new Callback<TaskResult>() {
-                @Override
-                public void on(TaskResult result) {
-                    if (result != null) {
-                        result.free();
-                    }
-                    waiter.count();
+        final Job[] dequeueJob = new Job[1];
+        dequeueJob[0] = new Job() {
+            @Override
+            public void run() {
+                final Object loop = it.next();
+                if (loop != null) {
+                    _subTask.executeFrom(context, context.wrap(loop), SchedulerAffinity.ANY_LOCAL_THREAD, new Callback<TaskResult>() {
+                        @Override
+                        public void on(TaskResult result) {
+                            if (result != null) {
+                                result.free();
+                            }
+                            waiter.count();
+                            dequeueJob[0].run();
+                        }
+                    });
                 }
-            });
-            loop = it.next();
+            }
+        };
+        final int nbThread = context.graph().scheduler().workers();
+        for (int i = 0; i < nbThread; i++) {
+            dequeueJob[0].run();
         }
         waiter.then(new Job() {
             @Override
