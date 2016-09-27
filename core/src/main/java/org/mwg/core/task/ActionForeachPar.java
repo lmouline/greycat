@@ -7,6 +7,8 @@ import org.mwg.plugin.Job;
 import org.mwg.plugin.SchedulerAffinity;
 import org.mwg.task.*;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 class ActionForeachPar extends AbstractTaskAction {
 
     private final Task _subTask;
@@ -21,6 +23,7 @@ class ActionForeachPar extends AbstractTaskAction {
         final TaskResult previousResult = context.result();
         final TaskResultIterator it = previousResult.iterator();
         final int previousSize = previousResult.size();
+        final AtomicInteger cursor = new AtomicInteger(0);
         if (previousSize == -1) {
             throw new RuntimeException("Foreach on non array structure are not supported yet!");
         }
@@ -31,7 +34,12 @@ class ActionForeachPar extends AbstractTaskAction {
             public void run() {
                 final Object loop = it.next();
                 if (loop != null) {
-                    _subTask.executeFrom(context, context.wrap(loop), SchedulerAffinity.ANY_LOCAL_THREAD, new Callback<TaskResult>() {
+                    _subTask.executeFromUsing(context, context.wrap(loop), SchedulerAffinity.ANY_LOCAL_THREAD, new Callback<TaskContext>() {
+                        @Override
+                        public void on(TaskContext result) {
+                            result.defineVariable("i", cursor.getAndIncrement());
+                        }
+                    }, new Callback<TaskResult>() {
                         @Override
                         public void on(TaskResult result) {
                             if (result != null) {
