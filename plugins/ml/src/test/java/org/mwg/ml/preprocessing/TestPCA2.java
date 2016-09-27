@@ -4,13 +4,12 @@ import org.mwg.ml.algorithm.preprocessing.PCA;
 import org.mwg.ml.common.matrix.Matrix;
 import org.mwg.ml.common.matrix.jamasolver.JamaMatrixEngine;
 
-import java.text.DecimalFormat;
 import java.util.Random;
 
 /**
  * Created by assaad on 27/09/16.
  */
-public class TestPCA {
+public class TestPCA2 {
     //private static DecimalFormat formatter = new DecimalFormat("#.######");
 
     /*
@@ -28,65 +27,47 @@ public class TestPCA {
     }*/
 
 
-    public static void main(String[] arg){
+    public static void main(String[] arg) {
 
 
-        int dim=80;
-        int realdim=80;
-        double randomness=0.0001;
+        int dim = 100;                  // Total dimensions in the data
+        int realdim = 20;               // Actual real dimensions in the data, the rest are linear correlation plus some noise
+        double randomness = 0.04;       // Strength of the noise from 0 to 1 on the correlated dims
+        double percent = 99.0 / 100.0;  // Energy to retain
 
+        int len = dim * 100;  //Number of data point to generate
+        double maxsignal = 20; //Maximum signal strength
 
+        Random random = new Random();
+//        Matrix.setDefaultEngine(new JamaMatrixEngine());
+        Matrix.defaultEngine();
 
+        Matrix trainingData = new Matrix(null, len, dim);
 
-
-        double maxSignal=1;
-        int len=100*dim;
-        Matrix.setDefaultEngine(new JamaMatrixEngine());
-        Random random=new Random();
-
-        int lentest=5;
-
-        double[] temp = new double[len*dim];
-//        double[] temptest = new double[lentest*dim];
-
-        for(int i=0;i<len;i++){
-            if(i==0){
-                for(int j=0;j<dim;j++){
-                    temp[i*dim+j]=random.nextDouble()*maxSignal;
-                }
-            }
-            else{
-                for(int j=0;j<realdim;j++){
-                    temp[i*dim+j]=random.nextDouble()*maxSignal;
-                }
-                for(int j=realdim;j<dim;j++){
-                    temp[i*dim+j]=temp[j]+random.nextDouble()*randomness*maxSignal;
-                }
+        for (int i = 0; i < len; i++) {
+            for (int j = 0; j < dim; j++) {
+                trainingData.set(i, j, random.nextDouble() * maxsignal);
             }
         }
 
-//        double[] temp_back= new double[len*dim];
-//        System.arraycopy(temp,0,temp_back,0,len*dim);
+        for (int i = 0; i < len; i++) {
+            for (int j = realdim; j < dim; j++) {
+                trainingData.set(i, j, trainingData.get(i, j - 1) * 2 - trainingData.get(i, j - 2) + random.nextDouble() * randomness * maxsignal);
+            }
+        }
 
-
-//
-//        for(int i=0;i<lentest;i++) {
-//            for (int j = 0; j < realdim; j++) {
-//                temptest[i*dim+j] = random.nextDouble()*maxSignal;
+//        for(int i=0;i<len;i++){
+//            for(int j=0;j<dim;j++){
+//                System.out.println(trainingData.get(i,j));
 //            }
-//            for (int j = realdim; j < dim; j++) {
-//                temptest[i*dim+j] = temp[j]+random.nextDouble()*randomness*maxSignal;
-//            }
-//
 //        }
 
-
-
-        Matrix trainingData = new Matrix(temp,len,dim);
+//
+//        System.out.println();
 
 
         long starttime = System.currentTimeMillis();
-        PCA pca = new PCA(trainingData,PCA.CENTER_ON_AVG,0.9);
+        PCA pca = new PCA(trainingData, PCA.NORMALIZE, percent);
         /** Test data to be transformed. The same convention of representing
          * data points as in the training data matrix is used. */
 //        Matrix testData = new Matrix(temptest,lentest,dim);
@@ -95,8 +76,8 @@ public class TestPCA {
 //                pca.transform(testData, PCA.TransformationType.ROTATION);
 //        Matrix reversed=pca.inverseTransform(transformedData,PCA.TransformationType.ROTATION);
         long endtime = System.currentTimeMillis();
-        double d=endtime-starttime;
-        System.out.println("Took "+d +" ms");
+        double d = endtime - starttime;
+        System.out.println("Took " + d + " ms");
 //
 //
 //        double error=0;

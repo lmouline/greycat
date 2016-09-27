@@ -160,10 +160,13 @@ public class Matrix {
      */
     public static MatrixEngine defaultEngine() {
         if (_defaultEngine == null) {
-            _defaultEngine = new BlasMatrixEngine();
-
+            _defaultEngine = new HybridMatrixEngine();
         }
         return _defaultEngine;
+    }
+
+    public static void  setDefaultEngine(MatrixEngine matrixEngine){
+        _defaultEngine=matrixEngine;
     }
 
     public static Matrix multiply(Matrix matA, Matrix matB) {

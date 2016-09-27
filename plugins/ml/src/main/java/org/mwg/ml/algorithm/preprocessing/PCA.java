@@ -7,16 +7,21 @@ import org.mwg.ml.common.matrix.SVDDecompose;
  * Created by assaad on 27/09/16.
  */
 public class PCA {
-    Matrix _data;
-    double[] _min;
-    double[] _max;
-    boolean _normalize;
+    private Matrix _data;
+    private double[] _min;
+    private double[] _max;
+    private double[] _avg;
+    private int _processType;
+    private double _percentToRetain;
 
     SVDDecompose _svdDecompose;
 
-
-
     public static double EPS = 1e-30;
+
+    public static int NOPROCESS=0;
+    public static int CENTER_ON_AVG=1;
+    public static int NORMALIZE=2;
+
 
     private void normalizeData(Matrix data) {
         double d = 0;
@@ -28,7 +33,7 @@ public class PCA {
             } else {
                 d = 1 / (_max[j] - _min[j]);
                 for (int i = 0; i < data.rows(); i++) {
-                    data.set(i, j, (data.get(i, j) - _min[j]) * d);
+                    data.set(i, j, (data.get(i, j) - _avg[j]) * d);
                 }
             }
         }
@@ -45,25 +50,30 @@ public class PCA {
             } else {
                 d = _max[j] - _min[j];
                 for (int i = 0; i < data.rows(); i++) {
-                    data.set(i, j, data.get(i, j) * d + _min[j]);
+                    data.set(i, j, data.get(i, j) * d + _avg[j]);
                 }
             }
         }
     }
 
 
-    private void calculateMinMax() {
+    private void calculateMinMaxAvg() {
         this._min = new double[_data.columns()];
         this._max = new double[_data.columns()];
+        this._avg = new double[_data.columns()];
+
         for (int j = 0; j < _data.columns(); j++) {
             _min[j] = _data.get(0, j);
             _max[j] = _min[j];
+            _avg[j]=_min[j];
         }
 
         double d;
+
         for (int i = 1; i < _data.rows(); i++) {
             for (int j = 0; j < _data.columns(); j++) {
                 d = _data.get(i, j);
+                _avg[j]+=d;
                 if (d < _min[j]) {
                     _min[j] = d;
                 } else if (d > _max[j]) {
@@ -71,22 +81,104 @@ public class PCA {
                 }
             }
         }
+
+        for (int j = 0; j < _data.columns(); j++) {
+            _avg[j]=_avg[j]/_data.rows();
+        }
+
+//        System.out.println();
+//        for(int i=0;i<_data.columns();i++){
+//            System.out.println(_min[i]+" , "+_max[i]+" , "+_avg[i]);
+//        }
+//        System.out.println();
+
+    }
+
+
+    private static Matrix shiftColumn(Matrix data, double[] shift, boolean workInPlace){
+        Matrix temp=data;
+        if(!workInPlace){
+            temp=data.clone();
+        }
+        for(int i=0;i<temp.rows();i++){
+            for(int j=0;j<temp.columns();j++){
+                temp.set(i,j,temp.get(i,j)-shift[j]);
+            }
+        }
+        return temp;
+    }
+
+    private static Matrix inverseShift(Matrix data, double[] shift, boolean workInPlace){
+        Matrix temp=data;
+        if(!workInPlace){
+            temp=data.clone();
+        }
+
+        for(int i=0;i<temp.rows();i++){
+            for(int j=0;j<temp.columns();j++){
+                temp.set(i,j,temp.get(i,j)+shift[j]);
+            }
+        }
+        return temp;
+    }
+
+
+    public static int retain(double[] svector, double percent){
+        double d=0;
+        for(int i=0;i<svector.length;i++){
+            d+=svector[i]*svector[i];
+        }
+        d=d*percent;
+        double t=0;
+        for(int i=0;i<svector.length;i++){
+            t+=svector[i]*svector[i];
+            if(t>d){
+                return i+1;
+            }
+        }
+        return svector.length;
     }
 
 
 
 
-    public PCA(Matrix data, boolean normalize) {
+    public PCA(Matrix data, int processType, double percentToRetain) {
         this._data = data;
-        this._normalize = normalize;
+        this._processType = processType;
+        this._percentToRetain=percentToRetain;
+        calculateMinMaxAvg();
 
-        calculateMinMax();
-        if (normalize) {
+        if(processType==CENTER_ON_AVG){
+            shiftColumn(_data,_avg,true);
+        }
+        else if(processType==NORMALIZE){
             normalizeData(_data);
         }
-        _svdDecompose = Matrix.defaultEngine().decomposeSVD(_data,true);
 
-        int x=0;
+
+
+        //shiftColumn(_data,_avg,true);
+
+//        if (normalize) {
+//            normalizeData(_data);
+//        }
+
+
+
+        _svdDecompose = Matrix.defaultEngine().decomposeSVD(_data, true);
+
+        double[] singularValues = _svdDecompose.getS();
+
+
+        System.out.println("Singular values");
+        for (int i = 0; i < singularValues.length; i++) {
+            System.out.println(singularValues[i]);
+        }
+        System.out.println("");
+
+        System.out.println("To retain: "+retain(singularValues,percentToRetain)+" dimensions to preserve "+percentToRetain*100+" % of energy");
+
+        int x = 0;
 
     }
 
