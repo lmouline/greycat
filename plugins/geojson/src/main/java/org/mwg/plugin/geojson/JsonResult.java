@@ -43,6 +43,7 @@ public class JsonResult implements TaskResult<JsonValue> {
 
     @Override
     public void clear() {
+        _content = new JsonValue[0];
     }
 
     @Override
@@ -52,7 +53,7 @@ public class JsonResult implements TaskResult<JsonValue> {
 
     @Override
     public void free() {
-
+        _content = null;
     }
 
     @Override
