@@ -41,6 +41,17 @@ public class DummyTest {
             root.index("idx",idx2,"name",null);
             root.index("idx",idx3,"name",null);
 
+
+            for(int i=0;i<10;i++) {
+                final int ii = i;
+                idx3.jump(i, new Callback<Node>() {
+                    @Override
+                    public void on(Node newIdx3) {
+                        newIdx3.setProperty("value",Type.INT,ii);
+                    }
+                });
+            }
+
         });
 
         final WSServer server = new WSServer(g,5678);

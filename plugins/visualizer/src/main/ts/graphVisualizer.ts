@@ -17,6 +17,9 @@ interface Window {
     Viva? : any
 }
 
+//todo delete
+var defaultGraphVisu : GraphVisu;
+
 class GraphVisu {
     _graph : org.mwg.Graph;
     _graphVisu : any;
@@ -115,20 +118,21 @@ function connect(graphVisu : GraphVisu, idDiv : string) {
 
             window.Viva.Graph.webglInputEvents(graphics,graphVisu._graphVisu)
                 .click(function(selectedNode : any) {
-                    console.log("Selected");
-                    if(selectedNode.id != graphVisu._previousSelect) {
-                        printNodeDetails(selectedNode.id, graphVisu);
-                        var selectedNodeUI = graphVisu._renderer.getGraphics().getNodeUI(selectedNode.id);
-                        var currentColor = selectedNodeUI.color;
-                        selectedNodeUI.color = 0xFFA500ff;
-
-                        if (graphVisu._previousSelect != -1) {
-                            var previousSelected = graphVisu._renderer.getGraphics().getNodeUI(graphVisu._previousSelect)
-                            previousSelected.color = graphVisu._previousColor;
-                        }
-                        graphVisu._previousSelect = selectedNode.id;
-                        graphVisu._previousColor = currentColor;
-                    }
+                    selectNode(selectedNode.id);
+                    // console.log("Selected");
+                    // if(selectedNode.id != graphVisu._previousSelect) {
+                    //     printNodeDetails(selectedNode.id, graphVisu);
+                    //     var selectedNodeUI = graphVisu._renderer.getGraphics().getNodeUI(selectedNode.id);
+                    //     var currentColor = selectedNodeUI.color;
+                    //     selectedNodeUI.color = 0xFFA500ff;
+                    //
+                    //     if (graphVisu._previousSelect != -1) {
+                    //         var previousSelected = graphVisu._renderer.getGraphics().getNodeUI(graphVisu._previousSelect)
+                    //         previousSelected.color = graphVisu._previousColor;
+                    //     }
+                    //     graphVisu._previousSelect = selectedNode.id;
+                    //     graphVisu._previousColor = currentColor;
+                    // }
 
                 });
 
@@ -148,6 +152,23 @@ function connect(graphVisu : GraphVisu, idDiv : string) {
             console.error("Problem during connection.")
         }
     });
+}
+
+function selectNode(nodeID : number) {
+    if(nodeID != defaultGraphVisu._previousSelect) {
+        printNodeDetails(nodeID, defaultGraphVisu);
+        var selectedNodeUI = defaultGraphVisu._renderer.getGraphics().getNodeUI(nodeID);
+        var currentColor = selectedNodeUI.color;
+        selectedNodeUI.color = 0xFFA500ff;
+
+        if (defaultGraphVisu._previousSelect != -1) {
+            var previousSelected = defaultGraphVisu._renderer.getGraphics().getNodeUI(defaultGraphVisu._previousSelect);
+            previousSelected.color = defaultGraphVisu._previousColor;
+        }
+        defaultGraphVisu._previousSelect = nodeID;
+        defaultGraphVisu._previousColor = currentColor;
+    }
+
 }
 
 function drawGraph(graphVisu : GraphVisu) {
@@ -338,13 +359,18 @@ function drawGraph(graphVisu : GraphVisu) {
                 )
         )
         .execute(graphVisu._graph,function() {
-            console.log("Draw ended");
+            if(graphVisu._previousSelect != -1) {
+                var nodeId = graphVisu._previousSelect;
+                graphVisu._previousSelect = -1;
+                selectNode(nodeId);
+            }
         });
 
 }
 
 function internal_initVivaGraph(url: string, idDiv : string) {
-    connect(new GraphVisu(url),idDiv);
+    defaultGraphVisu = new GraphVisu(url);
+    connect(defaultGraphVisu,idDiv);
 }
 
 function initVivaGraph(url: string, idDiv : string) {
@@ -364,4 +390,10 @@ function getRandomColor() {
         color += letters[Math.round(Math.random() * 6)];
     }
     return color;
+}
+
+function updateGraphVisu(time : number, graphVisu : GraphVisu) {
+    graphVisu._time = time;
+    drawGraph(graphVisu);
+
 }
