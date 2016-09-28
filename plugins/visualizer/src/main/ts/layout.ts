@@ -59,14 +59,28 @@ function addVisu() {
 function initLayout() {
     layout = new window.GoldenLayout(globalConfig, document.getElementById("goldenLayout"));
     layout.registerComponent('Graph command', function(container, componantState) {
-        container.getElement().html('Time: <input type="text" id="timeSelector" value="" name="range" />');
+        container.getElement().html('' +
+            'Time: <input type="text" id="timeSelector" value="" name="range" />' +
+            'World: <input type="text" id="worldSelector" value="" name="range" />'
+        );
 
-        container.getElement().ionRangeSlider({
+        //todo slider may not be a good idea
+        container.getElement().children("#timeSelector").ionRangeSlider({
             min: 0,
             max: 1000,
             from: 0,
             onChange: function(data) {
-                updateGraphVisu(data.from,defaultGraphVisu);
+                updateTime(data.from,defaultGraphVisu);
+            }
+        });
+
+
+        container.getElement().children("#worldSelector").ionRangeSlider({
+            min: 0,
+            max: 1000,
+            from: 0,
+            onChange: function(data) {
+                updateWorld(data.from,defaultGraphVisu);
             }
         });
 

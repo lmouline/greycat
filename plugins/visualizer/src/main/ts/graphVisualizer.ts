@@ -53,56 +53,56 @@ function printNodeDetails(nodeId: number, graphVisu : GraphVisu) {
         .asGlobalVar("string")
         .lookup(nodeId + "")
         .asGlobalVar("node")
-        .then(function(context : TaskContext) {
-            var res : String = context.variable("string").get(0);
-            var n : org.mwg.Node = context.variable("node").get(0);
-            res += "  _id=" + n.id() + "\n";
-            res += "  _type=" + (n.nodeTypeName() || 'default') + "\n";
-            context.setGlobalVariable("string",res);
-            context.continueTask();
-        })
-        .subTasks([Actions.propertiesWithTypes(Type.BOOL),
-                    Actions.propertiesWithTypes(Type.INT),
-                    Actions.propertiesWithTypes(Type.DOUBLE),
-                    Actions.propertiesWithTypes(Type.LONG),
-                    Actions.propertiesWithTypes(Type.STRING),
-                    Actions.propertiesWithTypes(Type.RELATION)]
-        )
-        .foreach(Actions.then(function(context : TaskContext) {
-            var res : String = context.variable("string").get(0);
-            var n : org.mwg.Node = context.variable("node").get(0);
-            if(typeof context.result().get(0) != "number") {
-                res += "  " + context.result().get(0) + "=" + n.get(context.result().get(0)) + "\n";
-            } else {
-                res += "  " + context.result().get(0) + "=" + n.getByIndex(context.result().get(0)) + "\n";
-            }
-            context.setGlobalVariable("string",res);
-            context.continueTask();
-        }))
-        .fromVar("node")
-        .propertiesWithTypes(Type.LONG_TO_LONG_ARRAY_MAP)
-        .ifThen(function(context : TaskContext) {
+        .ifThen(function(context : TaskContext){return context.result().size() > 0},Actions.then(function(context : TaskContext) {
+                var res : String = context.variable("string").get(0);
+                var n : org.mwg.Node = context.variable("node").get(0);
+                res += "  _id=" + n.id() + "\n";
+                res += "  _type=" + (n.nodeTypeName() || 'default') + "\n";
+                context.setGlobalVariable("string",res);
+                context.continueTask();
+            })
+            .subTasks([Actions.propertiesWithTypes(Type.BOOL),
+                Actions.propertiesWithTypes(Type.INT),
+                Actions.propertiesWithTypes(Type.DOUBLE),
+                Actions.propertiesWithTypes(Type.LONG),
+                Actions.propertiesWithTypes(Type.STRING),
+                Actions.propertiesWithTypes(Type.RELATION)]
+            )
+            .foreach(Actions.then(function(context : TaskContext) {
+                var res : String = context.variable("string").get(0);
+                var n : org.mwg.Node = context.variable("node").get(0);
+                if(typeof context.result().get(0) != "number") {
+                    res += "  " + context.result().get(0) + "=" + n.get(context.result().get(0)) + "\n";
+                } else {
+                    res += "  " + context.result().get(0) + "=" + n.getByIndex(context.result().get(0)) + "\n";
+                }
+                context.setGlobalVariable("string",res);
+                context.continueTask();
+            }))
+            .fromVar("node")
+            .propertiesWithTypes(Type.LONG_TO_LONG_ARRAY_MAP)
+            .ifThen(function(context : TaskContext) {
                 return context.result().size() > 0;
             },Actions.then(function(context :TaskContext) {
-            var n : org.mwg.Node = context.variable("node").get(0);
-            var map : org.mwg.struct.LongLongArrayMap = n.get(context.result().get(0));
+                var n : org.mwg.Node = context.variable("node").get(0);
+                var map : org.mwg.struct.LongLongArrayMap = n.get(context.result().get(0));
 
-            var index : number = 0;
-            var res : String = context.variable("string").get(0);
-            res += "  " + context.result().get(0) + "=[";
-            map.each(function (key:number, value:number) {
-                res += (value + "");
-                if((index + 1) < map.size() ) {
-                    res += ",";
-                }
-                index++;
-            });
-            res += "]\n";
+                var index : number = 0;
+                var res : String = context.variable("string").get(0);
+                res += "  " + context.result().get(0) + "=[";
+                map.each(function (key:number, value:number) {
+                    res += (value + "");
+                    if((index + 1) < map.size() ) {
+                        res += ",";
+                    }
+                    index++;
+                });
+                res += "]\n";
 
-            context.setGlobalVariable("string",res);
-            context.continueTask();
-        }))
-        .fromVar("string")
+                context.setGlobalVariable("string",res);
+                context.continueTask();
+            }))
+            .fromVar("string"))
         .execute(graphVisu._graph, function(result : TaskResult<string>) {
             document.getElementById("nodeDetail").innerHTML = result.get(0) + "}";
         });
@@ -119,21 +119,6 @@ function connect(graphVisu : GraphVisu, idDiv : string) {
             window.Viva.Graph.webglInputEvents(graphics,graphVisu._graphVisu)
                 .click(function(selectedNode : any) {
                     selectNode(selectedNode.id);
-                    // console.log("Selected");
-                    // if(selectedNode.id != graphVisu._previousSelect) {
-                    //     printNodeDetails(selectedNode.id, graphVisu);
-                    //     var selectedNodeUI = graphVisu._renderer.getGraphics().getNodeUI(selectedNode.id);
-                    //     var currentColor = selectedNodeUI.color;
-                    //     selectedNodeUI.color = 0xFFA500ff;
-                    //
-                    //     if (graphVisu._previousSelect != -1) {
-                    //         var previousSelected = graphVisu._renderer.getGraphics().getNodeUI(graphVisu._previousSelect)
-                    //         previousSelected.color = graphVisu._previousColor;
-                    //     }
-                    //     graphVisu._previousSelect = selectedNode.id;
-                    //     graphVisu._previousColor = currentColor;
-                    // }
-
                 });
 
             graphVisu._renderer = window.Viva.Graph.View.renderer(graphVisu._graphVisu, {
@@ -158,15 +143,17 @@ function selectNode(nodeID : number) {
     if(nodeID != defaultGraphVisu._previousSelect) {
         printNodeDetails(nodeID, defaultGraphVisu);
         var selectedNodeUI = defaultGraphVisu._renderer.getGraphics().getNodeUI(nodeID);
-        var currentColor = selectedNodeUI.color;
-        selectedNodeUI.color = 0xFFA500ff;
+        if(selectedNodeUI != null) {
+            var currentColor = selectedNodeUI.color;
+            selectedNodeUI.color = 0xFFA500ff;
 
-        if (defaultGraphVisu._previousSelect != -1) {
-            var previousSelected = defaultGraphVisu._renderer.getGraphics().getNodeUI(defaultGraphVisu._previousSelect);
-            previousSelected.color = defaultGraphVisu._previousColor;
+            if (defaultGraphVisu._previousSelect != -1) {
+                var previousSelected = defaultGraphVisu._renderer.getGraphics().getNodeUI(defaultGraphVisu._previousSelect);
+                previousSelected.color = defaultGraphVisu._previousColor;
+            }
+            defaultGraphVisu._previousSelect = nodeID;
+            defaultGraphVisu._previousColor = currentColor;
         }
-        defaultGraphVisu._previousSelect = nodeID;
-        defaultGraphVisu._previousColor = currentColor;
     }
 
 }
@@ -176,6 +163,8 @@ function drawGraph(graphVisu : GraphVisu) {
     var task : Task = Actions.newTask();
     graphVisu._graphVisu.clear();
     task
+        .setTime(graphVisu._time + "")
+        .setWorld(graphVisu._world + "")
         .indexesNames()
         .foreach(
             Actions
@@ -392,8 +381,14 @@ function getRandomColor() {
     return color;
 }
 
-function updateGraphVisu(time : number, graphVisu : GraphVisu) {
+function updateTime(time : number, graphVisu : GraphVisu) {
     graphVisu._time = time;
+    drawGraph(graphVisu);
+
+}
+
+function updateWorld(world : number, graphVisu : GraphVisu) {
+    graphVisu._world = world;
     drawGraph(graphVisu);
 
 }

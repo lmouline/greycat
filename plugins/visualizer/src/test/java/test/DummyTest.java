@@ -3,6 +3,7 @@ package test;
 import org.mwg.*;
 import org.mwg.ml.MLPlugin;
 import org.mwg.ml.algorithm.regression.PolynomialNode;
+import org.mwg.task.Actions;
 
 /**
  * Created by ludovicmouline on 15/09/16.
@@ -51,6 +52,25 @@ public class DummyTest {
                     }
                 });
             }
+
+            for(int i=0;i<10;i++) {
+                final int ii = i;
+                final long newWorld = g.fork(i);
+                System.out.println(newWorld);
+                g.lookup(newWorld, 0, idx1.id(), new Callback<Node>() {
+                    @Override
+                    public void on(Node newIdx1) {
+                        newIdx1.setProperty("v",Type.INT,ii);
+                    }
+                });
+            }
+
+
+            Actions.setWorld("90")
+                    .setTime("0")
+                    .fromIndexAll("INDEX")
+                    .print("{{result}}")
+                    .execute(g,null);
 
         });
 
