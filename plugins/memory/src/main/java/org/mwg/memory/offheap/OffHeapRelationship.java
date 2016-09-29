@@ -169,12 +169,15 @@ class OffHeapRelationship implements Relationship {
         chunk.lock();
         try {
             final long addr = chunk.addrByIndex(index);
-            OffHeapLongArray.set(addr, SIZE, 0);
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapLongArray.set(addr, SIZE, 0);
+            }
         } finally {
             chunk.unlock();
         }
         return this;
     }
+
 
     @Override
     public final String toString() {
@@ -216,8 +219,8 @@ class OffHeapRelationship implements Relationship {
             return OffHeapConstants.OFFHEAP_NULL_PTR;
         }
         final long capacity = OffHeapLongArray.get(addr, CAPACITY);
-        long newAddr = unsafe.allocateMemory(capacity * 8);
-        unsafe.copyMemory(addr, newAddr, capacity * 8);
+
+        long newAddr = OffHeapLongArray.cloneArray(addr, capacity + SHIFT);
         return newAddr;
     }
 
