@@ -1,7 +1,7 @@
-<center>
-<h2>Many-World Graph</h2>
+Many-World Graph
+==================
+
 <img src="doc/logo.png" width="200px" />
-</center>
 
 Short presentation
 ==================
