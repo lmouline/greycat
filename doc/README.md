@@ -1,8 +1,13 @@
+<center>
+<h2>Many-World Graph</h2>
+<img src="logo.png" width="200px" />
+</center>
+
 # Introduction
 
-> What is MWG? 
+> What is MWG?
 
-MWG is the first temporal Many World Graph. In a nutshell, this project defines a graph storage and processing framework that allows to store complex data structures, which are highly connected, and rapidly evolving over time. Finally, this data structure can be seen has infinitly clonable to test various graph modifications in order to find the best one. MWG is core data structure of reasoning engines. MWG is:
+MWG is the first temporal Many-World Graph. In a nutshell, this project defines a graph storage and processing framework that allows to store complex data structures, which are highly connected, and rapidly evolving over time. Finally, this data structure can be seen has infinitly clonable to test various graph modifications in order to find the best one. MWG is core data structure of reasoning engines. MWG is:
 
 > What is a temporal graph?
 
