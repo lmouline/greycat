@@ -14,7 +14,7 @@ module org.mwg.plugins {
 // } else {
 // layout = new window.GoldenLayout(configLayout, document.getElementById("goldenLayout"));
 // }
-    var defaultConfig = {
+    let defaultConfig = {
         type: 'row',
         content: [{
             type: "column",
@@ -38,22 +38,29 @@ module org.mwg.plugins {
             }]
     };
 
-    var globalConfig = {
+    let globalConfig = {
         content: [{
             type: 'stack',
             isClosable: false,
             content: []
         }]
     };
-    var layout;
+    let layout;
 
 
     export function addVisu() {
-        var elem:any = document.getElementsByName("graphUrl")[0];
-        var url:string = elem.value;
+        let elem:any = document.getElementsByName("graphUrl")[0];
+        let url:string = elem.value;
         elem.value = "";
 
-        var newItemConfig:any = defaultConfig;
+        let newItemConfig:any = defaultConfig;
+        newItemConfig.title = url;
+
+        layout.root.contentItems[0].addChild(newItemConfig);
+    }
+
+    export function addVisuWithString(url : string) {
+        let newItemConfig:any = defaultConfig;
         newItemConfig.title = url;
 
         layout.root.contentItems[0].addChild(newItemConfig);
@@ -88,7 +95,29 @@ module org.mwg.plugins {
             container.getElement().html('<div><pre id="nodeDetail">No node selected</pre></div>'); //todo fix multiple tab
         });
 
+        layout.on('initialised',function () {
+            var param = window.location.search.slice(1);
+            if(param != null) {
+                var paramsArray = param.split('&');
+                if(paramsArray.length > 1) {
+                    throw "The url should contain one parameter : q.";
+                }
+                var query = paramsArray[0].split('=');
+                if (query[0] != "q") {
+                    throw "The url should contain one parameter: q";
+                }
+
+                var inputs = document.getElementById("header").getElementsByTagName("input");
+                for(var i=0; i<inputs.length;i++) {
+                    (<any>inputs[i]).setAttribute("disabled","");
+                }
+                org.mwg.plugins.addVisuWithString(query[1]);
+            }
+        });
+
         layout.init();
+
+
 
     }
 
