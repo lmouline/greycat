@@ -1,20 +1,20 @@
-Many-World Graph Project
-========================
-
-## Build status: <img src="https://travis-ci.org/kevoree-modeling/mwDB.svg?branch=master" />
-
-Short presentation
+Many-World Graph
 ==================
+
+<img src="doc/logo.png" width="200px" />
+
+## Short presentation
 
 What-if oriented graph database for prescriptive analytics....
 
-Getting started
-==============
+## Documentation
 
 Please visit [http://mwdb.kevoree.org/doc](http://mwdb.kevoree.org/doc)
 
-Scientific Publications:
--------------
+## Build status: <img src="https://travis-ci.org/kevoree-modeling/mwDB.svg?branch=master" />
+
+## Scientific Publications:
+
 Within the scope of the MWG project several research papers have been published:
 
 **Foundation papers:**
@@ -32,4 +32,3 @@ Within the scope of the MWG project several research papers have been published:
 * Thomas Hartmann, Francois Fouquet, Jacques Klein, and Yves Le Traon, Alexander Pelov, Laurent Toutain, and Tanguy Ropitault. **Generating Realistic Smart Grid Communication Topologies Based on Real-Data**. In IEEE 5th International Conference on Smart Grid Communications (SmartGridComm'14), 2014. [Get the paper here](http://orbilu.uni.lu/handle/10993/19009)
 * Thomas Hartmann, Assaad Moawad, Francois Fouquet, Yves Reckinger, Tejeddine Mouelhi, Jacques Klein, and Yves Le Traon. **Suspicious Electric Consumption Detection Based on Multi-Profiling Using Live Machine Learning**. In IEEE 6th International Conference on Smart Grid Communications (SmartGridComm'15), 2015. [Get the paper here](http://orbilu.uni.lu/handle/10993/22781).
 * Thomas Hartmann, Assaad Moawad, Francois Fouquet, Yves Reckinger, Jacques Klein, Yves Le Traon. **Near Real-Time Electric Load Approximation in Low Voltage Cables of Smart Grids with Models@run.time**. (will appear soon)
-
