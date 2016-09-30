@@ -219,9 +219,7 @@ class OffHeapRelationship implements Relationship {
             return OffHeapConstants.OFFHEAP_NULL_PTR;
         }
         final long capacity = OffHeapLongArray.get(addr, CAPACITY);
-
-        long newAddr = OffHeapLongArray.cloneArray(addr, capacity + SHIFT);
-        return newAddr;
+        return OffHeapLongArray.cloneArray(addr, capacity + SHIFT);
     }
 
     static void free(final long addr) {
