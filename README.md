@@ -3,20 +3,18 @@ Many-World Graph
 
 <img src="doc/logo.png" width="200px" />
 
-Short presentation
-==================
+## Short presentation
 
 What-if oriented graph database for prescriptive analytics....
 
-Documentation
-==============
+## Documentation
 
 Please visit [http://mwdb.kevoree.org/doc](http://mwdb.kevoree.org/doc)
 
 ## Build status: <img src="https://travis-ci.org/kevoree-modeling/mwDB.svg?branch=master" />
 
-Scientific Publications:
--------------
+## Scientific Publications:
+
 Within the scope of the MWG project several research papers have been published:
 
 **Foundation papers:**
