@@ -344,6 +344,11 @@ class CoreGraph implements org.mwg.Graph {
             final CoreGraph selfPointer = this;
             //first we stop scheduler, no tasks will be executed anymore
             selfPointer._scheduler.stop();
+            if(this._plugins != null){
+                for(int i=0;i<_plugins.length;i++){
+                    this._plugins[i].stop();
+                }
+            }
             save(new Callback<Boolean>() {
                 @Override
                 public void on(Boolean result) {

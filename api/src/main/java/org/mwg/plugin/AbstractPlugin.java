@@ -83,4 +83,9 @@ public class AbstractPlugin implements Plugin {
         return _resolverFactory;
     }
 
+    @Override
+    public void stop() {
+
+    }
+
 }

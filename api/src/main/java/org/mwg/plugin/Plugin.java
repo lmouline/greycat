@@ -29,4 +29,6 @@ public interface Plugin {
 
     ResolverFactory resolverFactory();
 
+    void stop();
+
 }
