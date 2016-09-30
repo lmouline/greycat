@@ -1,9 +1,9 @@
 # Quick start
 
-MwG is distributed over maven repository.
+MWG is distributed over maven repository.
 Therefore it can be used with maven, ivy, sbt...
 
-Simply add the api and core module dependency to your project and start using MwG api such as:
+Simply add the api and core module dependency to your project and start using MWG api such as:
 
 ``` xml
 <dependency>

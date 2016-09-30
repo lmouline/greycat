@@ -24,6 +24,8 @@ public class WSClient implements Storage {
 
     private WebSocketChannel channel;
 
+    private XnioWorker _worker;
+
     private Graph graph;
 
     private Map<Integer, Callback> callbacks;
@@ -67,7 +69,6 @@ public class WSClient implements Storage {
         }
         this.graph = p_graph;
         try {
-            XnioWorker _worker;
             Xnio xnio = Xnio.getInstance(io.undertow.websockets.client.WebSocketClient.class.getClassLoader());
             _worker = xnio.createWorker(OptionMap.builder()
                     .set(Options.WORKER_IO_THREADS, 2)
@@ -113,7 +114,10 @@ public class WSClient implements Storage {
     @Override
     public void disconnect(Callback<Boolean> callback) {
         try {
+            System.out.println("CloseClient");
             channel.sendClose();
+            channel.close();
+            _worker.shutdown();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

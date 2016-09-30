@@ -1,25 +1,25 @@
 # Introduction
 
-> What is MWG?
+> What is MWG? 
 
-MwG is the first Many World Temporal Graph. In a nutshell, this project define a Graph storage and processing framework that allows to store complex data structures, highly connected, and highly evolving over time. Finally this data structure can be seen has infinitly clonable to test various graph modification and search for the best one. Namely speaking MwG is a the conerstone for a reasoning engine. So MwG is:
+MWG is the first temporal Many World Graph. In a nutshell, this project defines a graph storage and processing framework that allows to store complex data structures, which are highly connected, and rapidly evolving over time. Finally, this data structure can be seen has infinitly clonable to test various graph modifications in order to find the best one. MWG is core data structure of reasoning engines. MWG is:
 
-> What is a temporal graph
+> What is a temporal graph?
 
-A temporal organize data such as a graph, therfore a set of nodes and relationships between them. A temporal graph in addition add as a first class entity the time. Therefore all nodes attributes and relationships can change overtime.
+Graphs allow to organize and structure data in form of a set of nodes and relationships between these nodes. Data in real-life applications is barely static, think of social network graphs, i.e., graphs evolve and change over time. MWG adds time as a first class entity to the graph. Therefore, all nodes, attributes and relationships can change over time.
 
-> To do what ?
+> To do what?
 
-In short analyzing data in motion! In many domains data coming from many devices and from various timepoints has to be aggregated in a coherent view in order to reason and take decision. Towards such goal MwG also include various machine learning algorithm to empower complex data structure directly into the temporal graph... Perfect applications for MwG are: IoT systems, Smart Grid, Trading prediction and simulation engine...
+In short, analyzing data in motion! In many domains data coming from different devices and from various timepoints, has to be aggregated in a coherent view in order to reason and take decisions. Towards such goal MWG includes various machine learning algorithms. Example applications where MWG is useful for: IoT systems, cyber-physical systems like smart Grid, trading prediction, and simulation engines.
 
-> Who are we ?
+> Who are we?
 
-Behind MwG a group of research is hardly working to make it a reality and match close to production performance. MwG is coded in Java with a lot of attention on any method performance impact. I's proudly build from scratch without no dependency and can manage millions of nodes per secondes on a single computer...
+Behind MWG stands a research group working hard to make real-time analytcis of complex systems a reality. MWG is developed in Java, with lots of attention to performance and memory requirements. It us proudly built from scratch without any dependency and can process millions of nodes per second on a single computer.
 
-> How to start ?
+> How to start?
 
-In this small documentation we provide the essential informations for a quick start. Then we provide links to case study that demonstrate the efficiency and usefulness of MwG.
+In this small documentation we provide the essential information for a quick start. Then, we provide links to  a case demonstrating the efficiency and usefulness of MWG.
 
 > In case of troubles or questions ?
 
-Please contact us via our Github for questions, pull request, or requested evolutions
+Please contact us via our Github for questions, pull request, or feature requests.

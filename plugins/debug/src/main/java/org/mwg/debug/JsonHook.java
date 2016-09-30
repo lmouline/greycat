@@ -42,6 +42,11 @@ class JsonHook implements TaskHook {
     // called at the end of the task
     @Override
     public synchronized void end(TaskContext finalContext) {
+
+        List actions = buffers.get(finalContext);
+
+
+
         //removing the last comma
         removeLastChar(jsonTask, ',');
         jsonTask.append("]\n}");

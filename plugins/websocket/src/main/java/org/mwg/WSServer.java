@@ -255,33 +255,11 @@ public class WSServer implements WebSocketConnectionCallback {
     private void send_resp(Buffer stream, final WebSocketChannel channel) {
         ByteBuffer finalBuf = ByteBuffer.wrap(stream.data());
         stream.free();
-        WebSockets.sendBinary(finalBuf, channel, new WebSocketCallback<Void>() {
-            @Override
-            public void complete(WebSocketChannel webSocketChannel, Void aVoid) {
-                //TODO process
-
-            }
-
-            @Override
-            public void onError(WebSocketChannel webSocketChannel, Void aVoid, Throwable throwable) {
-                throwable.printStackTrace();
-            }
-        });
+        WebSockets.sendBinary(finalBuf, channel, null);
     }
 
     private void send_flat_resp(byte[] flat, final WebSocketChannel channel) {
-        WebSockets.sendBinary(ByteBuffer.wrap(flat), channel, new WebSocketCallback<Void>() {
-            @Override
-            public void complete(WebSocketChannel webSocketChannel, Void aVoid) {
-                //TODO process
-
-            }
-
-            @Override
-            public void onError(WebSocketChannel webSocketChannel, Void aVoid, Throwable throwable) {
-                throwable.printStackTrace();
-            }
-        });
+        WebSockets.sendBinary(ByteBuffer.wrap(flat), channel, null);
     }
 
 }

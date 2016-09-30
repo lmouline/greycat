@@ -607,6 +607,7 @@ declare module org {
                 taskActionType(taskTypeName: string): org.mwg.task.TaskActionFactory;
                 memoryFactory(): org.mwg.plugin.MemoryFactory;
                 resolverFactory(): org.mwg.plugin.ResolverFactory;
+                stop(): void;
             }
             abstract class AbstractTaskAction implements org.mwg.task.TaskAction {
                 private _next;
@@ -655,6 +656,7 @@ declare module org {
                 taskActionType(taskTypeName: string): org.mwg.task.TaskActionFactory;
                 memoryFactory(): org.mwg.plugin.MemoryFactory;
                 resolverFactory(): org.mwg.plugin.ResolverFactory;
+                stop(): void;
             }
             interface Resolver {
                 init(): void;
