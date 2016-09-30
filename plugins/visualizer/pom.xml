@@ -5,7 +5,7 @@
     <parent>
         <artifactId>mwg</artifactId>
         <groupId>org.kevoree.mwg</groupId>
-        <version>7-SNAPSHOT</version>
+        <version>8-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -13,24 +13,26 @@
     <groupId>org.kevoree.mwg.plugins</groupId>
     <artifactId>visualizer</artifactId>
     <name>mwg :: Plugins :: Visualizer</name>
+    <version>8-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
             <groupId>org.kevoree.mwg</groupId>
             <artifactId>core</artifactId>
-            <version>7-SNAPSHOT</version>
-            <scope>test</scope>
+            <version>${project.version}</version>
         </dependency>
+
+        <!-- Tests -->
         <dependency>
             <groupId>org.kevoree.mwg.plugins</groupId>
             <artifactId>websocket</artifactId>
-            <version>7-SNAPSHOT</version>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.kevoree.mwg.plugins</groupId>
             <artifactId>ml</artifactId>
-            <version>7-SNAPSHOT</version>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
