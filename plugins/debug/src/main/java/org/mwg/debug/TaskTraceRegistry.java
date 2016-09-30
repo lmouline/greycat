@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class TaskTraceRegistry {
 
-    public final Map<Integer, String> tasks = new HashMap<Integer, String>();
-    public final Map<Integer, String> contexts = new HashMap<Integer, String>();
+    public final Map<String, String> tasks = new HashMap<String, String>();
+    public final Map<String, String> contexts = new HashMap<String, String>();
 
 }
