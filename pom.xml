@@ -112,12 +112,10 @@
 
         <!--
         <module>plugins/debug</module>
-        -->
-
         <module>plugins/visualizer</module>
         <module>plugins/geojson</module>
-
         <module>plugins/mlx</module>
+        -->
 
     </modules>
 
