@@ -5,6 +5,7 @@
 	* [First minimal graph](start/minimal.md)
 	* [Temporal graph](start/temporal.md)
 	* [Many World graph](start/manyworld.md)
+	* [Persistence](start/persistence.md)
 	* [Distributed graph](start/distributed.md)
 * [Tasks](tasks/README.md)
 	* [Context and variables](tasks/Context.md)
