@@ -1,13 +1,12 @@
-/// <reference path="graphVisualizer.ts" />
+import initVivaGraph = org.mwg.plugins.initVivaGraph;
 
 interface Window {
-    GoldenLayout?: any;
+    GoldenLayout?:any;
 }
 
-// update CSS file if you modify these values
-var idDivGraphVisu = "graphVisu";
-
-var indexVisu = 0;
+module org.mwg.plugins {
+    
+    var indexVisu = 0;
 
 //To use local storage
 // if(savedState != null) {
@@ -15,87 +14,82 @@ var indexVisu = 0;
 // } else {
 // layout = new window.GoldenLayout(configLayout, document.getElementById("goldenLayout"));
 // }
-var defaultConfig = {
-    type: 'row',
-    content: [{
-        type: "column",
+    var defaultConfig = {
+        type: 'row',
         content: [{
-            type: 'component',
-            componentName: 'Graph command'
-        }, {
-            type: 'component',
-            componentName: 'nodeDetails',
-            title: "Node details"
+            type: "column",
+            isClosable: false,
+            content: [{
+                type: 'component',
+                isClosable: false,
+                componentName: 'Graph command'
+            }, {
+                type: 'component',
+                isClosable: false,
+                componentName: 'nodeDetails',
+                title: "Node details"
+            }]
+        },
+            {
+                title: "Graph",
+                isClosable: false,
+                type: 'component',
+                componentName: 'Graph visualizer'
+            }]
+    };
+
+    var globalConfig = {
+        content: [{
+            type: 'stack',
+            isClosable: false,
+            content: []
         }]
-    },
-        {
-            title: "Graph",
-            type: 'component',
-            componentName: 'Graph visualizer'
-        }]
-};
-
-var globalConfig = {
-    content: [{
-        type:'stack',
-        isClosable: false,
-        content: []
-    }]
-};
-var layout;
+    };
+    var layout;
 
 
-function addVisu() {
-    var elem : any = document.getElementsByName("graphUrl")[0];
-    var url : string =  elem.value;
-    elem.value = "";
+    export function addVisu() {
+        var elem:any = document.getElementsByName("graphUrl")[0];
+        var url:string = elem.value;
+        elem.value = "";
 
-    var newItemConfig : any = defaultConfig;
-    newItemConfig.title = url;
+        var newItemConfig:any = defaultConfig;
+        newItemConfig.title = url;
 
-    layout.root.contentItems[0].addChild(newItemConfig);
-}
+        layout.root.contentItems[0].addChild(newItemConfig);
+    }
 
-function initLayout() {
-    layout = new window.GoldenLayout(globalConfig, document.getElementById("goldenLayout"));
-    layout.registerComponent('Graph command', function(container, componantState) {
-        container.getElement().html('' +
-            'Time: <input type="text" id="timeSelector" value="" name="range" />' +
-            'World: <input type="text" id="worldSelector" value="" name="range" />'
-        );
-
-        //todo slider may not be a good idea
-        container.getElement().children("#timeSelector").ionRangeSlider({
-            min: 0,
-            max: 1000,
-            from: 0,
-            onChange: function(data) {
-                updateTime(data.from,defaultGraphVisu);
-            }
+    export function initLayout() {
+        layout = new window.GoldenLayout(globalConfig, document.getElementById("goldenLayout"));
+        layout.registerComponent('Graph command', function (container, componantState) {
+            container.getElement().html('' +
+                'Time <input type="number" min="0" max="20" value="0" step="1" class="timeWorldSelector" onchange="org.mwg.plugins.updateTime(this.value,defaultGraphVisu);"/> <br />' +
+                'World <input type="number" min="0"  max="20" value="0" step="1" class="timeWorldSelector" onchange="org.mwg.plugins.updateWorld(this.value,defaultGraphVisu);"/>'
+            );
+            
         });
 
+        layout.registerComponent('Graph visualizer', function (container, componentState) {
+            container.getElement().html('<div class="graphVisu" id="id' + indexVisu + '"></div>');
+            container.on('open', initVivaGraph.bind(this, container.parent.parent.parent.config.title, "id" + indexVisu)); //fixmultiple stack
+            container.on('resize', function () {
 
-        container.getElement().children("#worldSelector").ionRangeSlider({
-            min: 0,
-            max: 1000,
-            from: 0,
-            onChange: function(data) {
-                updateWorld(data.from,defaultGraphVisu);
-            }
+                if(container.getElement().children("div div").children().length > 0) {
+                    container.getElement().children("div div").children()[0].height = container.height;
+                    container.getElement().children("div div").children()[0].width = container.width;
+                    defaultGraphVisu._renderer.resume()
+                }
+            });
+
+            indexVisu++;
         });
 
-    });
+        layout.registerComponent('nodeDetails', function (container, componentState) {
+            container.getElement().html('<div><pre id="nodeDetail">No node selected</pre></div>'); //todo fix multiple tab
+        });
 
-    layout.registerComponent('Graph visualizer', function(container, componentState) {
-        container.getElement().html('<div class="' + idDivGraphVisu + '" id="id'+ indexVisu + '"></div>');
-        container.on('open',initVivaGraph.bind(this,container.parent.parent.parent.config.title,"id" + indexVisu)); //fixmultiple stack
-        indexVisu++;
-    });
+        layout.init();
 
-    layout.registerComponent('nodeDetails', function(container, componentState) {
-        container.getElement().html('<div><pre id="nodeDetail">No node selected</pre></div>'); //todo fix multiple tab
-    });
-
-    layout.init();
+    }
 
 }

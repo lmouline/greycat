@@ -70,7 +70,7 @@
                                     <type>zip</type>
                                     <includes>*.js</includes>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${project.basedir}/src/main/resources/website/js/mwg</outputDirectory>
+                                    <outputDirectory>${project.basedir}/src/main/resources/website/js/generated/mwg</outputDirectory>
                                 </artifactItem>
                                 <!--Get WebSocket TS/JS files -->
                                 <artifactItem>
@@ -91,7 +91,7 @@
                                     <type>zip</type>
                                     <includes>*.js</includes>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${project.basedir}/src/main/resources/website/js/mwg</outputDirectory>
+                                    <outputDirectory>${project.basedir}/src/main/resources/website/js/generated/mwg</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>

@@ -8,5 +8,4 @@ old/bower_components
 old/src/js/react_layout.babelify.js
 
 src/main/ts/mwg
-src/main/resources/website/js/mwg
-src/main/resources/website/js/*.js
+src/main/resources/website/js/generated

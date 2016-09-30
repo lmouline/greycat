@@ -4,41 +4,39 @@
     <meta charset="UTF-8">
     <title>Mwg Visualizer - v0.1</title>
 
-    <!-- Bootstrap -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-
-    <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <!-- JQuery -->
+    <script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
 
     <!--Golden Layout-->
     <!-- see https://github.com/deepstreamIO/golden-layout -->
-    <script type="text/javascript" src="https://golden-layout.com/files/latest/js/goldenlayout.js"></script>
-    <link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-base.css" />
-    <link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-light-theme.css" />
+    <script type="text/javascript" src="js/goldenlayout.js"></script>
+    <link type="text/css" rel="stylesheet" href="css/goldenlayout-base.css" />
+    <link type="text/css" rel="stylesheet" href="css/goldenlayout-light-theme.css" />
 
 
     <!-- VivaGraph -->
     <!--see https://github.com/anvaka/VivaGraphJS -->
-    <script type="text/javascript" src="js/vivagraph/vivagraph.js"></script>
+    <script type="text/javascript" src="js/vivagraph.js"></script>
 
     <!--rangeSlider : https://github.com/IonDen/ion.rangeSlider -->
-    <script src="js/rangeSlider/ion.rangeSlider.min.js"></script>
+    <script src="js/ion.rangeSlider.min.js"></script>
     <link href="css/ion.rangeSlider.css" rel="stylesheet">
     <link href="css/ion.rangeSlider.skinFlat.css" rel="stylesheet">
 
     <!-- MwG -->
-    <script type="text/javascript" src="js/mwg/mwg.js"></script>
-    <script type="text/javascript" src="js/mwg/mwg.ws.js"></script>
+    <script type="text/javascript" src="js/generated/mwg/mwg.js"></script>
+    <script type="text/javascript" src="js/generated/mwg/mwg.ws.js"></script>
 
     <link type="text/css" rel="stylesheet"  href="css/visualizer.css" />
 
-    <script type="text/javascript" src="js/graphVisualizer.js"></script>
-    <script type="text/javascript" src="js/layout.js"></script>
+    <script type="text/javascript" src="js/generated/graphVisualizer.js"></script>
+    <script type="text/javascript" src="js/generated/layout.js"></script>
 
 </head>
-<body onload="initLayout()">
+<body onload="org.mwg.plugins.initLayout()">
 <div id="wrapper">
     <div id="header">
-        <form name="newConnection" action="javascript:addVisu();">
+        <form name="newConnection" action="javascript:org.mwg.plugins.addVisu();">
             <input type="text" name="graphUrl" placeholder="graph url and port">
             <input type="submit" value="Connect">
         </form>
