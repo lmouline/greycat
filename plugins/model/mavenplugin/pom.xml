@@ -51,11 +51,6 @@
             <artifactId>core</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.kevoree.mwg</groupId>
-            <artifactId>corejs</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
     <build>
