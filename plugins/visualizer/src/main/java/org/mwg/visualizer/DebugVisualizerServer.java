@@ -2,9 +2,11 @@ package org.mwg.visualizer;
 
 import io.undertow.Handlers;
 import io.undertow.Undertow;
-import io.undertow.server.handlers.resource.ClassPathResourceManager;
+import io.undertow.server.handlers.resource.PathResourceManager;
 
-public class VisualizerServer  {
+import java.nio.file.Paths;
+
+public class DebugVisualizerServer {
     public static void main(String[] args) {
 
         final String urltoConnect = "ws://localhost:5678";
@@ -15,7 +17,9 @@ public class VisualizerServer  {
                 .addHttpListener(serverPort,serverUrl)
                 .setHandler(
                         Handlers.path(
-                                Handlers.resource(new ClassPathResourceManager(VisualizerServer.class.getClassLoader()))
+                                Handlers.resource(
+                                        new PathResourceManager(Paths.get("plugins/visualizer/src/main/resources").toAbsolutePath(),0)
+                                )
                         )
                 )
                 .build();
@@ -31,6 +35,9 @@ public class VisualizerServer  {
                 .append("?q=")
                 .append(urltoConnect);
         System.out.println("Go to: " + goToBuilder);
+
+
+        System.out.println();
 
     }
 }

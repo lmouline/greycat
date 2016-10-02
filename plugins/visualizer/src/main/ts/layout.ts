@@ -82,9 +82,12 @@ module org.mwg.plugins {
             container.on('resize', function () {
 
                 if(container.getElement().children("div div").children().length > 0) {
-                    container.getElement().children("div div").children()[0].height = container.height;
-                    container.getElement().children("div div").children()[0].width = container.width;
-                    defaultGraphVisu._renderer.resume()
+                    // let canvas = container.getElement().children("div div").children()[0];
+                    // canvas.height = container.height;
+                    // canvas.width = container.width;
+                    // let gl = canvas.getContext("webgl");
+                    // gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+                    // defaultGraphVisu._renderer.resume();
                 }
             });
 
