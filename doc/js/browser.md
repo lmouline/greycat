@@ -38,9 +38,9 @@ The line ```.withStorage(new org.mwg.plugin.WSClient("ws://localhost:8081"))``` 
 
 ## Usage with Bower
 
-Bower is a very handy tool to manage the dependency for font-end developement.
+Bower is a very handy tool to manage dependencies for font-end development.
 
-For instance it allows to describe *(in ```bower.json```)* dependencies for MWG related developement such as:
+For instance, it allows to describe *(in ```bower.json```)* dependencies for MWG related development, for example:
 
 ```json
 {
@@ -55,9 +55,9 @@ For instance it allows to describe *(in ```bower.json```)* dependencies for MWG 
 }
 ```
 
-Then a simple command: ```bower install``` will download and extract dependency in a directory ```bower_components```.
+Then a simple command: ```bower install``` will download and extract the necessary dependencies in a directory ```bower_components```.
 
-Then these dependencies can be used such as:
+Then, these dependencies can be used like in the following code snipped:
 
 ``` html
 <html>
