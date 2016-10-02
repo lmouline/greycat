@@ -25,4 +25,5 @@
 * [Scheduler](scheduler.md)
 * [Machine learning](ml/README.md)
 	* [Polynomial compression](ml/polynomial.md)
-
+* [JavaScript](js/README.md)
+	* [Browser](js/browser.md)
