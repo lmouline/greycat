@@ -6,7 +6,7 @@
 	* [Temporal graph](start/temporal.md)
 	* [Many world graph](start/manyworld.md)
 	* [Persistence](start/persistence.md)
-	* [Indexing](start/index.md)
+	* [Indexing](start/indexing.md)
 	* [Distributed graph](start/distributed.md)
 * [Tasks](tasks/README.md)
 	* [Context and variables](tasks/Context.md)
@@ -23,3 +23,6 @@
 	* [Execution methods](tasks/Execute.md)
 	* [Hooks and Debug](tasks/Hook.md)
 * [Scheduler](scheduler.md)
+* [Machine learning](ml/README.md)
+	* [Polynomial compression](ml/polynomial.md)
+
