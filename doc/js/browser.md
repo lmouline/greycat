@@ -1,12 +1,12 @@
 # Browser usage
 
-To use MWG in your browser you simply have to add the various ```.js``` files to your DOM such as:
+To use MWG in your browser, you simply have to add the needed ```.js``` files to your DOM, for example:
 
 ``` html
 <script src="js/mwg.js"></script>
 ```
 
-In addition various plugins can be load later such as:
+In addition, plugins can be loaded later, for example:
 
 ``` html
 <script src="js/mwg.structure.js"></script>
@@ -14,18 +14,18 @@ In addition various plugins can be load later such as:
 <script src="js/mwg.ws.js"></script>
 ```
 
-Such JS files can be downloaded through maven central repository using url such as ```https://repo.maven.apache.org/maven2/org/kevoree/mwg/core/7/core-7-js.zip```
+JS files can be downloaded via the maven central repository, e.g., ```https://repo.maven.apache.org/maven2/org/kevoree/mwg/core/7/core-7-js.zip```
 
-Of course replace core by the name of the desired plugin name and the 7 by the desired version. In every MWG zip bundle man can find the following files:
+The name 'core' and the version number '7' must be replaced by the desired plugin name and version number.  In every MWG zip bundle one can find the following files:
 
-- XYZ.js: standard file usable for debug and developement
+- XYZ.js: standard file usable for debug and development environments 
 - XYZ.min.js: compressed file for production usage
 - XYZ.ts: TypeScript source for MWG extension
-- XYZ.d.ts TypeScript header file for simple inclusion in TypeScript developement environement.
+- XYZ.d.ts TypeScript header file for simple inclusion in TypeScript development environment.
 
-Of course for lightweight developement we advice to use ```.min.js``` files.
+For lightweight development, we advice you to use ```.min.js``` files.
 
-Then the JS API is identical to Java API and can be used such as:
+Then, the JS API is practically identical to the Java API and can be used like in the following code snipped:
 
 ```js
 var mwg = new org.mwg.GraphBuilder()
@@ -33,4 +33,4 @@ var mwg = new org.mwg.GraphBuilder()
 	.WSClient("ws://localhost:8081"))
 	.build();
 ```
-The ```.WSClient("ws://localhost:8081"))``` is optional but allows to use a remote graph (client/server mode). Please read the distributed graph section to have more details.
+The line ```.WSClient("ws://localhost:8081"))``` is optional but allows to use a remote graph (client/server mode). Please read the distributed graph section to get more details on this topic.
