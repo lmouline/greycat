@@ -70,8 +70,7 @@ var org;
                     container.on('open', plugins.initVivaGraph.bind(this, container.parent.parent.parent.config.title, "id" + indexVisu)); //fixmultiple stack
                     container.on('resize', function () {
                         if (container.getElement().children("div div").children().length > 0) {
-                            container.getElement().children("div div").children()[0].height = container.height;
-                            container.getElement().children("div div").children()[0].width = container.width;
+                            defaultGraphVisu._graphics.resetScale();
                             defaultGraphVisu._renderer.resume();
                         }
                     });
@@ -81,7 +80,6 @@ var org;
                     container.getElement().html('<div><pre id="nodeDetail">No node selected</pre></div>'); //todo fix multiple tab
                 });
                 layout.on('initialised', function () {
-                    console.log("toto");
                     var param = window.location.search.slice(1);
                     if (param != null) {
                         var paramsArray = param.split('&');

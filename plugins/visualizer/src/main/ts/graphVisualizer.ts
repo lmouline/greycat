@@ -280,6 +280,8 @@ module org.mwg.plugins {
 
         _renderer : any;
 
+        _graphics : any;
+
         constructor(url : string) {
             this._graph = new org.mwg.GraphBuilder()
                 .withStorage(new org.mwg.plugin.WSClient(url))
@@ -328,19 +330,20 @@ module org.mwg.plugins {
     function connect(graphVisu : GraphVisu, idDiv : string) {
         graphVisu._graph.connect(function (succeed : boolean){
             if(succeed) {
-                var graphics = window.Viva.Graph.View.webglGraphics();
-                graphics.node(function(node){
+                graphVisu._graphics = window.Viva.Graph.View.webglGraphics();
+                graphVisu._graphics.node(function(node){
                     return window.Viva.Graph.View.webglSquare(12,graphVisu._mapTypeColor[node.data._type]);
                 });
 
-                window.Viva.Graph.webglInputEvents(graphics,graphVisu._graphVisu)
+                window.Viva.Graph.webglInputEvents(graphVisu._graphics,graphVisu._graphVisu)
                     .click(function(selectedNode : any) {
+                        console.log("click");
                         selectNode(selectedNode.id);
                     });
 
                 graphVisu._renderer = window.Viva.Graph.View.renderer(graphVisu._graphVisu, {
                     container: document.getElementById(idDiv),
-                    graphics: graphics
+                    graphics: graphVisu._graphics
                 });
                 graphVisu._renderer.run();
                 //
