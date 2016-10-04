@@ -30,9 +30,9 @@ public class TestPCA {
     public static void main(String[] arg) {
 
 
-        int dim = 100;                  // Total dimensions in the data
-        int realdim = 70;               // Actual real dimensions in the data, the rest are linear correlation plus some noise
-        double randomness =0.3;       // Strength of the noise from 0 to 1 on the non real dimensions. if randomness ->1 they become somehow real dimension
+        int dim = 10;                  // Total dimensions in the data
+        int realdim = 3;               // Actual real dimensions in the data, the rest are linear correlation plus some noise
+        double randomness =0.1;       // Strength of the noise from 0 to 1 on the non real dimensions. if randomness ->1 they become somehow real dimension
 
 
         int len = dim * 100;  //Number of data point to generate
@@ -68,16 +68,14 @@ public class TestPCA {
 
         long starttime = System.currentTimeMillis();
         PCA pca = new PCA(trainingData, PCA.NORMALIZE);
-        /** Test data to be transformed. The same convention of representing
-         * data points as in the training data matrix is used. */
-//        Matrix testData = new Matrix(temptest,lentest,dim);
-//        /** The transformed test data. */
-//        Matrix transformedData =
-//                pca.transform(testData, PCA.TransformationType.ROTATION);
-//        Matrix reversed=pca.inverseTransform(transformedData,PCA.TransformationType.ROTATION);
+
+
         long endtime = System.currentTimeMillis();
         double d = endtime - starttime;
         System.out.println("Analysis took " + d + " ms for a matrix of size: "+trainingData.rows()+"x"+trainingData.columns());
+
+        pca.setDimension(4);
+
 //
 //
 //        double error=0;

@@ -3,13 +3,17 @@ package org.mwg.ml.algorithm.preprocessing;
 import org.mwg.ml.common.matrix.Matrix;
 import org.mwg.ml.common.matrix.SVDDecompose;
 
+import java.text.DecimalFormat;
+
 /**
  * Created by assaad on 27/09/16.
  */
 public class PCA {
     private Matrix _data;
+    private int _olddim;
     private double[] _min;
     private double[] _max;
+    private double[] _sigma;
     private double[] _avg;
     private int _processType;
     private double _percentToRetain;
@@ -18,20 +22,26 @@ public class PCA {
 
     public static double EPS = 1e-30;
 
+    private static Matrix _matrixV;
+
     public static int NOPROCESS = 0;
     public static int CENTER_ON_AVG = 1;
     public static int NORMALIZE = 2;
 
 
     private void normalizeData(Matrix data) {
-        double d = 0;
+        double d = 1;
         for (int j = 0; j < data.columns(); j++) {
             if ((_max[j] - _min[j]) < EPS) {
                 for (int i = 0; i < data.rows(); i++) {
                     data.set(i, j, 0);
                 }
             } else {
-                d = 1 / (_max[j] - _min[j]);
+                if (_sigma[j] > EPS) {
+                    d = 1 / _sigma[j];
+                } else {
+                    d = 1;
+                }
                 for (int i = 0; i < data.rows(); i++) {
                     data.set(i, j, (data.get(i, j) - _avg[j]) * d);
                 }
@@ -40,32 +50,55 @@ public class PCA {
     }
 
 
+    public void setDimension(int dim) {
+        _matrixV = new Matrix(null, _olddim, dim);
+        Matrix tempV = _svdDecompose.getVt();
+        for (int i = 0; i < _olddim; i++) {
+            for (int j = 0; j < dim; j++) {
+                _matrixV.set(i, j, tempV.get(j, i));
+            }
+        }
+    }
+
+
+    public Matrix convertSpace(Matrix initial){
+        normalizeData(initial);
+        Matrix res=Matrix.multiply(initial,_matrixV);
+        return res;
+    }
+
+
     private void inverseNormalizeData(Matrix data) {
-        double d = 0;
         for (int j = 0; j < data.columns(); j++) {
-            if ((_max[j] - _min[j]) < EPS) {
+            if ((_sigma[j]) < EPS) {
                 for (int i = 0; i < data.rows(); i++) {
-                    data.set(i, j, _min[j]);
+                    data.set(i, j, _avg[j]);
                 }
             } else {
-                d = _max[j] - _min[j];
                 for (int i = 0; i < data.rows(); i++) {
-                    data.set(i, j, data.get(i, j) * d + _avg[j]);
+                    data.set(i, j, data.get(i, j) * _sigma[j] + _avg[j]);
                 }
             }
         }
     }
 
 
+    public Matrix getTransformationVector(){
+        return _matrixV;
+    }
+
     private void calculateMinMaxAvg() {
         this._min = new double[_data.columns()];
         this._max = new double[_data.columns()];
         this._avg = new double[_data.columns()];
+        this._sigma = new double[_data.columns()];
+        this._olddim = _data.columns();
 
         for (int j = 0; j < _data.columns(); j++) {
             _min[j] = _data.get(0, j);
             _max[j] = _min[j];
             _avg[j] = _min[j];
+            _sigma[j] = _min[j] * _min[j];
         }
 
         double d;
@@ -74,6 +107,7 @@ public class PCA {
             for (int j = 0; j < _data.columns(); j++) {
                 d = _data.get(i, j);
                 _avg[j] += d;
+                _sigma[j] += d * d;
                 if (d < _min[j]) {
                     _min[j] = d;
                 } else if (d > _max[j]) {
@@ -84,6 +118,7 @@ public class PCA {
 
         for (int j = 0; j < _data.columns(); j++) {
             _avg[j] = _avg[j] / _data.rows();
+            _sigma[j] = Math.sqrt(_sigma[j]);
         }
 
 //        System.out.println();
@@ -140,8 +175,8 @@ public class PCA {
         for (int i = 1; i < svector.length; i++) {
             previoust = t;
             t = svector[i] * svector[i] / (svector[i - 1] * svector[i - 1]);
-            System.out.println(i +" , "+svector[i]+ " , " + t / previoust + " , " + integrator * 100 / d + "%");
-            if (t / previoust < 0.85 && xi == 0 && i!=1) {
+            System.out.println(i + " , " + svector[i] + " , " + t / previoust + " , " + integrator * 100 / d + "%");
+            if (t / previoust < 0.85 && xi == 0 && i != 1) {
                 _percentToRetain = integrator * 100 / d;
                 xi = i;
             }
@@ -151,7 +186,7 @@ public class PCA {
             _percentToRetain = integrator * 100 / d;
             xi = svector.length;
         }
-        System.out.println(svector.length +" , "+svector[svector.length-1]+ " , " + t / previoust + " , " + integrator * 100 / d + "%");
+        System.out.println(svector.length + " , " + svector[svector.length - 1] + " , " + t / previoust + " , " + integrator * 100 / d + "%");
         System.out.println("");
         return xi;
     }
@@ -198,11 +233,11 @@ public class PCA {
         double[] singularValues = _svdDecompose.getS();
 
 
-//        System.out.println("Singular values");
-//        for (int i = 0; i < singularValues.length; i++) {
-//            System.out.println(singularValues[i]);
-//        }
-//        System.out.println("");
+        System.out.println("Singular values");
+        for (int i = 0; i < singularValues.length; i++) {
+            System.out.println(singularValues[i]);
+        }
+        System.out.println("");
 
 
         System.out.println("Need to retain: " + retainDynamic(singularValues) + " / " + data.columns() + " dimensions");
