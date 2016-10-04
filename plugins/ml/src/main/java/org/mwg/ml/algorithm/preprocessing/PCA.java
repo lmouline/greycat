@@ -18,9 +18,9 @@ public class PCA {
 
     public static double EPS = 1e-30;
 
-    public static int NOPROCESS=0;
-    public static int CENTER_ON_AVG=1;
-    public static int NORMALIZE=2;
+    public static int NOPROCESS = 0;
+    public static int CENTER_ON_AVG = 1;
+    public static int NORMALIZE = 2;
 
 
     private void normalizeData(Matrix data) {
@@ -65,7 +65,7 @@ public class PCA {
         for (int j = 0; j < _data.columns(); j++) {
             _min[j] = _data.get(0, j);
             _max[j] = _min[j];
-            _avg[j]=_min[j];
+            _avg[j] = _min[j];
         }
 
         double d;
@@ -73,7 +73,7 @@ public class PCA {
         for (int i = 1; i < _data.rows(); i++) {
             for (int j = 0; j < _data.columns(); j++) {
                 d = _data.get(i, j);
-                _avg[j]+=d;
+                _avg[j] += d;
                 if (d < _min[j]) {
                     _min[j] = d;
                 } else if (d > _max[j]) {
@@ -83,7 +83,7 @@ public class PCA {
         }
 
         for (int j = 0; j < _data.columns(); j++) {
-            _avg[j]=_avg[j]/_data.rows();
+            _avg[j] = _avg[j] / _data.rows();
         }
 
 //        System.out.println();
@@ -95,80 +95,83 @@ public class PCA {
     }
 
 
-    private static Matrix shiftColumn(Matrix data, double[] shift, boolean workInPlace){
-        Matrix temp=data;
-        if(!workInPlace){
-            temp=data.clone();
+    private static Matrix shiftColumn(Matrix data, double[] shift, boolean workInPlace) {
+        Matrix temp = data;
+        if (!workInPlace) {
+            temp = data.clone();
         }
-        for(int i=0;i<temp.rows();i++){
-            for(int j=0;j<temp.columns();j++){
-                temp.set(i,j,temp.get(i,j)-shift[j]);
+        for (int i = 0; i < temp.rows(); i++) {
+            for (int j = 0; j < temp.columns(); j++) {
+                temp.set(i, j, temp.get(i, j) - shift[j]);
             }
         }
         return temp;
     }
 
-    private static Matrix inverseShift(Matrix data, double[] shift, boolean workInPlace){
-        Matrix temp=data;
-        if(!workInPlace){
-            temp=data.clone();
+    private static Matrix inverseShift(Matrix data, double[] shift, boolean workInPlace) {
+        Matrix temp = data;
+        if (!workInPlace) {
+            temp = data.clone();
         }
 
-        for(int i=0;i<temp.rows();i++){
-            for(int j=0;j<temp.columns();j++){
-                temp.set(i,j,temp.get(i,j)+shift[j]);
+        for (int i = 0; i < temp.rows(); i++) {
+            for (int j = 0; j < temp.columns(); j++) {
+                temp.set(i, j, temp.get(i, j) + shift[j]);
             }
         }
         return temp;
     }
 
 
-    public int retainDynamic(double[] svector){
-        double d=0;
-        for(int i=0;i<svector.length;i++){
-            d+=svector[i]*svector[i];
+    public int retainDynamic(double[] svector) {
+        double d = 0;
+        for (int i = 0; i < svector.length; i++) {
+            d += svector[i] * svector[i];
         }
 
 
-        double integrator=0;
-        double previoust=0;
-        double t=svector[1]*svector[1]/(svector[0]*svector[0]);
-        integrator=svector[0]*svector[0]+svector[1]*svector[1];
-        for(int i=2;i<svector.length;i++){
-            previoust=t;
-            t=svector[i]*svector[i]/(svector[i-1]*svector[i-1]);
-            System.out.println(i+" "+t/previoust+" , energy: "+integrator*100/d+" %");
-            if(t/previoust<0.98){
-                _percentToRetain=integrator*100/d;
-                return i;
+        double integrator = 0;
+        double previoust = 1;
+        double t = 1;
+        integrator = svector[0] * svector[0];
+
+        int xi = 0;
+
+        for (int i = 1; i < svector.length; i++) {
+            previoust = t;
+            t = svector[i] * svector[i] / (svector[i - 1] * svector[i - 1]);
+            System.out.println(i +" , "+svector[i]+ " , " + t / previoust + " , " + integrator * 100 / d + "%");
+            if (t / previoust < 0.85 && xi == 0 && i!=1) {
+                _percentToRetain = integrator * 100 / d;
+                xi = i;
             }
-            integrator+=svector[i]*svector[i];
+            integrator += svector[i] * svector[i];
         }
-        _percentToRetain=integrator*100/d;
-        System.out.println(svector.length+" "+t/previoust+" , energy: "+integrator*100/d+" %");
+        if (xi == 0) {
+            _percentToRetain = integrator * 100 / d;
+            xi = svector.length;
+        }
+        System.out.println(svector.length +" , "+svector[svector.length-1]+ " , " + t / previoust + " , " + integrator * 100 / d + "%");
         System.out.println("");
-        return svector.length;
+        return xi;
     }
 
 
-
-    public static int retain(double[] svector, double percent){
-        double d=0;
-        for(int i=0;i<svector.length;i++){
-            d+=svector[i]*svector[i];
+    public static int retain(double[] svector, double percent) {
+        double d = 0;
+        for (int i = 0; i < svector.length; i++) {
+            d += svector[i] * svector[i];
         }
-        d=d*percent;
-        double t=0;
-        for(int i=0;i<svector.length;i++){
-            t+=svector[i]*svector[i];
-            if(t>d){
-                return i+1;
+        d = d * percent;
+        double t = 0;
+        for (int i = 0; i < svector.length; i++) {
+            t += svector[i] * svector[i];
+            if (t > d) {
+                return i + 1;
             }
         }
         return svector.length;
     }
-
-
 
 
     public PCA(Matrix data, int processType) {
@@ -176,13 +179,11 @@ public class PCA {
         this._processType = processType;
         calculateMinMaxAvg();
 
-        if(processType==CENTER_ON_AVG){
-            shiftColumn(_data,_avg,true);
-        }
-        else if(processType==NORMALIZE){
+        if (processType == CENTER_ON_AVG) {
+            shiftColumn(_data, _avg, true);
+        } else if (processType == NORMALIZE) {
             normalizeData(_data);
         }
-
 
 
         //shiftColumn(_data,_avg,true);
@@ -192,8 +193,7 @@ public class PCA {
 //        }
 
 
-
-        _svdDecompose = Matrix.defaultEngine().decomposeSVD(_data, true);
+        _svdDecompose = Matrix.defaultEngine().decomposeSVD(_data, false);
 
         double[] singularValues = _svdDecompose.getS();
 
@@ -205,8 +205,8 @@ public class PCA {
 //        System.out.println("");
 
 
-        System.out.println("Need to retain: "+retainDynamic(singularValues)+" / "+data.columns()+" dimensions");
-        System.out.println("Energy retained: "+_percentToRetain+ " %");
+        System.out.println("Need to retain: " + retainDynamic(singularValues) + " / " + data.columns() + " dimensions");
+        System.out.println("Energy retained: " + _percentToRetain + " %");
 
         int x = 0;
 

@@ -31,8 +31,8 @@ public class TestPCA {
 
 
         int dim = 100;                  // Total dimensions in the data
-        int realdim = 59;               // Actual real dimensions in the data, the rest are linear correlation plus some noise
-        double randomness =0.8;       // Strength of the noise from 0 to 1 on the non real dimensions. if randomness ->1 they become somehow real dimension
+        int realdim = 70;               // Actual real dimensions in the data, the rest are linear correlation plus some noise
+        double randomness =0.3;       // Strength of the noise from 0 to 1 on the non real dimensions. if randomness ->1 they become somehow real dimension
 
 
         int len = dim * 100;  //Number of data point to generate
