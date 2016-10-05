@@ -15,7 +15,13 @@ class ActionTime extends AbstractTaskAction {
     @Override
     public void eval(final TaskContext context) {
         final String flat = context.template(_varName);
-        context.setTime(Long.parseLong(flat));
+        long parsedTime;
+        if(flat.contains(".")){
+            parsedTime = Long.parseLong(flat);
+        } else {
+            parsedTime = (long) Double.parseDouble(flat);
+        }
+        context.setTime(parsedTime);
         context.continueTask();
     }
 
