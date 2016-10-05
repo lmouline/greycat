@@ -116,7 +116,7 @@ module org.mwg.plugins {
             container.getElement().html('<div><pre id="nodeDetail">No node selected</pre></div>'); //todo fix multiple tab
         });
 
-        layout.registerComponent('Text Editor',function(container, componentState){
+        layout.registerComponent('Query Editor',function(container, componentState){
             container.getElement().html('<div id="container"></div>');
             container.on('open', function(){
                 require(['vs/editor/editor.main'], function() {

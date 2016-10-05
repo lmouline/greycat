@@ -433,15 +433,15 @@ module org.mwg.plugin {
     }
 
     function internal_initVivaGraph(url: string, idDiv : string) {
-        defaultGraphVisu = new GraphVisu(url);
-        connect(defaultGraphVisu,idDiv);
+
     }
 
     export function initVivaGraph(url: string, idDiv : string) {
+        defaultGraphVisu = new GraphVisu(url);
         if(document.getElementById(idDiv) == null) {
-            setTimeout(internal_initVivaGraph,5,url,idDiv)
+            setTimeout(connect,5,defaultGraphVisu,idDiv)
         } else {
-            internal_initVivaGraph(url,idDiv);
+            connect(defaultGraphVisu,idDiv);
         }
 
     }
