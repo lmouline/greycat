@@ -1,8 +1,13 @@
-import initVivaGraph = org.mwg.plugins.initVivaGraph;
+import initVivaGraph = org.mwg.plugin.initVivaGraph;
 
 interface Window {
     GoldenLayout?:any;
+    monaco?:any;
+
+
 }
+
+declare function require(name,callback);
 
 module org.mwg.plugins {
     
@@ -19,16 +24,31 @@ module org.mwg.plugins {
         content: [{
             type: "column",
             isClosable: false,
-            content: [{
-                type: 'component',
-                isClosable: false,
-                componentName: 'Graph command'
-            }, {
-                type: 'component',
-                isClosable: false,
-                componentName: 'nodeDetails',
-                title: "Node details"
-            }]
+            content: [
+                {
+                    type:'stack',
+                    isClosable: false,
+                    content: [
+                        {
+                            type: 'component',
+                            isClosable: false,
+                            componentName: "Query Editor"
+                        },
+                        {
+                            type: 'component',
+                            isClosable: false,
+                            componentName: 'Graph command'
+                        }
+                    ]
+                }
+                ,
+                {
+                    type: 'component',
+                    isClosable: false,
+                    componentName: 'nodeDetails',
+                    title: "Node details"
+                }
+            ]
         },
             {
                 title: "Graph",
@@ -70,8 +90,9 @@ module org.mwg.plugins {
         layout = new window.GoldenLayout(globalConfig, document.getElementById("goldenLayout"));
         layout.registerComponent('Graph command', function (container, componantState) {
             container.getElement().html('' +
-                'Time <input type="number" min="0" max="20" value="0" step="1" class="timeWorldSelector" onchange="org.mwg.plugins.updateTime(this.value,defaultGraphVisu);"/> <br />' +
-                'World <input type="number" min="0"  max="20" value="0" step="1" class="timeWorldSelector" onchange="org.mwg.plugins.updateWorld(this.value,defaultGraphVisu);"/>'
+                `Time <input type="number" min="0" max="20" value="${org.mwg.plugin.INIT_TIME}"  step="1" class="timeWorldSelector" onchange="org.mwg.plugin.updateTime(this.value,defaultGraphVisu);"/> <br />` +
+                `World <input type="number" min="0"  max="20" value="${org.mwg.plugin.INIT_WORLD}" step="1" class="timeWorldSelector" onchange="org.mwg.plugin.updateWorld(this.value,defaultGraphVisu);"/> <br />` +
+                `Depth <input type="number" min="0"  max="20" value="${org.mwg.plugin.INIT_DEPTH}" step="1" class="timeWorldSelector" onchange="org.mwg.plugin.updateDepth(this.value,defaultGraphVisu);"/>`
             );
             
         });
@@ -93,6 +114,23 @@ module org.mwg.plugins {
 
         layout.registerComponent('nodeDetails', function (container, componentState) {
             container.getElement().html('<div><pre id="nodeDetail">No node selected</pre></div>'); //todo fix multiple tab
+        });
+
+        layout.registerComponent('Text Editor',function(container, componentState){
+            container.getElement().html('<div id="container"></div>');
+            container.on('open', function(){
+                require(['vs/editor/editor.main'], function() {
+                    var editor = window.monaco.editor.create(document.getElementById('container'), {
+                        value: [
+                            'function x() {',
+                            '\tconsole.log("Hello world!");',
+                            '}'
+                        ].join('\n'),
+                        language: 'javascript'
+                    });
+                });
+            });
+
         });
 
         layout.on('initialised',function () {

@@ -32,11 +32,15 @@
     <script type="text/javascript" src="js/generated/graphVisualizer.js"></script>
     <script type="text/javascript" src="js/generated/layout.js"></script>
 
+    <!--Monaco editor -->
+    <script src="min/vs/editor/editor.main.js"></script>
+    <script src="min/vs/loader.js"></script>
+
 </head>
 <body onload="org.mwg.plugins.initLayout()">
 <div id="wrapper">
     <div id="header">
-        <form name="newConnection" action="javascript:org.mwg.plugins.addVisu();">
+        <form name="newConnection" action="javascript:org.mwg.plugin.addVisu();">
             <input type="text" name="graphUrl" placeholder="graph url and port">
             <input type="submit" value="Connect">
         </form>
@@ -44,5 +48,9 @@
     <div id="goldenLayout"></div>
 </div>
 
+
+<script>
+    require.config({ paths: { 'vs': 'min/vs' }});
+</script>
 </body>
 </html>

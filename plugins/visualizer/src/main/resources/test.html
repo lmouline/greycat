@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+
+    <style>
+        #container {
+            height: 500px;
+            width: 50%;
+        }
+
+    </style>
+</head>
+<body>
+
+<!--style="height:100%;border:1px solid grey"-->
+<!--<div id="container"></div>-->
+
+
+
+<script src="min/vs/editor/editor.main.js"></script>
+<script src="min/vs/loader.js"></script>
+<script>
+    require.config({ paths: { 'vs': 'min/vs' }});
+
+    document.body.innerHTML = '<div id="container"></div>'
+
+    require(['vs/editor/editor.main'], function() {
+        var container = document.getElementById('container');
+        var editor = monaco.editor.create(container, {
+            value: [
+                'function x() {',
+                '\tconsole.log("Hello world!");',
+                '}'
+            ].join('\n'),
+            language: 'javascript'
+        });
+
+        window.onresize = function() {
+            console.log("toto");
+
+            container.style.width = (window.innerWidth - 10) + "px";
+            container.style.height = (window.innerHeight - 10) + "px";
+
+            var HALF_WIDTH = (window.innerWidth - 10);
+            var REMAINING_HEIGHT = (window.innerWidth - 10);
+            console.log(HALF_WIDTH + " ; " + REMAINING_HEIGHT);
+            editor.layout({
+                width: HALF_WIDTH - 2,
+                height: REMAINING_HEIGHT
+            });
+        };
+
+    });
+
+
+</script>
+</body>
+</html>

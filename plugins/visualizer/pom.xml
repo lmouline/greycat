@@ -65,7 +65,7 @@
                                     <version>${project.version}</version>
                                     <classifier>js</classifier>
                                     <type>zip</type>
-                                    <includes>*.ts</includes>
+                                    <includes>mwg.d.ts</includes>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.basedir}/src/main/ts/mwg</outputDirectory>
                                 </artifactItem>
@@ -87,7 +87,7 @@
                                     <version>${project.version}</version>
                                     <classifier>js</classifier>
                                     <type>zip</type>
-                                    <includes>*.ts</includes>
+                                    <includes>mwg.ws.d.ts</includes>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.basedir}/src/main/ts/mwg</outputDirectory>
                                 </artifactItem>

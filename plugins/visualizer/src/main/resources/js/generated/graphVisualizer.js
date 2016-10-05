@@ -1,161 +1,113 @@
 /// <reference path="mwg/mwg.d.ts" />
 /// <reference path="mwg/mwg.ws.d.ts" />
-var WSClient = org.mwg.plugin.WSClient;
-var Actions = org.mwg.task.Actions;
-var Type = org.mwg.Type;
-var HeapRelationship = org.mwg.core.chunk.heap.HeapRelationship;
-var CoreDeferCounterSync = org.mwg.core.utility.CoreDeferCounterSync;
+/// <reference path="taskRegistry.ts" />
 //todo delete
 var defaultGraphVisu;
 var org;
 (function (org) {
     var mwg;
     (function (mwg) {
-        var plugins;
-        (function (plugins) {
-            var timeVar = "time";
-            var worldVar = "world";
-            var nodeIdVar = "nodeId";
-            var printNodeTask = Actions
-                .setTime("{{" + timeVar + "}}")
-                .setWorld("{{" + worldVar + "}}")
-                .inject("{\n")
-                .asGlobalVar("string")
-                .lookup("{{" + nodeIdVar + "}}")
-                .asGlobalVar("node")
-                .ifThen(function (context) { return context.result().size() > 0; }, Actions.then(function (context) {
-                var res = context.variable("string").get(0);
-                var n = context.variable("node").get(0);
-                res += "  _id=" + n.id() + "\n";
-                res += "  _type=" + (n.nodeTypeName() || 'default') + "\n";
-                context.setGlobalVariable("string", res);
-                context.continueTask();
-            })
-                .subTasks([Actions.propertiesWithTypes(mwg.Type.BOOL),
-                Actions.propertiesWithTypes(mwg.Type.INT),
-                Actions.propertiesWithTypes(mwg.Type.DOUBLE),
-                Actions.propertiesWithTypes(mwg.Type.LONG),
-                Actions.propertiesWithTypes(mwg.Type.STRING),
-                Actions.propertiesWithTypes(mwg.Type.RELATION)])
-                .foreach(Actions.then(function (context) {
-                var res = context.variable("string").get(0);
-                var n = context.variable("node").get(0);
-                if (typeof context.result().get(0) != "number") {
-                    res += "  " + context.result().get(0) + "=" + n.get(context.result().get(0)) + "\n";
-                }
-                else {
-                    res += "  " + context.result().get(0) + "=" + n.getByIndex(context.result().get(0)) + "\n";
-                }
-                context.setGlobalVariable("string", res);
-                context.continueTask();
-            }))
-                .fromVar("node")
-                .propertiesWithTypes(mwg.Type.LONG_TO_LONG_ARRAY_MAP)
-                .ifThen(function (context) {
-                return context.result().size() > 0;
-            }, Actions.then(function (context) {
-                var n = context.variable("node").get(0);
-                var map = n.get(context.result().get(0));
-                var index = 0;
-                var res = context.variable("string").get(0);
-                res += "  " + context.result().get(0) + "=[";
-                map.each(function (key, value) {
-                    res += (value + "");
-                    if ((index + 1) < map.size()) {
-                        res += ",";
-                    }
-                    index++;
-                });
-                res += "]\n";
-                context.setGlobalVariable("string", res);
-                context.continueTask();
-            }))
-                .fromVar("string"));
-            var depthVar = "depth";
-            var graphVisuVar = "graphVisu";
-            var drawGraphTask = Actions
-                .setTime("{{" + timeVar + "}}")
-                .setWorld("{{" + worldVar + "}}")
-                .indexesNames()
-                .foreach(Actions
-                .fromIndexAll("{{result}}")
-                .asGlobalVar("toVisit")
-                .foreach(Actions.then(function (context) {
-                var node = context.resultAsNodes().get(0);
-                var graphVisu = context.variable(graphVisuVar).get(0);
-                var id = node.id();
-                var nodeType = node.nodeTypeName() || 'default';
-                graphVisu._graphVisu.addNode(id, { _type: nodeType });
-                if (graphVisu._mapTypeColor[nodeType] == null) {
-                    graphVisu._mapTypeColor[nodeType] = getRandomColor();
-                }
-                context.continueTask();
-            }))
-                .fromVar("toVisit")
-                .loop("1", "{{" + depthVar + "}}", Actions
-                .defineVar("nextToVisit")
-                .fromVar("toVisit")
-                .foreach(Actions
-                .asGlobalVar("currentNode")
-                .then(function (context) {
-                var node = context.result().get(0);
-                context.addToGlobalVariable("alreadyVisit", node.id());
-                context.continueTask();
-            })
-                .propertiesWithTypes(mwg.Type.RELATION)
-                .foreach(Actions.asVar("relationName")
-                .fromVar("currentNode")
-                .traverse("{{relationName}}")
-                .ifThenElse(function (context) {
-                return context.result().size() > 0;
-            }, Actions.foreach(Actions.then(function (context) {
-                var alreadyVisit = context.variable("alreadyVisit");
-                var srcNode = context.variable("currentNode").get(0).id();
-                var result = context.resultAsNodes().get(0);
-                var alreadyVisited = false;
-                for (var i = 0; i < alreadyVisit.size(); i++) {
-                    alreadyVisited = alreadyVisited || (result.id() == alreadyVisit.get(i));
-                    if (alreadyVisited) {
-                        break;
-                    }
-                }
-                var graphVisu = context.variable(graphVisuVar).get(0);
-                if (!alreadyVisited) {
-                    var nodeType = result.nodeTypeName() || 'default';
-                    if (graphVisu._mapTypeColor[nodeType] == null) {
-                        graphVisu._mapTypeColor[nodeType] = getRandomColor();
-                    }
-                    graphVisu._graphVisu.addNode(result.id(), { _type: nodeType });
-                    var nextToVisit = context.variable("nextToVisit");
-                    var alreadyAdded = false;
-                    for (var ntv = 0; ntv < nextToVisit.size(); ntv++) {
-                        alreadyAdded = alreadyAdded || (result.id() == nextToVisit.get(ntv).id());
-                        if (alreadyAdded) {
-                            break;
+        var plugin;
+        (function (plugin) {
+            var visualizer;
+            (function (visualizer) {
+                var taskRegistry;
+                (function (taskRegistry) {
+                    var Actions = org.mwg.task.Actions;
+                    taskRegistry.timeVar = "time";
+                    taskRegistry.worldVar = "world";
+                    taskRegistry.nodeIdVar = "nodeId";
+                    var writeIdType = Actions.then(function (context) {
+                        var res = context.variable("string").get(0);
+                        var n = context.variable("node").get(0);
+                        res += "  _id=" + n.id() + "\n";
+                        res += "  _type=" + (n.nodeTypeName() || 'default') + "\n";
+                        context.setGlobalVariable("string", res);
+                        context.continueTask();
+                    });
+                    var writeAtt = Actions.then(function (context) {
+                        var res = context.variable("string").get(0);
+                        var n = context.variable("node").get(0);
+                        res += "  " + context.result().get(0) + "=";
+                        if (typeof context.result().get(0) != "number") {
+                            res += n.get(context.result().get(0));
                         }
+                        else {
+                            res += n.getByIndex(context.result().get(0));
+                        }
+                        res += "\n";
+                        context.setGlobalVariable("string", res);
+                        context.continueTask();
+                    });
+                    var writeIndexRel = Actions.then(function (context) {
+                        var n = context.variable("node").get(0);
+                        var map = n.get(context.result().get(0));
+                        var index = 0;
+                        var res = context.variable("string").get(0);
+                        res += "  " + context.result().get(0) + "=[";
+                        map.each(function (key, value) {
+                            res += (value + "");
+                            if ((index + 1) < map.size()) {
+                                res += ",";
+                            }
+                            index++;
+                        });
+                        res += "]\n";
+                        context.setGlobalVariable("string", res);
+                        context.continueTask();
+                    });
+                    taskRegistry.printNodeTask = Actions
+                        .setTime("{{" + taskRegistry.timeVar + "}}")
+                        .setWorld("{{" + taskRegistry.worldVar + "}}")
+                        .inject("{\n")
+                        .asGlobalVar("string")
+                        .lookup("{{" + taskRegistry.nodeIdVar + "}}")
+                        .asGlobalVar("node")
+                        .ifThen(function (context) { return context.result().size() > 0; }, writeIdType
+                        .subTasks([Actions.propertiesWithTypes(mwg.Type.BOOL),
+                        Actions.propertiesWithTypes(mwg.Type.INT),
+                        Actions.propertiesWithTypes(mwg.Type.DOUBLE),
+                        Actions.propertiesWithTypes(mwg.Type.LONG),
+                        Actions.propertiesWithTypes(mwg.Type.STRING),
+                        Actions.propertiesWithTypes(mwg.Type.RELATION)])
+                        .foreach(writeAtt)
+                        .fromVar("node")
+                        .propertiesWithTypes(mwg.Type.LONG_TO_LONG_ARRAY_MAP)
+                        .ifThen(function (context) {
+                        return context.result().size() > 0;
+                    }, writeIndexRel)
+                        .fromVar("string"));
+                    function getRandomColor() {
+                        var letters = '789ABCD'.split('');
+                        var color = "#";
+                        for (var i = 0; i < 6; i++) {
+                            color += letters[Math.round(Math.random() * 6)];
+                        }
+                        return color;
                     }
-                    if (!alreadyAdded) {
-                        context.addToGlobalVariable("nextToVisit", result);
-                    }
-                }
-                graphVisu._graphVisu.addLink(srcNode, result.id());
-                context.continueTask();
-            })), Actions.then(function (context) {
-                var node = context.variable("currentNode").get(0);
-                var hashReation = context.variable("relationName").get(0);
-                node.relByIndex(hashReation, function (nodes) {
-                    var alreadyVisit = context.variable("alreadyVisit");
-                    var srcNode = context.variable("currentNode").get(0).id();
-                    for (var i = 0; i < nodes.length; i++) {
-                        var result = nodes[i];
+                    var addIndexedNode = Actions.then(function (context) {
+                        var node = context.resultAsNodes().get(0);
+                        var graphVisu = context.variable(taskRegistry.graphVisuVar).get(0);
+                        var id = node.id();
+                        var nodeType = node.nodeTypeName() || 'default';
+                        graphVisu._graphVisu.addNode(id, { _type: nodeType });
+                        if (graphVisu._mapTypeColor[nodeType] == null) {
+                            graphVisu._mapTypeColor[nodeType] = getRandomColor();
+                        }
+                        context.continueTask();
+                    });
+                    var visitRel = Actions.then(function (context) {
+                        var alreadyVisit = context.variable("alreadyVisit");
+                        var srcNode = context.variable("currentNode").get(0).id();
+                        var result = context.resultAsNodes().get(0);
                         var alreadyVisited = false;
-                        for (var i_1 = 0; i_1 < alreadyVisit.size(); i_1++) {
-                            alreadyVisited = alreadyVisited || (result.id() == alreadyVisit.get(i_1));
+                        for (var i = 0; i < alreadyVisit.size(); i++) {
+                            alreadyVisited = alreadyVisited || (result.id() == alreadyVisit.get(i));
                             if (alreadyVisited) {
                                 break;
                             }
                         }
-                        var graphVisu = context.variable(graphVisuVar).get(0);
+                        var graphVisu = context.variable(taskRegistry.graphVisuVar).get(0);
                         if (!alreadyVisited) {
                             var nodeType = result.nodeTypeName() || 'default';
                             if (graphVisu._mapTypeColor[nodeType] == null) {
@@ -175,58 +127,145 @@ var org;
                             }
                         }
                         graphVisu._graphVisu.addLink(srcNode, result.id());
-                    }
-                    context.continueTask();
-                });
-            })))
-                .fromVar("currentNode")
-                .propertiesWithTypes(mwg.Type.LONG_TO_LONG_ARRAY_MAP)
-                .foreach(Actions.asVar("relationName")
-                .fromVar("currentNode")
-                .traverseIndexAll("{{relationName}}")
-                .foreach(Actions.then(function (context) {
-                var alreadyVisit = context.variable("alreadyVisit");
-                var srcNode = context.variable("currentNode").get(0).id();
-                var result = context.resultAsNodes().get(0);
-                var alreadyVisited = false;
-                for (var i = 0; i < alreadyVisit.size(); i++) {
-                    alreadyVisited = alreadyVisited || (result.id() == alreadyVisit.get(i));
-                    if (alreadyVisited) {
-                        break;
-                    }
-                }
-                var graphVisu = context.variable(graphVisuVar).get(0);
-                if (!alreadyVisited) {
-                    var nodeType = result.nodeTypeName() || 'default';
-                    if (graphVisu._mapTypeColor[nodeType] == null) {
-                        graphVisu._mapTypeColor[nodeType] = getRandomColor();
-                    }
-                    graphVisu._graphVisu.addNode(result.id(), { _type: nodeType });
-                    var nextToVisit = context.variable("nextToVisit");
-                    var alreadyAdded = false;
-                    for (var ntv = 0; ntv < nextToVisit.size(); ntv++) {
-                        alreadyAdded = alreadyAdded || (result.id() == nextToVisit.get(ntv).id());
-                        if (alreadyAdded) {
-                            break;
+                        context.continueTask();
+                    });
+                    var visitByIndex = Actions.then(function (context) {
+                        var node = context.variable("currentNode").get(0);
+                        var hashReation = context.variable("relationName").get(0);
+                        node.relByIndex(hashReation, function (nodes) {
+                            var alreadyVisit = context.variable("alreadyVisit");
+                            var srcNode = context.variable("currentNode").get(0).id();
+                            for (var i = 0; i < nodes.length; i++) {
+                                var result = nodes[i];
+                                var alreadyVisited = false;
+                                for (var i_1 = 0; i_1 < alreadyVisit.size(); i_1++) {
+                                    alreadyVisited = alreadyVisited || (result.id() == alreadyVisit.get(i_1));
+                                    if (alreadyVisited) {
+                                        break;
+                                    }
+                                }
+                                var graphVisu = context.variable(taskRegistry.graphVisuVar).get(0);
+                                if (!alreadyVisited) {
+                                    var nodeType = result.nodeTypeName() || 'default';
+                                    if (graphVisu._mapTypeColor[nodeType] == null) {
+                                        graphVisu._mapTypeColor[nodeType] = getRandomColor();
+                                    }
+                                    graphVisu._graphVisu.addNode(result.id(), { _type: nodeType });
+                                    var nextToVisit = context.variable("nextToVisit");
+                                    var alreadyAdded = false;
+                                    for (var ntv = 0; ntv < nextToVisit.size(); ntv++) {
+                                        alreadyAdded = alreadyAdded || (result.id() == nextToVisit.get(ntv).id());
+                                        if (alreadyAdded) {
+                                            break;
+                                        }
+                                    }
+                                    if (!alreadyAdded) {
+                                        context.addToGlobalVariable("nextToVisit", result);
+                                    }
+                                }
+                                graphVisu._graphVisu.addLink(srcNode, result.id());
+                            }
+                            context.continueTask();
+                        });
+                    });
+                    var visitRelIndex = Actions.then(function (context) {
+                        var alreadyVisit = context.variable("alreadyVisit");
+                        var srcNode = context.variable("currentNode").get(0).id();
+                        var result = context.resultAsNodes().get(0);
+                        var alreadyVisited = false;
+                        for (var i = 0; i < alreadyVisit.size(); i++) {
+                            alreadyVisited = alreadyVisited || (result.id() == alreadyVisit.get(i));
+                            if (alreadyVisited) {
+                                break;
+                            }
                         }
-                    }
-                    if (!alreadyAdded) {
-                        context.addToGlobalVariable("nextToVisit", result);
-                    }
-                }
-                graphVisu._graphVisu.addLink(srcNode, result.id());
-                context.continueTask();
-            }))))
-                .fromVar("nextToVisit")
-                .asGlobalVar("toVisit")
-                .fromVar("nextToVisit")
-                .clear()
-                .asGlobalVar("nextToVisit")));
+                        var graphVisu = context.variable(taskRegistry.graphVisuVar).get(0);
+                        if (!alreadyVisited) {
+                            var nodeType = result.nodeTypeName() || 'default';
+                            if (graphVisu._mapTypeColor[nodeType] == null) {
+                                graphVisu._mapTypeColor[nodeType] = getRandomColor();
+                            }
+                            graphVisu._graphVisu.addNode(result.id(), { _type: nodeType });
+                            var nextToVisit = context.variable("nextToVisit");
+                            var alreadyAdded = false;
+                            for (var ntv = 0; ntv < nextToVisit.size(); ntv++) {
+                                alreadyAdded = alreadyAdded || (result.id() == nextToVisit.get(ntv).id());
+                                if (alreadyAdded) {
+                                    break;
+                                }
+                            }
+                            if (!alreadyAdded) {
+                                context.addToGlobalVariable("nextToVisit", result);
+                            }
+                        }
+                        graphVisu._graphVisu.addLink(srcNode, result.id());
+                        context.continueTask();
+                    });
+                    taskRegistry.depthVar = "depth";
+                    taskRegistry.graphVisuVar = "graphVisu";
+                    taskRegistry.drawGraphTask = Actions
+                        .setTime("{{" + taskRegistry.timeVar + "}}")
+                        .setWorld("{{" + taskRegistry.worldVar + "}}")
+                        .indexesNames()
+                        .foreach(Actions
+                        .fromIndexAll("{{result}}")
+                        .asGlobalVar("toVisit")
+                        .foreach(addIndexedNode)
+                        .fromVar("toVisit")
+                        .loop("1", "{{" + taskRegistry.depthVar + "}}", Actions
+                        .defineVar("nextToVisit")
+                        .fromVar("toVisit")
+                        .foreach(Actions
+                        .asGlobalVar("currentNode")
+                        .then(function (context) {
+                        var node = context.result().get(0);
+                        context.addToGlobalVariable("alreadyVisit", node.id());
+                        context.continueTask();
+                    })
+                        .propertiesWithTypes(mwg.Type.RELATION)
+                        .foreach(Actions.asVar("relationName")
+                        .fromVar("currentNode")
+                        .traverse("{{relationName}}")
+                        .ifThenElse(function (context) {
+                        return context.result().size() > 0;
+                    }, Actions.foreach(visitRel), visitByIndex))
+                        .fromVar("currentNode")
+                        .propertiesWithTypes(mwg.Type.LONG_TO_LONG_ARRAY_MAP)
+                        .foreach(Actions.asVar("relationName")
+                        .fromVar("currentNode")
+                        .traverseIndexAll("{{relationName}}")
+                        .foreach(visitRelIndex)))
+                        .fromVar("nextToVisit")
+                        .asGlobalVar("toVisit")
+                        .clear()
+                        .asGlobalVar("nextToVisit")));
+                })(taskRegistry = visualizer.taskRegistry || (visualizer.taskRegistry = {}));
+            })(visualizer = plugin.visualizer || (plugin.visualizer = {}));
+        })(plugin = mwg.plugin || (mwg.plugin = {}));
+    })(mwg = org.mwg || (org.mwg = {}));
+})(org || (org = {}));
+var org;
+(function (org) {
+    var mwg;
+    (function (mwg) {
+        var plugin;
+        (function (plugin) {
+            var timeVar = org.mwg.plugin.visualizer.taskRegistry.timeVar;
+            var worldVar = org.mwg.plugin.visualizer.taskRegistry.worldVar;
+            var nodeIdVar = org.mwg.plugin.visualizer.taskRegistry.nodeIdVar;
+            var printNodeTask = org.mwg.plugin.visualizer.taskRegistry.printNodeTask;
+            var depthVar = org.mwg.plugin.visualizer.taskRegistry.depthVar;
+            var graphVisuVar = org.mwg.plugin.visualizer.taskRegistry.graphVisuVar;
+            var drawGraphTask = org.mwg.plugin.visualizer.taskRegistry.drawGraphTask;
+            var Actions = org.mwg.task.Actions;
+            plugin.INIT_DEPTH = 10;
+            plugin.INIT_TIME = 0;
+            plugin.INIT_WORLD = 0;
             var GraphVisu = (function () {
                 function GraphVisu(url) {
-                    this._time = 0;
-                    this._world = 0;
-                    this._depth = 10; //todo delete
+                    this._time = plugin.INIT_TIME;
+                    this._world = plugin.INIT_WORLD;
+                    this._depth = plugin.INIT_DEPTH; //todo delete
                     this._mapTypeColor = new Object();
                     this._previousSelect = -1;
                     this._graph = new org.mwg.GraphBuilder()
@@ -237,7 +276,7 @@ var org;
                 }
                 return GraphVisu;
             }());
-            plugins.GraphVisu = GraphVisu;
+            plugin.GraphVisu = GraphVisu;
             function printNodeDetails(nodeId, graphVisu) {
                 Actions
                     .inject(nodeId)
@@ -319,14 +358,6 @@ var org;
                 defaultGraphVisu = new GraphVisu(url);
                 connect(defaultGraphVisu, idDiv);
             }
-            function getRandomColor() {
-                var letters = '789ABCD'.split('');
-                var color = "#";
-                for (var i = 0; i < 6; i++) {
-                    color += letters[Math.round(Math.random() * 6)];
-                }
-                return color;
-            }
             function initVivaGraph(url, idDiv) {
                 if (document.getElementById(idDiv) == null) {
                     setTimeout(internal_initVivaGraph, 5, url, idDiv);
@@ -335,17 +366,22 @@ var org;
                     internal_initVivaGraph(url, idDiv);
                 }
             }
-            plugins.initVivaGraph = initVivaGraph;
+            plugin.initVivaGraph = initVivaGraph;
             function updateTime(time, graphVisu) {
                 graphVisu._time = time;
                 drawGraph(graphVisu);
             }
-            plugins.updateTime = updateTime;
+            plugin.updateTime = updateTime;
             function updateWorld(world, graphVisu) {
                 graphVisu._world = world;
                 drawGraph(graphVisu);
             }
-            plugins.updateWorld = updateWorld;
-        })(plugins = mwg.plugins || (mwg.plugins = {}));
+            plugin.updateWorld = updateWorld;
+            function updateDepth(depth, graphVisu) {
+                graphVisu._depth = depth;
+                drawGraph(graphVisu);
+            }
+            plugin.updateDepth = updateDepth;
+        })(plugin = mwg.plugin || (mwg.plugin = {}));
     })(mwg = org.mwg || (org.mwg = {}));
 })(org || (org = {}));

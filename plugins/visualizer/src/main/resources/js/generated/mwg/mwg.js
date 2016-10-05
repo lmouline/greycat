@@ -2273,6 +2273,9 @@ var org;
                 Actions.print = function (name) {
                     return org.mwg.task.Actions.newTask().print(name);
                 };
+                Actions.println = function (name) {
+                    return org.mwg.task.Actions.newTask().println(name);
+                };
                 Actions.setProperty = function (propertyName, propertyType, variableNameToSet) {
                     return org.mwg.task.Actions.newTask().setProperty(propertyName, propertyType, variableNameToSet);
                 };

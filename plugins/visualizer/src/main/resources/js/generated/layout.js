@@ -1,4 +1,4 @@
-var initVivaGraph = org.mwg.plugins.initVivaGraph;
+var initVivaGraph = org.mwg.plugin.initVivaGraph;
 var org;
 (function (org) {
     var mwg;
@@ -17,16 +17,30 @@ var org;
                 content: [{
                         type: "column",
                         isClosable: false,
-                        content: [{
-                                type: 'component',
+                        content: [
+                            {
+                                type: 'stack',
                                 isClosable: false,
-                                componentName: 'Graph command'
-                            }, {
+                                content: [
+                                    {
+                                        type: 'component',
+                                        isClosable: false,
+                                        componentName: "Text Editor"
+                                    },
+                                    {
+                                        type: 'component',
+                                        isClosable: false,
+                                        componentName: 'Graph command'
+                                    }
+                                ]
+                            },
+                            {
                                 type: 'component',
                                 isClosable: false,
                                 componentName: 'nodeDetails',
                                 title: "Node details"
-                            }]
+                            }
+                        ]
                     },
                     {
                         title: "Graph",
@@ -62,12 +76,13 @@ var org;
                 layout = new window.GoldenLayout(globalConfig, document.getElementById("goldenLayout"));
                 layout.registerComponent('Graph command', function (container, componantState) {
                     container.getElement().html('' +
-                        'Time <input type="number" min="0" max="20" value="0" step="1" class="timeWorldSelector" onchange="org.mwg.plugins.updateTime(this.value,defaultGraphVisu);"/> <br />' +
-                        'World <input type="number" min="0"  max="20" value="0" step="1" class="timeWorldSelector" onchange="org.mwg.plugins.updateWorld(this.value,defaultGraphVisu);"/>');
+                        ("Time <input type=\"number\" min=\"0\" max=\"20\" value=\"" + org.mwg.plugin.INIT_TIME + "\"  step=\"1\" class=\"timeWorldSelector\" onchange=\"org.mwg.plugin.updateTime(this.value,defaultGraphVisu);\"/> <br />") +
+                        ("World <input type=\"number\" min=\"0\"  max=\"20\" value=\"" + org.mwg.plugin.INIT_WORLD + "\" step=\"1\" class=\"timeWorldSelector\" onchange=\"org.mwg.plugin.updateWorld(this.value,defaultGraphVisu);\"/> <br />") +
+                        ("Depth <input type=\"number\" min=\"0\"  max=\"20\" value=\"" + org.mwg.plugin.INIT_DEPTH + "\" step=\"1\" class=\"timeWorldSelector\" onchange=\"org.mwg.plugin.updateDepth(this.value,defaultGraphVisu);\"/>"));
                 });
                 layout.registerComponent('Graph visualizer', function (container, componentState) {
                     container.getElement().html('<div class="graphVisu" id="id' + indexVisu + '"></div>');
-                    container.on('open', plugins.initVivaGraph.bind(this, container.parent.parent.parent.config.title, "id" + indexVisu)); //fixmultiple stack
+                    container.on('open', initVivaGraph.bind(this, container.parent.parent.parent.config.title, "id" + indexVisu)); //fixmultiple stack
                     container.on('resize', function () {
                         if (container.getElement().children("div div").children().length > 0) {
                             defaultGraphVisu._graphics.resetScale();
@@ -78,6 +93,21 @@ var org;
                 });
                 layout.registerComponent('nodeDetails', function (container, componentState) {
                     container.getElement().html('<div><pre id="nodeDetail">No node selected</pre></div>'); //todo fix multiple tab
+                });
+                layout.registerComponent('Text Editor', function (container, componentState) {
+                    container.getElement().html('<div id="container"></div>');
+                    container.on('open', function () {
+                        require(['vs/editor/editor.main'], function () {
+                            var editor = window.monaco.editor.create(document.getElementById('container'), {
+                                value: [
+                                    'function x() {',
+                                    '\tconsole.log("Hello world!");',
+                                    '}'
+                                ].join('\n'),
+                                language: 'javascript'
+                            });
+                        });
+                    });
                 });
                 layout.on('initialised', function () {
                     var param = window.location.search.slice(1);

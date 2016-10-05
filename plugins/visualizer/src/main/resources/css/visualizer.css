@@ -13,7 +13,7 @@
 }
 
 #header {
-    height: 10%;
+    height: 5%;
 }
 
 #header button, input{
@@ -21,7 +21,7 @@
 }
 
 #goldenLayout {
-    height: 90%;
+    height: 95%;
 }
 
 .timeWorldSelector {
@@ -34,4 +34,9 @@ html, body {
 
 body .lm_content{
     overflow: scroll;
+}
+
+#container {
+    height: 100%;
+    width: 100%;
 }
