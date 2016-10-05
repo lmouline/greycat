@@ -159,6 +159,10 @@ public class Actions {
         return newTask().print(name);
     }
 
+    public static Task println(String name) {
+        return newTask().println(name);
+    }
+
     public static Task setProperty(String propertyName, byte propertyType, String variableNameToSet) {
         return newTask().setProperty(propertyName, propertyType, variableNameToSet);
     }
