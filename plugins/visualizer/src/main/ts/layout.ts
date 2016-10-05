@@ -21,6 +21,7 @@ module org.mwg.plugins {
 // }
     let defaultConfig = {
         type: 'row',
+        componantState : {graphVisu: Object()},
         content: [{
             type: "column",
             isClosable: false,
@@ -89,22 +90,29 @@ module org.mwg.plugins {
     export function initLayout() {
         layout = new window.GoldenLayout(globalConfig, document.getElementById("goldenLayout"));
         layout.registerComponent('Graph command', function (container, componantState) {
+            const graphVisu = container.parent.parent.parent.parent.config.componantState.graphVisu;
             container.getElement().html('' +
-                `Time <input type="number" min="0" max="20" value="${org.mwg.plugin.INIT_TIME}"  step="1" class="timeWorldSelector" onchange="org.mwg.plugin.updateTime(this.value,defaultGraphVisu);"/> <br />` +
-                `World <input type="number" min="0"  max="20" value="${org.mwg.plugin.INIT_WORLD}" step="1" class="timeWorldSelector" onchange="org.mwg.plugin.updateWorld(this.value,defaultGraphVisu);"/> <br />` +
-                `Depth <input type="number" min="0"  max="20" value="${org.mwg.plugin.INIT_DEPTH}" step="1" class="timeWorldSelector" onchange="org.mwg.plugin.updateDepth(this.value,defaultGraphVisu);"/>`
+                `Time <input type="number" min="0" max="20" value="${org.mwg.plugin.INIT_TIME}"  step="1" class="timeWorldSelector" onchange="org.mwg.plugin.updateTime(this.value,graphVisu);"/> <br />` +
+                `World <input type="number" min="0"  max="20" value="${org.mwg.plugin.INIT_WORLD}" step="1" class="timeWorldSelector" onchange="org.mwg.plugin.updateWorld(this.value,graphVisu);"/> <br />` +
+                `Depth <input type="number" min="0"  max="20" value="${org.mwg.plugin.INIT_DEPTH}" step="1" class="timeWorldSelector" onchange="org.mwg.plugin.updateDepth(this.value,graphVisu);"/>`
             );
             
         });
 
         layout.registerComponent('Graph visualizer', function (container, componentState) {
             container.getElement().html('<div class="graphVisu" id="id' + indexVisu + '"></div>');
-            container.on('open', initVivaGraph.bind(this, container.parent.parent.parent.config.title, "id" + indexVisu)); //fixmultiple stack
-            container.on('resize', function () {
+            container.on('open', initVivaGraph.bind(this, container.parent.parent.parent.config.title, "id" + indexVisu)); //fixme multiple stack
 
+            container.on('open', function() {
+                const url = container.parent.parent.parent.config.title;
+                container.parent.parent.parent.config.componantState.graphVisu = initVivaGraph(url,"id" + indexVisu)
+            });
+
+            container.on('resize', function () {
+                const graphVisu = container.parent.parent.parent.config.componantState.graphVisu;
                 if(container.getElement().children("div div").children().length > 0) {
-                    defaultGraphVisu._graphics.resetScale();
-                    defaultGraphVisu._renderer.resume();
+                    graphVisu._graphics.resetScale();
+                    graphVisu._renderer.resume();
                 }
 
             });

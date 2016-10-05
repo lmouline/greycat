@@ -432,10 +432,6 @@ module org.mwg.plugin {
             });
     }
 
-    function internal_initVivaGraph(url: string, idDiv : string) {
-
-    }
-
     export function initVivaGraph(url: string, idDiv : string) {
         defaultGraphVisu = new GraphVisu(url);
         if(document.getElementById(idDiv) == null) {
@@ -444,6 +440,7 @@ module org.mwg.plugin {
             connect(defaultGraphVisu,idDiv);
         }
 
+        return defaultGraphVisu;
     }
 
     export function updateTime(time : number, graphVisu : GraphVisu) {
