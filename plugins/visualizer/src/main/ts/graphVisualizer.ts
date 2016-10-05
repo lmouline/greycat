@@ -6,10 +6,6 @@ interface Window {
     Viva? : any
 }
 
-//todo delete
-var defaultGraphVisu : org.mwg.plugin.GraphVisu;
-
-
 module org.mwg.plugin.visualizer.taskRegistry {
     import Actions = org.mwg.task.Actions;
     import TaskContext = org.mwg.task.TaskContext;
@@ -358,20 +354,20 @@ module org.mwg.plugin {
             });
     }
 
-    function selectNode(nodeID : number) {
-        if(nodeID != defaultGraphVisu._previousSelect) {
-            printNodeDetails(nodeID, defaultGraphVisu);
-            var selectedNodeUI = defaultGraphVisu._renderer.getGraphics().getNodeUI(nodeID);
+    function selectNode(nodeID : number, graphVisu : GraphVisu) {
+        if(nodeID != graphVisu._previousSelect) {
+            printNodeDetails(nodeID, graphVisu);
+            var selectedNodeUI = graphVisu._renderer.getGraphics().getNodeUI(nodeID);
             if(selectedNodeUI != null) {
                 var currentColor = selectedNodeUI.color;
                 selectedNodeUI.color = 0xFFA500ff;
 
-                if (defaultGraphVisu._previousSelect != -1) {
-                    var previousSelected = defaultGraphVisu._renderer.getGraphics().getNodeUI(defaultGraphVisu._previousSelect);
-                    previousSelected.color = defaultGraphVisu._previousColor;
+                if (graphVisu._previousSelect != -1) {
+                    var previousSelected = graphVisu._renderer.getGraphics().getNodeUI(graphVisu._previousSelect);
+                    previousSelected.color = graphVisu._previousColor;
                 }
-                defaultGraphVisu._previousSelect = nodeID;
-                defaultGraphVisu._previousColor = currentColor;
+                graphVisu._previousSelect = nodeID;
+                graphVisu._previousColor = currentColor;
             }
         }
 
@@ -388,7 +384,7 @@ module org.mwg.plugin {
                 window.Viva.Graph.webglInputEvents(graphVisu._graphics,graphVisu._graphVisu)
                     .click(function(selectedNode : any) {
                         console.log("click");
-                        selectNode(selectedNode.id);
+                        selectNode(selectedNode.id,graphVisu);
                     });
 
                 graphVisu._renderer = window.Viva.Graph.View.renderer(graphVisu._graphVisu, {
@@ -427,20 +423,20 @@ module org.mwg.plugin {
                 if(graphVisu._previousSelect != -1) {
                     let nodeId = graphVisu._previousSelect;
                     graphVisu._previousSelect = -1;
-                    selectNode(nodeId);
+                    selectNode(nodeId,graphVisu);
                 }
             });
     }
 
     export function initVivaGraph(url: string, idDiv : string) {
-        defaultGraphVisu = new GraphVisu(url);
+        let graphVisu = new GraphVisu(url);
         if(document.getElementById(idDiv) == null) {
-            setTimeout(connect,5,defaultGraphVisu,idDiv)
+            setTimeout(connect,5,graphVisu,idDiv)
         } else {
-            connect(defaultGraphVisu,idDiv);
+            connect(graphVisu,idDiv);
         }
 
-        return defaultGraphVisu;
+        return graphVisu;
     }
 
     export function updateTime(time : number, graphVisu : GraphVisu) {
