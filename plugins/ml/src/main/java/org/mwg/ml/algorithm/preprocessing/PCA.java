@@ -2,6 +2,7 @@ package org.mwg.ml.algorithm.preprocessing;
 
 import org.mwg.ml.common.matrix.Matrix;
 import org.mwg.ml.common.matrix.SVDDecompose;
+import org.mwg.ml.common.matrix.TransposeType;
 
 import java.text.DecimalFormat;
 
@@ -32,22 +33,27 @@ public class PCA {
     private void normalizeData(Matrix data) {
         double d = 1;
         for (int j = 0; j < data.columns(); j++) {
-            if ((_max[j] - _min[j]) < EPS) {
+            if (_sigma[j] < EPS) {
                 for (int i = 0; i < data.rows(); i++) {
                     data.set(i, j, 0);
                 }
             } else {
-                if (_sigma[j] > EPS) {
-                    d = 1 / _sigma[j];
-                } else {
-                    d = 1;
-                }
+                d = 1 / _sigma[j];
                 for (int i = 0; i < data.rows(); i++) {
                     data.set(i, j, (data.get(i, j) - _avg[j]) * d);
                 }
             }
         }
     }
+
+    public Matrix convertSpace(Matrix initial) {
+        if (_processType == NORMALIZE) {
+            normalizeData(initial);
+        }
+        Matrix res = Matrix.multiply(initial, _matrixV);
+        return res;
+    }
+
 
 
     public void setDimension(int dim) {
@@ -59,14 +65,6 @@ public class PCA {
             }
         }
     }
-
-
-    public Matrix convertSpace(Matrix initial){
-        normalizeData(initial);
-        Matrix res=Matrix.multiply(initial,_matrixV);
-        return res;
-    }
-
 
     private void inverseNormalizeData(Matrix data) {
         for (int j = 0; j < data.columns(); j++) {
@@ -82,8 +80,17 @@ public class PCA {
         }
     }
 
+    public Matrix inverseConvertSpace(Matrix initial) {
+        Matrix res = Matrix.multiplyTranspose(TransposeType.NOTRANSPOSE,initial, TransposeType.TRANSPOSE, _matrixV);
+        if (_processType == NORMALIZE) {
+            inverseNormalizeData(res);
+        }
+        return res;
+    }
 
-    public Matrix getTransformationVector(){
+
+
+    public Matrix getTransformationVector() {
         return _matrixV;
     }
 

@@ -70,6 +70,8 @@ public class TestPCA {
         PCA pca = new PCA(trainingData, PCA.NORMALIZE);
 
 
+
+
         long endtime = System.currentTimeMillis();
         double d = endtime - starttime;
         System.out.println("Analysis took " + d + " ms for a matrix of size: "+trainingData.rows()+"x"+trainingData.columns());
