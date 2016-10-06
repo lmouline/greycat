@@ -11,6 +11,7 @@ declare function require(name,callback);
 
 module org.mwg.plugins {
     
+    import GraphVisu = org.mwg.plugin.GraphVisu;
     var indexVisu = 0;
 
 //To use local storage
@@ -33,7 +34,8 @@ module org.mwg.plugins {
                         {
                             type: 'component',
                             isClosable: false,
-                            componentName: "Query Editor"
+                            componentName: "Query Editor",
+                            componantState : {editor: null}
                         },
                         {
                             type: 'component',
@@ -87,6 +89,16 @@ module org.mwg.plugins {
         layout.root.contentItems[0].addChild(newItemConfig);
     }
 
+    function resizeQueryEditor(editor:any, width: number, height: number) {
+        if(editor) {
+            editor.layout({
+                width: width,
+                height: height
+            });
+        }
+
+    }
+
     export function initLayout() {
         layout = new window.GoldenLayout(globalConfig, document.getElementById("goldenLayout"));
         layout.registerComponent('Graph command', function (container, componantState) {
@@ -100,12 +112,11 @@ module org.mwg.plugins {
         });
 
         layout.registerComponent('Graph visualizer', function (container, componentState) {
-            container.getElement().html('<div class="graphVisu" id="id' + indexVisu + '"></div>');
-            container.on('open', initVivaGraph.bind(this, container.parent.parent.parent.config.title, "id" + indexVisu)); //fixme multiple stack
-
+            const id = `id${indexVisu}`;
+            container.getElement().html(`<div class="graphVisu" id="${id}"></div>`);
             container.on('open', function() {
                 const url = container.parent.parent.parent.config.title;
-                container.parent.parent.parent.config.componantState.graphVisu = initVivaGraph(url,"id" + indexVisu)
+                container.parent.parent.parent.config.componantState.graphVisu = initVivaGraph(url,`${id}`)
             });
 
             container.on('resize', function () {
@@ -124,20 +135,36 @@ module org.mwg.plugins {
             container.getElement().html('<div><pre id="nodeDetail">No node selected</pre></div>'); //todo fix multiple tab
         });
 
-        layout.registerComponent('Query Editor',function(container, componentState){
-            container.getElement().html('<div id="container"></div>');
-            container.on('open', function(){
+        layout.registerComponent('Query Editor',function(c, componentState){
+            c.getElement().html(
+                '<div id="queryEditor">' +
+                    '<div id="monaco-run">' +
+                        '<button>Execute</button>' +
+                    '</div>' +
+                    '<div id="monaco"></div>' +
+                '</div>');
+            c.on('open', function(){
                 require(['vs/editor/editor.main'], function() {
-                    var editor = window.monaco.editor.create(document.getElementById('container'), {
+                    var tt : GraphVisu
+                    c._config.componantState.editor = window.monaco.editor.create(document.getElementById('monaco'), {
                         value: [
-                            'function x() {',
-                            '\tconsole.log("Hello world!");',
+                            '// Type here your task to show specific part of your graph',
+                            'function execute(graphVisu: org.mwg.plugin.GraphVisu) {',
+                            '\t//TODO write here',
                             '}'
                         ].join('\n'),
                         language: 'javascript'
                     });
                 });
+                resizeQueryEditor(c._config.componantState.editor,c.width,c.height);
             });
+
+            c.on('resize',function() {
+                const editor = c._config.componantState.editor;
+                resizeQueryEditor(editor,c.width,c.height);
+            });
+
+
 
         });
 

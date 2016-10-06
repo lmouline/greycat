@@ -36,7 +36,21 @@ body .lm_content{
     overflow: scroll;
 }
 
-#container {
+#queryEditor {
     height: 100%;
     width: 100%;
+}
+
+#monaco {
+    height: 90%;
+}
+
+#monaco-run {
+    height: 10%;
+    margin:  5px;
+}
+
+#monaco-run button {
+    height: 100%;
+    float: right;
 }

@@ -1,6 +1,5 @@
 /// <reference path="mwg/mwg.d.ts" />
 /// <reference path="mwg/mwg.ws.d.ts" />
-/// <reference path="taskRegistry.ts" />
 
 interface Window {
     Viva? : any
@@ -374,6 +373,7 @@ module org.mwg.plugin {
     }
 
     function connect(graphVisu : GraphVisu, idDiv : string) {
+
         graphVisu._graph.connect(function (succeed : boolean){
             if(succeed) {
                 graphVisu._graphics = window.Viva.Graph.View.webglGraphics();
@@ -396,6 +396,7 @@ module org.mwg.plugin {
                 // setTimeout(function(){
                 //     graphVisu._renderer.pause();
                 // },10000);
+
 
 
                 drawGraph(graphVisu);
