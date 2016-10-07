@@ -16,9 +16,10 @@ class ActionTime extends AbstractTaskAction {
     public void eval(final TaskContext context) {
         final String flat = context.template(_varName);
         long parsedTime;
-        if(flat.contains(".")){
+        // TODO ugly hack to be JS transpilable, should be fixed without try/catch
+        try {
             parsedTime = Long.parseLong(flat);
-        } else {
+        } catch (NumberFormatException ex) {
             parsedTime = (long) Double.parseDouble(flat);
         }
         context.setTime(parsedTime);
