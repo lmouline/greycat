@@ -6,9 +6,11 @@ import org.jboss.forge.roaster.model.source.*;
 import org.kevoree.modeling.ast.*;
 import org.kevoree.modeling.ast.impl.Index;
 import org.kevoree.modeling.ast.impl.Model;
+import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Type;
+import org.mwg.plugin.NodeFactory;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -330,9 +332,11 @@ public class Generator {
         for (KClassifier classifier : model.classifiers()) {
             if (classifier instanceof KClass) {
                 String fqn = classifier.fqn();
-                constructorContent.append("\t\tdeclareNodeType(" + fqn + ".NODE_NAME, new org.mwg.plugin.NodeFactory() {\n" +
+                pluginClass.addImport(NodeFactory.class);
+                pluginClass.addImport(Graph.class);
+                constructorContent.append("\t\tdeclareNodeType(" + fqn + ".NODE_NAME, new NodeFactory() {\n" +
                         "\t\t\t@Override\n" +
-                        "\t\t\tpublic org.mwg.Node create(long world, long time, long id, org.mwg.Graph graph) {\n" +
+                        "\t\t\tpublic org.mwg.Node create(long world, long time, long id, Graph graph) {\n" +
                         "\t\t\t\treturn (org.mwg.Node)new " + fqn + "(world,time,id,graph);\n" +
                         "\t\t\t}\n" +
                         "\t\t});");
@@ -374,6 +378,28 @@ public class Generator {
             modelConstructor.setBody("this._graph = builder.withPlugin(new " + name + "Plugin()).build();");
         }
         modelClass.addMethod().setName("graph").setBody("return this._graph;").setVisibility(Visibility.PUBLIC).setFinal(true).setReturnType(Graph.class);
+
+        //Connect method
+        modelClass.addImport(Callback.class);
+        modelClass
+                .addMethod()
+                .setName("connect")
+                .setBody("_graph.connect(callback);")
+                .setVisibility(Visibility.PUBLIC)
+                .setFinal(true)
+                .setReturnTypeVoid()
+                .addParameter("Callback<Boolean>","callback");
+
+        //Diconnect method
+        modelClass
+                .addMethod()
+                .setName("disconnect")
+                .setBody("_graph.disconnect(callback);")
+                .setVisibility(Visibility.PUBLIC)
+                .setFinal(true)
+                .setReturnTypeVoid()
+                .addParameter("Callback<Boolean>","callback");
+
 
         for (KClassifier classifier : model.classifiers()) {
             if (classifier instanceof KClass) {
