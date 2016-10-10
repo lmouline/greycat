@@ -11,7 +11,6 @@ import org.mwg.task.TaskContext;
 import org.mwg.task.TaskFunctionSelect;
 
 import static org.mwg.task.Actions.inject;
-import static org.mwg.task.Actions.then;
 
 public class ContextCleanTest {
 
@@ -61,7 +60,7 @@ public class ContextCleanTest {
                 inject(new Node[]{n0, n1})
                         .select(new TaskFunctionSelect() {
                             @Override
-                            public boolean select(Node node) {
+                            public boolean select(Node node,TaskContext context) {
                                 return true;
                             }
                         })

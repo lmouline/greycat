@@ -25,7 +25,7 @@ class ActionSelect extends AbstractTaskAction {
             final Object obj = previous.get(i);
             if (obj instanceof AbstractNode) {
                 final Node casted = (Node) obj;
-                if (_filter.select(casted)) {
+                if (_filter.select(casted,context)) {
                     next.add(casted);
                 } else {
                     casted.free();

@@ -68,7 +68,7 @@ public class TestTMP {
                     }
                 }).fromVar("starterNode").traverse("fils").select(new TaskFunctionSelect() {
                     @Override
-                    public boolean select(Node node) {
+                    public boolean select(Node node,TaskContext context) {
                         return (Boolean) node.get("enter");
                     }
                 }).asGlobalVar("childNode")
