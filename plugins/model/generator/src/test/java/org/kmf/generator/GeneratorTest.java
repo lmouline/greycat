@@ -1,10 +1,12 @@
 package org.kmf.generator;
 
+import org.junit.Test;
+
 import java.io.File;
 
 public class GeneratorTest {
 
-    //@Test
+    @Test
     public void test() throws Exception {
         Generator gen = new Generator();
         String resourcesPath = GeneratorTest.class.getClassLoader().getResource(".").getFile();

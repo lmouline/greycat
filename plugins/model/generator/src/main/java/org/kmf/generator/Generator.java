@@ -2,10 +2,7 @@ package org.kmf.generator;
 
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.Visibility;
-import org.jboss.forge.roaster.model.source.JavaClassSource;
-import org.jboss.forge.roaster.model.source.JavaEnumSource;
-import org.jboss.forge.roaster.model.source.JavaSource;
-import org.jboss.forge.roaster.model.source.MethodSource;
+import org.jboss.forge.roaster.model.source.*;
 import org.kevoree.modeling.ast.*;
 import org.kevoree.modeling.ast.impl.Index;
 import org.kevoree.modeling.ast.impl.Model;
@@ -109,6 +106,36 @@ public class Generator {
                             .setType(String.class)
                             .setStringInitializer(prop.name())
                             .setStatic(true);
+
+                    if(prop instanceof KAttribute) {
+                        javaClass.addImport(Type.class);
+                        FieldSource<JavaClassSource> typeHelper = javaClass.addField()
+                                .setVisibility(Visibility.PUBLIC)
+                                .setFinal(true)
+                                .setName("TYPE_" + prop.name().toUpperCase())
+                                .setType(byte.class)
+                                .setStatic(true);
+
+                        switch (prop.type()) {
+                            case "String":
+                                typeHelper.setLiteralInitializer("Type.STRING");
+                                break;
+                            case "Double":
+                                typeHelper.setLiteralInitializer("Type.DOUBLE");
+                                break;
+                            case "Long":
+                                typeHelper.setLiteralInitializer("Type.LONG");
+                                break;
+                            case "Integer":
+                                typeHelper.setLiteralInitializer("Type.INT");
+                                break;
+                            case "Boolean":
+                                typeHelper.setLiteralInitializer("Type.BOOL");
+                                break;
+                            default:
+                                throw new RuntimeException("Unknown type: " + prop.type() + ". Please update the generator.");
+                        }
+                    }
 
                     //POJO generation
                     if (!prop.derived() && !prop.learned()) {
@@ -231,13 +258,23 @@ public class Generator {
                                             }
                                             queryParam += loopP.name();
                                         }
-                                        buffer.append("this.graph().unindex(" + name + "Model.IDX_" + index.fqn().toUpperCase() + ",this,\"" + queryParam + "\",waiterUnIndex.wrap());");
+                                        buffer.append("this.graph().unindex(")
+                                                .append(name)
+                                                .append("Model.IDX_")
+                                                .append(index.fqn().toUpperCase())
+                                                .append(",this,\"")
+                                                .append(queryParam)
+                                                .append("\",waiterUnIndex.wrap());");
                                     }
 
                                     buffer.append("waiterUnIndex.then(new org.mwg.plugin.Job() {");
                                     buffer.append("@Override\n");
                                     buffer.append("public void run() {\n");
-                                    buffer.append("self.setProperty(" + prop.name().toUpperCase() + ", (byte) " + nameToType(prop.type()) + ", value);");
+                                    buffer.append("self.setProperty(")
+                                            .append(prop.name().toUpperCase())
+                                            .append(", TYPE_")
+                                            .append(prop.name().toUpperCase())
+                                            .append(", value);");
                                     for (KIndex index : prop.indexes()) {
                                         String queryParam = "";
                                         for (KProperty loopP : index.properties()) {
@@ -246,14 +283,24 @@ public class Generator {
                                             }
                                             queryParam += loopP.name();
                                         }
-                                        buffer.append("self.graph().index(" + name + "Model.IDX_" + index.fqn().toUpperCase() + ",self,\"" + queryParam + "\",waiterIndex.wrap());");
+                                        buffer.append("self.graph().index(")
+                                                .append(name)
+                                                .append("Model.IDX_")
+                                                .append(index.fqn().toUpperCase())
+                                                .append(",self,\"")
+                                                .append(queryParam)
+                                                .append("\",waiterIndex.wrap());");
                                     }
 
                                     buffer.append("}\n});");
                                     buffer.append("waiterIndex.waitResult();\n");
 
                                 } else {
-                                    buffer.append("super.setProperty(" + prop.name().toUpperCase() + ", (byte)" + nameToType(prop.type()) + ",value);");
+                                    buffer.append("super.setProperty(")
+                                            .append(prop.name().toUpperCase())
+                                            .append(", TYPE_")
+                                            .append(prop.name().toUpperCase())
+                                            .append(",value);");
                                 }
                                 buffer.append("return this;");
                                 setter.setBody(buffer.toString());
