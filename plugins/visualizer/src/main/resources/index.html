@@ -31,6 +31,7 @@
 
     <script type="text/javascript" src="js/generated/graphVisualizer.js"></script>
     <script type="text/javascript" src="js/generated/layout.js"></script>
+    <script type="text/javascript" src="js/generated/ts2js.js"></script>
 
     <!--Monaco editor -->
     <script src="min/vs/editor/editor.main.js"></script>
@@ -40,7 +41,7 @@
 <body onload="org.mwg.plugins.initLayout()">
 <div id="wrapper">
     <div id="header">
-        <form name="newConnection" action="javascript:org.mwg.plugin.addVisu();">
+        <form name="newConnection" action="javascript:org.mwg.plugins.addVisu();">
             <input type="text" name="graphUrl" placeholder="graph url and port">
             <input type="submit" value="Connect">
         </form>

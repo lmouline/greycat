@@ -22,7 +22,11 @@ module org.mwg.plugins {
 // }
     let defaultConfig = {
         type: 'row',
-        componantState : {graphVisu: Object()},
+        componantState : {
+            graphVisu: Object(),
+            id: -1,
+            url: ""
+        },
         content: [{
             type: "column",
             isClosable: false,
@@ -68,23 +72,21 @@ module org.mwg.plugins {
             content: []
         }]
     };
-    let layout;
+    export let layout;
 
 
     export function addVisu() {
         let elem:any = document.getElementsByName("graphUrl")[0];
         let url:string = elem.value;
         elem.value = "";
-
-        let newItemConfig:any = defaultConfig;
-        newItemConfig.title = url;
-
-        layout.root.contentItems[0].addChild(newItemConfig);
+        addVisuWithString(url);
     }
 
     export function addVisuWithString(url : string) {
         let newItemConfig:any = defaultConfig;
         newItemConfig.title = url;
+
+        newItemConfig.componantState.id = 
 
         layout.root.contentItems[0].addChild(newItemConfig);
     }
@@ -145,7 +147,6 @@ module org.mwg.plugins {
                 '</div>');
             c.on('open', function(){
                 require(['vs/editor/editor.main'], function() {
-                    var tt : GraphVisu
                     c._config.componantState.editor = window.monaco.editor.create(document.getElementById('monaco'), {
                         value: [
                             '// Type here your task to show specific part of your graph',
@@ -180,10 +181,6 @@ module org.mwg.plugins {
                     throw "The url should contain one parameter: q";
                 }
 
-                var inputs = document.getElementById("header").getElementsByTagName("input");
-                for(var i=0; i<inputs.length;i++) {
-                    (<any>inputs[i]).setAttribute("disabled","");
-                }
                 org.mwg.plugins.addVisuWithString(query[1]);
             }
         });
