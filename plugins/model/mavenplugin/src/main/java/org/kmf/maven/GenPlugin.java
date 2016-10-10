@@ -60,23 +60,6 @@ public class GenPlugin extends AbstractMojo {
         transpiler.process();
         transpiler.addModuleImport("mwg.d.ts");
         transpiler.generate();
-
-        try {
-            FileWriter mwgLib = new FileWriter(new File(targetGenJs, "mwg.d.ts"));
-            InputStream mwgLibStream = this.getClass().getClassLoader().getResourceAsStream("mwg.d.ts");
-            BufferedReader mwgReader = new BufferedReader(new InputStreamReader(mwgLibStream));
-            String line = mwgReader.readLine();
-            while (line != null) {
-                mwgLib.write(line);
-                mwgLib.write("\n");
-                line = mwgReader.readLine();
-            }
-            mwgLib.flush();
-            mwgLib.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
     }
 
 }

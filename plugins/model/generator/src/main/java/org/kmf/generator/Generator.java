@@ -319,7 +319,7 @@ public class Generator {
             }
         }
 
-        MethodSource<JavaClassSource> modelConstructor = modelClass.addMethod().setConstructor(true);
+        MethodSource<JavaClassSource> modelConstructor = modelClass.addMethod().setConstructor(true).setVisibility(Visibility.PUBLIC);
         modelConstructor.addParameter(GraphBuilder.class, "builder");
         if (useML) {
             modelConstructor.setBody("this._graph = builder.withPlugin(new org.mwg.ml.MLPlugin()).withPlugin(new " + name + "Plugin()).build();");
