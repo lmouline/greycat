@@ -8,6 +8,6 @@ Visualizer
 - show node details
 
 # To Do
-[] TS Query to specify what to show
-[] Nice time/world/depth picker
-[] Refresh model every X ms (simulate listener)
+- [] TS Query to specify what to show
+- [] Nice time/world/depth picker
+- [] Refresh model every X ms (simulate listener)
