@@ -113,6 +113,8 @@ public class GaussianSlotNode extends AbstractMLNode implements ProfilingNode {
                 resolved.setFromKey(INTERNAL_MAX_KEY, Type.DOUBLE_ARRAY, max);
                 resolved.setFromKey(INTERNAL_SUM_KEY, Type.DOUBLE_ARRAY, sum);
                 resolved.setFromKey(INTERNAL_SUMSQUARE_KEY, Type.DOUBLE_ARRAY, sumSquare);
+                
+                result.free();
             }
         });
 
