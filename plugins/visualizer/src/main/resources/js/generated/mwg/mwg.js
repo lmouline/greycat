@@ -2273,6 +2273,9 @@ var org;
                 Actions.print = function (name) {
                     return org.mwg.task.Actions.newTask().print(name);
                 };
+                Actions.println = function (name) {
+                    return org.mwg.task.Actions.newTask().println(name);
+                };
                 Actions.setProperty = function (propertyName, propertyType, variableNameToSet) {
                     return org.mwg.task.Actions.newTask().setProperty(propertyName, propertyType, variableNameToSet);
                 };
@@ -5292,7 +5295,7 @@ var org;
                                 var new_nexts = new Int32Array(newCapacity);
                                 var new_hashes = new Int32Array(newCapacity * 2);
                                 java.util.Arrays.fill(new_nexts, 0, newCapacity, -1);
-                                java.util.Arrays.fill(new_hashes, 0, newCapacity * 2, -1);
+                                java.util.Arrays.fill(new_hashes, 0, (newCapacity * 2), -1);
                                 this.hashs = new_hashes;
                                 this.nexts = new_nexts;
                                 for (var i = 0; i < this.mapSize; i++) {
@@ -5488,6 +5491,9 @@ var org;
                                         var lastIndex = this.mapSize;
                                         if (lastIndex == this.capacity) {
                                             this.reallocate(this.capacity * 2);
+                                            hashCapacity = this.capacity * 2;
+                                            insertKeyHash = org.mwg.utility.HashHelper.longHash(insertKey, hashCapacity);
+                                            currentHash = this.hash(insertKeyHash);
                                         }
                                         this.setKey(lastIndex, insertKey);
                                         this.setValue(lastIndex, insertValue);
@@ -5551,7 +5557,7 @@ var org;
                                 var new_nexts = new Int32Array(newCapacity);
                                 var new_hashes = new Int32Array(newCapacity * 2);
                                 java.util.Arrays.fill(new_nexts, 0, newCapacity, -1);
-                                java.util.Arrays.fill(new_hashes, 0, newCapacity * 2, -1);
+                                java.util.Arrays.fill(new_hashes, 0, (newCapacity * 2), -1);
                                 this.hashs = new_hashes;
                                 this.nexts = new_nexts;
                                 for (var i = 0; i < this.mapSize; i++) {
@@ -5710,6 +5716,9 @@ var org;
                                         var lastIndex = this.mapSize;
                                         if (lastIndex == this.capacity) {
                                             this.reallocate(this.capacity * 2);
+                                            hashCapacity = this.capacity * 2;
+                                            insertKeyHash = org.mwg.utility.HashHelper.longHash(insertKey, hashCapacity);
+                                            currentHash = this.hash(insertKeyHash);
                                         }
                                         this.setKey(lastIndex, insertKey);
                                         this.setValue(lastIndex, insertValue);

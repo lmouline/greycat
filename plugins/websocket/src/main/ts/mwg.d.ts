@@ -796,6 +796,7 @@ declare module org {
                 static loop(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                 static loopPar(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                 static print(name: string): org.mwg.task.Task;
+                static println(name: string): org.mwg.task.Task;
                 static setProperty(propertyName: string, propertyType: number, variableNameToSet: string): org.mwg.task.Task;
                 static selectWhere(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 static foreach(subTask: org.mwg.task.Task): org.mwg.task.Task;

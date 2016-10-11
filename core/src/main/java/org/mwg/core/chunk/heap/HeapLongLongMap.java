@@ -75,7 +75,7 @@ class HeapLongLongMap implements LongLongMap {
             int[] new_nexts = new int[newCapacity];
             int[] new_hashes = new int[newCapacity * 2];
             Arrays.fill(new_nexts, 0, newCapacity, -1);
-            Arrays.fill(new_hashes, 0, newCapacity * 2, -1);
+            Arrays.fill(new_hashes, 0, (newCapacity * 2), -1);
             hashs = new_hashes;
             nexts = new_nexts;
             for (int i = 0; i < mapSize; i++) {
@@ -247,6 +247,9 @@ class HeapLongLongMap implements LongLongMap {
                     final int lastIndex = mapSize;
                     if (lastIndex == capacity) {
                         reallocate(capacity * 2);
+                        hashCapacity = capacity * 2;
+                        insertKeyHash = (int) HashHelper.longHash(insertKey, hashCapacity);
+                        currentHash = hash(insertKeyHash);
                     }
                     setKey(lastIndex, insertKey);
                     setValue(lastIndex, insertValue);
