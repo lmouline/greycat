@@ -642,7 +642,6 @@ class OffHeapStateChunk implements StateChunk {
         }
         size++;
         OffHeapLongArray.set(addr, SIZE, size);
-        declareDirty();
         if (!initial) {
             declareDirty();
         }
