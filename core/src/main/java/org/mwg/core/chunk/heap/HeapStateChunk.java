@@ -518,6 +518,9 @@ class HeapStateChunk implements StateChunk {
             _v[0] = param_elem;
             _type[0] = p_type;
             _size = 1;
+            if (!initial) {
+                declareDirty();
+            }
             return;
         }
         int entry = -1;
