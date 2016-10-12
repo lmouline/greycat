@@ -400,6 +400,16 @@ public class Generator {
                 .setReturnTypeVoid()
                 .addParameter("Callback<Boolean>","callback");
 
+        //save method
+        modelClass
+                .addMethod()
+                .setName("save")
+                .setBody("_graph.save(callback);")
+                .setVisibility(Visibility.PUBLIC)
+                .setFinal(true)
+                .setReturnTypeVoid()
+                .addParameter("Callback<Boolean>","callback");
+
 
         for (KClassifier classifier : model.classifiers()) {
             if (classifier instanceof KClass) {
