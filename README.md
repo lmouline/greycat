@@ -1,4 +1,4 @@
-Many-World Graph
+Many-World Graph 
 ==================
 
 <img src="doc/logo.png" width="200px" />
