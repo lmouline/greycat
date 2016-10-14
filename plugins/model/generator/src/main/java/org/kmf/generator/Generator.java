@@ -157,20 +157,63 @@ public class Generator {
                                             "return casted;");
 
                             //generate setter
+                            StringBuilder bodyBuilder = new StringBuilder();
                             MethodSource<JavaClassSource> add = javaClass.addMethod();
                             add.setVisibility(Visibility.PUBLIC).setFinal(true);
                             add.setName(toCamelCase("addTo " + prop.name()));
                             add.setReturnType(classifier.fqn());
                             add.addParameter(typeToClassName(prop.type()), "value");
-                            add.setBody("super.add(" + prop.name().toUpperCase() + ",(org.mwg.Node)value);return this;");
+                            bodyBuilder.append("super.add(").append(prop.name().toUpperCase()).append(",(org.mwg.Node)value);");
+                            if(prop.parameters().get("opposite") != null) { //todo optimize
+                                String methoName = prop.parameters().get("opposite");
+                                bodyBuilder.append("value.internal_addTo")
+                                        .append(methoName.substring(0,1).toUpperCase())
+                                        .append(methoName.substring(1).toLowerCase())
+                                        .append("(")
+                                        .append("this")
+                                        .append(");\n");
+                            }
+                            bodyBuilder.append("return this;");
+                            add.setBody(bodyBuilder.toString());
 
+                            bodyBuilder = null;
+                            bodyBuilder = new StringBuilder();
                             //generate setter
                             MethodSource<JavaClassSource> remove = javaClass.addMethod();
                             remove.setVisibility(Visibility.PUBLIC).setFinal(true);
                             remove.setName(toCamelCase("removeFrom " + prop.name()));
                             remove.setReturnType(classifier.fqn());
                             remove.addParameter(typeToClassName(prop.type()), "value");
-                            remove.setBody("super.remove(" + prop.name().toUpperCase() + ",(org.mwg.Node)value);return this;");
+                            bodyBuilder.append("super.remove(").append(prop.name().toUpperCase()).append(",(org.mwg.Node)value);");
+                            if(prop.parameters().get("opposite") != null) { //todo optimize
+                                String methoName = prop.parameters().get("opposite");
+                                bodyBuilder.append("value.internal_removeFrom")
+                                        .append(methoName.substring(0,1).toUpperCase())
+                                        .append(methoName.substring(1).toLowerCase())
+                                        .append("(")
+                                        .append("this")
+                                        .append(");\n");
+                            }
+                            bodyBuilder.append("return this;");
+                            remove.setBody(bodyBuilder.toString());
+
+                            //generate internal add and remove if needed
+                            //todo must be optimize
+                            if(prop.parameters().get("opposite") != null) {
+                                MethodSource<JavaClassSource> internalRemove = javaClass.addMethod();
+                                internalRemove.setVisibility(Visibility.PACKAGE_PRIVATE);
+                                internalRemove.setName(toCamelCase("internal_removeFrom " + prop.name()));
+                                internalRemove.setReturnTypeVoid();
+                                internalRemove.addParameter(typeToClassName(prop.type()),"value");
+                                internalRemove.setBody("super.remove(" + prop.name().toUpperCase() + ",(org.mwg.Node)value);");
+
+                                MethodSource<JavaClassSource> internalAdd = javaClass.addMethod();
+                                internalAdd.setVisibility(Visibility.PACKAGE_PRIVATE);
+                                internalAdd.setName(toCamelCase("internal_addTo " + prop.name()));
+                                internalAdd.setReturnTypeVoid();
+                                internalAdd.addParameter(typeToClassName(prop.type()),"value");
+                                internalAdd.setBody("super.add(" + prop.name().toUpperCase() + ",(org.mwg.Node)value);");
+                            }
 
                         } else {
 
