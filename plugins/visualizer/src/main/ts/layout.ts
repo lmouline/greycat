@@ -106,9 +106,9 @@ module org.mwg.plugins {
         layout.registerComponent('Graph command', function (container, componantState) {
             const graphVisu = container.parent.parent.parent.parent.config.componantState.graphVisu;
             container.getElement().html('' +
-                `Time <input type="number" min="0" max="20" value="${org.mwg.plugin.INIT_TIME}"  step="1" class="timeWorldSelector" onchange="org.mwg.plugin.updateTime(this.value,graphVisu);"/> <br />` +
-                `World <input type="number" min="0"  max="20" value="${org.mwg.plugin.INIT_WORLD}" step="1" class="timeWorldSelector" onchange="org.mwg.plugin.updateWorld(this.value,graphVisu);"/> <br />` +
-                `Depth <input type="number" min="0"  max="20" value="${org.mwg.plugin.INIT_DEPTH}" step="1" class="timeWorldSelector" onchange="org.mwg.plugin.updateDepth(this.value,graphVisu);"/>`
+                `Time <input type="number" min="0" max="20" value="${org.mwg.plugin.INIT_TIME}"  step="1" class="timeWorldSelector" onchange="org.mwg.plugin.updateTime(this.value,org.mwg.plugin.defaultGraphVisu);"/> <br />` +
+                `World <input type="number" min="0"  max="20" value="${org.mwg.plugin.INIT_WORLD}" step="1" class="timeWorldSelector" onchange="org.mwg.plugin.updateWorld(this.value,org.mwg.plugin.defaultGraphVisu);"/> <br />` +
+                `Depth <input type="number" min="0"  max="20" value="${org.mwg.plugin.INIT_DEPTH}" step="1" class="timeWorldSelector" onchange="org.mwg.plugin.updateDepth(this.value,org.mwg.plugin.defaultGraphVisu);"/>`
             );
             
         });

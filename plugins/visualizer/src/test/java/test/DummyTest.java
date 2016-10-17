@@ -41,6 +41,13 @@ public class DummyTest {
             root.index("idx",idx2,"name",null);
             root.index("idx",idx3,"name",null);
 
+            Node previous = root;
+            for(int i=0;i<20;i++) {
+                Node next = g.newNode(0,0);
+                previous.add("next",next);
+                previous = next;
+            }
+
 
             for(int i=0;i<10;i++) {
                 final int ii = i;

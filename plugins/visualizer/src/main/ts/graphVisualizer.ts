@@ -5,6 +5,8 @@ interface Window {
     Viva? : any
 }
 
+
+
 module org.mwg.plugin.visualizer.taskRegistry {
     import Actions = org.mwg.task.Actions;
     import TaskContext = org.mwg.task.TaskContext;
@@ -310,6 +312,8 @@ module org.mwg.plugin {
     export const INIT_TIME = 0;
     export const INIT_WORLD = 0;
 
+    export var defaultGraphVisu : GraphVisu;
+
     export class GraphVisu {
         _graph : org.mwg.Graph;
         _graphVisu : any;
@@ -430,14 +434,15 @@ module org.mwg.plugin {
     }
 
     export function initVivaGraph(url: string, idDiv : string) {
-        let graphVisu = new GraphVisu(url);
+        // let graphVisu = new GraphVisu(url);
+        defaultGraphVisu = new GraphVisu(url);
         if(document.getElementById(idDiv) == null) {
-            setTimeout(connect,5,graphVisu,idDiv)
+            setTimeout(connect,5,defaultGraphVisu,idDiv)
         } else {
-            connect(graphVisu,idDiv);
+            connect(defaultGraphVisu,idDiv);
         }
 
-        return graphVisu;
+        return defaultGraphVisu;
     }
 
     export function updateTime(time : number, graphVisu : GraphVisu) {

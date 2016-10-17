@@ -5,11 +5,32 @@ import io.undertow.Undertow;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
 
 public class VisualizerServer  {
-    public static void main(String[] args) {
+    private static String urltoConnect = null;
+    private static int serverPort = 8080;
+    private static final String serverUrl = "0.0.0.0";
 
-        final String urltoConnect = "ws://localhost:5678";
-        final String serverUrl = "0.0.0.0";
-        final int serverPort = 8080;
+    private static void printHelp() {
+        System.err.println("Usage:\n" +
+                "Print help: java -jar <jarFile>\n" +
+                "Launch: java -jar <jarFile> [<serverPort> <graphUrl>]\n" +
+                "Default value: serverPort=" + serverPort + "; graphUrl=" + urltoConnect);
+    }
+
+    public static void main(String[] args) {
+        if(args.length == 2) {
+            try {
+                serverPort = Integer.parseInt(args[0]);
+            } catch (NumberFormatException ex) {
+                System.err.println(ex.getMessage());
+                printHelp();
+                System.exit(2);
+            }
+            urltoConnect = args[1];
+        } else if(args.length != 0) {
+            printHelp();
+            return;
+        }
+
 
         Undertow server = Undertow.builder()
                 .addHttpListener(serverPort,serverUrl)
@@ -27,9 +48,12 @@ public class VisualizerServer  {
         goToBuilder.append("http://")
                 .append(serverUrl)
                 .append(":")
-                .append(serverPort)
-                .append("?q=")
-                .append(urltoConnect);
+                .append(serverPort);
+        if(urltoConnect != null) {
+            goToBuilder.append("?q=")
+                    .append(urltoConnect);
+        }
+
         System.out.println("Go to: " + goToBuilder);
 
     }
