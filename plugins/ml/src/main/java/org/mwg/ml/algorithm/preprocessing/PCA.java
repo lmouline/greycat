@@ -175,6 +175,7 @@ public class PCA {
         double integrator = 0;
         double previoust = 1;
         double t = 1;
+        double p;
         integrator = svector[0] * svector[0];
 
         int xi = 0;
@@ -183,8 +184,9 @@ public class PCA {
             previoust = t;
             t = svector[i] * svector[i] / (svector[i - 1] * svector[i - 1]);
             System.out.println(i + " , " + svector[i] + " , " + t / previoust + " , " + integrator * 100 / d + "%");
-            _percentToRetain = integrator * 100 / d;
+            p = integrator * 100 / d;
             if (t / previoust < 0.85 && xi == 0 && i != 1 &&_percentToRetain>=85) {
+                _percentToRetain=p;
                 xi = i;
             }
             integrator += svector[i] * svector[i];
