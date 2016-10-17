@@ -55,7 +55,6 @@ public class PCA {
     }
 
 
-
     public void setDimension(int dim) {
         _matrixV = new Matrix(null, _olddim, dim);
         Matrix tempV = _svdDecompose.getVt();
@@ -81,13 +80,12 @@ public class PCA {
     }
 
     public Matrix inverseConvertSpace(Matrix initial) {
-        Matrix res = Matrix.multiplyTranspose(TransposeType.NOTRANSPOSE,initial, TransposeType.TRANSPOSE, _matrixV);
+        Matrix res = Matrix.multiplyTranspose(TransposeType.NOTRANSPOSE, initial, TransposeType.TRANSPOSE, _matrixV);
         if (_processType == NORMALIZE) {
             inverseNormalizeData(res);
         }
         return res;
     }
-
 
 
     public Matrix getTransformationVector() {
@@ -175,6 +173,8 @@ public class PCA {
         double integrator = 0;
         double previoust = 1;
         double t = 1;
+        double p;
+        boolean tag=true;
         integrator = svector[0] * svector[0];
 
         int xi = 0;
@@ -183,8 +183,10 @@ public class PCA {
             previoust = t;
             t = svector[i] * svector[i] / (svector[i - 1] * svector[i - 1]);
             System.out.println(i + " , " + svector[i] + " , " + t / previoust + " , " + integrator * 100 / d + "%");
-            if (t / previoust < 0.85 && xi == 0 && i != 1) {
-                _percentToRetain = integrator * 100 / d;
+            p = integrator * 100 / d;
+            if (t / previoust < 0.85 && xi == 0 && i != 1 && p >= 85 && tag) {
+                tag=false;
+                _percentToRetain = p;
                 xi = i;
             }
             integrator += svector[i] * svector[i];
@@ -249,9 +251,6 @@ public class PCA {
 
         System.out.println("Need to retain: " + retainDynamic(singularValues) + " / " + data.columns() + " dimensions");
         System.out.println("Energy retained: " + _percentToRetain + " %");
-
-        int x = 0;
-
     }
 
 
