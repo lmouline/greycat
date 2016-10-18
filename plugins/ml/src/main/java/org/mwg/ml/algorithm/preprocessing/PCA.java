@@ -16,8 +16,46 @@ public class PCA {
     private double[] _max;
     private double[] _sigma;
     private double[] _avg;
+    private double[] _information;
     private int _processType;
     private double _percentToRetain;
+    private int _bestDim;
+
+    public int get_bestDim(){
+        return _bestDim;
+    }
+
+
+    public Matrix get_data(){
+        return _data;
+    }
+
+    private static double[] clone(double[] data) {
+        double[] c = new double[data.length];
+        System.arraycopy(data, 0, c, 0, data.length);
+        return c;
+    }
+
+    public double[] getDimensionInfo(){
+        return clone(_information);
+    }
+
+    public double[] get_min() {
+
+        return clone(_min);
+    }
+
+    public double[] get_max() {
+        return clone(_max);
+    }
+
+    public double[] get_avg() {
+        return clone(_avg);
+    }
+
+    public double[] get_sigma() {
+        return clone(_sigma);
+    }
 
     SVDDecompose _svdDecompose;
 
@@ -30,7 +68,7 @@ public class PCA {
     public static int NORMALIZE = 2;
 
 
-    private void normalizeData(Matrix data) {
+    public void normalizeData(Matrix data) {
         double d = 1;
         for (int j = 0; j < data.columns(); j++) {
             if (_sigma[j] < EPS) {
@@ -44,6 +82,20 @@ public class PCA {
                 }
             }
         }
+    }
+
+
+    public double[] convertVector(double[] data) {
+        Matrix v = new Matrix(clone(data), 1, data.length);
+        if (_processType == NORMALIZE) {
+            normalizeData(v);
+        }
+        Matrix res = Matrix.multiply(v, _matrixV);
+        double[] result = new double[res.columns()];
+        for (int i = 0; i < res.columns(); i++) {
+            result[i] = res.get(0, i);
+        }
+        return result;
     }
 
     public Matrix convertSpace(Matrix initial) {
@@ -65,7 +117,7 @@ public class PCA {
         }
     }
 
-    private void inverseNormalizeData(Matrix data) {
+    public void inverseNormalizeData(Matrix data) {
         for (int j = 0; j < data.columns(); j++) {
             if ((_sigma[j]) < EPS) {
                 for (int i = 0; i < data.rows(); i++) {
@@ -77,6 +129,20 @@ public class PCA {
                 }
             }
         }
+    }
+
+    public double[] inverseConvertVector(double[] data) {
+        Matrix v = new Matrix(clone(data), 1, data.length);
+        Matrix res = Matrix.multiplyTranspose(TransposeType.NOTRANSPOSE, v, TransposeType.TRANSPOSE, _matrixV);
+        if (_processType == NORMALIZE) {
+            inverseNormalizeData(res);
+        }
+
+        double[] result = new double[res.columns()];
+        for (int i = 0; i < res.columns(); i++) {
+            result[i] = res.get(0, i);
+        }
+        return result;
     }
 
     public Matrix inverseConvertSpace(Matrix initial) {
@@ -174,29 +240,33 @@ public class PCA {
         double previoust = 1;
         double t = 1;
         double p;
-        boolean tag=true;
+        boolean tag = true;
         integrator = svector[0] * svector[0];
 
         int xi = 0;
 
+        _information = new double[svector.length + 1];
         for (int i = 1; i < svector.length; i++) {
+            _information[i] = integrator * 100 / d;
             previoust = t;
             t = svector[i] * svector[i] / (svector[i - 1] * svector[i - 1]);
-            System.out.println(i + " , " + svector[i] + " , " + t / previoust + " , " + integrator * 100 / d + "%");
+            System.out.println(i + " , " + svector[i] + " , " + t / previoust + " , " + _information[i] + "%");
             p = integrator * 100 / d;
             if (t / previoust < 0.85 && xi == 0 && i != 1 && p >= 85 && tag) {
-                tag=false;
+                tag = false;
                 _percentToRetain = p;
                 xi = i;
             }
             integrator += svector[i] * svector[i];
         }
+        _information[svector.length] = 100;
         if (xi == 0) {
             _percentToRetain = integrator * 100 / d;
             xi = svector.length;
         }
         System.out.println(svector.length + " , " + svector[svector.length - 1] + " , " + t / previoust + " , " + integrator * 100 / d + "%");
         System.out.println("");
+        _bestDim=xi;
         return xi;
     }
 
