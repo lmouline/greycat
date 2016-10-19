@@ -76,19 +76,6 @@ public class BatchGSPSequenceNode extends AbstractMLNode{
      */
     public static final int BUFFER_SIZE_DEF = 50;
 
-    /**
-     * Number of input dimensions
-     */
-    public static final String INPUT_DIM_KEY = "InputDimensions";
-    /**
-     * Number of input dimensions - default
-     */
-    public static final int INPUT_DIM_UNKNOWN = -1;
-    /**
-     * Number of input dimensions - default (unknown so far)
-     */
-    public static final int INPUT_DIM_DEF = INPUT_DIM_UNKNOWN;
-
     public BatchGSPSequenceNode(long p_world, long p_time, long p_id, Graph p_graph) {
         super(p_world, p_time, p_id, p_graph);
     }
@@ -99,27 +86,16 @@ public class BatchGSPSequenceNode extends AbstractMLNode{
      * @param state
      * @param value
      */
-    protected static int[] adjustValueBuffer(NodeState state, int value[]) {
-        int dimensions = state.getFromKeyWithDefault(INPUT_DIM_KEY, INPUT_DIM_DEF);
-        if (dimensions < 0) {
-            dimensions = value.length;
-            state.setFromKey(INPUT_DIM_KEY, Type.INT, value.length);
-        }
-
+    protected static int[] adjustValueBuffer(NodeState state, int value) {
         int buffer[] = state.getFromKeyWithDefault(INTERNAL_VALUE_BUFFER_KEY, new int[0]);
 
-        final int bufferLength = buffer.length / dimensions; //Buffer is "unrolled" into 1D array.
-        //So adding 1 value to the end and removing (currentBufferLength + 1) - maxBufferLength from the beginning.
         final int maxBufferLength = state.getFromKeyWithDefault(BUFFER_SIZE_KEY, BUFFER_SIZE_DEF);
-        final int numValuesToRemoveFromBeginning = Math.max(0, bufferLength + 1 - maxBufferLength);
-        final int newBufferLength = bufferLength + 1 - numValuesToRemoveFromBeginning;
+        final int numValuesToRemoveFromBeginning = Math.max(0, buffer.length + 1 - maxBufferLength);
+        final int newBufferLength = buffer.length + 1 - numValuesToRemoveFromBeginning;
 
-        int newBuffer[] = new int[newBufferLength * dimensions];
-        System.arraycopy(buffer, numValuesToRemoveFromBeginning*dimensions, newBuffer, 0, newBuffer.length - dimensions);
-        for (int i=0;i<value.length;i++){
-
-        }
-        System.arraycopy(value, 0, newBuffer, newBuffer.length - dimensions, dimensions);
+        int newBuffer[] = new int[newBufferLength];
+        System.arraycopy(buffer, numValuesToRemoveFromBeginning, newBuffer, 0, newBuffer.length - 1);
+        newBuffer[newBuffer.length-1] = value;
 
         state.setFromKey(INTERNAL_VALUE_BUFFER_KEY, Type.INT_ARRAY, newBuffer);
         return newBuffer;
@@ -128,20 +104,10 @@ public class BatchGSPSequenceNode extends AbstractMLNode{
     protected void updateModelParameters(NodeState state, int newBuffer[]){
         final int minRequiredSupport = state.getFromKeyWithDefault(SUPPORT_LIMIT_KEY, SUPPORT_LIMIT_DEF);
 
-        //Step 1. Extract relevant column out of buffer.
-        final int dimensions = state.getFromKeyWithDefault(INPUT_DIM_KEY, INPUT_DIM_DEF);
-        //Should be more than the number of relevant feature
-        //TODO Enforce it?
-        final int elementsInColumn = newBuffer.length/dimensions;
-        final int featureNum = state.getFromKeyWithDefault(RELEVANT_FEATURE_KEY, RELEVANT_FEATURE_DEF);
-        final int relevantColumn[] = new int[elementsInColumn];
-        System.arraycopy(newBuffer, elementsInColumn*featureNum, relevantColumn, 0, elementsInColumn);
-
         //Step 2. Transfer to int.
-
         Set<Integer> alphabetSet = new HashSet<>();
-        for (int i = 0; i<relevantColumn.length ; i++){
-            alphabetSet.add(new Integer(relevantColumn[i]));
+        for (int i = 0; i<newBuffer.length ; i++){
+            alphabetSet.add(new Integer(newBuffer[i]));
         }
 
         //Step 3. Apply GSP algorithm.
@@ -205,9 +171,9 @@ public class BatchGSPSequenceNode extends AbstractMLNode{
                     //Checking support
                     int support = 0;
 
-                    for (int i=0;i<=relevantColumn.length-newSubsequence.length;i++) {
+                    for (int i=0;i<=newBuffer.length-newSubsequence.length;i++) {
                         int testSubseq[] = new int[newSubsequence.length];
-                        System.arraycopy(relevantColumn, i, testSubseq, 0, newSubsequence.length);
+                        System.arraycopy(newBuffer, i, testSubseq, 0, newSubsequence.length);
                         if (Arrays.equals(testSubseq, newSubsequence)){
                             support++;
                         }
@@ -244,7 +210,8 @@ public class BatchGSPSequenceNode extends AbstractMLNode{
      * @return New bootstrap mode value (TODO stub, always false now)
      */
     protected boolean addValue(NodeState state, int[] value) {
-        int newBuffer[] = adjustValueBuffer(state, value);
+        final int featureNum = state.getFromKeyWithDefault(RELEVANT_FEATURE_KEY, RELEVANT_FEATURE_DEF);
+        int newBuffer[] = adjustValueBuffer(state, value[featureNum]);
 
         //Recalculate sequences
         updateModelParameters(state, newBuffer);

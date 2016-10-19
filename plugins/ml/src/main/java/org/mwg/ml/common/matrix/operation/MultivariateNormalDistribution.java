@@ -207,4 +207,23 @@ public class MultivariateNormalDistribution {
         res.covDiag = this.covDiag;
         return res;
     }
+
+    public double densityExponent(double[] features) {
+        double[] f = new double[features.length];
+        System.arraycopy(features, 0, f, 0, features.length);
+        //double[] f = features.clone();
+
+        for (int i = 0; i < features.length; i++) {
+            f[i] = f[i] - means[i];
+        }
+
+        Matrix ft = new Matrix(f, 1, f.length);
+        Matrix ftt = new Matrix(f, f.length, 1);
+
+
+        Matrix res = Matrix.multiply(ft, inv);
+        Matrix res2 = Matrix.multiply(res, ftt);
+
+        return -0.5 * res2.get(0, 0);
+    }
 }
