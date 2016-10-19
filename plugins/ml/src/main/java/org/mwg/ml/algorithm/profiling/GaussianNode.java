@@ -249,6 +249,18 @@ public class GaussianNode extends AbstractMLNode implements ProfilingNode {
         }
     }
 
+    public double getExponent(double[] featArray){
+        double[] sum = (double[]) super.get(INTERNAL_SUM_KEY);
+        double[] sumsquares = (double[]) super.get(INTERNAL_SUMSQUARE_KEY);
+        MultivariateNormalDistribution mnd = MultivariateNormalDistribution.getDistribution(sum, sumsquares, getTotal(), false);
+        if (mnd == null) {
+            //todo handle dirac to be replaced later
+            return 0;
+        } else {
+            return mnd.densityExponent(featArray);
+        }
+    }
+
     public double[] getProbabilityArray(double[][] featArray, double[] err, boolean normalizeOnAvg) {
         double[] res = new double[featArray.length];
 
