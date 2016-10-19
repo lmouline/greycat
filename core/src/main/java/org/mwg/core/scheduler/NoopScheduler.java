@@ -7,11 +7,7 @@ public class NoopScheduler implements Scheduler {
 
     @Override
     public void dispatch(byte affinity, Job job) {
-        try {
-            job.run();
-        } catch (Exception ec) {
-            ec.printStackTrace();
-        }
+        job.run();
     }
 
     @Override
