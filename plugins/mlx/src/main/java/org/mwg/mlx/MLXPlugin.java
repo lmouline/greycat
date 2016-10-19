@@ -8,6 +8,7 @@ import org.mwg.mlx.algorithm.classifier.GaussianClassifierNode;
 import org.mwg.mlx.algorithm.classifier.GaussianNaiveBayesianNode;
 import org.mwg.mlx.algorithm.classifier.LogisticRegressionClassifierNode;
 import org.mwg.mlx.algorithm.regression.*;
+import org.mwg.mlx.algorithm.ruleinference.BatchAprioriRuleNode;
 import org.mwg.mlx.algorithm.ruleinference.BatchGSPSequenceNode;
 import org.mwg.plugin.NodeFactory;
 
@@ -74,6 +75,12 @@ public class MLXPlugin extends MLPlugin {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
                 return new BatchGSPSequenceNode(world, time, id, graph);
+            }
+        });
+        declareNodeType(BatchAprioriRuleNode.NAME, new NodeFactory() {
+            @Override
+            public Node create(long world, long time, long id, Graph graph) {
+                return new BatchAprioriRuleNode(world, time, id, graph);
             }
         });
     }

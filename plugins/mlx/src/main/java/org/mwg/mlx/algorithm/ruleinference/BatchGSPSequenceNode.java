@@ -5,6 +5,7 @@ import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.ml.AbstractMLNode;
 import org.mwg.plugin.NodeState;
+import org.mwg.utility.Enforcer;
 
 import java.util.*;
 
@@ -34,8 +35,6 @@ public class BatchGSPSequenceNode extends AbstractMLNode{
     //[3-n] - First sequence - elements themselves.
     //[n+1] - Second sequence - its support
     //etc.
-
-    //TODO Enforcer
 
     /**
      * Attribute key - Feature that has relevant values
@@ -219,6 +218,22 @@ public class BatchGSPSequenceNode extends AbstractMLNode{
         return false; //TODO This is temporary solution. There is no bootstrap concept here for now.
     }
 
+    private static final Enforcer enforcer = new Enforcer()
+            .asPositiveInt(BUFFER_SIZE_KEY)
+            .asIntGreaterOrEquals(RELEVANT_FEATURE_KEY, 0)
+            .asPositiveInt(SUPPORT_LIMIT_KEY);
+
+    @Override
+    public void setProperty(String propertyName, byte propertyType, Object propertyValue) {
+        if (INTERNAL_LONGEST_SEQUENCE_LENGTH.equals(propertyName) || INTERNAL_SEQUENCES.equals(propertyName) ||
+            INTERNAL_VALUE_BUFFER_KEY.equals(propertyName)) {
+            //Nothing. Those cannot be set.
+        }else{
+            enforcer.check(propertyName, propertyType, propertyValue);
+            super.setProperty(propertyName, propertyType, propertyValue);
+        }
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -268,6 +283,11 @@ public class BatchGSPSequenceNode extends AbstractMLNode{
         return result;
     }
 
+    /**
+     * Debug method to get the obtained rules in relevant format
+     *
+     * @param callback
+     */
     public void inferRules(Callback<int[][][]> callback) {
         //Step 1. Get the state.
         NodeState state = unphasedState();
