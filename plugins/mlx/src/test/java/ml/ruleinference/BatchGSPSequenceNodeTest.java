@@ -21,6 +21,8 @@ public class BatchGSPSequenceNodeTest {
 
     public static final String FEATURE = "f1";
 
+    public static final String FEATURE2 = "f2";
+
     /**
      * Created by andre on 5/9/2016.
      */
@@ -102,6 +104,8 @@ public class BatchGSPSequenceNodeTest {
 
     private int verySimpleSequence[] = new int[]{1,2,3,1,2,3,1,2,3,4};
 
+    private int verySimple2DSequence[][] = new int[][]{{1,2},{2,4},{3,6},{1,2},{2,4},{3,6},{1,2},{2,4},{3,6},{4,8}};
+
     protected RuleJumpCallback runThroughVerysimpleSequence(BatchGSPSequenceNode gspNode){
         RuleJumpCallback rjc = new RuleJumpCallback(new String[]{FEATURE});
 
@@ -118,10 +122,25 @@ public class BatchGSPSequenceNodeTest {
         return rjc;
     }
 
+    protected RuleJumpCallback runThroughVerysimple2DSequence(BatchGSPSequenceNode gspNode){
+        RuleJumpCallback rjc = new RuleJumpCallback(new String[]{FEATURE, FEATURE2});
+
+        for (int i = 0; i < verySimple2DSequence.length; i++) {
+            rjc.value = verySimple2DSequence[i];
+            gspNode.jump(i, new Callback<Node>() {
+                @Override
+                public void on(Node result) {
+                    rjc.on((BatchGSPSequenceNode) result);
+                }
+            });
+        }
+
+        return rjc;
+    }
+
 
     @Test
     public void test() {
-        //This test fails if there are too many errors
         final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
         graph.connect(new Callback<Boolean>() {
             @Override
@@ -129,8 +148,6 @@ public class BatchGSPSequenceNodeTest {
                 BatchGSPSequenceNode gspNode = (BatchGSPSequenceNode) graph.newTypedNode(0, 0, BatchGSPSequenceNode.NAME);
 
                 //node.setProperty(AbstractAnySlidingWindowManagingNode.BUFFER_SIZE_KEY, Type.INT, 60);
-                //node.setProperty(AbstractAnySlidingWindowManagingNode.LOW_ERROR_THRESH_KEY, Type.DOUBLE, 0.2);
-                //node.setProperty(AbstractAnySlidingWindowManagingNode.HIGH_ERROR_THRESH_KEY, Type.DOUBLE, 0.3);
                 gspNode.set(AbstractMLNode.FROM, FEATURE);
                 gspNode.set(BatchGSPSequenceNode.SUPPORT_LIMIT_KEY, 3);
 
@@ -147,4 +164,54 @@ public class BatchGSPSequenceNodeTest {
         });
     }
 
+    @Test
+    public void test2D() {
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                BatchGSPSequenceNode gspNode = (BatchGSPSequenceNode) graph.newTypedNode(0, 0, BatchGSPSequenceNode.NAME);
+
+                //gspNode.setProperty(AbstractAnySlidingWindowManagingNode.BUFFER_SIZE_KEY, Type.INT, 60);
+                gspNode.set(AbstractMLNode.FROM, FEATURE+AbstractMLNode.FROM_SEPARATOR+FEATURE2);
+                gspNode.set(BatchGSPSequenceNode.SUPPORT_LIMIT_KEY, 3);
+
+                RuleJumpCallback rjc = runThroughVerysimple2DSequence(gspNode);
+                rjc.test(new int[][][]{
+                        {}, //0-sequences
+                        {{1},{2},{3}}, //1-sequences
+                        {{1,2},{2,3}}, //2-sequences
+                        {{1,2,3}}, //3-sequences
+                });
+                gspNode.free();
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void test2DOtherChannel() {
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                BatchGSPSequenceNode gspNode = (BatchGSPSequenceNode) graph.newTypedNode(0, 0, BatchGSPSequenceNode.NAME);
+
+                //gspNode.setProperty(AbstractAnySlidingWindowManagingNode.BUFFER_SIZE_KEY, Type.INT, 60);
+                gspNode.set(AbstractMLNode.FROM, FEATURE+AbstractMLNode.FROM_SEPARATOR+FEATURE2);
+                gspNode.set(BatchGSPSequenceNode.SUPPORT_LIMIT_KEY, 3);
+                gspNode.set(BatchGSPSequenceNode.RELEVANT_FEATURE_KEY, 1);
+
+                RuleJumpCallback rjc = runThroughVerysimple2DSequence(gspNode);
+                rjc.test(new int[][][]{
+                        {}, //0-sequences
+                        {{2},{4},{6}}, //1-sequences
+                        {{2,4},{4,6}}, //2-sequences
+                        {{2,4,6}}, //3-sequences
+                });
+                gspNode.free();
+                graph.disconnect(null);
+            }
+        });
+    }
 }
