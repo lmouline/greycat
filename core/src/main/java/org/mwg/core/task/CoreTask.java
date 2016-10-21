@@ -218,6 +218,12 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
+    public Task traverseTimeRange(String from, String to) {
+        addAction(new ActionTraverseTimeRange(from,to));
+        return this;
+    }
+
+    @Override
     public final Task traverseOrKeep(String relationName) {
         addAction(new ActionTraverseOrKeep(relationName));
         return this;

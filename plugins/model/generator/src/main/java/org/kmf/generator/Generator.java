@@ -109,30 +109,29 @@ public class Generator {
                             .setStringInitializer(prop.name())
                             .setStatic(true);
 
-                    if(prop instanceof KAttribute) {
+                    if (prop instanceof KAttribute) {
                         javaClass.addImport(Type.class);
                         FieldSource<JavaClassSource> typeHelper = javaClass.addField()
                                 .setVisibility(Visibility.PUBLIC)
                                 .setFinal(true)
-                                .setName("TYPE_" + prop.name().toUpperCase())
+                                .setName(prop.name().toUpperCase() + "_TYPE")
                                 .setType(byte.class)
                                 .setStatic(true);
-
                         switch (prop.type()) {
                             case "String":
-                                typeHelper.setLiteralInitializer("Type.STRING");
+                                typeHelper.setLiteralInitializer("org.mwg.Type.STRING");
                                 break;
                             case "Double":
-                                typeHelper.setLiteralInitializer("Type.DOUBLE");
+                                typeHelper.setLiteralInitializer("org.mwg.Type.DOUBLE");
                                 break;
                             case "Long":
-                                typeHelper.setLiteralInitializer("Type.LONG");
+                                typeHelper.setLiteralInitializer("org.mwg.Type.LONG");
                                 break;
                             case "Integer":
-                                typeHelper.setLiteralInitializer("Type.INT");
+                                typeHelper.setLiteralInitializer("org.mwg.Type.INT");
                                 break;
                             case "Boolean":
-                                typeHelper.setLiteralInitializer("Type.BOOL");
+                                typeHelper.setLiteralInitializer("org.mwg.Type.BOOL");
                                 break;
                             default:
                                 throw new RuntimeException("Unknown type: " + prop.type() + ". Please update the generator.");
@@ -317,8 +316,9 @@ public class Generator {
                                     buffer.append("public void run() {\n");
                                     buffer.append("self.setProperty(")
                                             .append(prop.name().toUpperCase())
-                                            .append(", TYPE_")
+                                            .append(", ")
                                             .append(prop.name().toUpperCase())
+                                            .append("_TYPE")
                                             .append(", value);");
                                     for (KIndex index : prop.indexes()) {
                                         String queryParam = "";
@@ -343,8 +343,9 @@ public class Generator {
                                 } else {
                                     buffer.append("super.setProperty(")
                                             .append(prop.name().toUpperCase())
-                                            .append(", TYPE_")
+                                            .append(", ")
                                             .append(prop.name().toUpperCase())
+                                            .append("_TYPE")
                                             .append(",value);");
                                 }
                                 buffer.append("return this;");
@@ -400,8 +401,8 @@ public class Generator {
         modelClass.addField().setName("_graph").setVisibility(Visibility.PRIVATE).setType(Graph.class).setFinal(true);
 
         //add indexes name
-        for(KClassifier classifier : model.classifiers()) {
-            if(classifier instanceof Index) {
+        for (KClassifier classifier : model.classifiers()) {
+            if (classifier instanceof Index) {
                 Index index = (Index) classifier;
                 modelClass.addField()
                         .setVisibility(Visibility.PUBLIC)
@@ -431,7 +432,7 @@ public class Generator {
                 .setVisibility(Visibility.PUBLIC)
                 .setFinal(true)
                 .setReturnTypeVoid()
-                .addParameter("Callback<Boolean>","callback");
+                .addParameter("Callback<Boolean>", "callback");
 
         //Diconnect method
         modelClass
@@ -441,7 +442,7 @@ public class Generator {
                 .setVisibility(Visibility.PUBLIC)
                 .setFinal(true)
                 .setReturnTypeVoid()
-                .addParameter("Callback<Boolean>","callback");
+                .addParameter("Callback<Boolean>", "callback");
 
         //save method
         modelClass
@@ -451,7 +452,7 @@ public class Generator {
                 .setVisibility(Visibility.PUBLIC)
                 .setFinal(true)
                 .setReturnTypeVoid()
-                .addParameter("Callback<Boolean>","callback");
+                .addParameter("Callback<Boolean>", "callback");
 
 
         for (KClassifier classifier : model.classifiers()) {

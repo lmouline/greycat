@@ -216,6 +216,13 @@ public interface Task {
     Task traverse(String relationName);
 
     /**
+     * Traverse in times all nodes in current context
+     *
+     * @return this task to chain actions (fluent API)
+     */
+    Task traverseTimeRange(String from, String to);
+
+    /**
      * Retrieve any property given a precise name.
      * If the property is a relationship, it is traversed an related nodes are retrieved.
      *
@@ -237,7 +244,7 @@ public interface Task {
      *
      * @param indexName index name of indexed relation
      * @param queryArgs arguments of the query. Must be an even number, in form of: "&lt;att1&gt;","&lt;value1&gt;","&lt;att2&gt;","&lt;value2&gt;"
-     * @return          this task to chain actions (fluent API)
+     * @return this task to chain actions (fluent API)
      */
     Task traverseIndex(String indexName, String... queryArgs);
 

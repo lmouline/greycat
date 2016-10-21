@@ -17,7 +17,7 @@ public interface LongLongMap extends Map {
      * @param key to insert key
      * @param value to insert value
      */
-    void put(long key, long value);
+    void put(long key, long  value);
 
     /**
      * Remove the key passed as parameter fromVar the getOrCreateMap

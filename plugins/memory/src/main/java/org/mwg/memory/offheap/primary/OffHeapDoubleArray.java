@@ -45,6 +45,19 @@ public class OffHeapDoubleArray {
         unsafe.putDoubleVolatile(null, addr + index * 8, valueToInsert);
     }
 
+
+    public static void fill(final long addr, final long beginIndex, final long endIndex, final double valueToInsert) {
+        if (OffHeapConstants.DEBUG_MODE) {
+            Long allocated = OffHeapConstants.SEGMENTS.get(addr);
+            if (allocated == null || endIndex < 0 || (endIndex * 8) > allocated) {
+                throw new RuntimeException("set: bad address " + endIndex + "(" + endIndex * 8 + ")" + " in " + allocated);
+            }
+        }
+        for (long index = beginIndex; index < endIndex; index++) {
+            unsafe.putDoubleVolatile(null, addr + index * 8, valueToInsert);
+        }
+    }
+
     public static double get(final long addr, final long index) {
         if (OffHeapConstants.DEBUG_MODE) {
             Long allocated = OffHeapConstants.SEGMENTS.get(addr);

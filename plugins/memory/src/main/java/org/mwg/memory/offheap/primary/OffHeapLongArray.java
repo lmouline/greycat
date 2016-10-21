@@ -56,7 +56,7 @@ public class OffHeapLongArray {
         if (OffHeapConstants.DEBUG_MODE) {
             Long allocated = OffHeapConstants.SEGMENTS.get(addr);
             if (allocated == null || index < 0 || (index * 8) > allocated) {
-                throw new RuntimeException("get: bad address " + index + " in " + allocated);
+                throw new RuntimeException("get: bad address " + index + "*8 in " + allocated);
             }
         }
         return unsafe.getLongVolatile(null, addr + (index * 8));

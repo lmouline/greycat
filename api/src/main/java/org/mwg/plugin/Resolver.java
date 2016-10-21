@@ -40,45 +40,49 @@ public interface Resolver {
     /**
      * Retrieve the string representation of the type of node passed as parameter
      *
-     * @param node  The node which typename has to be returned
-     * @return      the type name
+     * @param node The node which typename has to be returned
+     * @return the type name
      */
     String typeName(Node node);
 
     /**
      * Retrieve the string representation of the type of node passed as parameter
      *
-     * @param node  The node to extract the type from
-     * @return      long encoded type
+     * @param node The node to extract the type from
+     * @return long encoded type
      */
     long typeCode(Node node);
 
     /**
      * Creates and schedules a lookup task.
      *
-     * @param world     The world identifier
-     * @param time      The timepoint.
-     * @param id        The id of the node to retrieve.
-     * @param callback  Called when the node is retrieved.
-     * @param <A>       type of the callback parameter
+     * @param world    The world identifier
+     * @param time     The timepoint.
+     * @param id       The id of the node to retrieve.
+     * @param callback Called when the node is retrieved.
+     * @param <A>      type of the callback parameter
      */
     <A extends Node> void lookup(long world, long time, long id, Callback<A> callback);
-    
+
+    void lookupTimes(long world, long from, long to, long id, Callback<Node[]> callback);
+
     void lookupAll(long world, long time, long ids[], Callback<Node[]> callback);
+
+    void lookupAllTimes(long world, long from, long to, long ids[], Callback<Node[]> callback);
 
     /**
      * Resolves the state of a node, to access attributes, relations, and indexes.
      *
-     * @param node  The node for which the state must be collected.
-     * @return      The resolved state of the node.
+     * @param node The node for which the state must be collected.
+     * @return The resolved state of the node.
      */
     NodeState resolveState(Node node);
 
     /**
      * Align the state of a node, to access attributes, relations, and indexes.
      *
-     * @param node  The node for which the state must be collected.
-     * @return      The resolved state of the node.
+     * @param node The node for which the state must be collected.
+     * @return The resolved state of the node.
      */
     NodeState alignState(Node node);
 
@@ -86,7 +90,7 @@ public interface Resolver {
      * @param node  The node for which the state must be collected.
      * @param world The world for which the new state must be created.
      * @param time  The time for which the new state must be created.
-     * @return      The newly empty created state of the node.
+     * @return The newly empty created state of the node.
      */
     NodeState newState(Node node, long world, long time);
 
@@ -105,15 +109,15 @@ public interface Resolver {
      *
      * @param name              The string value to be mapped.
      * @param insertIfNotExists indicate if the string has to be inserted if not existing in the global dictionary
-     * @return                  The unique long identifier for the string.
+     * @return The unique long identifier for the string.
      */
     long stringToHash(String name, boolean insertIfNotExists);
 
     /**
      * Returns the String associated to a hash.
      *
-     * @param key   The long key.
-     * @return      The string value associated to the long key.
+     * @param key The long key.
+     * @return The string value associated to the long key.
      */
     String hashToString(long key);
 

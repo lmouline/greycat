@@ -225,6 +225,22 @@ class CoreGraph implements org.mwg.Graph {
     }
 
     @Override
+    public void lookupTimes(long world, long from, long to, long id, Callback<Node[]> callback) {
+        if (!_isConnected.get()) {
+            throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
+        }
+        this._resolver.lookupTimes(world, from, to, id, callback);
+    }
+
+    @Override
+    public void lookupAllTimes(long world, long from, long to, long[] ids, Callback<Node[]> callback) {
+        if (!_isConnected.get()) {
+            throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
+        }
+        this._resolver.lookupAllTimes(world, from, to, ids, callback);
+    }
+
+    @Override
     public void save(Callback<Boolean> callback) {
         _space.save(callback);
     }
@@ -344,8 +360,8 @@ class CoreGraph implements org.mwg.Graph {
             final CoreGraph selfPointer = this;
             //first we stop scheduler, no tasks will be executed anymore
             selfPointer._scheduler.stop();
-            if(this._plugins != null){
-                for(int i=0;i<_plugins.length;i++){
+            if (this._plugins != null) {
+                for (int i = 0; i < _plugins.length; i++) {
                     this._plugins[i].stop();
                 }
             }

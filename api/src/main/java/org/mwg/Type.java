@@ -31,6 +31,7 @@ public class Type {
     public static final byte STRING_TO_LONG_MAP = 11;
 
     public static final byte RELATION = 12;
+    public static final byte MATRIX = 13;
 
     /**
      * Convert a type that represent a byte to a readable String representation

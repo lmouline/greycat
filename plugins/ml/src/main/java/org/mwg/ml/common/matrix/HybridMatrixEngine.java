@@ -4,9 +4,6 @@ import org.mwg.ml.common.matrix.blassolver.BlasMatrixEngine;
 import org.mwg.ml.common.matrix.jamasolver.JamaMatrixEngine;
 import org.mwg.ml.common.matrix.operation.PInvSVD;
 
-/**
- * Created by assaad on 08/06/16.
- */
 public class HybridMatrixEngine implements MatrixEngine {
 
     private MatrixEngine blas;

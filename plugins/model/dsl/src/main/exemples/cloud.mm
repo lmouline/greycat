@@ -1,11 +1,9 @@
 //THIS is a comment
 
-with version "1-SNAPSHOT"
-with kmfVersion "4.19.1-SNAPSHOT"
 class org.kubi.Ecosystem {
     att name: String
     rel groupes: org.kubi.Group
-    rel technologies: org.kubi.Technology with maxBound 1
+    rel technologies: org.kubi.Technology
 
     func trigger
     func trigger2 : String

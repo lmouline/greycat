@@ -9,9 +9,7 @@ import org.mwg.utility.Unsafe;
 
 @SuppressWarnings("Duplicates")
 class OffHeapRelationship implements Relationship {
-
-    private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
-
+    
     private static int CAPACITY = 0;
     private static int SIZE = 1;
     private static int SHIFT = 2;

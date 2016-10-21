@@ -47,7 +47,7 @@ public interface Graph {
      * @param time     The time at which the Node must be resolved.
      * @param id       The unique identifier of the {@link Node} ({@link Node#id()}) researched.
      * @param callback The task to be called when the {@link Node} is retrieved.
-     * @param <A> the type of the parameter returned in the callback (should extend {@link Node}).
+     * @param <A>      the type of the parameter returned in the callback (should extend {@link Node}).
      */
     <A extends Node> void lookup(long world, long time, long id, Callback<A> callback);
 
@@ -61,6 +61,30 @@ public interface Graph {
      * @param callback The task to be called when the {@link Node} is retrieved.
      */
     void lookupAll(long world, long time, long[] ids, Callback<Node[]> callback);
+
+    /**
+     * Asynchronous lookup of a nodes.<br>
+     * Based on the tuple &lt;World, Time, Node_ID&gt; this method seeks a {@link Node} in the Graph and returns it to the callback.
+     *
+     * @param world    The world identifier in which the Node must be searched.
+     * @param from     The time at which the range extract should start.
+     * @param to       The time at which the range extract should end.
+     * @param id       The unique identifier of the {@link Node} ({@link Node#id()}) researched.
+     * @param callback The task to be called when the {@link Node} is retrieved.
+     */
+    void lookupTimes(long world, long from, long to, long id, Callback<Node[]> callback);
+
+    /**
+     * Asynchronous lookup of a nodes.<br>
+     * Based on the tuple &lt;World, Time, Node_ID&gt; this method seeks a {@link Node} in the Graph and returns it to the callback.
+     *
+     * @param world    The world identifier in which the Node must be searched.
+     * @param from     The time at which the range extract should start.
+     * @param to       The time at which the range extract should end.
+     * @param ids      The unique identifier of {@link Node} array ({@link Node#id()}) researched.
+     * @param callback The task to be called when the {@link Node} is retrieved.
+     */
+    void lookupAllTimes(long world, long from, long to, long[] ids, Callback<Node[]> callback);
 
     /**
      * Creates a spin-off world from the world given as parameter.<br>

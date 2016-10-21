@@ -1,14 +1,6 @@
 
-
-index customers : Customer {
-    from name
-}
-
 class Customer {
     att name : String
-
-    index Customers { name }
-    index Customers { name }
 
 }
 
