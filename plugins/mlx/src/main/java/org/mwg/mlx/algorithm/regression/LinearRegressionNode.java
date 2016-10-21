@@ -6,6 +6,7 @@ import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.TransposeType;
 import org.mwg.mlx.algorithm.AbstractLinearRegressionNode;
 import org.mwg.plugin.NodeState;
+import org.mwg.struct.Matrix;
 
 public class LinearRegressionNode extends AbstractLinearRegressionNode {
 
@@ -37,13 +38,12 @@ public class LinearRegressionNode extends AbstractLinearRegressionNode {
             }
         }
 
-        VolatileMatrix xMatrix = new VolatileMatrix(reshapedValue, resultBuffer.length, dims + 1);
-        VolatileMatrix yVector = new VolatileMatrix(resultBuffer, resultBuffer.length, 1);
+        Matrix xMatrix = VolatileMatrix.wrap(reshapedValue, resultBuffer.length, dims + 1);
+        Matrix yVector = VolatileMatrix.wrap(resultBuffer, resultBuffer.length, 1);
 
         // inv(Xt * X - lambda*I) * Xt * ys
         // I - almost identity, but with 0 for intercept term
-        VolatileMatrix xtMulX = VolatileMatrix.multiplyTranspose
-                (TransposeType.TRANSPOSE, xMatrix, TransposeType.NOTRANSPOSE, xMatrix);
+        Matrix xtMulX = VolatileMatrix.multiplyTranspose(TransposeType.TRANSPOSE, xMatrix, TransposeType.NOTRANSPOSE, xMatrix);
 
         for (int i = 1; i <= dims; i++) {
             xtMulX.add(i, i, l2);
@@ -52,13 +52,10 @@ public class LinearRegressionNode extends AbstractLinearRegressionNode {
         //PInvSVD pinvsvd = new PInvSVD();
         //pinvsvd.factor(xtMulX, false);
         //Matrix pinv = pinvsvd.getPInv();
-        VolatileMatrix pinv = VolatileMatrix.pinv(xtMulX, false);
+        Matrix pinv = VolatileMatrix.pinv(xtMulX, false);
 
-        VolatileMatrix invMulXt = VolatileMatrix.multiplyTranspose
-                (TransposeType.NOTRANSPOSE, pinv, TransposeType.TRANSPOSE, xMatrix);
-
-        VolatileMatrix result = VolatileMatrix.multiplyTranspose
-                (TransposeType.NOTRANSPOSE, invMulXt, TransposeType.NOTRANSPOSE, yVector);
+        Matrix invMulXt = VolatileMatrix.multiplyTranspose(TransposeType.NOTRANSPOSE, pinv, TransposeType.TRANSPOSE, xMatrix);
+        Matrix result = VolatileMatrix.multiplyTranspose(TransposeType.NOTRANSPOSE, invMulXt, TransposeType.NOTRANSPOSE, yVector);
 
         final double newCoefficients[] = new double[dims];
         for (int i = 0; i < dims; i++) {

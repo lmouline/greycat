@@ -6,6 +6,7 @@ import org.mwg.ml.AbstractMLNode;
 import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.TransposeType;
 import org.mwg.mlx.algorithm.AbstractLinearRegressionNode;
+import org.mwg.struct.Matrix;
 import org.mwg.utility.Enforcer;
 import org.mwg.plugin.NodeState;
 
@@ -90,13 +91,12 @@ public class LinearRegressionWithPeriodicityNode extends AbstractLinearRegressio
             }
         }
 
-        VolatileMatrix xMatrix = new VolatileMatrix(reshapedValue, resultBuffer.length, 2*periodsList.length + dims + 1);
-        VolatileMatrix yVector = new VolatileMatrix(resultBuffer, resultBuffer.length, 1);
+        Matrix xMatrix = VolatileMatrix.wrap(reshapedValue, resultBuffer.length, 2*periodsList.length + dims + 1);
+        Matrix yVector = VolatileMatrix.wrap(resultBuffer, resultBuffer.length, 1);
 
         // inv(Xt * X - lambda*I) * Xt * ys
         // I - almost identity, but with 0 for intercept term
-        VolatileMatrix xtMulX = VolatileMatrix.multiplyTranspose
-                (TransposeType.TRANSPOSE, xMatrix, TransposeType.NOTRANSPOSE, xMatrix);
+        Matrix xtMulX = VolatileMatrix.multiplyTranspose(TransposeType.TRANSPOSE, xMatrix, TransposeType.NOTRANSPOSE, xMatrix);
 
         for (int i = 1; i <= dims; i++) {
             xtMulX.add(i, i, l2);
@@ -105,13 +105,9 @@ public class LinearRegressionWithPeriodicityNode extends AbstractLinearRegressio
         //PInvSVD pinvsvd = new PInvSVD();
         //pinvsvd.factor(xtMulX, false);
         //Matrix pinv = pinvsvd.getPInv();
-        VolatileMatrix pinv = VolatileMatrix.pinv(xtMulX, false);
-
-        VolatileMatrix invMulXt = VolatileMatrix.multiplyTranspose
-                (TransposeType.NOTRANSPOSE, pinv, TransposeType.TRANSPOSE, xMatrix);
-
-        VolatileMatrix result = VolatileMatrix.multiplyTranspose
-                (TransposeType.NOTRANSPOSE, invMulXt, TransposeType.NOTRANSPOSE, yVector);
+        Matrix pinv = VolatileMatrix.pinv(xtMulX, false);
+        Matrix invMulXt = VolatileMatrix.multiplyTranspose(TransposeType.NOTRANSPOSE, pinv, TransposeType.TRANSPOSE, xMatrix);
+        Matrix result = VolatileMatrix.multiplyTranspose(TransposeType.NOTRANSPOSE, invMulXt, TransposeType.NOTRANSPOSE, yVector);
 
         final double newSinusCoefficients[] = new double[periodsList.length];
         for (int i = 0; i < periodsList.length; i++) {
