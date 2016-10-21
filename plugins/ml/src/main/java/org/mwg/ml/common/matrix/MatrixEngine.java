@@ -13,4 +13,6 @@ public interface MatrixEngine {
     Matrix solveQR(Matrix matA, Matrix matB, boolean workInPlace, TransposeType transB);
 
     SVDDecompose decomposeSVD(Matrix matA, boolean workInPlace);
+
+    Matrix solve (Matrix A, Matrix B);
 }

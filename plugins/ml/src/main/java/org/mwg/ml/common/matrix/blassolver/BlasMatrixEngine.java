@@ -149,7 +149,8 @@ public class BlasMatrixEngine implements MatrixEngine {
 
     }
 
-    public  Matrix solve (Matrix A, Matrix B) {
+    @Override
+    public Matrix solve (Matrix A, Matrix B) {
         return (A.rows() == A.columns() ? (new LU(A.rows(),A.columns(),_blas).factor(A,false)).solve(B) :
                 solveQR(A, B, false, TransposeType.NOTRANSPOSE));
     }

@@ -120,4 +120,9 @@ public class HybridMatrixEngine implements MatrixEngine {
 //            return blas.decomposeSVD(matA,workInPlace);
 //        }
     }
+
+    @Override
+    public Matrix solve(Matrix A, Matrix B) {
+        return blas.solve(A,B);
+    }
 }

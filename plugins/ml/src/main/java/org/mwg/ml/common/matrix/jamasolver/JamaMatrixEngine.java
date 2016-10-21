@@ -148,7 +148,8 @@ public class JamaMatrixEngine implements MatrixEngine {
      @return     solution if A is square, least squares solution otherwise
      */
 
-    public static Matrix solve (Matrix A, Matrix B) {
+    @Override
+    public Matrix solve (Matrix A, Matrix B) {
         return (A.rows() == A.columns() ? (new LU(A)).solve(B) :
                 (new QR(A)).solve(B));
     }
