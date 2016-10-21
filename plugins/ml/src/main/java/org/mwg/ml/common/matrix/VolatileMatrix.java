@@ -410,7 +410,10 @@ public class VolatileMatrix implements Matrix {
 
     public static Matrix cloneFrom(Matrix origin) {
         //TODO checj according to .data() clone
-        return new VolatileMatrix(origin.data(), origin.rows(), origin.columns());
+        double[] prev=origin.data();
+        double[] copy= new double[prev.length];
+        System.arraycopy(prev,0,copy,0,copy.length);
+        return new VolatileMatrix(copy, origin.rows(), origin.columns());
     }
 
 }
