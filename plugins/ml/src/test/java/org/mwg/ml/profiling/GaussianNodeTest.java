@@ -8,7 +8,8 @@ import org.mwg.GraphBuilder;
 import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.ml.MLPlugin;
 import org.mwg.ml.algorithm.profiling.GaussianMixtureNode;
-import org.mwg.ml.common.matrix.Matrix;
+import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.struct.Matrix;
 
 /**
  * Created by assaad on 25/03/16.
@@ -131,8 +132,8 @@ public class GaussianNodeTest {
                 });
 
 
-                Assert.assertTrue(Matrix.compare(avgLive, ravg, eps));
-                Assert.assertTrue(Matrix.compareArray(covLive, rcovData, eps));
+                Assert.assertTrue(VolatileMatrix.compare(avgLive, ravg, eps));
+                Assert.assertTrue(VolatileMatrix.compareArray(covLive, rcovData, eps));
 
                 gaussianNodeLive.free();
                 graph.disconnect(null);

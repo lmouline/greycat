@@ -1,26 +1,9 @@
 package org.mwg.ml.common.matrix.operation;
 
-import org.mwg.ml.common.matrix.Matrix;
+import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.struct.Matrix;
 
-/**
- * Created by assaad on 25/03/16.
- */
 public class MultivariateNormalDistribution {
-    public double[] getMin() {
-        return min;
-    }
-
-    public double[] getMax() {
-        return max;
-    }
-
-    public double[] getAvg() {
-        return means;
-    }
-
-    public double[] getCovDiag() {
-        return covDiag;
-    }
 
     double[] min;
     double[] max;
@@ -47,7 +30,7 @@ public class MultivariateNormalDistribution {
             this.rank = pinvsvd.getRank();
 
             if (!allowSingular && this.rank < cov.rows()) {
-                this.covariance = cov.clone();
+                this.covariance = VolatileMatrix.cloneFrom(cov);
                 double[] temp = new double[covDiag.length];
                 for (int i = 0; i < covDiag.length; i++) {
                     temp[i] = Math.sqrt(covDiag[i]);
@@ -67,7 +50,6 @@ public class MultivariateNormalDistribution {
                 rank = pinvsvd.getRank();
             }
 
-
             //Solve complete covariance dependence
          /*   if(this.rank<means.length){
                 this.covariance=cov.clone();
@@ -75,7 +57,6 @@ public class MultivariateNormalDistribution {
                 for(int i=0;i<covDiag.length;i++){
                     temp[i]=Math.sqrt(covDiag[i]);
                 }
-
                 for(int i=0;i<covDiag.length;i++){
                     for(int j=i+1;j<covDiag.length;j++){
                         double d=this.covariance.get(i,j)-0.001*temp[i]*temp[j];
@@ -94,6 +75,22 @@ public class MultivariateNormalDistribution {
         }
     }
 
+    public double[] getMin() {
+        return min;
+    }
+
+    public double[] getMax() {
+        return max;
+    }
+
+    public double[] getAvg() {
+        return means;
+    }
+
+    public double[] getCovDiag() {
+        return covDiag;
+    }
+
     public void setMin(double[] min) {
         this.min = min;
     }
@@ -102,24 +99,18 @@ public class MultivariateNormalDistribution {
         this.max = max;
     }
 
-
     public static Matrix getCovariance(double[] sum, double[] sumsquares, int total) {
         if (total < 2) {
             return null;
         }
-
         int features = sum.length;
         double[] avg = new double[features];
-
         for (int i = 0; i < features; i++) {
             avg[i] = sum[i] / total;
         }
-
         double[] covariances = new double[features * features];
-
         double correction = total;
         correction = correction / (total - 1);
-
         int count = 0;
         for (int i = 0; i < features; i++) {
             for (int j = i; j < features; j++) {
@@ -128,8 +119,7 @@ public class MultivariateNormalDistribution {
                 count++;
             }
         }
-        Matrix cov = new Matrix(covariances, features, features);
-        return cov;
+        return VolatileMatrix.wrap(covariances, features, features);
     }
 
 
@@ -141,19 +131,14 @@ public class MultivariateNormalDistribution {
         if (total < 2) {
             return null;
         }
-
         int features = sum.length;
         double[] avg = new double[features];
-
         for (int i = 0; i < features; i++) {
             avg[i] = sum[i] / total;
         }
-
         double[] covariances = new double[features * features];
-
         double correction = total;
         correction = correction / (total - 1);
-
         int count = 0;
         for (int i = 0; i < features; i++) {
             for (int j = i; j < features; j++) {
@@ -162,10 +147,9 @@ public class MultivariateNormalDistribution {
                 count++;
             }
         }
-        Matrix cov = new Matrix(covariances, features, features);
+        Matrix cov = VolatileMatrix.wrap(covariances, features, features);
         return new MultivariateNormalDistribution(avg, cov, allowSingular);
     }
-
 
     public double density(double[] features, boolean normalizeOnAvg) {
         if (normalizeOnAvg) {
@@ -177,24 +161,17 @@ public class MultivariateNormalDistribution {
     }
 
     private double getExponentTerm(double[] features) {
-
         double[] f = new double[features.length];
         System.arraycopy(features, 0, f, 0, features.length);
         //double[] f = features.clone();
-
         for (int i = 0; i < features.length; i++) {
             f[i] = f[i] - means[i];
         }
-
-        Matrix ft = new Matrix(f, 1, f.length);
-        Matrix ftt = new Matrix(f, f.length, 1);
-
-
-        Matrix res = Matrix.multiply(ft, inv);
-        Matrix res2 = Matrix.multiply(res, ftt);
-
+        Matrix ft = VolatileMatrix.wrap(f, 1, f.length);
+        Matrix ftt = VolatileMatrix.wrap(f, f.length, 1);
+        Matrix res = VolatileMatrix.multiply(ft, inv);
+        Matrix res2 = VolatileMatrix.multiply(res, ftt);
         double d = Math.exp(-0.5 * res2.get(0, 0));
-
         return d;
     }
 
@@ -212,18 +189,13 @@ public class MultivariateNormalDistribution {
         double[] f = new double[features.length];
         System.arraycopy(features, 0, f, 0, features.length);
         //double[] f = features.clone();
-
         for (int i = 0; i < features.length; i++) {
             f[i] = f[i] - means[i];
         }
-
-        Matrix ft = new Matrix(f, 1, f.length);
-        Matrix ftt = new Matrix(f, f.length, 1);
-
-
-        Matrix res = Matrix.multiply(ft, inv);
-        Matrix res2 = Matrix.multiply(res, ftt);
-
+        Matrix ft = VolatileMatrix.wrap(f, 1, f.length);
+        Matrix ftt = VolatileMatrix.wrap(f, f.length, 1);
+        Matrix res = VolatileMatrix.multiply(ft, inv);
+        Matrix res2 = VolatileMatrix.multiply(res, ftt);
         return -0.5 * res2.get(0, 0);
     }
 }

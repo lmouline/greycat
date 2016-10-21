@@ -1,14 +1,10 @@
 package org.mwg.ml.algorithm.preprocessing;
 
-import org.mwg.ml.common.matrix.Matrix;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.SVDDecompose;
 import org.mwg.ml.common.matrix.TransposeType;
+import org.mwg.struct.Matrix;
 
-import java.text.DecimalFormat;
-
-/**
- * Created by assaad on 27/09/16.
- */
 public class PCA {
     private Matrix _data;
     private int _olddim;
@@ -21,12 +17,11 @@ public class PCA {
     private double _percentToRetain;
     private int _bestDim;
 
-    public int get_bestDim(){
+    public int get_bestDim() {
         return _bestDim;
     }
 
-
-    public Matrix get_data(){
+    public Matrix get_data() {
         return _data;
     }
 
@@ -36,7 +31,7 @@ public class PCA {
         return c;
     }
 
-    public double[] getDimensionInfo(){
+    public double[] getDimensionInfo() {
         return clone(_information);
     }
 
@@ -86,11 +81,11 @@ public class PCA {
 
 
     public double[] convertVector(double[] data) {
-        Matrix v = new Matrix(clone(data), 1, data.length);
+        Matrix v = VolatileMatrix.wrap(clone(data), 1, data.length);
         if (_processType == NORMALIZE) {
             normalizeData(v);
         }
-        Matrix res = Matrix.multiply(v, _matrixV);
+        Matrix res = VolatileMatrix.multiply(v, _matrixV);
         double[] result = new double[res.columns()];
         for (int i = 0; i < res.columns(); i++) {
             result[i] = res.get(0, i);
@@ -98,17 +93,16 @@ public class PCA {
         return result;
     }
 
-    public Matrix convertSpace(Matrix initial) {
+    public Matrix convertSpace(VolatileMatrix initial) {
         if (_processType == NORMALIZE) {
             normalizeData(initial);
         }
-        Matrix res = Matrix.multiply(initial, _matrixV);
-        return res;
+        return VolatileMatrix.multiply(initial, _matrixV);
     }
 
 
     public void setDimension(int dim) {
-        _matrixV = new Matrix(null, _olddim, dim);
+        _matrixV = VolatileMatrix.empty(_olddim, dim);
         Matrix tempV = _svdDecompose.getVt();
         for (int i = 0; i < _olddim; i++) {
             for (int j = 0; j < dim; j++) {
@@ -132,8 +126,8 @@ public class PCA {
     }
 
     public double[] inverseConvertVector(double[] data) {
-        Matrix v = new Matrix(clone(data), 1, data.length);
-        Matrix res = Matrix.multiplyTranspose(TransposeType.NOTRANSPOSE, v, TransposeType.TRANSPOSE, _matrixV);
+        Matrix v = VolatileMatrix.wrap(clone(data), 1, data.length);
+        Matrix res = VolatileMatrix.multiplyTranspose(TransposeType.NOTRANSPOSE, v, TransposeType.TRANSPOSE, _matrixV);
         if (_processType == NORMALIZE) {
             inverseNormalizeData(res);
         }
@@ -146,7 +140,7 @@ public class PCA {
     }
 
     public Matrix inverseConvertSpace(Matrix initial) {
-        Matrix res = Matrix.multiplyTranspose(TransposeType.NOTRANSPOSE, initial, TransposeType.TRANSPOSE, _matrixV);
+        Matrix res = VolatileMatrix.multiplyTranspose(TransposeType.NOTRANSPOSE, initial, TransposeType.TRANSPOSE, _matrixV);
         if (_processType == NORMALIZE) {
             inverseNormalizeData(res);
         }
@@ -204,7 +198,7 @@ public class PCA {
     private static Matrix shiftColumn(Matrix data, double[] shift, boolean workInPlace) {
         Matrix temp = data;
         if (!workInPlace) {
-            temp = data.clone();
+            temp = VolatileMatrix.cloneFrom(data);
         }
         for (int i = 0; i < temp.rows(); i++) {
             for (int j = 0; j < temp.columns(); j++) {
@@ -217,7 +211,7 @@ public class PCA {
     private static Matrix inverseShift(Matrix data, double[] shift, boolean workInPlace) {
         Matrix temp = data;
         if (!workInPlace) {
-            temp = data.clone();
+            temp = VolatileMatrix.cloneFrom(data);
         }
 
         for (int i = 0; i < temp.rows(); i++) {
@@ -266,7 +260,7 @@ public class PCA {
         }
         System.out.println(svector.length + " , " + svector[svector.length - 1] + " , " + t / previoust + " , " + integrator * 100 / d + "%");
         System.out.println("");
-        _bestDim=xi;
+        _bestDim = xi;
         return xi;
     }
 
@@ -307,7 +301,7 @@ public class PCA {
 //        }
 
 
-        _svdDecompose = Matrix.defaultEngine().decomposeSVD(_data, false);
+        _svdDecompose = VolatileMatrix.defaultEngine().decomposeSVD(_data, false);
 
         double[] singularValues = _svdDecompose.getS();
 

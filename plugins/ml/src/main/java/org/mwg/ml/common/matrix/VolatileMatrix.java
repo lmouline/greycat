@@ -1,22 +1,20 @@
 package org.mwg.ml.common.matrix;
 
 
-import org.mwg.ml.common.matrix.blassolver.BlasMatrixEngine;
-import org.mwg.ml.common.matrix.jamasolver.JamaMatrixEngine;
+import org.mwg.struct.Matrix;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.Random;
 
 //Most of the time we will be using column based matrix due to blas.
-public class Matrix {
+public class VolatileMatrix implements Matrix {
 
     private double[] _data;
-
     private final int _nbRows;
     private final int _nbColumns;
 
-    public Matrix(double[] backend, int p_nbRows, int p_nbColumns) {
+    private VolatileMatrix(double[] backend, int p_nbRows, int p_nbColumns) {
         this._nbRows = p_nbRows;
         this._nbColumns = p_nbColumns;
         if (backend != null) {
@@ -24,6 +22,79 @@ public class Matrix {
         } else {
             this._data = new double[_nbRows * _nbColumns];
         }
+    }
+
+    @Override
+    public Matrix init(int rows, int columns) {
+        if (rows != _nbRows && columns != _nbColumns) {
+            throw new RuntimeException("Bad API usage !");
+        }
+        this._data = new double[_nbRows * _nbColumns];
+        return this;
+    }
+
+    @Override
+    public double[] data() {
+        //TODO copy array
+        return _data;
+    }
+
+    @Override
+    public int rows() {
+        return _nbRows;
+    }
+
+    @Override
+    public int columns() {
+        return _nbColumns;
+    }
+
+    @Override
+    public double get(int rowIndex, int columnIndex) {
+        return _data[rowIndex + columnIndex * _nbRows];
+    }
+
+    @Override
+    public Matrix set(int rowIndex, int columnIndex, double value) {
+        _data[rowIndex + columnIndex * _nbRows] = value;
+        return this;
+    }
+
+    @Override
+    public Matrix add(int rowIndex, int columnIndex, double value) {
+        int raw_index = rowIndex + columnIndex * _nbRows;
+        _data[raw_index] = value + _data[raw_index];
+        return this;
+    }
+
+    @Override
+    public Matrix fill(double value) {
+        for (int i = 0; i < _nbColumns * _nbRows; i++) {
+            this._data[i] = value;
+        }
+        return this;
+    }
+
+    @Override
+    public Matrix fillWith(double[] values) {
+        _data = values;
+        return this;
+    }
+
+    @Override
+    public int leadingDimension() {
+        return Math.max(_nbColumns, _nbRows);
+    }
+
+    @Override
+    public double unsafeGet(int index) {
+        return this._data[index];
+    }
+
+    @Override
+    public Matrix unsafeSet(int index, double value) {
+        this._data[index] = value;
+        return this;
     }
 
     public static boolean compare(double[] a, double[] b, double eps) {
@@ -50,12 +121,6 @@ public class Matrix {
         return true;
     }
 
-
-    //    @Override
-    public double[] data() {
-        return _data;
-    }
-
     //   @Override
     public double[] exportRowMatrix() {
         double[] res = new double[_data.length];
@@ -70,8 +135,8 @@ public class Matrix {
     }
 
     //   @Override
-    public Matrix importRowMatrix(double[] rowdata, int rows, int columns) {
-        Matrix res = new Matrix(null, rows, columns);
+    public VolatileMatrix importRowMatrix(double[] rowdata, int rows, int columns) {
+        VolatileMatrix res = new VolatileMatrix(null, rows, columns);
 
         int k = 0;
         for (int i = 0; i < _nbRows; i++) {
@@ -84,54 +149,9 @@ public class Matrix {
     }
 
     //   @Override
-    public void setData(double[] data) {
-        System.arraycopy(data, 0, this._data, 0, data.length);
-    }
-
-    //  @Override
-    public int rows() {
-        return _nbRows;
-    }
-
-    //   @Override
-    public int columns() {
-        return _nbColumns;
-    }
-
-    //  @Override
-    public double get(int rowIndex, int columnIndex) {
-        return _data[rowIndex + columnIndex * _nbRows];
-    }
-
-    //  @Override
-    public double set(int rowIndex, int columnIndex, double value) {
-        _data[rowIndex + columnIndex * _nbRows] = value;
-
-        return value;
-    }
-
-    //   @Override
-    public double add(int rowIndex, int columnIndex, double value) {
-        return set(rowIndex, columnIndex, get(rowIndex, columnIndex) + value);
-    }
-
-    //    @Override
-    public void setAll(double value) {
-        for (int i = 0; i < _nbColumns * _nbRows; i++) {
-            this._data[i] = value;
-        }
-    }
-
-    //   @Override
-    public double getAtIndex(int index) {
-        return this._data[index];
-    }
-
-    //   @Override
-    public double setAtIndex(int index, double value) {
-        this._data[index] = value;
-        return value;
-    }
+   // public void setData(double[] data) {
+       // System.arraycopy(data, 0, this._data, 0, data.length);
+  //  }
 
     //  @Override
     public double addAtIndex(int index, double value) {
@@ -140,23 +160,23 @@ public class Matrix {
     }
 
     //  @Override
-    public Matrix clone() {
+    /*
+    public VolatileMatrix clone() {
         double[] newback = new double[_data.length];
         System.arraycopy(_data, 0, newback, 0, _data.length);
-
-        Matrix res = new Matrix(newback, this._nbRows, this._nbColumns);
+        VolatileMatrix res = new VolatileMatrix(newback, this._nbRows, this._nbColumns);
         return res;
 
-    }
+    }*/
 
     private static MatrixEngine _defaultEngine = null;
 
     /**
      * @native ts
-     * if(Matrix._defaultEngine == null){
-     * Matrix._defaultEngine = new org.mwg.ml.common.matrix.HybridMatrixEngine();
+     * if(VolatileMatrix._defaultEngine == null){
+     * VolatileMatrix._defaultEngine = new org.mwg.ml.common.matrix.HybridMatrixEngine();
      * }
-     * return Matrix._defaultEngine;
+     * return VolatileMatrix._defaultEngine;
      */
     public static MatrixEngine defaultEngine() {
         if (_defaultEngine == null) {
@@ -165,8 +185,8 @@ public class Matrix {
         return _defaultEngine;
     }
 
-    public static void  setDefaultEngine(MatrixEngine matrixEngine){
-        _defaultEngine=matrixEngine;
+    public static void setDefaultEngine(MatrixEngine matrixEngine) {
+        _defaultEngine = matrixEngine;
     }
 
     public static Matrix multiply(Matrix matA, Matrix matB) {
@@ -193,32 +213,27 @@ public class Matrix {
         return defaultEngine().pinv(mat, invertInPlace);
     }
 
-
-    public int leadingDimension() {
-        return Math.max(_nbColumns, _nbRows);
-    }
-
     public static Matrix random(int rows, int columns, double min, double max) {
-        Matrix res = new Matrix(null, rows, columns);
+        VolatileMatrix res = new VolatileMatrix(null, rows, columns);
         Random rand = new Random();
         for (int i = 0; i < rows * columns; i++) {
-            res.setAtIndex(i, rand.nextDouble() * (max - min) + min);
+            res.unsafeSet(i, rand.nextDouble() * (max - min) + min);
         }
         return res;
     }
 
-    public static void scale(double alpha, Matrix matA) {
+    public static void scale(double alpha, VolatileMatrix matA) {
         if (alpha == 0) {
-            matA.setAll(0);
+            matA.fill(0);
             return;
         }
         for (int i = 0; i < matA.rows() * matA.columns(); i++) {
-            matA.setAtIndex(i, alpha * matA.getAtIndex(i));
+            matA.unsafeSet(i, alpha * matA.unsafeGet(i));
         }
     }
 
     public static Matrix transpose(Matrix matA) {
-        Matrix result = new Matrix(null, matA.columns(), matA.rows());
+        Matrix result = new VolatileMatrix(null, matA.columns(), matA.rows());
         int TRANSPOSE_SWITCH = 375;
         if (matA.columns() == matA.rows()) {
             transposeSquare(matA, result);
@@ -236,10 +251,10 @@ public class Matrix {
         for (int i = 0; i < matA.rows(); i++) {
             int indexOther = (i + 1) * matA.columns() + i;
             int n = i * (matA.columns() + 1);
-            result.setAtIndex(n, matA.getAtIndex(n));
+            result.unsafeSet(n, matA.unsafeGet(n));
             for (; index < indexEnd; index++) {
-                result.setAtIndex(index, matA.getAtIndex(indexOther));
-                result.setAtIndex(indexOther, matA.getAtIndex(index));
+                result.unsafeSet(index, matA.unsafeGet(indexOther));
+                result.unsafeSet(indexOther, matA.unsafeGet(index));
                 indexOther += matA.columns();
             }
             index += i + 2;
@@ -253,7 +268,7 @@ public class Matrix {
             int index2 = i;
             int end = index + result.rows();
             while (index < end) {
-                result.setAtIndex(index++, matA.getAtIndex(index2));
+                result.unsafeSet(index++, matA.unsafeGet(index2));
                 index2 += matA.rows();
             }
         }
@@ -275,7 +290,7 @@ public class Matrix {
                     int colDst = indexDst;
                     int end = colDst + blockWidth;
                     for (; colDst < end; colDst++) {
-                        result.setAtIndex(colDst, matA.getAtIndex(colSrc));
+                        result.unsafeSet(colDst, matA.unsafeGet(colSrc));
                         colSrc += matA.rows();
                     }
                     indexDst += result.rows();
@@ -283,7 +298,6 @@ public class Matrix {
             }
         }
     }
-
 
     public double[] saveToState() {
         double[] res = new double[_data.length + 2];
@@ -293,15 +307,15 @@ public class Matrix {
         return res;
     }
 
-    public static Matrix loadFromState(Object o) {
+    public static VolatileMatrix loadFromState(Object o) {
         double[] res = (double[]) o;
         double[] data = new double[res.length - 2];
         System.arraycopy(res, 2, data, 0, data.length);
-        return new Matrix(data, (int) res[0], (int) res[1]);
+        return new VolatileMatrix(data, (int) res[0], (int) res[1]);
     }
 
-    public static Matrix createIdentity(int rows, int columns) {
-        Matrix ret = new Matrix(null, rows, columns);
+    public static VolatileMatrix createIdentity(int rows, int columns) {
+        VolatileMatrix ret = new VolatileMatrix(null, rows, columns);
         int width = Math.min(rows, columns);
         for (int i = 0; i < width; i++) {
             ret.set(i, i, 1);
@@ -309,7 +323,7 @@ public class Matrix {
         return ret;
     }
 
-    public static double compareMatrix(Matrix matA, Matrix matB) {
+    public static double compareMatrix(VolatileMatrix matA, VolatileMatrix matB) {
         double err = 0;
 
         for (int i = 0; i < matA.rows(); i++) {
@@ -328,24 +342,21 @@ public class Matrix {
     /**
      * @ignore ts
      */
-    public static Matrix loadFromCsv(String csvfile){
+    public static Matrix loadFromCsv(String csvfile) {
         try {
             BufferedReader br = new BufferedReader(new FileReader(csvfile));
             String line;
             String[] data;
-            int row=0;
-            int column=0;
+            int row = 0;
+            int column = 0;
 
             while ((line = br.readLine()) != null) {
                 data = line.split(",");
-                column=data.length;
+                column = data.length;
                 row++;
             }
-
-            Matrix X = new Matrix(null, row, column);
-
+            Matrix X = new VolatileMatrix(null, row, column);
             int i = 0;
-
             br = new BufferedReader(new FileReader(csvfile));
             while ((line = br.readLine()) != null) {
                 line = line.replace('"', ' ');
@@ -359,8 +370,7 @@ public class Matrix {
                 i++;
             }
             return X;
-        }
-        catch (Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return null;
@@ -383,10 +393,24 @@ public class Matrix {
     }
 
     public static Matrix identity(int rows, int columns) {
-        Matrix res = new Matrix(null, rows, columns);
+        Matrix res = new VolatileMatrix(null, rows, columns);
         for (int i = 0; i < Math.max(rows, columns); i++) {
             res.set(i, i, 1.0);
         }
         return res;
     }
+
+    public static Matrix empty(int rows, int columns) {
+        return new VolatileMatrix(null, rows, columns);
+    }
+
+    public static Matrix wrap(double[] data, int rows, int columns) {
+        return new VolatileMatrix(data, rows, columns);
+    }
+
+    public static Matrix cloneFrom(Matrix origin) {
+        //TODO checj according to .data() clone
+        return new VolatileMatrix(origin.data(), origin.rows(), origin.columns());
+    }
+
 }

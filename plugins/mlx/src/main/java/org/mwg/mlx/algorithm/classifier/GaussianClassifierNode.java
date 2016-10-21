@@ -4,7 +4,7 @@ import org.mwg.Constants;
 import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.ml.ClassificationNode;
-import org.mwg.ml.common.matrix.Matrix;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.operation.MultivariateNormalDistribution;
 import org.mwg.mlx.algorithm.AbstractGaussianClassifierNode;
 import org.mwg.plugin.NodeState;
@@ -131,7 +131,7 @@ public class GaussianClassifierNode extends AbstractGaussianClassifierNode imple
                     means[i] = means[i] / total;
                 }
                 double sumSquares[] = (double[])state.getFromKey(INTERNAL_SUMSQUARE_KEY_PREFIX + classNum);
-                Matrix cov =
+                VolatileMatrix cov =
                         MultivariateNormalDistribution.getCovariance(sums, sumSquares, total);
                 result += classNum + ": mean = ["; //TODO For now - cannot report variance from distribution
                 for (int i = 0; i < means.length; i++) {

@@ -7,7 +7,6 @@ import org.mwg.struct.Buffer;
 import org.mwg.struct.Matrix;
 import org.mwg.utility.Base64;
 
-@SuppressWarnings("Duplicates")
 class OffHeapMatrix implements Matrix {
 
     private static final int INDEX_ROWS = 0;
@@ -77,6 +76,23 @@ class OffHeapMatrix implements Matrix {
     }
 
     @Override
+    public Matrix fillWith(double[] values) {
+        chunk.lock();
+        try {
+            final long addr = chunk.addrByIndex(index);
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                for (int i = 0; i < values.length; i++) {
+                    OffHeapDoubleArray.set(addr, INDEX_OFFSET + i, values[i]);
+                }
+                chunk.declareDirty();
+            }
+        } finally {
+            chunk.unlock();
+        }
+        return this;
+    }
+
+    @Override
     public final int rows() {
         chunk.lock();
         int result = 0;
@@ -88,7 +104,7 @@ class OffHeapMatrix implements Matrix {
         } finally {
             chunk.unlock();
         }
-        return (int) result;
+        return result;
     }
 
     @Override
@@ -103,7 +119,7 @@ class OffHeapMatrix implements Matrix {
         } finally {
             chunk.unlock();
         }
-        return (int) result;
+        return result;
     }
 
     @Override
@@ -138,6 +154,23 @@ class OffHeapMatrix implements Matrix {
     }
 
     @Override
+    public Matrix add(int rowIndex, int columnIndex, double value) {
+        chunk.lock();
+        try {
+            final long addr = chunk.addrByIndex(index);
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                final int nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
+                final int raw_index = INDEX_OFFSET + rowIndex + columnIndex * nbRows;
+                final double previous = OffHeapDoubleArray.get(addr, raw_index);
+                OffHeapDoubleArray.set(addr, raw_index, value + previous);
+            }
+        } finally {
+            chunk.unlock();
+        }
+        return this;
+    }
+
+    @Override
     public double[] data() {
         chunk.lock();
         double[] flat;
@@ -158,6 +191,52 @@ class OffHeapMatrix implements Matrix {
             chunk.unlock();
         }
         return flat;
+    }
+
+    @Override
+    public int leadingDimension() {
+        chunk.lock();
+        int result = 0;
+        try {
+            final long addr = chunk.addrByIndex(index);
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                final int nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
+                final int nbColumns = (int) OffHeapDoubleArray.get(addr, INDEX_COLUMNS);
+                result = Math.max(nbRows, nbColumns);
+            }
+        } finally {
+            chunk.unlock();
+        }
+        return result;
+    }
+
+    @Override
+    public double unsafeGet(int indexValue) {
+        chunk.lock();
+        double result = 0;
+        try {
+            final long addr = chunk.addrByIndex(index);
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                result = OffHeapDoubleArray.get(addr, INDEX_OFFSET + indexValue);
+            }
+        } finally {
+            chunk.unlock();
+        }
+        return result;
+    }
+
+    @Override
+    public Matrix unsafeSet(int indexValue, double value) {
+        chunk.lock();
+        try {
+            final long addr = chunk.addrByIndex(index);
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                OffHeapDoubleArray.set(addr, INDEX_OFFSET + indexValue, value);
+            }
+        } finally {
+            chunk.unlock();
+        }
+        return this;
     }
 
     /*

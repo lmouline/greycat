@@ -5,13 +5,13 @@ import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.ml.AbstractMLNode;
 import org.mwg.ml.ProfilingNode;
-import org.mwg.ml.common.matrix.Matrix;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.operation.MultivariateNormalDistribution;
 import org.mwg.plugin.NodeState;
+import org.mwg.struct.Matrix;
 
 
 public class GaussianNode extends AbstractMLNode implements ProfilingNode {
-
 
     //Getters and setters
     public final static String NAME = "GaussianNode";
@@ -249,7 +249,7 @@ public class GaussianNode extends AbstractMLNode implements ProfilingNode {
         }
     }
 
-    public double getExponent(double[] featArray){
+    public double getExponent(double[] featArray) {
         double[] sum = (double[]) super.get(INTERNAL_SUM_KEY);
         double[] sumsquares = (double[]) super.get(INTERNAL_SUMSQUARE_KEY);
         MultivariateNormalDistribution mnd = MultivariateNormalDistribution.getDistribution(sum, sumsquares, getTotal(), false);
@@ -375,7 +375,7 @@ public class GaussianNode extends AbstractMLNode implements ProfilingNode {
                     }
                 }
             }
-            return new Matrix(covariances, features, features);
+            return VolatileMatrix.wrap(covariances, features, features);
         } else {
             return null;
         }

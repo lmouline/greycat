@@ -53,6 +53,23 @@ class HeapMatrix implements Matrix {
     }
 
     @Override
+    public Matrix fillWith(double[] values) {
+        synchronized (parent) {
+            if (backend != null) {
+                if (!aligned) {
+                    double[] next_backend = new double[backend.length];
+                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                    backend = next_backend;
+                    aligned = true;
+                }
+                System.arraycopy(values, 0, backend, INDEX_OFFSET, values.length);
+                parent.declareDirty();
+            }
+        }
+        return this;
+    }
+
+    @Override
     public final int rows() {
         int result = 0;
         synchronized (parent) {
@@ -105,6 +122,24 @@ class HeapMatrix implements Matrix {
     }
 
     @Override
+    public Matrix add(int rowIndex, int columnIndex, double value) {
+        synchronized (parent) {
+            if (backend != null) {
+                if (!aligned) {
+                    double[] next_backend = new double[backend.length];
+                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                    backend = next_backend;
+                    aligned = true;
+                }
+                final int nbRows = (int) backend[INDEX_ROWS];
+                backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+                parent.declareDirty();
+            }
+        }
+        return this;
+    }
+
+    @Override
     public final double[] data() {
         double[] copy = null;
         synchronized (parent) {
@@ -114,6 +149,42 @@ class HeapMatrix implements Matrix {
             }
         }
         return copy;
+    }
+
+    @Override
+    public int leadingDimension() {
+        if (backend == null) {
+            return 0;
+        }
+        return (int) Math.max(backend[INDEX_COLUMNS], backend[INDEX_ROWS]);
+    }
+
+    @Override
+    public double unsafeGet(int index) {
+        double result = 0;
+        synchronized (parent) {
+            if (backend != null) {
+                result = backend[INDEX_OFFSET + index];
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public Matrix unsafeSet(int index, double value) {
+        synchronized (parent) {
+            if (backend != null) {
+                if (!aligned) {
+                    double[] next_backend = new double[backend.length];
+                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                    backend = next_backend;
+                    aligned = true;
+                }
+                backend[INDEX_OFFSET + index] = value;
+                parent.declareDirty();
+            }
+        }
+        return this;
     }
 
     double[] unsafe_data() {
@@ -130,6 +201,5 @@ class HeapMatrix implements Matrix {
     void unsafe_set(long index, double value) {
         backend[(int) index] = value;
     }
-
 
 }

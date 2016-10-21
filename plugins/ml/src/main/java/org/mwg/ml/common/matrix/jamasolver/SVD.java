@@ -1,8 +1,8 @@
 package org.mwg.ml.common.matrix.jamasolver;
 
-
-import org.mwg.ml.common.matrix.Matrix;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.SVDDecompose;
+import org.mwg.struct.Matrix;
 
 /**
  * Singular Value Decomposition.
@@ -25,20 +25,26 @@ class SVD implements SVDDecompose {
    Class variables
  * ------------------------ */
 
-    /** Arrays for internal storage of U and V.
-     @serial internal storage of U.
-     @serial internal storage of V.
+    /**
+     * Arrays for internal storage of U and V.
+     *
+     * @serial internal storage of U.
+     * @serial internal storage of V.
      */
     private Matrix U, V;
 
-    /** Array for internal storage of singular values.
-     @serial internal storage of singular values.
+    /**
+     * Array for internal storage of singular values.
+     *
+     * @serial internal storage of singular values.
      */
     private double[] s;
 
-    /** Row and column dimensions.
-     @serial row dimension.
-     @serial column dimension.
+    /**
+     * Row and column dimensions.
+     *
+     * @serial row dimension.
+     * @serial column dimension.
      */
     private int m, n;
 
@@ -46,16 +52,18 @@ class SVD implements SVDDecompose {
    Constructor
  * ------------------------ */
 
-    /** Construct the singular value decomposition
-     Structure to access U, S and V.
-     @param Arg    Rectangular matrix
+    /**
+     * Construct the singular value decomposition
+     * Structure to access U, S and V.
+     *
+     * @param Arg Rectangular matrix
      */
 
     public SVD(Matrix Arg) {
 
         // Derived from LINPACK code.
         // Initialize.
-        Matrix A = Arg.clone();
+        Matrix A = VolatileMatrix.cloneFrom(Arg);
         m = Arg.rows();
         n = Arg.columns();
 
@@ -66,13 +74,12 @@ class SVD implements SVDDecompose {
       */
         int nu = Math.min(m, n);
         s = new double[Math.min(m + 1, n)];
-        U = new Matrix(null, m, nu);
-        V = new Matrix(null, n, n);
+        U = VolatileMatrix.empty(m, nu);
+        V = VolatileMatrix.empty(n, n);
         double[] e = new double[n];
         double[] work = new double[m];
         boolean wantu = true;
         boolean wantv = true;
-
         // Reduce A to bidiagonal form, storing the diagonal elements
         // in s and the super-diagonal elements in e.
 
@@ -428,13 +435,9 @@ class SVD implements SVDDecompose {
                     iter = iter + 1;
                 }
                 break;
-
                 // Convergence.
-
                 case 4: {
-
                     // Make the singular values positive.
-
                     if (s[k] <= 0.0) {
                         s[k] = (s[k] < 0.0 ? -s[k] : 0.0);
                         if (wantv) {
@@ -443,9 +446,7 @@ class SVD implements SVDDecompose {
                             }
                         }
                     }
-
                     // Order the singular values.
-
                     while (k < pp) {
                         if (s[k] >= s[k + 1]) {
                             break;
@@ -486,8 +487,10 @@ class SVD implements SVDDecompose {
         return new SVD(A);
     }
 
-    /** Return the left singular vectors
-     @return U
+    /**
+     * Return the left singular vectors
+     *
+     * @return U
      */
 
     @Override
@@ -497,34 +500,40 @@ class SVD implements SVDDecompose {
 
     @Override
     public Matrix getVt() {
-        return Matrix.transpose(getV());
+        return VolatileMatrix.transpose(getV());
     }
 
-    /** Return the right singular vectors
-     @return V
+    /**
+     * Return the right singular vectors
+     *
+     * @return V
      */
 
     public Matrix getV() {
         return V;
     }
 
-    /** Return the one-dimensional array of singular values
-     @return diagonal of S.
+    /**
+     * Return the one-dimensional array of singular values
+     *
+     * @return diagonal of S.
      */
 
     public double[] getSingularValues() {
         return s;
     }
 
-    /** Return the diagonal matrix of singular values
-     @return S
+    /**
+     * Return the diagonal matrix of singular values
+     *
+     * @return S
      */
 
     @Override
     public Matrix getSMatrix() {
-        Matrix X = new Matrix(null, Math.min(m,n), n);
+        Matrix X = VolatileMatrix.empty(Math.min(m, n), n);
         for (int i = 0; i < this.s.length; i++) {
-            if(i<m&&i<n) {
+            if (i < m && i < n) {
                 X.set(i, i, this.s[i]);
             }
         }
@@ -536,24 +545,30 @@ class SVD implements SVDDecompose {
         return s;
     }
 
-    /** Two norm
-     @return max(S)
+    /**
+     * Two norm
+     *
+     * @return max(S)
      */
 
     public double norm2() {
         return s[0];
     }
 
-    /** Two norm condition number
-     @return max(S)/min(S)
+    /**
+     * Two norm condition number
+     *
+     * @return max(S)/min(S)
      */
 
     public double cond() {
         return s[0] / s[Math.min(m, n) - 1];
     }
 
-    /** Effective numerical matrix rank
-     @return Number of nonnegligible singular values.
+    /**
+     * Effective numerical matrix rank
+     *
+     * @return Number of nonnegligible singular values.
      */
 
     public int rank() {
@@ -567,6 +582,4 @@ class SVD implements SVDDecompose {
         }
         return r;
     }
-
-    private static final long serialVersionUID = 1;
 }

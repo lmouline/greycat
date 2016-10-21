@@ -1,9 +1,10 @@
 package org.mwg.ml.common.matrix.blassolver;
 
 
-import org.mwg.ml.common.matrix.Matrix;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.TransposeType;
 import org.mwg.ml.common.matrix.blassolver.blas.Blas;
+import org.mwg.struct.Matrix;
 
 class LU {
 
@@ -35,7 +36,7 @@ class LU {
      */
     public LU(int m, int n, Blas blas) {
         this._blas = blas;
-        LU = new Matrix(null, m, n);
+        LU = VolatileMatrix.empty(m, n);
         piv = new int[Math.min(m, n)];
     }
 
@@ -68,12 +69,11 @@ class LU {
             else if (info[0] < 0)
                 throw new RuntimeException();
 
-            LU.setData(A.data());
+            LU.fillWith(A.data());
             return this;
         } else {
             singular = false;
-            Matrix B = A.clone();
-
+            Matrix B = VolatileMatrix.cloneFrom(A);
             int[] info = new int[1];
             info[0] = 0;
             _blas.dgetrf(B.rows(), B.columns(), B.data(), 0, B.rows(), piv, 0, info);
@@ -83,27 +83,21 @@ class LU {
             else if (info[0] < 0)
                 throw new RuntimeException();
 
-            LU.setData(B.data());
+            LU.fillWith(B.data());
             return this;
         }
-
     }
-
 
     public Matrix getL() {
         int numRows = LU.rows();
         int numCols = LU.rows() < LU.columns() ? LU.rows() : LU.columns();
-        Matrix lower = new Matrix(null, numRows, numCols);
-
-
+        Matrix lower = VolatileMatrix.empty(numRows, numCols);
         for (int i = 0; i < numCols; i++) {
             lower.set(i, i, 1.0);
-
             for (int j = 0; j < i; j++) {
                 lower.set(i, j, LU.get(i, j));
             }
         }
-
         if (numRows > numCols) {
             for (int i = numCols; i < numRows; i++) {
                 for (int j = 0; j < numCols; j++) {
@@ -122,16 +116,12 @@ class LU {
     public Matrix getU() {
         int numRows = LU.rows() < LU.columns() ? LU.rows() : LU.columns();
         int numCols = LU.columns();
-
-        Matrix upper = new Matrix(null, numRows, numCols);
-
-
+        Matrix upper = VolatileMatrix.empty(numRows, numCols);
         for (int i = 0; i < numRows; i++) {
             for (int j = i; j < numCols; j++) {
                 upper.set(i, j, LU.get(i, j));
             }
         }
-
         return upper;
     }
 
@@ -156,7 +146,6 @@ class LU {
     public Matrix solve(Matrix B) {
         return transSolve(B, TransposeType.NOTRANSPOSE);
     }
-
 
     public Matrix transSolve(Matrix B, TransposeType trans) {
         /*
@@ -206,14 +195,12 @@ class LU {
         for (int i = 0; i < lwork; i++) {
             work[i] = 0;
         }
-
         _blas.dgetri(A.rows(), A.data(), 0, A.rows(), piv, 0, work, 0, lwork, info);
-
         if (info[0] != 0) {
             return false;
         } else {
             return true;
         }
-
     }
+
 }

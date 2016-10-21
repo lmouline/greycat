@@ -1,8 +1,9 @@
 package org.mwg.ml.common.matrix.blassolver;
 
-import org.mwg.ml.common.matrix.Matrix;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.SVDDecompose;
 import org.mwg.ml.common.matrix.blassolver.blas.Blas;
+import org.mwg.struct.Matrix;
 
 /**
  * Computes singular value decompositions
@@ -62,8 +63,8 @@ class SVD implements SVDDecompose {
         // Allocate space for the decomposition
         S = new double[Math.min(m, n)];
         if (vectors) {
-            U = new Matrix(null, m, m);
-            Vt = new Matrix(null, n, n);
+            U = VolatileMatrix.empty(m, m);
+            Vt = VolatileMatrix.empty(n, n);
         } else
             U = Vt = null;
 
@@ -121,16 +122,15 @@ class SVD implements SVDDecompose {
 
         int[] info = new int[1];
         info[0] = 0;
-        if(workInPlace) {
+        if (workInPlace) {
             _blas.dgesdd(job.netlib(), m, n, A.data(),
                     Math.max(1, m), S, vectors ? U.data() : new double[0],
                     Math.max(1, m), vectors ? Vt.data() : new double[0],
                     Math.max(1, n), work, work.length, iwork, info);
-        }
-        else {
+        } else {
             double[] Adata = A.data();
             double[] cloned = new double[Adata.length];
-            System.arraycopy(Adata,0,cloned,0,Adata.length);
+            System.arraycopy(Adata, 0, cloned, 0, Adata.length);
             _blas.dgesdd(job.netlib(), m, n, cloned,
                     Math.max(1, m), S, vectors ? U.data() : new double[0],
                     Math.max(1, m), vectors ? Vt.data() : new double[0],
@@ -186,7 +186,7 @@ class SVD implements SVDDecompose {
 
     @Override
     public Matrix getSMatrix() {
-        Matrix matS = new Matrix(null, m, n);
+        Matrix matS = VolatileMatrix.empty(m, n);
         for (int i = 0; i < S.length; i++) {
             matS.set(i, i, S[i]);
         }

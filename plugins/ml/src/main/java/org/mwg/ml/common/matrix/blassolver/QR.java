@@ -1,9 +1,10 @@
 package org.mwg.ml.common.matrix.blassolver;
 
 
-import org.mwg.ml.common.matrix.Matrix;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.TransposeType;
 import org.mwg.ml.common.matrix.blassolver.blas.Blas;
+import org.mwg.struct.Matrix;
 
 class QR {
 
@@ -45,8 +46,7 @@ class QR {
         this.n = columns;
         this.k = Math.min(m, n);
         tau = new double[k];
-        R = new Matrix(null, n, n);
-
+        R = VolatileMatrix.empty(n, n);
     }
 
     /**
@@ -62,38 +62,37 @@ class QR {
     public QR factor(Matrix matA, boolean workInPlace) {
         Matrix A;
         if (!workInPlace) {
-            A = matA.clone();
+            A = VolatileMatrix.cloneFrom(matA);
         } else {
             A = matA;
         }
-
         int lwork;
 
         // CoreQuery optimal workspace. First for computing the factorization
-            work = new double[1];
-            int[] info = new int[1];
-            info[0] = 0;
-            _blas.dgeqrf(m, n, new double[0], 0, m,
-                    new double[0], 0, work, 0, -1, info);
+        work = new double[1];
+        int[] info = new int[1];
+        info[0] = 0;
+        _blas.dgeqrf(m, n, new double[0], 0, m,
+                new double[0], 0, work, 0, -1, info);
 
-            if (info[0] != 0)
-                lwork = n;
-            else
-                lwork = (int) work[0];
-            lwork = Math.max(1, lwork);
-            work = new double[lwork];
+        if (info[0] != 0)
+            lwork = n;
+        else
+            lwork = (int) work[0];
+        lwork = Math.max(1, lwork);
+        work = new double[lwork];
 
         // Workspace needed for generating an explicit orthogonal matrix
-            workGen = new double[1];
-            info[0] = 0;
-            _blas.dorgqr(m, n, k, new double[0], 0, m, new double[0], 0, workGen, 0, -1, info);
+        workGen = new double[1];
+        info[0] = 0;
+        _blas.dorgqr(m, n, k, new double[0], 0, m, new double[0], 0, workGen, 0, -1, info);
 
-            if (info[0] != 0)
-                lwork = n;
-            else
-                lwork = (int) workGen[0];
-            lwork = Math.max(1, lwork);
-            workGen = new double[lwork];
+        if (info[0] != 0)
+            lwork = n;
+        else
+            lwork = (int) workGen[0];
+        lwork = Math.max(1, lwork);
+        workGen = new double[lwork];
 
         /*
          * Calculate factorisation, and extract the triangular factor
@@ -126,24 +125,23 @@ class QR {
 
     public void solve(Matrix B, Matrix X) {
         int BnumCols = B.columns();
-        Matrix Y = new Matrix(null, m, 1);
+        Matrix Y = VolatileMatrix.empty(m, 1);
         Matrix Z;
-
         // solve each column one by one
         for (int colB = 0; colB < BnumCols; colB++) {
             // make a copy of this column in the vector
             for (int i = 0; i < m; i++) {
-                Y.setAtIndex(i, B.get(i, colB));
+                Y.unsafeSet(i, B.get(i, colB));
             }
             // Solve Qa=b
             // a = Q'b
-            Z = Matrix.multiplyTranspose(TransposeType.TRANSPOSE, Q, TransposeType.NOTRANSPOSE, Y);
+            Z = VolatileMatrix.multiplyTranspose(TransposeType.TRANSPOSE, Q, TransposeType.NOTRANSPOSE, Y);
 
             // solve for Rx = b using the standard upper triangular blassolver
             solveU(R, Z.data(), n, m);
             // save the results
             for (int i = 0; i < n; i++) {
-                X.set(i, colB, Z.getAtIndex(i));
+                X.set(i, colB, Z.unsafeGet(i));
             }
         }
     }
@@ -157,7 +155,6 @@ class QR {
             b[i] = sum / U.get(i, i);
         }
     }
-
 
     /**
      * Returns the upper triangular factor

@@ -3,7 +3,7 @@ package org.mwg.ml;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.ml.common.NDimentionalArray;
-import org.mwg.ml.common.matrix.Matrix;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 
 /**
  * @ignore ts
@@ -59,7 +59,7 @@ public class NDArrayTest {
                     Assert.assertTrue(k == posF);
 
                     double[] temps=array.revertFlatIndex(k);
-                    Assert.assertTrue(Matrix.compare(vals,temps,1e-6));
+                    Assert.assertTrue(VolatileMatrix.compare(vals,temps,1e-6));
 
                     k++;
 

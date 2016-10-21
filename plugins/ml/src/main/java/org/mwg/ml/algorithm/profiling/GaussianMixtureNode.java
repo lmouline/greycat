@@ -7,8 +7,9 @@ import org.mwg.Type;
 import org.mwg.ml.AbstractMLNode;
 import org.mwg.ml.ProfilingNode;
 import org.mwg.ml.common.NDimentionalArray;
-import org.mwg.ml.common.matrix.Matrix;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.operation.MultivariateNormalDistribution;
+import org.mwg.struct.Matrix;
 import org.mwg.struct.Relationship;
 import org.mwg.utility.Enforcer;
 import org.mwg.plugin.NodeState;
@@ -455,7 +456,7 @@ public class GaussianMixtureNode extends AbstractMLNode implements ProfilingNode
             @Override
             public void on(TaskResult result) {
 
-                Matrix covBackup = new Matrix(null, nbfeature, nbfeature);
+                Matrix covBackup = VolatileMatrix.empty(nbfeature, nbfeature);
                 for (int i = 0; i < nbfeature; i++) {
                     covBackup.set(i, i, err[i]);
                 }
@@ -515,7 +516,7 @@ public class GaussianMixtureNode extends AbstractMLNode implements ProfilingNode
             @Override
             public void eval(TaskContext context) {
                 TaskResult<Node> leaves = context.resultAsNodes();   // to check
-                Matrix covBackup = new Matrix(null, nbfeature, nbfeature);
+                Matrix covBackup = VolatileMatrix.empty(nbfeature, nbfeature);
                 for (int i = 0; i < nbfeature; i++) {
                     covBackup.set(i, i, err[i]);
                 }
@@ -823,7 +824,7 @@ public class GaussianMixtureNode extends AbstractMLNode implements ProfilingNode
                     }
                 }
             }
-            return new Matrix(covariances, features, features);
+            return VolatileMatrix.wrap(covariances, features, features);
         } else {
             return null;
         }

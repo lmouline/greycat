@@ -1,13 +1,12 @@
 package org.mwg.ml.common.matrix.operation;
 
 
-import org.mwg.ml.common.matrix.Matrix;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.TransposeType;
+import org.mwg.struct.Matrix;
 
-/**
- * Created by assaad on 16/12/15.
- */
 public class PolynomialFit {
+
     private Matrix coef;
     private int degree = 0;
 
@@ -20,11 +19,8 @@ public class PolynomialFit {
     }
 
     public void fit(double samplePoints[], double[] observations) {
-
-        Matrix y = new Matrix(observations, observations.length, 1);
-
-        Matrix a = new Matrix(null, y.rows(), degree + 1);
-
+        Matrix y = VolatileMatrix.wrap(observations, observations.length, 1);
+        Matrix a = VolatileMatrix.empty(y.rows(), degree + 1);
         // cset up the A matrix
         for (int i = 0; i < observations.length; i++) {
             double obs = 1;
@@ -34,10 +30,7 @@ public class PolynomialFit {
             }
         }
         // processValues the A matrix and see if it failed
-
-        coef = Matrix.defaultEngine().solveQR(a, y, true, TransposeType.NOTRANSPOSE);
-
-
+        coef = VolatileMatrix.defaultEngine().solveQR(a, y, true, TransposeType.NOTRANSPOSE);
     }
 
     public static double extrapolate(double time, double[] weights) {

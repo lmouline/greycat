@@ -6,6 +6,8 @@ public interface Matrix {
 
     Matrix fill(double value);
 
+    Matrix fillWith(double[] values);
+
     int rows();
 
     int columns();
@@ -14,6 +16,14 @@ public interface Matrix {
 
     Matrix set(int rowIndex, int columnIndex, double value);
 
+    Matrix add(int rowIndex, int columnIndex, double value);
+
     double[] data();
+
+    int leadingDimension();
+
+    double unsafeGet(int index);
+
+    Matrix unsafeSet(int index, double value);
 
 }

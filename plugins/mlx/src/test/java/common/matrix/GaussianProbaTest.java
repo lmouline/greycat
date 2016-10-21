@@ -9,7 +9,7 @@ import org.mwg.GraphBuilder;
 import org.mwg.Node;
 import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.ml.algorithm.profiling.GaussianMixtureNode;
-import org.mwg.ml.common.matrix.Matrix;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.operation.Gaussian1D;
 import org.mwg.mlx.MLXPlugin;
 
@@ -59,7 +59,7 @@ public class GaussianProbaTest {
                     @Override
                     public void on(GaussianMixtureNode result) {
                         double[] avgBatch = result.getAvg();
-                        Matrix covBatch = result.getCovariance(avgBatch,null);
+                        VolatileMatrix covBatch = result.getCovariance(avgBatch,null);
 
                         //System.out.println("Avg: " + avgBatch[0] + " " + sum / total);
                         //System.out.println("Var: " + covBatch[0][0] + " " + Gaussian1D.getCovariance(sum, sumsquare, total));
@@ -114,7 +114,7 @@ public class GaussianProbaTest {
                 }
 
                 double[] ravg = gaussianNodeLive.getAvg();
-                Matrix rcovData = gaussianNodeLive.getCovariance(ravg,null);
+                VolatileMatrix rcovData = gaussianNodeLive.getCovariance(ravg,null);
 
 
                 double[][] temp=new double[rcovData.rows()][];

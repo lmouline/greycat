@@ -1,8 +1,8 @@
 package org.mwg.ml.preprocessing;
 
 import org.mwg.ml.algorithm.preprocessing.PCA;
-import org.mwg.ml.common.matrix.Matrix;
-import org.mwg.ml.common.matrix.jamasolver.JamaMatrixEngine;
+import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.struct.Matrix;
 
 import java.util.Random;
 
@@ -32,7 +32,7 @@ public class TestPCA {
 
         int dim = 10;                  // Total dimensions in the data
         int realdim = 3;               // Actual real dimensions in the data, the rest are linear correlation plus some noise
-        double randomness =0.1;       // Strength of the noise from 0 to 1 on the non real dimensions. if randomness ->1 they become somehow real dimension
+        double randomness = 0.1;       // Strength of the noise from 0 to 1 on the non real dimensions. if randomness ->1 they become somehow real dimension
 
 
         int len = dim * 100;  //Number of data point to generate
@@ -40,9 +40,8 @@ public class TestPCA {
 
         Random random = new Random();
 //        Matrix.setDefaultEngine(new JamaMatrixEngine());
-        Matrix.defaultEngine();
-
-        Matrix trainingData = new Matrix(null, len, dim);
+        VolatileMatrix.defaultEngine();
+        Matrix trainingData = VolatileMatrix.empty(len, dim);
 
         for (int i = 0; i < len; i++) {
             for (int j = 0; j < dim; j++) {
@@ -52,7 +51,7 @@ public class TestPCA {
 
         for (int i = 0; i < len; i++) {
             for (int j = realdim; j < dim; j++) {
-                trainingData.set(i, j,  trainingData.get(i,0)*(1-randomness)+ random.nextDouble() * randomness * maxsignal);
+                trainingData.set(i, j, trainingData.get(i, 0) * (1 - randomness) + random.nextDouble() * randomness * maxsignal);
             }
         }
 
@@ -70,11 +69,9 @@ public class TestPCA {
         PCA pca = new PCA(trainingData, PCA.NORMALIZE);
 
 
-
-
         long endtime = System.currentTimeMillis();
         double d = endtime - starttime;
-        System.out.println("Analysis took " + d + " ms for a matrix of size: "+trainingData.rows()+"x"+trainingData.columns());
+        System.out.println("Analysis took " + d + " ms for a matrix of size: " + trainingData.rows() + "x" + trainingData.columns());
 
         pca.setDimension(4);
 

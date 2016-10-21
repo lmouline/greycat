@@ -1,7 +1,10 @@
 package org.mwg.ml.common.matrix;
 
+import org.mwg.struct.Matrix;
+
 public interface MatrixEngine {
-    Matrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, Matrix matA, TransposeType transB,  Matrix matB, double beta, Matrix matC);
+
+    Matrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, Matrix matA, TransposeType transB, Matrix matB, double beta, Matrix matC);
 
     Matrix invert(Matrix mat, boolean invertInPlace);
 
@@ -14,5 +17,6 @@ public interface MatrixEngine {
 
     SVDDecompose decomposeSVD(Matrix matA, boolean workInPlace);
 
-    Matrix solve (Matrix A, Matrix B);
+    Matrix solve(Matrix A, Matrix B);
+
 }
