@@ -30,15 +30,15 @@ public abstract class AbstractTimeTreeTest {
         tree.insert(11L);
         tree.insert(13L);
 
-        Assert.assertEquals(tree.next(-1), Constants.NULL_LONG);
-        Assert.assertEquals(tree.next(0), 1L);
-        Assert.assertEquals(tree.next(1), 2L);
-        Assert.assertEquals(tree.next(7), 8L);
-        Assert.assertEquals(tree.next(8), 10L);
-        Assert.assertEquals(tree.next(9), 10L);
-        Assert.assertEquals(tree.next(10), 11L);
-        Assert.assertEquals(tree.next(13), Constants.NULL_LONG);
-        Assert.assertEquals(tree.next(14), Constants.NULL_LONG);
+        Assert.assertEquals(tree.previous(-1), Constants.NULL_LONG);
+        Assert.assertEquals(tree.previous(0), Constants.NULL_LONG);
+        Assert.assertEquals(tree.previous(1), 0L);
+        Assert.assertEquals(tree.previous(7), 6L);
+        Assert.assertEquals(tree.previous(8), 6L);
+        Assert.assertEquals(tree.previous(9), 8L);
+        Assert.assertEquals(tree.previous(10), 8L);
+        Assert.assertEquals(tree.previous(13), 11L);
+        Assert.assertEquals(tree.previous(14), 13L);
 
         space.free(tree);
         space.freeAll();
