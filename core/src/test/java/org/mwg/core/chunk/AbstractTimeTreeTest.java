@@ -19,6 +19,32 @@ public abstract class AbstractTimeTreeTest {
     }
 
     @Test
+    public void nextTest() {
+        ChunkSpace space = factory.newSpace(100, null);
+        TimeTreeChunk tree = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
+        for (long i = 0; i <= 6; i++) {
+            tree.insert(i);
+        }
+        tree.insert(8L);
+        tree.insert(10L);
+        tree.insert(11L);
+        tree.insert(13L);
+
+        Assert.assertEquals(tree.next(-1), Constants.NULL_LONG);
+        Assert.assertEquals(tree.next(0), 1L);
+        Assert.assertEquals(tree.next(1), 2L);
+        Assert.assertEquals(tree.next(7), 8L);
+        Assert.assertEquals(tree.next(8), 10L);
+        Assert.assertEquals(tree.next(9), 10L);
+        Assert.assertEquals(tree.next(10), 11L);
+        Assert.assertEquals(tree.next(13), Constants.NULL_LONG);
+        Assert.assertEquals(tree.next(14), Constants.NULL_LONG);
+
+        space.free(tree);
+        space.freeAll();
+    }
+
+    @Test
     public void previousOrEqualsTest() {
         ChunkSpace space = factory.newSpace(100, null);
         TimeTreeChunk tree = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);

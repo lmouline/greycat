@@ -211,11 +211,11 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public long next(long key) {
+        long resultKey;
         space.lockByIndex(index);
         try {
             final long addr = space.addrByIndex(index);
-            long resultKey;
-            long result = internal_previous_index(addr, key);
+            long result = internal_previousOrEqual_index(addr, key);
             if (result != -1) {
                 result = internal_next_index(addr, result);
             }
@@ -224,10 +224,10 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             } else {
                 resultKey = Constants.NULL_LONG;
             }
-            return resultKey;
         } finally {
             space.unlockByIndex(index);
         }
+        return resultKey;
     }
 
     @Override
@@ -558,10 +558,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private static long internal_next_index(final long addr, final long p_key) {
-        long p = OffHeapLongArray.get(addr, HEAD);
-        if (p == -1) {
-            return p;
-        }
+        long p = p_key;
         if (right(addr, p) != -1) {
             p = right(addr, p);
             while (left(addr, p) != -1) {
