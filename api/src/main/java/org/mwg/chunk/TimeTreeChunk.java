@@ -16,4 +16,8 @@ public interface TimeTreeChunk extends Chunk {
 
     long size();
 
+    long previous(long key);
+
+    long next(long key);
+
 }

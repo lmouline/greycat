@@ -192,6 +192,45 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @Override
+    public final long previous(long key) {
+        space.lockByIndex(index);
+        try {
+            final long addr = space.addrByIndex(index);
+            long resultKey;
+            final long result = internal_previous_index(addr, key);
+            if (result != -1) {
+                resultKey = key(addr, result);
+            } else {
+                resultKey = Constants.NULL_LONG;
+            }
+            return resultKey;
+        } finally {
+            space.unlockByIndex(index);
+        }
+    }
+
+    @Override
+    public long next(long key) {
+        space.lockByIndex(index);
+        try {
+            final long addr = space.addrByIndex(index);
+            long resultKey;
+            long result = internal_previous_index(addr, key);
+            if (result != -1) {
+                result = internal_next_index(addr, result);
+            }
+            if (result != -1) {
+                resultKey = key(addr, result);
+            } else {
+                resultKey = Constants.NULL_LONG;
+            }
+            return resultKey;
+        } finally {
+            space.unlockByIndex(index);
+        }
+    }
+
+    @Override
     public final void insert(final long insertKey) {
         space.lockByIndex(index);
         try {
@@ -246,7 +285,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     private long reallocate(final long addr, final long previousCapacity, final long newCapacity) {
         if (previousCapacity < newCapacity) {
             final long new_addr = OffHeapLongArray.reallocate(addr, OFFSET + (newCapacity * ELEM_SIZE));
-            OffHeapLongArray.set(new_addr,CAPACITY,newCapacity);
+            OffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
             space.setAddrByIndex(index, new_addr);
             return new_addr;
         } else {
@@ -457,6 +496,35 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         }
     }
 
+    private static long internal_previous_index(final long addr, final long p_key) {
+        long p = OffHeapLongArray.get(addr, HEAD);
+        if (p == -1) {
+            return p;
+        }
+        while (p != -1) {
+            if (p_key > key(addr, p)) {
+                if (right(addr, p) != -1) {
+                    p = right(addr, p);
+                } else {
+                    return p;
+                }
+            } else {
+                if (left(addr, p) != -1) {
+                    p = left(addr, p);
+                } else {
+                    long parent = parent(addr, p);
+                    long ch = p;
+                    while (parent != -1 && ch == left(addr, parent)) {
+                        ch = parent;
+                        parent = parent(addr, parent);
+                    }
+                    return parent;
+                }
+            }
+        }
+        return -1;
+    }
+
     private static long internal_previousOrEqual_index(final long addr, final long p_key) {
         long p = OffHeapLongArray.get(addr, HEAD);
         if (p == -1) {
@@ -487,6 +555,33 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             }
         }
         return -1;
+    }
+
+    private static long internal_next_index(final long addr, final long p_key) {
+        long p = OffHeapLongArray.get(addr, HEAD);
+        if (p == -1) {
+            return p;
+        }
+        if (right(addr, p) != -1) {
+            p = right(addr, p);
+            while (left(addr, p) != -1) {
+                p = left(addr, p);
+            }
+            return p;
+        } else {
+            if (parent(addr, p) != -1) {
+                if (p == left(addr, parent(addr, p))) {
+                    return parent(addr, p);
+                } else {
+                    while (parent(addr, p) != -1 && p == right(addr, parent(addr, p))) {
+                        p = parent(addr, p);
+                    }
+                    return parent(addr, p);
+                }
+            } else {
+                return -1;
+            }
+        }
     }
 
     private boolean internal_insert(long addr, final long insertLey) {

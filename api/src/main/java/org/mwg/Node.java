@@ -261,4 +261,13 @@ public interface Node {
      */
     <A extends Node> void jump(long targetTime, Callback<A> callback);
 
+    /*
+    long initialTime();
+
+    long lastTime();
+
+    long previousTime();
+
+    long nextTime();
+*/
 }

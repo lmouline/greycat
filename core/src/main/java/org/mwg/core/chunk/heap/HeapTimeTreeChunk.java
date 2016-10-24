@@ -61,7 +61,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         while (indexEnd != -1 && key(indexEnd) >= startKey && nbElements < maxElements) {
             walker.elem(key(indexEnd));
             nbElements++;
-            indexEnd = previous(indexEnd);
+            indexEnd = internal_previous(indexEnd);
         }
     }
 
@@ -120,8 +120,36 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @Override
-    public synchronized final long previousOrEqual(long key) {
+    public synchronized long previous(long key) {
         //lock and load fromVar main memory
+        long resultKey;
+        int result = internal_previous_index(key);
+
+        if (result != -1) {
+            resultKey = key(result);
+        } else {
+            resultKey = CoreConstants.NULL_LONG;
+        }
+        return resultKey;
+    }
+
+    @Override
+    public synchronized long next(long key) {
+        long resultKey;
+        int result = internal_previousOrEqual_index(key);
+        if (result != -1) {
+            result = internal_next(result);
+        }
+        if (result != -1) {
+            resultKey = key(result);
+        } else {
+            resultKey = CoreConstants.NULL_LONG;
+        }
+        return resultKey;
+    }
+
+    @Override
+    public synchronized final long previousOrEqual(long key) {
         long resultKey;
         int result = internal_previousOrEqual_index(key);
 
@@ -297,7 +325,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         }
     }
 
-    private int previous(int p_index) {
+    private int internal_previous(int p_index) {
         int p = p_index;
         if (left(p) != -1) {
             p = left(p);
@@ -321,8 +349,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         }
     }
 
-    /*
-    private int next(int p_index) {
+    private int internal_next(int p_index) {
         int p = p_index;
         if (right(p) != -1) {
             p = right(p);
@@ -347,6 +374,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         }
     }
 
+    /*
     private long lookup(long p_key) {
         int n = _root;
         if (n == -1) {
@@ -377,6 +405,35 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             if (p_key == key(p)) {
                 return p;
             }
+            if (p_key > key(p)) {
+                if (right(p) != -1) {
+                    p = right(p);
+                } else {
+                    return p;
+                }
+            } else {
+                if (left(p) != -1) {
+                    p = left(p);
+                } else {
+                    int parent = parent(p);
+                    long ch = p;
+                    while (parent != -1 && ch == left(parent)) {
+                        ch = parent;
+                        parent = parent(parent);
+                    }
+                    return parent;
+                }
+            }
+        }
+        return -1;
+    }
+
+    private int internal_previous_index(long p_key) {
+        int p = _root;
+        if (p == -1) {
+            return p;
+        }
+        while (p != -1) {
             if (p_key > key(p)) {
                 if (right(p) != -1) {
                     p = right(p);
