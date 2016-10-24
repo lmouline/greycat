@@ -17,6 +17,11 @@ public abstract class AbstractClassifierSlidingWindowManagingNode extends Abstra
         super(p_world, p_time, p_id, p_graph);
     }
 
+    /**
+     * @param state Node state to get/set value (e.g. model)
+     * @param value Input parameters
+     * @return Class value prediction for current model and specified input
+     */
     protected abstract int predictValue(NodeState state, double value[]);
 
     /**
@@ -33,6 +38,12 @@ public abstract class AbstractClassifierSlidingWindowManagingNode extends Abstra
         });
     }
 
+    /**
+     * @param state Node state to get/set properties (e.g. model)
+     * @param valueBuffer Input parameter values
+     * @param resultBuffer Expected class lables, corresponding to value buffer
+     * @return The number of classification error for current model, specified parameters and specified results
+     */
     protected int getBufferErrorCount(NodeState state, double valueBuffer[], int resultBuffer[]) {
         //For each value in value buffer
         int startIndex = 0;
@@ -63,6 +74,12 @@ public abstract class AbstractClassifierSlidingWindowManagingNode extends Abstra
      */
     public static final String KNOWN_CLASSES_LIST_KEY = "_knownClassesList";
 
+    /**
+     * Adds new class number to known clases list
+     *
+     * @param state Node state to get/set properties
+     * @param classLabel New class number
+     */
     protected void addToKnownClassesList(NodeState state, int classLabel) {
         int[] knownClasses = state.getFromKeyWithDefault(KNOWN_CLASSES_LIST_KEY, new int[0]);
         int[] newKnownClasses = new int[knownClasses.length + 1];
@@ -77,9 +94,10 @@ public abstract class AbstractClassifierSlidingWindowManagingNode extends Abstra
     }
 
     /**
-     * @param value
-     * @param classNum
-     * @return
+     * @param state Node state to get/set values
+     * @param value Value under test
+     * @param classNum Class under test
+     * @return Likelihood estimation that current value belongs to specified class
      */
     protected abstract double getLikelihoodForClass(NodeState state, double value[], int classNum);
 
@@ -87,7 +105,11 @@ public abstract class AbstractClassifierSlidingWindowManagingNode extends Abstra
      * Adds value's contribution to total, sum and sum of squares of new model.
      * Does NOT build model yet.
      *
+     * @param state Node state to get/set properties
+     * @param valueBuffer Old parameter values
+     * @param resultBuffer Old results
      * @param value New value
+     * @param classNumber Class number corresponding to new value
      */
     protected abstract void updateModelParameters(NodeState state, double[] valueBuffer, int[] resultBuffer, double[] value, int classNumber);
 
@@ -111,8 +133,18 @@ public abstract class AbstractClassifierSlidingWindowManagingNode extends Abstra
         }
     }
 
+    /**
+     * Called automatically before all known classes are removed
+     *
+     * @param state Node state to get/set properties
+     */
     protected abstract void removeAllClassesHook(NodeState state);
 
+    /**
+     * Removes information about known clasess
+     *
+     * @param state Node state to get/set properties
+     */
     private void removeAllClasses(NodeState state) {
         removeAllClassesHook(state);
         state.setFromKey(KNOWN_CLASSES_LIST_KEY, Type.INT_ARRAY, new int[0]);
@@ -122,6 +154,8 @@ public abstract class AbstractClassifierSlidingWindowManagingNode extends Abstra
      * Adds new value to the buffer. Connotations change depending on whether the node is in bootstrap mode or not.
      *
      * @param value New value to add; {@code null} disallowed
+     * @param result New result
+     * @return New value of bootstrap mode
      */
     protected boolean addValue(double value[], int result) {
         illegalArgumentIfFalse(value != null, "Value must be not null");
@@ -134,6 +168,14 @@ public abstract class AbstractClassifierSlidingWindowManagingNode extends Abstra
         return addValueNoBootstrap(state, value, result);
     }
 
+    /**
+     * Adds new value to reuslt buffer. Removes value(s) from beginning (if necessary).
+     *
+     * @param state Node state to get/set proeprties
+     * @param result New class label to be added to result buffer
+     * @param bootstrapMode New bootstrap mode
+     * @return New reuslt buffer
+     */
     protected static int[] adjustResultBuffer(NodeState state, int result, boolean bootstrapMode){
         int resultBuffer[] = state.getFromKeyWithDefault(INTERNAL_RESULTS_BUFFER_KEY, INTERNAL_RESULTS_BUFFER_DEF);;
 
@@ -150,9 +192,11 @@ public abstract class AbstractClassifierSlidingWindowManagingNode extends Abstra
     }
 
     /**
+     * Adds value assuming we are not in bootstrap mode
      *
-     * @param value
-     * @param result
+     * @param state Node state to get/set properties
+     * @param value New value to add; {@code null} disallowed
+     * @param result Expected class label corresponding to new value.
      * @return New bootstrap mode value
      */
     protected boolean addValueNoBootstrap(NodeState state, double value[], int result) {
@@ -171,9 +215,12 @@ public abstract class AbstractClassifierSlidingWindowManagingNode extends Abstra
     }
 
     /**
-     * Adds new value to the buffer. Gaussian model is regenerated.
+     * Adds new value to the buffer. Gaussian model is regenerated. Assuming that we are in bootstrap mode.
      *
+     * @param state Node state to get/set properties
      * @param value New value to add; {@code null} disallowed
+     * @param result Proper class label
+     * @return new bootstrap mode value
      */
     protected boolean addValueBootstrap(NodeState state, double value[], int result) {
         double newBuffer[] = adjustValueBuffer(state, value, true);

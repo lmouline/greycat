@@ -82,8 +82,9 @@ public class BatchGSPSequenceNode extends AbstractMLNode{
     /**
      * Adjust buffer: adds value to the end of it, removes first value(s) if necessary.
      *
-     * @param state
-     * @param value
+     * @param state Unphased state to get/set rpoerties
+     * @param value New values to add to value buffer
+     * @return New value buffer
      */
     protected static int[] adjustValueBuffer(NodeState state, int value) {
         int buffer[] = state.getFromKeyWithDefault(INTERNAL_VALUE_BUFFER_KEY, new int[0]);
@@ -100,6 +101,12 @@ public class BatchGSPSequenceNode extends AbstractMLNode{
         return newBuffer;
     }
 
+    /**
+     * Updates mode parameter (i.e. looks for sequences in value buffer)
+     *
+     * @param state Node state to get/set proerties
+     * @param newBuffer New value buffer
+     */
     protected void updateModelParameters(NodeState state, int newBuffer[]){
         final int minRequiredSupport = state.getFromKeyWithDefault(SUPPORT_LIMIT_KEY, SUPPORT_LIMIT_DEF);
 
@@ -205,7 +212,8 @@ public class BatchGSPSequenceNode extends AbstractMLNode{
 
     /**
      *
-     * @param value
+     * @param state Node state to get/set properties
+     * @param value New value to be added
      * @return New bootstrap mode value (TODO stub, always false now)
      */
     protected boolean addValue(NodeState state, int[] value) {
@@ -253,6 +261,13 @@ public class BatchGSPSequenceNode extends AbstractMLNode{
         });
     }
 
+    /**
+     * Gets/recalculates the list of detected sequences
+     *
+     * @param state Node state to get properties
+     * @return List of sequences [number of elements][number of sequence][sequence itself]<br>
+     * [0][][] is empty.
+     */
     public int[][][] inferRules(NodeState state) {
         //Step 2. Check whether sequences are there. If not - re-caluclate.
         int seq[] = state.getFromKeyWithDefault(INTERNAL_SEQUENCES, INTERNAL_SEQUENCES_DEF);
@@ -286,7 +301,7 @@ public class BatchGSPSequenceNode extends AbstractMLNode{
     /**
      * Debug method to get the obtained rules in relevant format
      *
-     * @param callback
+     * @param callback is called when sequences are calculated
      */
     public void inferRules(Callback<int[][][]> callback) {
         //Step 1. Get the state.

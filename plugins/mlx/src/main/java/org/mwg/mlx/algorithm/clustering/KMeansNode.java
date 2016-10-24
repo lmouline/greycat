@@ -93,9 +93,6 @@ public class KMeansNode extends AbstractNode {
         return result;
     }
 
-    ;
-
-
     private static double[][] recalculateCentroids(double[][] trainingSet, int[] centroidIndices, int k) {
         //TODO Parallelizeable by dimensions
         //TODO skipping tests for now. Assuming at least 1 element in the training set.
@@ -125,7 +122,10 @@ public class KMeansNode extends AbstractNode {
     //TODO Distance function?
 
     /**
+     * Finds cluster centers using K-means algorithm.
+     *
      * @param trainingSet First index - number of training example; second index - dimension within training example ({@code null} disallowed)
+     * @param k Number of clusters
      */
     public void learn(double[][] trainingSet, int k) {
         //TODO Skip checks for now. Assume training set with at least 1 element.

@@ -77,8 +77,10 @@ public abstract class AbstractAnySlidingWindowManagingNode extends AbstractMLNod
     /**
      * Adjust buffer: adds value to the end of it, removes first value(s) if necessary.
      *
-     * @param state
-     * @param value
+     * @param state Unphased state to get properties and set buffer.
+     * @param value New value to be added to buffer.
+     * @param bootstrapMode Whether we are in the bootstrap mode
+     * @return New buffer.
      */
     protected static double[] adjustValueBuffer(NodeState state, double value[], boolean bootstrapMode) {
         int dimensions = state.getFromKeyWithDefault(INPUT_DIM_KEY, INPUT_DIM_DEF);
@@ -129,9 +131,18 @@ public abstract class AbstractAnySlidingWindowManagingNode extends AbstractMLNod
 
     /**
      * Defines implementation-specific actions to do before going to bootstrap mode.
+     *
+     * @param state Node state to get/set properties
      */
     protected abstract void setBootstrapModeHook(NodeState state);
 
+    /**
+     * Sets bootstrap mode to new value
+     *
+     * @param state State to get/set proeprties
+     * @param newBootstrapMode New Bootstrap mode
+     * @return New node state (if generated) or old state
+     */
     protected NodeState setBootstrapMode(NodeState state, boolean newBootstrapMode) {
         NodeState newState = state;
         if (newBootstrapMode) {

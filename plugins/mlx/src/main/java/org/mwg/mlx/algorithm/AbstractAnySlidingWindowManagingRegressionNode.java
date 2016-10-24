@@ -24,6 +24,8 @@ public abstract class AbstractAnySlidingWindowManagingRegressionNode extends Abs
      * Adds new value to the buffer. Connotations change depending on whether the node is in bootstrap mode or not.
      *
      * @param value New value to add; {@code null} disallowed
+     * @param result New result value
+     * @return New value of bootsrap mode
      */
     protected boolean addValue(double value[], double result) {
         illegalArgumentIfFalse(value != null, "Value must be not null");
@@ -38,6 +40,14 @@ public abstract class AbstractAnySlidingWindowManagingRegressionNode extends Abs
 
     }
 
+    /**
+     * Adds value to result buffer, deletes first value(s) if necessary.
+     *
+     * @param state Current state to get properties and set result buffer
+     * @param result New result (Y) value
+     * @param bootstrapMode Whether we are in bootstrap mode
+     * @return new result buffer
+     */
     protected static double[] adjustResultBuffer(NodeState state, double result, boolean bootstrapMode){
         double resultBuffer[] = state.getFromKeyWithDefault(INTERNAL_RESULTS_BUFFER_KEY, INTERNAL_RESULTS_BUFFER_DEF);
 
@@ -53,13 +63,22 @@ public abstract class AbstractAnySlidingWindowManagingRegressionNode extends Abs
         return newBuffer;
     }
 
+    /**
+     * Gets error metrics by comparing expected reuslts (from results buffer) and actual results (from model)
+     *
+     * @param state State to get properties
+     * @param valueBuffer Previous values (X)
+     * @param resultBuffer Previous results (Y)
+     * @return Error measure
+     */
     protected abstract double getBufferError(NodeState state, double valueBuffer[], double resultBuffer[]);
 
     /**
+     * Adds value to buffer, assuming there is no bootstrap mode currently.
      *
-     * @param state
-     * @param value
-     * @param result
+     * @param state State to get/set properties
+     * @param value New parameter values
+     * @param result new result (Y)
      * @return New bootstrap state
      */
     protected boolean addValueNoBootstrap(NodeState state, double value[], double result) {
@@ -80,7 +99,10 @@ public abstract class AbstractAnySlidingWindowManagingRegressionNode extends Abs
     /**
      * Adds new value to the buffer. Gaussian model is regenerated.
      *
+     * @param state State to get/set properties
      * @param value New value to add; {@code null} disallowed
+     * @param result New result.
+     * @return New bootstrap state
      */
     protected boolean addValueBootstrap(NodeState state, double value[], double result) {
         double newBuffer[] = adjustValueBuffer(state, value, true);
@@ -116,8 +138,13 @@ public abstract class AbstractAnySlidingWindowManagingRegressionNode extends Abs
 
 
     /**
-     * @param value
-     * @param outcome
+     * Updates ML model parameters with respect to new values.
+     *
+     * @param state State to get/set properties
+     * @param valueBuffer Old parameter values
+     * @param resultBuffer Old results
+     * @param value New parameter values
+     * @param outcome New result
      */
     protected abstract void updateModelParameters(NodeState state, double valueBuffer[], double resultBuffer[], double value[], double outcome);
 

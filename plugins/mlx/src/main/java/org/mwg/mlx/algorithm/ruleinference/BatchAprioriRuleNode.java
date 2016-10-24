@@ -68,8 +68,9 @@ public class BatchAprioriRuleNode extends AbstractMLNode {
      * Adjust buffer: adds value to the end of it, removes first value(s) if necessary.
      * thebn
      *
-     * @param state
-     * @param value
+     * @param state Node state to get/set properties
+     * @param value New value to be added to the buffer
+     * @return New value buffer
      */
     protected static int[] adjustValueBuffer(NodeState state, int value[]) {
         int dimensions = state.getFromKeyWithDefault(INPUT_DIM_KEY, INPUT_DIM_DEF);
@@ -118,10 +119,19 @@ public class BatchAprioriRuleNode extends AbstractMLNode {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public BatchAprioriRuleNode(long p_world, long p_time, long p_id, Graph p_graph) {
         super(p_world, p_time, p_id, p_graph);
     }
 
+    /**
+     * Updates model parameter (i.e. looks for new rule set)
+     *
+     * @param state Node state to get/set properties
+     * @param newBuffer New value buffer to detect rules
+     */
     protected void updateModelParameters(NodeState state, int newBuffer[]){
         final int minRequiredSupport = state.getFromKeyWithDefault(SUPPORT_LIMIT_KEY, SUPPORT_LIMIT_DEF);
         final int dimensions = state.getFromKeyWithDefault(INPUT_DIM_KEY, INPUT_DIM_DEF);
@@ -254,7 +264,9 @@ public class BatchAprioriRuleNode extends AbstractMLNode {
     /**
      * Adds new value to the buffer. Connotations change depending on whether the node is in bootstrap mode or not.
      *
+     * @param state Node state to get/set properties
      * @param value New value to add; {@code null} disallowed
+     * @return new value of bootstrap mode
      */
     protected boolean addValue(NodeState state, int value[]) {
         illegalArgumentIfFalse(value != null, "Value must be not null");
@@ -285,6 +297,13 @@ public class BatchAprioriRuleNode extends AbstractMLNode {
         });
     }
 
+    /**
+     * Retrieves the detected set of rules. If necessary, recalculates
+     *
+     * @param state Node state to get properties
+     * @return Set of rules: [number of elements][index of rule][elements in rule]<br>
+     * [0][][] is empty
+     */
     public int[][][] inferRules(NodeState state) {
         //Step 2. Check whether sequences are there. If not - re-caluclate.
         int rules[] = state.getFromKeyWithDefault(INTERNAL_RULES, new int[0]);

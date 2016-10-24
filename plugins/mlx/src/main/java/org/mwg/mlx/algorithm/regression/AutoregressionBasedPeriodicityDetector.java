@@ -75,6 +75,9 @@ public class AutoregressionBasedPeriodicityDetector extends AbstractMLNode{
     public static final int[] PERIODS_DEF = new int[0];
 
 
+    /**
+     * {@inheritDoc}
+     */
     public AutoregressionBasedPeriodicityDetector(long p_world, long p_time, long p_id, Graph p_graph) {
         super(p_world, p_time, p_id, p_graph);
     }
@@ -92,6 +95,14 @@ public class AutoregressionBasedPeriodicityDetector extends AbstractMLNode{
         }
     }
 
+    /**
+     * Updates model parameters with respect to new values
+     *
+     * @param state Node state to get/set properties
+     * @param currentBuffer Current value buffer
+     * @param value New value (assumed to be last value in the buffer as well)
+     * @return Array of periods (second index) for each dimension (first index)
+     */
     protected int[][] updateModelParameters(NodeState state, double[] currentBuffer, double[] value) {
         int dims = state.getFromKeyWithDefault(INPUT_DIM_KEY, INPUT_DIM_UNKNOWN);
         if (dims == INPUT_DIM_UNKNOWN) {
@@ -216,8 +227,10 @@ public class AutoregressionBasedPeriodicityDetector extends AbstractMLNode{
     /**
      * Adjust buffer: adds value to the end of it, removes first value(s) if necessary.
      *
-     * @param state
-     * @param value
+     * @param state Node state to get/set properties
+     * @param value Newly received values
+     * @param bootstrapMode Bootstrap mode value
+     * @return New adjusted value buffer.
      */
     protected static double[] adjustValueBuffer(NodeState state, double value[], boolean bootstrapMode) {
         int dimensions = state.getFromKeyWithDefault(INPUT_DIM_KEY, INPUT_DIM_DEF);
@@ -284,7 +297,7 @@ public class AutoregressionBasedPeriodicityDetector extends AbstractMLNode{
      * Adds new value to the buffer. Connotations change depending on whether the node is in bootstrap mode or not.
      *
      * @param value New value to add; {@code null} disallowed
-     *
+     * @return Array of periods (second index) for each dimension (first index)
      */
     protected int[][] addValue(double value[]) {
         illegalArgumentIfFalse(value != null, "Value must be not null");
@@ -301,6 +314,10 @@ public class AutoregressionBasedPeriodicityDetector extends AbstractMLNode{
     //TODO Returning to old states?
     //TODO Step 3. Java test with real London consumption
 
+    /**
+     * @param ar Array to copy/remove last element
+     * @return Copy of that array w/o last element
+     */
     protected static int[] withoutLastElement(int ar[]){
         int res[] = new int[ar.length-1];
         System.arraycopy(ar, 0, res, 0, res.length);
@@ -311,10 +328,11 @@ public class AutoregressionBasedPeriodicityDetector extends AbstractMLNode{
      *
      * Effectively, Levenstein distance with weights
      *
-     * @param per1
-     * @param per2
-     * @param weight_added_period
-     * @return
+     * @param per1 Periods array 1 to count distance
+     * @param per2 Periods array 2 to count distance
+     * @param weight_added_period Weight associated with adding period (1 - as bad as shifting some period by one,
+     *                            usually more than 1 - adding period is worse than just small shift)
+     * @return How much different are those periods (in terms of shifted periods, added epriods, removed periods,etc.)
      */
     public static int periodsSequenceDistance(int per1[], int per2[], int weight_added_period){
         //Possible options: period added, period deleted, period shifted

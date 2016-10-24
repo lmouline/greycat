@@ -15,11 +15,6 @@ public class GaussianClassifierNode extends AbstractGaussianClassifierNode imple
 
     /**
      * {@inheritDoc}
-     *
-     * @param p_world
-     * @param p_time
-     * @param p_id
-     * @param p_graph
      */
     public GaussianClassifierNode(long p_world, long p_time, long p_id, Graph p_graph) {
         super(p_world, p_time, p_id, p_graph);
@@ -29,6 +24,13 @@ public class GaussianClassifierNode extends AbstractGaussianClassifierNode imple
 
     //TODO Try out changing parameters on the fly
 
+
+    /**
+     * Initializes new class (if required)
+     *
+     * @param state Node state to get/set proeprties
+     * @param classNum New class label to initialize (if not yet)
+     */
     protected void initializeClassIfNecessary(NodeState state, int classNum) {
         Object oldSumsObj = state.getFromKey(INTERNAL_SUM_KEY_PREFIX + classNum);
         if (oldSumsObj != null) {
@@ -80,6 +82,7 @@ public class GaussianClassifierNode extends AbstractGaussianClassifierNode imple
         //TODO No need to put? Depends on whether att returns a copy. Just in case, re-put
     }
 
+    @Override
     protected double getLikelihoodForClass(NodeState state, double value[], int classNum) {
         //It is assumed that real class is removed and replaces with 0
         initializeClassIfNecessary(state, classNum); //TODO should not be necessary. Double-check.
