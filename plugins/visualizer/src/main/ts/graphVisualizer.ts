@@ -32,7 +32,13 @@ module org.mwg.plugin.visualizer.taskRegistry {
 
         res += "  " + context.result().get(0) + "=";
         if(typeof context.result().get(0) != "number") {
-            res += n.get(context.result().get(0));
+            var prop = n.get(context.result().get(0));
+            if(prop instanceof Float64Array || prop instanceof Int32Array) {
+                res += "[" + prop + "]";
+            } else {
+                res += prop;
+            }
+
         } else {
             res += n.getByIndex(context.result().get(0));
         }
@@ -76,7 +82,11 @@ module org.mwg.plugin.visualizer.taskRegistry {
                     Actions.propertiesWithTypes(Type.DOUBLE),
                     Actions.propertiesWithTypes(Type.LONG),
                     Actions.propertiesWithTypes(Type.STRING),
-                    Actions.propertiesWithTypes(Type.RELATION)]
+                    Actions.propertiesWithTypes(Type.RELATION),
+                    Actions.propertiesWithTypes(Type.INT_ARRAY),
+                    Actions.propertiesWithTypes(Type.LONG_ARRAY),
+                    Actions.propertiesWithTypes(Type.DOUBLE_ARRAY)
+                ]
                 )
                 .foreach(writeAtt)
                 .fromVar("node")
