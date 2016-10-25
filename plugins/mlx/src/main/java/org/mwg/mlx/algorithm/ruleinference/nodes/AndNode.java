@@ -1,24 +1,25 @@
 package org.mwg.mlx.algorithm.ruleinference.nodes;
 
-import org.mwg.mlx.algorithm.ruleinference.RuleNode;
-
 /**
  * Created by andrey.boytsov on 24/10/2016.
  */
-public class AndNode implements ConditionGraphNode {
+public class AndNode extends BooleanNode {
     private final ConditionGraphNode parentNodes[];
 
     public AndNode(ConditionGraphNode previousNodes[]) {
         this.parentNodes = previousNodes;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public double getValue() {
+    public boolean getBooleanValue() {
         for (ConditionGraphNode node : parentNodes){
-            if (node.getValue() <= 0){
-                return -1;
+            if (!node.getBooleanValue()){
+                return false;
             }
         }
-        return 1;
+        return true;
     }
 }

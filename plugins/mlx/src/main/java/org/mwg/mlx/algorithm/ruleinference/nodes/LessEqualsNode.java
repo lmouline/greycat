@@ -3,7 +3,7 @@ package org.mwg.mlx.algorithm.ruleinference.nodes;
 /**
  * Created by andrey.boytsov on 24/10/2016.
  */
-public class LessEqualsNode implements ConditionGraphNode{
+public class LessEqualsNode extends BooleanNode{
     private final ConditionGraphNode leftSide;
     private final ConditionGraphNode rightSide;
 
@@ -12,8 +12,11 @@ public class LessEqualsNode implements ConditionGraphNode{
         this.rightSide = rightSide;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public double getValue() {
-        return (leftSide.getValue() <= rightSide.getValue()) ? 1 : -1;
+    public boolean getBooleanValue() {
+        return (leftSide.getDoubleValue() <= rightSide.getDoubleValue());
     }
 }

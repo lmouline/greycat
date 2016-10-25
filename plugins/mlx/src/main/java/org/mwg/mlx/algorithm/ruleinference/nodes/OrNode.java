@@ -3,20 +3,23 @@ package org.mwg.mlx.algorithm.ruleinference.nodes;
 /**
  * Created by andrey.boytsov on 24/10/2016.
  */
-public class OrNode implements ConditionGraphNode {
+public class OrNode extends BooleanNode {
     private final ConditionGraphNode parentNodes[];
 
     public OrNode(ConditionGraphNode previousNodes[]) {
         this.parentNodes = previousNodes;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public double getValue() {
+    public boolean getBooleanValue() {
         for (ConditionGraphNode node : parentNodes) {
-            if (node.getValue() > 0) {
-                return 1;
+            if (node.getBooleanValue()) {
+                return true;
             }
         }
-        return -1;
+        return false;
     }
 }

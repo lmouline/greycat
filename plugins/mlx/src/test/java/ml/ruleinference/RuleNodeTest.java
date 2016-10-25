@@ -1,16 +1,13 @@
 package ml.ruleinference;
 
 import org.junit.Test;
-import org.mwg.Callback;
-import org.mwg.Graph;
-import org.mwg.GraphBuilder;
+import org.mwg.*;
 import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.mlx.MLXPlugin;
+import org.mwg.mlx.algorithm.classifier.GaussianClassifierNode;
 import org.mwg.mlx.algorithm.ruleinference.RuleNode;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Created by andrey.boytsov on 24/10/2016.
@@ -55,7 +52,7 @@ public class RuleNodeTest {
     }
 
     @Test
-    public void testZeroConstantTrueTrigger() {
+    public void testZeroConstantFalseTrigger() {
         checkRule("0", false);
     }
 
@@ -239,5 +236,355 @@ public class RuleNodeTest {
     public void testMultipleBracketsFalse() {
         checkRule("(( 1 != 1.00 ) ) ", false);
     }
+
+    @Test
+    public void testNotTrue(){
+        checkRule("! true", false);
+    }
+
+    @Test
+    public void testNotFalse(){
+        checkRule("!false", true);
+    }
+
+    @Test
+    public void testNegationEqualsTrue(){
+        checkRule("! (1 == 1.0)", false);
+    }
+
+    @Test
+    public void testNegationEqualsFalse(){
+        checkRule("!(1 == 1.001)", true);
+    }
+
+    @Test
+    public void checkDoubleValueRetrieval(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode1 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode2 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode3 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode4 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty(GaussianClassifierNode.HIGH_ERROR_THRESH_KEY, Type.DOUBLE, 1.2345);
+
+                String requestStr = justNodeForValue.id()+"."+GaussianClassifierNode.HIGH_ERROR_THRESH_KEY;
+
+                ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} > 1.23");
+                ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} < 1.23");
+                ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == 1.2345");
+                ruleNode4.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != 1.2345");
+
+                assertEquals(true, ruleNode1.ruleTriggered());
+                assertEquals(false, ruleNode2.ruleTriggered());
+                assertEquals(true, ruleNode3.ruleTriggered());
+                assertEquals(false, ruleNode4.ruleTriggered());
+
+                ruleNode1.free();
+                ruleNode2.free();
+                ruleNode3.free();
+                ruleNode4.free();
+
+                justNodeForValue.free();
+
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void checkBooleanTrueValueRetrieval(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode1 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode2 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode3 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode4 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode5 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode6 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                String requestStr = justNodeForValue.id()+".someValue";
+
+                justNodeForValue.setProperty("someValue", Type.BOOL, true);
+
+                //Bootstrap mode is on by default
+                ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"}");
+                ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "!{"+requestStr+"}");
+                ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == True");
+                ruleNode4.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == false");
+                ruleNode5.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != trUe");
+                ruleNode6.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != false");
+
+                assertEquals(true, ruleNode1.ruleTriggered());
+                assertEquals(false, ruleNode2.ruleTriggered());
+                assertEquals(true, ruleNode3.ruleTriggered());
+                assertEquals(false, ruleNode4.ruleTriggered());
+                assertEquals(false, ruleNode5.ruleTriggered());
+                assertEquals(true, ruleNode6.ruleTriggered());
+
+                ruleNode1.free();
+                ruleNode2.free();
+                ruleNode3.free();
+                ruleNode4.free();
+                ruleNode5.free();
+                ruleNode6.free();
+
+                justNodeForValue.free();
+
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void checkBooleanFalseValueRetrieval(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode1 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode2 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode3 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode4 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode5 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode6 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                String requestStr = justNodeForValue.id()+".someValue";
+
+                justNodeForValue.setProperty("someValue", Type.BOOL, false);
+
+                //Bootstrap mode is on by default
+                ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"}");
+                ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "!{"+requestStr+"}");
+                ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == True");
+                ruleNode4.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == false");
+                ruleNode5.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != trUe");
+                ruleNode6.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != false");
+
+                assertEquals(false, ruleNode1.ruleTriggered());
+                assertEquals(true, ruleNode2.ruleTriggered());
+                assertEquals(false, ruleNode3.ruleTriggered());
+                assertEquals(true, ruleNode4.ruleTriggered());
+                assertEquals(true, ruleNode5.ruleTriggered());
+                assertEquals(false, ruleNode6.ruleTriggered());
+
+                ruleNode1.free();
+                ruleNode2.free();
+                ruleNode3.free();
+                ruleNode4.free();
+                ruleNode5.free();
+                ruleNode6.free();
+
+                justNodeForValue.free();
+
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void checkDoubleChangedValueRetrieval(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode1 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode2 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode3 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode4 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode5 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty(GaussianClassifierNode.HIGH_ERROR_THRESH_KEY, Type.DOUBLE, 1.2345);
+
+                justNodeForValue.jump(10, new Callback<Node>() {
+                    @Override
+                    public void on(Node result) {
+                        result.setProperty(GaussianClassifierNode.HIGH_ERROR_THRESH_KEY, Type.DOUBLE, 0.11);
+                    }
+                });
+
+                String requestStr = justNodeForValue.id()+"."+GaussianClassifierNode.HIGH_ERROR_THRESH_KEY;
+
+                ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} > 1.23");
+                ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} < 1.23");
+                ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == 1.2345");
+                ruleNode4.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != 1.2345");
+                ruleNode5.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == 0.11");
+
+                assertEquals(false, ruleNode1.ruleTriggered());
+                assertEquals(true, ruleNode2.ruleTriggered());
+                assertEquals(false, ruleNode3.ruleTriggered());
+                assertEquals(true, ruleNode4.ruleTriggered());
+                assertEquals(true, ruleNode5.ruleTriggered());
+
+                ruleNode1.free();
+                ruleNode2.free();
+                ruleNode3.free();
+                ruleNode4.free();
+                ruleNode5.free();
+
+                justNodeForValue.free();
+
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void checkBooleanChangedToFalseValueRetrieval(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode1 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode2 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode3 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode4 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode5 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode6 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                String requestStr = justNodeForValue.id()+".someValue";
+
+                justNodeForValue.setProperty("someValue", Type.BOOL, true);
+
+                justNodeForValue.jump(10, new Callback<Node>() {
+                    @Override
+                    public void on(Node result) {
+                        result.setProperty("someValue", Type.BOOL, false);
+                    }
+                });
+
+                //Bootstrap mode is on by default
+                ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"}");
+                ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "!{"+requestStr+"}");
+                ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == True");
+                ruleNode4.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == false");
+                ruleNode5.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != trUe");
+                ruleNode6.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != false");
+
+                assertEquals(false, ruleNode1.ruleTriggered());
+                assertEquals(true, ruleNode2.ruleTriggered());
+                assertEquals(false, ruleNode3.ruleTriggered());
+                assertEquals(true, ruleNode4.ruleTriggered());
+                assertEquals(true, ruleNode5.ruleTriggered());
+                assertEquals(false, ruleNode6.ruleTriggered());
+
+                ruleNode1.free();
+                ruleNode2.free();
+                ruleNode3.free();
+                ruleNode4.free();
+                ruleNode5.free();
+                ruleNode6.free();
+
+                justNodeForValue.free();
+
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void checkDoubleDerivativeRetrieval(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode1 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode2 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode3 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty(GaussianClassifierNode.HIGH_ERROR_THRESH_KEY, Type.DOUBLE, 5.0);
+
+                justNodeForValue.jump(2000, new Callback<Node>() {
+                    @Override
+                    public void on(Node result) {
+                        result.setProperty(GaussianClassifierNode.HIGH_ERROR_THRESH_KEY, Type.DOUBLE, 1.0);
+                    }
+                });
+
+                //From 5 to 1 for 2 seconds
+                //Derivative = -2
+                String requestStr = justNodeForValue.id()+"."+GaussianClassifierNode.HIGH_ERROR_THRESH_KEY;
+
+                ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} < 0");
+                ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} >= 0");
+                ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} == -2");
+
+                assertEquals(true, ruleNode1.ruleTriggered());
+                assertEquals(false, ruleNode2.ruleTriggered());
+                assertEquals(true, ruleNode3.ruleTriggered());
+
+                ruleNode1.free();
+                ruleNode2.free();
+                ruleNode3.free();
+
+                justNodeForValue.free();
+
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void checkDoubleDerivativeNeverChange(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode1 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode2 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode3 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty(GaussianClassifierNode.HIGH_ERROR_THRESH_KEY, Type.DOUBLE, 5.0);
+
+                //From 5 to 1 for 2 seconds
+                //Derivative = -2
+                String requestStr = justNodeForValue.id()+"."+GaussianClassifierNode.HIGH_ERROR_THRESH_KEY;
+
+                ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} < 0");
+                ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} > 0");
+                ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} == 0");
+
+                assertEquals(false, ruleNode1.ruleTriggered());
+                assertEquals(false, ruleNode2.ruleTriggered());
+                assertEquals(true, ruleNode3.ruleTriggered());
+
+                ruleNode1.free();
+                ruleNode2.free();
+                ruleNode3.free();
+
+                justNodeForValue.free();
+
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    //TODO More derivatives, use polynomials
 
 }

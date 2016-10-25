@@ -1,13 +1,17 @@
 package org.mwg.mlx.algorithm.ruleinference;
 
 import org.mwg.Graph;
+import org.mwg.Node;
 import org.mwg.mlx.algorithm.ruleinference.nodes.*;
 import org.mwg.plugin.AbstractNode;
-import org.mwg.plugin.NodeState;
+import org.mwg.task.TaskResult;
 import org.mwg.utility.Enforcer;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.mwg.task.Actions.lookup;
+import static org.mwg.task.Actions.setWorld;
 
 /**
  * Created by andrey.boytsov on 24/10/2016.
@@ -89,7 +93,7 @@ public class RuleNode extends AbstractNode {
         if (finalNode == null){
             initializeCondition(unphasedState().getFromKeyWithDefault(INTERNAL_CONDITION_STRING, INTERNAL_CONDITION_STRING_DEF));
         }
-        return finalNode.getValue() > 0;
+        return finalNode.getBooleanValue();
     }
 
     public RuleNode(long p_world, long p_time, long p_id, Graph p_graph) {
@@ -105,7 +109,7 @@ public class RuleNode extends AbstractNode {
      * @param operation Operation to split upon
      * @return Split string. If length == 1, it means that split has failed.
      */
-    public static String[] splitByOperation(String condition, String operation){
+    public String[] splitByOperation(String condition, String operation){
         List<String> res = new ArrayList<String>();
         StringBuilder curComponent = new StringBuilder();
         int bracketCounter = 0;
@@ -143,7 +147,7 @@ public class RuleNode extends AbstractNode {
      * @param condition Condition string
      * @return Node corresponding to rule condition.
      */
-    public static ConditionGraphNode parseRuleCondition(String condition){
+    public ConditionGraphNode parseRuleCondition(String condition){
         String cleanCondition = condition.trim();
         //If it is in brackets, remove the brackets.
 
@@ -240,25 +244,45 @@ public class RuleNode extends AbstractNode {
         }
 
         //So, if we reached here, then it is not a formula. It is either constant node or
-        // reference to attribute/derivative.
+        //reference to attribute/derivative.
+        if (cleanCondition.startsWith("{") && cleanCondition.endsWith("}")){
+            //This is a value node.
+            String valueInfo = cleanCondition.substring(1,cleanCondition.length()-1).trim();
+            String idAndAttr[] = valueInfo.split("\\.");
+            //TODO enforce 2-length values
+            return new ValueNode(idAndAttr[0], idAndAttr[1], graph(), ""+world());
+        }
+        if (cleanCondition.startsWith("d{") && cleanCondition.endsWith("}")){
+            //This is a derivative node.
+            String valueInfo = cleanCondition.substring(2,cleanCondition.length()-1).trim();
+            String idAndAttr[] = valueInfo.split("\\.");
+            //TODO enforce 2-length values
+            return new DerivativeNode(idAndAttr[0], idAndAttr[1], graph(), ""+world());
+        }
+
+        if (cleanCondition.startsWith("!")){
+            String value = cleanCondition.substring(1,cleanCondition.length()).trim();
+            return new NotNode(parseRuleCondition(value));
+        }
 
         //If the value is "true", "false" (both - case insensitive) or numeric, it is a constant node
+        if ("true".equals(cleanCondition.toLowerCase())){
+            return new ConstantBooleanNode(true);
+        }
+        if ("false".equals(cleanCondition.toLowerCase())){
+            return new ConstantBooleanNode(false);
+        }
         try{
             //We don't expect the rule to change frequently, so exception is OK here
             double numValue = new Double(cleanCondition);
-            return new ConstantNode(numValue);
+            return new ConstantDoubleNode(numValue);
         }catch (NumberFormatException e){
             //Do nothing. It can happen, it is normal
         }
-        if ("true".equals(cleanCondition.toLowerCase())){
-            return new ConstantNode(1.0);
-        }
-        if ("false".equals(cleanCondition.toLowerCase())){
-            return new ConstantNode(-1.0);
-        }
 
         // Not a constant. Then, whatever we got, it is the name of other property, derivative, etc.
-        return new ConstantNode(1.0); //TODO This is a stub. Do it properly.
+        //TODO Special command node (like "it is daytime")
+        return new ConstantBooleanNode(false); //TODO This is a stub. Do it properly.
     }
 
     /**
