@@ -1,6 +1,7 @@
 package org.mwg.ml.algorithm.regression;
 
 import org.mwg.Callback;
+import org.mwg.Constants;
 import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.ml.AbstractMLNode;
@@ -24,8 +25,9 @@ public class PolynomialNode extends AbstractMLNode implements RegressionNode {
     public final static String NAME = "PolynomialNode";
 
     //Internal state variables private and starts with _
-    private static final String INTERNAL_WEIGHT_KEY = "weight";
-    private static final String INTERNAL_STEP_KEY = "step";
+    public static final String INTERNAL_WEIGHT_KEY = "weight";
+    public static final String INTERNAL_STEP_KEY = "step";
+
     private static final String INTERNAL_TIME_BUFFER = "times";
     private static final String INTERNAL_VALUES_BUFFER = "values";
     private static final String INTERNAL_NB_PAST_KEY = "nb";
