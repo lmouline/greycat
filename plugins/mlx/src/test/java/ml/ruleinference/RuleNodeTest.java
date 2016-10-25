@@ -55,7 +55,7 @@ public class RuleNodeTest {
     }
 
     @Test
-    public void testZeroConstantTrueTrigger() {
+    public void testZeroConstantFalseTrigger() {
         checkRule("0", false);
     }
 
