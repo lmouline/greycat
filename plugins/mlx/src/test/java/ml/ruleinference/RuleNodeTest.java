@@ -3,6 +3,7 @@ package ml.ruleinference;
 import org.junit.Test;
 import org.mwg.*;
 import org.mwg.core.scheduler.NoopScheduler;
+import org.mwg.ml.algorithm.regression.PolynomialNode;
 import org.mwg.mlx.MLXPlugin;
 import org.mwg.mlx.algorithm.classifier.GaussianClassifierNode;
 import org.mwg.mlx.algorithm.ruleinference.RuleNode;
@@ -530,7 +531,7 @@ public class RuleNodeTest {
 
                 ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} < 0");
                 ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} >= 0");
-                ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} == -2");
+                ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} == -0.002");
 
                 assertEquals(true, ruleNode1.ruleTriggered());
                 assertEquals(false, ruleNode2.ruleTriggered());
@@ -585,6 +586,348 @@ public class RuleNodeTest {
         });
     }
 
-    //TODO More derivatives, use polynomials
+    @Test
+    public void checkDoubleStringComparison(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode1 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode2 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode3 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode4 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode5 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode6 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "1.2345");
+
+                String requestStr = justNodeForValue.id()+".someValue";
+
+                ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == '1.2345'");
+                ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != 'abcd'");
+                ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == 1.2345");
+                ruleNode4.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == 1.234500");
+                ruleNode5.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == '1.234500'");
+                ruleNode6.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != '1.234500'");
+
+                assertEquals(true, ruleNode1.ruleTriggered());
+                assertEquals(true, ruleNode2.ruleTriggered());
+                assertEquals(true, ruleNode3.ruleTriggered());
+                assertEquals(true, ruleNode4.ruleTriggered());
+                assertEquals(false, ruleNode5.ruleTriggered());
+                assertEquals(true, ruleNode6.ruleTriggered());
+
+                ruleNode1.free();
+                ruleNode2.free();
+                ruleNode3.free();
+                ruleNode4.free();
+                ruleNode5.free();
+                ruleNode6.free();
+
+                justNodeForValue.free();
+
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void checkConstantStringComparison(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode1 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode2 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode3 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode4 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "1.234500 == '1.2345'");
+                ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "'cdef' != 'abcd'");
+                ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "'1.2345' == '1.2345'");
+                ruleNode4.set(RuleNode.INTERNAL_CONDITION_STRING, "'1.2345' != '1.234500'");
+
+                assertEquals(true, ruleNode1.ruleTriggered()); //Double will be transferred to string
+                assertEquals(true, ruleNode2.ruleTriggered());
+                assertEquals(true, ruleNode3.ruleTriggered());
+                assertEquals(true, ruleNode4.ruleTriggered());
+
+                ruleNode1.free();
+                ruleNode2.free();
+                ruleNode3.free();
+                ruleNode4.free();
+
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void checkStringValueComparison(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode1 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode2 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode3 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode4 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "ON");
+
+                String requestStr = justNodeForValue.id()+".someValue";
+
+                ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == 'ON'");
+                ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != 'OFF'");
+                ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == 'OFF'");
+                ruleNode4.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != 'ON'");
+
+                assertEquals(true, ruleNode1.ruleTriggered());
+                assertEquals(true, ruleNode2.ruleTriggered());
+                assertEquals(false, ruleNode3.ruleTriggered());
+                assertEquals(false, ruleNode4.ruleTriggered());
+
+                ruleNode1.free();
+                ruleNode2.free();
+                ruleNode3.free();
+                ruleNode4.free();
+
+                justNodeForValue.free();
+
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void checkStringValueComparisonKeywordConfusions(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode1 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode2 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode3 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode4 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "{4.someValue}");
+
+                String requestStr = justNodeForValue.id()+".someValue";
+
+                ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == '{4.someValue}'");
+                ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != '3 > 1'");
+                ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == '3 > 1'");
+                ruleNode4.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != '{4.someValue}'");
+
+                assertEquals(true, ruleNode1.ruleTriggered());
+                assertEquals(true, ruleNode2.ruleTriggered());
+                assertEquals(false, ruleNode3.ruleTriggered());
+                assertEquals(false, ruleNode4.ruleTriggered());
+
+                ruleNode1.free();
+                ruleNode2.free();
+                ruleNode3.free();
+                ruleNode4.free();
+
+                justNodeForValue.free();
+
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void checkStringValueComparisonKeywordConfusions2(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode1 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode2 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode3 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode4 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "1 > 3");
+
+                String requestStr = justNodeForValue.id()+".someValue";
+
+                ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == '{4.someValue}'");
+                ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != '1 > 3'");
+                ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == '1 > 3'");
+                ruleNode4.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != '{4.someValue}'");
+
+                assertEquals(false, ruleNode1.ruleTriggered());
+                assertEquals(false, ruleNode2.ruleTriggered());
+                assertEquals(true, ruleNode3.ruleTriggered());
+                assertEquals(true, ruleNode4.ruleTriggered());
+
+                ruleNode1.free();
+                ruleNode2.free();
+                ruleNode3.free();
+                ruleNode4.free();
+
+                justNodeForValue.free();
+
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    private void fitPoly(PolynomialNode polynomialNode, long times[], double values[]){
+        for (int i = 0; i < times.length; i++) {
+            final int ia = i;
+            polynomialNode.jump(times[ia], new Callback<PolynomialNode>() {
+                @Override
+                public void on(PolynomialNode result) {
+                    result.learn(values[ia], new Callback<Boolean>() {
+                        @Override
+                        public void on(Boolean result) {
+
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    @Test
+    public void checkPolynomialNodeDegreeZeroDerivativeRetrieval(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode1 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode2 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                long[] times = new long[100];
+                double[] values = new double[times.length];
+                //test degree 0
+                for (int i = 0; i < times.length; i++) {
+                    times[i] = i * 10 + 5000;
+                    values[i] = 42.0;
+                }
+
+                PolynomialNode polynomialNode = (PolynomialNode) graph.newTypedNode(0, times[0], PolynomialNode.NAME);
+                polynomialNode.set(PolynomialNode.PRECISION, 0.5);
+
+                fitPoly(polynomialNode, times, values);
+
+                String requestStr = polynomialNode.id()+"."+PolynomialNode.VALUE;
+
+                ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} == 0");
+                ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} != 0");
+
+                assertEquals(true, ruleNode1.ruleTriggered());
+                assertEquals(false, ruleNode2.ruleTriggered());
+
+                ruleNode1.free();
+                ruleNode2.free();
+
+                polynomialNode.free();
+
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void checkPolynomialNodeOneDegreeDerivativeRetrieval(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode1 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode2 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode3 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                long[] times = new long[100];
+                double[] values = new double[times.length];
+                //test degree 0
+                for (int i = 0; i < times.length; i++) {
+                    times[i] = i * 10 + 5000;
+                    values[i] = 3 * i - 20;
+                }
+
+                PolynomialNode polynomialNode = (PolynomialNode) graph.newTypedNode(0, times[0], PolynomialNode.NAME);
+                polynomialNode.set(PolynomialNode.PRECISION, 0.5);
+
+                fitPoly(polynomialNode, times, values);
+
+                String requestStr = polynomialNode.id()+"."+PolynomialNode.VALUE;
+
+                ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} > 2.999");
+                ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} < 3.001");
+                ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} == 2.998");
+
+                assertEquals(true, ruleNode1.ruleTriggered());
+                assertEquals(true, ruleNode2.ruleTriggered());
+                assertEquals(false, ruleNode3.ruleTriggered());
+
+                ruleNode1.free();
+                ruleNode2.free();
+                ruleNode3.free();
+
+                polynomialNode.free();
+
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void checkPolynomialNodeTwoDegreeDerivativeRetrieval(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode1 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode2 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+                RuleNode ruleNode3 = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                long[] times = new long[100];
+                double[] values = new double[times.length];
+                //test degree 0
+                for (int i = 0; i < times.length; i++) {
+                    times[i] = i * 10 + 5000;
+                    values[i] = 3 * i * i - 99 * i - 20;
+                }
+
+                PolynomialNode polynomialNode = (PolynomialNode) graph.newTypedNode(0, times[0], PolynomialNode.NAME);
+                polynomialNode.set(PolynomialNode.PRECISION, 0.5);
+
+                fitPoly(polynomialNode, times, values);
+
+                String requestStr = polynomialNode.id()+"."+PolynomialNode.VALUE;
+
+                ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} < -98.9999");
+                ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} > -99.0001");
+                ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} == -100");
+
+                assertEquals(true, ruleNode1.ruleTriggered());
+                assertEquals(true, ruleNode2.ruleTriggered());
+                assertEquals(false, ruleNode3.ruleTriggered());
+
+                ruleNode1.free();
+                ruleNode2.free();
+                ruleNode3.free();
+
+                polynomialNode.free();
+
+                graph.disconnect(null);
+            }
+        });
+    }
 
 }

@@ -113,15 +113,21 @@ public class RuleNode extends AbstractNode {
         List<String> res = new ArrayList<String>();
         StringBuilder curComponent = new StringBuilder();
         int bracketCounter = 0;
+        boolean inQuotes = false;
         int lastIndex = 0;
         for (int i=0;i<condition.length()-operation.length();i++){
-            if (condition.charAt(i) == '('){
-                bracketCounter++;
+            if (condition.charAt(i) == '\''){
+                inQuotes = !inQuotes;
             }
-            if (condition.charAt(i) == ')'){
-                bracketCounter--;
+            if (!inQuotes){
+                if (condition.charAt(i) == '('){
+                    bracketCounter++;
+                }
+                if (condition.charAt(i) == ')'){
+                    bracketCounter--;
+                }
             }
-            if ((bracketCounter == 0)&&(operation.equals(condition.substring(i, i+operation.length())))){
+            if ((!inQuotes)&&(bracketCounter == 0)&&(operation.equals(condition.substring(i, i+operation.length())))){
                 //Got it. Save this component, start next one
                 res.add(curComponent.toString());
                 curComponent = new StringBuilder();
@@ -189,6 +195,12 @@ public class RuleNode extends AbstractNode {
                 cleanCondition = cleanCondition.trim();
             }
         }while(entirelyInBrackets);
+
+        //Is it a large string constant?
+        //Should begin and end with ', but not contain ' inbetween (i.e. string like 'abc' != 'def' should not be counted)
+        if (cleanCondition.startsWith("'") && cleanCondition.endsWith("'") && !cleanCondition.substring(1,cleanCondition.length()-1).contains("'")){
+            return new ConstantStringNode(cleanCondition.substring(1,cleanCondition.length()-1));
+        }
 
         //Or and AND are executed last
         //It is important that OR goes before AND here
