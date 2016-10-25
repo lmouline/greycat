@@ -260,6 +260,11 @@ public class RuleNode extends AbstractNode {
             return new DerivativeNode(idAndAttr[0], idAndAttr[1], graph(), ""+world());
         }
 
+        if (cleanCondition.startsWith("!")){
+            String value = cleanCondition.substring(1,cleanCondition.length()).trim();
+            return new NotNode(parseRuleCondition(value));
+        }
+
         //If the value is "true", "false" (both - case insensitive) or numeric, it is a constant node
         if ("true".equals(cleanCondition.toLowerCase())){
             return new ConstantBooleanNode(true);

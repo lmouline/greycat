@@ -2,6 +2,7 @@ package org.mwg.mlx.algorithm.ruleinference.nodes;
 
 import org.mwg.Graph;
 import org.mwg.Node;
+import org.mwg.ml.algorithm.regression.PolynomialNode;
 import org.mwg.task.TaskResult;
 
 import static org.mwg.task.Actions.setWorld;
@@ -12,6 +13,8 @@ import static org.mwg.task.Actions.setWorld;
  * Created by andrey.boytsov on 25/10/2016.
  */
 public class DerivativeNode extends DoubleNode {
+    //TODO state resolution?
+
     private final String nodeId;
     private final String attribute;
     private final Graph graph;
@@ -30,7 +33,6 @@ public class DerivativeNode extends DoubleNode {
         this.world = world;
     }
 
-
     /**
      * @return Value of the node, cast to double (+1/-1 for true/false)
      * @throws IllegalStateException If the value cannot be cast to double
@@ -43,6 +45,9 @@ public class DerivativeNode extends DoubleNode {
         final Node resolvedNode;
         if (curResult.size() > 0){
             resolvedNode = (Node) curResult.get(0);
+            if (resolvedNode instanceof PolynomialNode){
+                return getPolynomialNodeDerivative((PolynomialNode) resolvedNode, curTime);
+            }
             curValue = Double.parseDouble(resolvedNode.get(this.attribute).toString());
         }else{
             throw new IllegalStateException("Node not found.");
@@ -51,13 +56,40 @@ public class DerivativeNode extends DoubleNode {
         final long prevTime = resolvedNode.lastModification()-1;
         final TaskResult prevResult = setWorld(this.world).setTime(""+prevTime).lookup(this.nodeId).executeSync(this.graph);
         final double prevValue;
+        final Node prevNode;
         if (prevResult.size() > 0){
-            final Node prevNode = (Node) curResult.get(0);
-            prevValue = Double.parseDouble(resolvedNode.get(this.attribute).toString());
+            prevNode = (Node) prevResult.get(0);
+            prevValue = Double.parseDouble(prevNode.get(this.attribute).toString());
         }else{
             return 0; //No previous state. Counting as no changes
         }
 
-        return (curValue-prevValue)*1000/(curTime-prevTime); //1000 to transform millis to seconds
+        return (curValue-prevValue)*1000/(resolvedNode.lastModification()-prevNode.lastModification()); //1000 to transform millis to seconds
+    }
+
+    private double getPolynomialNodeDerivative(PolynomialNode node, long time) {
+        /*final double[] weight = (double[]) node.get("weight"); //TODO Unfortunately, key for weights is private
+        Long inferSTEP = (Long) node.get(INTERNAL_STEP_KEY);
+        if (inferSTEP == null || inferSTEP == 0) {
+            return 0;
+        }
+        double t = (time - node.lastModification());
+        Long lastTime = (Long) state.getFromKey(INTERNAL_LAST_TIME_KEY);
+        if (t > lastTime) {
+            t = (double) lastTime;
+        }
+        t = t / inferSTEP;
+
+        if (weight==null){
+            return 0;
+        }
+        double val = 0;
+        for (int i=1;i<weight.length;i++){
+            val += i*Math.pow(time, );
+        }
+        return val*1000;*/
+
+        //TODO Do it later, after all the rest is finished
+        return 0;
     }
 }

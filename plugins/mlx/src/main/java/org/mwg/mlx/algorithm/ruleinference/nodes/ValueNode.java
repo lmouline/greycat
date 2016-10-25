@@ -37,7 +37,8 @@ public class ValueNode implements ConditionGraphNode{
                 lookup(this.nodeId).executeSync(this.graph);
         if (result.size() > 0){
             Node resolvedNode = (Node) result.get(0);
-            return resolvedNode.get(this.attribute).toString();
+            Object attr = resolvedNode.get(this.attribute);
+            return (attr==null)?null:attr.toString();
         }
         //TODO Not resolved. What to do? Currently - default to null.
         return null;

@@ -20,6 +20,12 @@ public class NotEqualsNode extends BooleanNode{
      */
     @Override
     public boolean getBooleanValue() {
+        if ((leftSide instanceof BooleanNode)&&(rightSide instanceof BooleanNode)){
+            return leftSide.getBooleanValue() != rightSide.getBooleanValue();
+        }
+        if ((leftSide instanceof DoubleNode)&&(rightSide instanceof DoubleNode)){
+            return leftSide.getDoubleValue() != rightSide.getDoubleValue();
+        }
         //This should cover all cases
         return !(leftSide.getValue().equals(rightSide.getValue()));
     }
