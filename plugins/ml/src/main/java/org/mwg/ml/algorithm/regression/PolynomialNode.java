@@ -54,7 +54,7 @@ public class PolynomialNode extends AbstractMLNode implements RegressionNode {
             learn(Double.parseDouble(propertyValue.toString()), null);
         } else if (propertyName.equals(PRECISION)) {
             enforcer.check(propertyName, propertyType, propertyValue);
-            super.setProperty(propertyName, propertyType, propertyValue);
+            super.setProperty(propertyName, Type.DOUBLE, (double) propertyValue);
         } else if (propertyName.equals(MAX_DEGREE)){
             degenforcer.check(propertyName, propertyType, propertyValue);
             super.setProperty(propertyName, Type.INT, (int) propertyValue);
