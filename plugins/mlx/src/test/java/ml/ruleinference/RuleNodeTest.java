@@ -7,12 +7,9 @@ import org.mwg.ml.algorithm.regression.PolynomialNode;
 import org.mwg.mlx.MLXPlugin;
 import org.mwg.mlx.algorithm.classifier.GaussianClassifierNode;
 import org.mwg.mlx.algorithm.ruleinference.RuleNode;
-import org.mwg.mlx.algorithm.ruleinference.nodes.DoubleNode;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mwg.task.Actions.setTime;
-import static org.mwg.task.Actions.setWorld;
 
 /**
  * Created by andrey.boytsov on 24/10/2016.
@@ -995,27 +992,21 @@ public class RuleNodeTest {
 
                 String requestStr = justNodeForValue.id()+".someValue";
 
-                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
                 ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = 3.4567");
 
-                Node oldNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
                 //Before rule is triggered there should be old value
-                Object oldValue = oldNode.get("someValue");
+                Object oldValue = justNodeForValue.get("someValue");
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
+                assertEquals(false, ruleNode.ruleTriggered());
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
                 assertEquals(true, ruleNode.ruleTriggered());
 
                 //After rule is triggered there should be new value
                 //Note that type has changed from string to double
 
-                Node newNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
-                //Object newValue = justNodeForValue.get("someValue");
-                Object newValue = newNode.get("someValue");
+                Object newValue = justNodeForValue.get("someValue");
                 assertTrue(newValue instanceof Double);
                 assertEquals(newValue, 3.4567);
 
@@ -1043,11 +1034,8 @@ public class RuleNodeTest {
                 ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "1 > 3");
                 ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = 3.4567");
 
-                Node oldNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
                 //Before rule is triggered there should be old value
-                Object oldValue = oldNode.get("someValue");
+                Object oldValue = justNodeForValue.get("someValue");
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
@@ -1055,11 +1043,8 @@ public class RuleNodeTest {
 
                 //Rule is not triggered, old value should stay
 
-                Node newNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
                 //Object newValue = justNodeForValue.get("someValue");
-                Object newValue = newNode.get("someValue");
+                Object newValue = justNodeForValue.get("someValue");
                 assertTrue(newValue instanceof String);
                 assertEquals(newValue, "1.2345");
 
@@ -1084,27 +1069,21 @@ public class RuleNodeTest {
 
                 String requestStr = justNodeForValue.id()+".someValue";
 
-                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
                 ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = tRue");
 
-                Node oldNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
                 //Before rule is triggered there should be old value
-                Object oldValue = oldNode.get("someValue");
+                Object oldValue = justNodeForValue.get("someValue");
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
+                assertEquals(false, ruleNode.ruleTriggered());
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
                 assertEquals(true, ruleNode.ruleTriggered());
 
                 //After rule is triggered there should be new value
                 //Note that type has changed from string to boolean
 
-                Node newNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
-                //Object newValue = justNodeForValue.get("someValue");
-                Object newValue = newNode.get("someValue");
+                Object newValue = justNodeForValue.get("someValue");
                 assertTrue(newValue instanceof Boolean);
                 assertEquals(newValue, true);
 
@@ -1130,28 +1109,23 @@ public class RuleNodeTest {
                 String requestStr = justNodeForValue.id()+".someValue";
 
                 ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
-                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = False");
-
-                Node oldNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
 
                 //Before rule is triggered there should be old value
-                Object oldValue = oldNode.get("someValue");
+                Object oldValue = justNodeForValue.get("someValue");
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
                 assertEquals(true, ruleNode.ruleTriggered());
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = False");
 
                 //After rule is triggered there should be new value
                 //Note that type has changed from string to boolean
 
-                Node newNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
-                //Object newValue = justNodeForValue.get("someValue");
-                Object newValue = newNode.get("someValue");
+                Object newValue = justNodeForValue.get("someValue");
                 assertTrue(newValue instanceof Boolean);
                 assertEquals(newValue, false);
+
+                assertEquals(true, ruleNode.ruleTriggered());
 
                 ruleNode.free();
                 graph.disconnect(null);
@@ -1174,28 +1148,23 @@ public class RuleNodeTest {
 
                 String requestStr = justNodeForValue.id()+".someValue";
 
-                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
                 ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = ON");
 
-                Node oldNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
                 //Before rule is triggered there should be old value
-                Object oldValue = oldNode.get("someValue");
+                Object oldValue = justNodeForValue.get("someValue");
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(false, ruleNode.ruleTriggered());
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
 
                 //After rule is triggered there should be new value
 
-                Node newNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
-                //Object newValue = justNodeForValue.get("someValue");
-                Object newValue = newNode.get("someValue");
+                Object newValue = justNodeForValue.get("someValue");
                 assertTrue(newValue instanceof String);
                 assertEquals(newValue, "ON");
+
+                assertEquals(true, ruleNode.ruleTriggered());
 
                 ruleNode.free();
                 graph.disconnect(null);
@@ -1219,27 +1188,22 @@ public class RuleNodeTest {
                 String requestStr = justNodeForValue.id()+".someValue";
 
                 ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
-                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = 'ON '");
-
-                Node oldNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
 
                 //Before rule is triggered there should be old value
-                Object oldValue = oldNode.get("someValue");
+                Object oldValue = justNodeForValue.get("someValue");
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
                 assertEquals(true, ruleNode.ruleTriggered());
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = 'ON '");
 
                 //After rule is triggered there should be new value
 
-                Node newNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
-                //Object newValue = justNodeForValue.get("someValue");
-                Object newValue = newNode.get("someValue");
+                Object newValue = justNodeForValue.get("someValue");
                 assertTrue(newValue instanceof String);
                 assertEquals(newValue, "ON ");
+
+                assertEquals(true, ruleNode.ruleTriggered());
 
                 ruleNode.free();
                 graph.disconnect(null);
@@ -1263,26 +1227,19 @@ public class RuleNodeTest {
 
                 String requestStr = "{"+justNodeForValue.id()+".someValue"+"}";
 
-                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
                 ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = ON");
 
-                Node oldNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
                 //Before rule is triggered there should be old value
-                Object oldValue = oldNode.get("someValue");
+                Object oldValue = justNodeForValue.get("someValue");
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
+                assertEquals(false, ruleNode.ruleTriggered());
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
                 assertEquals(true, ruleNode.ruleTriggered());
 
                 //After rule is triggered there should be new value
-
-                Node newNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
-                //Object newValue = justNodeForValue.get("someValue");
-                Object newValue = newNode.get("someValue");
+                Object newValue = justNodeForValue.get("someValue");
                 assertTrue(newValue instanceof String);
                 assertEquals(newValue, "ON");
 
@@ -1309,28 +1266,21 @@ public class RuleNodeTest {
                 String requestStr = justNodeForValue.id()+".someValue";
 
                 ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
-                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = '3.4567'");
-
-                Node oldNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
 
                 //Before rule is triggered there should be old value
-                Object oldValue = oldNode.get("someValue");
+                Object oldValue = justNodeForValue.get("someValue");
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
                 assertEquals(true, ruleNode.ruleTriggered());
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = '3.4567'");
 
                 //After rule is triggered there should be new value
-                //Note that type might change
-
-                Node newNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
-                //Object newValue = justNodeForValue.get("someValue");
-                Object newValue = newNode.get("someValue");
+                Object newValue = justNodeForValue.get("someValue");
                 assertTrue(newValue instanceof String);
                 assertEquals(newValue, "3.4567");
+
+                assertEquals(true, ruleNode.ruleTriggered());
 
                 ruleNode.free();
                 graph.disconnect(null);
@@ -1354,26 +1304,20 @@ public class RuleNodeTest {
                 String requestStr = justNodeForValue.id()+".someValue";
 
                 ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
-                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = 'true'");
-
-                Node oldNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
 
                 //Before rule is triggered there should be old value
-                Object oldValue = oldNode.get("someValue");
+                Object oldValue = justNodeForValue.get("someValue");
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
+                assertEquals(true, ruleNode.ruleTriggered()); //Rule is triggered but nothing happens
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = 'true'");
                 assertEquals(true, ruleNode.ruleTriggered());
 
                 //After rule is triggered there should be new value
                 //Note that type might change
 
-                Node newNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
-                //Object newValue = justNodeForValue.get("someValue");
-                Object newValue = newNode.get("someValue");
+                Object newValue = justNodeForValue.get("someValue");
                 assertTrue(newValue instanceof String);
                 assertEquals(newValue, "true");
 
@@ -1400,42 +1344,34 @@ public class RuleNodeTest {
 
                 final long id = justNodeForValue.id();
 
-                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
                 ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, id+".someValue = 'On' && ("+id+".anotherValue = -2.5) && "+id+".yetAnotherValue = true");
 
-                Node oldNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
                 //Before rule is triggered there should be old value
-                Object oldValue = oldNode.get("someValue");
+                Object oldValue = justNodeForValue.get("someValue");
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "OFF");
 
-                Object oldValue2 = oldNode.get("anotherValue");
+                Object oldValue2 = justNodeForValue.get("anotherValue");
                 assertTrue(oldValue2 instanceof Boolean);
                 assertEquals(oldValue2, false);
 
-                Object oldValue3 = oldNode.get("yetAnotherValue");
+                Object oldValue3 = justNodeForValue.get("yetAnotherValue");
                 assertTrue(oldValue3 instanceof Double);
                 assertEquals(oldValue3, 0.678);
 
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(false, ruleNode.ruleTriggered());
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
 
                 //After rule is triggered there should be new value
-
-                Node newNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
-                //Object newValue = justNodeForValue.get("someValue");
-                Object newValue = newNode.get("someValue");
+                Object newValue = justNodeForValue.get("someValue");
                 assertTrue(newValue instanceof String);
                 assertEquals(newValue, "On");
 
-                Object newValue2 = newNode.get("anotherValue");
+                Object newValue2 = justNodeForValue.get("anotherValue");
                 assertTrue(newValue2 instanceof Double);
                 assertEquals(newValue2, -2.5);
 
-                Object newValue3 = newNode.get("yetAnotherValue");
+                Object newValue3 = justNodeForValue.get("yetAnotherValue");
                 assertTrue(newValue3 instanceof Boolean);
                 assertEquals(newValue3, true);
 
@@ -1462,44 +1398,39 @@ public class RuleNodeTest {
 
                 final long id = justNodeForValue.id();
 
-                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
                 ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, "("+id+".someValue = 'On' && (("+id+".anotherValue = -2.5) && "+id+".yetAnotherValue = true ) )");
 
-                Node oldNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
                 //Before rule is triggered there should be old value
-                Object oldValue = oldNode.get("someValue");
+                Object oldValue = justNodeForValue.get("someValue");
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "OFF");
 
-                Object oldValue2 = oldNode.get("anotherValue");
+                Object oldValue2 = justNodeForValue.get("anotherValue");
                 assertTrue(oldValue2 instanceof Boolean);
                 assertEquals(oldValue2, false);
 
-                Object oldValue3 = oldNode.get("yetAnotherValue");
+                Object oldValue3 = justNodeForValue.get("yetAnotherValue");
                 assertTrue(oldValue3 instanceof Double);
                 assertEquals(oldValue3, 0.678);
 
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(false, ruleNode.ruleTriggered());
+                //Rule is triggered by setting new condition
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
 
                 //After rule is triggered there should be new value
-
-                Node newNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
-                //Object newValue = justNodeForValue.get("someValue");
-                Object newValue = newNode.get("someValue");
+                Object newValue = justNodeForValue.get("someValue");
                 assertTrue(newValue instanceof String);
                 assertEquals(newValue, "On");
 
-                Object newValue2 = newNode.get("anotherValue");
+                Object newValue2 = justNodeForValue.get("anotherValue");
                 assertTrue(newValue2 instanceof Double);
                 assertEquals(newValue2, -2.5);
 
-                Object newValue3 = newNode.get("yetAnotherValue");
+                Object newValue3 = justNodeForValue.get("yetAnotherValue");
                 assertTrue(newValue3 instanceof Boolean);
                 assertEquals(newValue3, true);
+
+                assertEquals(true, ruleNode.ruleTriggered());
 
                 ruleNode.free();
                 graph.disconnect(null);
@@ -1524,44 +1455,37 @@ public class RuleNodeTest {
 
                 final long id = justNodeForValue.id();
 
+                ruleNode.setProperty(RuleNode.RULE_ACTIVATED_KEY, Type.BOOL, false);
+
                 ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
                 ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, "("+id+".someValue = 'On' && (("+id+".anotherValue = -2.5) && "+id+".yetAnotherValue = true ) )");
 
-                Node oldNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
                 //Before rule is triggered there should be old value
-                Object oldValue = oldNode.get("someValue");
+                Object oldValue = justNodeForValue.get("someValue");
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "OFF");
 
-                Object oldValue2 = oldNode.get("anotherValue");
+                Object oldValue2 = justNodeForValue.get("anotherValue");
                 assertTrue(oldValue2 instanceof Boolean);
                 assertEquals(oldValue2, false);
 
-                Object oldValue3 = oldNode.get("yetAnotherValue");
+                Object oldValue3 = justNodeForValue.get("yetAnotherValue");
                 assertTrue(oldValue3 instanceof Double);
                 assertEquals(oldValue3, 0.678);
-
-                ruleNode.setProperty(RuleNode.RULE_ACTIVATED_KEY, Type.BOOL, false);
 
                 //Deactivated rules are not triggered
 
                 assertEquals(false, ruleNode.ruleTriggered());
 
-                Node newNode =
-                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
-                //Object newValue = justNodeForValue.get("someValue");
-                Object newValue = newNode.get("someValue");
+                Object newValue = justNodeForValue.get("someValue");
                 assertTrue(newValue instanceof String);
                 assertEquals(newValue, "OFF");
 
-                Object newValue2 = newNode.get("anotherValue");
+                Object newValue2 = justNodeForValue.get("anotherValue");
                 assertTrue(newValue2 instanceof Boolean);
                 assertEquals(newValue2, false);
 
-                Object newValue3 = newNode.get("yetAnotherValue");
+                Object newValue3 = justNodeForValue.get("yetAnotherValue");
                 assertTrue(newValue3 instanceof Double);
                 assertEquals(newValue3, 0.678);
 
@@ -1571,18 +1495,15 @@ public class RuleNodeTest {
 
                 assertEquals(true, ruleNode.ruleTriggered());
 
-                newNode =
-                   (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
-
-                newValue = newNode.get("someValue");
+                newValue = justNodeForValue.get("someValue");
                 assertTrue(newValue instanceof String);
                 assertEquals(newValue, "On");
 
-                newValue2 = newNode.get("anotherValue");
+                newValue2 = justNodeForValue.get("anotherValue");
                 assertTrue(newValue2 instanceof Double);
                 assertEquals(newValue2, -2.5);
 
-                newValue3 = newNode.get("yetAnotherValue");
+                newValue3 = justNodeForValue.get("yetAnotherValue");
                 assertTrue(newValue3 instanceof Boolean);
                 assertEquals(newValue3, true);
 
@@ -1592,5 +1513,113 @@ public class RuleNodeTest {
         });
     }
 
+    @Test
+    public void testRuleConditionChanged(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "OFF");
+                justNodeForValue.setProperty("anotherValue", Type.BOOL, false);
+                justNodeForValue.setProperty("yetAnotherValue", Type.DOUBLE, 0.678);
+
+                final long id = justNodeForValue.id();
+
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "0 > 1");
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, "("+id+".someValue = 'On' && (("+id+".anotherValue = -2.5) && "+id+".yetAnotherValue = true ) )");
+
+                //Before rule is triggered there should be old value
+                Object oldValue = justNodeForValue.get("someValue");
+                assertTrue(oldValue instanceof String);
+                assertEquals(oldValue, "OFF");
+
+                Object oldValue2 = justNodeForValue.get("anotherValue");
+                assertTrue(oldValue2 instanceof Boolean);
+                assertEquals(oldValue2, false);
+
+                Object oldValue3 = justNodeForValue.get("yetAnotherValue");
+                assertTrue(oldValue3 instanceof Double);
+                assertEquals(oldValue3, 0.678);
+
+                assertEquals(false, ruleNode.ruleTriggered());
+                //New condition Should be triggered now.
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "0 >= 0");
+
+                Object newValue = justNodeForValue.get("someValue");
+                assertTrue(newValue instanceof String);
+                assertEquals(newValue, "On");
+
+                Object newValue2 = justNodeForValue.get("anotherValue");
+                assertTrue(newValue2 instanceof Double);
+                assertEquals(newValue2, -2.5);
+
+                Object newValue3 = justNodeForValue.get("yetAnotherValue");
+                assertTrue(newValue3 instanceof Boolean);
+                assertEquals(newValue3, true);
+
+                assertEquals(true, ruleNode.ruleTriggered());
+
+                ruleNode.free();
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void testRuleCommandChanged(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                final long id = justNodeForValue.id();
+
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "2 > 1");
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, "("+id+".someValue = 'OFF' && (("+id+".anotherValue = false) && "+id+".yetAnotherValue = 0.678 ) )");
+
+                //Rule is triggered
+                Object oldValue = justNodeForValue.get("someValue");
+                assertTrue(oldValue instanceof String);
+                assertEquals(oldValue, "OFF");
+
+                Object oldValue2 = justNodeForValue.get("anotherValue");
+                assertTrue(oldValue2 instanceof Boolean);
+                assertEquals(oldValue2, false);
+
+                Object oldValue3 = justNodeForValue.get("yetAnotherValue");
+                assertTrue(oldValue3 instanceof Double);
+                assertEquals(oldValue3, 0.678);
+
+                //New command. Should be re-evaluated immediately.
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, "("+id+".someValue = 'On' && (("+id+".anotherValue = -2.5) && "+id+".yetAnotherValue = true ) )");
+
+                Object newValue = justNodeForValue.get("someValue");
+                assertTrue(newValue instanceof String);
+                assertEquals(newValue, "On");
+
+                Object newValue2 = justNodeForValue.get("anotherValue");
+                assertTrue(newValue2 instanceof Double);
+                assertEquals(newValue2, -2.5);
+
+                Object newValue3 = justNodeForValue.get("yetAnotherValue");
+                assertTrue(newValue3 instanceof Boolean);
+                assertEquals(newValue3, true);
+
+                assertEquals(true, ruleNode.ruleTriggered());
+
+                ruleNode.free();
+                graph.disconnect(null);
+            }
+        });
+    }
 
 }

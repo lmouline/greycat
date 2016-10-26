@@ -1,9 +1,6 @@
 package org.mwg.mlx.algorithm.ruleinference;
 
-import org.mwg.Constants;
-import org.mwg.Graph;
-import org.mwg.Node;
-import org.mwg.Type;
+import org.mwg.*;
 import org.mwg.mlx.algorithm.ruleinference.nodes.*;
 import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.NodeState;
@@ -38,7 +35,7 @@ public class RuleNode extends AbstractNode {
     public static final String INTERNAL_CONDITION_STRING = "_condition";
 
     /**
-     * Default condition: bever triggered.
+     * Default condition: never triggered.
      */
     public static final String INTERNAL_CONDITION_STRING_DEF = "False";
 
@@ -57,11 +54,6 @@ public class RuleNode extends AbstractNode {
      */
     public static final Boolean RULE_ACTIVATED_DEF = true;
 
-    /**
-     * Default command: do nothing.
-     */
-    public static final String INTERNAL_COMMAND_STRING_DEF = "";
-
     private static final Enforcer enforcer = new Enforcer()
             .asString(INTERNAL_COMMAND_STRING)
             .asString(INTERNAL_CONDITION_STRING)
@@ -73,8 +65,12 @@ public class RuleNode extends AbstractNode {
         //TODO exception check? Revert if failed?
         if (INTERNAL_CONDITION_STRING.equals(propertyName)) {
             initializeCondition(propertyValue.toString());
+            ruleTriggered(); //Don't care about the results, just test it
         }else if (INTERNAL_COMMAND_STRING.equals(propertyName)){
             initializeCommand(propertyValue.toString());
+            ruleTriggered(); //Again, just test it
+        }else if (RULE_ACTIVATED_KEY.equals(propertyName) && (propertyValue.equals(true))){
+            ruleTriggered();
         }
         super.setProperty(propertyName, propertyType, propertyValue);
     }
@@ -104,6 +100,7 @@ public class RuleNode extends AbstractNode {
         nodeIds.clear();
         nodeProperties.clear();
         newValues.clear();
+        types.clear();
 
         parseRuleCommand(command);
     }
@@ -182,7 +179,7 @@ public class RuleNode extends AbstractNode {
             TaskResult result = preparedTask.lookup(nodeID).executeSync(graph());
             if (result.size() > 0){
                 Node resolvedNode = (Node) result.get(0);
-                resolvedNode.setProperty(property, type, value);
+                resolvedNode.jump(resolvedNode.lastModification(), result1 -> result1.setProperty(property, type, value));
             }
         }
     }
@@ -194,6 +191,8 @@ public class RuleNode extends AbstractNode {
      */
     public final boolean ruleTriggered(){
         NodeState state = unphasedState();
+        final String condition = state.getFromKeyWithDefault(INTERNAL_CONDITION_STRING, INTERNAL_CONDITION_STRING_DEF);
+        final Object command = state.getFromKey(INTERNAL_COMMAND_STRING);
 
         if (state.getFromKeyWithDefault(RULE_ACTIVATED_KEY, RULE_ACTIVATED_DEF) == false){
             //Rule is deactivated. Deactivated rules never trigger.
@@ -202,11 +201,14 @@ public class RuleNode extends AbstractNode {
 
         if (finalNode == null){
             //If node is not initialized (e.g. after phasing), then BOTH condition and command are not initialized
-            initializeCondition(state.getFromKeyWithDefault(INTERNAL_CONDITION_STRING, INTERNAL_CONDITION_STRING_DEF));
-            initializeCommand(state.getFromKeyWithDefault(INTERNAL_COMMAND_STRING, INTERNAL_COMMAND_STRING_DEF));
+            initializeCondition(condition);
+            if (command != null){
+                initializeCommand(command.toString());
+            }
         }
         boolean triggered = finalNode.getBooleanValue();
         if (triggered){
+            //Commands not set? Whatever, you will just have empty list
             executeCommands();
         }
         return triggered;
