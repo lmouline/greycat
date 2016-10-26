@@ -1507,4 +1507,90 @@ public class RuleNodeTest {
         });
     }
 
+    @Test
+    public void testRuleActivatedDeactivated(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "OFF");
+                justNodeForValue.setProperty("anotherValue", Type.BOOL, false);
+                justNodeForValue.setProperty("yetAnotherValue", Type.DOUBLE, 0.678);
+
+                final long id = justNodeForValue.id();
+
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, "("+id+".someValue = 'On' && (("+id+".anotherValue = -2.5) && "+id+".yetAnotherValue = true ) )");
+
+                Node oldNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Before rule is triggered there should be old value
+                Object oldValue = oldNode.get("someValue");
+                assertTrue(oldValue instanceof String);
+                assertEquals(oldValue, "OFF");
+
+                Object oldValue2 = oldNode.get("anotherValue");
+                assertTrue(oldValue2 instanceof Boolean);
+                assertEquals(oldValue2, false);
+
+                Object oldValue3 = oldNode.get("yetAnotherValue");
+                assertTrue(oldValue3 instanceof Double);
+                assertEquals(oldValue3, 0.678);
+
+                ruleNode.setProperty(RuleNode.RULE_ACTIVATED_KEY, Type.BOOL, false);
+
+                //Deactivated rules are not triggered
+
+                assertEquals(false, ruleNode.ruleTriggered());
+
+                Node newNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Object newValue = justNodeForValue.get("someValue");
+                Object newValue = newNode.get("someValue");
+                assertTrue(newValue instanceof String);
+                assertEquals(newValue, "OFF");
+
+                Object newValue2 = newNode.get("anotherValue");
+                assertTrue(newValue2 instanceof Boolean);
+                assertEquals(newValue2, false);
+
+                Object newValue3 = newNode.get("yetAnotherValue");
+                assertTrue(newValue3 instanceof Double);
+                assertEquals(newValue3, 0.678);
+
+                ruleNode.setProperty(RuleNode.RULE_ACTIVATED_KEY, Type.BOOL, true);
+
+                //Rule is reactivated. Should be triggered now.
+
+                assertEquals(true, ruleNode.ruleTriggered());
+
+                newNode =
+                   (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                newValue = newNode.get("someValue");
+                assertTrue(newValue instanceof String);
+                assertEquals(newValue, "On");
+
+                newValue2 = newNode.get("anotherValue");
+                assertTrue(newValue2 instanceof Double);
+                assertEquals(newValue2, -2.5);
+
+                newValue3 = newNode.get("yetAnotherValue");
+                assertTrue(newValue3 instanceof Boolean);
+                assertEquals(newValue3, true);
+
+                ruleNode.free();
+                graph.disconnect(null);
+            }
+        });
+    }
+
+
 }

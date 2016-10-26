@@ -48,13 +48,24 @@ public class RuleNode extends AbstractNode {
     public static final String INTERNAL_COMMAND_STRING = "_command";
 
     /**
+     * Attribute key: Whether rule is activated
+     */
+    public static final String RULE_ACTIVATED_KEY = "activated";
+
+    /**
+     * Attribute default: whether rule is activated.
+     */
+    public static final Boolean RULE_ACTIVATED_DEF = true;
+
+    /**
      * Default command: do nothing.
      */
     public static final String INTERNAL_COMMAND_STRING_DEF = "";
 
     private static final Enforcer enforcer = new Enforcer()
             .asString(INTERNAL_COMMAND_STRING)
-            .asString(INTERNAL_CONDITION_STRING);
+            .asString(INTERNAL_CONDITION_STRING)
+            .asBool(RULE_ACTIVATED_KEY);
 
     @Override
     public void setProperty(String propertyName, byte propertyType, Object propertyValue) {
@@ -182,9 +193,15 @@ public class RuleNode extends AbstractNode {
      * @return whether rule is triggered.
      */
     public final boolean ruleTriggered(){
+        NodeState state = unphasedState();
+
+        if (state.getFromKeyWithDefault(RULE_ACTIVATED_KEY, RULE_ACTIVATED_DEF) == false){
+            //Rule is deactivated. Deactivated rules never trigger.
+            return false;
+        }
+
         if (finalNode == null){
             //If node is not initialized (e.g. after phasing), then BOTH condition and command are not initialized
-            NodeState state = unphasedState();
             initializeCondition(state.getFromKeyWithDefault(INTERNAL_CONDITION_STRING, INTERNAL_CONDITION_STRING_DEF));
             initializeCommand(state.getFromKeyWithDefault(INTERNAL_COMMAND_STRING, INTERNAL_COMMAND_STRING_DEF));
         }
