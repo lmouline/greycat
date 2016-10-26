@@ -7,8 +7,12 @@ import org.mwg.ml.algorithm.regression.PolynomialNode;
 import org.mwg.mlx.MLXPlugin;
 import org.mwg.mlx.algorithm.classifier.GaussianClassifierNode;
 import org.mwg.mlx.algorithm.ruleinference.RuleNode;
+import org.mwg.mlx.algorithm.ruleinference.nodes.DoubleNode;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mwg.task.Actions.setTime;
+import static org.mwg.task.Actions.setWorld;
 
 /**
  * Created by andrey.boytsov on 24/10/2016.
@@ -190,6 +194,52 @@ public class RuleNodeTest {
     @Test
     public void testMultipleTConjuncts(){
         checkRule("(2 < 3) && (1.5 >= 0.8) && true && (2 == 2)", true);
+    }
+
+    @Test
+    public void testFormula(){
+        //AND is of higher priority than OR, all should be 'true'
+        checkRule("((2 < 3) && (1.5 >= 0.8)) || true && (2 != 2)", true);
+    }
+
+    @Test
+    public void testStringTEquality(){
+        checkRule("'off' == 'off'", true);
+    }
+
+    @Test
+    public void testStringFEquality(){
+        checkRule("'off' == 'off '", false);
+    }
+
+    @Test
+    public void testStringFInequality(){
+        checkRule("'off' != 'off'", false);
+    }
+
+    @Test
+    public void testStringTInequality(){
+        checkRule("'off' != 'off '", true);
+    }
+
+    @Test
+    public void testStringTEqualityBrackets(){
+        checkRule("off == 'off'", true);
+    }
+
+    @Test
+    public void testStringFEqualityBrackets(){
+        checkRule("off == 'Off'", false);
+    }
+
+    @Test
+    public void testStringFInqualityBrackets(){
+        checkRule("off != 'off'", false);
+    }
+
+    @Test
+    public void testStringTInequalityBrackets(){
+        checkRule("off != 'Off'", true);
     }
 
     @Test
@@ -925,6 +975,533 @@ public class RuleNodeTest {
 
                 polynomialNode.free();
 
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void testSimpleCommandSetDouble(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "1.2345");
+
+                String requestStr = justNodeForValue.id()+".someValue";
+
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = 3.4567");
+
+                Node oldNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Before rule is triggered there should be old value
+                Object oldValue = oldNode.get("someValue");
+                assertTrue(oldValue instanceof String);
+                assertEquals(oldValue, "1.2345");
+
+                assertEquals(true, ruleNode.ruleTriggered());
+
+                //After rule is triggered there should be new value
+                //Note that type has changed from string to double
+
+                Node newNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Object newValue = justNodeForValue.get("someValue");
+                Object newValue = newNode.get("someValue");
+                assertTrue(newValue instanceof Double);
+                assertEquals(newValue, 3.4567);
+
+                ruleNode.free();
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void testSimpleCommandNotTriggered(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "1.2345");
+
+                String requestStr = justNodeForValue.id()+".someValue";
+
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "1 > 3");
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = 3.4567");
+
+                Node oldNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Before rule is triggered there should be old value
+                Object oldValue = oldNode.get("someValue");
+                assertTrue(oldValue instanceof String);
+                assertEquals(oldValue, "1.2345");
+
+                assertEquals(false, ruleNode.ruleTriggered());
+
+                //Rule is not triggered, old value should stay
+
+                Node newNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Object newValue = justNodeForValue.get("someValue");
+                Object newValue = newNode.get("someValue");
+                assertTrue(newValue instanceof String);
+                assertEquals(newValue, "1.2345");
+
+                ruleNode.free();
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void testSimpleCommandSetBoolean(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "1.2345");
+
+                String requestStr = justNodeForValue.id()+".someValue";
+
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = tRue");
+
+                Node oldNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Before rule is triggered there should be old value
+                Object oldValue = oldNode.get("someValue");
+                assertTrue(oldValue instanceof String);
+                assertEquals(oldValue, "1.2345");
+
+                assertEquals(true, ruleNode.ruleTriggered());
+
+                //After rule is triggered there should be new value
+                //Note that type has changed from string to boolean
+
+                Node newNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Object newValue = justNodeForValue.get("someValue");
+                Object newValue = newNode.get("someValue");
+                assertTrue(newValue instanceof Boolean);
+                assertEquals(newValue, true);
+
+                ruleNode.free();
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void testSimpleCommandSetBooleanFalse(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "1.2345");
+
+                String requestStr = justNodeForValue.id()+".someValue";
+
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = False");
+
+                Node oldNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Before rule is triggered there should be old value
+                Object oldValue = oldNode.get("someValue");
+                assertTrue(oldValue instanceof String);
+                assertEquals(oldValue, "1.2345");
+
+                assertEquals(true, ruleNode.ruleTriggered());
+
+                //After rule is triggered there should be new value
+                //Note that type has changed from string to boolean
+
+                Node newNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Object newValue = justNodeForValue.get("someValue");
+                Object newValue = newNode.get("someValue");
+                assertTrue(newValue instanceof Boolean);
+                assertEquals(newValue, false);
+
+                ruleNode.free();
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void testSimpleCommandSetString(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "1.2345");
+
+                String requestStr = justNodeForValue.id()+".someValue";
+
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = ON");
+
+                Node oldNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Before rule is triggered there should be old value
+                Object oldValue = oldNode.get("someValue");
+                assertTrue(oldValue instanceof String);
+                assertEquals(oldValue, "1.2345");
+
+                assertEquals(true, ruleNode.ruleTriggered());
+
+                //After rule is triggered there should be new value
+
+                Node newNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Object newValue = justNodeForValue.get("someValue");
+                Object newValue = newNode.get("someValue");
+                assertTrue(newValue instanceof String);
+                assertEquals(newValue, "ON");
+
+                ruleNode.free();
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void testSimpleCommandSetStringBrackets(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "1.2345");
+
+                String requestStr = justNodeForValue.id()+".someValue";
+
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = 'ON '");
+
+                Node oldNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Before rule is triggered there should be old value
+                Object oldValue = oldNode.get("someValue");
+                assertTrue(oldValue instanceof String);
+                assertEquals(oldValue, "1.2345");
+
+                assertEquals(true, ruleNode.ruleTriggered());
+
+                //After rule is triggered there should be new value
+
+                Node newNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Object newValue = justNodeForValue.get("someValue");
+                Object newValue = newNode.get("someValue");
+                assertTrue(newValue instanceof String);
+                assertEquals(newValue, "ON ");
+
+                ruleNode.free();
+                graph.disconnect(null);
+            }
+        });
+    }
+
+
+    @Test
+    public void testSimpleCommandSetStringPropertyBrackets(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "1.2345");
+
+                String requestStr = "{"+justNodeForValue.id()+".someValue"+"}";
+
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = ON");
+
+                Node oldNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Before rule is triggered there should be old value
+                Object oldValue = oldNode.get("someValue");
+                assertTrue(oldValue instanceof String);
+                assertEquals(oldValue, "1.2345");
+
+                assertEquals(true, ruleNode.ruleTriggered());
+
+                //After rule is triggered there should be new value
+
+                Node newNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Object newValue = justNodeForValue.get("someValue");
+                Object newValue = newNode.get("someValue");
+                assertTrue(newValue instanceof String);
+                assertEquals(newValue, "ON");
+
+                ruleNode.free();
+                graph.disconnect(null);
+            }
+        });
+    }
+
+
+    @Test
+    public void testSimpleCommandSetDoubleAsString(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "1.2345");
+
+                String requestStr = justNodeForValue.id()+".someValue";
+
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = '3.4567'");
+
+                Node oldNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Before rule is triggered there should be old value
+                Object oldValue = oldNode.get("someValue");
+                assertTrue(oldValue instanceof String);
+                assertEquals(oldValue, "1.2345");
+
+                assertEquals(true, ruleNode.ruleTriggered());
+
+                //After rule is triggered there should be new value
+                //Note that type might change
+
+                Node newNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Object newValue = justNodeForValue.get("someValue");
+                Object newValue = newNode.get("someValue");
+                assertTrue(newValue instanceof String);
+                assertEquals(newValue, "3.4567");
+
+                ruleNode.free();
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void testSimpleCommandSetBooleanAsString(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "1.2345");
+
+                String requestStr = justNodeForValue.id()+".someValue";
+
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = 'true'");
+
+                Node oldNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Before rule is triggered there should be old value
+                Object oldValue = oldNode.get("someValue");
+                assertTrue(oldValue instanceof String);
+                assertEquals(oldValue, "1.2345");
+
+                assertEquals(true, ruleNode.ruleTriggered());
+
+                //After rule is triggered there should be new value
+                //Note that type might change
+
+                Node newNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Object newValue = justNodeForValue.get("someValue");
+                Object newValue = newNode.get("someValue");
+                assertTrue(newValue instanceof String);
+                assertEquals(newValue, "true");
+
+                ruleNode.free();
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void testSimpleCommandSetMultiple(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "OFF");
+                justNodeForValue.setProperty("anotherValue", Type.BOOL, false);
+                justNodeForValue.setProperty("yetAnotherValue", Type.DOUBLE, 0.678);
+
+                final long id = justNodeForValue.id();
+
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, id+".someValue = 'On' && ("+id+".anotherValue = -2.5) && "+id+".yetAnotherValue = true");
+
+                Node oldNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Before rule is triggered there should be old value
+                Object oldValue = oldNode.get("someValue");
+                assertTrue(oldValue instanceof String);
+                assertEquals(oldValue, "OFF");
+
+                Object oldValue2 = oldNode.get("anotherValue");
+                assertTrue(oldValue2 instanceof Boolean);
+                assertEquals(oldValue2, false);
+
+                Object oldValue3 = oldNode.get("yetAnotherValue");
+                assertTrue(oldValue3 instanceof Double);
+                assertEquals(oldValue3, 0.678);
+
+                assertEquals(true, ruleNode.ruleTriggered());
+
+                //After rule is triggered there should be new value
+
+                Node newNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Object newValue = justNodeForValue.get("someValue");
+                Object newValue = newNode.get("someValue");
+                assertTrue(newValue instanceof String);
+                assertEquals(newValue, "On");
+
+                Object newValue2 = newNode.get("anotherValue");
+                assertTrue(newValue2 instanceof Double);
+                assertEquals(newValue2, -2.5);
+
+                Object newValue3 = newNode.get("yetAnotherValue");
+                assertTrue(newValue3 instanceof Boolean);
+                assertEquals(newValue3, true);
+
+                ruleNode.free();
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void testSimpleCommandSetMultipleBrackets(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                GaussianClassifierNode justNodeForValue = (GaussianClassifierNode)
+                        graph.newTypedNode(0, 0, GaussianClassifierNode.NAME);
+
+                justNodeForValue.setProperty("someValue", Type.STRING, "OFF");
+                justNodeForValue.setProperty("anotherValue", Type.BOOL, false);
+                justNodeForValue.setProperty("yetAnotherValue", Type.DOUBLE, 0.678);
+
+                final long id = justNodeForValue.id();
+
+                ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
+                ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, "("+id+".someValue = 'On' && (("+id+".anotherValue = -2.5) && "+id+".yetAnotherValue = true ) )");
+
+                Node oldNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Before rule is triggered there should be old value
+                Object oldValue = oldNode.get("someValue");
+                assertTrue(oldValue instanceof String);
+                assertEquals(oldValue, "OFF");
+
+                Object oldValue2 = oldNode.get("anotherValue");
+                assertTrue(oldValue2 instanceof Boolean);
+                assertEquals(oldValue2, false);
+
+                Object oldValue3 = oldNode.get("yetAnotherValue");
+                assertTrue(oldValue3 instanceof Double);
+                assertEquals(oldValue3, 0.678);
+
+                assertEquals(true, ruleNode.ruleTriggered());
+
+                //After rule is triggered there should be new value
+
+                Node newNode =
+                        (Node) setTime(""+ Constants.END_OF_TIME).lookup(""+justNodeForValue.id()).executeSync(graph).get(0);
+
+                //Object newValue = justNodeForValue.get("someValue");
+                Object newValue = newNode.get("someValue");
+                assertTrue(newValue instanceof String);
+                assertEquals(newValue, "On");
+
+                Object newValue2 = newNode.get("anotherValue");
+                assertTrue(newValue2 instanceof Double);
+                assertEquals(newValue2, -2.5);
+
+                Object newValue3 = newNode.get("yetAnotherValue");
+                assertTrue(newValue3 instanceof Boolean);
+                assertEquals(newValue3, true);
+
+                ruleNode.free();
                 graph.disconnect(null);
             }
         });
