@@ -39,6 +39,7 @@ public class PolynomialNode extends AbstractMLNode implements RegressionNode {
 
     private final static String NOT_MANAGED_ATT_ERROR = "Polynomial node can only handle value attribute, please use a super node to store other data";
     private static final Enforcer enforcer = new Enforcer().asPositiveDouble(PRECISION);
+    private static final Enforcer degenforcer = new Enforcer().asPositiveInt(MAX_DEGREE);
 
 
     public PolynomialNode(long p_world, long p_time, long p_id, Graph p_graph) {
@@ -54,7 +55,11 @@ public class PolynomialNode extends AbstractMLNode implements RegressionNode {
         } else if (propertyName.equals(PRECISION)) {
             enforcer.check(propertyName, propertyType, propertyValue);
             super.setProperty(propertyName, propertyType, propertyValue);
-        } else {
+        } else if (propertyName.equals(MAX_DEGREE)){
+            degenforcer.check(propertyName, propertyType, propertyValue);
+            super.setProperty(propertyName, propertyType, propertyValue);
+        }
+        else {
             throw new RuntimeException(NOT_MANAGED_ATT_ERROR);
         }
     }
@@ -63,7 +68,7 @@ public class PolynomialNode extends AbstractMLNode implements RegressionNode {
     public Object get(String propertyName) {
         if (propertyName.equals(VALUE)) {
             final Double[] res = {null};
-            //hack to query the value
+            //ToDo fix callback - return
             extrapolate(new Callback<Double>() {
                 @Override
                 public void on(Double result) {
