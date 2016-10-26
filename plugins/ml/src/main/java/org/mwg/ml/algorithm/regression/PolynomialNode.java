@@ -57,7 +57,7 @@ public class PolynomialNode extends AbstractMLNode implements RegressionNode {
             super.setProperty(propertyName, propertyType, propertyValue);
         } else if (propertyName.equals(MAX_DEGREE)){
             degenforcer.check(propertyName, propertyType, propertyValue);
-            super.setProperty(propertyName, propertyType, propertyValue);
+            super.setProperty(propertyName, Type.INT, (int) propertyValue);
         }
         else {
             throw new RuntimeException(NOT_MANAGED_ATT_ERROR);
