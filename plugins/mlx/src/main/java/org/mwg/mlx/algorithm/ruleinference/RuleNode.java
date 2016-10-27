@@ -47,17 +47,23 @@ public class RuleNode extends AbstractNode {
     /**
      * Attribute key: Whether rule is activated
      */
-    public static final String RULE_ACTIVATED_KEY = "activated";
+    public static final String RULE_TRIGGERED_KEY = "triggered";
 
     /**
      * Attribute default: whether rule is activated.
      */
     public static final Boolean RULE_ACTIVATED_DEF = true;
 
+    /**
+     * Attribute key: Whether rule is triggered
+     */
+    public static final String RULE_ACTIVATED_KEY = "activated";
+
     private static final Enforcer enforcer = new Enforcer()
             .asString(INTERNAL_COMMAND_STRING)
             .asString(INTERNAL_CONDITION_STRING)
-            .asBool(RULE_ACTIVATED_KEY);
+            .asBool(RULE_ACTIVATED_KEY)
+            .asBool(RULE_TRIGGERED_KEY);
 
     @Override
     public void setProperty(String propertyName, byte propertyType, Object propertyValue) {
@@ -65,14 +71,20 @@ public class RuleNode extends AbstractNode {
         //TODO exception check? Revert if failed?
         if (INTERNAL_CONDITION_STRING.equals(propertyName)) {
             initializeCondition(propertyValue.toString());
-            ruleTriggered(); //Don't care about the results, just test it
+            evaluateIfRuleTriggered(); //Don't care about the results, just test it
         }else if (INTERNAL_COMMAND_STRING.equals(propertyName)){
             initializeCommand(propertyValue.toString());
-            ruleTriggered(); //Again, just test it
-        }else if (RULE_ACTIVATED_KEY.equals(propertyName) && (propertyValue.equals(true))){
-            ruleTriggered();
+            evaluateIfRuleTriggered(); //Again, just test it
+        }else if (RULE_TRIGGERED_KEY.equals(propertyName)){
+            //DO NOT SET. Read-only.
+            return ;
         }
         super.setProperty(propertyName, propertyType, propertyValue);
+
+        //If we do it before, re-evaluation will not happen - rule still deactivated
+        if (RULE_ACTIVATED_KEY.equals(propertyName) && (propertyValue.equals(true))){
+            evaluateIfRuleTriggered();
+        }
     }
 
     //TODO Validation? Assertion?
@@ -185,17 +197,18 @@ public class RuleNode extends AbstractNode {
     }
 
     /**
-     * Test function, checks whether rule is triggered now.
+     * Re-calculates whether rule is triggered now.
      *
      * @return whether rule is triggered.
      */
-    public final boolean ruleTriggered(){
+    public final boolean evaluateIfRuleTriggered(){
         NodeState state = unphasedState();
         final String condition = state.getFromKeyWithDefault(INTERNAL_CONDITION_STRING, INTERNAL_CONDITION_STRING_DEF);
         final Object command = state.getFromKey(INTERNAL_COMMAND_STRING);
 
         if (state.getFromKeyWithDefault(RULE_ACTIVATED_KEY, RULE_ACTIVATED_DEF) == false){
             //Rule is deactivated. Deactivated rules never trigger.
+            state.setFromKey(RULE_TRIGGERED_KEY, Type.BOOL, false);
             return false;
         }
 
@@ -207,6 +220,7 @@ public class RuleNode extends AbstractNode {
             }
         }
         boolean triggered = finalNode.getBooleanValue();
+        state.setFromKey(RULE_TRIGGERED_KEY, Type.BOOL, triggered);
         if (triggered){
             //Commands not set? Whatever, you will just have empty list
             executeCommands();

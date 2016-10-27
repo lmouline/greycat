@@ -25,7 +25,7 @@ public class RuleNodeTest {
 
                 ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, condition);
 
-                assertEquals(expectedResult, ruleNode.ruleTriggered());
+                assertEquals(expectedResult, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode.free();
                 graph.disconnect(null);
@@ -328,10 +328,10 @@ public class RuleNodeTest {
                 ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == 1.2345");
                 ruleNode4.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != 1.2345");
 
-                assertEquals(true, ruleNode1.ruleTriggered());
-                assertEquals(false, ruleNode2.ruleTriggered());
-                assertEquals(true, ruleNode3.ruleTriggered());
-                assertEquals(false, ruleNode4.ruleTriggered());
+                assertEquals(true, ruleNode1.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode2.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode3.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode4.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode1.free();
                 ruleNode2.free();
@@ -373,12 +373,12 @@ public class RuleNodeTest {
                 ruleNode5.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != trUe");
                 ruleNode6.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != false");
 
-                assertEquals(true, ruleNode1.ruleTriggered());
-                assertEquals(false, ruleNode2.ruleTriggered());
-                assertEquals(true, ruleNode3.ruleTriggered());
-                assertEquals(false, ruleNode4.ruleTriggered());
-                assertEquals(false, ruleNode5.ruleTriggered());
-                assertEquals(true, ruleNode6.ruleTriggered());
+                assertEquals(true, ruleNode1.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode2.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode3.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode4.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode5.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode6.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode1.free();
                 ruleNode2.free();
@@ -422,12 +422,12 @@ public class RuleNodeTest {
                 ruleNode5.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != trUe");
                 ruleNode6.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != false");
 
-                assertEquals(false, ruleNode1.ruleTriggered());
-                assertEquals(true, ruleNode2.ruleTriggered());
-                assertEquals(false, ruleNode3.ruleTriggered());
-                assertEquals(true, ruleNode4.ruleTriggered());
-                assertEquals(true, ruleNode5.ruleTriggered());
-                assertEquals(false, ruleNode6.ruleTriggered());
+                assertEquals(false, ruleNode1.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode2.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode3.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode4.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode5.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode6.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode1.free();
                 ruleNode2.free();
@@ -475,11 +475,11 @@ public class RuleNodeTest {
                 ruleNode4.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != 1.2345");
                 ruleNode5.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == 0.11");
 
-                assertEquals(false, ruleNode1.ruleTriggered());
-                assertEquals(true, ruleNode2.ruleTriggered());
-                assertEquals(false, ruleNode3.ruleTriggered());
-                assertEquals(true, ruleNode4.ruleTriggered());
-                assertEquals(true, ruleNode5.ruleTriggered());
+                assertEquals(false, ruleNode1.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode2.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode3.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode4.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode5.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode1.free();
                 ruleNode2.free();
@@ -529,12 +529,12 @@ public class RuleNodeTest {
                 ruleNode5.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != trUe");
                 ruleNode6.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != false");
 
-                assertEquals(false, ruleNode1.ruleTriggered());
-                assertEquals(true, ruleNode2.ruleTriggered());
-                assertEquals(false, ruleNode3.ruleTriggered());
-                assertEquals(true, ruleNode4.ruleTriggered());
-                assertEquals(true, ruleNode5.ruleTriggered());
-                assertEquals(false, ruleNode6.ruleTriggered());
+                assertEquals(false, ruleNode1.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode2.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode3.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode4.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode5.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode6.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode1.free();
                 ruleNode2.free();
@@ -580,9 +580,9 @@ public class RuleNodeTest {
                 ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} >= 0");
                 ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} == -0.002");
 
-                assertEquals(true, ruleNode1.ruleTriggered());
-                assertEquals(false, ruleNode2.ruleTriggered());
-                assertEquals(true, ruleNode3.ruleTriggered());
+                assertEquals(true, ruleNode1.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode2.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode3.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode1.free();
                 ruleNode2.free();
@@ -618,9 +618,9 @@ public class RuleNodeTest {
                 ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} > 0");
                 ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} == 0");
 
-                assertEquals(false, ruleNode1.ruleTriggered());
-                assertEquals(false, ruleNode2.ruleTriggered());
-                assertEquals(true, ruleNode3.ruleTriggered());
+                assertEquals(false, ruleNode1.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode2.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode3.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode1.free();
                 ruleNode2.free();
@@ -660,12 +660,12 @@ public class RuleNodeTest {
                 ruleNode5.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == '1.234500'");
                 ruleNode6.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != '1.234500'");
 
-                assertEquals(true, ruleNode1.ruleTriggered());
-                assertEquals(true, ruleNode2.ruleTriggered());
-                assertEquals(true, ruleNode3.ruleTriggered());
-                assertEquals(true, ruleNode4.ruleTriggered());
-                assertEquals(false, ruleNode5.ruleTriggered());
-                assertEquals(true, ruleNode6.ruleTriggered());
+                assertEquals(true, ruleNode1.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode2.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode3.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode4.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode5.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode6.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode1.free();
                 ruleNode2.free();
@@ -697,10 +697,10 @@ public class RuleNodeTest {
                 ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "'1.2345' == '1.2345'");
                 ruleNode4.set(RuleNode.INTERNAL_CONDITION_STRING, "'1.2345' != '1.234500'");
 
-                assertEquals(true, ruleNode1.ruleTriggered()); //Double will be transferred to string
-                assertEquals(true, ruleNode2.ruleTriggered());
-                assertEquals(true, ruleNode3.ruleTriggered());
-                assertEquals(true, ruleNode4.ruleTriggered());
+                assertEquals(true, ruleNode1.get(RuleNode.RULE_TRIGGERED_KEY)); //Double will be transferred to string
+                assertEquals(true, ruleNode2.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode3.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode4.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode1.free();
                 ruleNode2.free();
@@ -735,10 +735,10 @@ public class RuleNodeTest {
                 ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == 'OFF'");
                 ruleNode4.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != 'ON'");
 
-                assertEquals(true, ruleNode1.ruleTriggered());
-                assertEquals(true, ruleNode2.ruleTriggered());
-                assertEquals(false, ruleNode3.ruleTriggered());
-                assertEquals(false, ruleNode4.ruleTriggered());
+                assertEquals(true, ruleNode1.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode2.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode3.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode4.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode1.free();
                 ruleNode2.free();
@@ -775,10 +775,10 @@ public class RuleNodeTest {
                 ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == '3 > 1'");
                 ruleNode4.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != '{4.someValue}'");
 
-                assertEquals(true, ruleNode1.ruleTriggered());
-                assertEquals(true, ruleNode2.ruleTriggered());
-                assertEquals(false, ruleNode3.ruleTriggered());
-                assertEquals(false, ruleNode4.ruleTriggered());
+                assertEquals(true, ruleNode1.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode2.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode3.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode4.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode1.free();
                 ruleNode2.free();
@@ -815,10 +815,10 @@ public class RuleNodeTest {
                 ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} == '1 > 3'");
                 ruleNode4.set(RuleNode.INTERNAL_CONDITION_STRING, "{"+requestStr+"} != '{4.someValue}'");
 
-                assertEquals(false, ruleNode1.ruleTriggered());
-                assertEquals(false, ruleNode2.ruleTriggered());
-                assertEquals(true, ruleNode3.ruleTriggered());
-                assertEquals(true, ruleNode4.ruleTriggered());
+                assertEquals(false, ruleNode1.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode2.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode3.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode4.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode1.free();
                 ruleNode2.free();
@@ -876,8 +876,8 @@ public class RuleNodeTest {
                 ruleNode1.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} == 0");
                 ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} != 0");
 
-                assertEquals(true, ruleNode1.ruleTriggered());
-                assertEquals(false, ruleNode2.ruleTriggered());
+                assertEquals(true, ruleNode1.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode2.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode1.free();
                 ruleNode2.free();
@@ -918,9 +918,9 @@ public class RuleNodeTest {
                 ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} < 3.001");
                 ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} == 2.998");
 
-                assertEquals(true, ruleNode1.ruleTriggered());
-                assertEquals(true, ruleNode2.ruleTriggered());
-                assertEquals(false, ruleNode3.ruleTriggered());
+                assertEquals(true, ruleNode1.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode2.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode3.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode1.free();
                 ruleNode2.free();
@@ -962,9 +962,9 @@ public class RuleNodeTest {
                 ruleNode2.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} > -99.0001");
                 ruleNode3.set(RuleNode.INTERNAL_CONDITION_STRING, "d{"+requestStr+"} == -100");
 
-                assertEquals(true, ruleNode1.ruleTriggered());
-                assertEquals(true, ruleNode2.ruleTriggered());
-                assertEquals(false, ruleNode3.ruleTriggered());
+                assertEquals(true, ruleNode1.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(true, ruleNode2.get(RuleNode.RULE_TRIGGERED_KEY));
+                assertEquals(false, ruleNode3.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode1.free();
                 ruleNode2.free();
@@ -999,9 +999,9 @@ public class RuleNodeTest {
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
-                assertEquals(false, ruleNode.ruleTriggered());
+                assertEquals(false, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
                 ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(true, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 //After rule is triggered there should be new value
                 //Note that type has changed from string to double
@@ -1039,7 +1039,7 @@ public class RuleNodeTest {
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
-                assertEquals(false, ruleNode.ruleTriggered());
+                assertEquals(false, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 //Rule is not triggered, old value should stay
 
@@ -1076,9 +1076,9 @@ public class RuleNodeTest {
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
-                assertEquals(false, ruleNode.ruleTriggered());
+                assertEquals(false, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
                 ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(true, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 //After rule is triggered there should be new value
                 //Note that type has changed from string to boolean
@@ -1115,7 +1115,7 @@ public class RuleNodeTest {
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(true, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
                 ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = False");
 
                 //After rule is triggered there should be new value
@@ -1125,7 +1125,7 @@ public class RuleNodeTest {
                 assertTrue(newValue instanceof Boolean);
                 assertEquals(newValue, false);
 
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(true, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode.free();
                 graph.disconnect(null);
@@ -1155,7 +1155,7 @@ public class RuleNodeTest {
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
-                assertEquals(false, ruleNode.ruleTriggered());
+                assertEquals(false, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
                 ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
 
                 //After rule is triggered there should be new value
@@ -1164,7 +1164,7 @@ public class RuleNodeTest {
                 assertTrue(newValue instanceof String);
                 assertEquals(newValue, "ON");
 
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(true, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode.free();
                 graph.disconnect(null);
@@ -1194,7 +1194,7 @@ public class RuleNodeTest {
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(true, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
                 ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = 'ON '");
 
                 //After rule is triggered there should be new value
@@ -1203,7 +1203,7 @@ public class RuleNodeTest {
                 assertTrue(newValue instanceof String);
                 assertEquals(newValue, "ON ");
 
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(true, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode.free();
                 graph.disconnect(null);
@@ -1234,9 +1234,9 @@ public class RuleNodeTest {
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
-                assertEquals(false, ruleNode.ruleTriggered());
+                assertEquals(false, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
                 ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(true, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 //After rule is triggered there should be new value
                 Object newValue = justNodeForValue.get("someValue");
@@ -1272,7 +1272,7 @@ public class RuleNodeTest {
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(true, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
                 ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = '3.4567'");
 
                 //After rule is triggered there should be new value
@@ -1280,7 +1280,7 @@ public class RuleNodeTest {
                 assertTrue(newValue instanceof String);
                 assertEquals(newValue, "3.4567");
 
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(true, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode.free();
                 graph.disconnect(null);
@@ -1310,9 +1310,9 @@ public class RuleNodeTest {
                 assertTrue(oldValue instanceof String);
                 assertEquals(oldValue, "1.2345");
 
-                assertEquals(true, ruleNode.ruleTriggered()); //Rule is triggered but nothing happens
+                assertEquals(true, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY)); //Rule is triggered but nothing happens
                 ruleNode.set(RuleNode.INTERNAL_COMMAND_STRING, requestStr+" = 'true'");
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(true, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 //After rule is triggered there should be new value
                 //Note that type might change
@@ -1359,7 +1359,7 @@ public class RuleNodeTest {
                 assertTrue(oldValue3 instanceof Double);
                 assertEquals(oldValue3, 0.678);
 
-                assertEquals(false, ruleNode.ruleTriggered());
+                assertEquals(false, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
                 ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
 
                 //After rule is triggered there should be new value
@@ -1413,7 +1413,7 @@ public class RuleNodeTest {
                 assertTrue(oldValue3 instanceof Double);
                 assertEquals(oldValue3, 0.678);
 
-                assertEquals(false, ruleNode.ruleTriggered());
+                assertEquals(false, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
                 //Rule is triggered by setting new condition
                 ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "3 > 1");
 
@@ -1430,7 +1430,7 @@ public class RuleNodeTest {
                 assertTrue(newValue3 instanceof Boolean);
                 assertEquals(newValue3, true);
 
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(true, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode.free();
                 graph.disconnect(null);
@@ -1475,7 +1475,7 @@ public class RuleNodeTest {
 
                 //Deactivated rules are not triggered
 
-                assertEquals(false, ruleNode.ruleTriggered());
+                assertEquals(false, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 Object newValue = justNodeForValue.get("someValue");
                 assertTrue(newValue instanceof String);
@@ -1493,7 +1493,7 @@ public class RuleNodeTest {
 
                 //Rule is reactivated. Should be triggered now.
 
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(true, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 newValue = justNodeForValue.get("someValue");
                 assertTrue(newValue instanceof String);
@@ -1546,7 +1546,7 @@ public class RuleNodeTest {
                 assertTrue(oldValue3 instanceof Double);
                 assertEquals(oldValue3, 0.678);
 
-                assertEquals(false, ruleNode.ruleTriggered());
+                assertEquals(false, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
                 //New condition Should be triggered now.
                 ruleNode.set(RuleNode.INTERNAL_CONDITION_STRING, "0 >= 0");
 
@@ -1562,7 +1562,7 @@ public class RuleNodeTest {
                 assertTrue(newValue3 instanceof Boolean);
                 assertEquals(newValue3, true);
 
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(true, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode.free();
                 graph.disconnect(null);
@@ -1614,7 +1614,7 @@ public class RuleNodeTest {
                 assertTrue(newValue3 instanceof Boolean);
                 assertEquals(newValue3, true);
 
-                assertEquals(true, ruleNode.ruleTriggered());
+                assertEquals(true, ruleNode.get(RuleNode.RULE_TRIGGERED_KEY));
 
                 ruleNode.free();
                 graph.disconnect(null);
