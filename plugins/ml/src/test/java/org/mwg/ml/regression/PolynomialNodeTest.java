@@ -78,6 +78,8 @@ public class PolynomialNodeTest {
             });
         }
 
+        //System.out.println(polynomialNode);
+
         for (int i = 0; i < size; i++) {
             final int ia = i;
             polynomialNode.jump(times[ia], new Callback<PolynomialNode>() {

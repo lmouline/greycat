@@ -210,7 +210,7 @@ public class NeuralNodeEmpty extends AbstractNode {
                                     @Override
                                     public void eval(TaskContext context) {
                                         //store output in result here
-                                         
+
                                         context.continueTask();
                                     }
                                 }))
