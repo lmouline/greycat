@@ -14,8 +14,8 @@ public class AttributeNode extends AbstractMLNode {
 
     public static final String VALUE = "value"; //ToDo move value to a subnode
 
-    public static final String VALUE_VALID = "value_valid";
-    public static final String VALID = "valid";
+    public static final String VALID_VALUE = "valid_value";
+    public static final String IS_VALID = "is_valid";
     public static final String EXTRAPOLATE = "extrapolate";
 
     //To set the business logic - tolerated min, max
@@ -61,18 +61,23 @@ public class AttributeNode extends AbstractMLNode {
 
     @Override
     public Object get(String propertyName) {
-        if (propertyName.equals(VALUE)) {
-            return getValue();
-        } else if (propertyName.equals(VALUE_VALID)) {
-            return getValidValue();
-        } else if (propertyName.equals(AVG)) {
-            return getAvg();
-        } else if (propertyName.equals(SIGMA)) {
-            return getSigma();
-        } else {
-            return super.get(propertyName);
+        switch (propertyName) {
+            case VALUE:
+                return getValue();
+            case VALID_VALUE:
+                return getValidValue();
+            case IS_VALID:
+                return super.get(propertyName);
+            case AVG:
+                return getAvg();
+            case SIGMA:
+                return getSigma();
+            default:
+                return super.get(propertyName);
         }
     }
+
+
 
     private Double getValue() {
         return 0.0; //ToDo not implemented yet should take a callback
@@ -149,7 +154,7 @@ public class AttributeNode extends AbstractMLNode {
 
         //Check validity of the current insert
         boolean valid = checkValid(v, mintol, maxtol);
-        state.setFromKey(VALID, Type.BOOL, valid);
+        state.setFromKey(IS_VALID, Type.BOOL, valid);
         if (valid) {
             //Update min, max valid
             if (minval == null || v < minval) {
@@ -177,6 +182,7 @@ public class AttributeNode extends AbstractMLNode {
             callback.on(valid);
         }
     }
+
 
 
 }
