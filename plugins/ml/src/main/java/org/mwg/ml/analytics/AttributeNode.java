@@ -12,13 +12,15 @@ import org.mwg.plugin.NodeState;
 public class AttributeNode extends AbstractMLNode {
     public final static String NAME = "AttributeNode";
 
-    public static final String MIN_TOLERATED = "min_tol";
-    public static final String MAX_TOLERATED = "max_tol";
     public static final String VALUE = "value"; //ToDo move value to a subnode
+
     public static final String VALUE_VALID = "value_valid";
     public static final String VALID = "valid";
     public static final String EXTRAPOLATE = "extrapolate";
 
+    //To set the business logic - tolerated min, max
+    public static final String MIN_TOLERATED = "min_tol";
+    public static final String MAX_TOLERATED = "max_tol";
 
     public static final String MIN_OBSERVED = "min_obs";
     public static final String MAX_OBSERVED = "max_obs";
@@ -119,6 +121,8 @@ public class AttributeNode extends AbstractMLNode {
         return res;
     }
 
+
+    //Return the validity state of the set
     private void internalSet(double v, Callback<Boolean> callback) {
 
         //Get the phase state now
@@ -170,7 +174,7 @@ public class AttributeNode extends AbstractMLNode {
         }
 
         if (callback != null) {
-            callback.on(true);
+            callback.on(valid);
         }
     }
 
