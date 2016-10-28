@@ -9,6 +9,8 @@ import org.mwg.ml.algorithm.profiling.GaussianSlotNode;
 import org.mwg.ml.algorithm.profiling.GaussianTreeNode;
 import org.mwg.ml.algorithm.regression.LiveLinearRegressionNode;
 import org.mwg.ml.algorithm.regression.PolynomialNode;
+import org.mwg.ml.neuralnet.NeuralNode;
+import org.mwg.ml.neuralnet.NeuralNodeEmpty;
 import org.mwg.structure.tree.NDTree;
 import org.mwg.plugin.NodeFactory;
 import org.mwg.structure.StructurePlugin;
@@ -24,6 +26,16 @@ public class MLPlugin extends StructurePlugin {
                 return new PolynomialNode(world, time, id, graph);
             }
         });
+
+        //A simple Gaussian Node
+        declareNodeType(GaussianNode.NAME, new NodeFactory() {
+            @Override
+            public Node create(long world, long time, long id, Graph graph) {
+                return new GaussianNode(world, time, id, graph);
+            }
+        });
+
+
         //GaussianSlot
         declareNodeType(GaussianSlotNode.NAME, new NodeFactory() {
             @Override
@@ -53,7 +65,19 @@ public class MLPlugin extends StructurePlugin {
             }
         });
 
+        declareNodeType(NeuralNode.NAME, new NodeFactory() {
+            @Override
+            public Node create(long world, long time, long id, Graph graph) {
+                return new NeuralNode(world, time, id, graph);
+            }
+        });
 
+        declareNodeType(NeuralNodeEmpty.NAME, new NodeFactory() {
+            @Override
+            public Node create(long world, long time, long id, Graph graph) {
+                return new NeuralNode(world, time, id, graph);
+            }
+        });
 
         declareNodeType(GaussianTreeNode.NAME, new NodeFactory() {
             @Override
@@ -62,12 +86,6 @@ public class MLPlugin extends StructurePlugin {
             }
         });
 
-        declareNodeType(GaussianNode.NAME, new NodeFactory() {
-            @Override
-            public Node create(long world, long time, long id, Graph graph) {
-                return new GaussianNode(world, time, id, graph);
-            }
-        });
 
     }
 }

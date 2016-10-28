@@ -14,10 +14,29 @@ public class BufferManager {
     public static int ACTIVATION = 3;
 
 
+    public static HashMap<Long, Buffer> getInputBuffers() {
+        return inputBuffers;
+    }
+
+    public static HashMap<Long, Buffer> getOutputBuffers() {
+        return outputBuffers;
+    }
+
+    public static HashMap<Long, Buffer> getIntegrationBuffers() {
+        return integrationBuffers;
+    }
+
+    public static HashMap<Long, Buffer> getActivationBuffers() {
+        return activationBuffers;
+    }
+
     private static HashMap<Long, Buffer> inputBuffers = new HashMap<>();
     private static HashMap<Long, Buffer> outputBuffers = new HashMap<>();
     private static HashMap<Long, Buffer> integrationBuffers = new HashMap<>();
     private static HashMap<Long, Buffer> activationBuffers = new HashMap<>();
+
+
+
 
     public static Buffer getBuffer(Long id, int dimension, int bufferType, boolean lastWeightIsOne, boolean clearAfterFull) {
         HashMap<Long, Buffer> map = null;
@@ -29,7 +48,8 @@ public class BufferManager {
             map = integrationBuffers;
         } else if (bufferType == ACTIVATION) {
             map = activationBuffers;
-        } else {
+        }
+        else {
             throw new RuntimeException("Buffer not recognizable");
         }
 

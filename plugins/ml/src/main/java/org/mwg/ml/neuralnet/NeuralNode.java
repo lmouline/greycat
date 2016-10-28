@@ -10,6 +10,7 @@ import org.mwg.struct.LongLongMap;
 import org.mwg.struct.Relationship;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 /**
@@ -33,12 +34,13 @@ public class NeuralNode extends AbstractNode {
 
 
     public NeuralNode configure(int inputs, int outputs, int hiddenlayers, int nodesPerLayer) {
-
         ArrayList<NeuralNode> internalNodes = new ArrayList<NeuralNode>();//inputs + outputs + hiddenlayers * nodesPerLayer + 1
         internalNodes.add(this);
-        int layer = 0;
 
         ArrayList<NeuralNode> previousLayer = new ArrayList<NeuralNode>();
+
+        NodeState state =phasedState();
+        state.setFromKey(NODE_TYPE,Type.INT,NeuralNodeType.ROOT);
 
         //create input layers:
         for (int i = 0; i < inputs; i++) {
@@ -49,7 +51,6 @@ public class NeuralNode extends AbstractNode {
         }
 
         ArrayList<NeuralNode> nextLayer = new ArrayList<NeuralNode>();
-        layer++;
 
 
         //Create hidden layers
@@ -66,7 +67,6 @@ public class NeuralNode extends AbstractNode {
 
             previousLayer = nextLayer;
             nextLayer = new ArrayList<NeuralNode>();
-            layer++;
         }
 
         //Create output layers
@@ -80,8 +80,10 @@ public class NeuralNode extends AbstractNode {
         }
 
         for (int i = 0; i < internalNodes.size(); i++) {
-            internalNodes.get(i).initWeightsRadomly(0.1);
-            internalNodes.get(i).free();
+            if(internalNodes.get(i).id()!=this.id()) {
+                internalNodes.get(i).initWeightsRadomly(0.1);
+                internalNodes.get(i).free();
+            }
         }
         return this;
     }
@@ -89,7 +91,7 @@ public class NeuralNode extends AbstractNode {
     private static Random random=new Random();
 
     private void initWeightsRadomly(double maxValue){
-        NodeState state =unphasedState();
+        NodeState state =phasedState();
         int type = state.getFromKeyWithDefault(NODE_TYPE, NeuralNodeType.HIDDEN);
         if(type== NeuralNodeType.HIDDEN|| type==NeuralNodeType.OUTPUT){
             Relationship input= (Relationship) state.getFromKey(INPUTS);
@@ -162,16 +164,60 @@ public class NeuralNode extends AbstractNode {
     }
 
 
-    private void propagate(long senderId, NodeState state, long msgId, double msg, boolean forwardPropagation, boolean learn, double learningRate, Callback<double[]> callback) {
+
+    private static long msgIdCounter = -1;
+    private long generateMsgId() {
+        msgIdCounter++;
+        return msgIdCounter;
+    }
+
+
+    public void learn(double[] inputs, double[] outputs, double learningRate,  Callback<double[]> callback) {
+
+        HashMap<Long, Buffer> inputBuf=BufferManager.getInputBuffers();
+        HashMap<Long, Buffer> outputBuf=BufferManager.getOutputBuffers();
+        HashMap<Long, Buffer> integrationBuf=BufferManager.getIntegrationBuffers();
+        HashMap<Long, Buffer> activationBuf=BufferManager.getActivationBuffers();
+
+
+        Long msgId = generateMsgId();
+        System.out.println("learning for id: "+msgId);
+
+        NodeState state = phasedState();
+        LongLongMap inputMap = (LongLongMap) state.getFromKey(INPUTS_MAP);
+
+        Buffer outputBuffer = BufferManager.getBuffer(id(), (int) inputMap.size(), BufferManager.OUTPUT, false, false);
+        outputBuffer.insertArray(msgId,outputs);
+
         Relationship outputRel = (Relationship) state.getFromKey(OUTPUTS);
         for (int i = 0; i < outputRel.size(); i++) {
-            send(outputRel.get(i), msgId, msg, forwardPropagation, learn, learningRate, callback);
+            send(id(), outputRel.get(i), msgId, inputs[i], true, true, learningRate, new Callback<double[]>() {
+                @Override
+                public void on(double[] result) {
+
+                }
+            });
+        }
+
+        if(callback!=null) {
+            Buffer integrationBuffer = BufferManager.getBuffer(id(), outputs.length, BufferManager.INTEGRATION, false, false);
+            double[] err= integrationBuffer.getArray(msgId,true);
+            callback.on(err);
+        }
+    }
+
+
+    private void propagate(NodeState state, long msgId, double msg, boolean forwardPropagation, boolean learn, double learningRate, Callback<double[]> callback) {
+        Relationship outputRel = (Relationship) state.getFromKey(OUTPUTS);
+
+        for (int i = 0; i < outputRel.size(); i++) {
+            send(id(), outputRel.get(i), msgId, msg, forwardPropagation, learn, learningRate, callback);
         }
     }
 
 
     //todo add time sensitivity
-    public void receive(long senderId, long msgId, double msg, boolean forwardPropagation, boolean learn, double learningRate, Callback<double[]> callback) {
+    private void receive(long senderId, long msgId, double msg, boolean forwardPropagation, boolean learn, double learningRate, Callback<double[]> callback) {
         NodeState state = unphasedState();
         int type = state.getFromKeyWithDefault(NODE_TYPE, NeuralNodeType.HIDDEN);
 
@@ -179,7 +225,7 @@ public class NeuralNode extends AbstractNode {
             //forward propagation code here
             if (type == NeuralNodeType.INPUT) {
                 //If it is an input node and in forward propagation setting, send to all connected output nodes
-                propagate(id(), state, msgId, msg, forwardPropagation, learn, learningRate, callback);
+                propagate(state, msgId, msg, forwardPropagation, learn, learningRate, callback);
 
             } else if (type == NeuralNodeType.HIDDEN || type == NeuralNodeType.OUTPUT) {
                 LongLongMap inputmap = (LongLongMap) state.getFromKey(INPUTS_MAP);
@@ -194,7 +240,7 @@ public class NeuralNode extends AbstractNode {
                     Buffer activationBuffer = BufferManager.getBuffer(id(), 1, BufferManager.ACTIVATION, false, false);
                     integrationBuffer.insert(msgId, 0, integration);
                     activationBuffer.insert(msgId, 0, activation);
-                    propagate(id(), state, msgId, activation, forwardPropagation, learn, learningRate, callback);
+                    propagate(state, msgId, activation, forwardPropagation, learn, learningRate, callback);
                 }
             } else if (type == NeuralNodeType.ROOT) {
                 LongLongMap inputMap = (LongLongMap) state.getFromKey(INPUTS_MAP);
@@ -203,22 +249,14 @@ public class NeuralNode extends AbstractNode {
                 double[] values = forwardBuffer.insert(msgId, pos, msg);
                 if (learn) {
                     Buffer outputBuffer = BufferManager.getBuffer(id(), (int) inputMap.size(), BufferManager.OUTPUT, false, false);
-                    double[] realoutputs = outputBuffer.getArray(msgId, false);
+                    double[] realoutputs = outputBuffer.getArray(msgId, true);
                     double err = calculateErr(msg, realoutputs[pos]);
-                    Buffer integrationBuffer = BufferManager.getBuffer(id(), realoutputs.length, BufferManager.INTEGRATION, false, true);
+                    Buffer integrationBuffer = BufferManager.getBuffer(id(), realoutputs.length, BufferManager.INTEGRATION, false, false);
+                    integrationBuffer.insert(msgId, pos, err);
 
-                    double[] errors = integrationBuffer.insert(msgId, pos, err);
-                    if (errors != null) {
-                        outputBuffer.removeFromBuffer(msgId);
-//                        double total=0;
-//                        for(int i=0;i<errors.length;i++){
-//                            total+=errors[i];
-//                        }
-//                        System.out.println("total error: "+total);
-                    }
 
                     //Initiate backpropagation:
-                    send(senderId, msgId, calculateDerivativeErr(msg, realoutputs[pos]), false, learn, learningRate, callback);
+                    send(id(), senderId, msgId, calculateDerivativeErr(msg, realoutputs[pos]), false, learn, learningRate, callback);
                 } else {
                     if (values != null) {
                         if (callback != null) {
@@ -241,15 +279,12 @@ public class NeuralNode extends AbstractNode {
                     if (type == NeuralNodeType.INPUT) {
                         Relationship inputRel = (Relationship) state.getFromKey(INPUTS);
                         for (int i = 0; i < inputRel.size(); i++) {
-                            send(inputRel.get(i), msgId, msg, forwardPropagation, learn, learningRate, callback);
+                            send(id(),inputRel.get(i), msgId, msg, forwardPropagation, learn, learningRate, callback);
                         }
                     }
                     if (type == NeuralNodeType.ROOT) {
-                        if (callback != null) {
-                            callback.on(new double[]{(double) msgId}); //done learning for this
-                        }
-                    }
 
+                    }
                 }
 
 
@@ -284,7 +319,7 @@ public class NeuralNode extends AbstractNode {
                     Relationship inputs = (Relationship) state.getFromKey(INPUTS);
 
                     for (int i = 0; i < inputs.size(); i++) {
-                        send(inputs.get(i), msgId, delta * weights[i], forwardPropagation, learn, learningRate, callback);
+                        send(id(),inputs.get(i), msgId, delta * weights[i], forwardPropagation, learn, learningRate, callback);
                     }
                     state.setFromKey(WEIGHTS, Type.DOUBLE_ARRAY, newWeight);
                 }
@@ -294,12 +329,12 @@ public class NeuralNode extends AbstractNode {
     }
 
 
-    public void send(final long outputid, final long msgId, final double msg, final boolean forwardPropagation, final boolean learn, final double learningRate, final Callback<double[]> callback) {
+    private void send(final long senderid, final long outputid, final long msgId, final double msg, final boolean forwardPropagation, final boolean learn, final double learningRate, final Callback<double[]> callback) {
         this.graph().lookup(world(), time(), outputid, new Callback<Node>() {
             @Override
             public void on(Node result) {
                 NeuralNode res = (NeuralNode) result;
-                res.receive(id(), msgId, msg, forwardPropagation, learn, learningRate, callback);
+                res.receive(senderid, msgId, msg, forwardPropagation, learn, learningRate, callback);
                 res.free();
             }
         });

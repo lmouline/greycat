@@ -19,11 +19,15 @@ public class Buffer {
     public Buffer(int capacity, int dimension, boolean lastWeightIsOne, boolean clearAfterFull) {
         this._index = new HashMap<>(); // capacity
         this._counts = new int[capacity];
-        this._values = new double[capacity][_dim];
         this._dim = dimension;
         this._capacity = capacity;
         this._lastWeightIsOne=lastWeightIsOne;
         this._clearAfterFull=clearAfterFull;
+
+        this._values = new double[capacity][_dim];
+        for(int i=0;i<capacity;i++){
+            _values[i]=new double[_dim];
+        }
     }
 
 
@@ -74,11 +78,11 @@ public class Buffer {
     }
 
 
-    public void insertArray(Long msgId, double[] values){
+    public void insertArray(Long msgId, double[] valuesToInsert){
         Integer indexpos = _index.get(msgId);
         if (indexpos != null) {
-            System.arraycopy(values,0,_values[indexpos],0,values.length);
-            _counts[indexpos]=values.length;
+            System.arraycopy(valuesToInsert,0,_values[indexpos],0,valuesToInsert.length);
+            _counts[indexpos]=valuesToInsert.length;
 
         } else {
             if (_capacityFull == _capacity) {
@@ -92,8 +96,8 @@ public class Buffer {
                     }
                 }
                 _index.put(msgId, pos);
-                System.arraycopy(values,0,_values[pos],0,values.length);
-                _counts[pos]=values.length;
+                System.arraycopy(valuesToInsert,0,_values[pos],0,valuesToInsert.length);
+                _counts[pos]=valuesToInsert.length;
                 _capacityFull++;
             }
         }
