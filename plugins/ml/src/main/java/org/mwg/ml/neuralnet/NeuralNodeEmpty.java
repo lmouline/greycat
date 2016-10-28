@@ -8,10 +8,17 @@ import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.NodeState;
 import org.mwg.struct.LongLongMap;
 import org.mwg.struct.Relationship;
+import org.mwg.task.Action;
+import org.mwg.task.Task;
+import org.mwg.task.TaskContext;
+import org.mwg.task.TaskFunctionConditional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+
+import static org.mwg.task.Actions.newTask;
+import static org.mwg.task.Actions.then;
 
 /**
  * Created by assaad on 20/09/16.
@@ -28,7 +35,7 @@ public class NeuralNodeEmpty extends AbstractNode {
     private static String WEIGHTS = "weights"; //weights of the network
     private static String NODE_TYPE = "node_type";
 
-    public static String LEARNINGRATE="learning";
+    public static String LEARNINGRATE = "learning";
     public static final double LEARNINGRATE_DEF = 0.01;
 
     public NeuralNodeEmpty(long p_world, long p_time, long p_id, Graph p_graph) {
@@ -42,8 +49,8 @@ public class NeuralNodeEmpty extends AbstractNode {
 
         ArrayList<NeuralNodeEmpty> previousLayer = new ArrayList<NeuralNodeEmpty>();
 
-        NodeState state =phasedState();
-        state.setFromKey(NODE_TYPE,Type.INT,NeuralNodeType.ROOT);
+        NodeState state = phasedState();
+        state.setFromKey(NODE_TYPE, Type.INT, NeuralNodeType.ROOT);
 
         //create input layers:
         for (int i = 0; i < inputs; i++) {
@@ -83,7 +90,7 @@ public class NeuralNodeEmpty extends AbstractNode {
         }
 
         for (int i = 0; i < internalNodes.size(); i++) {
-            if(internalNodes.get(i).id()!=this.id()) {
+            if (internalNodes.get(i).id() != this.id()) {
                 internalNodes.get(i).initWeightsRadomly(0.1);
                 internalNodes.get(i).free();
             }
@@ -91,18 +98,18 @@ public class NeuralNodeEmpty extends AbstractNode {
         return this;
     }
 
-    private static Random random=new Random();
+    private static Random random = new Random();
 
-    private void initWeightsRadomly(double maxValue){
-        NodeState state =phasedState();
+    private void initWeightsRadomly(double maxValue) {
+        NodeState state = phasedState();
         int type = state.getFromKeyWithDefault(NODE_TYPE, NeuralNodeType.HIDDEN);
-        if(type== NeuralNodeType.HIDDEN|| type==NeuralNodeType.OUTPUT){
-            Relationship input= (Relationship) state.getFromKey(INPUTS);
-            double[] weights = new double[input.size()+1];
-            for(int i=0;i<weights.length;i++){
-                weights[i]= random.nextDouble()*maxValue;
+        if (type == NeuralNodeType.HIDDEN || type == NeuralNodeType.OUTPUT) {
+            Relationship input = (Relationship) state.getFromKey(INPUTS);
+            double[] weights = new double[input.size() + 1];
+            for (int i = 0; i < weights.length; i++) {
+                weights[i] = random.nextDouble() * maxValue;
             }
-            state.setFromKey(WEIGHTS,Type.DOUBLE_ARRAY,weights);
+            state.setFromKey(WEIGHTS, Type.DOUBLE_ARRAY, weights);
         }
     }
 
@@ -118,7 +125,7 @@ public class NeuralNodeEmpty extends AbstractNode {
         inputs.add(this.id());
         int posint = inputs.size() - 1;
         LongLongMap mapin = (LongLongMap) inputNode.getOrCreate(INPUTS_MAP, Type.LONG_TO_LONG_MAP);
-        mapin.put(id(),posint);
+        mapin.put(id(), posint);
     }
 
     private NeuralNodeEmpty createNewNode(int neuralNodeType) {
@@ -136,7 +143,7 @@ public class NeuralNodeEmpty extends AbstractNode {
             value += weights[i] * values[i];
         }
         //Add bias
-        value +=weights[values.length];
+        value += weights[values.length];
         return value;
     }
 
@@ -167,42 +174,74 @@ public class NeuralNodeEmpty extends AbstractNode {
     }
 
 
-    public void predict(final double[] inputs, final Callback<double[]> callback){
+    private static Task predictTask = createPredictTask();
+
+    private static Task createPredictTask() {
+        Task t = newTask();
+        t.traverse(OUTPUTS)
+                .foreach(
+                        then(new Action() {
+                            @Override
+                            public void eval(TaskContext context) {
+                                //Bufferize values here
+
+                                context.continueTask();
+                            }
+                        }).ifThen(new TaskFunctionConditional() {
+                                      @Override
+                                      public boolean eval(TaskContext context) {
+                                          return false; //should return if buffer is full
+                                      }
+                                  }, then(new Action() {
+                                    @Override
+                                    public void eval(TaskContext context) {
+                                        //Calculate the integration function
+
+                                        context.continueTask();
+                                    }
+                                }).ifThen(new TaskFunctionConditional() {
+                                    @Override
+                                    public boolean eval(TaskContext context) {
+                                        return false; //should return if the node is hidden or input or root
+                                    }
+                                }, t)
+                        ));
+        return t;
+    }
+
+    public void predict(final double[] inputs, final Callback<double[]> callback) {
 
 
-        double[] prediction =null;
+        double[] prediction = null;
         callback.on(prediction);
     }
 
     public void learn(final double[] inputs, final double[] outputs, final Callback<double[]> callback) {
-        final NodeState state= phasedState();
+        final NodeState state = phasedState();
         //forward propagate
         predict(inputs, new Callback<double[]>() {
             @Override
             public void on(double[] predictions) {
-                final double[] errors=new double[outputs.length];
-                final double[] derivatives= new double[outputs.length];
+                final double[] errors = new double[outputs.length];
+                final double[] derivatives = new double[outputs.length];
 
-                for(int i=0;i<errors.length;i++){
-                    errors[i]=calculateErr(predictions[i],outputs[i]);
-                    derivatives[i]=calculateDerivativeErr(predictions[i],outputs[i]);
+                for (int i = 0; i < errors.length; i++) {
+                    errors[i] = calculateErr(predictions[i], outputs[i]);
+                    derivatives[i] = calculateDerivativeErr(predictions[i], outputs[i]);
                 }
 
-                double learningRate= state.getFromKeyWithDefault(LEARNINGRATE,LEARNINGRATE_DEF);
+                double learningRate = state.getFromKeyWithDefault(LEARNINGRATE, LEARNINGRATE_DEF);
 
                 //back-propagate derivatives[i] to outputs and lunch back propagation
 
 
-
-                if(callback!=null) {
+                if (callback != null) {
                     callback.on(errors);
                 }
 
             }
         });
     }
-
-
 
 
 }

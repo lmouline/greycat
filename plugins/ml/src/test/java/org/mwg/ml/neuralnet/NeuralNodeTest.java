@@ -43,7 +43,7 @@ public class NeuralNodeTest {
 
                 nn.configure(input, 1, 1, hidden);
                 root.add("ml", nn);
-                g.index("KDTREE", root, "name", null);
+                g.index("TREE", root, "name", null);
 
 //                WSServer ws=new WSServer(g,5678);
 //                ws.start();
