@@ -50,6 +50,11 @@ public class RuleNode extends AbstractNode {
     public static final String RULE_TRIGGERED_KEY = "triggered";
 
     /**
+     * Attribute key: rule name.
+     */
+    public static final String RULE_NAME_KEY = "ruleName";
+
+    /**
      * Attribute default: whether rule is activated.
      */
     public static final Boolean RULE_ACTIVATED_DEF = true;
@@ -63,7 +68,8 @@ public class RuleNode extends AbstractNode {
             .asString(INTERNAL_COMMAND_STRING)
             .asString(INTERNAL_CONDITION_STRING)
             .asBool(RULE_ACTIVATED_KEY)
-            .asBool(RULE_TRIGGERED_KEY);
+            .asBool(RULE_TRIGGERED_KEY)
+            .asString(RULE_NAME_KEY);
 
     @Override
     public void setProperty(String propertyName, byte propertyType, Object propertyValue) {

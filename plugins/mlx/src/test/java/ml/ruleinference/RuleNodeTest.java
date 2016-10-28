@@ -8,8 +8,7 @@ import org.mwg.mlx.MLXPlugin;
 import org.mwg.mlx.algorithm.classifier.GaussianClassifierNode;
 import org.mwg.mlx.algorithm.ruleinference.RuleNode;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Created by andrey.boytsov on 24/10/2016.
@@ -1618,6 +1617,53 @@ public class RuleNodeTest {
 
                 ruleNode.free();
                 graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void testSetRuleName(){
+        final Graph graph = new GraphBuilder().withPlugin(new MLXPlugin()).withScheduler(new NoopScheduler()).build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                RuleNode ruleNode = (RuleNode) graph.newTypedNode(0, 0, RuleNode.NAME);
+
+                assertNull(ruleNode.get(RuleNode.RULE_NAME_KEY));
+                ruleNode.setProperty(RuleNode.RULE_NAME_KEY, Type.STRING, "someRuleName");
+
+                assertEquals("someRuleName", ruleNode.get(RuleNode.RULE_NAME_KEY));
+
+                try{
+                    ruleNode.setProperty(RuleNode.RULE_NAME_KEY, Type.DOUBLE, 1.2345);
+                    //Should throw exception. If we reached here, we failed
+                    fail("Did not see RuntimeExcpetion when setting double as name");
+                }catch(RuntimeException e){
+                    //Do nothing
+                }
+
+                assertEquals("someRuleName", ruleNode.get(RuleNode.RULE_NAME_KEY));
+
+                try{
+                    ruleNode.setProperty(RuleNode.RULE_NAME_KEY, Type.INT, 2345);
+                    //Should throw exception. If we reached here, we failed
+                    fail("Did not see RuntimeExcpetion when setting integer as name");
+                }catch(RuntimeException e){
+                    //Do nothing
+                }
+
+                assertEquals("someRuleName", ruleNode.get(RuleNode.RULE_NAME_KEY));
+
+
+                try{
+                    ruleNode.setProperty(RuleNode.RULE_NAME_KEY, Type.BOOL, true);
+                    //Should throw exception. If we reached here, we failed
+                    fail("Did not see RuntimeExcpetion when setting boolean as name");
+                }catch(RuntimeException e){
+                    //Do nothing
+                }
+
+                assertEquals("someRuleName", ruleNode.get(RuleNode.RULE_NAME_KEY));
             }
         });
     }
