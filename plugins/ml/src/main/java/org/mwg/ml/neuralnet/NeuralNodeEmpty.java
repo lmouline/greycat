@@ -178,7 +178,7 @@ public class NeuralNodeEmpty extends AbstractNode {
 
     private static Task createPredictTask() {
         Task t = newTask();
-        t.traverse(OUTPUTS)
+        t.asVar("parent").traverse(OUTPUTS)
                 .foreach(
                         then(new Action() {
                             @Override
@@ -197,14 +197,23 @@ public class NeuralNodeEmpty extends AbstractNode {
                                     public void eval(TaskContext context) {
                                         //Calculate the integration function
 
+                                        //Cache calculation result, set the context
+
                                         context.continueTask();
                                     }
-                                }).ifThen(new TaskFunctionConditional() {
+                                }).ifThenElse(new TaskFunctionConditional() {
                                     @Override
                                     public boolean eval(TaskContext context) {
-                                        return false; //should return if the node is hidden or input or root
+                                        return false; //should return true if the node is hidden or input or root
                                     }
-                                }, t)
+                                }, t, then(new Action() {
+                                    @Override
+                                    public void eval(TaskContext context) {
+                                        //store output in result here
+                                         
+                                        context.continueTask();
+                                    }
+                                }))
                         ));
         return t;
     }
