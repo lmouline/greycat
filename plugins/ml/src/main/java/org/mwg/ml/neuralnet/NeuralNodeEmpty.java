@@ -129,13 +129,14 @@ public class NeuralNodeEmpty extends AbstractNode {
 
 
     // todo to be replaced in more generic way after
-    private static double integrationFct(double[] buffer, double[] weights) {
+    private static double integrationFct(double[] values, double[] weights) {
         double value = 0;
 
-        //todo to test with matrix mult later
-        for (int i = 0; i < weights.length; i++) {
-            value += weights[i] * buffer[i];
+        for (int i = 0; i < values.length; i++) {
+            value += weights[i] * values[i];
         }
+        //Add bias
+        value +=weights[values.length];
         return value;
     }
 
@@ -163,14 +164,6 @@ public class NeuralNodeEmpty extends AbstractNode {
 
     private static double calculateDerivativeErr(double calculated, double target) {
         return -(target - calculated);
-    }
-
-
-
-    private static long msgIdCounter = -1;
-    private long generateMsgId() {
-        msgIdCounter++;
-        return msgIdCounter;
     }
 
 
