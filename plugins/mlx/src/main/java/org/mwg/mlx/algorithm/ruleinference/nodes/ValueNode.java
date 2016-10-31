@@ -1,5 +1,6 @@
 package org.mwg.mlx.algorithm.ruleinference.nodes;
 
+import org.mwg.Constants;
 import org.mwg.Graph;
 import org.mwg.Node;
 import org.mwg.task.TaskResult;
@@ -33,7 +34,7 @@ public class ValueNode implements ConditionGraphNode{
      */
     @Override
     public String getValue() {
-        TaskResult result = setWorld(this.world).setTime(""+System.currentTimeMillis()).
+        TaskResult result = setWorld(this.world).setTime(""+Constants.END_OF_TIME).
                 lookup(this.nodeId).executeSync(this.graph);
         if (result.size() > 0){
             Node resolvedNode = (Node) result.get(0);

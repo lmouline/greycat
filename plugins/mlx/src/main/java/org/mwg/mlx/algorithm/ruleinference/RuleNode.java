@@ -1,9 +1,10 @@
 package org.mwg.mlx.algorithm.ruleinference;
 
-import org.mwg.Graph;
-import org.mwg.Node;
+import org.mwg.*;
 import org.mwg.mlx.algorithm.ruleinference.nodes.*;
 import org.mwg.plugin.AbstractNode;
+import org.mwg.plugin.NodeState;
+import org.mwg.task.Task;
 import org.mwg.task.TaskResult;
 import org.mwg.utility.Enforcer;
 
@@ -34,7 +35,7 @@ public class RuleNode extends AbstractNode {
     public static final String INTERNAL_CONDITION_STRING = "_condition";
 
     /**
-     * Default condition: bever triggered.
+     * Default condition: never triggered.
      */
     public static final String INTERNAL_CONDITION_STRING_DEF = "False";
 
@@ -44,13 +45,31 @@ public class RuleNode extends AbstractNode {
     public static final String INTERNAL_COMMAND_STRING = "_command";
 
     /**
-     * Default command: do nothing.
+     * Attribute key: Whether rule is activated
      */
-    public static final String INTERNAL_COMMAND_STRING_DEF = "";
+    public static final String RULE_TRIGGERED_KEY = "triggered";
+
+    /**
+     * Attribute key: rule name.
+     */
+    public static final String RULE_NAME_KEY = "ruleName";
+
+    /**
+     * Attribute default: whether rule is activated.
+     */
+    public static final Boolean RULE_ACTIVATED_DEF = true;
+
+    /**
+     * Attribute key: Whether rule is triggered
+     */
+    public static final String RULE_ACTIVATED_KEY = "activated";
 
     private static final Enforcer enforcer = new Enforcer()
             .asString(INTERNAL_COMMAND_STRING)
-            .asString(INTERNAL_CONDITION_STRING);
+            .asString(INTERNAL_CONDITION_STRING)
+            .asBool(RULE_ACTIVATED_KEY)
+            .asBool(RULE_TRIGGERED_KEY)
+            .asString(RULE_NAME_KEY);
 
     @Override
     public void setProperty(String propertyName, byte propertyType, Object propertyValue) {
@@ -58,15 +77,25 @@ public class RuleNode extends AbstractNode {
         //TODO exception check? Revert if failed?
         if (INTERNAL_CONDITION_STRING.equals(propertyName)) {
             initializeCondition(propertyValue.toString());
+            evaluateIfRuleTriggered(); //Don't care about the results, just test it
         }else if (INTERNAL_COMMAND_STRING.equals(propertyName)){
             initializeCommand(propertyValue.toString());
+            evaluateIfRuleTriggered(); //Again, just test it
+        }else if (RULE_TRIGGERED_KEY.equals(propertyName)){
+            //DO NOT SET. Read-only.
+            return ;
         }
         super.setProperty(propertyName, propertyType, propertyValue);
+
+        //If we do it before, re-evaluation will not happen - rule still deactivated
+        if (RULE_ACTIVATED_KEY.equals(propertyName) && (propertyValue.equals(true))){
+            evaluateIfRuleTriggered();
+        }
     }
 
     //TODO Validation? Assertion?
 
-    //TODO plusNode, minusNode, derivativeNode, etc.
+    //TODO plusNode, minusNode, etc.
 
     //TODO detection/protection from flattering. If one rule action triggers another, then it triggers first again, then second, etc.
 
@@ -76,24 +105,133 @@ public class RuleNode extends AbstractNode {
      */
     private ConditionGraphNode finalNode = null;
 
+    private final List<String> nodeIds = new ArrayList<>();
+    private final List<String> nodeProperties = new ArrayList<>();
+    private final List<Object> newValues = new ArrayList<>();
+    private final List<Byte> types = new ArrayList<>();
+
     public void initializeCondition(String condition){
         finalNode = parseRuleCondition(condition);
     }
 
     public void initializeCommand(String command){
-        //TODO
+        nodeIds.clear();
+        nodeProperties.clear();
+        newValues.clear();
+        types.clear();
+
+        parseRuleCommand(command);
+    }
+
+    private void parseRuleCommand(String command){
+        String cleanCommand = removeSurroundingBrackets(command);
+
+        String andSplit[] = splitByOperation(cleanCommand, "&&");
+        if (andSplit.length > 1){
+            //Multiple commands
+            for (int i=0;i<andSplit.length;i++){
+                parseRuleCommand(andSplit[i]);
+            }
+            return ;
+        }
+
+        final String equalSplit[] = splitByOperation(cleanCommand, "=");
+        if (equalSplit.length!=2) {
+            //TODO Warning - command with syntax error is ignored
+            return ;
+        }
+        String nodeAndPropertyStr = equalSplit[0].trim();
+        if (nodeAndPropertyStr.startsWith("{") && nodeAndPropertyStr.endsWith("}")){
+            //Using {-brackets is acceptable for command, but unnecessary
+            nodeAndPropertyStr = nodeAndPropertyStr.substring(1,nodeAndPropertyStr.length()-1).trim();
+        }
+        final String nodeAndProperty[] = nodeAndPropertyStr.split("\\.");
+        final String nodeID = nodeAndProperty[0];
+        final String property = nodeAndProperty[1];
+        byte type;
+        Object value;
+
+        //TODO More types: arrays, etc.
+
+        String valueStr = equalSplit[1].trim();
+        if (valueStr.startsWith("'") && valueStr.endsWith("'") && !valueStr.substring(1,valueStr.length()-1).contains("'")){
+            //Value like this is guaranteed to be String
+
+            //Value in '' is acceptable (and it is the only option if it contains &&, for example).
+            //But, again, it is not required.
+            value = valueStr.substring(1,valueStr.length()-1);
+            type = Type.STRING;
+        }else{
+            //Might be not string
+            if (valueStr.toLowerCase().equals("true")){
+                type = Type.BOOL;
+                value = new Boolean(true);
+            }else if (valueStr.toLowerCase().equals("false")){
+                type = Type.BOOL;
+                value = new Boolean(false);
+            }else {
+                try{
+                    value = new Double(valueStr);
+                    type = Type.DOUBLE;
+                }catch(NumberFormatException e){
+                    value = valueStr;
+                    type = Type.STRING;
+                }
+            }
+        }
+
+        nodeIds.add(nodeID);
+        nodeProperties.add(property);
+        newValues.add(value);
+        types.add(type);
+    }
+
+    private synchronized void executeCommands(){
+        //TODO Assert that all lists are of the same length ?
+        Task preparedTask = setWorld(""+world()).setTime(""+ Constants.END_OF_TIME);
+        for (int i=0;i<nodeIds.size();i++){
+            final String nodeID = nodeIds.get(i);
+            final String property = nodeProperties.get(i);
+            final Object value = newValues.get(i);
+            final byte type = types.get(i);
+            TaskResult result = preparedTask.lookup(nodeID).executeSync(graph());
+            if (result.size() > 0){
+                Node resolvedNode = (Node) result.get(0);
+                resolvedNode.jump(resolvedNode.lastModification(), result1 -> result1.setProperty(property, type, value));
+            }
+        }
     }
 
     /**
-     * Test function, checks whether rule is triggered now.
+     * Re-calculates whether rule is triggered now.
      *
      * @return whether rule is triggered.
      */
-    public boolean ruleTriggered(){
-        if (finalNode == null){
-            initializeCondition(unphasedState().getFromKeyWithDefault(INTERNAL_CONDITION_STRING, INTERNAL_CONDITION_STRING_DEF));
+    public final boolean evaluateIfRuleTriggered(){
+        NodeState state = unphasedState();
+        final String condition = state.getFromKeyWithDefault(INTERNAL_CONDITION_STRING, INTERNAL_CONDITION_STRING_DEF);
+        final Object command = state.getFromKey(INTERNAL_COMMAND_STRING);
+
+        if (state.getFromKeyWithDefault(RULE_ACTIVATED_KEY, RULE_ACTIVATED_DEF) == false){
+            //Rule is deactivated. Deactivated rules never trigger.
+            state.setFromKey(RULE_TRIGGERED_KEY, Type.BOOL, false);
+            return false;
         }
-        return finalNode.getBooleanValue();
+
+        if (finalNode == null){
+            //If node is not initialized (e.g. after phasing), then BOTH condition and command are not initialized
+            initializeCondition(condition);
+            if (command != null){
+                initializeCommand(command.toString());
+            }
+        }
+        boolean triggered = finalNode.getBooleanValue();
+        state.setFromKey(RULE_TRIGGERED_KEY, Type.BOOL, triggered);
+        if (triggered){
+            //Commands not set? Whatever, you will just have empty list
+            executeCommands();
+        }
+        return triggered;
     }
 
     public RuleNode(long p_world, long p_time, long p_id, Graph p_graph) {
@@ -109,19 +247,25 @@ public class RuleNode extends AbstractNode {
      * @param operation Operation to split upon
      * @return Split string. If length == 1, it means that split has failed.
      */
-    public String[] splitByOperation(String condition, String operation){
+    private String[] splitByOperation(String condition, String operation){
         List<String> res = new ArrayList<String>();
         StringBuilder curComponent = new StringBuilder();
         int bracketCounter = 0;
+        boolean inQuotes = false;
         int lastIndex = 0;
         for (int i=0;i<condition.length()-operation.length();i++){
-            if (condition.charAt(i) == '('){
-                bracketCounter++;
+            if (condition.charAt(i) == '\''){
+                inQuotes = !inQuotes;
             }
-            if (condition.charAt(i) == ')'){
-                bracketCounter--;
+            if (!inQuotes){
+                if (condition.charAt(i) == '('){
+                    bracketCounter++;
+                }
+                if (condition.charAt(i) == ')'){
+                    bracketCounter--;
+                }
             }
-            if ((bracketCounter == 0)&&(operation.equals(condition.substring(i, i+operation.length())))){
+            if ((!inQuotes)&&(bracketCounter == 0)&&(operation.equals(condition.substring(i, i+operation.length())))){
                 //Got it. Save this component, start next one
                 res.add(curComponent.toString());
                 curComponent = new StringBuilder();
@@ -142,33 +286,33 @@ public class RuleNode extends AbstractNode {
     }
 
     /**
-     * Recursive rule condition parser.
+     * @param arg Any string.
+     * @return Same string trimmed, with all surrounding brackets removed. String like "(  ( something ))" will
+     * be transformed into "something". If string is not in brackets, or the number of brackets mismatch, or there
+     * is something before first or after last bracket (other than spaces), then the string will remain unchanged.
      *
-     * @param condition Condition string
-     * @return Node corresponding to rule condition.
+     * @throws NullPointerException if <code>arg<code/> is null.
      */
-    public ConditionGraphNode parseRuleCondition(String condition){
-        String cleanCondition = condition.trim();
-        //If it is in brackets, remove the brackets.
-
+    private static String removeSurroundingBrackets(String arg){
         //If the thing starts with brackets, ends with bracket, and those brackets are the part of the same thing,
         // remove the brackets. Recursively if necessary.
+        String result = arg.trim();
         boolean entirelyInBrackets = false;
 
         do{
             entirelyInBrackets = false;
 
-            if (cleanCondition.startsWith("(") && cleanCondition.endsWith(")")){
+            if (result.startsWith("(") && result.endsWith(")")){
                 int bracketCounter = 0;
-                for (int i=0;i<cleanCondition.length();i++){
-                    if (cleanCondition.charAt(i) == '('){
+                for (int i=0;i<result.length();i++){
+                    if (result.charAt(i) == '('){
                         bracketCounter++;
                     }
-                    if (cleanCondition.charAt(i) == ')'){
+                    if (result.charAt(i) == ')'){
                         bracketCounter--;
                     }
                     if (bracketCounter==0){
-                        if (i < cleanCondition.length()-1){
+                        if (i < result.length()-1){
                             entirelyInBrackets = false; //That starting bracket was somewhere else
                             break ;
                         }else{
@@ -184,11 +328,29 @@ public class RuleNode extends AbstractNode {
 
             if (entirelyInBrackets){
                 //Removing the brackets
-                cleanCondition = cleanCondition.substring(1, cleanCondition.length()-1);
+                result = result.substring(1, result.length()-1);
                 //Again removing spaces from the beginning and the end
-                cleanCondition = cleanCondition.trim();
+                result = result.trim();
             }
         }while(entirelyInBrackets);
+
+        return result;
+    }
+
+    /**
+     * Recursive rule condition parser.
+     *
+     * @param condition Condition string
+     * @return Node corresponding to rule condition.
+     */
+    public ConditionGraphNode parseRuleCondition(String condition){
+        String cleanCondition = removeSurroundingBrackets(condition);
+
+        //Is it a large string constant?
+        //Should begin and end with ', but not contain ' inbetween (i.e. string like 'abc' != 'def' should not be counted)
+        if (cleanCondition.startsWith("'") && cleanCondition.endsWith("'") && !cleanCondition.substring(1,cleanCondition.length()-1).contains("'")){
+            return new ConstantStringNode(cleanCondition.substring(1,cleanCondition.length()-1));
+        }
 
         //Or and AND are executed last
         //It is important that OR goes before AND here
@@ -210,6 +372,7 @@ public class RuleNode extends AbstractNode {
         }
 
         //TODO Allow chains like A >= B >= C < D ?
+        //At first glance, not worth it. Same logic can be expressed like (A >= B)&&(B >= C)&&(C < D)
 
         //So, it is not a constant node. Looking for relation.
         String geSplit[] = splitByOperation(cleanCondition, ">=");
@@ -282,7 +445,8 @@ public class RuleNode extends AbstractNode {
 
         // Not a constant. Then, whatever we got, it is the name of other property, derivative, etc.
         //TODO Special command node (like "it is daytime")
-        return new ConstantBooleanNode(false); //TODO This is a stub. Do it properly.
+
+        return new ConstantStringNode(cleanCondition); //TODO This is a stub. Do it properly.
     }
 
     /**
@@ -298,7 +462,5 @@ public class RuleNode extends AbstractNode {
         initializeCondition(condition);
         initializeCommand(command);
     }
-
-    //TODO Command (everything related)?
 
 }

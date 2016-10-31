@@ -39,6 +39,7 @@ public class PolynomialNode extends AbstractMLNode implements RegressionNode {
 
     private final static String NOT_MANAGED_ATT_ERROR = "Polynomial node can only handle value attribute, please use a super node to store other data";
     private static final Enforcer enforcer = new Enforcer().asPositiveDouble(PRECISION);
+    private static final Enforcer degenforcer = new Enforcer().asPositiveInt(MAX_DEGREE);
 
 
     public PolynomialNode(long p_world, long p_time, long p_id, Graph p_graph) {
@@ -53,8 +54,12 @@ public class PolynomialNode extends AbstractMLNode implements RegressionNode {
             learn(Double.parseDouble(propertyValue.toString()), null);
         } else if (propertyName.equals(PRECISION)) {
             enforcer.check(propertyName, propertyType, propertyValue);
-            super.setProperty(propertyName, propertyType, propertyValue);
-        } else {
+            super.setProperty(propertyName, Type.DOUBLE, propertyValue);
+        } else if (propertyName.equals(MAX_DEGREE)){
+            degenforcer.check(propertyName, propertyType, propertyValue);
+            super.setProperty(propertyName, Type.INT, (int) propertyValue);
+        }
+        else {
             throw new RuntimeException(NOT_MANAGED_ATT_ERROR);
         }
     }
@@ -63,7 +68,7 @@ public class PolynomialNode extends AbstractMLNode implements RegressionNode {
     public Object get(String propertyName) {
         if (propertyName.equals(VALUE)) {
             final Double[] res = {null};
-            //hack to query the value
+            //ToDo fix callback - return
             extrapolate(new Callback<Double>() {
                 @Override
                 public void on(Double result) {
@@ -301,7 +306,10 @@ public class PolynomialNode extends AbstractMLNode implements RegressionNode {
         builder.append(time());
         builder.append(",\"id\":");
         builder.append(id());
-        final NodeState state = this._resolver.resolveState(this);
+        final NodeState state = unphasedState();
+        long timeOrigin = state.time();
+        long step=state.getFromKeyWithDefault(INTERNAL_STEP_KEY,1l);
+
         if (state != null) {
             double[] weight = (double[]) state.getFromKey(INTERNAL_WEIGHT_KEY);
             if (weight != null) {
@@ -312,10 +320,43 @@ public class PolynomialNode extends AbstractMLNode implements RegressionNode {
                     }
                     builder.append(weight[i]);
                     if (i == 1) {
-                        builder.append("*t");
+                        if(timeOrigin==0) {
+                            if(step==1) {
+                                builder.append("*t");
+                            }
+                            else{
+                                builder.append("*t/"+step);
+                            }
+                        }
+                        else {
+                            if(step==1) {
+                                builder.append("*(t-"+timeOrigin+")");
+                            }
+                            else{
+                                builder.append("*(t-"+timeOrigin+")/"+step);
+                            }
+                        }
                     } else if (i > 1) {
-                        builder.append("*t^");
-                        builder.append(i);
+                        if(timeOrigin==0) {
+                            if(step==1) {
+                                builder.append("*t^");
+                                builder.append(i);
+                            }
+                            else{
+                                builder.append("*(t/"+step+")^");
+                                builder.append(i);
+                            }
+                        }
+                        else {
+                            if(step==1) {
+                                builder.append("*(t-"+timeOrigin+")^");
+                                builder.append(i);
+                            }
+                            else{
+                                builder.append("*((t-"+timeOrigin+")/"+step+")^");
+                                builder.append(i);
+                            }
+                        }
                     }
                     if (i != 0) {
                         builder.append(")");
