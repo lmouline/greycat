@@ -71,6 +71,48 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.10</version>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <!--Copy TS file-->
+                                <artifactItem>
+                                    <groupId>org.kevoree.mwg</groupId>
+                                    <artifactId>core</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>js</classifier>
+                                    <type>zip</type>
+                                    <includes>mwg.d.ts</includes>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                                </artifactItem>
+                                <!--Copy JS files-->
+                                <artifactItem>
+                                    <groupId>org.kevoree.mwg</groupId>
+                                    <artifactId>core</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>js</classifier>
+                                    <type>zip</type>
+                                    <includes>*.js</includes>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.outputDirectory}/js</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
