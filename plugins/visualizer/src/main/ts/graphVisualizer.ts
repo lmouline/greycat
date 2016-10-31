@@ -402,6 +402,7 @@ module org.mwg.plugin {
                     });
 
                 graphVisu._renderer = window.Viva.Graph.View.renderer(graphVisu._graphVisu, {
+                    layout: window.Viva.Graph.Layout.forceDirected(graphVisu._graphVisu, {}),
                     container: document.getElementById(idDiv),
                     graphics: graphVisu._graphics
                 });
