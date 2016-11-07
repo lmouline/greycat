@@ -103,7 +103,7 @@
                                     <version>${project.version}</version>
                                     <classifier>js</classifier>
                                     <type>zip</type>
-                                    <includes>*.js</includes>
+                                    <includes>mwg.js,mwg.min.js</includes>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.outputDirectory}/js</outputDirectory>
                                 </artifactItem>

@@ -131,7 +131,7 @@ public class GenPlugin extends AbstractMojo {
 
             //Compile TS files into targetGenJs
             targetGenJs.mkdirs();
-            Process compile = Runtime.getRuntime().exec(project.getBuild().getDirectory() + "/node_modules/.bin/tsc " + targetGenTs.getAbsolutePath() + "/" + project.getArtifactId() + ".ts");
+            Process compile = Runtime.getRuntime().exec(project.getBuild().getDirectory() + "/node_modules/.bin/tsc " + targetGenTs.getAbsolutePath() + "/" + project.getArtifactId() + ".ts -out " + targetGenJs + "/" + project.getArtifactId() + ".js");
             int compileResult = compile.waitFor();
             if(compileResult != 0) {
                 BufferedReader errorReader = new BufferedReader(new InputStreamReader(compile.getErrorStream()));
@@ -142,7 +142,6 @@ public class GenPlugin extends AbstractMojo {
                     err = errorReader.readLine();
                 }
                 getLog().error(errorMessage.toString());
-//                throw new MojoExecutionException(tscInstall,"Something wrong append during typescript compilation",errorMessage.toString());
             }
             BufferedReader compileOut = new BufferedReader(new InputStreamReader(compile.getInputStream()));
             String outLine = compileOut.readLine();
