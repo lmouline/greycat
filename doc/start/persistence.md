@@ -9,7 +9,7 @@ Graph g = new GraphBuilder()
 	.build();
        
 g.connect(isConnected -> {
-	Node sensor = g.newNode(0, System.currentTimeMillis()); //create new node for world 0 and time 0
+	Node sensor = g.newNode(0, System.currentTimeMillis()); //create a new node for world 0 and time 0
 	sensor.set("id", Math.abs(rand.nextInt()));
 	sensor.set("value", rand.nextInt());
 	g.index("sensors", sensor, "id", res -> {

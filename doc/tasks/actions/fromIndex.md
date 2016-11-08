@@ -15,7 +15,7 @@ The first argument of this action is the name of the indexing relation, and the 
 Therefore, the following code run after the running example:
 
 ``` java
-fromIndex("rooms","name=1")
+fromIndex("rooms","name=room_1")
     .get("name")
     .print("{{result}}")
 .execute(g, null);
@@ -24,7 +24,7 @@ fromIndex("rooms","name=1")
 will return:
 
 ```
-1
+room_1
 ```
 
 

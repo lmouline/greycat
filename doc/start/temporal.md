@@ -6,7 +6,7 @@ Many domains, from social networks to cyber-physical systems to enterprise appli
 
 The orange nodes in the graph represent the changes compared to the version before. Over time, both attributes of nodes, i.e., values, as well as the structure of the graph itself can arbitiraly change. Usually, considering only the latest state of a graph is not enough, instead, many applications require to analyse and correlate past data. That is where temporal graphs are required. 
 
-First, we create again a graph, just like for the non temporal example
+First, we create again a graph, just like for the non-temporal example
 
 ```java
 Graph g = new GraphBuilder().build();
@@ -15,7 +15,7 @@ g.connect(isConnected -> {
 });
 ```
 
-Then, we specify a timepoint and create nodes, attributes, and relations
+Then, we specify a time point and create nodes, attributes, and relations
 
 ```java
 long timepoint_0 = 0;
@@ -50,5 +50,5 @@ sensor0.jump(System.currentTimeMillis(), (Node sensor0now) -> {
 });
 ```
 
-The method *jump* can be used to resolve a node at an abritrary timepoint. In the example above, the node *room0* is resolved at the current time. The last valid version of *room0*, relative to the time asked (current time) is *room0* at timepoint 0. This version is transparently resolved. The graph can be freely traversed from this node and it automatically the correct versions of the traversed nodes are resolved. 
+The method *jump* can be used to resolve a node at an arbitrary time point. In the example above, the node *room0* is resolved at the current time. The last valid version of *room0*, relative to the time asked (current time) is *room0* at time point 0. This version is transparently resolved. The graph can be freely traversed from this node and it automatically the correct versions of the traversed nodes are resolved. 
 

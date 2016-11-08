@@ -22,7 +22,7 @@ fromIndexAll("rooms")
 will return:
 
 ```
-[1,2]
+[room_1,room_2]
 ```
 
 > See [fromIndex action](fromIndex.md), to get information on how to retrieve a specific globally indexed node.

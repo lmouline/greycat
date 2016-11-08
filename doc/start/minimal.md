@@ -36,4 +36,4 @@ room0.rel("sensors", (Node[] sensors) -> { //iterate over saved sensors
 });
 ```
 
-Note that graph processing and traversing is fully asynchronous
+Note that graph processing and traversing is fully asynchronous.
