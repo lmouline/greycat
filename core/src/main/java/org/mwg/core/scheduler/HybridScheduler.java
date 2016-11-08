@@ -76,7 +76,12 @@ public class HybridScheduler implements Scheduler {
         @Override
         public void run() {
             while (running) {
-                final Job globalPolled = globalQueue.poll();
+                Job globalPolled = null;
+                try {
+                    globalPolled = globalQueue.take();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 if (globalPolled != null) {
                     try {
                         globalPolled.run();
