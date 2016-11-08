@@ -6,6 +6,8 @@ However, hereafter is detailled the set of tasks proposed by default in MWG core
 - [addTo](addTo.md)
 - [asVar](asVar.md)
 - [asGlobalVar](asGlobalVar.md)
+- [fromIndex](fromIndex.md)
+- [fromIndexAll](fromIndexAll.md)
 - [get](get.md)
 - [loop](loop.md)
 - [loopPar](loopPar.md)
