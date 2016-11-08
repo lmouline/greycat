@@ -2,15 +2,15 @@
 
 > Why a (task/traversal/promise) API ?
 
-Manipulating the Many World Graph through an asynchronous API allows to write blazing-fast code without compromising on high-level abstractions. Asynchronous code often leads to what is known as [CallBack Hell](http://callbackhell.com/), that damage both the readability of code and its reusability, due to nested callbacks. To overcome this, modern libraries and APIs provide Promises and/or Futures. The common goal of these approaches is to offer a way to chain reusable elements and to synchronize the program flow in order to avoid repeated and error prone code. MWG comes with a powerful API to manipulate and traverse graphs, which hides low-level, asynchronous task primitives behind an expressive API. Graph processing can be ressource-hungry. To make the most out of the available main memory, MWG provides an API to explicitly free the memory of a node. A `.free()` method can be called once a node will not be used anymore.
+Manipulating the Many World Graph through an asynchronous API allows to write blazing-fast code without compromising on high-level abstractions. Asynchronous code often leads to what is known as [CallBack Hell](http://callbackhell.com/), that damage both the readability of code and its reusability, due to nested callbacks. To overcome this, modern libraries and APIs provide Promises and/or Futures. The common goal of these approaches is to offer a way to chain reusable elements and to synchronize the program flow in order to avoid repeated and error-prone code. MWG comes with a powerful API to manipulate and traverse graphs, which hides low-level, asynchronous task primitives behind an expressive API. Graph processing can be resource-hungry. To make the most out of the available main memory, MWG provides an API to explicitly free the memory of a node. A `.free()` method can be called once a node is not used anymore.
 
 # Running example
 
 Let's consider the following simple graph as a running example:
 
-> A graph composed by 2 rooms, themself composed by 3 sensors associated through the relation: __sensors__ . All rooms should be indexed by their name, through the global index: __rooms__.
+> A graph composed by 2 rooms, themselves composed by 3 sensors associated through the relation: __sensors__ . All rooms should be indexed by their name, through the global index: __rooms__.
 
-This graph can be build by the following task, build using the fluent Java DSL.
+This graph can be built by the following task, build using the fluent Java DSL.
 
 ``` java
 loop("1","2",
@@ -26,7 +26,7 @@ loop("1","2",
 ).execute(g, null);
 ```
 
-Without black magic, action are just chained by `.` as any fluent DSL an inital action can be transparently build using a global static import.
+Without black magic, actions are just chained by `.` as any fluent DSL an initial action can be transparently built using a global static import.
 
 ```java
 import static org.mwg.task.Actions.*;

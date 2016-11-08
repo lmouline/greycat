@@ -4,13 +4,13 @@ The traverse action allows to traverse relations of one or more nodes.
 
 This action should only be used after a task returning node(s) as a result.
 
-> traverse action will put all the node from the given relation of a node in the results
+> traverse action will put all the nodes from the given relation of a node in the results
 
-> If several nodes are in the result, the result is the aggregation of the traverse action result on each one of the nodes (in the order of the nodes). 
+> If several nodes are in the result, the result is the aggregation of the traverse action results on each one of the nodes (in the order of the nodes). 
 It should be noted that the information of which nodes are coming from which nodes relation is lost. 
 
 
-> No deduplication is done, thus node present several times in a relation or in several node relation in the result will appear several times in the result.
+> No deduplication is done, thus nodes present several times in a relation or in several node relations in the result will appear several times in the result.
 
 
 

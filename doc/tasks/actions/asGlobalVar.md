@@ -1,6 +1,6 @@
 # Task Action: As Global Var
 
-The asGlobalVar action allows to store the current result in a global variable. If a variable of this name was already existing, then the variable is overwrite.
+The asGlobalVar action allows to store the current result in a global variable. If a variable of this name was already existing, then the variable is overwritten.
 
 This action can be used after any task, and will work on any current result.
 

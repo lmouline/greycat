@@ -9,6 +9,7 @@ However, hereafter is detailled the set of tasks proposed by default in MWG core
 - [fromIndex](fromIndex.md)
 - [fromIndexAll](fromIndexAll.md)
 - [get](get.md)
+- [indexNode](indexNode.md)
 - [loop](loop.md)
 - [loopPar](loopPar.md)
 - [setProperty](setProperty.md)
