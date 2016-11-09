@@ -3,13 +3,13 @@
   <groupId>org.kevoree.mwg.plugins</groupId>
   <artifactId>model</artifactId>
   <name>mwg :: Plugins :: Model</name>
-  <version>10-SNAPSHOT</version>
+  <version>10</version>
   <packaging>pom</packaging>
 
   <parent>
       <artifactId>mwg</artifactId>
       <groupId>org.kevoree.mwg</groupId>
-      <version>10-SNAPSHOT</version>
+      <version>10</version>
       <relativePath>../..</relativePath>
   </parent>
 
