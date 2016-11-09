@@ -18,4 +18,4 @@ Simply add the api and core module dependency to your project and start using MW
 </dependency>
 ```
 
-Next go for the next session for you first graph.
+Next go for the next session for your first graph.

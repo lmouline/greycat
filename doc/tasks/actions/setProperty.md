@@ -61,7 +61,7 @@ Will print the following result:
 2
 ```
 
-## Mutiple Nodes set
+## Multiple Nodes set
 
 When several nodes are present in the result, the set task is apply to all of them.
 Thus, when applying the following task to the running example

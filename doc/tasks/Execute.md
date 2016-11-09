@@ -1,6 +1,6 @@
 # Task execution methods
 
-A task is a prototype of execution that can be define statically and independently to any graph instances.
+A task is a prototype of execution that can be defined statically and independently to any graph instances.
 A task is executed ON a graph.
 The simplest API to do so is the following:
 
@@ -8,7 +8,7 @@ The simplest API to do so is the following:
 task.execute(graph, null);
 ```
 
-If the task aims at returning a result, then the last task context result will be return in a result callback passed as parameter.
+If the task aims at returning a result, then the last task context result will be returned in a result callback passed as parameter.
 This callback should be of the type of Callback<TaskResult>.
 
 Such as:

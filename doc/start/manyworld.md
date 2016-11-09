@@ -15,7 +15,7 @@ g.connect(isConnected -> {
 });
 ```
 
-Then, we specify a timepoint and and a world and create nodes, attributes, and relations. 
+Then, we specify a time point and  a world and create nodes, attributes, and relations. 
 
 ```java
 long timepoint_0 = 0;
@@ -31,7 +31,7 @@ room0.set("name", "room0");
 room0.add("sensors", sensor0);
 ```
 
-In this example, node *sensor0* and *room0* is created in *world_0*. Other worlds are not impacted by this changes. This allows to efficiently create alternative worlds. The jump function can be used to select an arbitrary node within a world. 
+In this example, node *sensor0* and *room0* is created in *world_0*. Other worlds are not impacted by this change. This allows to efficiently create alternative worlds. The jump function can be used to select an arbitrary node within a world. 
 
 
 

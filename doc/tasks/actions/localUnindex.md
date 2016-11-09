@@ -6,7 +6,7 @@ This action should only be used after a task returning node(s) as result.
 
 > The use of *localUnindex* doesn't impact the current result.
 
-Therefore, we could modify the running example to add an indexed relation from sensors nodes to rooms nodes:
+Therefore, we could modify the running example to add an indexed relation from sensor nodes to room nodes:
 
 ``` java
 loop("1","2",
@@ -32,4 +32,4 @@ fromIndexAll("rooms")
 
 The opposite operation is to create or modify a local index with [localIndex](localIndex.md) task.
 
-> Similar to [remove](remove.md), but with index concept.
+> Similar to [remove](remove.md), but with an indexing concept.

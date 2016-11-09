@@ -25,7 +25,7 @@ The name 'core' and the version number '7' must be replaced by the desired plugi
 - XYZ.ts: TypeScript source for MWG extension
 - XYZ.d.ts TypeScript header file for simple inclusion in TypeScript development environment.
 
-For lightweight development, we advice you to use ```.min.js``` files.
+For lightweight development, we advise you to use ```.min.js``` files.
 
 Then, the JS API is practically identical to the Java API and can be used like in the following code snipped:
 
