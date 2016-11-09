@@ -143,17 +143,27 @@ public class Generator {
 
                         if (prop instanceof KRelation) {
                             //generate getter
+                            String resultType = typeToClassName(prop.type());
                             MethodSource<JavaClassSource> getter = javaClass.addMethod();
-                            getter.setVisibility(Visibility.PUBLIC).setFinal(true);
-                            getter.setReturnType(typeToClassName(prop.type()) + "[]");
+                            getter.setVisibility(Visibility.PUBLIC);
+                            getter.setFinal(true);
+                            getter.setReturnTypeVoid();
                             getter.setName(toCamelCase("get " + prop.name()));
+                            getter.addParameter("org.mwg.Callback<" + resultType + "[]>","callback");
                             getter.setBody(
-                                    "org.mwg.DeferCounterSync waiter = this.graph().newSyncCounter(1);\n" +
-                                            "this.rel(" + prop.name().toUpperCase() + ", waiter.wrap());\n" +
-                                            "org.mwg.Node[] raw = (org.mwg.Node[]) waiter.waitResult();" +
-                                            typeToClassName(prop.type()) + "[] casted = new " + typeToClassName(prop.type()) + "[raw.length];" +
-                                            "System.arraycopy(raw,0,casted,0,raw.length);\n" +
-                                            "return casted;");
+                                   "this.rel(" + prop.name().toUpperCase() + ",new org.mwg.Callback<org.mwg.Node[]>() {\n" +
+                                           "@Override\n" +
+                                           "public void on(org.mwg.Node[] nodes) {\n" +
+                                           resultType + "[] result = new " + resultType + "[nodes.length];\n" +
+                                           "for(int i=0;i<result.length;i++) {\n" +
+                                           "result[i] = (" + resultType + ") nodes[i];\n" +
+                                           "}\n" +
+                                           "callback.on(result);" +
+                                           "}\n" +
+                                           "});"
+                            );
+
+
 
                             //generate setter
                             StringBuilder bodyBuilder = new StringBuilder();
@@ -371,6 +381,7 @@ public class Generator {
         }
         pluginClass.setSuperType("org.mwg.plugin.AbstractPlugin");
         MethodSource<JavaClassSource> pluginConstructor = pluginClass.addMethod().setConstructor(true);
+        pluginConstructor.setVisibility(Visibility.PUBLIC);
         StringBuilder constructorContent = new StringBuilder();
         constructorContent.append("super();\n");
         for (KClassifier classifier : model.classifiers()) {
