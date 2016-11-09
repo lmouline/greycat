@@ -3,7 +3,7 @@
     <groupId>org.kevoree.mwg</groupId>
     <artifactId>mwg</artifactId>
     <packaging>pom</packaging>
-    <version>9</version>
+    <version>10-SNAPSHOT</version>
     <name>mwg</name>
     <url>https://github.com/kevoree-modeling/mwDB</url>
     <description>Many-World Graph Database</description>
