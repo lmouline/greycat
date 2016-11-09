@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.kevoree.mwg.plugins</groupId>
         <artifactId>model</artifactId>
-        <version>9-SNAPSHOT</version>
+        <version>9</version>
         <relativePath>..</relativePath>
     </parent>
 
