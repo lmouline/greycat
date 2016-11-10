@@ -192,7 +192,8 @@ class OffHeapChunkSpace implements ChunkSpace {
                         reverse = new int[querySize];
                         toLoadKeys = graph().newBuffer();
                     }
-                    reverse[i] = reverseIndex;
+//                    reverse[i] = reverseIndex;
+                    reverse[reverseIndex] = i;
                     if (reverseIndex != 0) {
                         toLoadKeys.write(BUFFER_SEP);
                     }
@@ -209,9 +210,11 @@ class OffHeapChunkSpace implements ChunkSpace {
                 @Override
                 public void on(final Buffer loadAllResult) {
                     BufferIterator it = loadAllResult.iterator();
-                    Buffer view = it.next();
+//                    Buffer view = it.next();
                     int i = 0;
-                    while (view != null) {
+//                    while (view != null) {
+                    while (it.hasNext()) {
+                        Buffer view = it.next();
                         int reversedIndex = finalReverse[i];
                         int reversedOffset = reversedIndex * Constants.KEY_SIZE;
                         if (view.length() > 0) {
@@ -221,7 +224,7 @@ class OffHeapChunkSpace implements ChunkSpace {
                         } else {
                             finalResult[reversedIndex] = null;
                         }
-                        view = it.next();
+//                        view = it.next();
                         i++;
                     }
                     loadAllResult.free();
