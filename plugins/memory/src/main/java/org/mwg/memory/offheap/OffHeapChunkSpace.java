@@ -210,9 +210,7 @@ class OffHeapChunkSpace implements ChunkSpace {
                 @Override
                 public void on(final Buffer loadAllResult) {
                     BufferIterator it = loadAllResult.iterator();
-//                    Buffer view = it.next();
                     int i = 0;
-//                    while (view != null) {
                     while (it.hasNext()) {
                         Buffer view = it.next();
                         int reversedIndex = finalReverse[i];
@@ -224,7 +222,6 @@ class OffHeapChunkSpace implements ChunkSpace {
                         } else {
                             finalResult[reversedIndex] = null;
                         }
-//                        view = it.next();
                         i++;
                     }
                     loadAllResult.free();
