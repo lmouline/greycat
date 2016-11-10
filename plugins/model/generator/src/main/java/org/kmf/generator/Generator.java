@@ -477,42 +477,57 @@ public class Generator {
             }
             if (classifier instanceof KIndex) {
                 KIndex casted = (KIndex) classifier;
+                String resultType = casted.type().fqn();
+
                 MethodSource<JavaClassSource> loopFindMethod = modelClass.addMethod().setName(toCamelCase("find " + classifier.name()));
                 loopFindMethod.setVisibility(Visibility.PUBLIC).setFinal(true);
-                loopFindMethod.setReturnType(casted.type().fqn());
+                loopFindMethod.setReturnTypeVoid();
                 loopFindMethod.addParameter("long", "world");
                 loopFindMethod.addParameter("long", "time");
                 loopFindMethod.addParameter("String", "query");
-                loopFindMethod.setBody("" +
-                        "        final org.mwg.DeferCounterSync waiter = _graph.newSyncCounter(1);\n" +
-                        "        this._graph.find(world, time, \"" + casted.fqn() + "\", query, new org.mwg.Callback<org.mwg.Node[]>() {\n" +
-                        "            @Override\n" +
-                        "            public void on(org.mwg.Node[] result) {\n" +
-                        "                if (result.length > 0) {\n" +
-                        "                    waiter.wrap().on(result[0]);\n" +
-                        "                } else {\n" +
-                        "                    waiter.count();\n" +
-                        "                }\n" +
-                        "            }\n" +
-                        "        });\n" +
-                        "        return (" + casted.type().fqn() + ") waiter.waitResult();");
+                loopFindMethod.addParameter("org.mwg.Callback<" + resultType + "[]>","callback");
+                loopFindMethod.setBody(
+                        "       this._graph.find(world, time, \"" + casted.fqn() + "\",query,new org.mwg.Callback<org.mwg.Node[]>() {\n" +
+                        "           @Override\n" +
+                        "           public void on(org.mwg.Node[] nodes) {\n" +
+                        "               " + resultType + "[] result = new " + resultType + "[nodes.length];\n" +
+                        "               for(int i=0;i<result.length;i++) {\n" +
+                        "                   result[i] = ("+ resultType + ") nodes[i];\n" +
+                        "               }\n" +
+                        "               callback.on(result);\n" +
+                        "           }" +
+                                "});"
+                );
 
                 MethodSource<JavaClassSource> loopFindAllMethod = modelClass.addMethod().setName(toCamelCase("findAll " + classifier.name()));
                 loopFindAllMethod.setVisibility(Visibility.PUBLIC).setFinal(true);
-                loopFindAllMethod.setReturnType(casted.type().fqn() + "[]");
+                loopFindAllMethod.setReturnTypeVoid();
                 loopFindAllMethod.addParameter("long", "world");
                 loopFindAllMethod.addParameter("long", "time");
-                loopFindAllMethod.setBody("" +
-                        "        final org.mwg.DeferCounterSync waiter = _graph.newSyncCounter(1);\n" +
-                        "        this._graph.findAll(world, time, \"" + casted.fqn() + "\", new org.mwg.Callback<org.mwg.Node[]>() {\n" +
-                        "            @Override\n" +
-                        "            public void on(org.mwg.Node[] result) {\n" +
-                        "                " + casted.type().fqn() + "[] typedResult = new " + casted.type().fqn() + "[result.length];\n" +
-                        "                System.arraycopy(result, 0, typedResult, 0, result.length);\n" +
-                        "                waiter.wrap().on(typedResult);" +
-                        "            }\n" +
-                        "        });\n" +
-                        "        return (" + casted.type().fqn() + "[]) waiter.waitResult();");
+                loopFindAllMethod.addParameter("org.mwg.Callback<" + resultType + "[]>","callback");
+//                loopFindAllMethod.setBody("" +
+//                        "        final org.mwg.DeferCounterSync waiter = _graph.newSyncCounter(1);\n" +
+//                        "        this._graph.findAll(world, time, \"" + casted.fqn() + "\", new org.mwg.Callback<org.mwg.Node[]>() {\n" +
+//                        "            @Override\n" +
+//                        "            public void on(org.mwg.Node[] result) {\n" +
+//                        "                " + casted.type().fqn() + "[] typedResult = new " + casted.type().fqn() + "[result.length];\n" +
+//                        "                System.arraycopy(result, 0, typedResult, 0, result.length);\n" +
+//                        "                waiter.wrap().on(typedResult);" +
+//                        "            }\n" +
+//                        "        });\n" +
+//                        "        return (" + casted.type().fqn() + "[]) waiter.waitResult();");
+                loopFindAllMethod.setBody(
+                        "       this._graph.findAll(world, time, \"" + casted.fqn() + "\",new org.mwg.Callback<org.mwg.Node[]>() {\n" +
+                                "           @Override\n" +
+                                "           public void on(org.mwg.Node[] nodes) {\n" +
+                                "               " + resultType + "[] result = new " + resultType + "[nodes.length];\n" +
+                                "               for(int i=0;i<result.length;i++) {\n" +
+                                "                   result[i] = ("+ resultType + ") nodes[i];\n" +
+                                "               }\n" +
+                                "               callback.on(result);\n" +
+                                "           }" +
+                                "});"
+                );
             }
         }
 
