@@ -8,6 +8,8 @@ public interface Matrix {
 
     Matrix fillWith(double[] values);
 
+    Matrix fillWithRandom(double min, double max, long seed);
+
     int rows();
 
     int columns();

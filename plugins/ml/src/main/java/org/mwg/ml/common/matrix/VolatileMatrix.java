@@ -82,6 +82,16 @@ public class VolatileMatrix implements Matrix {
     }
 
     @Override
+    public Matrix fillWithRandom(double min, double max, long seed) {
+        Random rand = new Random();
+        rand.setSeed(seed);
+        for (int i = 0; i < _nbRows * _nbColumns; i++) {
+            this._data[i] = rand.nextDouble() * (max - min) + min;
+        }
+        return this;
+    }
+
+    @Override
     public int leadingDimension() {
         return Math.max(_nbColumns, _nbRows);
     }
@@ -149,9 +159,9 @@ public class VolatileMatrix implements Matrix {
     }
 
     //   @Override
-   // public void setData(double[] data) {
-       // System.arraycopy(data, 0, this._data, 0, data.length);
-  //  }
+    // public void setData(double[] data) {
+    // System.arraycopy(data, 0, this._data, 0, data.length);
+    //  }
 
     //  @Override
     public double addAtIndex(int index, double value) {
@@ -410,9 +420,9 @@ public class VolatileMatrix implements Matrix {
 
     public static Matrix cloneFrom(Matrix origin) {
         //TODO checj according to .data() clone
-        double[] prev=origin.data();
-        double[] copy= new double[prev.length];
-        System.arraycopy(prev,0,copy,0,copy.length);
+        double[] prev = origin.data();
+        double[] copy = new double[prev.length];
+        System.arraycopy(prev, 0, copy, 0, copy.length);
         return new VolatileMatrix(copy, origin.rows(), origin.columns());
     }
 
