@@ -283,6 +283,16 @@ public abstract class AbstractNode implements Node {
     }
 
     @Override
+    public Object getOrCreateExternal(String propertyName, String externalAttributeType) {
+        final NodeState preciseState = this._resolver.alignState(this);
+        if (preciseState != null) {
+            return preciseState.getOrCreateExternal(this._resolver.stringToHash(propertyName, true), externalAttributeType);
+        } else {
+            throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+        }
+    }
+
+    @Override
     public byte type(String propertyName) {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {

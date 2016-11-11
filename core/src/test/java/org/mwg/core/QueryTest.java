@@ -225,6 +225,11 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
+    public ExternalAttributeFactory externalAttribute(String name) {
+        return null;
+    }
+
+    @Override
     public TaskHookFactory taskHookFactory() {
         return null;
     }

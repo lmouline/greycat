@@ -10,10 +10,14 @@ import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.Stack;
 import org.mwg.memory.offheap.primary.OffHeapByteArray;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
+import org.mwg.plugin.ExternalAttribute;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.KeyHelper;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.mwg.Constants.BUFFER_SEP;
 
@@ -37,6 +41,20 @@ class OffHeapChunkSpace implements ChunkSpace {
     private final long types;
     private final long marks;
     private final long addrs;
+
+    private final Map<Long, ExternalAttribute> heapAttributes = new HashMap<Long, ExternalAttribute>();
+
+    public final void mountHeapAttribute(long adr, ExternalAttribute obj) {
+        heapAttributes.put(adr, obj);
+    }
+
+    public final ExternalAttribute heapAttribute(long adr) {
+        return heapAttributes.get(adr);
+    }
+
+    public final void umountHeapAttribute(long adr) {
+        heapAttributes.remove(adr);
+    }
 
     @Override
     public final Graph graph() {
@@ -280,7 +298,7 @@ class OffHeapChunkSpace implements ChunkSpace {
         final long rawValue = OffHeapLongArray.get(addrs, index);
         switch (OffHeapByteArray.get(types, index)) {
             case ChunkType.STATE_CHUNK:
-                OffHeapStateChunk.free(rawValue);
+                OffHeapStateChunk.free(rawValue, this);
                 break;
             case ChunkType.WORLD_ORDER_CHUNK:
                 OffHeapWorldOrderChunk.free(rawValue);

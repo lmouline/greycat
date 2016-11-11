@@ -292,6 +292,14 @@ public interface Graph {
     TaskActionFactory taskAction(String name);
 
     /**
+     * Retrieve a external attribute factory, resolved by its name
+     *
+     * @param name of the task action
+     * @return the resolved external attribute factory or null if not configured
+     */
+    ExternalAttributeFactory externalAttribute(String name);
+
+    /**
      * Retrieve the default task hook factory
      *
      * @return the current default task hook factory

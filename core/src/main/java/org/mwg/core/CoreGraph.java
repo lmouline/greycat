@@ -29,6 +29,7 @@ class CoreGraph implements org.mwg.Graph {
     private final Resolver _resolver;
     private final java.util.Map<Long, NodeFactory> _nodeTypes;
     private final java.util.Map<String, TaskActionFactory> _taskActions;
+    private final java.util.Map<String, ExternalAttributeFactory> _externalAttributes;
     private final AtomicBoolean _isConnected;
     private final AtomicBoolean _lock;
     private final Plugin[] _plugins;
@@ -82,6 +83,7 @@ class CoreGraph implements org.mwg.Graph {
         _scheduler = p_scheduler;
         //Third round, initialize all taskActions and nodeTypes
         _taskActions = new HashMap<String, TaskActionFactory>();
+        _externalAttributes = new HashMap<String, ExternalAttributeFactory>();
         CoreTask.fillDefault(this._taskActions);
         if (p_plugins != null) {
             this._nodeTypes = new HashMap<Long, NodeFactory>();
@@ -96,6 +98,12 @@ class CoreGraph implements org.mwg.Graph {
                 for (int j = 0; j < task_names.length; j++) {
                     final String task_name = task_names[j];
                     _taskActions.put(task_name, loopPlugin.taskActionType(task_name));
+                }
+
+                final String[] external_attribute_names = loopPlugin.externalAttributes();
+                for (int j = 0; j < external_attribute_names.length; j++) {
+                    final String ext_name = external_attribute_names[j];
+                    _externalAttributes.put(ext_name, loopPlugin.externalAttribute(ext_name));
                 }
             }
         } else {
@@ -201,6 +209,11 @@ class CoreGraph implements org.mwg.Graph {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public ExternalAttributeFactory externalAttribute(String name) {
+        return _externalAttributes.get(name);
     }
 
     @Override

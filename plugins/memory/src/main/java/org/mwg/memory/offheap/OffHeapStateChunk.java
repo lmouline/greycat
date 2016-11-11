@@ -8,6 +8,8 @@ import org.mwg.memory.offheap.primary.OffHeapDoubleArray;
 import org.mwg.memory.offheap.primary.OffHeapIntArray;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.memory.offheap.primary.OffHeapString;
+import org.mwg.plugin.ExternalAttribute;
+import org.mwg.plugin.ExternalAttributeFactory;
 import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.Buffer;
 import org.mwg.utility.Base64;
@@ -191,6 +193,8 @@ class OffHeapStateChunk implements StateChunk {
                     return new OffHeapLongLongMap(this, index);
                 case Type.LONG_TO_LONG_ARRAY_MAP:
                     return new OffHeapLongLongArrayMap(this, index);
+                case Type.EXTERNAL:
+                    return space.heapAttribute(rawValue);
                 case OffHeapConstants.OFFHEAP_NULL_PTR:
                     return null;
                 default:
@@ -239,6 +243,35 @@ class OffHeapStateChunk implements StateChunk {
             }
             if (foundIndex == OffHeapConstants.OFFHEAP_NULL_PTR || type(addr, foundIndex) != requestType) {
                 foundIndex = internal_set(requestKey, requestType, OffHeapConstants.OFFHEAP_NULL_PTR, true, false);
+                addr = space.addrByIndex(index);
+            }
+            result = internal_get(addr, foundIndex);
+        } finally {
+            unlock();
+        }
+        return result;
+    }
+
+    @Override
+    public Object getOrCreateExternal(long requestKey, String externalTypeName) {
+        Object result = null;
+        lock();
+        try {
+            long addr = space.addrByIndex(index);
+            long foundIndex = OffHeapConstants.OFFHEAP_NULL_PTR;
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                foundIndex = internal_find(addr, requestKey);
+            }
+            if (foundIndex == OffHeapConstants.OFFHEAP_NULL_PTR || type(addr, foundIndex) != Type.EXTERNAL) {
+                ExternalAttribute toSet = null;
+                long toSetHashCode = OffHeapConstants.OFFHEAP_NULL_PTR;
+                final ExternalAttributeFactory factory = space.graph().externalAttribute(externalTypeName);
+                if (factory != null) {
+                    toSet = factory.create();
+                    toSetHashCode = toSet.hashCode();
+                }
+                foundIndex = internal_set(requestKey, Type.EXTERNAL, toSetHashCode, true, false);
+                toSet.notifyDirty(() -> declareDirty());
                 addr = space.addrByIndex(index);
             }
             result = internal_get(addr, foundIndex);
@@ -373,6 +406,12 @@ class OffHeapStateChunk implements StateChunk {
                         case Type.MATRIX:
                             OffHeapMatrix.save(rawValue, buffer);
                             break;
+                        case Type.EXTERNAL:
+                            ExternalAttribute externalAttribute = space.heapAttribute(rawValue);
+                            if (externalAttribute != null) {
+                                externalAttribute.save(buffer);
+                            }
+                            break;
                         case Type.STRING_TO_LONG_MAP:
                             OffHeapStringLongMap.save(rawValue, buffer);
                             break;
@@ -408,7 +447,7 @@ class OffHeapStateChunk implements StateChunk {
                 //clean previous if exist
                 long addr = space.addrByIndex(index);
                 if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                    free(addr);
+                    free(addr, space);
                 }
                 //retrieve to clone address
                 final long castedAddr = space.addrByIndex(casted.index);
@@ -418,7 +457,6 @@ class OffHeapStateChunk implements StateChunk {
                     space.setAddrByIndex(index, OffHeapConstants.OFFHEAP_NULL_PTR);
 
                 } else {
-
                     final long castedCapacity = OffHeapLongArray.get(castedAddr, CAPACITY);
                     final long castedSize = OffHeapLongArray.get(castedAddr, SIZE);
                     final long castedSubHash = OffHeapLongArray.get(castedAddr, SUBHASH);
@@ -564,7 +602,7 @@ class OffHeapStateChunk implements StateChunk {
                 if (p_unsafe_elem == null) {
                     /* Case: supression of a value */
                     //freeThePreviousValue
-                    freeElement(value(addr, entry), found_type);
+                    freeElement(value(addr, entry), found_type, space);
                     //then clean the acces chain
                     if (subhash_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                         //unHash previous
@@ -619,7 +657,7 @@ class OffHeapStateChunk implements StateChunk {
                     } else {
                         setValue(addr, entry, toAddr(p_type, p_unsafe_elem));
                     }
-                    freeElement(previous_value, found_type);
+                    freeElement(previous_value, found_type, space);
                     if (found_type != p_type) {
                         setType(addr, entry, p_type);
                     }
@@ -891,7 +929,7 @@ class OffHeapStateChunk implements StateChunk {
                                 currentRelation.add(Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
                                 break;
                             case Type.MATRIX:
-                                currentMatrix.unsafe_set(currentSubIndex,Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor));
+                                currentMatrix.unsafe_set(currentSubIndex, Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor));
                                 currentSubIndex++;
                                 break;
                             case Type.LONG_ARRAY:
@@ -1011,7 +1049,7 @@ class OffHeapStateChunk implements StateChunk {
                         break;
                     case Type.MATRIX:
                         if (currentMatrix != null) {
-                            currentMatrix.unsafe_set(currentSubIndex,Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor));
+                            currentMatrix.unsafe_set(currentSubIndex, Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor));
                         }
                         break;
                     case Type.STRING_TO_LONG_MAP:
@@ -1039,12 +1077,12 @@ class OffHeapStateChunk implements StateChunk {
         }
     }
 
-    static void free(final long addr) {
+    static void free(final long addr, final OffHeapChunkSpace space) {
         if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
             final long subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
             final long size = OffHeapLongArray.get(addr, SIZE);
             for (long i = 0; i < size; i++) {
-                freeElement(value(addr, i), type(addr, i));
+                freeElement(value(addr, i), type(addr, i), space);
             }
             if (subhash_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 OffHeapLongArray.free(subhash_ptr);
@@ -1053,7 +1091,7 @@ class OffHeapStateChunk implements StateChunk {
         }
     }
 
-    private static void freeElement(final long addr, final byte elemType) {
+    private static void freeElement(final long addr, final byte elemType, final OffHeapChunkSpace space) {
         switch (elemType) {
             case Type.STRING:
                 OffHeapString.free(addr);
@@ -1066,6 +1104,9 @@ class OffHeapStateChunk implements StateChunk {
                 break;
             case Type.MATRIX:
                 OffHeapMatrix.free(addr);
+                break;
+            case Type.EXTERNAL:
+                space.umountHeapAttribute(addr);
                 break;
             case Type.LONG_ARRAY:
                 OffHeapLongArray.freeObject(addr);

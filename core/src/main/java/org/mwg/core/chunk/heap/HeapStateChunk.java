@@ -4,6 +4,8 @@ import org.mwg.Constants;
 import org.mwg.Type;
 import org.mwg.core.CoreConstants;
 import org.mwg.chunk.StateChunk;
+import org.mwg.plugin.ExternalAttribute;
+import org.mwg.plugin.ExternalAttributeFactory;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.Base64;
 import org.mwg.chunk.ChunkType;
@@ -243,6 +245,24 @@ class HeapStateChunk implements StateChunk {
     }
 
     @Override
+    public synchronized Object getOrCreateExternal(long p_key, String externalTypeName) {
+        final int found = internal_find(p_key);
+        if (found != -1) {
+            if (_type[found] == Type.EXTERNAL) {
+                return _v[found];
+            }
+        }
+        ExternalAttribute toSet = null;
+        final ExternalAttributeFactory factory = _space.graph().externalAttribute(externalTypeName);
+        if (factory != null) {
+            toSet = factory.create();
+        }
+        internal_set(p_key, Type.EXTERNAL, toSet, true, false);
+        toSet.notifyDirty(() -> declareDirty());
+        return toSet;
+    }
+
+    @Override
     public final Object getOrCreateFromKey(final String key, final byte elemType) {
         return getOrCreate(_space.graph().resolver().stringToHash(key, true), elemType);
     }
@@ -368,6 +388,10 @@ class HeapStateChunk implements StateChunk {
                                 }
                             });
                             break;
+                        case Type.EXTERNAL:
+                            ExternalAttribute externalAttribute = (ExternalAttribute) loopValue;
+                            externalAttribute.save(buffer);
+                            break;
                         default:
                             break;
                     }
@@ -491,6 +515,9 @@ class HeapStateChunk implements StateChunk {
                         break;
                     case Type.RELATION:
                         param_elem = (Relationship) p_unsafe_elem;
+                        break;
+                    case Type.EXTERNAL:
+                        param_elem = p_unsafe_elem;
                         break;
                     case Type.DOUBLE_ARRAY:
                         double[] castedParamDouble = (double[]) p_unsafe_elem;
