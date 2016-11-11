@@ -179,48 +179,29 @@ public class VolatileMatrix implements Matrix {
 
     }*/
 
-    private static MatrixEngine _defaultEngine = null;
-
-    /**
-     * @native ts
-     * if(VolatileMatrix._defaultEngine == null){
-     * VolatileMatrix._defaultEngine = new org.mwg.ml.common.matrix.HybridMatrixEngine();
-     * }
-     * return VolatileMatrix._defaultEngine;
-     */
-    public static MatrixEngine defaultEngine() {
-        if (_defaultEngine == null) {
-            _defaultEngine = new HybridMatrixEngine();
-        }
-        return _defaultEngine;
-    }
-
-    public static void setDefaultEngine(MatrixEngine matrixEngine) {
-        _defaultEngine = matrixEngine;
-    }
 
     public static Matrix multiply(Matrix matA, Matrix matB) {
-        return defaultEngine().multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1d, matA, TransposeType.NOTRANSPOSE, matB, 0, null);
+        return DefaultMatrixEngine.defaultEngine().multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1d, matA, TransposeType.NOTRANSPOSE, matB, 0, null);
     }
 
     public static Matrix multiplyTranspose(TransposeType transA, Matrix matA, TransposeType transB, Matrix matB) {
-        return defaultEngine().multiplyTransposeAlphaBeta(transA, 1.0, matA, transB, matB, 0, null);
+        return DefaultMatrixEngine.defaultEngine().multiplyTransposeAlphaBeta(transA, 1.0, matA, transB, matB, 0, null);
     }
 
     public static Matrix multiplyTransposeAlpha(TransposeType transA, double alpha, Matrix matA, TransposeType transB, Matrix matB) {
-        return defaultEngine().multiplyTransposeAlphaBeta(transA, alpha, matA, transB, matB, 0, null);
+        return DefaultMatrixEngine.defaultEngine().multiplyTransposeAlphaBeta(transA, alpha, matA, transB, matB, 0, null);
     }
 
     public static Matrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, Matrix matA, TransposeType transB, Matrix matB, double beta, Matrix matC) {
-        return defaultEngine().multiplyTransposeAlphaBeta(transA, alpha, matA, transB, matB, beta, matC);
+        return DefaultMatrixEngine.defaultEngine().multiplyTransposeAlphaBeta(transA, alpha, matA, transB, matB, beta, matC);
     }
 
     public static Matrix invert(Matrix mat, boolean invertInPlace) {
-        return defaultEngine().invert(mat, invertInPlace);
+        return DefaultMatrixEngine.defaultEngine().invert(mat, invertInPlace);
     }
 
     public static Matrix pinv(Matrix mat, boolean invertInPlace) {
-        return defaultEngine().pinv(mat, invertInPlace);
+        return DefaultMatrixEngine.defaultEngine().pinv(mat, invertInPlace);
     }
 
     public static Matrix random(int rows, int columns, double min, double max) {

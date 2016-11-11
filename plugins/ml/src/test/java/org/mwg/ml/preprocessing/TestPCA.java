@@ -40,7 +40,7 @@ public class TestPCA {
 
         Random random = new Random();
 //        Matrix.setDefaultEngine(new JamaMatrixEngine());
-        VolatileMatrix.defaultEngine();
+
         Matrix trainingData = VolatileMatrix.empty(len, dim);
 
         for (int i = 0; i < len; i++) {

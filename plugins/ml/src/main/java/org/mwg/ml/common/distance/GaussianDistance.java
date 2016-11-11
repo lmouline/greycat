@@ -2,9 +2,6 @@ package org.mwg.ml.common.distance;
 
 import org.mwg.structure.distance.Distance;
 
-/**
- * Created by assaad on 29/06/16.
- */
 public class GaussianDistance implements Distance {
     double[] err;
     public GaussianDistance(double[] covariance){

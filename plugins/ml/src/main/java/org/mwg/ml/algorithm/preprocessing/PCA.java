@@ -1,5 +1,6 @@
 package org.mwg.ml.algorithm.preprocessing;
 
+import org.mwg.ml.common.matrix.DefaultMatrixEngine;
 import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.SVDDecompose;
 import org.mwg.ml.common.matrix.TransposeType;
@@ -301,7 +302,7 @@ public class PCA {
 //        }
 
 
-        _svdDecompose = VolatileMatrix.defaultEngine().decomposeSVD(_data, false);
+        _svdDecompose = DefaultMatrixEngine.defaultEngine().decomposeSVD(_data, false);
 
         double[] singularValues = _svdDecompose.getS();
 
