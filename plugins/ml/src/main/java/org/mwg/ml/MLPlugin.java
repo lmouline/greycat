@@ -9,6 +9,7 @@ import org.mwg.ml.algorithm.profiling.GaussianSlotNode;
 import org.mwg.ml.algorithm.profiling.GaussianTreeNode;
 import org.mwg.ml.algorithm.regression.LiveLinearRegressionNode;
 import org.mwg.ml.algorithm.regression.PolynomialNode;
+import org.mwg.ml.neuralnet.FlatNeuralNode;
 import org.mwg.ml.neuralnet.NeuralNode;
 import org.mwg.ml.neuralnet.NeuralNodeEmpty;
 import org.mwg.plugin.NodeFactory;
@@ -23,6 +24,13 @@ public class MLPlugin extends StructurePlugin {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
                 return new PolynomialNode(world, time, id, graph);
+            }
+        });
+
+        declareNodeType(FlatNeuralNode.NAME, new NodeFactory() {
+            @Override
+            public Node create(long world, long time, long id, Graph graph) {
+                return new FlatNeuralNode(world, time, id, graph);
             }
         });
 

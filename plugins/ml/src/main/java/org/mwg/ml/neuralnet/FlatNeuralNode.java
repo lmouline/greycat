@@ -12,7 +12,7 @@ public class FlatNeuralNode extends AbstractNode {
 
     //Inputs are organized in one row
 
-
+    public static String NAME = "FlatNeuralNode";
     private static final long NB_INPUTS = 1;
     private static final long NB_OUTPUTS = 2;
     private static final long NB_LAYERS = 3;
@@ -35,6 +35,7 @@ public class FlatNeuralNode extends AbstractNode {
         super(p_world, p_time, p_id, p_graph);
     }
 
+    //4,2,2,3
     public FlatNeuralNode configure(int inputs, int outputs, int hiddenlayers, int nodesPerLayer, double learningRate) {
         NodeState state = phasedState();
         state.set(NB_INPUTS, Type.INT, inputs);
@@ -49,9 +50,6 @@ public class FlatNeuralNode extends AbstractNode {
 
 
         for (int i = 0; i < hiddenlayers; i++) {
-            if (i == hiddenlayers - 1) {
-                nextDim = outputs;
-            }
 
             Matrix weights = layerWeights(state, i);
             Matrix biases = layerBias(state, i);
@@ -64,8 +62,8 @@ public class FlatNeuralNode extends AbstractNode {
 
             previousDim = nodesPerLayer;
         }
-
         //create output weight and bias after hidden layers index
+        nextDim = outputs;
         Matrix weights = layerWeights(state, hiddenlayers);
         Matrix biases = layerBias(state, hiddenlayers);
         weights.init(previousDim,nextDim);
@@ -76,6 +74,43 @@ public class FlatNeuralNode extends AbstractNode {
         return this;
     }
 
+
+    public double[] predict (final double[] inputVec){
+        NodeState state = phasedState();
+
+        int nbInput = (int) state.get(NB_INPUTS);
+
+        if(inputVec.length!=nbInput ){
+            throw new RuntimeException("Please reconfigure the neuralnet before changing input or output dimensions");
+        }
+
+        int nbHiddenLayers= (int) state.get(NB_LAYERS);
+
+        Matrix integration;
+        Matrix activation;
+
+
+        Matrix input=  VolatileMatrix.empty(1,nbInput);
+        Matrix weights;
+        Matrix biases;
+
+        //set initial input vector as a matrix
+        for(int i=0;i<nbInput;i++){
+            input.set(0,i,inputVec[i]);
+        }
+
+        //Start the feedforward round
+
+        for(int layer=0; layer<nbHiddenLayers+1;layer++){
+            weights=layerWeights(state,layer);
+            biases=layerBias(state,layer);
+            integration= MatrixOps.add(MatrixOps.multiply(input,weights),biases);
+            activation= activate(integration, layer==nbHiddenLayers);
+            // Input for the next round
+            input=activation;
+        }
+        return input.data();
+    }
 
     public void learn(final double[] inputVec, final double[] outputVec) {
         NodeState state = phasedState();
@@ -92,6 +127,7 @@ public class FlatNeuralNode extends AbstractNode {
 
         Matrix[] integrations=new Matrix[nbHiddenLayers+1];
         Matrix[] activations=new Matrix[nbHiddenLayers+1];
+        Matrix[] derivations=new Matrix[nbHiddenLayers+1];
 
 
         Matrix input=  VolatileMatrix.empty(1,nbInput);
@@ -110,18 +146,27 @@ public class FlatNeuralNode extends AbstractNode {
             biases[layer]=layerBias(state,layer);
             integrations[layer]= MatrixOps.add(MatrixOps.multiply(input,weights[layer]),biases[layer]);
             activations[layer]= activate(integrations[layer], layer==nbHiddenLayers);
+            derivations[layer]= derivate(integrations[layer], activations[layer], layer==nbHiddenLayers);
+            // Input for the next round
+            input=activations[layer];
         }
 
+        // Calculate error.
+        double[] calculated=input.data();
+        double[] derivativeErr=new double[calculated.length];
+        for(int i=0;i<calculated.length;i++){
+            derivativeErr[i]=  -(outputVec[i] - calculated[i]);
+        }
 
+        //Back-propagate
+        for(int layer=nbHiddenLayers; layer>=0;layer--){
 
-
-
-
+        }
 
 
     }
 
-    
+
     private Matrix activate(Matrix integration, boolean linearActivation) {
         if(linearActivation){
             return integration; // for output returns a linear activation
@@ -135,6 +180,21 @@ public class FlatNeuralNode extends AbstractNode {
             }
             return result;
         }
+    }
+
+    private Matrix derivate(Matrix integration, Matrix activation, boolean linearActivation) {
+        Matrix result = VolatileMatrix.empty(1,activation.columns());
+        if(linearActivation){
+                for(int j=0;j<activation.columns();j++){
+                    result.set(0,j, 1);
+                }
+        }
+        else {
+                for(int j=0;j<activation.columns();j++){
+                    result.set(0,j, activation.get(0,j)*(1-activation.get(0,j))); //else a sigmoid
+                }
+        }
+        return result;
     }
 
 }
