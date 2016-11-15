@@ -19,6 +19,14 @@ public class MatrixOps {
     }
 
 
+    public static void copyMatrix(Matrix source, Matrix destination) {
+        for (int row = 0; row < source.rows(); row++) {
+            for(int col=0;col<source.columns();col++){
+                destination.set(row,col,source.get(row,col));
+            }
+        }
+    }
+
     public static Matrix multiply(Matrix matA, Matrix matB) {
         return defaultEngine().multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1d, matA, TransposeType.NOTRANSPOSE, matB, 0, null);
     }

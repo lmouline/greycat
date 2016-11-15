@@ -26,6 +26,10 @@ public class FlatNeuralNodeTest {
                 double[] inputs= {0.01,0.003,-0.5,0.3};
                 double[] outputs = nn.predict(inputs);
 
+
+                nn.learn(inputs,outputs);
+
+
                 for(int i=0;i<outputs.length;i++){
                     System.out.println(outputs[i]);
                 }
