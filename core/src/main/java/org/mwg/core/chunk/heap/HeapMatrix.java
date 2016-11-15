@@ -83,7 +83,7 @@ class HeapMatrix implements Matrix {
                     aligned = true;
                 }
                 for (int i = 0; i < backend[INDEX_ROWS] * backend[INDEX_COLUMNS]; i++) {
-                    backend[i] = rand.nextDouble() * (max - min) + min;
+                    backend[i+INDEX_OFFSET] = rand.nextDouble() * (max - min) + min;
                 }
                 parent.declareDirty();
             }
