@@ -7,7 +7,7 @@ import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
-import static org.mwg.task.Actions.*;
+import static org.mwg.task.Actions.inject;
 
 public class ActionAsVarTest extends AbstractActionTest {
 

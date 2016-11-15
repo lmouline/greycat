@@ -2,8 +2,8 @@ package org.mwg.mlx.algorithm;
 
 import org.mwg.Graph;
 import org.mwg.ml.RegressionNode;
-import org.mwg.utility.Enforcer;
 import org.mwg.plugin.NodeState;
+import org.mwg.utility.Enforcer;
 
 public abstract class AbstractLinearRegressionNode extends AbstractAnySlidingWindowManagingRegressionNode implements RegressionNode {
 

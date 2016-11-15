@@ -9,7 +9,6 @@ import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 class ActionTraverse extends AbstractTaskAction {
 

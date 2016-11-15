@@ -4,9 +4,9 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Type;
-import org.mwg.utility.VerbosePlugin;
 
-import static org.mwg.task.Actions.*;
+import static org.mwg.task.Actions.loopPar;
+import static org.mwg.task.Actions.newNode;
 
 public class MicroWorldTest {
 

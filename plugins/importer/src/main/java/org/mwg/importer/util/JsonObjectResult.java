@@ -1,14 +1,11 @@
 package org.mwg.importer.util;
 
 import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
-import org.mwg.task.Task;
 import org.mwg.task.TaskResult;
 import org.mwg.task.TaskResultIterator;
 import org.mwg.utility.Tuple;
 
 import java.util.Iterator;
-import java.util.List;
 
 public class JsonObjectResult implements TaskResult<JsonMemberResult> {
 

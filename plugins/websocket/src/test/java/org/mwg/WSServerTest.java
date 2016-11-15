@@ -3,7 +3,6 @@ package org.mwg;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.chunk.StateChunk;
-import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.plugin.AbstractNode;
 import org.mwg.struct.Buffer;
 

@@ -1,8 +1,8 @@
 package org.mwg.ml.common.matrix.blassolver;
 
 
-import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.TransposeType;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.blassolver.blas.Blas;
 import org.mwg.struct.Matrix;
 

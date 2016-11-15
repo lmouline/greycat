@@ -6,7 +6,6 @@ import org.mwg.struct.*;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Base implementation to develop NodeFactory plugins without overriding every methods

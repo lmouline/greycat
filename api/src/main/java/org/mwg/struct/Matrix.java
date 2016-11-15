@@ -28,4 +28,7 @@ public interface Matrix {
 
     Matrix unsafeSet(int index, double value);
 
+
+
+
 }

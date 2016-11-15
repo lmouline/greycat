@@ -1,17 +1,15 @@
 package org.mwg.importer.action;
 
 import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
-import org.mwg.importer.util.JsonArrayResult;
-import org.mwg.importer.util.JsonObjectResult;
 import org.mwg.importer.util.JsonValueResultBuilder;
 import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 
 public class ReadJson extends AbstractTaskAction {

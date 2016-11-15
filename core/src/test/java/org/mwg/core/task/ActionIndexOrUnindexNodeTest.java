@@ -4,8 +4,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
 import org.mwg.task.Action;
-import org.mwg.task.Actions;
-import org.mwg.task.Task;
 import org.mwg.task.TaskContext;
 
 import static org.mwg.task.Actions.newTask;

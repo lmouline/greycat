@@ -2,15 +2,15 @@ package org.mwg.core.chunk.heap;
 
 import org.mwg.Constants;
 import org.mwg.Type;
-import org.mwg.core.CoreConstants;
+import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
+import org.mwg.core.CoreConstants;
 import org.mwg.plugin.ExternalAttribute;
 import org.mwg.plugin.ExternalAttributeFactory;
-import org.mwg.utility.HashHelper;
-import org.mwg.utility.Base64;
-import org.mwg.chunk.ChunkType;
 import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.*;
+import org.mwg.utility.Base64;
+import org.mwg.utility.HashHelper;
 
 import java.util.Arrays;
 

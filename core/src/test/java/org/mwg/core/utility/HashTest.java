@@ -1,10 +1,5 @@
 package org.mwg.core.utility;
 
-import org.junit.Test;
-import org.mwg.utility.HashHelper;
-
-import java.util.Random;
-
 public class HashTest {
 
     /*

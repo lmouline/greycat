@@ -3,8 +3,6 @@ package org.mwg.ml.common.matrix;
 
 import org.mwg.struct.Matrix;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.util.Random;
 
 //Most of the time we will be using column based matrix due to blas.
@@ -180,29 +178,11 @@ public class VolatileMatrix implements Matrix {
     }*/
 
 
-    public static Matrix multiply(Matrix matA, Matrix matB) {
-        return DefaultMatrixEngine.defaultEngine().multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1d, matA, TransposeType.NOTRANSPOSE, matB, 0, null);
-    }
 
-    public static Matrix multiplyTranspose(TransposeType transA, Matrix matA, TransposeType transB, Matrix matB) {
-        return DefaultMatrixEngine.defaultEngine().multiplyTransposeAlphaBeta(transA, 1.0, matA, transB, matB, 0, null);
-    }
 
-    public static Matrix multiplyTransposeAlpha(TransposeType transA, double alpha, Matrix matA, TransposeType transB, Matrix matB) {
-        return DefaultMatrixEngine.defaultEngine().multiplyTransposeAlphaBeta(transA, alpha, matA, transB, matB, 0, null);
-    }
 
-    public static Matrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, Matrix matA, TransposeType transB, Matrix matB, double beta, Matrix matC) {
-        return DefaultMatrixEngine.defaultEngine().multiplyTransposeAlphaBeta(transA, alpha, matA, transB, matB, beta, matC);
-    }
 
-    public static Matrix invert(Matrix mat, boolean invertInPlace) {
-        return DefaultMatrixEngine.defaultEngine().invert(mat, invertInPlace);
-    }
 
-    public static Matrix pinv(Matrix mat, boolean invertInPlace) {
-        return DefaultMatrixEngine.defaultEngine().pinv(mat, invertInPlace);
-    }
 
     public static Matrix random(int rows, int columns, double min, double max) {
         VolatileMatrix res = new VolatileMatrix(null, rows, columns);
@@ -211,107 +191,6 @@ public class VolatileMatrix implements Matrix {
             res.unsafeSet(i, rand.nextDouble() * (max - min) + min);
         }
         return res;
-    }
-
-    public static void scale(double alpha, VolatileMatrix matA) {
-        if (alpha == 0) {
-            matA.fill(0);
-            return;
-        }
-        for (int i = 0; i < matA.rows() * matA.columns(); i++) {
-            matA.unsafeSet(i, alpha * matA.unsafeGet(i));
-        }
-    }
-
-    public static Matrix transpose(Matrix matA) {
-        Matrix result = new VolatileMatrix(null, matA.columns(), matA.rows());
-        int TRANSPOSE_SWITCH = 375;
-        if (matA.columns() == matA.rows()) {
-            transposeSquare(matA, result);
-        } else if (matA.columns() > TRANSPOSE_SWITCH && matA.rows() > TRANSPOSE_SWITCH) {
-            transposeBlock(matA, result);
-        } else {
-            transposeStandard(matA, result);
-        }
-        return result;
-    }
-
-    private static void transposeSquare(Matrix matA, Matrix result) {
-        int index = 1;
-        int indexEnd = matA.columns();
-        for (int i = 0; i < matA.rows(); i++) {
-            int indexOther = (i + 1) * matA.columns() + i;
-            int n = i * (matA.columns() + 1);
-            result.unsafeSet(n, matA.unsafeGet(n));
-            for (; index < indexEnd; index++) {
-                result.unsafeSet(index, matA.unsafeGet(indexOther));
-                result.unsafeSet(indexOther, matA.unsafeGet(index));
-                indexOther += matA.columns();
-            }
-            index += i + 2;
-            indexEnd += matA.columns();
-        }
-    }
-
-    private static void transposeStandard(Matrix matA, Matrix result) {
-        int index = 0;
-        for (int i = 0; i < result.columns(); i++) {
-            int index2 = i;
-            int end = index + result.rows();
-            while (index < end) {
-                result.unsafeSet(index++, matA.unsafeGet(index2));
-                index2 += matA.rows();
-            }
-        }
-    }
-
-    private static void transposeBlock(Matrix matA, Matrix result) {
-        int BLOCK_WIDTH = 60;
-        for (int j = 0; j < matA.columns(); j += BLOCK_WIDTH) {
-            int blockWidth = Math.min(BLOCK_WIDTH, matA.columns() - j);
-            int indexSrc = j * matA.rows();
-            int indexDst = j;
-
-            for (int i = 0; i < matA.rows(); i += BLOCK_WIDTH) {
-                int blockHeight = Math.min(BLOCK_WIDTH, matA.rows() - i);
-                int indexSrcEnd = indexSrc + blockHeight;
-
-                for (; indexSrc < indexSrcEnd; indexSrc++) {
-                    int colSrc = indexSrc;
-                    int colDst = indexDst;
-                    int end = colDst + blockWidth;
-                    for (; colDst < end; colDst++) {
-                        result.unsafeSet(colDst, matA.unsafeGet(colSrc));
-                        colSrc += matA.rows();
-                    }
-                    indexDst += result.rows();
-                }
-            }
-        }
-    }
-
-    public double[] saveToState() {
-        double[] res = new double[_data.length + 2];
-        res[0] = _nbRows;
-        res[1] = _nbColumns;
-        System.arraycopy(_data, 0, res, 2, _data.length);
-        return res;
-    }
-
-    public static VolatileMatrix loadFromState(Object o) {
-        double[] res = (double[]) o;
-        double[] data = new double[res.length - 2];
-        System.arraycopy(res, 2, data, 0, data.length);
-        return new VolatileMatrix(data, (int) res[0], (int) res[1]);
-    }
-
-    public static VolatileMatrix createIdentity(int rows, int columns) {
-        VolatileMatrix ret = new VolatileMatrix(null, rows, columns);
-        int width = Math.min(rows, columns);
-        for (int i = 0; i < width; i++) {
-            ret.set(i, i, 1);
-        }
-        return ret;
     }
 
     public static double compareMatrix(VolatileMatrix matA, VolatileMatrix matB) {
@@ -330,58 +209,7 @@ public class VolatileMatrix implements Matrix {
     }
 
 
-    /**
-     * @ignore ts
-     */
-    public static Matrix loadFromCsv(String csvfile) {
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(csvfile));
-            String line;
-            String[] data;
-            int row = 0;
-            int column = 0;
 
-            while ((line = br.readLine()) != null) {
-                data = line.split(",");
-                column = data.length;
-                row++;
-            }
-            Matrix X = new VolatileMatrix(null, row, column);
-            int i = 0;
-            br = new BufferedReader(new FileReader(csvfile));
-            while ((line = br.readLine()) != null) {
-                line = line.replace('"', ' ');
-                data = line.split(",");
-                int j = 0;
-                for (String k : data) {
-                    double d = Double.parseDouble(k);
-                    X.set(i, j, d);
-                    j++;
-                }
-                i++;
-            }
-            return X;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return null;
-    }
-
-    public static boolean testDimensionsAB(TransposeType transA, TransposeType transB, Matrix matA, Matrix matB) {
-        if (transA.equals(TransposeType.NOTRANSPOSE)) {
-            if (transB.equals(TransposeType.NOTRANSPOSE)) {
-                return (matA.columns() == matB.rows());
-            } else {
-                return (matA.columns() == matB.columns());
-            }
-        } else {
-            if (transB.equals(TransposeType.NOTRANSPOSE)) {
-                return (matA.rows() == matB.rows());
-            } else {
-                return (matA.rows() == matB.columns());
-            }
-        }
-    }
 
     public static Matrix identity(int rows, int columns) {
         Matrix res = new VolatileMatrix(null, rows, columns);

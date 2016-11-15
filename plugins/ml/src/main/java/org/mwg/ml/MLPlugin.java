@@ -11,7 +11,6 @@ import org.mwg.ml.algorithm.regression.LiveLinearRegressionNode;
 import org.mwg.ml.algorithm.regression.PolynomialNode;
 import org.mwg.ml.neuralnet.NeuralNode;
 import org.mwg.ml.neuralnet.NeuralNodeEmpty;
-import org.mwg.structure.tree.NDTree;
 import org.mwg.plugin.NodeFactory;
 import org.mwg.structure.StructurePlugin;
 

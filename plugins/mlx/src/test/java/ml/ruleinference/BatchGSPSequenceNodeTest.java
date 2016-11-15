@@ -1,18 +1,16 @@
 package ml.ruleinference;
 
-import ml.classifier.AbstractClassifierTest;
 import org.junit.Test;
-import org.mwg.*;
+import org.mwg.Callback;
+import org.mwg.Graph;
+import org.mwg.GraphBuilder;
+import org.mwg.Node;
 import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.ml.AbstractMLNode;
 import org.mwg.mlx.MLXPlugin;
-import org.mwg.mlx.algorithm.AbstractAnySlidingWindowManagingNode;
-import org.mwg.mlx.algorithm.AbstractClassifierSlidingWindowManagingNode;
-import org.mwg.mlx.algorithm.classifier.GaussianClassifierNode;
 import org.mwg.mlx.algorithm.ruleinference.BatchGSPSequenceNode;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Created by andrey.boytsov on 17/10/2016.

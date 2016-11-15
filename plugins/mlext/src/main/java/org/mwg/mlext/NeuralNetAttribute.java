@@ -1,6 +1,5 @@
 package org.mwg.mlext;
 
-import jdk.nashorn.internal.scripts.JO;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -9,7 +8,6 @@ import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
-import org.deeplearning4j.util.ModelSerializer;
 import org.mwg.plugin.ExternalAttribute;
 import org.mwg.plugin.Job;
 import org.mwg.struct.Buffer;
@@ -17,7 +15,6 @@ import org.mwg.utility.Base64;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 public class NeuralNetAttribute implements ExternalAttribute {
 

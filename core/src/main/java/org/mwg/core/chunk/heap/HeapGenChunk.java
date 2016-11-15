@@ -1,10 +1,10 @@
 package org.mwg.core.chunk.heap;
 
 import org.mwg.Constants;
-import org.mwg.chunk.GenChunk;
-import org.mwg.utility.Base64;
 import org.mwg.chunk.ChunkType;
+import org.mwg.chunk.GenChunk;
 import org.mwg.struct.Buffer;
+import org.mwg.utility.Base64;
 
 final class HeapGenChunk implements GenChunk {
 

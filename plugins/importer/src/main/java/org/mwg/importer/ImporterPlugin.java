@@ -1,6 +1,5 @@
 package org.mwg.importer;
 
-import org.mwg.importer.action.JsonMatch;
 import org.mwg.importer.action.ReadFiles;
 import org.mwg.importer.action.ReadJson;
 import org.mwg.importer.action.ReadLines;

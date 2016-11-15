@@ -3,7 +3,9 @@ package org.mwg.memory.offheap;
 
 import org.mwg.Constants;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
-import org.mwg.struct.*;
+import org.mwg.struct.Buffer;
+import org.mwg.struct.LongLongArrayMap;
+import org.mwg.struct.LongLongArrayMapCallBack;
 import org.mwg.utility.Base64;
 import org.mwg.utility.HashHelper;
 

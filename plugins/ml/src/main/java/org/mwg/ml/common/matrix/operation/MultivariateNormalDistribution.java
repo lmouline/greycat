@@ -1,5 +1,6 @@
 package org.mwg.ml.common.matrix.operation;
 
+import org.mwg.ml.common.matrix.MatrixOps;
 import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.struct.Matrix;
 
@@ -169,8 +170,8 @@ public class MultivariateNormalDistribution {
         }
         Matrix ft = VolatileMatrix.wrap(f, 1, f.length);
         Matrix ftt = VolatileMatrix.wrap(f, f.length, 1);
-        Matrix res = VolatileMatrix.multiply(ft, inv);
-        Matrix res2 = VolatileMatrix.multiply(res, ftt);
+        Matrix res = MatrixOps.multiply(ft, inv);
+        Matrix res2 = MatrixOps.multiply(res, ftt);
         double d = Math.exp(-0.5 * res2.get(0, 0));
         return d;
     }
@@ -194,8 +195,8 @@ public class MultivariateNormalDistribution {
         }
         Matrix ft = VolatileMatrix.wrap(f, 1, f.length);
         Matrix ftt = VolatileMatrix.wrap(f, f.length, 1);
-        Matrix res = VolatileMatrix.multiply(ft, inv);
-        Matrix res2 = VolatileMatrix.multiply(res, ftt);
+        Matrix res = MatrixOps.multiply(ft, inv);
+        Matrix res2 = MatrixOps.multiply(res, ftt);
         return -0.5 * res2.get(0, 0);
     }
 }

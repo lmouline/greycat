@@ -1,6 +1,5 @@
 package mwg.sample;
 
-import org.mwg.*;
 import org.mwg.ml.MLPlugin;
 import org.mwg.ml.algorithm.anomalydetector.InterquartileRangeOutlierDetectorNode;
 import org.mwg.ml.algorithm.profiling.GaussianNode;

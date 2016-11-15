@@ -1,9 +1,9 @@
 package org.mwg.ml.common.matrix.operation;
 
-import org.mwg.ml.common.matrix.DefaultMatrixEngine;
-import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.ml.common.matrix.MatrixOps;
 import org.mwg.ml.common.matrix.SVDDecompose;
 import org.mwg.ml.common.matrix.TransposeType;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.struct.Matrix;
 
 public class PInvSVD {
@@ -26,7 +26,7 @@ public class PInvSVD {
     }
 
     public PInvSVD factor(Matrix A, boolean invertInPlace) {
-        _svd = DefaultMatrixEngine.defaultEngine().decomposeSVD(A, invertInPlace);
+        _svd = MatrixOps.defaultEngine().decomposeSVD(A, invertInPlace);
         //We get UxSxVt
         Matrix[] svd = new VolatileMatrix[3];
         svd[0] = _svd.getU();
@@ -63,9 +63,9 @@ public class PInvSVD {
         }
 
         // V*W
-        Matrix temp = VolatileMatrix.multiplyTranspose(TransposeType.TRANSPOSE, V, TransposeType.TRANSPOSE, S);
+        Matrix temp = MatrixOps.multiplyTranspose(TransposeType.TRANSPOSE, V, TransposeType.TRANSPOSE, S);
         //V*W*Ut
-        pinv = VolatileMatrix.multiplyTranspose(TransposeType.NOTRANSPOSE, temp, TransposeType.TRANSPOSE, _svd.getU());
+        pinv = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, temp, TransposeType.TRANSPOSE, _svd.getU());
         return this;
     }
 

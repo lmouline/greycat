@@ -5,7 +5,6 @@ import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.Relationship;
 import org.mwg.utility.Base64;
-import org.mwg.utility.Unsafe;
 
 @SuppressWarnings("Duplicates")
 class OffHeapRelationship implements Relationship {

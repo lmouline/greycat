@@ -4,7 +4,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.structure.distance.Distance;
 import org.mwg.structure.distance.EuclideanDistance;
-import org.mwg.structure.tree.NDTree;
 
 
 public class TestNDSubs {

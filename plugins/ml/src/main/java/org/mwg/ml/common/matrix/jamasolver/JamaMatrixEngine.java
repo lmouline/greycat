@@ -1,17 +1,14 @@
 package org.mwg.ml.common.matrix.jamasolver;
 
 
-import org.mwg.ml.common.matrix.VolatileMatrix;
-import org.mwg.ml.common.matrix.MatrixEngine;
-import org.mwg.ml.common.matrix.SVDDecompose;
-import org.mwg.ml.common.matrix.TransposeType;
+import org.mwg.ml.common.matrix.*;
 import org.mwg.struct.Matrix;
 
 public class JamaMatrixEngine implements MatrixEngine {
 
     @Override
     public Matrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, Matrix matA, TransposeType transB, Matrix matB, double beta, Matrix matC) {
-        if (VolatileMatrix.testDimensionsAB(transA, transB, matA, matB)) {
+        if (MatrixOps.testDimensionsAB(transA, transB, matA, matB)) {
             int[] dimC = new int[3];
             if (transA.equals(TransposeType.NOTRANSPOSE)) {
                 if (transB.equals(TransposeType.NOTRANSPOSE)) {
@@ -113,7 +110,7 @@ public class JamaMatrixEngine implements MatrixEngine {
     public Matrix solveLU(Matrix matA, Matrix matB, boolean workInPlace, TransposeType transB) {
         Matrix btem;
         if (transB == TransposeType.TRANSPOSE) {
-            btem = VolatileMatrix.transpose(matB);
+            btem = MatrixOps.transpose(matB);
         } else {
             btem = matB;
         }
@@ -125,7 +122,7 @@ public class JamaMatrixEngine implements MatrixEngine {
     public Matrix solveQR(Matrix matA, Matrix matB, boolean workInPlace, TransposeType transB) {
         Matrix btem;
         if (transB == TransposeType.TRANSPOSE) {
-            btem = VolatileMatrix.transpose(matB);
+            btem = MatrixOps.transpose(matB);
         } else {
             btem = matB;
         }

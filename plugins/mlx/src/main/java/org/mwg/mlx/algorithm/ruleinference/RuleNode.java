@@ -1,6 +1,9 @@
 package org.mwg.mlx.algorithm.ruleinference;
 
-import org.mwg.*;
+import org.mwg.Constants;
+import org.mwg.Graph;
+import org.mwg.Node;
+import org.mwg.Type;
 import org.mwg.mlx.algorithm.ruleinference.nodes.*;
 import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.NodeState;
@@ -11,7 +14,6 @@ import org.mwg.utility.Enforcer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mwg.task.Actions.lookup;
 import static org.mwg.task.Actions.setWorld;
 
 /**

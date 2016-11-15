@@ -1,9 +1,6 @@
 package org.mwg.ml.common.matrix.blassolver;
 
-import org.mwg.ml.common.matrix.VolatileMatrix;
-import org.mwg.ml.common.matrix.MatrixEngine;
-import org.mwg.ml.common.matrix.SVDDecompose;
-import org.mwg.ml.common.matrix.TransposeType;
+import org.mwg.ml.common.matrix.*;
 import org.mwg.ml.common.matrix.blassolver.blas.Blas;
 import org.mwg.ml.common.matrix.blassolver.blas.NetlibBlas;
 import org.mwg.struct.Matrix;
@@ -33,7 +30,7 @@ public class BlasMatrixEngine implements MatrixEngine {
     //C=alpha*A + beta * B (with possible transpose for A or B)
     @Override
     public Matrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, Matrix matA, TransposeType transB, Matrix matB, double beta, Matrix matC) {
-        if (VolatileMatrix.testDimensionsAB(transA, transB, matA, matB)) {
+        if (MatrixOps.testDimensionsAB(transA, transB, matA, matB)) {
             int k = 0;
             int[] dimC = new int[2];
             if (transA.equals(TransposeType.NOTRANSPOSE)) {
@@ -104,7 +101,7 @@ public class BlasMatrixEngine implements MatrixEngine {
         QR solver = QR.factorize(matA, workInPlace, _blas);
         Matrix coef = VolatileMatrix.empty(matA.columns(), matB.columns());
         if (transB != TransposeType.NOTRANSPOSE) {
-            matB = VolatileMatrix.transpose(matB);
+            matB = MatrixOps.transpose(matB);
         }
         solver.solve(matB, coef);
         return coef;

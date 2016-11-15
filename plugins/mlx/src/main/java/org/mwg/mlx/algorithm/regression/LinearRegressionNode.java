@@ -2,8 +2,9 @@ package org.mwg.mlx.algorithm.regression;
 
 import org.mwg.Graph;
 import org.mwg.Type;
-import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.ml.common.matrix.MatrixOps;
 import org.mwg.ml.common.matrix.TransposeType;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.mlx.algorithm.AbstractLinearRegressionNode;
 import org.mwg.plugin.NodeState;
 import org.mwg.struct.Matrix;
@@ -43,7 +44,7 @@ public class LinearRegressionNode extends AbstractLinearRegressionNode {
 
         // inv(Xt * X - lambda*I) * Xt * ys
         // I - almost identity, but with 0 for intercept term
-        Matrix xtMulX = VolatileMatrix.multiplyTranspose(TransposeType.TRANSPOSE, xMatrix, TransposeType.NOTRANSPOSE, xMatrix);
+        Matrix xtMulX = MatrixOps.multiplyTranspose(TransposeType.TRANSPOSE, xMatrix, TransposeType.NOTRANSPOSE, xMatrix);
 
         for (int i = 1; i <= dims; i++) {
             xtMulX.add(i, i, l2);
@@ -52,10 +53,10 @@ public class LinearRegressionNode extends AbstractLinearRegressionNode {
         //PInvSVD pinvsvd = new PInvSVD();
         //pinvsvd.factor(xtMulX, false);
         //Matrix pinv = pinvsvd.getPInv();
-        Matrix pinv = VolatileMatrix.pinv(xtMulX, false);
+        Matrix pinv = MatrixOps.pinv(xtMulX, false);
 
-        Matrix invMulXt = VolatileMatrix.multiplyTranspose(TransposeType.NOTRANSPOSE, pinv, TransposeType.TRANSPOSE, xMatrix);
-        Matrix result = VolatileMatrix.multiplyTranspose(TransposeType.NOTRANSPOSE, invMulXt, TransposeType.NOTRANSPOSE, yVector);
+        Matrix invMulXt = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, pinv, TransposeType.TRANSPOSE, xMatrix);
+        Matrix result = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, invMulXt, TransposeType.NOTRANSPOSE, yVector);
 
         final double newCoefficients[] = new double[dims];
         for (int i = 0; i < dims; i++) {

@@ -1,7 +1,9 @@
 package org.mwg.ml.neuralnet;
 
-import org.junit.Test;
-import org.mwg.*;
+import org.mwg.Callback;
+import org.mwg.Graph;
+import org.mwg.GraphBuilder;
+import org.mwg.Node;
 import org.mwg.ml.MLPlugin;
 
 import java.util.Random;

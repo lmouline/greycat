@@ -2,9 +2,9 @@ package org.mwg.ml.common;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.MatrixEngine;
 import org.mwg.ml.common.matrix.TransposeType;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.blassolver.BlasMatrixEngine;
 import org.mwg.ml.common.matrix.jamasolver.JamaMatrixEngine;
 import org.mwg.struct.Matrix;

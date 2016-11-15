@@ -6,8 +6,6 @@ import org.mwg.*;
 import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.utility.HashHelper;
 
-import java.util.Arrays;
-
 public class TimelineTest {
 
     @Test

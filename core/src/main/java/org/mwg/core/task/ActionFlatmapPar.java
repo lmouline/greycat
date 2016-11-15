@@ -11,8 +11,6 @@ import org.mwg.task.TaskResult;
 import org.mwg.task.TaskResultIterator;
 import org.mwg.utility.Tuple;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 class ActionFlatmapPar extends AbstractTaskAction {
 
     private final Task _subTask;

@@ -7,12 +7,12 @@ import org.mwg.Type;
 import org.mwg.chunk.ChunkSpace;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
-import org.mwg.utility.HashHelper;
 import org.mwg.plugin.MemoryFactory;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.LongLongArrayMap;
 import org.mwg.struct.LongLongMap;
 import org.mwg.struct.StringLongMap;
+import org.mwg.utility.HashHelper;
 
 public abstract class AbstractStateChunkTest {
 

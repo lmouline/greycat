@@ -16,7 +16,6 @@ import org.mwg.structure.util.NearestNeighborArrayList;
 import org.mwg.structure.util.NearestNeighborList;
 import org.mwg.task.*;
 
-
 import static org.mwg.task.Actions.*;
 
 /**

@@ -1,14 +1,13 @@
 package org.mwg.ml.algorithm.regression;
 
 import org.mwg.Callback;
-import org.mwg.Constants;
 import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.ml.AbstractMLNode;
 import org.mwg.ml.RegressionNode;
 import org.mwg.ml.common.matrix.operation.PolynomialFit;
-import org.mwg.utility.Enforcer;
 import org.mwg.plugin.NodeState;
+import org.mwg.utility.Enforcer;
 
 public class PolynomialNode extends AbstractMLNode implements RegressionNode {
 

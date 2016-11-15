@@ -7,11 +7,9 @@ import org.mwg.Type;
 import org.mwg.chunk.ChunkSpace;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
-import org.mwg.core.CoreConstants;
-import org.mwg.utility.HashHelper;
 import org.mwg.plugin.MemoryFactory;
 import org.mwg.struct.StringLongMap;
-import org.mwg.struct.StringLongMapCallBack;
+import org.mwg.utility.HashHelper;
 
 public abstract class AbstractStringLongMapTest {
 

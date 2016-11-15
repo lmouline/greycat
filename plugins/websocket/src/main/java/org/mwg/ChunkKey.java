@@ -1,7 +1,7 @@
 package org.mwg;
 
-import org.mwg.utility.Base64;
 import org.mwg.struct.Buffer;
+import org.mwg.utility.Base64;
 
 class ChunkKey {
 

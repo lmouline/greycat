@@ -5,11 +5,11 @@ import org.junit.Test;
 import org.mwg.*;
 import org.mwg.chunk.ChunkSpace;
 import org.mwg.core.memory.HeapMemoryFactory;
-import org.mwg.task.TaskHookFactory;
-import org.mwg.utility.HashHelper;
 import org.mwg.plugin.*;
 import org.mwg.struct.Buffer;
 import org.mwg.task.TaskActionFactory;
+import org.mwg.task.TaskHookFactory;
+import org.mwg.utility.HashHelper;
 
 public class QueryTest implements Resolver, Graph {
 

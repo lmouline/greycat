@@ -3,10 +3,10 @@ package org.mwg.core.task;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.Node;
-import org.mwg.utility.HashHelper;
 import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskFunctionSelect;
+import org.mwg.utility.HashHelper;
 
 public class ActionSelectTest extends AbstractActionTest {
 

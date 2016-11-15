@@ -2,9 +2,9 @@
 package org.mwg.core.chunk.heap;
 
 import org.mwg.Constants;
-import org.mwg.utility.HashHelper;
 import org.mwg.struct.LongLongMap;
 import org.mwg.struct.LongLongMapCallBack;
+import org.mwg.utility.HashHelper;
 
 import java.util.Arrays;
 

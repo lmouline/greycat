@@ -6,10 +6,10 @@ import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.WriteBatch;
 import org.iq80.leveldb.impl.Iq80DBFactory;
-import org.mwg.utility.Base64;
 import org.mwg.plugin.Storage;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
+import org.mwg.utility.Base64;
 
 import java.io.File;
 

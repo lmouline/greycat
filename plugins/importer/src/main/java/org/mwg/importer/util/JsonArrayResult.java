@@ -7,7 +7,6 @@ import org.mwg.task.TaskResultIterator;
 import org.mwg.utility.Tuple;
 
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class JsonArrayResult implements TaskResult {
 

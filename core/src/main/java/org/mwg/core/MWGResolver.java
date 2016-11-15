@@ -2,13 +2,13 @@ package org.mwg.core;
 
 import org.mwg.*;
 import org.mwg.chunk.*;
-import org.mwg.utility.HashHelper;
-import org.mwg.utility.KeyHelper;
 import org.mwg.plugin.*;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
 import org.mwg.struct.LongLongMap;
 import org.mwg.struct.StringLongMap;
+import org.mwg.utility.HashHelper;
+import org.mwg.utility.KeyHelper;
 
 import static org.mwg.chunk.ChunkType.STATE_CHUNK;
 

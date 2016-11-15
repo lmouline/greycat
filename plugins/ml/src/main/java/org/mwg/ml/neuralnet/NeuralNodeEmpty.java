@@ -2,7 +2,6 @@ package org.mwg.ml.neuralnet;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
-import org.mwg.Node;
 import org.mwg.Type;
 import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.NodeState;
@@ -14,7 +13,6 @@ import org.mwg.task.TaskContext;
 import org.mwg.task.TaskFunctionConditional;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Random;
 
 import static org.mwg.task.Actions.newTask;
@@ -138,7 +136,6 @@ public class NeuralNodeEmpty extends AbstractNode {
     // todo to be replaced in more generic way after
     private static double integrationFct(double[] values, double[] weights) {
         double value = 0;
-
         for (int i = 0; i < values.length; i++) {
             value += weights[i] * values[i];
         }
