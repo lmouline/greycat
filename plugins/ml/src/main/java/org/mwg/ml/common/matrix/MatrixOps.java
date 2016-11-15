@@ -140,4 +140,27 @@ public class MatrixOps {
     }
 
 
+    public static Matrix sub(Matrix matA, Matrix matB) {
+        if(matA.rows()!=matB.rows()|| matA.columns()!=matB.columns()){
+            throw new RuntimeException("Matrices A and B have different dimensions for the substract operation");
+        }
+        Matrix result= VolatileMatrix.empty(matA.rows(),matA.columns());
+        int total=matA.rows()*matA.columns();
+        for(int i=0;i<total;i++){
+            result.unsafeSet(i,matA.unsafeGet(i)-matB.unsafeGet(i));
+        }
+        return result;
+    }
+
+    public static Matrix add(Matrix matA, Matrix matB) {
+        if(matA.rows()!=matB.rows()|| matA.columns()!=matB.columns()){
+            throw new RuntimeException("Matrices A and B have different dimensions for the add operation");
+        }
+        Matrix result= VolatileMatrix.empty(matA.rows(),matA.columns());
+        int total=matA.rows()*matA.columns();
+        for(int i=0;i<total;i++){
+            result.unsafeSet(i,matA.unsafeGet(i)+matB.unsafeGet(i));
+        }
+        return result;
+    }
 }

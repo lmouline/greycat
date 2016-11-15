@@ -2,6 +2,7 @@ package org.mwg.ml.neuralnet;
 
 import org.mwg.Graph;
 import org.mwg.Type;
+import org.mwg.ml.common.matrix.MatrixOps;
 import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.NodeState;
@@ -75,26 +76,65 @@ public class FlatNeuralNode extends AbstractNode {
         return this;
     }
 
-    public void learn(final double[] inputs, final double[] outputs) {
+
+    public void learn(final double[] inputVec, final double[] outputVec) {
         NodeState state = phasedState();
 
         int nbInput = (int) state.get(NB_INPUTS);
-        int nb_output =  (int) state.get(NB_OUTPUTS);
-        int nb_hiddenLayers= (int) state.get(NB_LAYERS);
+        int nbOutput =  (int) state.get(NB_OUTPUTS);
+
+        if(inputVec.length!=nbInput ||outputVec.length!=nbOutput){
+            throw new RuntimeException("Please reconfigure the neuralnet before changing input or output dimensions");
+        }
+
+        int nbHiddenLayers= (int) state.get(NB_LAYERS);
         double learningRate= (double) state.get(LEARNING_RATE);
 
-        Matrix[] integrations=new Matrix[nb_hiddenLayers+1];
-        Matrix[] activations=new Matrix[nb_hiddenLayers+1];
-
-        Matrix input=  VolatileMatrix.empty(1,inputs.length);
+        Matrix[] integrations=new Matrix[nbHiddenLayers+1];
+        Matrix[] activations=new Matrix[nbHiddenLayers+1];
 
 
+        Matrix input=  VolatileMatrix.empty(1,nbInput);
+        Matrix[] weights=new Matrix[nbHiddenLayers+1];
+        Matrix[] biases=new Matrix[nbHiddenLayers+1];
+
+        //set initial input vector as a matrix
+        for(int i=0;i<nbInput;i++){
+            input.set(0,i,inputVec[i]);
+        }
+
+        //Start the feedforward round
+
+        for(int layer=0; layer<nbHiddenLayers+1;layer++){
+            weights[layer]=layerWeights(state,layer);
+            biases[layer]=layerBias(state,layer);
+            integrations[layer]= MatrixOps.add(MatrixOps.multiply(input,weights[layer]),biases[layer]);
+            activations[layer]= activate(integrations[layer], layer==nbHiddenLayers);
+        }
 
 
 
 
 
 
+
+
+    }
+
+    
+    private Matrix activate(Matrix integration, boolean linearActivation) {
+        if(linearActivation){
+            return integration; // for output returns a linear activation
+        }
+        else {
+            Matrix result = VolatileMatrix.empty(integration.rows(),integration.columns());
+            for(int i=0;i<integration.rows();i++){
+                for(int j=0;j<integration.columns();j++){
+                    result.set(i,j, 1 / (1 + Math.exp(-integration.get(i,j)))); //else a sigmoid
+                }
+            }
+            return result;
+        }
     }
 
 }
