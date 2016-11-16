@@ -118,6 +118,8 @@ public class WSClient implements Storage {
             channel.sendClose();
             channel.close();
             _worker.shutdown();
+            channel = null;
+            _worker = null;
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
