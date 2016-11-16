@@ -8,7 +8,7 @@ import org.mwg.memory.offheap.primary.OffHeapDoubleArray;
 import org.mwg.memory.offheap.primary.OffHeapIntArray;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.memory.offheap.primary.OffHeapString;
-import org.mwg.plugin.ExternalAttribute;
+import org.mwg.plugin.AbstractExternalAttribute;
 import org.mwg.plugin.ExternalAttributeFactory;
 import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.Buffer;
@@ -263,7 +263,7 @@ class OffHeapStateChunk implements StateChunk {
                 foundIndex = internal_find(addr, requestKey);
             }
             if (foundIndex == OffHeapConstants.OFFHEAP_NULL_PTR || type(addr, foundIndex) != Type.EXTERNAL) {
-                ExternalAttribute toSet = null;
+                AbstractExternalAttribute toSet = null;
                 long toSetHashCode = OffHeapConstants.OFFHEAP_NULL_PTR;
                 final ExternalAttributeFactory factory = space.graph().externalAttribute(externalTypeName);
                 if (factory != null) {
@@ -407,7 +407,7 @@ class OffHeapStateChunk implements StateChunk {
                             OffHeapMatrix.save(rawValue, buffer);
                             break;
                         case Type.EXTERNAL:
-                            ExternalAttribute externalAttribute = space.heapAttribute(rawValue);
+                            AbstractExternalAttribute externalAttribute = space.heapAttribute(rawValue);
                             if (externalAttribute != null) {
                                 externalAttribute.save(buffer);
                             }

@@ -5,8 +5,12 @@ import org.mwg.Type;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
 import org.mwg.core.CoreConstants;
-import org.mwg.plugin.ExternalAttribute;
+import org.mwg.chunk.StateChunk;
+import org.mwg.plugin.AbstractExternalAttribute;
 import org.mwg.plugin.ExternalAttributeFactory;
+import org.mwg.utility.HashHelper;
+import org.mwg.utility.Base64;
+import org.mwg.chunk.ChunkType;
 import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.*;
 import org.mwg.utility.Base64;
@@ -252,7 +256,7 @@ class HeapStateChunk implements StateChunk {
                 return _v[found];
             }
         }
-        ExternalAttribute toSet = null;
+        AbstractExternalAttribute toSet = null;
         final ExternalAttributeFactory factory = _space.graph().externalAttribute(externalTypeName);
         if (factory != null) {
             toSet = factory.create();
@@ -312,6 +316,16 @@ class HeapStateChunk implements StateChunk {
                             for (int j = 0; j < castedDoubleArr.length; j++) {
                                 buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
                                 Base64.encodeDoubleToBuffer(castedDoubleArr[j], buffer);
+                            }
+                            break;
+                        case Type.EXTERNAL:
+                            AbstractExternalAttribute externalAttribute = (AbstractExternalAttribute) loopValue;
+                            final long encodedName = _space.graph().resolver().stringToHash(externalAttribute.name(), false);
+                            Base64.encodeLongToBuffer(encodedName, buffer);
+                            buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                            String saved = externalAttribute.save();
+                            if (saved != null) {
+                                Base64.encodeStringToBuffer(saved, buffer);
                             }
                             break;
                         case Type.RELATION:
@@ -387,10 +401,6 @@ class HeapStateChunk implements StateChunk {
                                     Base64.encodeLongToBuffer(value, buffer);
                                 }
                             });
-                            break;
-                        case Type.EXTERNAL:
-                            ExternalAttribute externalAttribute = (ExternalAttribute) loopValue;
-                            externalAttribute.save(buffer);
                             break;
                         default:
                             break;
@@ -474,6 +484,11 @@ class HeapStateChunk implements StateChunk {
                     case Type.MATRIX:
                         if (casted._v[i] != null) {
                             _v[i] = new HeapMatrix(this, (HeapMatrix) casted._v[i]);
+                        }
+                        break;
+                    case Type.EXTERNAL:
+                        if (casted._v[i] != null) {
+                            _v[i] = ((AbstractExternalAttribute) casted._v[i]).copy();
                         }
                         break;
                     default:

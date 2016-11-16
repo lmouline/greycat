@@ -8,7 +8,7 @@ import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
-import org.mwg.plugin.ExternalAttribute;
+import org.mwg.plugin.AbstractExternalAttribute;
 import org.mwg.plugin.Job;
 import org.mwg.struct.Buffer;
 import org.mwg.utility.Base64;
@@ -16,7 +16,7 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 import java.io.ByteArrayOutputStream;
 
-public class NeuralNetAttribute implements ExternalAttribute {
+public class NeuralNetAttribute implements AbstractExternalAttribute {
 
     public static final String NAME = "NeuralNetAttribute";
 
@@ -82,7 +82,7 @@ public class NeuralNetAttribute implements ExternalAttribute {
     }
 
     @Override
-    public ExternalAttribute clone() {
+    public AbstractExternalAttribute clone() {
         return null;
     }
 
