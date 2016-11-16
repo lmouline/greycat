@@ -4,8 +4,6 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Type;
-import org.mwg.task.TaskResult;
-import org.mwg.utility.Unsafe;
 import org.mwg.utility.VerbosePlugin;
 
 import static org.mwg.task.Actions.*;

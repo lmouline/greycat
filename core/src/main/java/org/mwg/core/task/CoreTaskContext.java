@@ -7,7 +7,10 @@ import org.mwg.core.task.math.CoreMathExpressionEngine;
 import org.mwg.core.task.math.MathExpressionEngine;
 import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.AbstractTaskAction;
-import org.mwg.task.*;
+import org.mwg.task.TaskContext;
+import org.mwg.task.TaskHook;
+import org.mwg.task.TaskResult;
+import org.mwg.task.TaskResultIterator;
 
 import java.util.HashMap;
 import java.util.Map;

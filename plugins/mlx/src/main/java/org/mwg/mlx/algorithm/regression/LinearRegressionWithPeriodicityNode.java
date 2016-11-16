@@ -3,12 +3,13 @@ package org.mwg.mlx.algorithm.regression;
 import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.ml.AbstractMLNode;
-import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.ml.common.matrix.MatrixOps;
 import org.mwg.ml.common.matrix.TransposeType;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.mlx.algorithm.AbstractLinearRegressionNode;
+import org.mwg.plugin.NodeState;
 import org.mwg.struct.Matrix;
 import org.mwg.utility.Enforcer;
-import org.mwg.plugin.NodeState;
 
 public class LinearRegressionWithPeriodicityNode extends AbstractLinearRegressionNode {
 
@@ -96,7 +97,7 @@ public class LinearRegressionWithPeriodicityNode extends AbstractLinearRegressio
 
         // inv(Xt * X - lambda*I) * Xt * ys
         // I - almost identity, but with 0 for intercept term
-        Matrix xtMulX = VolatileMatrix.multiplyTranspose(TransposeType.TRANSPOSE, xMatrix, TransposeType.NOTRANSPOSE, xMatrix);
+        Matrix xtMulX = MatrixOps.multiplyTranspose(TransposeType.TRANSPOSE, xMatrix, TransposeType.NOTRANSPOSE, xMatrix);
 
         for (int i = 1; i <= dims; i++) {
             xtMulX.add(i, i, l2);
@@ -105,9 +106,9 @@ public class LinearRegressionWithPeriodicityNode extends AbstractLinearRegressio
         //PInvSVD pinvsvd = new PInvSVD();
         //pinvsvd.factor(xtMulX, false);
         //Matrix pinv = pinvsvd.getPInv();
-        Matrix pinv = VolatileMatrix.pinv(xtMulX, false);
-        Matrix invMulXt = VolatileMatrix.multiplyTranspose(TransposeType.NOTRANSPOSE, pinv, TransposeType.TRANSPOSE, xMatrix);
-        Matrix result = VolatileMatrix.multiplyTranspose(TransposeType.NOTRANSPOSE, invMulXt, TransposeType.NOTRANSPOSE, yVector);
+        Matrix pinv = MatrixOps.pinv(xtMulX, false);
+        Matrix invMulXt = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, pinv, TransposeType.TRANSPOSE, xMatrix);
+        Matrix result = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, invMulXt, TransposeType.NOTRANSPOSE, yVector);
 
         final double newSinusCoefficients[] = new double[periodsList.length];
         for (int i = 0; i < periodsList.length; i++) {

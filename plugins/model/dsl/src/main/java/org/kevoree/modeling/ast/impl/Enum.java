@@ -2,7 +2,8 @@ package org.kevoree.modeling.ast.impl;
 
 import org.kevoree.modeling.ast.KEnum;
 
-import java.util.*;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class Enum implements KEnum {
 

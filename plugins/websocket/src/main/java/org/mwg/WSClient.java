@@ -4,11 +4,11 @@ import io.undertow.connector.ByteBufferPool;
 import io.undertow.server.DefaultByteBufferPool;
 import io.undertow.websockets.client.WebSocketClient;
 import io.undertow.websockets.core.*;
-import org.mwg.utility.Base64;
 import org.mwg.chunk.Chunk;
 import org.mwg.plugin.Storage;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
+import org.mwg.utility.Base64;
 import org.xnio.*;
 
 import java.io.IOException;

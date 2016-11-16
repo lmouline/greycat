@@ -3,10 +3,10 @@ package org.mwg.core;
 import org.mwg.Constants;
 import org.mwg.Graph;
 import org.mwg.Query;
-import org.mwg.utility.HashHelper;
-import org.mwg.utility.Base64;
 import org.mwg.plugin.Resolver;
 import org.mwg.struct.Buffer;
+import org.mwg.utility.Base64;
+import org.mwg.utility.HashHelper;
 
 public class CoreQuery implements Query {
 

@@ -10,7 +10,6 @@ import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
 import static org.mwg.task.Actions.inject;
-import static org.mwg.task.Actions.setWorld;
 
 public class ActionSetTest extends ActionNewNodeTest {
 

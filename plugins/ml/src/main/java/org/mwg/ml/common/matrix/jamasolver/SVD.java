@@ -1,7 +1,8 @@
 package org.mwg.ml.common.matrix.jamasolver;
 
-import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.ml.common.matrix.MatrixOps;
 import org.mwg.ml.common.matrix.SVDDecompose;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.struct.Matrix;
 
 /**
@@ -500,7 +501,7 @@ class SVD implements SVDDecompose {
 
     @Override
     public Matrix getVt() {
-        return VolatileMatrix.transpose(getV());
+        return MatrixOps.transpose(getV());
     }
 
     /**

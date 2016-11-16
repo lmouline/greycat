@@ -32,6 +32,7 @@ public class Type {
 
     public static final byte RELATION = 12;
     public static final byte MATRIX = 13;
+    public static final byte EXTERNAL = 14;
 
     /**
      * Convert a type that represent a byte to a readable String representation
@@ -68,6 +69,10 @@ public class Type {
                 return "map(string->long)";
             case Type.RELATION:
                 return "relation";
+            case Type.MATRIX:
+                return "matrix";
+            case Type.EXTERNAL:
+                return "external";
             default:
                 return "unknown";
         }

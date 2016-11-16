@@ -1,8 +1,9 @@
 package org.mwg.ml.common.matrix.blassolver;
 
 
-import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.ml.common.matrix.MatrixOps;
 import org.mwg.ml.common.matrix.TransposeType;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.blassolver.blas.Blas;
 import org.mwg.struct.Matrix;
 
@@ -135,7 +136,7 @@ class QR {
             }
             // Solve Qa=b
             // a = Q'b
-            Z = VolatileMatrix.multiplyTranspose(TransposeType.TRANSPOSE, Q, TransposeType.NOTRANSPOSE, Y);
+            Z = MatrixOps.multiplyTranspose(TransposeType.TRANSPOSE, Q, TransposeType.NOTRANSPOSE, Y);
 
             // solve for Rx = b using the standard upper triangular blassolver
             solveU(R, Z.data(), n, m);

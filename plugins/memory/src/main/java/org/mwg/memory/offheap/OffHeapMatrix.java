@@ -7,6 +7,8 @@ import org.mwg.struct.Buffer;
 import org.mwg.struct.Matrix;
 import org.mwg.utility.Base64;
 
+import java.util.Random;
+
 class OffHeapMatrix implements Matrix {
 
     private static final int INDEX_ROWS = 0;
@@ -83,6 +85,27 @@ class OffHeapMatrix implements Matrix {
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 for (int i = 0; i < values.length; i++) {
                     OffHeapDoubleArray.set(addr, INDEX_OFFSET + i, values[i]);
+                }
+                chunk.declareDirty();
+            }
+        } finally {
+            chunk.unlock();
+        }
+        return this;
+    }
+
+    @Override
+    public Matrix fillWithRandom(double min, double max, long seed) {
+        chunk.lock();
+        try {
+            final long addr = chunk.addrByIndex(index);
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                final int nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
+                final int nbColumns = (int) OffHeapDoubleArray.get(addr, INDEX_COLUMNS);
+                final Random rand = new Random();
+                rand.setSeed(seed);
+                for (int i = 0; i < nbColumns * nbRows; i++) {
+                    OffHeapDoubleArray.set(addr, INDEX_OFFSET + i, rand.nextDouble() * (max - min) + min);
                 }
                 chunk.declareDirty();
             }

@@ -3,8 +3,8 @@ package org.mwg.ml.algorithm.profiling;
 import org.mwg.*;
 import org.mwg.ml.AbstractMLNode;
 import org.mwg.ml.ProfilingNode;
-import org.mwg.utility.Enforcer;
 import org.mwg.plugin.NodeState;
+import org.mwg.utility.Enforcer;
 
 public class GaussianSlotNode extends AbstractMLNode implements ProfilingNode {
 

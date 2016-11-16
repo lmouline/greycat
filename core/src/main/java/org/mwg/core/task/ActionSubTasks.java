@@ -2,12 +2,10 @@ package org.mwg.core.task;
 
 import org.mwg.Callback;
 import org.mwg.plugin.AbstractTaskAction;
-import org.mwg.plugin.Job;
 import org.mwg.plugin.SchedulerAffinity;
 import org.mwg.task.Task;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
-import org.mwg.task.TaskResultIterator;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

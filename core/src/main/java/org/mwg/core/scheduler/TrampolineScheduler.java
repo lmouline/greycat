@@ -4,9 +4,7 @@ import org.mwg.plugin.Job;
 import org.mwg.plugin.Scheduler;
 
 import java.util.Deque;
-import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**

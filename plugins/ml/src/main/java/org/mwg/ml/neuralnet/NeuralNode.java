@@ -76,7 +76,7 @@ public class NeuralNode extends AbstractNode {
             for (int k = 0; k < previousLayer.size(); k++) {
                 previousLayer.get(k).forwardConnect(output);
             }
-            output.forwardConnect(this);
+            //output.forwardConnect(this);
             internalNodes.add(output);
         }
 

@@ -3,7 +3,10 @@ package org.mwg.core.task;
 import org.mwg.Node;
 import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.AbstractTaskAction;
-import org.mwg.task.*;
+import org.mwg.task.TaskContext;
+import org.mwg.task.TaskFunctionSelectObject;
+import org.mwg.task.TaskResult;
+import org.mwg.task.TaskResultIterator;
 
 class ActionSelectObject extends AbstractTaskAction {
 

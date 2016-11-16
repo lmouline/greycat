@@ -2,11 +2,11 @@ package org.mwg.core.task;
 
 import org.mwg.Callback;
 import org.mwg.plugin.AbstractTaskAction;
-import org.mwg.plugin.Job;
 import org.mwg.plugin.SchedulerAffinity;
-import org.mwg.task.*;
-
-import java.util.concurrent.atomic.AtomicInteger;
+import org.mwg.task.Task;
+import org.mwg.task.TaskContext;
+import org.mwg.task.TaskFunctionConditional;
+import org.mwg.task.TaskResult;
 
 class ActionDoWhile extends AbstractTaskAction {
 

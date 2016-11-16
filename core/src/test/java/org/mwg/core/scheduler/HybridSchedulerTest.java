@@ -5,9 +5,7 @@ import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.task.TaskResult;
 
-import static org.mwg.task.Actions.print;
-import static org.mwg.task.Actions.loop;
-import static org.mwg.task.Actions.loopPar;
+import static org.mwg.task.Actions.*;
 
 /**
  * @ignore ts

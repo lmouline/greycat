@@ -3,8 +3,6 @@ package org.mwg.task;
 import org.mwg.Graph;
 import org.mwg.Node;
 
-import java.util.Map;
-
 public interface TaskContext {
 
     Graph graph();

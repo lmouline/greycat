@@ -208,7 +208,7 @@ public class OpsTest {
         Matrix res = engine.invert(matA, false);
 
         if (!enablebench) {
-            Matrix id = VolatileMatrix.multiply(matA, res);
+            Matrix id = MatrixOps.multiply(matA, res);
             for (int i = 0; i < dim; i++) {
                 for (int j = 0; j < dim; j++) {
                     double x;
@@ -233,7 +233,7 @@ public class OpsTest {
         Matrix matB = VolatileMatrix.random(m, p, 0, 100);
         Matrix res = engine.solveLU(matA, matB, false, TransposeType.NOTRANSPOSE);
         if (!enablebench) {
-            Matrix temp = VolatileMatrix.multiply(matA, res);
+            Matrix temp = MatrixOps.multiply(matA, res);
             for (int i = 0; i < m; i++) {
                 for (int j = 0; j < n; j++) {
                     Assert.assertTrue(Math.abs(matB.get(i, j) - temp.get(i, j)) < eps);
@@ -254,7 +254,7 @@ public class OpsTest {
 
         Matrix res = engine.solveQR(matA, matB, false, TransposeType.NOTRANSPOSE);
         if (!enablebench) {
-            Matrix temp = VolatileMatrix.multiply(matA, res);
+            Matrix temp = MatrixOps.multiply(matA, res);
             for (int i = 0; i < m; i++) {
                 for (int j = 0; j < p; j++) {
                     Assert.assertTrue(Math.abs(matB.get(i, j) - temp.get(i, j)) < eps);
@@ -272,7 +272,7 @@ public class OpsTest {
         Matrix matA = VolatileMatrix.random(m, n, 0, 100);
         Matrix res = engine.pinv(matA, false);
         if (!enablebench) {
-            Matrix id = VolatileMatrix.multiply(res, matA);
+            Matrix id = MatrixOps.multiply(res, matA);
             for (int i = 0; i < id.rows(); i++) {
                 for (int j = 0; j < id.columns(); j++) {
                     double x;
@@ -301,8 +301,8 @@ public class OpsTest {
             Matrix S = svd.getSMatrix();
             Matrix Vt = svd.getVt();
 
-            Matrix res = VolatileMatrix.multiply(U, S);
-            res = VolatileMatrix.multiply(res, Vt);
+            Matrix res = MatrixOps.multiply(U, S);
+            res = MatrixOps.multiply(res, Vt);
 
             for (int i = 0; i < m; i++) {
                 for (int j = 0; j < n; j++) {

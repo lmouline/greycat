@@ -2,10 +2,10 @@ package org.mwg.core;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
-import org.mwg.utility.Base64;
 import org.mwg.plugin.Storage;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
+import org.mwg.utility.Base64;
 
 public class BlackHoleStorage implements Storage {
 

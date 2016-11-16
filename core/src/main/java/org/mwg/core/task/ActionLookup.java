@@ -1,7 +1,6 @@
 package org.mwg.core.task;
 
 import org.mwg.Callback;
-import org.mwg.Constants;
 import org.mwg.Node;
 import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.task.TaskContext;

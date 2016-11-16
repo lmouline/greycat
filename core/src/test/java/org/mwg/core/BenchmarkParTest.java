@@ -5,7 +5,7 @@ import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Type;
 import org.mwg.core.scheduler.HybridScheduler;
-import org.mwg.task.*;
+import org.mwg.task.TaskResult;
 
 import static org.mwg.task.Actions.*;
 

@@ -2,12 +2,9 @@ package org.mwg.core.task;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mwg.Node;
-import org.mwg.plugin.AbstractNode;
 import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskFunctionSelectObject;
-import org.mwg.task.TaskResult;
 
 import static org.mwg.task.Actions.newTask;
 

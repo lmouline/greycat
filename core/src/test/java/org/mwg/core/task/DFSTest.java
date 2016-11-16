@@ -6,9 +6,11 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Node;
-import org.mwg.task.*;
+import org.mwg.task.Task;
+import org.mwg.task.TaskResult;
 
-import static org.mwg.task.Actions.*;
+import static org.mwg.task.Actions.asVar;
+import static org.mwg.task.Actions.newTask;
 
 public class DFSTest {
 

@@ -1,8 +1,9 @@
 package org.mwg.ml.common.matrix.operation;
 
 
-import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.ml.common.matrix.MatrixOps;
 import org.mwg.ml.common.matrix.TransposeType;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.struct.Matrix;
 
 public class PolynomialFit {
@@ -30,7 +31,7 @@ public class PolynomialFit {
             }
         }
         // processValues the A matrix and see if it failed
-        coef = VolatileMatrix.defaultEngine().solveQR(a, y, true, TransposeType.NOTRANSPOSE);
+        coef = MatrixOps.defaultEngine().solveQR(a, y, true, TransposeType.NOTRANSPOSE);
     }
 
     public static double extrapolate(double time, double[] weights) {

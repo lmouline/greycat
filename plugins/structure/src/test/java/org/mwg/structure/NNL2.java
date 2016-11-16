@@ -1,7 +1,5 @@
 package org.mwg.structure;
 
-import java.util.Objects;
-
 public class NNL2 {
     /**
      * The maximum priority possible in this priority queue.

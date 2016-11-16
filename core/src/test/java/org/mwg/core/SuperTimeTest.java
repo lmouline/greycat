@@ -3,10 +3,10 @@ package org.mwg.core;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
-import org.mwg.chunk.TimeTreeChunk;
-import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.chunk.ChunkSpace;
 import org.mwg.chunk.ChunkType;
+import org.mwg.chunk.TimeTreeChunk;
+import org.mwg.core.scheduler.NoopScheduler;
 
 public class SuperTimeTest {
 

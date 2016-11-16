@@ -3,6 +3,7 @@ package org.mwg.core.chunk.heap;
 import org.mwg.struct.Matrix;
 
 import java.util.Arrays;
+import java.util.Random;
 
 class HeapMatrix implements Matrix {
 
@@ -63,6 +64,27 @@ class HeapMatrix implements Matrix {
                     aligned = true;
                 }
                 System.arraycopy(values, 0, backend, INDEX_OFFSET, values.length);
+                parent.declareDirty();
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public Matrix fillWithRandom(double min, double max, long seed) {
+        synchronized (parent) {
+            Random rand = new Random();
+            rand.setSeed(seed);
+            if (backend != null) {
+                if (!aligned) {
+                    double[] next_backend = new double[backend.length];
+                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                    backend = next_backend;
+                    aligned = true;
+                }
+                for (int i = 0; i < backend[INDEX_ROWS] * backend[INDEX_COLUMNS]; i++) {
+                    backend[i+INDEX_OFFSET] = rand.nextDouble() * (max - min) + min;
+                }
                 parent.declareDirty();
             }
         }

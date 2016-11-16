@@ -10,8 +10,6 @@ import org.mwg.structure.distance.Distances;
 import org.mwg.structure.distance.GeoDistance;
 import org.mwg.structure.tree.KDTree;
 
-import java.util.Random;
-
 /**
  * Created by assaad on 09/09/16.
  */

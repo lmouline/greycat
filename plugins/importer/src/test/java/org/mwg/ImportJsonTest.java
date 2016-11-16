@@ -3,11 +3,9 @@ package org.mwg;
 import org.junit.Test;
 import org.mwg.importer.ImporterActions;
 import org.mwg.importer.ImporterPlugin;
-import org.mwg.task.Action;
-import org.mwg.task.TaskContext;
-import org.mwg.utility.VerbosePlugin;
 
-import static org.mwg.task.Actions.*;
+import static org.mwg.task.Actions.defineVar;
+import static org.mwg.task.Actions.foreach;
 
 public class ImportJsonTest {
 

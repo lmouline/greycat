@@ -1,8 +1,9 @@
 package org.mwg.ml.algorithm.preprocessing;
 
-import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.ml.common.matrix.MatrixOps;
 import org.mwg.ml.common.matrix.SVDDecompose;
 import org.mwg.ml.common.matrix.TransposeType;
+import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.struct.Matrix;
 
 public class PCA {
@@ -85,7 +86,7 @@ public class PCA {
         if (_processType == NORMALIZE) {
             normalizeData(v);
         }
-        Matrix res = VolatileMatrix.multiply(v, _matrixV);
+        Matrix res = MatrixOps.multiply(v, _matrixV);
         double[] result = new double[res.columns()];
         for (int i = 0; i < res.columns(); i++) {
             result[i] = res.get(0, i);
@@ -97,7 +98,7 @@ public class PCA {
         if (_processType == NORMALIZE) {
             normalizeData(initial);
         }
-        return VolatileMatrix.multiply(initial, _matrixV);
+        return MatrixOps.multiply(initial, _matrixV);
     }
 
 
@@ -127,7 +128,7 @@ public class PCA {
 
     public double[] inverseConvertVector(double[] data) {
         Matrix v = VolatileMatrix.wrap(clone(data), 1, data.length);
-        Matrix res = VolatileMatrix.multiplyTranspose(TransposeType.NOTRANSPOSE, v, TransposeType.TRANSPOSE, _matrixV);
+        Matrix res = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, v, TransposeType.TRANSPOSE, _matrixV);
         if (_processType == NORMALIZE) {
             inverseNormalizeData(res);
         }
@@ -140,7 +141,7 @@ public class PCA {
     }
 
     public Matrix inverseConvertSpace(Matrix initial) {
-        Matrix res = VolatileMatrix.multiplyTranspose(TransposeType.NOTRANSPOSE, initial, TransposeType.TRANSPOSE, _matrixV);
+        Matrix res = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, initial, TransposeType.TRANSPOSE, _matrixV);
         if (_processType == NORMALIZE) {
             inverseNormalizeData(res);
         }
@@ -301,7 +302,7 @@ public class PCA {
 //        }
 
 
-        _svdDecompose = VolatileMatrix.defaultEngine().decomposeSVD(_data, false);
+        _svdDecompose = MatrixOps.defaultEngine().decomposeSVD(_data, false);
 
         double[] singularValues = _svdDecompose.getS();
 

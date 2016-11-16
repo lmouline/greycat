@@ -1,7 +1,6 @@
 package org.mwg.plugin;
 
 import org.mwg.Callback;
-import org.mwg.Graph;
 import org.mwg.Node;
 
 /**

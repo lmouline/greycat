@@ -6,7 +6,6 @@ import org.mwg.struct.*;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Base implementation to develop NodeFactory plugins without overriding every methods
@@ -277,6 +276,16 @@ public abstract class AbstractNode implements Node {
         final NodeState preciseState = this._resolver.alignState(this);
         if (preciseState != null) {
             return preciseState.getOrCreate(this._resolver.stringToHash(propertyName, true), propertyType);
+        } else {
+            throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+        }
+    }
+
+    @Override
+    public Object getOrCreateExternal(String propertyName, String externalAttributeType) {
+        final NodeState preciseState = this._resolver.alignState(this);
+        if (preciseState != null) {
+            return preciseState.getOrCreateExternal(this._resolver.stringToHash(propertyName, true), externalAttributeType);
         } else {
             throw new RuntimeException(Constants.CACHE_MISS_ERROR);
         }

@@ -1,9 +1,7 @@
 package org.mwg.core.chunk;
 
 import org.junit.Assert;
-import org.junit.Test;
 import org.mwg.chunk.Stack;
-import org.mwg.core.chunk.heap.HeapFixedStack;
 
 public class AbstractFixedStackTest {
 

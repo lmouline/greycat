@@ -11,8 +11,6 @@ import org.mwg.plugin.Job;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
-import java.util.Arrays;
-
 class ActionTraverseIndex extends AbstractTaskAction {
     private String _indexName;
     private String[] _queryParams;

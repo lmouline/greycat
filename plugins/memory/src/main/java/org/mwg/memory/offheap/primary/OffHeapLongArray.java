@@ -6,9 +6,6 @@ import org.mwg.struct.Buffer;
 import org.mwg.utility.Base64;
 import org.mwg.utility.Unsafe;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class OffHeapLongArray {
 
     private static int COW_INDEX = 0;

@@ -3,8 +3,8 @@ package org.mwg.mlx.algorithm;
 import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.ml.AbstractMLNode;
-import org.mwg.utility.Enforcer;
 import org.mwg.plugin.NodeState;
+import org.mwg.utility.Enforcer;
 
 /**
  * Created by andre on 4/26/2016.

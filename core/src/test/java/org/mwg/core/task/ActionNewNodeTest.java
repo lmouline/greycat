@@ -4,13 +4,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.Callback;
 import org.mwg.Node;
-import org.mwg.core.task.AbstractActionTest;
 import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
 import static org.mwg.task.Actions.inject;
-import static org.mwg.task.Actions.setWorld;
 
 public class ActionNewNodeTest extends AbstractActionTest {
 

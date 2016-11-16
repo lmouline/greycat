@@ -4,7 +4,6 @@ import org.mwg.Callback;
 import org.mwg.Node;
 import org.mwg.plugin.AbstractTaskAction;
 import org.mwg.task.TaskContext;
-import org.mwg.task.TaskResult;
 
 class ActionLookupAll extends AbstractTaskAction {
 

@@ -1,15 +1,14 @@
 package org.mwg.core;
 
-import org.junit.Test;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Node;
+import org.mwg.chunk.Chunk;
+import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
 import org.mwg.core.chunk.heap.HeapChunkSpace;
 import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.utility.HashHelper;
-import org.mwg.chunk.Chunk;
-import org.mwg.chunk.ChunkType;
 
 import java.util.HashMap;
 import java.util.Map;

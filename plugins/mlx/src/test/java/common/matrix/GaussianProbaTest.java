@@ -9,7 +9,6 @@ import org.mwg.GraphBuilder;
 import org.mwg.Node;
 import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.ml.algorithm.profiling.GaussianMixtureNode;
-import org.mwg.ml.common.matrix.VolatileMatrix;
 import org.mwg.ml.common.matrix.operation.Gaussian1D;
 import org.mwg.mlx.MLXPlugin;
 import org.mwg.struct.Matrix;

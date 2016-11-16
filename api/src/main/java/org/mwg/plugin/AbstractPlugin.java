@@ -12,6 +12,8 @@ public class AbstractPlugin implements Plugin {
 
     private final Map<String, TaskActionFactory> _taskActions = new HashMap<String, TaskActionFactory>();
 
+    private final Map<String, ExternalAttributeFactory> _externalAttributes = new HashMap<String, ExternalAttributeFactory>();
+
     private MemoryFactory _memoryFactory;
 
     private ResolverFactory _resolverFactory;
@@ -27,6 +29,12 @@ public class AbstractPlugin implements Plugin {
     @Override
     public Plugin declareTaskAction(String name, TaskActionFactory factory) {
         _taskActions.put(name, factory);
+        return this;
+    }
+
+    @Override
+    public Plugin declareExternalAttribute(String name, ExternalAttributeFactory factory) {
+        _externalAttributes.put(name, factory);
         return this;
     }
 
@@ -71,6 +79,16 @@ public class AbstractPlugin implements Plugin {
     @Override
     public TaskActionFactory taskActionType(String taskTypeName) {
         return _taskActions.get(taskTypeName);
+    }
+
+    @Override
+    public String[] externalAttributes() {
+        return _externalAttributes.keySet().toArray(new String[_externalAttributes.size()]);
+    }
+
+    @Override
+    public ExternalAttributeFactory externalAttribute(String externalAttribute) {
+        return _externalAttributes.get(externalAttribute);
     }
 
     @Override

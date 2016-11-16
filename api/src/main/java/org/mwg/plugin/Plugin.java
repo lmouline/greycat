@@ -9,13 +9,13 @@ public interface Plugin {
 
     Plugin declareTaskAction(String name, TaskActionFactory factory);
 
+    Plugin declareExternalAttribute(String name, ExternalAttributeFactory factory);
+
     Plugin declareMemoryFactory(MemoryFactory factory);
 
     Plugin declareTaskHookFactory(TaskHookFactory factory);
 
     Plugin declareResolverFactory(ResolverFactory factory);
-
-    TaskHookFactory hookFactory();
 
     String[] nodeTypes();
 
@@ -24,6 +24,12 @@ public interface Plugin {
     String[] taskActionTypes();
 
     TaskActionFactory taskActionType(String taskTypeName);
+
+    String[] externalAttributes();
+
+    ExternalAttributeFactory externalAttribute(String externalAttribute);
+
+    TaskHookFactory hookFactory();
 
     MemoryFactory memoryFactory();
 
