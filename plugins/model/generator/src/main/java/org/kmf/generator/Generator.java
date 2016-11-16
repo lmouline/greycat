@@ -505,17 +505,6 @@ public class Generator {
                 loopFindAllMethod.addParameter("long", "world");
                 loopFindAllMethod.addParameter("long", "time");
                 loopFindAllMethod.addParameter("org.mwg.Callback<" + resultType + "[]>","callback");
-//                loopFindAllMethod.setBody("" +
-//                        "        final org.mwg.DeferCounterSync waiter = _graph.newSyncCounter(1);\n" +
-//                        "        this._graph.findAll(world, time, \"" + casted.fqn() + "\", new org.mwg.Callback<org.mwg.Node[]>() {\n" +
-//                        "            @Override\n" +
-//                        "            public void on(org.mwg.Node[] result) {\n" +
-//                        "                " + casted.type().fqn() + "[] typedResult = new " + casted.type().fqn() + "[result.length];\n" +
-//                        "                System.arraycopy(result, 0, typedResult, 0, result.length);\n" +
-//                        "                waiter.wrap().on(typedResult);" +
-//                        "            }\n" +
-//                        "        });\n" +
-//                        "        return (" + casted.type().fqn() + "[]) waiter.waitResult();");
                 loopFindAllMethod.setBody(
                         "       this._graph.findAll(world, time, \"" + casted.fqn() + "\",new org.mwg.Callback<org.mwg.Node[]>() {\n" +
                                 "           @Override\n" +
