@@ -3,7 +3,7 @@ package org.mwg.ml.neuralnet.bio;
 import org.mwg.Graph;
 import org.mwg.plugin.AbstractNode;
 
-public class BioNeuralNode extends AbstractNode {
+class BioNeuralNode extends AbstractNode {
 
     public static String NAME = "BioNeuralNode";
 

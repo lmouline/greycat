@@ -2,11 +2,16 @@ package org.mwg.ml.neuralnet.bio;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
+import org.mwg.Node;
 import org.mwg.plugin.AbstractNode;
+import org.mwg.task.Task;
+import org.mwg.task.TaskResult;
 
-public class BioInputNeuralNode extends AbstractNode {
+import static org.mwg.task.Actions.*;
 
-    public static String NAME = "BioInputNeuralNode";
+class BioInputNeuralNode extends AbstractNode {
+
+    static String NAME = "BioInputNeuralNode";
 
     public BioInputNeuralNode(long p_world, long p_time, long p_id, Graph p_graph) {
         super(p_world, p_time, p_id, p_graph);
@@ -23,7 +28,7 @@ public class BioInputNeuralNode extends AbstractNode {
                             .traverse(BioNeuralNetwork.RELATION_OUTPUTS)
                             .then(context -> {
                                 TaskResult<Node> currentNode = context.resultAsNodes();
-                                for(int i=0;i<currentNode.size();i++){
+                                for (int i = 0; i < currentNode.size(); i++) {
 
                                 }
                             })
@@ -31,5 +36,6 @@ public class BioInputNeuralNode extends AbstractNode {
 
 
     private static Task forwardTask = doWhile(processLayer, context -> context.result().size() > 0);
-*/
+    */
+
 }

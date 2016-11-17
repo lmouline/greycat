@@ -4,6 +4,7 @@ import org.mwg.*;
 import org.mwg.plugin.AbstractNode;
 import org.mwg.struct.LongLongMap;
 import org.mwg.struct.LongLongMapCallBack;
+import org.mwg.struct.Matrix;
 import org.mwg.struct.Relationship;
 
 public class BioNeuralNetwork extends AbstractNode {
@@ -14,12 +15,18 @@ public class BioNeuralNetwork extends AbstractNode {
     public static final String RELATION_OUTPUTS = "outputs";
     private static final String RELATION_OUTPUTS_MAP = "outputs_map";
 
+    public static final String BUFFER = "buffer";
+    public static final int BUFFER_SUM_INDEX = 0;
+    public static final int BUFFER_NB_INDEX = 1;
+
+    public static final String WEIGHTS = "weights";
+
     public BioNeuralNetwork(long p_world, long p_time, long p_id, Graph p_graph) {
         super(p_world, p_time, p_id, p_graph);
     }
 
     @SuppressWarnings("Duplicates")
-    public BioNeuralNetwork configure(int inputs, int outputs, int hiddenlayers, int nodesPerLayer) {
+    public BioNeuralNetwork configure(final int inputs, final int outputs, int hiddenlayers, final int nodesPerLayer, final int spikeBuffer) {
         Node[] inputNodes = new BioInputNeuralNode[inputs];
         //create input layer
         for (int i = 0; i < inputs; i++) {
@@ -28,12 +35,21 @@ public class BioNeuralNetwork extends AbstractNode {
             this.add(RELATION_INPUTS, input);
         }
         BioNeuralNode[] previousLayer = new BioNeuralNode[nodesPerLayer];
+        int seed = 0;
         //create hidden layers
         for (int i = 0; i < hiddenlayers; i++) {
             //first hidden layer
             if (i == 0) {
                 for (int j = 0; j < nodesPerLayer; j++) {
                     final BioNeuralNode neuralNode = (BioNeuralNode) graph().newTypedNode(world(), time(), BioNeuralNode.NAME);
+                    //init buffer and weights
+                    Matrix buffer = (Matrix) neuralNode.getOrCreate(BUFFER, Type.MATRIX);
+                    buffer.init(inputs, 2);
+                    buffer.fill(0d);
+                    Matrix weights = (Matrix) neuralNode.getOrCreate(WEIGHTS, Type.MATRIX);
+                    weights.init(inputs, 1);
+                    weights.fillWithRandom(-1d, 1d, seed);
+                    seed++;
                     previousLayer[j] = neuralNode;
                     for (int k = 0; k < inputs; k++) {
                         ((LongLongMap) inputNodes[k].getOrCreate(RELATION_OUTPUTS, Type.LONG_TO_LONG_MAP)).put(neuralNode.id(), j);
@@ -48,6 +64,14 @@ public class BioNeuralNetwork extends AbstractNode {
                 final BioNeuralNode[] tempLayer = new BioNeuralNode[nodesPerLayer];
                 for (int j = 0; j < nodesPerLayer; j++) {
                     final BioNeuralNode neuralNode = (BioNeuralNode) graph().newTypedNode(world(), time(), BioNeuralNode.NAME);
+                    //init buffer and weights
+                    Matrix buffer = (Matrix) neuralNode.getOrCreate(BUFFER, Type.MATRIX);
+                    buffer.init(nodesPerLayer, 2);
+                    buffer.fill(0d);
+                    Matrix weights = (Matrix) neuralNode.getOrCreate(WEIGHTS, Type.MATRIX);
+                    weights.init(nodesPerLayer, 1);
+                    weights.fillWithRandom(-1d, 1d, seed);
+                    seed++;
                     tempLayer[j] = neuralNode;
                     for (int k = 0; k < nodesPerLayer; k++) {
                         ((LongLongMap) previousLayer[k].getOrCreate(RELATION_OUTPUTS, Type.LONG_TO_LONG_MAP)).put(neuralNode.id(), j);
@@ -61,6 +85,14 @@ public class BioNeuralNetwork extends AbstractNode {
         //create output layer
         for (int i = 0; i < outputs; i++) {
             BioOutputNeuralNode output = (BioOutputNeuralNode) graph().newTypedNode(world(), time(), BioOutputNeuralNode.NAME);
+            //init buffer and weights
+            Matrix buffer = (Matrix) output.getOrCreate(BUFFER, Type.MATRIX);
+            buffer.init(nodesPerLayer, 2);
+            buffer.fill(0d);
+            Matrix weights = (Matrix) output.getOrCreate(WEIGHTS, Type.MATRIX);
+            weights.init(nodesPerLayer, 1);
+            weights.fillWithRandom(-1d, 1d, seed);
+            seed++;
             for (int k = 0; k < nodesPerLayer; k++) {
                 ((LongLongMap) previousLayer[k].getOrCreate(RELATION_OUTPUTS, Type.LONG_TO_LONG_MAP)).put(output.id(), i);
                 ((LongLongMap) output.getOrCreate(RELATION_INPUTS, Type.LONG_TO_LONG_MAP)).put(previousLayer[k].id(), k);
