@@ -1,0 +1,132 @@
+package org.mwg.ml.neuralnet.bio;
+
+import org.mwg.*;
+import org.mwg.plugin.AbstractNode;
+import org.mwg.struct.LongLongMap;
+import org.mwg.struct.LongLongMapCallBack;
+import org.mwg.struct.Relationship;
+
+public class BioNeuralNetwork extends AbstractNode {
+
+    public static String NAME = "BioNeuralNetworkNode";
+    public static final String RELATION_INPUTS = "inputs";
+    private static final String RELATION_INPUTS_MAP = "inputs_map";
+    public static final String RELATION_OUTPUTS = "outputs";
+    private static final String RELATION_OUTPUTS_MAP = "outputs_map";
+
+    public BioNeuralNetwork(long p_world, long p_time, long p_id, Graph p_graph) {
+        super(p_world, p_time, p_id, p_graph);
+    }
+
+    @SuppressWarnings("Duplicates")
+    public BioNeuralNetwork configure(int inputs, int outputs, int hiddenlayers, int nodesPerLayer) {
+        Node[] inputNodes = new BioInputNeuralNode[inputs];
+        //create input layer
+        for (int i = 0; i < inputs; i++) {
+            BioInputNeuralNode input = (BioInputNeuralNode) graph().newTypedNode(world(), time(), BioInputNeuralNode.NAME);
+            inputNodes[i] = input;
+            this.add(RELATION_INPUTS, input);
+        }
+        BioNeuralNode[] previousLayer = new BioNeuralNode[nodesPerLayer];
+        //create hidden layers
+        for (int i = 0; i < hiddenlayers; i++) {
+            //first hidden layer
+            if (i == 0) {
+                for (int j = 0; j < nodesPerLayer; j++) {
+                    final BioNeuralNode neuralNode = (BioNeuralNode) graph().newTypedNode(world(), time(), BioNeuralNode.NAME);
+                    previousLayer[j] = neuralNode;
+                    for (int k = 0; k < inputs; k++) {
+                        ((LongLongMap) inputNodes[k].getOrCreate(RELATION_OUTPUTS, Type.LONG_TO_LONG_MAP)).put(neuralNode.id(), j);
+                        ((LongLongMap) neuralNode.getOrCreate(RELATION_INPUTS, Type.LONG_TO_LONG_MAP)).put(inputNodes[k].id(), k);
+                    }
+                }
+                //clear input
+                graph().freeNodes(inputNodes);
+                inputNodes = null;
+            } else {
+                //create the new temp layer
+                final BioNeuralNode[] tempLayer = new BioNeuralNode[nodesPerLayer];
+                for (int j = 0; j < nodesPerLayer; j++) {
+                    final BioNeuralNode neuralNode = (BioNeuralNode) graph().newTypedNode(world(), time(), BioNeuralNode.NAME);
+                    tempLayer[j] = neuralNode;
+                    for (int k = 0; k < nodesPerLayer; k++) {
+                        ((LongLongMap) previousLayer[k].getOrCreate(RELATION_OUTPUTS, Type.LONG_TO_LONG_MAP)).put(neuralNode.id(), j);
+                        ((LongLongMap) neuralNode.getOrCreate(RELATION_INPUTS, Type.LONG_TO_LONG_MAP)).put(previousLayer[k].id(), k);
+                    }
+                }
+                graph().freeNodes(previousLayer);
+                previousLayer = tempLayer;
+            }
+        }
+        //create output layer
+        for (int i = 0; i < outputs; i++) {
+            BioOutputNeuralNode output = (BioOutputNeuralNode) graph().newTypedNode(world(), time(), BioOutputNeuralNode.NAME);
+            for (int k = 0; k < nodesPerLayer; k++) {
+                ((LongLongMap) previousLayer[k].getOrCreate(RELATION_OUTPUTS, Type.LONG_TO_LONG_MAP)).put(output.id(), i);
+                ((LongLongMap) output.getOrCreate(RELATION_INPUTS, Type.LONG_TO_LONG_MAP)).put(previousLayer[k].id(), k);
+            }
+            this.add(RELATION_OUTPUTS, output);
+        }
+        graph().freeNodes(previousLayer);
+        return this;
+    }
+
+    public void learn(final long inputCode, final boolean isInput, final double value, final Callback callbacks) {
+        //TODO atomic method
+        final LongLongMap mapping;
+        if (isInput) {
+            mapping = (LongLongMap) this.getOrCreate(RELATION_INPUTS_MAP, Type.LONG_TO_LONG_MAP);
+        } else {
+            mapping = (LongLongMap) this.getOrCreate(RELATION_OUTPUTS_MAP, Type.LONG_TO_LONG_MAP);
+        }
+        long previousNode = mapping.get(inputCode);
+        if (previousNode == Constants.NULL_LONG) {
+            final Relationship relationship;
+            if (isInput) {
+                relationship = (Relationship) this.get(RELATION_INPUTS);
+            } else {
+                relationship = (Relationship) this.get(RELATION_OUTPUTS);
+            }
+            if (relationship == null) {
+                throw new RuntimeException("Bad API usage, please call configure method first!");
+            }
+            if (relationship.size() == mapping.size()) {
+                throw new RuntimeException("All input/output has been consumed, please reset the " + NAME);
+            }
+            for (int i = 0; i < relationship.size(); i++) {
+                long relationVal = relationship.get(i);
+                final boolean[] isPresent = {false};
+                mapping.each(new LongLongMapCallBack() {
+                    @Override
+                    public void on(long key, long value) {
+                        if (value == relationVal) {
+                            isPresent[0] = true;
+                        }
+                    }
+                });
+                if (!isPresent[0]) {
+                    previousNode = relationVal;
+                    break;
+                }
+            }
+        }
+        if (previousNode == Constants.NULL_LONG) {
+            throw new RuntimeException("Internal error exception!");
+        }
+        graph().lookup(world(), time(), previousNode, new Callback<Node>() {
+            @Override
+            public void on(Node result) {
+                if (result == null) {
+                    throw new RuntimeException("Internal error exception!");
+                } else {
+                    if (isInput) {
+                        ((BioInputNeuralNode) result).learn(value, callbacks);
+                    } else {
+                        ((BioOutputNeuralNode) result).learn(value, callbacks);
+                    }
+                }
+            }
+        });
+    }
+
+}

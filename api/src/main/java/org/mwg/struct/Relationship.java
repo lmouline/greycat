@@ -10,7 +10,18 @@ public interface Relationship {
 
     Relationship add(long newValue);
 
+    /**
+     * Insert a long (node id) into a relationship at a particular index,
+     *
+     * @param newValue node id to insert
+     * @param index    insert to insert, note that bigger index will be shifted
+     * @return this Relationship, fluent API
+     */
+    Relationship insert(long newValue, int index);
+
     Relationship remove(long oldValue);
+
+    Relationship delete(int oldValue);
 
     Relationship clear();
 

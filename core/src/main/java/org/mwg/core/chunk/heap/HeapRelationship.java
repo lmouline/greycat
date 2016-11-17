@@ -86,6 +86,49 @@ class HeapRelationship implements Relationship {
     }
 
     @Override
+    public Relationship insert(final long newValue, final int targetIndex) {
+        synchronized (parent) {
+            if (!aligned) {
+                long[] temp_back = new long[_back.length];
+                System.arraycopy(_back, 0, temp_back, 0, _back.length);
+                _back = temp_back;
+                aligned = true;
+            }
+            if (_back == null) {
+                if (targetIndex != 0) {
+                    throw new RuntimeException("Bad API usage ! index out of bounds: " + targetIndex);
+                }
+                _back = new long[Constants.MAP_INITIAL_CAPACITY];
+                _back[0] = newValue;
+                _size = 1;
+            } else if (_size == _back.length) {
+                long[] ex_back = new long[_back.length * 2];
+                System.arraycopy(_back, 0, ex_back, 0, _size);
+                _back[targetIndex] = newValue;
+                System.arraycopy(_back, 0, ex_back, 0, _size);
+
+
+                System.arraycopy(_back, 0, ex_back, 0, _size);
+                _back = ex_back;
+                _back[_size] = newValue;
+                _size++;
+            } else {
+                /*
+                int afterIndexSize = _size - taretIndex;
+                long[] temp = new long[afterIndexSize];
+                System.arraycopy(_back, taretIndex, temp, 0, afterIndexSize);
+                _back[taretIndex] = newValue;
+                System.arraycopy(temp, 0, _back, taretIndex + 1, afterIndexSize);
+                _size++;
+                */
+                //TODO
+            }
+            parent.declareDirty();
+        }
+        return this;
+    }
+
+    @Override
     public Relationship remove(long oldValue) {
         synchronized (parent) {
             if (!aligned) {
@@ -109,6 +152,32 @@ class HeapRelationship implements Relationship {
                     long[] red_back = new long[_size - 1];
                     System.arraycopy(_back, 0, red_back, 0, indexToRemove);
                     System.arraycopy(_back, indexToRemove + 1, red_back, indexToRemove, _size - indexToRemove - 1);
+                    _back = red_back;
+                    _size--;
+                }
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public Relationship delete(int toRemoveIndex) {
+        synchronized (parent) {
+            if (!aligned) {
+                long[] temp_back = new long[_back.length];
+                System.arraycopy(_back, 0, temp_back, 0, _back.length);
+                _back = temp_back;
+                aligned = true;
+            }
+            if (toRemoveIndex != -1) {
+                if ((_size - 1) == 0) {
+                    _back = null;
+                    _size = 0;
+                } else {
+                    //TODO this is by far not optimal
+                    long[] red_back = new long[_size - 1];
+                    System.arraycopy(_back, 0, red_back, 0, toRemoveIndex);
+                    System.arraycopy(_back, toRemoveIndex + 1, red_back, toRemoveIndex, _size - toRemoveIndex - 1);
                     _back = red_back;
                     _size--;
                 }

@@ -409,7 +409,7 @@ class OffHeapStateChunk implements StateChunk {
                         case Type.EXTERNAL:
                             AbstractExternalAttribute externalAttribute = space.heapAttribute(rawValue);
                             if (externalAttribute != null) {
-                                externalAttribute.save(buffer);
+                                //externalAttribute.save(buffer);
                             }
                             break;
                         case Type.STRING_TO_LONG_MAP:

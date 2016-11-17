@@ -18,9 +18,6 @@ import java.util.Random;
 import static org.mwg.task.Actions.newTask;
 import static org.mwg.task.Actions.then;
 
-/**
- * Created by assaad on 20/09/16.
- */
 public class NeuralNodeEmpty extends AbstractNode {
     public static String NAME = "NeuralNodeEmpty";
 
