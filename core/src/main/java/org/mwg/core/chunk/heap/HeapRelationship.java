@@ -24,12 +24,13 @@ class HeapRelationship implements Relationship {
         }
     }
 
-    public final void allocate(int _capacity) {
+    final void allocate(int _capacity) {
         long[] new_back = new long[_capacity];
         if (_back != null) {
             System.arraycopy(_back, 0, new_back, 0, _back.length);
         }
         _back = new_back;
+        aligned = true;
     }
 
     @Override
@@ -60,13 +61,8 @@ class HeapRelationship implements Relationship {
     @Override
     public final Relationship add(long newValue) {
         synchronized (parent) {
-            if (!aligned) {
-                long[] temp_back = new long[_back.length];
-                System.arraycopy(_back, 0, temp_back, 0, _back.length);
-                _back = temp_back;
-                aligned = true;
-            }
             if (_back == null) {
+                aligned = true;
                 _back = new long[Constants.MAP_INITIAL_CAPACITY];
                 _back[0] = newValue;
                 _size = 1;
@@ -75,8 +71,15 @@ class HeapRelationship implements Relationship {
                 System.arraycopy(_back, 0, ex_back, 0, _size);
                 _back = ex_back;
                 _back[_size] = newValue;
+                aligned = true;
                 _size++;
             } else {
+                if (!aligned) {
+                    long[] temp_back = new long[_back.length];
+                    System.arraycopy(_back, 0, temp_back, 0, _back.length);
+                    _back = temp_back;
+                    aligned = true;
+                }
                 _back[_size] = newValue;
                 _size++;
             }
@@ -88,12 +91,6 @@ class HeapRelationship implements Relationship {
     @Override
     public Relationship insert(final int targetIndex, final long newValue) {
         synchronized (parent) {
-            if (!aligned) {
-                long[] temp_back = new long[_back.length];
-                System.arraycopy(_back, 0, temp_back, 0, _back.length);
-                _back = temp_back;
-                aligned = true;
-            }
             if (_back == null) {
                 if (targetIndex != 0) {
                     throw new RuntimeException("Bad API usage ! index out of bounds: " + targetIndex);
@@ -101,11 +98,11 @@ class HeapRelationship implements Relationship {
                 _back = new long[Constants.MAP_INITIAL_CAPACITY];
                 _back[0] = newValue;
                 _size = 1;
+                aligned = true;
             } else if (_size == _back.length) {
                 if (targetIndex > _size) {
                     throw new RuntimeException("Bad API usage ! index out of bounds: " + targetIndex);
                 }
-                //more complicated
                 final long[] ex_back = new long[_back.length * 2];
                 if (_size == targetIndex) {
                     System.arraycopy(_back, 0, ex_back, 0, _size);
@@ -119,9 +116,16 @@ class HeapRelationship implements Relationship {
                     _back = ex_back;
                     _size++;
                 }
+                aligned = true;
             } else {
                 if (targetIndex > _size) {
                     throw new RuntimeException("Bad API usage ! index out of bounds: " + targetIndex);
+                }
+                if (!aligned) {
+                    long[] temp_back = new long[_back.length];
+                    System.arraycopy(_back, 0, temp_back, 0, _back.length);
+                    _back = temp_back;
+                    aligned = true;
                 }
                 final int afterIndexSize = _size - targetIndex;
                 long[] temp = new long[afterIndexSize];
@@ -138,12 +142,6 @@ class HeapRelationship implements Relationship {
     @Override
     public Relationship remove(long oldValue) {
         synchronized (parent) {
-            if (!aligned) {
-                long[] temp_back = new long[_back.length];
-                System.arraycopy(_back, 0, temp_back, 0, _back.length);
-                _back = temp_back;
-                aligned = true;
-            }
             int indexToRemove = -1;
             for (int i = 0; i < _size; i++) {
                 if (_back[i] == oldValue) {
@@ -152,16 +150,14 @@ class HeapRelationship implements Relationship {
                 }
             }
             if (indexToRemove != -1) {
-                if ((_size - 1) == 0) {
-                    _back = null;
-                    _size = 0;
-                } else {
-                    long[] red_back = new long[_size - 1];
-                    System.arraycopy(_back, 0, red_back, 0, indexToRemove);
-                    System.arraycopy(_back, indexToRemove + 1, red_back, indexToRemove, _size - indexToRemove - 1);
-                    _back = red_back;
-                    _size--;
+                if (!aligned) {
+                    long[] temp_back = new long[_back.length];
+                    System.arraycopy(_back, 0, temp_back, 0, _back.length);
+                    _back = temp_back;
+                    aligned = true;
                 }
+                System.arraycopy(_back, indexToRemove + 1, _back, indexToRemove, _size - indexToRemove - 1);
+                _size--;
             }
         }
         return this;
@@ -170,24 +166,15 @@ class HeapRelationship implements Relationship {
     @Override
     public Relationship delete(int toRemoveIndex) {
         synchronized (parent) {
-            if (!aligned) {
-                long[] temp_back = new long[_back.length];
-                System.arraycopy(_back, 0, temp_back, 0, _back.length);
-                _back = temp_back;
-                aligned = true;
-            }
             if (toRemoveIndex != -1) {
-                if ((_size - 1) == 0) {
-                    _back = null;
-                    _size = 0;
-                } else {
-                    //TODO this is by far not optimal
-                    long[] red_back = new long[_size - 1];
-                    System.arraycopy(_back, 0, red_back, 0, toRemoveIndex);
-                    System.arraycopy(_back, toRemoveIndex + 1, red_back, toRemoveIndex, _size - toRemoveIndex - 1);
-                    _back = red_back;
-                    _size--;
+                if (!aligned) {
+                    long[] temp_back = new long[_back.length];
+                    System.arraycopy(_back, 0, temp_back, 0, _back.length);
+                    _back = temp_back;
+                    aligned = true;
                 }
+                System.arraycopy(_back, toRemoveIndex + 1, _back, toRemoveIndex, _size - toRemoveIndex - 1);
+                _size--;
             }
         }
         return this;
@@ -197,14 +184,6 @@ class HeapRelationship implements Relationship {
     public Relationship clear() {
         synchronized (parent) {
             _size = 0;
-            if (!aligned) {
-                _back = null;
-                aligned = true;
-            } else {
-                if (_back != null) {
-                    Arrays.fill(_back, 0, _back.length, -1);
-                }
-            }
         }
         return this;
     }

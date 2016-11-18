@@ -9,11 +9,11 @@ import org.mwg.chunk.StateChunk;
 import org.mwg.plugin.MemoryFactory;
 import org.mwg.struct.Relationship;
 
-public abstract class AbstractLongArrayTest {
+public abstract class AbstractRelationshipTest {
 
     private MemoryFactory factory;
 
-    public AbstractLongArrayTest(MemoryFactory factory) {
+    public AbstractRelationshipTest(MemoryFactory factory) {
         this.factory = factory;
     }
 

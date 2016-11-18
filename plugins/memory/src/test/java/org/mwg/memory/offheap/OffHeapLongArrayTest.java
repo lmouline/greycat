@@ -2,9 +2,9 @@ package org.mwg.memory.offheap;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.mwg.core.chunk.AbstractLongArrayTest;
+import org.mwg.core.chunk.AbstractRelationshipTest;
 
-public class OffHeapLongArrayTest extends AbstractLongArrayTest {
+public class OffHeapLongArrayTest extends AbstractRelationshipTest {
 
     public OffHeapLongArrayTest() {
         super(new OffHeapMemoryFactory());
