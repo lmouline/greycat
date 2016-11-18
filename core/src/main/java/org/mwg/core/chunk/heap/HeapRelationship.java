@@ -86,7 +86,7 @@ class HeapRelationship implements Relationship {
     }
 
     @Override
-    public Relationship insert(final long newValue, final int targetIndex) {
+    public Relationship insert(final int targetIndex,final long newValue) {
         synchronized (parent) {
             if (!aligned) {
                 long[] temp_back = new long[_back.length];
@@ -102,26 +102,33 @@ class HeapRelationship implements Relationship {
                 _back[0] = newValue;
                 _size = 1;
             } else if (_size == _back.length) {
-                long[] ex_back = new long[_back.length * 2];
-                System.arraycopy(_back, 0, ex_back, 0, _size);
-                _back[targetIndex] = newValue;
-                System.arraycopy(_back, 0, ex_back, 0, _size);
-
-
-                System.arraycopy(_back, 0, ex_back, 0, _size);
-                _back = ex_back;
-                _back[_size] = newValue;
-                _size++;
+                if (targetIndex > _size) {
+                    throw new RuntimeException("Bad API usage ! index out of bounds: " + targetIndex);
+                }
+                //more complicated
+                final long[] ex_back = new long[_back.length * 2];
+                if (_size == targetIndex) {
+                    System.arraycopy(_back, 0, ex_back, 0, _size);
+                    _back = ex_back;
+                    _back[_size] = newValue;
+                    _size++;
+                } else {
+                    System.arraycopy(_back, 0, ex_back, 0, targetIndex);
+                    _back[targetIndex] = newValue;
+                    System.arraycopy(_back, targetIndex, ex_back, targetIndex + 1, (_size - targetIndex));
+                    _back = ex_back;
+                    _size++;
+                }
             } else {
-                /*
-                int afterIndexSize = _size - taretIndex;
+                if (targetIndex > _size) {
+                    throw new RuntimeException("Bad API usage ! index out of bounds: " + targetIndex);
+                }
+                final int afterIndexSize = _size - targetIndex;
                 long[] temp = new long[afterIndexSize];
-                System.arraycopy(_back, taretIndex, temp, 0, afterIndexSize);
-                _back[taretIndex] = newValue;
-                System.arraycopy(temp, 0, _back, taretIndex + 1, afterIndexSize);
+                System.arraycopy(_back, targetIndex, temp, 0, afterIndexSize);
+                _back[targetIndex] = newValue;
+                System.arraycopy(temp, 0, _back, targetIndex + 1, afterIndexSize);
                 _size++;
-                */
-                //TODO
             }
             parent.declareDirty();
         }

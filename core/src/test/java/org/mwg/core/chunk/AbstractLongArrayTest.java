@@ -52,4 +52,25 @@ public abstract class AbstractLongArrayTest {
 
     }
 
+    @Test
+    public void insertTest() {
+        ChunkSpace space = factory.newSpace(100, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+        Relationship relationship = (Relationship) chunk.getOrCreate(0, Type.RELATION);
+
+        relationship.add(1);
+        relationship.add(3);
+        relationship.insert(1, 2);
+        relationship.insert(0, 0);
+        relationship.insert(4, 4);
+
+        Assert.assertEquals(relationship.size(), 5);
+        for (int i = 0; i < relationship.size(); i++) {
+            Assert.assertEquals(i,relationship.get(i));
+        }
+
+        space.free(chunk);
+        space.freeAll();
+    }
+
 }

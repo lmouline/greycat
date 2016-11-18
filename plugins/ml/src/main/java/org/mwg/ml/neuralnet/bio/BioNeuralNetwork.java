@@ -15,18 +15,21 @@ public class BioNeuralNetwork extends AbstractNode {
     public static final String RELATION_OUTPUTS = "outputs";
     private static final String RELATION_OUTPUTS_MAP = "outputs_map";
 
-    public static final String BUFFER = "buffer";
-    public static final int BUFFER_SUM_INDEX = 0;
-    public static final int BUFFER_NB_INDEX = 1;
-
+    public static final String BUFFER_SPIKE_SUM = "spike_sum";
+    public static final String BUFFER_SPIKE_NB = "spike_nb";
     public static final String WEIGHTS = "weights";
+    public static final String BIAS = "bias";
+    public static final String SPIKE_LIMIT = "spikeLimit";
+    public static final String THRESHOLD = "threshold";
 
     public BioNeuralNetwork(long p_world, long p_time, long p_id, Graph p_graph) {
         super(p_world, p_time, p_id, p_graph);
     }
 
     @SuppressWarnings("Duplicates")
-    public BioNeuralNetwork configure(final int inputs, final int outputs, int hiddenlayers, final int nodesPerLayer, final int spikeBuffer) {
+    public BioNeuralNetwork configure(final int inputs, final int outputs, int hiddenlayers, final int nodesPerLayer, final int spikeLimit, final double threshold) {
+        setProperty(SPIKE_LIMIT, Type.INT, spikeLimit);
+        setProperty(THRESHOLD, Type.DOUBLE, threshold);
         Node[] inputNodes = new BioInputNeuralNode[inputs];
         //create input layer
         for (int i = 0; i < inputs; i++) {
@@ -43,9 +46,12 @@ public class BioNeuralNetwork extends AbstractNode {
                 for (int j = 0; j < nodesPerLayer; j++) {
                     final BioNeuralNode neuralNode = (BioNeuralNode) graph().newTypedNode(world(), time(), BioNeuralNode.NAME);
                     //init buffer and weights
-                    Matrix buffer = (Matrix) neuralNode.getOrCreate(BUFFER, Type.MATRIX);
-                    buffer.init(inputs, 2);
-                    buffer.fill(0d);
+                    Matrix spikeSum = (Matrix) neuralNode.getOrCreate(BUFFER_SPIKE_SUM, Type.MATRIX);
+                    spikeSum.init(1, inputs);
+                    spikeSum.fill(0d);
+                    Matrix spikeNb = (Matrix) neuralNode.getOrCreate(BUFFER_SPIKE_NB, Type.MATRIX);
+                    spikeNb.init(1, inputs);
+                    spikeNb.fill(0d);
                     Matrix weights = (Matrix) neuralNode.getOrCreate(WEIGHTS, Type.MATRIX);
                     weights.init(inputs, 1);
                     weights.fillWithRandom(-1d, 1d, seed);
@@ -65,9 +71,12 @@ public class BioNeuralNetwork extends AbstractNode {
                 for (int j = 0; j < nodesPerLayer; j++) {
                     final BioNeuralNode neuralNode = (BioNeuralNode) graph().newTypedNode(world(), time(), BioNeuralNode.NAME);
                     //init buffer and weights
-                    Matrix buffer = (Matrix) neuralNode.getOrCreate(BUFFER, Type.MATRIX);
-                    buffer.init(nodesPerLayer, 2);
-                    buffer.fill(0d);
+                    Matrix spikeSum = (Matrix) neuralNode.getOrCreate(BUFFER_SPIKE_SUM, Type.MATRIX);
+                    spikeSum.init(1, nodesPerLayer);
+                    spikeSum.fill(0d);
+                    Matrix spikeNb = (Matrix) neuralNode.getOrCreate(BUFFER_SPIKE_NB, Type.MATRIX);
+                    spikeNb.init(1, nodesPerLayer);
+                    spikeNb.fill(0d);
                     Matrix weights = (Matrix) neuralNode.getOrCreate(WEIGHTS, Type.MATRIX);
                     weights.init(nodesPerLayer, 1);
                     weights.fillWithRandom(-1d, 1d, seed);
@@ -86,9 +95,12 @@ public class BioNeuralNetwork extends AbstractNode {
         for (int i = 0; i < outputs; i++) {
             BioOutputNeuralNode output = (BioOutputNeuralNode) graph().newTypedNode(world(), time(), BioOutputNeuralNode.NAME);
             //init buffer and weights
-            Matrix buffer = (Matrix) output.getOrCreate(BUFFER, Type.MATRIX);
-            buffer.init(nodesPerLayer, 2);
-            buffer.fill(0d);
+            Matrix spikeSum = (Matrix) output.getOrCreate(BUFFER_SPIKE_SUM, Type.MATRIX);
+            spikeSum.init(1, nodesPerLayer);
+            spikeSum.fill(0d);
+            Matrix spikeNb = (Matrix) output.getOrCreate(BUFFER_SPIKE_NB, Type.MATRIX);
+            spikeNb.init(1, nodesPerLayer);
+            spikeNb.fill(0d);
             Matrix weights = (Matrix) output.getOrCreate(WEIGHTS, Type.MATRIX);
             weights.init(nodesPerLayer, 1);
             weights.fillWithRandom(-1d, 1d, seed);
@@ -105,6 +117,8 @@ public class BioNeuralNetwork extends AbstractNode {
 
     public void learn(final long inputCode, final boolean isInput, final double value, final Callback callbacks) {
         //TODO atomic method
+        final int spikeLimit = (int) get(SPIKE_LIMIT);
+        final int threshold = (int) get(THRESHOLD);
         final LongLongMap mapping;
         if (isInput) {
             mapping = (LongLongMap) this.getOrCreate(RELATION_INPUTS_MAP, Type.LONG_TO_LONG_MAP);
@@ -152,9 +166,9 @@ public class BioNeuralNetwork extends AbstractNode {
                     throw new RuntimeException("Internal error exception!");
                 } else {
                     if (isInput) {
-                        ((BioInputNeuralNode) result).learn(value, callbacks);
+                        ((BioInputNeuralNode) result).learn(value, spikeLimit, threshold, callbacks);
                     } else {
-                        ((BioOutputNeuralNode) result).learn(value, callbacks);
+                        // ((BioOutputNeuralNode) result).learn(value, callbacks);
                     }
                 }
             }

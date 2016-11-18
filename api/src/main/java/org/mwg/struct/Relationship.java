@@ -17,7 +17,7 @@ public interface Relationship {
      * @param index    insert to insert, note that bigger index will be shifted
      * @return this Relationship, fluent API
      */
-    Relationship insert(long newValue, int index);
+    Relationship insert(int index,long newValue);
 
     Relationship remove(long oldValue);
 
