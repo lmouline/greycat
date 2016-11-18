@@ -86,7 +86,7 @@ class HeapRelationship implements Relationship {
     }
 
     @Override
-    public Relationship insert(final int targetIndex,final long newValue) {
+    public Relationship insert(final int targetIndex, final long newValue) {
         synchronized (parent) {
             if (!aligned) {
                 long[] temp_back = new long[_back.length];
