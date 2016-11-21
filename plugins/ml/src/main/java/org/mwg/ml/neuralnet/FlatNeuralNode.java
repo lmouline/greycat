@@ -192,6 +192,7 @@ public class FlatNeuralNode extends AbstractNode {
                 newBiases[layer].set(0, column, biases[layer].get(0, column) - learningRate * derivativeErr[column]);
             }
             derivativeErr = previousErr;
+
             MatrixOps.copyMatrix(newWeights[layer], weights[layer]);
             MatrixOps.copyMatrix(newBiases[layer], biases[layer]);
         }

@@ -6,6 +6,10 @@ import org.mwg.ml.neuralnet.NeuralFunction;
  * Created by assaad on 10/11/2016.
  */
 public class SigmoidFunction implements NeuralFunction {
+
+    public SigmoidFunction(){
+
+    }
     @Override
     public double activate(double x) {
         return 1 / (1 + Math.exp(-x));

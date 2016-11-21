@@ -6,7 +6,7 @@ import org.mwg.struct.Matrix;
 public class MatrixOps {
 
     private static MatrixEngine _defaultEngine = null;
-    
+
     public static MatrixEngine defaultEngine() {
         if (_defaultEngine == null) {
             _defaultEngine = new HybridMatrixEngine();
@@ -14,18 +14,37 @@ public class MatrixOps {
         return _defaultEngine;
     }
 
-    public static void setDefaultEngine(MatrixEngine engine){
-        _defaultEngine=engine;
+    public static void setDefaultEngine(MatrixEngine engine) {
+        _defaultEngine = engine;
     }
 
 
     public static void copyMatrix(Matrix source, Matrix destination) {
         for (int row = 0; row < source.rows(); row++) {
-            for(int col=0;col<source.columns();col++){
-                destination.set(row,col,source.get(row,col));
+            for (int col = 0; col < source.columns(); col++) {
+                destination.set(row, col, source.get(row, col));
             }
         }
     }
+
+
+    public static void copyMatrixFromTo(Matrix source, Matrix destination, int posRow, int posCol) {
+        for (int row = 0; row < source.rows(); row++) {
+            for (int col = 0; col < source.columns(); col++) {
+                destination.set(row + posRow, col + posCol, source.get(row, col));
+            }
+        }
+    }
+
+    public static void print (Matrix source){
+        for (int row = 0; row < source.rows(); row++) {
+            for (int col = 0; col < source.columns(); col++) {
+                System.out.print(source.get(row,col)+"  ");
+            }
+            System.out.println("");
+        }
+    }
+
 
     public static Matrix multiply(Matrix matA, Matrix matB) {
         return defaultEngine().multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1d, matA, TransposeType.NOTRANSPOSE, matB, 0, null);
@@ -52,7 +71,6 @@ public class MatrixOps {
     }
 
 
-
     public static void scale(double alpha, VolatileMatrix matA) {
         if (alpha == 0) {
             matA.fill(0);
@@ -64,7 +82,7 @@ public class MatrixOps {
     }
 
     public static Matrix transpose(Matrix matA) {
-        Matrix result =  VolatileMatrix.empty(matA.columns(), matA.rows());
+        Matrix result = VolatileMatrix.empty(matA.columns(), matA.rows());
         int TRANSPOSE_SWITCH = 375;
         if (matA.columns() == matA.rows()) {
             transposeSquare(matA, result);
@@ -149,25 +167,25 @@ public class MatrixOps {
 
 
     public static Matrix sub(Matrix matA, Matrix matB) {
-        if(matA.rows()!=matB.rows()|| matA.columns()!=matB.columns()){
+        if (matA.rows() != matB.rows() || matA.columns() != matB.columns()) {
             throw new RuntimeException("Matrices A and B have different dimensions for the substract operation");
         }
-        Matrix result= VolatileMatrix.empty(matA.rows(),matA.columns());
-        int total=matA.rows()*matA.columns();
-        for(int i=0;i<total;i++){
-            result.unsafeSet(i,matA.unsafeGet(i)-matB.unsafeGet(i));
+        Matrix result = VolatileMatrix.empty(matA.rows(), matA.columns());
+        int total = matA.rows() * matA.columns();
+        for (int i = 0; i < total; i++) {
+            result.unsafeSet(i, matA.unsafeGet(i) - matB.unsafeGet(i));
         }
         return result;
     }
 
     public static Matrix add(Matrix matA, Matrix matB) {
-        if(matA.rows()!=matB.rows()|| matA.columns()!=matB.columns()){
+        if (matA.rows() != matB.rows() || matA.columns() != matB.columns()) {
             throw new RuntimeException("Matrices A and B have different dimensions for the add operation");
         }
-        Matrix result= VolatileMatrix.empty(matA.rows(),matA.columns());
-        int total=matA.rows()*matA.columns();
-        for(int i=0;i<total;i++){
-            result.unsafeSet(i,matA.unsafeGet(i)+matB.unsafeGet(i));
+        Matrix result = VolatileMatrix.empty(matA.rows(), matA.columns());
+        int total = matA.rows() * matA.columns();
+        for (int i = 0; i < total; i++) {
+            result.unsafeSet(i, matA.unsafeGet(i) + matB.unsafeGet(i));
         }
         return result;
     }
