@@ -4,9 +4,9 @@ import org.junit.After;
 import org.junit.Assert;
 import org.mwg.core.chunk.AbstractRelationshipTest;
 
-public class OffHeapLongArrayTest extends AbstractRelationshipTest {
+public class OffHeapRelationshipTest extends AbstractRelationshipTest {
 
-    public OffHeapLongArrayTest() {
+    public OffHeapRelationshipTest() {
         super(new OffHeapMemoryFactory());
     }
 
