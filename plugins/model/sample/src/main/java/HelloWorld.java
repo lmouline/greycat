@@ -4,30 +4,40 @@ import cloud.Software;
 import org.mwg.Callback;
 import org.mwg.GraphBuilder;
 import org.mwg.Node;
-import org.mwg.Type;
+import org.mwg.sample.HelloModel;
+import org.mwg.task.Actions;
+import org.mwg.task.Task;
+import org.mwg.utility.VerboseHookFactory;
 
-import static org.mwg.task.Actions.*;
+import java.util.Arrays;
+
+import static org.mwg.task.Actions.get;
 
 public class HelloWorld {
 
     public static void main(String[] args) {
 
-        sampleModel model = new sampleModel(new GraphBuilder()/*.withOffHeapMemory()*/);
-        model.graph().connect(result -> {
+        HelloModel model = new HelloModel(new GraphBuilder()/*.withOffHeapMemory()*/);
+        model.graph().connect((Boolean result) -> {
 
             //Test typed node creation
             Cloud cloud = model.newCloud(0, 0);
             Server server = model.newServer(0, 0);
             server.setName("Hello");
-            //System.out.println(server.getName());
-            //System.out.println(server);
+            System.out.println("server.getName()= " + server.getName());
+            System.out.println("server= " + server);
 
             cloud.addToServers(server);
-            //System.out.println(cloud);
+            System.out.println("cloud= " + cloud);
 
-            Server[] servers = cloud.getServers();
-            //  System.out.println(servers);
-            // System.out.println(servers[0]);
+            cloud.getServers(new Callback<Server[]>() {
+                @Override
+                public void on(Server[] servers) {
+                    System.out.println("cloud.getServers()= " + Arrays.toString(servers));
+                    System.out.println("cloud.getServers()[0]= " + servers[0]);
+                }
+            });
+
 
             Software soft0 = model.newSoftware(0, 0);
             soft0.setName("Hello");
@@ -37,59 +47,66 @@ public class HelloWorld {
                 @Override
                 public void on(Node soft0_t10) {
                     ((Software) soft0_t10).setLoad(50.0);
-                    // System.out.println(soft0_t10);
+                    System.out.println("soft0.jump(10)= "  + soft0_t10);
                 }
             });
 
-            // System.out.println(soft0.getLoad());
+            System.out.println("soft0.getLoad()= " + soft0.getLoad());
 
             //Test find usage
             model.graph().findAll(0, 0, "clouds", cloudsResult -> {
-                // System.out.println(cloudsResult[0]);
+                System.out.println("model.graph().findAll(0,0,clouds)[0]=" + cloudsResult[0]);
             });
             model.graph().find(0, 0, "clouds", "name=Hello", cloudsResult -> {
-                //   System.out.println(cloudsResult[0]);
+                System.out.println("model.graph().find(0, 0,clouds,name=Hello)= " + cloudsResult[0]);
             });
 
-            Software[] softwares = model.findAllClouds(0, 0);
-            // System.out.println(softwares[0]);
+            model.findAllClouds(0, 0, new Callback<Software[]>() {
+                @Override
+                public void on(Software[] softwares) {
+                    System.out.println(" model.findAllClouds(0, 0)=" + softwares[0]);
+                }
+            });
 
-            // System.out.println(model.findClouds(0, 0, "name=Hello"));
 
-            //   System.out.println(model.findClouds(0, 0, "name=NOOP"));
+            model.findClouds(0, 0, "name=Hello", new Callback<Software[]>() {
+                @Override
+                public void on(Software[] clouds) {
+                    System.out.println("model.findClouds(0, 0,name=Hello)=" + Arrays.toString(clouds));
+                }
+            });
+
+            model.findClouds(0, 0, "name=NOOP", new Callback<Software[]>() {
+                @Override
+                public void on(Software[] result) {
+                    System.out.println("model.findClouds(0, 0, name=NOOP)=" + Arrays.toString(result));
+                }
+            });
+
+            System.out.println();
 
             //Test task usage
-            fromIndexAll("clouds").foreach(
-                    get("name").then(ctx -> {
-                        // System.out.println(((Object[]) ctx.result())[0]);
+            Actions
+                .fromIndexAll("clouds")
+                .foreach(
+                    get("name")
+                    .then(ctx -> {
+                        System.out.println(ctx.result().get(0));
                     })
-            ).execute(model.graph(), null);
+                )
+                .hook(new VerboseHookFactory())
+                .execute(model.graph(), null);
 
-/*
-            Task t = model.graph().newTask();
+            System.out.println();
+
+            Task t = Actions.newTask();
             t.fromIndexAll("clouds")
                     .get("name")
-                    .foreach(model.graph().newTask()
-                            .then(context -> System.out.println(context.result()))
-                    ).execute();
-*/
-
-            repeat(3, asVar("i")
-                    .println()
-                    .ifThen(ctx -> ctx.result().equals(0), println())
-                    .fromIndex("clouds", "name_{{i}}")
-                    .println()
-                    .setTime(System.currentTimeMillis()) //"${{ROUND(i+1000)}}"
-                    .newNode()
-                    .setProperty("name", Type.STRING, "name_{{i}}")
-                    .setProperty("index", Type.INT, "{{i}}")
-                    .setProperty("index", Type.DOUBLE, "{{=i^2}}")
-            ).println().then(ctx -> {
-                System.out.println(ctx.resultAsObjectArray().length);
-                System.out.println(ctx.resultAsNodeArray()[2].toString());
-            }).execute(model.graph(), result1 -> {
-                System.out.println(result1);
-            });
+                    .foreach(Actions.newTask()
+                            .then(context -> System.out.println(context.result().get(0)))
+                    )
+                    .hook(new VerboseHookFactory())
+                    .execute(model.graph(),null);
 
         });
 
