@@ -4,6 +4,7 @@ import cloud.Software;
 import org.mwg.Callback;
 import org.mwg.GraphBuilder;
 import org.mwg.Node;
+import org.mwg.Type;
 import org.mwg.sample.HelloModel;
 import org.mwg.task.Actions;
 import org.mwg.task.Task;
@@ -11,7 +12,7 @@ import org.mwg.utility.VerboseHookFactory;
 
 import java.util.Arrays;
 
-import static org.mwg.task.Actions.get;
+import static org.mwg.task.Actions.*;
 
 public class HelloWorld {
 
@@ -107,6 +108,23 @@ public class HelloWorld {
                     )
                     .hook(new VerboseHookFactory())
                     .execute(model.graph(),null);
+
+
+            System.out.println();
+
+            Actions.loop("1","2",
+                    println("{{i}}")
+                    .ifThen(ctx -> ctx.result().equals(0), println("{{result}}"))
+                    .fromIndex("clouds", "name_{{i}}")
+                    .println("{{result}}")
+                    .setTime(System.currentTimeMillis() + "") //"${{ROUND(i+1000)}}"
+                    .newNode()
+                    .setProperty("name", Type.STRING, "name_{{i}}")
+                    .setProperty("index", Type.DOUBLE, "{{=i^2}}")
+                    .println("{{result}}")
+            )
+            .hook(new VerboseHookFactory())
+            .execute(model.graph(), null);
 
         });
 
