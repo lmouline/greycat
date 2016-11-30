@@ -839,6 +839,69 @@ public class CoreTask implements org.mwg.task.Task {
                 return new ActionWithout(params[0], params[1]);
             }
         });
+
+        registry.put("without", new TaskActionFactory() {
+            @Override
+            public TaskAction create(String[] params) {
+                if (params.length != 2) {
+                    throw new RuntimeException("without action need two parameter");
+                }
+                return new ActionWithout(params[0], params[1]);
+            }
+        });
+
+        registry.put("println", new TaskActionFactory() {
+            @Override
+            public TaskAction create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("println action need one parameter");
+                }
+                return new ActionPrint(params[0],true);
+            }
+        });
+
+        registry.put("setProperty", new TaskActionFactory() {
+            @Override
+            public TaskAction create(String[] params) {
+                if (params.length != 3) {
+                    throw new RuntimeException("setProperty action need three parameter");
+                }
+                int i = TaskHelper.parseInt(params[1]);
+                return new ActionSetProperty(params[0],(byte) i ,params[2],false);
+            }
+        });
+
+        registry.put("lookup", new TaskActionFactory() {
+            @Override
+            public TaskAction create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("lookup action one three parameter");
+                }
+                return new ActionLookup(params[0]);
+            }
+        });
+
+        registry.put("jump", new TaskActionFactory() {
+            @Override
+            public TaskAction create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("jump action need three parameter");
+                }
+                return new ActionJump(params[0]);
+            }
+        });
+
+        registry.put("save", new TaskActionFactory() {
+            @Override
+            public TaskAction create(String[] params) {
+                if (params.length != 0) {
+                    throw new RuntimeException("save action does not need parameter");
+                }
+                return new ActionSave();
+            }
+        });
+
+
     }
 
 }
