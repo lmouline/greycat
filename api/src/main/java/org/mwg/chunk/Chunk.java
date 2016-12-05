@@ -16,6 +16,6 @@ public interface Chunk {
 
     void save(Buffer buffer);
 
-    void load(Buffer buffer);
+    void load(Buffer buffer, boolean dirty);
 
 }

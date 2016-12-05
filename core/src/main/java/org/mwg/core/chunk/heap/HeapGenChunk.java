@@ -45,7 +45,7 @@ final class HeapGenChunk implements GenChunk {
     }
 
     @Override
-    public synchronized final void load(final Buffer buffer) {
+    public synchronized final void load(final Buffer buffer, final boolean dirty) {
         if (buffer == null || buffer.length() == 0) {
             return;
         }

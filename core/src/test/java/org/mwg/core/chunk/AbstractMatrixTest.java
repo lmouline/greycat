@@ -49,7 +49,7 @@ public abstract class AbstractMatrixTest {
       //  Assert.assertEquals(buffer.toString(), "C|A,a,c:QAI:QBA:AAA:P4EeuFHrhR7:P5EeuFHrhR7:P4EeuFHrhR7:P5EeuFHrhR7:P5OuFHrhR64:P5EeuFHrhR7:P5OuFHrhR64:P6EeuFHrhR7:P5OuFHrhR64:P6EeuFHrhR7:P6JmZmZmZma");
 
         StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
-        chunk2.load(buffer);
+        chunk2.load(buffer, true);
 
         Buffer bufferAfter = factory.newBuffer();
         chunk2.save(bufferAfter);

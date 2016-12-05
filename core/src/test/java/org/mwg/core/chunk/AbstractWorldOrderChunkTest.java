@@ -64,7 +64,7 @@ public abstract class AbstractWorldOrderChunkTest {
         Buffer buffer = factory.newBuffer();
         map.save(buffer);
         WorldOrderChunk map2 = (WorldOrderChunk) space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 2);
-        map2.load(buffer);
+        map2.load(buffer, true);
         for (long i = 0; i < 10000; i++) {
             Assert.assertTrue(map2.get(i) == i * 3);
         }

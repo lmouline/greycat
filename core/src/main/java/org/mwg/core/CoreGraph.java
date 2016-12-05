@@ -304,20 +304,20 @@ class CoreGraph implements org.mwg.Graph {
                                             //init the global universe tree (mandatory for synchronious create)
                                             WorldOrderChunk globalWorldOrder = (WorldOrderChunk) selfPointer._space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, Constants.NULL_LONG);
                                             if (view3.length() > 0) {
-                                                globalWorldOrder.load(view3);
+                                                globalWorldOrder.load(view3, false);
                                             }
                                             //init the global dictionary chunk
                                             StateChunk globalDictionaryChunk = (StateChunk) selfPointer._space.createAndMark(ChunkType.STATE_CHUNK, CoreConstants.GLOBAL_DICTIONARY_KEY[0], CoreConstants.GLOBAL_DICTIONARY_KEY[1], CoreConstants.GLOBAL_DICTIONARY_KEY[2]);
                                             if (view4.length() > 0) {
-                                                globalDictionaryChunk.load(view4);
+                                                globalDictionaryChunk.load(view4, false);
                                             }
                                             selfPointer._worldKeyCalculator = (GenChunk) selfPointer._space.createAndMark(ChunkType.GEN_CHUNK, Constants.END_OF_TIME, Constants.NULL_LONG, _prefix);
                                             if (view2.length() > 0) {
-                                                selfPointer._worldKeyCalculator.load(view2);
+                                                selfPointer._worldKeyCalculator.load(view2, false);
                                             }
                                             selfPointer._nodeKeyCalculator = (GenChunk) selfPointer._space.createAndMark(ChunkType.GEN_CHUNK, Constants.BEGINNING_OF_TIME, Constants.NULL_LONG, _prefix);
                                             if (view1.length() > 0) {
-                                                selfPointer._nodeKeyCalculator.load(view1);
+                                                selfPointer._nodeKeyCalculator.load(view1, false);
                                             }
                                             //init the resolver
                                             selfPointer._resolver.init();

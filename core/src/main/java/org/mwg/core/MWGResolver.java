@@ -581,7 +581,7 @@ final class MWGResolver implements Resolver {
                         final Buffer view = it.next();
                         if (view.length() > 0) {
                             result[reversedIndex] = selfPointer._space.createAndMark(types[reversedIndex], keys[reversedIndex * KEY_SIZE], keys[reversedIndex * KEY_SIZE + 1], keys[reversedIndex * KEY_SIZE + 2]);
-                            result[reversedIndex].load(view);
+                            result[reversedIndex].load(view, false);
                         } else {
                             result[reversedIndex] = null;
                         }

@@ -52,7 +52,7 @@ public abstract class AbstractStateChunkTest {
         Buffer buffer = factory.newBuffer();
         chunk.save(buffer);
         StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
-        chunk2.load(buffer);
+        chunk2.load(buffer, true);
         Buffer buffer2 = factory.newBuffer();
         chunk2.save(buffer2);
 
@@ -101,7 +101,7 @@ public abstract class AbstractStateChunkTest {
         Buffer buffer = factory.newBuffer();
         chunk.save(buffer);
         StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
-        chunk2.load(buffer);
+        chunk2.load(buffer, true);
         Buffer buffer2 = factory.newBuffer();
         chunk2.save(buffer2);
 
@@ -122,7 +122,7 @@ public abstract class AbstractStateChunkTest {
         chunk.save(buffer);
         space.free(chunk2);
         chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 2);
-        chunk2.load(buffer);
+        chunk2.load(buffer, true);
 
         buffer2.free();
         buffer2 = factory.newBuffer();
@@ -153,7 +153,7 @@ public abstract class AbstractStateChunkTest {
         chunk.save(buffer);
         space.free(chunk2);
         chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 3);
-        chunk2.load(buffer);
+        chunk2.load(buffer, true);
 
         buffer2.free();
         buffer2 = factory.newBuffer();
@@ -201,7 +201,7 @@ public abstract class AbstractStateChunkTest {
         chunk4.save(saved4);
 
         StateChunk chunk5 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 6);
-        chunk5.load(saved4);
+        chunk5.load(saved4, true);
         Assert.assertEquals(((long[]) chunk5.get(0)).length, 0);
         space.free(chunk5);
         space.free(chunk4);

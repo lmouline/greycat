@@ -741,11 +741,10 @@ class HeapStateChunk implements StateChunk {
     }
 
     @Override
-    public final synchronized void load(final Buffer buffer) {
+    public final synchronized void load(final Buffer buffer, final boolean dirty) {
         if (buffer == null || buffer.length() == 0) {
             return;
         }
-        final boolean initial = _k == null;
         //reset size
         int cursor = 0;
         long payloadSize = buffer.length();
@@ -866,7 +865,7 @@ class HeapStateChunk implements StateChunk {
                         }
                         if (toInsert != null) {
                             //insert K/V
-                            internal_set(currentChunkElemKey, currentChunkElemType, toInsert, true, initial); //enhance this with boolean array
+                            internal_set(currentChunkElemKey, currentChunkElemType, toInsert, true, !dirty); //enhance this with boolean array
                         }
                     }
                     //next round, reset all variables...
@@ -1076,7 +1075,7 @@ class HeapStateChunk implements StateChunk {
                     break;
             }
             if (toInsert != null) {
-                internal_set(currentChunkElemKey, currentChunkElemType, toInsert, true, initial); //enhance this with boolean array
+                internal_set(currentChunkElemKey, currentChunkElemType, toInsert, true, !dirty); //enhance this with boolean array
             }
         }
     }

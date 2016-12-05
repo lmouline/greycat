@@ -77,7 +77,7 @@ public abstract class AbstractLongLongArrayMapTest {
         chunk.save(buffer);
         Assert.assertEquals("C|A,U,Q:////////9%O:U%DI:////////9%M:////////9%C:////////9%E:////////9%G:////////9%I:////////9%K", buffer.toString());
         StateChunk loaded = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 10, 10, 10);
-        loaded.load(buffer);
+        loaded.load(buffer, true);
         Buffer buffer2 = factory.newBuffer();
         chunk.save(buffer2);
         Assert.assertEquals("C|A,U,Q:////////9%O:U%DI:////////9%M:////////9%C:////////9%E:////////9%G:////////9%I:////////9%K", buffer2.toString());
