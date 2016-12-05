@@ -10,16 +10,16 @@ import java.util.Arrays;
 
 class HeapLongLongArrayMap implements LongLongArrayMap {
 
-    private final HeapStateChunk parent;
+    final HeapStateChunk parent;
 
-    private int mapSize = 0;
-    private int capacity = 0;
+    int mapSize = 0;
+    int capacity = 0;
 
-    private long[] keys = null;
-    private long[] values = null;
+    long[] keys = null;
+    long[] values = null;
 
-    private int[] nexts = null;
-    private int[] hashs = null;
+    int[] nexts = null;
+    int[] hashs = null;
 
     HeapLongLongArrayMap(final HeapStateChunk p_listener) {
         this.parent = p_listener;
@@ -194,7 +194,7 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
     }
 
     @Override
-    public final void remove(final long requestKey, final long requestValue) {
+    public final void delete(final long requestKey, final long requestValue) {
         synchronized (parent) {
             if (keys != null && mapSize != 0) {
                 long hashCapacity = capacity * 2;

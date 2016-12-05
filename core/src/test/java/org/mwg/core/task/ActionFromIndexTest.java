@@ -2,19 +2,22 @@ package org.mwg.core.task;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mwg.task.Action;
+import org.mwg.task.ActionFunction;
 import org.mwg.task.TaskContext;
 
-import static org.mwg.task.Actions.inject;
+import static org.mwg.core.task.Actions.readGlobalIndex;
+import static org.mwg.core.task.Actions.inject;
+import static org.mwg.core.task.Actions.newTask;
 
 public class ActionFromIndexTest extends AbstractActionTest {
 
     @Test
     public void test() {
         initGraph();
-        inject("uselessPayload")
-                .fromIndex("nodes", "name=n0")
-                .then(new Action() {
+        newTask()
+                .then(inject("uselessPayload"))
+                .then(readGlobalIndex("nodes", "name=n0"))
+                .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext context) {
                         Assert.assertEquals(context.resultAsNodes().get(0).get("name"), "n0");

@@ -2,8 +2,9 @@ package org.mwg.ml;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
+import org.mwg.Type;
 
-public class NoopRegressionNode extends AbstractMLNode implements RegressionNode {
+public class NoopRegressionNode extends BaseMLNode implements RegressionNode {
 
     public static final String NAME = "NoopRegressionNode";
 
@@ -16,7 +17,7 @@ public class NoopRegressionNode extends AbstractMLNode implements RegressionNode
         extractFeatures(new Callback<double[]>() {
             @Override
             public void on(double[] result) {
-                set("extracted", result);
+                set("extracted", Type.DOUBLE_ARRAY, result);
                 if (callback != null) {
                     callback.on(true);
                 }

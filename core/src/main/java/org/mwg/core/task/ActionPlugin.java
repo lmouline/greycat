@@ -2,21 +2,19 @@ package org.mwg.core.task;
 
 import org.mwg.Constants;
 import org.mwg.core.CoreConstants;
-import org.mwg.plugin.AbstractTaskAction;
-import org.mwg.task.TaskAction;
+import org.mwg.task.Action;
 import org.mwg.task.TaskActionFactory;
 import org.mwg.task.TaskContext;
 
-class ActionPlugin extends AbstractTaskAction {
+class ActionPlugin implements Action {
 
     private final String _actionName;
     private final String _flatParams;
     //private boolean initilized = false;
 
-    private TaskAction subAction = null;
+    private Action subAction = null;
 
     ActionPlugin(final String actionName, final String flatParams) {
-        super();
         this._actionName = actionName;
         this._flatParams = flatParams;
     }

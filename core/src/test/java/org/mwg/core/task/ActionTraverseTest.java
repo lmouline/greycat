@@ -5,19 +5,21 @@ import org.junit.Test;
 import org.mwg.Callback;
 import org.mwg.Node;
 import org.mwg.Type;
-import org.mwg.task.Action;
+import org.mwg.struct.RelationIndexed;
+import org.mwg.task.ActionFunction;
 import org.mwg.task.TaskContext;
 
-import static org.mwg.task.Actions.*;
+import static org.mwg.core.task.Actions.*;
+import static org.mwg.core.task.Actions.newTask;
 
 public class ActionTraverseTest extends AbstractActionTest {
 
     @Test
     public void test() {
         initGraph();
-        fromIndexAll("nodes")
-                .traverse("children")
-                .then(new Action() {
+        newTask().then(readGlobalIndexAll("nodes"))
+                .then(traverse("children"))
+                .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext context) {
                         Assert.assertEquals(context.resultAsNodes().get(0).get("name"), "n0");
@@ -31,8 +33,8 @@ public class ActionTraverseTest extends AbstractActionTest {
     @Test
     public void testParse() {
         initGraph();
-        parse("fromIndexAll(nodes).traverse(children)")
-                .then(new Action() {
+        newTask().parse("readIndexAll(nodes).traverse(children)")
+                .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext context) {
                         Assert.assertEquals(context.resultAsNodes().get(0).get("name"), "n0");
@@ -47,39 +49,41 @@ public class ActionTraverseTest extends AbstractActionTest {
     public void testTraverseIndex() {
         initGraph();
         final Node node1 = graph.newNode(0, 0);
-        node1.setProperty("name", Type.STRING, "node1");
-        node1.setProperty("value", Type.INT, 1);
+        node1.set("name", Type.STRING, "node1");
+        node1.set("value", Type.INT, 1);
 
         final Node node2 = graph.newNode(0, 0);
-        node2.setProperty("name", Type.STRING, "node2");
-        node2.setProperty("value", Type.INT, 2);
+        node2.set("name", Type.STRING, "node2");
+        node2.set("value", Type.INT, 2);
 
         final Node node3 = graph.newNode(0, 12);
-        node3.setProperty("name", Type.STRING, "node3");
-        node3.setProperty("value", Type.INT, 3);
+        node3.set("name", Type.STRING, "node3");
+        node3.set("value", Type.INT, 3);
 
         final Node root = graph.newNode(0, 0);
-        root.setProperty("name", Type.STRING, "root2");
-        graph.index("rootIndex", root, "name", new Callback<Boolean>() {
-            @Override
-            public void on(Boolean result) {
-                root.index("childrenIndexed", node1, "name", null);
-                root.index("childrenIndexed", node2, "name", null);
-                root.index("childrenIndexed", node3, "name", null);
+        root.set("name", Type.STRING, "root2");
 
-                root.jump(12, new Callback<Node>() {
-                    @Override
-                    public void on(Node result) {
-                        root.index("childrenIndexed", node3, "name", null);
-                    }
-                });
+        graph.index(0, 0, "roots", rootIndex -> {
+            rootIndex.addToIndex(root, "name");
 
-            }
+            RelationIndexed irel = (RelationIndexed) root.getOrCreate("childrenIndexed", Type.RELATION_INDEXED);
+            irel.add(node1, "name");
+            irel.add(node2, "name");
+            irel.add(node3, "name");
+
+            root.travelInTime(12, new Callback<Node>() {
+                @Override
+                public void on(Node root12) {
+                    RelationIndexed irel12 = (RelationIndexed) root12.getOrCreate("childrenIndexed", Type.RELATION_INDEXED);
+                    irel12.add(node3, "name");
+                }
+            });
+
         });
 
-        fromIndex("rootIndex", "name=root2")
-                .traverseIndex("childrenIndexed", "name","node2")
-                .then(new Action() {
+        newTask().then(readGlobalIndex("roots", "name=root2"))
+                .then(traverse("childrenIndexed", "name", "node2"))
+                .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext context) {
                         Assert.assertEquals(1, context.result().size());
@@ -87,19 +91,22 @@ public class ActionTraverseTest extends AbstractActionTest {
                     }
                 }).execute(graph, null);
 
-        fromIndex("rootIndex", "name=root2")
-                .traverseIndex("childrenIndexed", "name","node3")
-                .then(new Action() {
+        newTask().then(readGlobalIndex("rootIndex", "name=root2"))
+                .then(traverse("childrenIndexed", "name", "node3"))
+                .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext context) {
                         Assert.assertEquals(0, context.result().size());
                     }
                 }).execute(graph, null);
 
-        inject(12).asGlobalVar("time").setTime("{{time}}")
-                .fromIndex("rootIndex", "name=root2")
-                .traverseIndex("childrenIndexed", "name","node2")
-                .then(new Action() {
+        newTask()
+                .then(inject(12))
+                .then(defineAsGlobalVar("time"))
+                .then(setTime("{{time}}"))
+                .then(readGlobalIndex("roots", "name=root2"))
+                .then(traverse("childrenIndexed", "name", "node2"))
+                .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext context) {
                         Assert.assertEquals(1, context.result().size());
@@ -107,9 +114,9 @@ public class ActionTraverseTest extends AbstractActionTest {
                     }
                 }).execute(graph, null);
 
-        fromIndex("rootIndex", "name=root2")
-                .traverseIndexAll("childrenIndexed")
-                .then(new Action() {
+        newTask().then(readGlobalIndex("roots", "name=root2"))
+                .then(traverse("childrenIndexed"))
+                .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext context) {
                         Assert.assertEquals(2, context.result().size());
@@ -118,10 +125,10 @@ public class ActionTraverseTest extends AbstractActionTest {
                     }
                 }).execute(graph, null);
 
-        inject(13).asGlobalVar("time").setTime("{{time}}")
-                .fromIndex("rootIndex", "name=root2")
-                .traverseIndexAll("childrenIndexed")
-                .then(new Action() {
+        newTask().then(inject(13)).then(defineAsGlobalVar("time")).then(setTime("{{time}}"))
+                .then(readGlobalIndex("roots", "name=root2"))
+                .then(traverse("childrenIndexed"))
+                .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext context) {
                         Assert.assertEquals(3, context.result().size());

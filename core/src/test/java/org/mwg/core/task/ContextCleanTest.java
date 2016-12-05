@@ -6,11 +6,12 @@ import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Node;
 import org.mwg.core.scheduler.NoopScheduler;
-import org.mwg.task.Action;
+import org.mwg.task.ActionFunction;
 import org.mwg.task.TaskContext;
-import org.mwg.task.TaskFunctionSelect;
 
-import static org.mwg.task.Actions.inject;
+import static org.mwg.core.task.Actions.inject;
+import static org.mwg.core.task.Actions.select;
+import static org.mwg.core.task.Actions.newTask;
 
 public class ContextCleanTest {
 
@@ -25,7 +26,7 @@ public class ContextCleanTest {
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                then(new Action() {
+                then(new ActionFunction() {
                     @Override
                     public void eval(TaskContext context) {
                         retention[0] = context;
@@ -57,14 +58,9 @@ public class ContextCleanTest {
                 final String[] flat = {""};
                 Node n0 = graph.newNode(0, 0);
                 Node n1 = graph.newNode(0, 0);
-                inject(new Node[]{n0, n1})
-                        .select(new TaskFunctionSelect() {
-                            @Override
-                            public boolean select(Node node,TaskContext context) {
-                                return true;
-                            }
-                        })
-                        .then(new Action() {
+                newTask().then(inject(new Node[]{n0, n1}))
+                        .then(select((node, context) -> true))
+                        .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext context) {
                                 retention[0] = context;
@@ -77,7 +73,7 @@ public class ContextCleanTest {
                                 flat[0] += result.toString();
                             }
                         })
-                        .executeThen(graph, new Action() {
+                        .executeThen(graph, new ActionFunction() {
                             @Override
                             public void eval(TaskContext context) {
                                 retention[1] = context;

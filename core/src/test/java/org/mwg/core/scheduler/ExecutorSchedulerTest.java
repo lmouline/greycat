@@ -6,8 +6,8 @@ import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.task.TaskResult;
 
-import static org.mwg.task.Actions.loopPar;
-import static org.mwg.task.Actions.print;
+import static org.mwg.core.task.Actions.print;
+import static org.mwg.core.task.Actions.newTask;
 
 /**
  * @ignore ts
@@ -21,19 +21,20 @@ public class ExecutorSchedulerTest {
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                loopPar("0","99", print("{{result}}")).execute(g, new Callback<TaskResult>() {
-                    @Override
-                    public void on(TaskResult result) {
-                        System.out.println("end");
-                        g.disconnect(new Callback<Boolean>() {
+                newTask().loopPar("0", "99", newTask().then(print("{{result}}")))
+                        .execute(g, new Callback<TaskResult>() {
                             @Override
-                            public void on(Boolean result) {
-                                System.out.println("Disconnected");
-                                waiter.count();
+                            public void on(TaskResult result) {
+                                System.out.println("end");
+                                g.disconnect(new Callback<Boolean>() {
+                                    @Override
+                                    public void on(Boolean result) {
+                                        System.out.println("Disconnected");
+                                        waiter.count();
+                                    }
+                                });
                             }
                         });
-                    }
-                });
             }
         });
         waiter.waitResult();

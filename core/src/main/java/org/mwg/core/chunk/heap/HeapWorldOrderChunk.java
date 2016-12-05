@@ -235,10 +235,11 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     }
 
     @Override
-    public synchronized final void load(final Buffer buffer, final boolean dirty) {
+    public synchronized final void load(final Buffer buffer) {
         if (buffer == null || buffer.length() == 0) {
             return;
         }
+        final boolean isInitial = _kv == null;
         long cursor = 0;
         long bufferSize = buffer.length();
         boolean initDone = false;
@@ -257,7 +258,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
             } else if (buffer.read(cursor) == CoreConstants.CHUNK_SUB_SEP) {
                 if (loopKey != CoreConstants.NULL_LONG) {
                     long loopValue = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                    internal_put(loopKey, loopValue, dirty);
+                    internal_put(loopKey, loopValue, !isInitial);
                     //reset key for next round
                     loopKey = CoreConstants.NULL_LONG;
                 }
@@ -271,7 +272,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
         }
         if (loopKey != CoreConstants.NULL_LONG) {
             long loopValue = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-            internal_put(loopKey, loopValue, dirty);
+            internal_put(loopKey, loopValue, !isInitial);
         }
     }
 

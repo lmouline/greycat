@@ -7,8 +7,8 @@ import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Node;
 import org.mwg.core.scheduler.NoopScheduler;
-import org.mwg.plugin.AbstractNode;
-import org.mwg.plugin.AbstractPlugin;
+import org.mwg.base.BaseNode;
+import org.mwg.base.BasePlugin;
 import org.mwg.plugin.NodeFactory;
 
 public class NodeFactoryTest {
@@ -19,18 +19,18 @@ public class NodeFactoryTest {
         String sayHello();
     }
 
-    class ExNodeImpl extends AbstractNode implements ExNode {
+    class ExNodeImpl extends BaseNode implements ExNode {
 
         public ExNodeImpl(long p_world, long p_time, long p_id, Graph p_graph) {
             super(p_world, p_time, p_id, p_graph);
         }
 
         @Override
-        public Object get(String propertyName) {
-            if (propertyName.equals("hello")) {
+        public Object get(String name) {
+            if (name.equals("hello")) {
                 return "world";
             }
-            return super.get(propertyName);
+            return super.get(name);
         }
 
         @Override
@@ -41,7 +41,7 @@ public class NodeFactoryTest {
 
     @Test
     public void heapTest() {
-        test(new GraphBuilder().withScheduler(new NoopScheduler()).withPlugin(new AbstractPlugin().declareNodeType(NAME, new NodeFactory() {
+        test(new GraphBuilder().withScheduler(new NoopScheduler()).withPlugin(new BasePlugin().declareNodeType(NAME, new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
                 return new ExNodeImpl(world, time, id, graph);
@@ -62,7 +62,7 @@ public class NodeFactoryTest {
 
         Unsafe.DEBUG_MODE = true;
 
-        test(new GraphBuilder().withScheduler(new NoopScheduler()).withOffHeapMemory().withMemorySize(10000).saveEvery(20).withPlugin(new AbstractPlugin().declareNodeType(NAME, new NodeFactory() {
+        test(new GraphBuilder().withScheduler(new NoopScheduler()).withOffHeapMemory().withMemorySize(10000).saveEvery(20).withPlugin(new BasePlugin().declareNodeType(NAME, new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
                 return new ExNodeImpl(world, time, id, graph);
@@ -89,8 +89,8 @@ public class NodeFactoryTest {
                 Assert.assertTrue(hw.equals("world"));
 
                 Node parent = graph.newNode(0, 0);
-                parent.add("children", specializedNode);
-                parent.rel("children", new Callback<Node[]>() {
+                parent.addToRelation("children", specializedNode);
+                parent.relation("children", new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
                         Assert.assertEquals("HelloWorld", ((ExNode) result[0]).sayHello());

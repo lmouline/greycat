@@ -6,17 +6,18 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Type;
+import org.mwg.core.task.Actions;
 import org.mwg.structure.action.NTreeInsertTo;
 import org.mwg.structure.action.NTreeNearestN;
 import org.mwg.structure.action.NTreeNearestNWithinRadius;
 import org.mwg.structure.action.NTreeNearestWithinRadius;
 import org.mwg.structure.distance.Distances;
 import org.mwg.structure.tree.KDTree;
-import org.mwg.task.Action;
+import org.mwg.task.ActionFunction;
 import org.mwg.task.Task;
 import org.mwg.task.TaskContext;
 
-import static org.mwg.task.Actions.*;
+import static org.mwg.core.task.Actions.*;
 
 public class GeoIndexTaskTest {
 
@@ -36,18 +37,18 @@ public class GeoIndexTaskTest {
             @Override
             public void on(Boolean result) {
 
-                Task createGeoIndex = newTypedNode(KDTree.NAME)
-                        .setProperty(KDTree.DISTANCE, Type.INT, Distances.GEODISTANCE + "")
-                        .setProperty(KDTree.FROM, Type.STRING, "lat,long")
-                        .asGlobalVar("geoIndex");
+                Task createGeoIndex = newTask().then(createTypedNode(KDTree.NAME))
+                        .then(Actions.set(KDTree.DISTANCE, Type.INT, Distances.GEODISTANCE + ""))
+                        .then(Actions.set(KDTree.FROM, Type.STRING, "lat,long"))
+                        .then(declareGlobalVar("geoIndex"));
 
-                Task createTenPoints = loop("0", "9", newNode().setProperty("lat", Type.DOUBLE, "49.{{i}}").setProperty("long", Type.DOUBLE, "6.{{i}}").addToGlobalVar("points"));
+                Task createTenPoints = newTask().then(defineAsGlobalVar("points")).loop("0", "9", newTask().then(createNode()).then(Actions.set("lat", Type.DOUBLE, "49.{{i}}")).then(Actions.set("long", Type.DOUBLE, "6.{{i}}")).then(addToVar("points")));
 
                 newTask()
-                        .subTask(createGeoIndex)
-                        .subTask(createTenPoints)
-                        .fromVar("points")
-                        .action(NTreeInsertTo.NAME, "geoIndex")
+                        .map(createGeoIndex)
+                        .map(createTenPoints)
+                        .then(readVar("points"))
+                        .then(pluginAction(NTreeInsertTo.NAME, "geoIndex"))
 /*
                         .fromVar("geoIndex")
                         .whileDo((new TaskFunctionConditional() {
@@ -57,11 +58,11 @@ public class GeoIndexTaskTest {
                             }
                         }), print("{{result}}").subTasks(new Task[]{traverse("left"), traverse("right")}))
 */
-                        .fromVar("geoIndex")
+                        .then(readVar("geoIndex"))
                         //.print("{{result}}")
-                        .action(NTreeNearestN.NAME, "49.6116,6.1319,10") //lat,long,nb
+                        .then(pluginAction(NTreeNearestN.NAME, "49.6116,6.1319,10")) //lat,long,nb
                         //.print("{{result}}")
-                        .then(new Action() {
+                        .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext context) {
                                 Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":7,\"lat\":49.5,\"long\":6.5}"));
@@ -70,10 +71,10 @@ public class GeoIndexTaskTest {
                                 context.continueTask();
                             }
                         })
-                        .fromVar("geoIndex")
-                        .action(NTreeNearestWithinRadius.NAME, "49.6116,6.1319,100000") //lat,long,meters
+                        .then(readVar("geoIndex"))
+                        .then(pluginAction(NTreeNearestWithinRadius.NAME, "49.6116,6.1319,100000")) //lat,long,meters
                         //.print("{{result}}")
-                        .then(new Action() {
+                        .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext context) {
 
@@ -95,10 +96,10 @@ public class GeoIndexTaskTest {
                                 context.continueTask();
                             }
                         })
-                        .fromVar("geoIndex")
-                        .action(NTreeNearestNWithinRadius.NAME, "49.6116,6.1319,2,100000") //lat,long,nb,meters
+                        .then(readVar("geoIndex"))
+                        .then(pluginAction(NTreeNearestNWithinRadius.NAME, "49.6116,6.1319,2,100000")) //lat,long,nb,meters
                         //.print("{{result}}")
-                        .then(new Action() {
+                        .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext context) {
                                 Assert.assertTrue(stringContains(context.toString(), "{\"world\":0,\"time\":0,\"id\":7,\"lat\":49.5,\"long\":6.5}"));

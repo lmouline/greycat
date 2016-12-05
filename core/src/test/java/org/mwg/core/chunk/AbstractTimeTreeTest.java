@@ -85,7 +85,7 @@ public abstract class AbstractTimeTreeTest {
         Assert.assertTrue(tree.size() == 3);
 
         TimeTreeChunk tree2 = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
-        tree2.load(buffer, true);
+        tree2.load(buffer);
         Assert.assertTrue(tree2.size() == 3);
 
         Buffer buffer2 = factory.newBuffer();

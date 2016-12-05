@@ -5,10 +5,11 @@ import org.junit.Test;
 import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
-import org.mwg.task.Action;
+import org.mwg.task.ActionFunction;
 import org.mwg.task.TaskContext;
 
-import static org.mwg.task.Actions.newTask;
+import static org.mwg.core.task.Actions.*;
+
 
 public class CoreTaskContextTests {
 
@@ -19,10 +20,12 @@ public class CoreTaskContextTests {
             @Override
             public void on(Boolean result) {
                 newTask()
-                        .inject(4).asGlobalVar("i")
-                        .inject(new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9}).asGlobalVar("array")
-                        .fromVar("array")
-                        .then(new Action() {
+                        .then(inject(4))
+                        .then(defineAsGlobalVar("i"))
+                        .then(inject(new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9}))
+                        .then(defineAsGlobalVar("array"))
+                        .then(readVar("array"))
+                        .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext context) {
                                 Assert.assertEquals("5", context.template("{{array[4]}}"));

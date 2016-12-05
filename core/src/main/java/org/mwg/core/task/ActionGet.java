@@ -1,22 +1,21 @@
 package org.mwg.core.task;
 
-import org.mwg.Callback;
-import org.mwg.DeferCounter;
-import org.mwg.Node;
-import org.mwg.Type;
-import org.mwg.plugin.AbstractNode;
-import org.mwg.plugin.AbstractTaskAction;
+import org.mwg.*;
+import org.mwg.base.BaseNode;
 import org.mwg.plugin.Job;
+import org.mwg.struct.RelationIndexed;
+import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
-class ActionGet extends AbstractTaskAction {
+class ActionGet implements Action {
 
     private final String _name;
+    private final String[] _params;
 
-    ActionGet(final String p_name) {
-        super();
+    ActionGet(final String p_name, final String... p_params) {
         this._name = p_name;
+        this._params = p_params;
     }
 
     @Override
@@ -29,28 +28,80 @@ class ActionGet extends AbstractTaskAction {
             final DeferCounter defer = context.graph().newCounter(previousSize);
             for (int i = 0; i < previousSize; i++) {
                 final Object loop = previousResult.get(i);
-                if (loop instanceof AbstractNode) {
+                if (loop instanceof BaseNode) {
                     final Node casted = (Node) loop;
-                    if (casted.type(flatName) == Type.RELATION) {
-                        casted.rel(flatName, new Callback<Node[]>() {
-                            @Override
-                            public void on(Node[] result) {
-                                if (result != null) {
-                                    for (int j = 0; j < result.length; j++) {
-                                        finalResult.add(result[j]);
+                    switch (casted.type(flatName)) {
+                        case Type.RELATION:
+                            casted.relation(flatName, new Callback<Node[]>() {
+                                @Override
+                                public void on(Node[] result) {
+                                    if (result != null) {
+                                        for (int j = 0; j < result.length; j++) {
+                                            finalResult.add(result[j]);
+                                        }
                                     }
+                                    casted.free();
+                                    defer.count();
                                 }
-                                casted.free();
+                            });
+                            break;
+                        case Type.RELATION_INDEXED:
+                            //TODO move this to the API
+                            RelationIndexed relationIndexed = (RelationIndexed) casted.get(flatName);
+                            if (relationIndexed != null) {
+                                if (_params != null && _params.length > 0) {
+                                    Query query = context.graph().newQuery();
+                                    String previous = null;
+                                    for (int k = 0; k < _params.length; k++) {
+                                        if (previous != null) {
+                                            query.add(previous, _params[k]);
+                                            previous = null;
+                                        } else {
+                                            previous = _params[k];
+                                        }
+                                    }
+                                    relationIndexed.findByQuery(query, new Callback<Node[]>() {
+                                        @Override
+                                        public void on(Node[] result) {
+                                            if (result != null) {
+                                                for (int j = 0; j < result.length; j++) {
+                                                    if (result[j] != null) {
+                                                        finalResult.add(result[j]);
+                                                    }
+                                                }
+                                            }
+                                            casted.free();
+                                            defer.count();
+                                        }
+                                    });
+                                } else {
+                                    casted.graph().lookupAll(context.world(), context.time(), relationIndexed.all(), new Callback<Node[]>() {
+                                        @Override
+                                        public void on(Node[] result) {
+                                            if (result != null) {
+                                                for (int j = 0; j < result.length; j++) {
+                                                    if (result[j] != null) {
+                                                        finalResult.add(result[j]);
+                                                    }
+                                                }
+                                            }
+                                            casted.free();
+                                            defer.count();
+                                        }
+                                    });
+                                }
+                            } else {
                                 defer.count();
                             }
-                        });
-                    } else {
-                        Object resolved = casted.get(flatName);
-                        if (resolved != null) {
-                            finalResult.add(resolved);
-                        }
-                        casted.free();
-                        defer.count();
+                            break;
+                        default:
+                            Object resolved = casted.get(flatName);
+                            if (resolved != null) {
+                                finalResult.add(resolved);
+                            }
+                            casted.free();
+                            defer.count();
+                            break;
                     }
                 } else {
                     //TODO add closable management
@@ -73,6 +124,6 @@ class ActionGet extends AbstractTaskAction {
 
     @Override
     public String toString() {
-        return "get(\'" + _name + "\')";
+        return "traverse(\'" + _name + "\')";
     }
 }

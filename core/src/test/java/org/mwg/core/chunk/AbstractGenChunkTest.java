@@ -32,7 +32,7 @@ public abstract class AbstractGenChunkTest {
         Buffer buf = factory.newBuffer();
         Base64.encodeLongToBuffer(100, buf);
         GenChunk genChunk2 = (GenChunk) space.createAndMark(ChunkType.GEN_CHUNK, 0, 0, 0);
-        genChunk2.load(buf, true);
+        genChunk2.load(buf);
         buf.free();
 
         Assert.assertEquals(genChunk2.newKey(), 101);

@@ -3,7 +3,7 @@ package org.mwg.core;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
-import org.mwg.struct.Relationship;
+import org.mwg.struct.Relation;
 import org.mwg.utility.HashHelper;
 
 public class HelloWorldTest {
@@ -30,19 +30,19 @@ public class HelloWorldTest {
                         Assert.assertTrue(result.id() == node0.id());
                         result.free();
 
-                        node0.set("name", "MyName");
+                        node0.set("name", Type.STRING, "MyName");
                         Assert.assertTrue(HashHelper.equals("MyName", node0.get("name").toString()));
 
-                        node0.removeProperty("name");
+                        node0.remove("name");
                         Assert.assertTrue(node0.get("name") == null);
-                        node0.setProperty("name", Type.STRING, "MyName");
+                        node0.set("name", Type.STRING, "MyName");
 
-                        node0.setProperty("value", Type.STRING, "MyValue");
+                        node0.set("value", Type.STRING, "MyValue");
                         Assert.assertTrue(HashHelper.equals("MyValue", node0.get("value").toString()));
                         //check that other attribute name is not affected
                         Assert.assertTrue(HashHelper.equals("MyName", node0.get("name").toString()));
 
-                        node0.setProperty("name", Type.STRING, "MyName2");
+                        node0.set("name", Type.STRING, "MyName2");
                         Assert.assertTrue(HashHelper.equals("MyName2", node0.get("name").toString()));
                         Assert.assertTrue(HashHelper.equals("MyValue", node0.get("value").toString()));
 
@@ -58,23 +58,23 @@ public class HelloWorldTest {
                         Assert.assertTrue(HashHelper.equals("{\"world\":0,\"time\":0,\"id\":2}", node1.toString()));
 
                         //attach the new node
-                        node1.add("children", node0);
+                        node1.addToRelation("children", node0);
                         Assert.assertTrue(HashHelper.equals("{\"world\":0,\"time\":0,\"id\":2,\"children\":[1]}", node1.toString()));
 
-                        node1.add("children", node0);
+                        node1.addToRelation("children", node0);
                         Assert.assertTrue(HashHelper.equals("{\"world\":0,\"time\":0,\"id\":2,\"children\":[1,1]}", node1.toString()));
 
                         org.mwg.Node node2 = graph.newNode(0, 0);
-                        node1.add("children", node2);
+                        node1.addToRelation("children", node2);
                         Assert.assertTrue(HashHelper.equals("{\"world\":0,\"time\":0,\"id\":2,\"children\":[1,1,3]}", node1.toString()));
 
-                        Relationship refValuesThree = (Relationship) node1.get("children");
+                        Relation refValuesThree = (Relation) node1.get("children");
                         Assert.assertTrue(refValuesThree.size() == 3);
                         Assert.assertTrue(refValuesThree.get(0) == 1);
                         Assert.assertTrue(refValuesThree.get(1) == 1);
                         Assert.assertTrue(refValuesThree.get(2) == 3);
 
-                        node1.rel("children", new Callback<org.mwg.Node[]>() {
+                        node1.relation("children", new Callback<org.mwg.Node[]>() {
                             @Override
                             public void on(Node[] resolvedNodes) {
                                 Assert.assertTrue(resolvedNodes[0].id() == 1);
@@ -83,13 +83,13 @@ public class HelloWorldTest {
 
                                 graph.freeNodes(resolvedNodes);
 
-                                node1.remove("children", node0);
+                                node1.removeFromRelation("children", node0);
                                 Assert.assertTrue(HashHelper.equals("{\"world\":0,\"time\":0,\"id\":2,\"children\":[1,3]}", node1.toString()));
 
-                                node1.remove("children", node0);
+                                node1.removeFromRelation("children", node0);
                                 Assert.assertTrue(HashHelper.equals("{\"world\":0,\"time\":0,\"id\":2,\"children\":[3]}", node1.toString()));
 
-                                node1.remove("children", node2);
+                                node1.removeFromRelation("children", node2);
                                 Assert.assertTrue(HashHelper.equals("{\"world\":0,\"time\":0,\"id\":2,\"children\":[]}", node1.toString()));
 
                                 //destroy the node explicitly selectWithout waiting GC

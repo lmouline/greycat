@@ -9,8 +9,8 @@ import org.mwg.Node;
 import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.task.*;
 
-import static org.mwg.task.Actions.newTask;
-import static org.mwg.task.Actions.setTime;
+import static org.mwg.core.task.Actions.*;
+import static org.mwg.core.task.Actions.newTask;
 
 public class FlagTest {
     @Test
@@ -33,25 +33,25 @@ public class FlagTest {
             Node n3 = graph.newNode(0, 13);
             Node n4 = graph.newNode(0, 13);
 
-            n1.add(relName, n2);
-            n1.add(relName, n3);
-            n1.add(relName, n4);
+            n1.addToRelation(relName, n2);
+            n1.addToRelation(relName, n3);
+            n1.addToRelation(relName, n4);
 
 
             Node n5 = graph.newNode(0, 13);
             Node n6 = graph.newNode(0, 13);
-            n2.add(relName, n5);
-            n2.add(relName, n6);
+            n2.addToRelation(relName, n5);
+            n2.addToRelation(relName, n6);
 
             Node n7 = graph.newNode(0, 13);
             Node n8 = graph.newNode(0, 13);
-            n3.add(relName, n7);
-            n3.add(relName, n8);
+            n3.addToRelation(relName, n7);
+            n3.addToRelation(relName, n8);
 
             Node n9 = graph.newNode(0, 13);
             Node n10 = graph.newNode(0, 13);
-            n4.add(relName, n9);
-            n4.add(relName, n10);
+            n4.addToRelation(relName, n9);
+            n4.addToRelation(relName, n10);
 
             n2.free();
             n3.free();
@@ -66,10 +66,8 @@ public class FlagTest {
             graph.save(null);
             Assert.assertTrue(graph.space().available() == initcache);
 
-
             Task traverse = newTask();
-
-            traverse.asGlobalVar("parent").traverse(relName).then(new Action() {
+            traverse.then(defineAsGlobalVar("parent")).then(Actions.traverse(relName)).thenDo(new ActionFunction() {
                 @Override
                 public void eval(TaskContext context) {
 
@@ -80,7 +78,7 @@ public class FlagTest {
                         context.continueWith(null);
                     }
                 }
-            }).ifThen(new TaskFunctionConditional() {
+            }).ifThen(new ConditionalFunction() {
                 @Override
                 public boolean eval(TaskContext context) {
                     return (context.result() != null);
@@ -88,7 +86,7 @@ public class FlagTest {
             }, traverse);
 
 
-            Task mainTask = setTime("13").setWorld("0").inject(n1).subTask(traverse);
+            Task mainTask = newTask().then(setTime("13")).then(setWorld("0")).then(inject(n1)).map(traverse);
             mainTask.execute(graph, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult result) {
@@ -107,6 +105,7 @@ public class FlagTest {
     }
 
 
+    /*
     @Test
     public void traverseOrKeep() {
         Graph graph = new GraphBuilder()
@@ -127,25 +126,25 @@ public class FlagTest {
             Node n3 = graph.newNode(0, 13);
             Node n4 = graph.newNode(0, 13);
 
-            n1.add(relName, n2);
-            n1.add(relName, n3);
-            n1.add(relName, n4);
+            n1.addToRelation(relName, n2);
+            n1.addToRelation(relName, n3);
+            n1.addToRelation(relName, n4);
 
 
             Node n5 = graph.newNode(0, 13);
             Node n6 = graph.newNode(0, 13);
-            n2.add(relName, n5);
-            n2.add(relName, n6);
+            n2.addToRelation(relName, n5);
+            n2.addToRelation(relName, n6);
 
             Node n7 = graph.newNode(0, 13);
             Node n8 = graph.newNode(0, 13);
-            n3.add(relName, n7);
-            n3.add(relName, n8);
+            n3.addToRelation(relName, n7);
+            n3.addToRelation(relName, n8);
 
             Node n9 = graph.newNode(0, 13);
             Node n10 = graph.newNode(0, 13);
-            n4.add(relName, n9);
-            n4.add(relName, n10);
+            n4.addToRelation(relName, n9);
+            n4.addToRelation(relName, n10);
 
             n2.free();
             n3.free();
@@ -161,26 +160,29 @@ public class FlagTest {
             Assert.assertTrue(graph.space().available() == initcache);
 
 
-            Task traverse = newTask();
+            Task traverse = task();
 
-            traverse.asGlobalVar("parent").traverseOrKeep(relName).then(new Action() {
-                @Override
-                public void eval(TaskContext context) {
-                    TaskResult<Integer> count = context.variable("count");
-                    int c = 0;
-                    if (count != null) {
-                        c = count.get(0) + 1;
-                    }
-                    context.setGlobalVariable("count", context.wrap(c));
+            traverse
+                    .then(defineAsGlobalVar("parent"))
+                    .then(new ActionTraverseOrKeep(relName))
+                    .thenDo(new ActionFunction() {
+                        @Override
+                        public void eval(TaskContext context) {
+                            TaskResult<Integer> count = context.variable("count");
+                            int c = 0;
+                            if (count != null) {
+                                c = count.get(0) + 1;
+                            }
+                            context.setGlobalVariable("count", context.wrap(c));
 
-                    TaskResult<Node> children = context.resultAsNodes();
-                    if (children != null && children.size() != 0) {
-                        context.continueWith(context.wrapClone(children.get(0)));
-                    } else {
-                        context.continueWith(null);
-                    }
-                }
-            }).ifThen(new TaskFunctionConditional() {
+                            TaskResult<Node> children = context.resultAsNodes();
+                            if (children != null && children.size() != 0) {
+                                context.continueWith(context.wrapClone(children.get(0)));
+                            } else {
+                                context.continueWith(null);
+                            }
+                        }
+                    }).ifThen(new ConditionalFunction() {
                 @Override
                 public boolean eval(TaskContext context) {
                     int x = (int) context.variable("count").get(0);
@@ -188,7 +190,7 @@ public class FlagTest {
                 }
             }, traverse);
 
-            Task mainTask = setTime("13").setWorld("0").inject(n1).subTask(traverse);
+            Task mainTask = task().then(setTime("13")).then(setWorld("0")).then(inject(n1)).map(traverse);
             mainTask.execute(graph, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult result) {
@@ -203,5 +205,6 @@ public class FlagTest {
             graph.save(null);
             Assert.assertTrue(graph.space().available() == initcache);
         });
-    }
+    }*/
+
 }

@@ -6,11 +6,13 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Type;
-import org.mwg.plugin.AbstractNode;
-import org.mwg.task.Action;
-import org.mwg.task.Actions;
+import org.mwg.base.BaseNode;
+import org.mwg.task.ActionFunction;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
+
+import static org.mwg.core.task.Actions.*;
+import static org.mwg.core.task.Actions.newTask;
 
 public class ActionLocalIndexOrUnindexTest {
 
@@ -21,45 +23,45 @@ public class ActionLocalIndexOrUnindexTest {
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean succeed) {
-                Actions.newTask()
-                        .newNode()
-                        .setProperty("name", Type.STRING, "child1")
-                        .addToVar("child")
-                        .newNode()
-                        .setProperty("name", Type.STRING, "child2")
-                        .addToVar("child")
-                        .newNode()
-                        .setProperty("name", Type.STRING, "child3")
-                        .addToVar("child")
-                        .newNode()
-                        .setProperty("name", Type.STRING, "root")
-                        .indexNode("rootIdx", "name")
-                        .localIndex("idxRelation","name","child")
-                        .fromIndexAll("rootIdx")
-                        .traverseIndexAll("idxRelation")
-                        .then(new Action() {
+                newTask()
+                        .then(createNode())
+                        .then(set("name", Type.STRING, "child1"))
+                        .then(addToVar("child"))
+                        .then(createNode())
+                        .then(set("name", Type.STRING, "child2"))
+                        .then(addToVar("child"))
+                        .then(createNode())
+                        .then(set("name", Type.STRING, "child3"))
+                        .then(addToVar("child"))
+                        .then(createNode())
+                        .then(set("name", Type.STRING, "root"))
+                        .then(addToGlobalIndex("rootIdx", "name"))
+                        .then(addVarToRelation("idxRelation", "name", "child"))
+                        .then(readGlobalIndexAll("rootIdx"))
+                        .then(traverse("idxRelation"))
+                        .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext context) {
                                 TaskResult result = context.result();
-                                Assert.assertEquals(3,result.size());
+                                Assert.assertEquals(3, result.size());
 
-                                Assert.assertEquals("child1",((AbstractNode)result.get(0)).get("name"));
-                                Assert.assertEquals("child2",((AbstractNode)result.get(1)).get("name"));
-                                Assert.assertEquals("child3",((AbstractNode)result.get(2)).get("name"));
+                                Assert.assertEquals("child1", ((BaseNode) result.get(0)).get("name"));
+                                Assert.assertEquals("child2", ((BaseNode) result.get(1)).get("name"));
+                                Assert.assertEquals("child3", ((BaseNode) result.get(2)).get("name"));
                             }
                         })
-                        .fromIndexAll("rootIdx")
-                        .localUnindex("idxRelation","name","child")
-                        .fromIndexAll("rootIdx")
-                        .traverseIndexAll("idxRelation")
-                        .then(new Action() {
+                        .then(readGlobalIndexAll("rootIdx"))
+                        .then(addVarToRelation("idxRelation", "name", "child"))
+                        .then(readGlobalIndexAll("rootIdx"))
+                        .then(traverse("idxRelation"))
+                        .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext context) {
                                 TaskResult result = context.result();
-                                Assert.assertEquals(0,result.size());
+                                Assert.assertEquals(0, result.size());
                             }
                         })
-                        .execute(graph,null);
+                        .execute(graph, null);
 
 
             }

@@ -1,22 +1,15 @@
 package org.mwg.core.task;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.mwg.Node;
-import org.mwg.task.Action;
-import org.mwg.task.TaskContext;
-import org.mwg.task.TaskResult;
-
-import static org.mwg.task.Actions.fromIndexAll;
-
 public class ActionMapTest extends AbstractActionTest {
 
+    /*
     @Test
     public void test() {
         initGraph();
-        fromIndexAll("nodes")
+        task()
+                .then(readIndexAll("nodes"))
                 .map(node -> ((Node)node).get("name"))
-                .then(new Action() {
+                .then(new ActionFunction() {
                     @Override
                     public void eval(TaskContext context) {
                         TaskResult<String> names = context.resultAsStrings();
@@ -27,6 +20,6 @@ public class ActionMapTest extends AbstractActionTest {
                 })
                 .execute(graph, null);
         removeGraph();
-    }
+    }*/
 
 }

@@ -2,11 +2,8 @@ package org.mwg.ml.neuralnet.bio;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
-import org.mwg.Node;
-import org.mwg.ml.neuralnet.NeuralNode;
-import org.mwg.plugin.AbstractNode;
+import org.mwg.base.BaseNode;
 import org.mwg.plugin.Job;
-import org.mwg.plugin.Scheduler;
 import org.mwg.plugin.SchedulerAffinity;
 import org.mwg.struct.LongLongArrayMap;
 import org.mwg.struct.LongLongMap;
@@ -19,10 +16,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.mwg.task.Actions.*;
+import static org.mwg.core.task.Actions.lookup;
+import static org.mwg.core.task.Actions.readVar;
+import static org.mwg.core.task.Actions.newTask;
 
-
-class BioInputNeuralNode extends AbstractNode {
+class BioInputNeuralNode extends BaseNode {
 
     static String NAME = "BioInputNeuralNode";
 
@@ -32,9 +30,9 @@ class BioInputNeuralNode extends AbstractNode {
 
     public void learn2(final double value, final int spikeLimit, final double threshold, final Callback callback) {
         final Task[] job = new Task[1];
-        job[0] = fromVar("target").foreach(
+        job[0] = newTask().then(readVar("target")).forEach(
                 newTask()
-                        .lookup("{{result}}")
+                        .then(lookup("{{result}}"))
                         .then(context -> {
                             BioNeuralNode neural = (BioNeuralNode) context.result().get(0);
                             LongLongMap outputs = (LongLongMap) neural.get(BioNeuralNetwork.RELATION_OUTPUTS);
@@ -46,8 +44,8 @@ class BioInputNeuralNode extends AbstractNode {
                             context.setVariable("sender", neural.id());
                         })
                         .ifThen(context -> ((double) context.variable("signal").get(0)) > 0,
-                                then(context -> {
-                                    TaskContext ctx = job[0].prepareWith(graph(), null, result -> {
+                                newTask().thenDo(context -> {
+                                    TaskContext ctx = job[0].prepare(graph(), null, result -> {
                                         context.continueTask();
                                     });
                                     ctx.setVariable("signal", context.variable("signal"));
@@ -55,7 +53,7 @@ class BioInputNeuralNode extends AbstractNode {
                                     ctx.setVariable("target", context.variable("target"));
                                     job[0].executeUsing(ctx);
                                 })));
-        TaskContext ctx = job[0].prepareWith(graph(), null, callback);
+        TaskContext ctx = job[0].prepare(graph(), null, callback);
         ctx.setVariable("signal", value);
         ctx.setVariable("sender", id());
         LongLongMap outputs = (LongLongMap) get(BioNeuralNetwork.RELATION_OUTPUTS);

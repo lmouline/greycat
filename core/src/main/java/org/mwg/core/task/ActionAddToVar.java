@@ -1,24 +1,25 @@
 package org.mwg.core.task;
 
-import org.mwg.plugin.AbstractTaskAction;
+import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
-class ActionAddToVar extends AbstractTaskAction {
+class ActionAddToVar implements Action {
 
     private final String _name;
-    private final boolean _global;
 
-    ActionAddToVar(final String p_name, final boolean p_global) {
-        super();
+    ActionAddToVar(final String p_name) {
+        if (p_name == null) {
+            throw new RuntimeException("p_name should not be null");
+        }
         this._name = p_name;
-        this._global = p_global;
     }
 
     @Override
     public void eval(final TaskContext context) {
         final TaskResult previousResult = context.result();
-        if (_global) {
+        if (context.isGlobal(_name)) {
+            //TODO refactor this
             context.addToGlobalVariable(context.template(_name), previousResult);
         } else {
             context.addToVariable(context.template(_name), previousResult);
@@ -28,11 +29,7 @@ class ActionAddToVar extends AbstractTaskAction {
 
     @Override
     public String toString() {
-        if (_global) {
-            return "addToGlobalVar(\'" + _name + "\')";
-        } else {
-            return "addToVar(\'" + _name + "\')";
-        }
+        return "addToVar(\'" + _name + "\')";
     }
 
 }

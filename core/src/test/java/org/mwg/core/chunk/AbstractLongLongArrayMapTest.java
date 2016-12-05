@@ -61,11 +61,11 @@ public abstract class AbstractLongLongArrayMapTest {
         Assert.assertTrue(map.get(10)[1] == 10);
 
         //make a remove call
-        map.remove(10, 10);
+        map.delete(10, 10);
         Assert.assertTrue(map.size() == CoreConstants.MAP_INITIAL_CAPACITY + 2 - 1);
         Assert.assertTrue(map.get(10).length == 1);
 
-        map.remove(CoreConstants.BEGINNING_OF_TIME, 0);
+        map.delete(CoreConstants.BEGINNING_OF_TIME, 0);
         Assert.assertTrue(map.size() == CoreConstants.MAP_INITIAL_CAPACITY + 2 - 2);
         getRes = map.get(CoreConstants.BEGINNING_OF_TIME);
         Assert.assertTrue(getRes.length == CoreConstants.MAP_INITIAL_CAPACITY - 1);
@@ -77,7 +77,7 @@ public abstract class AbstractLongLongArrayMapTest {
         chunk.save(buffer);
         Assert.assertEquals("C|A,U,Q:////////9%O:U%DI:////////9%M:////////9%C:////////9%E:////////9%G:////////9%I:////////9%K", buffer.toString());
         StateChunk loaded = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 10, 10, 10);
-        loaded.load(buffer, true);
+        loaded.load(buffer);
         Buffer buffer2 = factory.newBuffer();
         chunk.save(buffer2);
         Assert.assertEquals("C|A,U,Q:////////9%O:U%DI:////////9%M:////////9%C:////////9%E:////////9%G:////////9%I:////////9%K", buffer2.toString());
@@ -109,9 +109,6 @@ public abstract class AbstractLongLongArrayMapTest {
                 int i = order[index];
                 //for (int i : order) {
                 Query query = space.graph().newQuery();
-                query.setTime(0);
-                query.setWorld(0);
-                query.setIndexName("stations");
                 query.add("number", "" + i);
                 map.put(query.hash(), i);
             }
@@ -120,9 +117,6 @@ public abstract class AbstractLongLongArrayMapTest {
                 int i = order[index];
                 //for (int i : order) {
                 Query query = space.graph().newQuery();
-                query.setTime(0);
-                query.setWorld(0);
-                query.setIndexName("stations");
                 query.add("number", "" + i);
                 Assert.assertTrue(map.get(query.hash()).length > 0);
                 Assert.assertTrue(map.get(query.hash())[0] == i);

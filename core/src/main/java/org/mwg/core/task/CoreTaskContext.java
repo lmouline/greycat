@@ -5,12 +5,8 @@ import org.mwg.Graph;
 import org.mwg.Node;
 import org.mwg.core.task.math.CoreMathExpressionEngine;
 import org.mwg.core.task.math.MathExpressionEngine;
-import org.mwg.plugin.AbstractNode;
-import org.mwg.plugin.AbstractTaskAction;
-import org.mwg.task.TaskContext;
-import org.mwg.task.TaskHook;
-import org.mwg.task.TaskResult;
-import org.mwg.task.TaskResultIterator;
+import org.mwg.base.BaseNode;
+import org.mwg.task.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,14 +22,16 @@ class CoreTaskContext implements TaskContext {
 
     private Map<String, TaskResult> _localVariables = null;
     private Map<String, TaskResult> _nextVariables = null;
-    private AbstractTaskAction _current;
     TaskResult _result;
     private long _world;
     private long _time;
-    private final TaskHook _hook;
+    private final CoreTask _origin;
+    private int cursor = 0;
+    final TaskHook[] _hooks;
 
-    CoreTaskContext(final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final TaskHook p_hook, final Callback<TaskResult> p_callback) {
-        this._hook = p_hook;
+    CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
+        this._origin = origin;
+        this._hooks = p_hooks;
         if (parentContext != null) {
             this._time = parentContext.time();
             this._world = parentContext.world();
@@ -87,6 +85,11 @@ class CoreTaskContext implements TaskContext {
         return resolved;
     }
 
+    @Override
+    public boolean isGlobal(String name) {
+        return _globalVariables.containsKey(name);
+    }
+
     private TaskResult internal_deep_resolve(final String name) {
         TaskResult resolved = null;
         if (this._localVariables != null) {
@@ -111,7 +114,7 @@ class CoreTaskContext implements TaskContext {
         //if(input instanceof TaskResult){
         //    return (TaskResult) input;
         //} else {
-            return new CoreTaskResult(input, false);
+        return new CoreTaskResult(input, false);
         //}
     }
 
@@ -213,14 +216,14 @@ class CoreTaskContext implements TaskContext {
                 TaskResult casted = (TaskResult) value;
                 for (int i = 0; i < casted.size(); i++) {
                     final Object loop = casted.get(i);
-                    if (loop instanceof AbstractNode) {
+                    if (loop instanceof BaseNode) {
                         final Node castedNode = (Node) loop;
                         previous.add(castedNode.graph().cloneNode(castedNode));
                     } else {
                         previous.add(loop);
                     }
                 }
-            } else if (value instanceof AbstractNode) {
+            } else if (value instanceof BaseNode) {
                 final Node castedNode = (Node) value;
                 previous.add(castedNode.graph().cloneNode(castedNode));
             } else {
@@ -248,14 +251,14 @@ class CoreTaskContext implements TaskContext {
                 TaskResult casted = (TaskResult) value;
                 for (int i = 0; i < casted.size(); i++) {
                     final Object loop = casted.get(i);
-                    if (loop instanceof AbstractNode) {
+                    if (loop instanceof BaseNode) {
                         final Node castedNode = (Node) loop;
                         previous.add(castedNode.graph().cloneNode(castedNode));
                     } else {
                         previous.add(loop);
                     }
                 }
-            } else if (value instanceof AbstractNode) {
+            } else if (value instanceof BaseNode) {
                 final Node castedNode = (Node) value;
                 previous.add(castedNode.graph().cloneNode(castedNode));
             } else {
@@ -303,12 +306,26 @@ class CoreTaskContext implements TaskContext {
 
     @Override
     public final void continueTask() {
+        final TaskHook[] globalHooks = this._graph.taskHooks();
+        final Action currentAction = _origin.actions[cursor];
         //next step now...
-        if (this._hook != null) {
-            this._hook.afterAction(_current, this);
+        if (_hooks != null) {
+            for (int i = 0; i < _hooks.length; i++) {
+                _hooks[i].afterAction(currentAction, this);
+            }
         }
-        final AbstractTaskAction nextAction = _current.next();
-        _current = nextAction;
+        if (globalHooks != null) {
+            for (int i = 0; i < globalHooks.length; i++) {
+                globalHooks[i].afterAction(currentAction, this);
+            }
+        }
+        cursor++;
+        final Action nextAction;
+        if (cursor == _origin.insertCursor) {
+            nextAction = null;
+        } else {
+            nextAction = _origin.actions[cursor];
+        }
         if (nextAction == null) {
             /* Clean */
             if (this._localVariables != null) {
@@ -333,11 +350,22 @@ class CoreTaskContext implements TaskContext {
                 }
             }
             /* End Clean */
-            if (this._hook != null) {
-                if (this._parent == null) {
-                    this._hook.end(this);
-                } else {
-                    this._hook.afterTask(this);
+            if (_hooks != null) {
+                for (int i = 0; i < _hooks.length; i++) {
+                    if (this._parent == null) {
+                        _hooks[i].end(this);
+                    } else {
+                        _hooks[i].afterTask(this);
+                    }
+                }
+            }
+            if (globalHooks != null) {
+                for (int i = 0; i < globalHooks.length; i++) {
+                    if (this._parent == null) {
+                        globalHooks[i].end(this);
+                    } else {
+                        globalHooks[i].afterTask(this);
+                    }
                 }
             }
             if (this._callback != null) {
@@ -348,24 +376,46 @@ class CoreTaskContext implements TaskContext {
                 }
             }
         } else {
-            if (this._hook != null) {
-                this._hook.beforeAction(nextAction, this);
+            if (_hooks != null) {
+                for (int i = 0; i < _hooks.length; i++) {
+                    _hooks[i].beforeAction(nextAction, this);
+                }
+            }
+            if (globalHooks != null) {
+                for (int i = 0; i < globalHooks.length; i++) {
+                    globalHooks[i].beforeAction(nextAction, this);
+                }
             }
             nextAction.eval(this);
         }
     }
 
-    final void execute(AbstractTaskAction initialTaskAction) {
-        this._current = initialTaskAction;
-        if (this._hook != null) {
-            if (_parent == null) {
-                _hook.start(this);
-            } else {
-                _hook.beforeTask(_parent, this);
+
+    @SuppressWarnings("Duplicates")
+    final void execute() {
+        final Action current = _origin.actions[cursor];
+        if (_hooks != null) {
+            for (int i = 0; i < _hooks.length; i++) {
+                if (_parent == null) {
+                    _hooks[i].start(this);
+                } else {
+                    _hooks[i].beforeTask(_parent, this);
+                }
+                _hooks[i].beforeAction(current, this);
             }
-            this._hook.beforeAction(_current, this);
         }
-        this._current.eval(this);
+        final TaskHook[] globalHooks = this._graph.taskHooks();
+        if (globalHooks != null) {
+            for (int i = 0; i < globalHooks.length; i++) {
+                if (_parent == null) {
+                    globalHooks[i].start(this);
+                } else {
+                    globalHooks[i].beforeTask(_parent, this);
+                }
+                globalHooks[i].beforeAction(current, this);
+            }
+        }
+        current.eval(this);
     }
 
     @Override
@@ -478,11 +528,6 @@ class CoreTaskContext implements TaskContext {
         } else {
             return buffer.toString();
         }
-    }
-
-    @Override
-    public TaskHook hook() {
-        return this._hook;
     }
 
     @Override

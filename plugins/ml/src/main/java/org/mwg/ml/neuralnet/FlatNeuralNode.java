@@ -2,13 +2,13 @@ package org.mwg.ml.neuralnet;
 
 import org.mwg.Graph;
 import org.mwg.Type;
+import org.mwg.base.BaseNode;
 import org.mwg.ml.common.matrix.MatrixOps;
 import org.mwg.ml.common.matrix.VolatileMatrix;
-import org.mwg.plugin.AbstractNode;
 import org.mwg.plugin.NodeState;
 import org.mwg.struct.Matrix;
 
-public class FlatNeuralNode extends AbstractNode {
+public class FlatNeuralNode extends BaseNode {
 
     //Inputs are organized in one row
 
@@ -192,7 +192,6 @@ public class FlatNeuralNode extends AbstractNode {
                 newBiases[layer].set(0, column, biases[layer].get(0, column) - learningRate * derivativeErr[column]);
             }
             derivativeErr = previousErr;
-
             MatrixOps.copyMatrix(newWeights[layer], weights[layer]);
             MatrixOps.copyMatrix(newBiases[layer], biases[layer]);
         }

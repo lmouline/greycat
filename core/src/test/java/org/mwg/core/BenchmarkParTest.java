@@ -7,7 +7,8 @@ import org.mwg.Type;
 import org.mwg.core.scheduler.HybridScheduler;
 import org.mwg.task.TaskResult;
 
-import static org.mwg.task.Actions.*;
+import static org.mwg.core.task.Actions.*;
+import static org.mwg.core.task.Actions.newTask;
 
 /**
  * @ignore ts
@@ -27,14 +28,17 @@ public class BenchmarkParTest {
             public void on(Boolean result) {
                 final long previous = System.currentTimeMillis();
                 final long previousCache = g.space().available();
-                loopPar("0", "9999", newNode()
-                        .setProperty("name", Type.STRING, "node_{{i}}")
-                        .print("{{result}}")
-                        .indexNode("nodes", "name")
-                        .loop("0", "999", jump("{{i}}").setProperty("val", Type.INT, "{{i}}").clear())
-                        .ifThen(cond("i % 100 == 0"), save())
-                        .clear()
-                ).save().fromIndexAll("nodes").execute(g, new Callback<TaskResult>() {
+                newTask().loopPar("0", "9999",
+                        newTask()
+                                .then(createNode())
+                                .then(set("name", Type.STRING, "node_{{i}}"))
+                                .then(print("{{result}}"))
+                                .then(addToGlobalIndex("nodes", "name"))
+                                .loop("0", "999",
+                                        newTask().then(travelInTime("{{i}}")).then(set("val", Type.INT, "{{i}}")).then(clearResult()))
+                                .ifThen(cond("i % 100 == 0"), newTask().then(save()))
+                                .then(clearResult())
+                ).then(save()).then(readGlobalIndexAll("nodes")).execute(g, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
                         System.out.println("indexSize=" + result.size());

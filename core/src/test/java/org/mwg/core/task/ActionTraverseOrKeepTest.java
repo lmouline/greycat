@@ -1,22 +1,17 @@
 package org.mwg.core.task;
 
-import org.junit.Assert;
 import org.junit.Test;
-import org.mwg.Node;
-import org.mwg.task.Action;
-import org.mwg.task.TaskContext;
-import org.mwg.task.TaskResult;
 
 public class ActionTraverseOrKeepTest extends AbstractActionTest {
 
     @Test
     public void test() {
+        /*
         initGraph();
-        new CoreTask()
-                .fromIndexAll("nodes")
-                .traverseOrKeep("children")
-                .traverseOrKeep("children")
-                .then(new Action() {
+        task().then(readGlobalIndexAll("nodes"))
+                .then(traverseOrKeep("children"))
+                .then(traverseOrKeep("children"))
+                .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext context) {
                         TaskResult<Node> nodes = context.resultAsNodes();
@@ -26,6 +21,7 @@ public class ActionTraverseOrKeepTest extends AbstractActionTest {
                 })
                 .execute(graph, null);
         removeGraph();
+        */
     }
 
 }

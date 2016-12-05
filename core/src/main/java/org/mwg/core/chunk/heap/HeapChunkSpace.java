@@ -128,7 +128,7 @@ public class HeapChunkSpace implements ChunkSpace {
                 public void on(final Buffer result) {
                     if (result != null && result.length() > 0) {
                         Chunk loadedChunk = createAndMark(type, world, time, id);
-                        loadedChunk.load(result, false);
+                        loadedChunk.load(result);
                         result.free();
                         callback.on(loadedChunk);
                     } else {
@@ -184,7 +184,7 @@ public class HeapChunkSpace implements ChunkSpace {
                         int reversedOffset = reversedIndex * Constants.KEY_SIZE;
                         if (view.length() > 0) {
                             Chunk loadedChunk = createAndMark((byte) keys[reversedOffset], keys[reversedOffset + 1], keys[reversedOffset + 2], keys[reversedOffset + 3]);
-                            loadedChunk.load(view, false);
+                            loadedChunk.load(view);
                             finalResult[reversedIndex] = loadedChunk;
                         } else {
                             finalResult[reversedIndex] = null;

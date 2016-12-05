@@ -7,7 +7,8 @@ import org.mwg.Type;
 import org.mwg.task.TaskResult;
 import org.mwg.utility.VerbosePlugin;
 
-import static org.mwg.task.Actions.*;
+import static org.mwg.core.task.Actions.*;
+import static org.mwg.core.task.Actions.newTask;
 
 public class SmallWorldTest {
 
@@ -20,23 +21,26 @@ public class SmallWorldTest {
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean isConnected) {
-                setTime("0").setWorld("0")
-                        .newNode().setProperty("name", Type.STRING, "room0").indexNode("rooms", "name").asVar("room0")
-                        .newNode().setProperty("name", Type.STRING, "room01").indexNode("rooms", "name").asVar("room01")
-                        .newNode().setProperty("name", Type.STRING, "room001").indexNode("rooms", "name").asVar("room001")
-                        .newNode().setProperty("name", Type.STRING, "room0001").indexNode("rooms", "name").asVar("room0001")
-                        .fromVar("room0").add("rooms", "room01")
-                        .fromVar("room01").add("rooms", "room001")
-                        .fromVar("room001").add("rooms", "room0001")
+                newTask()
+                        .then(setTime("0"))
+                        .then(setWorld("0"))
+                        .then(createNode()).then(set("name", Type.STRING, "room0")).then(addToGlobalIndex("rooms", "name")).then(setAsVar("room0"))
+                        .then(createNode()).then(set("name", Type.STRING, "room01")).then(addToGlobalIndex("rooms", "name")).then(setAsVar("room01"))
+                        .then(createNode()).then(set("name", Type.STRING, "room001")).then(addToGlobalIndex("rooms", "name")).then(setAsVar("room001"))
+                        .then(createNode()).then(set("name", Type.STRING, "room0001")).then(addToGlobalIndex("rooms", "name")).then(setAsVar("room0001"))
+                        .then(readVar("room0")).then(addVarToRelation("rooms", "room01"))
+                        .then(readVar("room01")).then(addVarToRelation("rooms", "room001"))
+                        .then(readVar("room001")).then(addVarToRelation("rooms", "room0001"))
                         .loop("0", "9", //loop automatically inject an it variable
-                                newNode()
-                                        .setProperty("id", Type.STRING, "sensor_{{it}}")
-                                        .indexNode("sensors", "id")
-                                        .defineVar("sensor")
-                                        .ifThenElse(cond("i % 4 == 0"), fromVar("room0").add("sensors", "sensor"),
-                                                ifThenElse(cond("i % 4 == 1"), fromVar("room01").add("sensors", "sensor"),
-                                                        ifThenElse(cond("i % 4 == 2"), fromVar("room001").add("sensors", "sensor"),
-                                                                ifThen(cond("i % 4 == 3"), fromVar("room0001").add("sensors", "sensor")))))
+                                newTask()
+                                        .then(createNode())
+                                        .then(set("id", Type.STRING, "sensor_{{it}}"))
+                                        .then(addToGlobalIndex("sensors", "id"))
+                                        .then(defineAsVar("sensor"))
+                                        .ifThenElse(cond("i % 4 == 0"), newTask().then(readVar("room0")).then(addVarToRelation("sensors", "sensor")),
+                                                newTask().ifThenElse(cond("i % 4 == 1"), newTask().then(readVar("room01")).then(addVarToRelation("sensors", "sensor")),
+                                                        newTask().ifThenElse(cond("i % 4 == 2"), newTask().then(readVar("room001")).then(addVarToRelation("sensors", "sensor")),
+                                                                newTask().ifThen(cond("i % 4 == 3"), newTask().then(readVar("room0001")).then(addVarToRelation("sensors", "sensor"))))))
                         ).execute(g, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult taskResult) {
