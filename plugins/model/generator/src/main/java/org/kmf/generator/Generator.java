@@ -75,7 +75,7 @@ public class Generator {
                 }
                 javaClass.setName(classifier.name());
 
-                String parentName = "org.mwg.plugin.AbstractNode";
+                String parentName = "org.mwg.base.BaseNode";
                 if (loopClass.parent() != null) {
                     parentName = loopClass.parent().fqn();
                 }
@@ -151,7 +151,7 @@ public class Generator {
                             getter.setName(toCamelCase("get " + prop.name()));
                             getter.addParameter("org.mwg.Callback<" + resultType + "[]>","callback");
                             getter.setBody(
-                                   "this.rel(" + prop.name().toUpperCase() + ",new org.mwg.Callback<org.mwg.Node[]>() {\n" +
+                                   "this.relation(" + prop.name().toUpperCase() + ",new org.mwg.Callback<org.mwg.Node[]>() {\n" +
                                            "@Override\n" +
                                            "public void on(org.mwg.Node[] nodes) {\n" +
                                            resultType + "[] result = new " + resultType + "[nodes.length];\n" +
@@ -172,7 +172,7 @@ public class Generator {
                             add.setName(toCamelCase("addTo " + prop.name()));
                             add.setReturnType(classifier.fqn());
                             add.addParameter(typeToClassName(prop.type()), "value");
-                            bodyBuilder.append("super.add(").append(prop.name().toUpperCase()).append(",(org.mwg.Node)value);");
+                            bodyBuilder.append("super.addToRelation(").append(prop.name().toUpperCase()).append(",(org.mwg.Node)value);");
                             if(prop.parameters().get("opposite") != null) { //todo optimize
                                 String methoName = prop.parameters().get("opposite");
                                 bodyBuilder.append("value.internal_addTo")
@@ -193,7 +193,7 @@ public class Generator {
                             remove.setName(toCamelCase("removeFrom " + prop.name()));
                             remove.setReturnType(classifier.fqn());
                             remove.addParameter(typeToClassName(prop.type()), "value");
-                            bodyBuilder.append("super.remove(").append(prop.name().toUpperCase()).append(",(org.mwg.Node)value);");
+                            bodyBuilder.append("super.removeFromRelation(").append(prop.name().toUpperCase()).append(",(org.mwg.Node)value);");
                             if(prop.parameters().get("opposite") != null) { //todo optimize
                                 String methoName = prop.parameters().get("opposite");
                                 bodyBuilder.append("value.internal_removeFrom")
@@ -214,14 +214,14 @@ public class Generator {
                                 internalRemove.setName(toCamelCase("internal_removeFrom " + prop.name()));
                                 internalRemove.setReturnTypeVoid();
                                 internalRemove.addParameter(typeToClassName(prop.type()),"value");
-                                internalRemove.setBody("super.remove(" + prop.name().toUpperCase() + ",(org.mwg.Node)value);");
+                                internalRemove.setBody("super.removeFromRelation(" + prop.name().toUpperCase() + ",(org.mwg.Node)value);");
 
                                 MethodSource<JavaClassSource> internalAdd = javaClass.addMethod();
                                 internalAdd.setVisibility(Visibility.PACKAGE_PRIVATE);
                                 internalAdd.setName(toCamelCase("internal_addTo " + prop.name()));
                                 internalAdd.setReturnTypeVoid();
                                 internalAdd.addParameter(typeToClassName(prop.type()),"value");
-                                internalAdd.setBody("super.add(" + prop.name().toUpperCase() + ",(org.mwg.Node)value);");
+                                internalAdd.setBody("super.addToRelation(" + prop.name().toUpperCase() + ",(org.mwg.Node)value);");
                             }
 
                         } else {
@@ -236,7 +236,7 @@ public class Generator {
                                 getter.setName(toCamelCase("get " + prop.name()));
 
                                 getter.setBody("\t\tfinal org.mwg.DeferCounterSync waiter = this.graph().newSyncCounter(1);\n" +
-                                        "this.rel(" + prop.name().toUpperCase() + ", new org.mwg.Callback<org.mwg.Node[]>() {\n" +
+                                        "this.relation(" + prop.name().toUpperCase() + ", new org.mwg.Callback<org.mwg.Node[]>() {\n" +
                                         "@Override\n" +
                                         "public void on(org.mwg.Node[] raw) {\n" +
                                         "if (raw == null || raw.length == 0) {\n" +
@@ -259,12 +259,12 @@ public class Generator {
                                 StringBuffer buffer = new StringBuffer();
                                 buffer.append(" final org.mwg.DeferCounterSync waiter = this.graph().newSyncCounter(1);\n" +
                                         "        final " + classifier.fqn() + " selfPointer = this;\n" +
-                                        "        this.rel(" + prop.name().toUpperCase() + ", new org.mwg.Callback<org.mwg.Node[]>() {\n" +
+                                        "        this.relation(" + prop.name().toUpperCase() + ", new org.mwg.Callback<org.mwg.Node[]>() {\n" +
                                         "            @Override\n" +
                                         "            public void on(org.mwg.Node[] raw) {\n" +
                                         "                if (raw == null || raw.length == 0) {\n" +
                                         "                    org.mwg.ml.RegressionNode casted = (org.mwg.ml.RegressionNode) graph().newTypedNode(world(),time(),\"" + prop.algorithm() + "\");\n" +
-                                        "                    selfPointer.add(" + prop.name().toUpperCase() + ",casted);\n");
+                                        "                    selfPointer.addToRelation(" + prop.name().toUpperCase() + ",casted);\n");
 
                                 for (String key : prop.parameters().keySet()) {
                                     buffer.append("casted.set(\"" + key + "\"," + prop.parameters().get(key) + ");\n");
@@ -351,7 +351,7 @@ public class Generator {
                                     buffer.append("waiterIndex.waitResult();\n");
 
                                 } else {
-                                    buffer.append("super.setProperty(")
+                                    buffer.append("super.set(")
                                             .append(prop.name().toUpperCase())
                                             .append(", ")
                                             .append(prop.name().toUpperCase())
@@ -379,7 +379,7 @@ public class Generator {
         } else {
             pluginClass.setName(name + "Plugin");
         }
-        pluginClass.setSuperType("org.mwg.plugin.AbstractPlugin");
+        pluginClass.setSuperType("org.mwg.base.BasePlugin");
         MethodSource<JavaClassSource> pluginConstructor = pluginClass.addMethod().setConstructor(true);
         pluginConstructor.setVisibility(Visibility.PUBLIC);
         StringBuilder constructorContent = new StringBuilder();
@@ -487,16 +487,21 @@ public class Generator {
                 loopFindMethod.addParameter("String", "query");
                 loopFindMethod.addParameter("org.mwg.Callback<" + resultType + "[]>","callback");
                 loopFindMethod.setBody(
-                        "       this._graph.find(world, time, \"" + casted.fqn() + "\",query,new org.mwg.Callback<org.mwg.Node[]>() {\n" +
+                        "       this._graph.index(world, time, \"" + casted.fqn() + "\", new Callback<org.mwg.NodeIndex>() {\n" +
                         "           @Override\n" +
-                        "           public void on(org.mwg.Node[] nodes) {\n" +
-                        "               " + resultType + "[] result = new " + resultType + "[nodes.length];\n" +
-                        "               for(int i=0;i<result.length;i++) {\n" +
-                        "                   result[i] = ("+ resultType + ") nodes[i];\n" +
-                        "               }\n" +
-                        "               callback.on(result);\n" +
-                        "           }" +
-                                "});"
+                        "           public void on(org.mwg.NodeIndex index) {\n" +
+                        "               index.find(query, new Callback<org.mwg.Node[]>() {\n" +
+                        "                   @Override\n" +
+                        "                   public void on(org.mwg.Node[] nodes) {\n" +
+                        "                       " + resultType + "[] result = new " + resultType + "[nodes.length];\n" +
+                        "                       for (int i = 0; i < result.length; i++) {\n" +
+                        "                           result[i] = (" + resultType + ") nodes[i];\n" +
+                        "                       }\n" +
+                        "                       callback.on(result);\n" +
+                        "                   }\n" +
+                        "               });\n" +
+                        "           }\n" +
+                        "       });"
                 );
 
                 MethodSource<JavaClassSource> loopFindAllMethod = modelClass.addMethod().setName(toCamelCase("findAll " + classifier.name()));
@@ -506,16 +511,21 @@ public class Generator {
                 loopFindAllMethod.addParameter("long", "time");
                 loopFindAllMethod.addParameter("org.mwg.Callback<" + resultType + "[]>","callback");
                 loopFindAllMethod.setBody(
-                        "       this._graph.findAll(world, time, \"" + casted.fqn() + "\",new org.mwg.Callback<org.mwg.Node[]>() {\n" +
+                        "       this._graph.index(world, time, \"" + casted.fqn() + "\", new Callback<org.mwg.NodeIndex>() {\n" +
                                 "           @Override\n" +
-                                "           public void on(org.mwg.Node[] nodes) {\n" +
-                                "               " + resultType + "[] result = new " + resultType + "[nodes.length];\n" +
-                                "               for(int i=0;i<result.length;i++) {\n" +
-                                "                   result[i] = ("+ resultType + ") nodes[i];\n" +
-                                "               }\n" +
-                                "               callback.on(result);\n" +
-                                "           }" +
-                                "});"
+                                "           public void on(org.mwg.NodeIndex index) {\n" +
+                                "               index.findAll(new Callback<org.mwg.Node[]>() {\n" +
+                                "                   @Override\n" +
+                                "                   public void on(org.mwg.Node[] nodes) {\n" +
+                                "                       " + resultType + "[] result = new " + resultType + "[nodes.length];\n" +
+                                "                       for (int i = 0; i < result.length; i++) {\n" +
+                                "                           result[i] = (" + resultType + ") nodes[i];\n" +
+                                "                       }\n" +
+                                "                       callback.on(result);\n" +
+                                "                   }\n" +
+                                "               });\n" +
+                                "           }\n" +
+                                "       });"
                 );
             }
         }

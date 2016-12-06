@@ -19,8 +19,9 @@ class sample.Software {
     att name : String {
 
     }
-    att load : Double {
-        using "Polynomial"
-        with precision "0.1"
-    }
+    att load : Double
+    //att load : Double {
+    //    using "Polynomial"
+    //    with precision "0.1"
+    //}
 }
