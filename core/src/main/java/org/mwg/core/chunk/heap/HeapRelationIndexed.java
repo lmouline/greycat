@@ -53,14 +53,7 @@ class HeapRelationIndexed extends HeapLongLongArrayMap implements RelationIndexe
     }
 
     @Override
-    public void find(String query, Callback<Node[]> callback) {
-        Query queryObj = parent.graph().newQuery();
-        queryObj.parse(query);
-        findByQuery(queryObj, callback);
-    }
-
-    @Override
-    public void findUsing(Callback<Node[]> callback, String... params) {
+    public void find(Callback<Node[]> callback, String... params) {
         Query queryObj = parent.graph().newQuery();
         String previous = null;
         for (int i = 0; i < params.length; i++) {

@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.mwg.task.ActionFunction;
 import org.mwg.task.TaskContext;
 
-import static org.mwg.core.task.Actions.readGlobalIndexAll;
+import static org.mwg.core.task.Actions.readGlobalIndex;
 import static org.mwg.core.task.Actions.selectWith;
 import static org.mwg.core.task.Actions.newTask;
 
@@ -15,7 +15,7 @@ public class ActionWithTest extends AbstractActionTest {
     public void test() {
         initGraph();
         newTask()
-                .then(readGlobalIndexAll("nodes"))
+                .then(readGlobalIndex("nodes"))
                 .then(selectWith("name", "n0"))
                 .thenDo(new ActionFunction() {
                     @Override
@@ -25,7 +25,7 @@ public class ActionWithTest extends AbstractActionTest {
                 })
                 .execute(graph, null);
 
-        newTask().then(readGlobalIndexAll("nodes"))
+        newTask().then(readGlobalIndex("nodes"))
                 .then(selectWith("name", "n.*"))
                 .thenDo(new ActionFunction() {
                     @Override

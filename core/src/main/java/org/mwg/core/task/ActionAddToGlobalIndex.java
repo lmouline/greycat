@@ -25,40 +25,17 @@ class ActionAddToGlobalIndex implements Action {
 
         final TaskResult previousResult = context.result();
         final String templatedIndexName = context.template(_name);
-        final String[] templatedKeyAttributes = new String[_attributes.length];
-        for(int i=0;i<_attributes.length;i++) {
-            templatedKeyAttributes[i] = context.template(_attributes[i]);
-        }
-
-
+        final String[] templatedAttributes = context.templates(_attributes);
         final DeferCounter counter = new CoreDeferCounter(previousResult.size());
-        /*final Callback<Boolean> end = new Callback<Boolean>() {
-            @Override
-            public void on(Boolean succeed) {
-                if (succeed) {
-                    counter.count();
-                } else {
-                    throw new RuntimeException("Error during indexation of node with id " + ((Node) previousResult.get(0)).id());
-                }
-            }
-        };*/
+
         for (int i = 0; i < previousResult.size(); i++) {
             final Object loop = previousResult.get(i);
             if (loop instanceof BaseNode) {
                 BaseNode loopBaseNode = (BaseNode) loop;
                 context.graph().index(loopBaseNode.world(), Constants.BEGINNING_OF_TIME, templatedIndexName, indexNode -> {
-                    indexNode.addToIndex(loopBaseNode,templatedIndexName);
+                    indexNode.addToIndex(loopBaseNode, templatedAttributes);
                     counter.count();
                 });
-
-
-                /*
-                if (_isIndexation) {
-                    context.graph().index(templatedIndexName, (Node) loop, templatedKeyAttributes, end);
-                } else {
-                    context.graph().unindex(templatedIndexName, (Node) loop, templatedKeyAttributes, end);
-                }
-                */
             } else {
                 counter.count();
             }

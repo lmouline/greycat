@@ -16,7 +16,7 @@ public class ActionTravelInTimeTest extends AbstractActionTest {
     public void testTravelInTime() {
         initGraph();
 
-        newTask().then(readGlobalIndexAll("nodes"))
+        newTask().then(readGlobalIndex("nodes"))
                 .then(defineAsGlobalVar("nodes"))
                 .forEach(newTask().thenDo(new ActionFunction() {
                     @Override

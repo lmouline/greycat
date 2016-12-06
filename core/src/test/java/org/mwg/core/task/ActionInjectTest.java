@@ -72,7 +72,7 @@ public class ActionInjectTest extends AbstractActionTest {
         initGraph();
         final ActionInjectTest selfPointer = this;
         graph.index(0, 0, "roots", rootsIndex -> {
-            rootsIndex.find("name=root", result -> {
+            rootsIndex.find(result -> {
                 Assert.assertEquals(1, result.length);
 
                 newTask()
@@ -92,7 +92,7 @@ public class ActionInjectTest extends AbstractActionTest {
                 }
 
                 Assert.assertEquals("root", name);
-            });
+            },"name","root");
         });
 
         removeGraph();

@@ -16,7 +16,7 @@ public class ActionFromIndexTest extends AbstractActionTest {
         initGraph();
         newTask()
                 .then(inject("uselessPayload"))
-                .then(readGlobalIndex("nodes", "name=n0"))
+                .then(readGlobalIndex("nodes", "name", "n0"))
                 .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext context) {

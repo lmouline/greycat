@@ -17,7 +17,7 @@ public class ActionLookupTest extends AbstractActionTest {
         initGraph();
 
         newTask()
-                .then(readGlobalIndexAll("nodes"))
+                .then(readGlobalIndex("nodes"))
                 .thenDo(context -> {
                     TaskResult<Node> nodes = context.resultAsNodes();
                     for (int i = 0; i < nodes.size(); i++) {

@@ -46,19 +46,13 @@ class CoreNodeIndex extends BaseNode implements NodeIndex {
     }
 
     @Override
-    public void findAll(Callback<Node[]> callback) {
-        long[] flat = ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).all();
-        graph().lookupAll(world(), time(), flat, callback);
-    }
-
-    @Override
-    public void find(String query, Callback<Node[]> callback) {
-        ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).find(query, callback);
-    }
-
-    @Override
-    public void findUsing(Callback<Node[]> callback, String... params) {
-        ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).findUsing(callback, params);
+    public void find(Callback<Node[]> callback, String... query) {
+        if (query == null || query.length == 0) {
+            long[] flat = ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).all();
+            graph().lookupAll(world(), time(), flat, callback);
+        } else {
+            ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).find(callback, query);
+        }
     }
 
     @Override

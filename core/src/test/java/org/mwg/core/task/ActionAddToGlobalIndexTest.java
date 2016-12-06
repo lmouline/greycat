@@ -21,7 +21,7 @@ public class ActionAddToGlobalIndexTest {
                         .then(set("name", Type.STRING, "root"))
                         .then(addToGlobalIndex("indexName", "name"))
                         .then(defineAsGlobalVar("nodeIndexed"))
-                        .then(readGlobalIndexAll("indexName"))
+                        .then(readGlobalIndex("indexName"))
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext context) {
@@ -33,7 +33,7 @@ public class ActionAddToGlobalIndexTest {
                             }
                         })
                         .then(removeFromGlobalIndex("indexName", "name"))
-                        .then(readGlobalIndexAll("indexName"))
+                        .then(readGlobalIndex("indexName"))
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext context) {
@@ -46,6 +46,35 @@ public class ActionAddToGlobalIndexTest {
             }
         });
     }
+
+
+    @Test
+    public void readGlobalIndexTest() {
+        Graph graph = new GraphBuilder().build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                newTask()
+                        .then(createNode())
+                        .then(set("name", Type.STRING, "root"))
+                        .then(addToGlobalIndex("indexName", "name"))
+                        .then(defineAsGlobalVar("nodeIndexed"))
+                        .then(readGlobalIndex("indexName", "name","root"))
+                        .thenDo(new ActionFunction() {
+                            @Override
+                            public void eval(TaskContext context) {
+                                Assert.assertNotNull(context.result());
+                                Node indexedNode = (Node) context.variable("nodeIndexed").get(0);
+                                Assert.assertEquals(1, context.result().size());
+                                Assert.assertEquals(indexedNode.id(), context.resultAsNodes().get(0).id());
+                                context.continueTask();
+                            }
+                        })
+                        .execute(graph, null);
+            }
+        });
+    }
+
 
     /*
     @Test

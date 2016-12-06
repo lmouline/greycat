@@ -7,7 +7,7 @@ import org.mwg.*;
 import org.mwg.struct.RelationIndexed;
 import org.mwg.task.*;
 
-import static org.mwg.core.task.Actions.readGlobalIndexAll;
+import static org.mwg.core.task.Actions.readGlobalIndex;
 import static org.mwg.core.task.Actions.attributes;
 import static org.mwg.core.task.Actions.attributesWithTypes;
 import static org.mwg.core.task.Actions.newTask;
@@ -45,7 +45,7 @@ public class ActionPropertiesTest {
     public void testNormalRelations() {
         initGraph();
         newTask()
-                .then(readGlobalIndexAll("root"))
+                .then(readGlobalIndex("root"))
                 .then(attributes())
                 .thenDo(new ActionFunction() {
                     @Override
@@ -68,7 +68,7 @@ public class ActionPropertiesTest {
     public void testLocalIndex() {
         initGraph();
         newTask()
-                .then(readGlobalIndexAll("root"))
+                .then(readGlobalIndex("root"))
                 .map(
                         newTask().then(attributesWithTypes(Type.RELATION)),
                         newTask().then(attributesWithTypes(Type.RELATION_INDEXED))

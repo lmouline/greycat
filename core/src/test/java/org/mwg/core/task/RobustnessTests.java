@@ -49,7 +49,7 @@ public class RobustnessTests {
     public void deleteGrap() {
 
         _graph.index(0, 0, "rootIndex", rootIndex -> {
-            rootIndex.findUsing(result -> {
+            rootIndex.find(result -> {
                 for (Node r : result) {
                     final Node rr = r;
                     r.relation("child", new Callback<Node[]>() {
@@ -110,7 +110,7 @@ public class RobustnessTests {
         //indexName null
         boolean exceptionCaught = false;
         try {
-            newTask().then(readGlobalIndex(null, "name=root")).execute(_graph, null);
+            newTask().then(readGlobalIndex(null, "name","root")).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {
@@ -135,7 +135,7 @@ public class RobustnessTests {
         //indexName null
         boolean exceptionCaught = false;
         try {
-            newTask().then(readGlobalIndexAll(null)).execute(_graph, null);
+            newTask().then(readGlobalIndex(null)).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {

@@ -72,16 +72,16 @@ public class IndexTest {
                 Assert.assertEquals(node_t1.id(), flat[0]);
 
                 final int[] passed = {0};
-                irel.find("name=MyName", new Callback<Node[]>() {
+                irel.find(new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
                         Assert.assertEquals(result.length, 1);
                         Assert.assertEquals(result[0].id(), node_t1.id());
                         passed[0]++;
                     }
-                });
+                },"name","MyName");
 
-                irel.findUsing(new Callback<Node[]>() {
+                irel.find(new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
                         Assert.assertEquals(result.length, 1);

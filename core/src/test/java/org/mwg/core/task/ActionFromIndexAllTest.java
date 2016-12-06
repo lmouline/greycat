@@ -5,9 +5,9 @@ import org.junit.Test;
 import org.mwg.task.ActionFunction;
 import org.mwg.task.TaskContext;
 
-import static org.mwg.core.task.Actions.readGlobalIndexAll;
 import static org.mwg.core.task.Actions.inject;
 import static org.mwg.core.task.Actions.newTask;
+import static org.mwg.core.task.Actions.readGlobalIndex;
 
 public class ActionFromIndexAllTest extends AbstractActionTest {
 
@@ -16,7 +16,7 @@ public class ActionFromIndexAllTest extends AbstractActionTest {
         initGraph();
         newTask()
                 .then(inject("uselessPayload"))
-                .then(readGlobalIndexAll("nodes"))
+                .then(readGlobalIndex("nodes"))
                 .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext context) {

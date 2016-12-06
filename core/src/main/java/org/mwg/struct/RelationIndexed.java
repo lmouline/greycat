@@ -16,9 +16,7 @@ public interface RelationIndexed {
 
     RelationIndexed clear();
 
-    void find(String query, Callback<Node[]> callback);
-
-    void findUsing(Callback<Node[]> callback, String... params);
+    void find(Callback<Node[]> callback, String... params);
 
     void findByQuery(Query query, Callback<Node[]> callback);
 

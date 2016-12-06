@@ -37,7 +37,7 @@ public class ActionForeachParTest extends AbstractActionTest {
                 })
                 .execute(graph, null);
 
-        newTask().then(readGlobalIndexAll("nodes"))
+        newTask().then(readGlobalIndex("nodes"))
                 .forEachPar(
                         newTask().thenDo(new ActionFunction() {
                             @Override

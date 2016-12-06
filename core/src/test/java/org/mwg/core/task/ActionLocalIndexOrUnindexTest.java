@@ -37,7 +37,7 @@ public class ActionLocalIndexOrUnindexTest {
                         .then(set("name", Type.STRING, "root"))
                         .then(addToGlobalIndex("rootIdx", "name"))
                         .then(addVarToRelation("idxRelation", "child", "name"))
-                        .then(readGlobalIndexAll("rootIdx"))
+                        .then(readGlobalIndex("rootIdx"))
                         .then(traverse("idxRelation"))
                         .thenDo(new ActionFunction() {
                             @Override
@@ -50,9 +50,9 @@ public class ActionLocalIndexOrUnindexTest {
                                 Assert.assertEquals("child3", ((BaseNode) result.get(2)).get("name"));
                             }
                         })
-                        .then(readGlobalIndexAll("rootIdx"))
+                        .then(readGlobalIndex("rootIdx"))
                         .then(removeVarFromRelation("idxRelation", "child", "name"))
-                        .then(readGlobalIndexAll("rootIdx"))
+                        .then(readGlobalIndex("rootIdx"))
                         .then(traverse("idxRelation"))
                         .thenDo(new ActionFunction() {
                             @Override

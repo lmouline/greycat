@@ -311,8 +311,8 @@ public class CoreTask implements org.mwg.task.Task {
         registry.put("traverse", new TaskActionFactory() { //DefaultTask
             @Override
             public Action create(String[] params) {
-                if (params.length == 0) {
-                    throw new RuntimeException("get action need one parameter");
+                if (params.length < 1) {
+                    throw new RuntimeException("traverse action needs at least one parameter. Received:" + params.length);
                 }
                 final String getName = params[0];
                 final String[] getParams = new String[params.length - 1];
@@ -326,7 +326,7 @@ public class CoreTask implements org.mwg.task.Task {
             @Override
             public Action create(String[] params) {
                 if (params.length != 1) {
-                    throw new RuntimeException("executeExpression action need one parameter");
+                    throw new RuntimeException("executeExpression action needs one parameter. Received:" + params.length);
                 }
                 return new ActionExecuteExpression(params[0]);
             }
@@ -343,29 +343,25 @@ public class CoreTask implements org.mwg.task.Task {
             }
         });
         */
-        registry.put("readIndexAll", new TaskActionFactory() {
+        registry.put("readGlobalIndex", new TaskActionFactory() {
             @Override
             public Action create(String[] params) {
-                if (params.length != 1) {
-                    throw new RuntimeException("readIndexAll action need one parameter");
+                if (params.length < 1) {
+                    throw new RuntimeException("readGlobalIndex action needs at least one parameter. Received:" + params.length);
                 }
-                return new ActionReadGlobalIndexAll(params[0]);
-            }
-        });
-        registry.put("readIndex", new TaskActionFactory() {
-            @Override
-            public Action create(String[] params) {
-                if (params.length != 2) {
-                    throw new RuntimeException("readIndex action need two parameter");
+                final String indexName = params[0];
+                final String[] queryParams = new String[params.length - 1];
+                if (params.length > 1) {
+                    System.arraycopy(params, 1, queryParams, 0, params.length - 1);
                 }
-                return new ActionReadGlobalIndex(params[0], params[1]);
+                return new ActionReadGlobalIndex(indexName, queryParams);
             }
         });
         registry.put("with", new TaskActionFactory() {
             @Override
             public Action create(String[] params) {
                 if (params.length != 2) {
-                    throw new RuntimeException("with action need two parameter");
+                    throw new RuntimeException("with action needs two parameters. Received:" + params.length);
                 }
                 return new ActionWith(params[0], params[1]);
             }
@@ -374,7 +370,7 @@ public class CoreTask implements org.mwg.task.Task {
             @Override
             public Action create(String[] params) {
                 if (params.length != 2) {
-                    throw new RuntimeException("without action need two parameter");
+                    throw new RuntimeException("without action needs two parameters. Received:" + params.length);
                 }
                 return new ActionWithout(params[0], params[1]);
             }

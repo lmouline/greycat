@@ -222,23 +222,13 @@ public class Actions {
     //Index manipulation zone
 
     /**
-     * Retrieves all nodes from a named index.
-     *
-     * @param indexName name of the index
-     * @return the action to chain
-     */
-    public static Action readGlobalIndexAll(String indexName) {
-        return new ActionReadGlobalIndexAll(indexName);
-    }
-
-    /**
      * Retrieves indexed nodes matching the query.
      *
      * @param indexName name of the index to use
-     * @param query     query to filter nodes, such as name=FOO
+     * @param query     query to filter nodes, such as 'name', 'FOO' to look for nodes with name == FOO
      * @return the action to chain
      */
-    public static Action readGlobalIndex(String indexName, String query) {
+    public static Action readGlobalIndex(String indexName, String... query) {
         return new ActionReadGlobalIndex(indexName, query);
     }
 

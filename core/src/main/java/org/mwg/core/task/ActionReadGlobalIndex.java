@@ -10,9 +10,9 @@ import org.mwg.task.TaskContext;
 class ActionReadGlobalIndex implements Action {
 
     private final String _indexName;
-    private final String _query;
+    private final String[] _query;
 
-    ActionReadGlobalIndex(final String p_indexName, final String p_query) {
+    ActionReadGlobalIndex(final String p_indexName, final String... p_query) {
         if (p_indexName == null) {
             throw new RuntimeException("indexName should not be null");
         }
@@ -26,17 +26,17 @@ class ActionReadGlobalIndex implements Action {
     @Override
     public void eval(final TaskContext context) {
         final String name = context.template(_indexName);
-        final String query = context.template(_query);
+        final String[] query = context.templates(_query);
         context.graph().index(context.world(), context.time(), name, new Callback<NodeIndex>() {
             @Override
             public void on(NodeIndex resolvedIndex) {
-                resolvedIndex.find(query, new Callback<Node[]>() {
+                resolvedIndex.find(new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
                         resolvedIndex.free();
                         context.continueWith(context.wrap(result));
                     }
-                });
+                }, query);
             }
         });
     }

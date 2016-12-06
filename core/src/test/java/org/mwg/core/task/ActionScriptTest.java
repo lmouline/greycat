@@ -16,7 +16,7 @@ public class ActionScriptTest extends AbstractActionTest {
         initGraph();
 
         newTask()
-                .then(readGlobalIndexAll("nodes"))
+                .then(readGlobalIndex("nodes"))
                 .then(script("context.setVariable(\"val1\",55); context.continueTask();"))
                 .then(script("context.setVariable(\"val2\",56); context.continueTask();"))
                 .thenDo(new ActionFunction() {
