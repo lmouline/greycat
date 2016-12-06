@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.chunk.ChunkSpace;
 import org.mwg.chunk.ChunkType;
+import org.mwg.chunk.TimeTreeChunk;
 import org.mwg.chunk.WorldOrderChunk;
 import org.mwg.core.CoreConstants;
 import org.mwg.plugin.MemoryFactory;
@@ -16,6 +17,36 @@ public abstract class AbstractWorldOrderChunkTest {
     public AbstractWorldOrderChunkTest(MemoryFactory factory) {
         this.factory = factory;
     }
+
+   // @Test
+    public void incrementalSave() {
+        ChunkSpace space = factory.newSpace(100, null);
+        WorldOrderChunk map = (WorldOrderChunk) space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 1);
+
+        Buffer buffer = factory.newBuffer();
+        map.saveDiff(buffer);
+        Assert.assertTrue(compareWithString(buffer, ""));
+        buffer.free();
+
+        map.put(5,6);
+        map.put(7, 8);
+        map.put(9, 10);
+
+        buffer = factory.newBuffer();
+        map.saveDiff(buffer);
+        Assert.assertTrue(compareWithString(buffer, "G|K:M,O:Q,S:U"));
+        buffer.free();
+
+        buffer = factory.newBuffer();
+        map.saveDiff(buffer);
+        Assert.assertTrue(compareWithString(buffer, ""));
+        buffer.free();
+
+        space.free(map);
+        space.freeAll();
+
+    }
+
 
     @Test
     public void simpleTest() {
@@ -85,6 +116,15 @@ public abstract class AbstractWorldOrderChunkTest {
         }
         for (int i = 0; i < buffer.length(); i++) {
             if (buffer.read(i) != buffer2.read(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean compareWithString(Buffer buffer, String content) {
+        for (int i = 0; i < content.length(); i++) {
+            if (buffer.read(i) != content.codePointAt(i)) {
                 return false;
             }
         }

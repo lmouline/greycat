@@ -52,4 +52,6 @@ public interface TaskContext {
 
     String template(String input);
 
+    String[] templates(String[] inputs);
+
 }

@@ -161,6 +161,9 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
                 }
                 _kv[_size * 2] = key;
                 _kv[_size * 2 + 1] = value;
+                if (notifyUpdate) {
+                    _diff[_size] = true;
+                }
                 _next[_size] = _hash[hashIndex];
                 _hash[hashIndex] = _size;
                 _size++;
@@ -174,6 +177,9 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
             } else {
                 if (_kv[found * 2 + 1] != value) {
                     _kv[found * 2 + 1] = value;
+                    if (notifyUpdate) {
+                        _diff[found] = true;
+                    }
                     _magic = _magic + 1;
                     if (notifyUpdate && !_dirty) {
                         _dirty = true;
@@ -195,6 +201,9 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
             _size = 1;
             _kv[0] = key;
             _kv[1] = value;
+            if (notifyUpdate) {
+                _diff[0] = true;
+            }
             _hash[(int) HashHelper.longHash(key, _capacity * 2)] = 0;
             if (notifyUpdate && !_dirty) {
                 _dirty = true;
@@ -221,6 +230,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
                 final long[] temp_kv = new long[newCapacity * 2];
                 System.arraycopy(_kv, 0, temp_kv, 0, _size * 2);
                 final boolean[] temp_diff = new boolean[newCapacity];
+                CoreConstants.fillBooleanArray(temp_diff, false);
                 System.arraycopy(_diff, 0, temp_diff, 0, _size);
                 final int[] temp_next = new int[newCapacity];
                 final int[] temp_hash = new int[newCapacity * 2];
@@ -245,10 +255,18 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
 
     @Override
     public synchronized final void load(final Buffer buffer) {
+        internal_load(true, buffer);
+    }
+
+    @Override
+    public synchronized void loadDiff(Buffer buffer) {
+        internal_load(false, buffer);
+    }
+
+    private void internal_load(final boolean initial, final Buffer buffer) {
         if (buffer == null || buffer.length() == 0) {
             return;
         }
-        final boolean isInitial = _kv == null;
         long cursor = 0;
         long bufferSize = buffer.length();
         boolean initDone = false;
@@ -267,7 +285,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
             } else if (buffer.read(cursor) == CoreConstants.CHUNK_SUB_SEP) {
                 if (loopKey != CoreConstants.NULL_LONG) {
                     long loopValue = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                    internal_put(loopKey, loopValue, !isInitial);
+                    internal_put(loopKey, loopValue, !initial);
                     //reset key for next round
                     loopKey = CoreConstants.NULL_LONG;
                 }
@@ -281,13 +299,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
         }
         if (loopKey != CoreConstants.NULL_LONG) {
             long loopValue = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-            internal_put(loopKey, loopValue, !isInitial);
+            internal_put(loopKey, loopValue, !initial);
         }
-    }
-
-    @Override
-    public void loadDiff(Buffer buffer) {
-
     }
 
     @Override
@@ -332,10 +345,29 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     }
 
     @Override
-    public void saveDiff(Buffer buffer) {
-
+    public synchronized void saveDiff(Buffer buffer) {
+        if (_dirty) {
+            Base64.encodeLongToBuffer(_size, buffer);
+            buffer.write(CoreConstants.CHUNK_SEP);
+            if (_extra != CoreConstants.NULL_LONG) {
+                Base64.encodeLongToBuffer(_extra, buffer);
+                buffer.write(CoreConstants.CHUNK_SEP);
+            }
+            boolean isFirst = true;
+            for (int i = 0; i < _size; i++) {
+                if (_diff[i]) {
+                    if (!isFirst) {
+                        buffer.write(CoreConstants.CHUNK_SUB_SEP);
+                    }
+                    isFirst = false;
+                    Base64.encodeLongToBuffer(_kv[i * 2], buffer);
+                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                    Base64.encodeLongToBuffer(_kv[i * 2 + 1], buffer);
+                }
+            }
+            _dirty = false;
+        }
     }
-
 
 }
 
