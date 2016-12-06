@@ -117,14 +117,13 @@
         <!--
         <module>plugins/storage/voldemort</module>
         -->
+        <module>plugins/storage/hbase</module>
 
         <!--
         <module>plugins/hazelcast</module>
         -->
         <!--
         <module>plugins/mlext</module>
-        -->
-        <!--
         <module>plugins/rest</module>
         <module>plugins/model</module>
         -->
