@@ -37,14 +37,12 @@ class ActionAddRemoveVarToRelation implements Action {
                         if (toAddIter instanceof BaseNode) {
                             final Node castedToAddIter = (Node) toAddIter;
                             final Node castedIter = (Node) iter;
-                            /*
+
                             if (_isAdd) {
                                 castedIter.addToRelation(relName, castedToAddIter, _attributes);
                             } else {
                                 castedIter.removeFromRelation(relName, castedToAddIter, _attributes);
                             }
-                            */
-                            internal(_isAdd,relName, castedIter, castedToAddIter, _attributes);
                         }
                         toAddIter = savedVarIt.next();
                     }
@@ -55,21 +53,6 @@ class ActionAddRemoveVarToRelation implements Action {
         context.continueTask();
     }
 
-    /**
-     * @native ts
-     * if (this._isAdd) {
-     * src.addToRelation(relName, target, ...this._attributes);
-     * } else {
-     * src.removeFromRelation(relName, target, ...this._attributes);
-     * }
-     */
-    private void internal(boolean isAdd, String relName, Node src, Node target, String[] attributes) {
-        if (isAdd) {
-            src.addToRelation(relName, target, _attributes);
-        } else {
-            src.removeFromRelation(relName, target, _attributes);
-        }
-    }
 
     @Override
     public String toString() {
