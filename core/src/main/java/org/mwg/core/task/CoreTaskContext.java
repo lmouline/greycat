@@ -531,6 +531,18 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
+    public final String[] templates(String[] inputs) {
+        if (inputs == null) {
+            return null;
+        }
+        String[] result = new String[inputs.length];
+        for (int i = 0; i < inputs.length; i++) {
+            result[i] = template(inputs[i]);
+        }
+        return result;
+    }
+
+    @Override
     public String toString() {
         return "{result:" + _result.toString() + "}";
     }
