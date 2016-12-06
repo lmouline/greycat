@@ -308,6 +308,100 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     public static void fillDefault(Map<String, TaskActionFactory> registry) {
+        registry.put("setWorld", new TaskActionFactory() { //DefaultTask
+            @Override
+            public Action create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("setWorld action need one parameter");
+                }
+                return new ActionSetWorld(params[0]);
+            }
+        });
+        registry.put("setTime", new TaskActionFactory() { //DefaultTask
+            @Override
+            public Action create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("setTime action need one parameter");
+                }
+                return new ActionSetTime(params[0]);
+            }
+        });
+        registry.put("travelInTime", new TaskActionFactory() { //DefaultTask
+            @Override
+            public Action create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("travelInTime action need one parameter");
+                }
+                return new ActionTravelInTime(params[0]);
+            }
+        });
+        registry.put("defineAsGlobalVar", new TaskActionFactory() { //DefaultTask
+            @Override
+            public Action create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("defineAsGlobalVar action need one parameter");
+                }
+                return new ActionDefineAsVar(params[0], true);
+            }
+        });
+        registry.put("defineAsVar", new TaskActionFactory() { //DefaultTask
+            @Override
+            public Action create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("defineAsVar action need one parameter");
+                }
+                return new ActionDefineAsVar(params[0], false);
+            }
+        });
+        registry.put("declareGlobalVar", new TaskActionFactory() { //DefaultTask
+            @Override
+            public Action create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("declareGlobalVar action need one parameter");
+                }
+                return new ActionDeclareGlobalVar(params[0]);
+            }
+        });
+        registry.put("declareVar", new TaskActionFactory() { //DefaultTask
+            @Override
+            public Action create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("declareVar action need one parameter");
+                }
+                return new ActionDeclareVar(params[0]);
+            }
+        });
+        registry.put("readVar", new TaskActionFactory() { //DefaultTask
+            @Override
+            public Action create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("readVar action need one parameter");
+                }
+                return new ActionReadVar(params[0]);
+            }
+        });
+        registry.put("setAsVar", new TaskActionFactory() { //DefaultTask
+            @Override
+            public Action create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("setAsVar action need one parameter");
+                }
+                return new ActionSetAsVar(params[0]);
+            }
+        });
+        registry.put("addToVar", new TaskActionFactory() { //DefaultTask
+            @Override
+            public Action create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("addToVar action need one parameter");
+                }
+                return new ActionAddToVar(params[0]);
+            }
+        });
+
+        //TODO
+
+
         registry.put("traverse", new TaskActionFactory() { //DefaultTask
             @Override
             public Action create(String[] params) {
@@ -322,24 +416,28 @@ public class CoreTask implements org.mwg.task.Task {
                 return new ActionGet(getName, getParams);
             }
         });
+        registry.put("attribute", new TaskActionFactory() { //DefaultTask
+            @Override
+            public Action create(String[] params) {
+                if (params.length == 0) {
+                    throw new RuntimeException("attribute action need one parameter");
+                }
+                final String getName = params[0];
+                final String[] getParams = new String[params.length - 1];
+                if (params.length > 1) {
+                    System.arraycopy(params, 1, getParams, 0, params.length - 1);
+                }
+                return new ActionGet(getName, getParams);
+            }
+        });
+
         registry.put("executeExpression", new TaskActionFactory() { //DefaultTask
             @Override
             public Action create(String[] params) {
                 if (params.length != 1) {
-                    throw new RuntimeException("executeExpression action needs one parameter. Received:" + params.length);
+                    throw new RuntimeException("executeExpression action need one parameter");
                 }
                 return new ActionExecuteExpression(params[0]);
-            }
-        });
-
-/*
-        registry.put("traverseOrKeep", new TaskActionFactory() {
-            @Override
-            public Action create(String[] params) {
-                if (params.length != 1) {
-                    throw new RuntimeException("traverseOrKeep action need one parameter");
-                }
-                return new ActionTraverseOrKeep(params[0]);
             }
         });
         */
