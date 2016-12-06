@@ -567,7 +567,9 @@ declare module org {
                 chunkType(): number;
                 index(): number;
                 save(buffer: org.mwg.struct.Buffer): void;
+                saveDiff(buffer: org.mwg.struct.Buffer): void;
                 load(buffer: org.mwg.struct.Buffer): void;
+                loadDiff(buffer: org.mwg.struct.Buffer): void;
             }
             interface ChunkSpace {
                 createAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
@@ -651,6 +653,7 @@ declare module org {
                 static SCALE_3: number;
                 static SCALE_4: number;
                 static DEAD_NODE_ERROR: string;
+                static fillBooleanArray(target: boolean[], elem: boolean): void;
             }
             class CoreGraph implements org.mwg.Graph {
                 private _storage;
@@ -823,7 +826,10 @@ declare module org {
                         private _dirty;
                         constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_id: number, p_index: number);
                         save(buffer: org.mwg.struct.Buffer): void;
+                        saveDiff(buffer: org.mwg.struct.Buffer): void;
                         load(buffer: org.mwg.struct.Buffer): void;
+                        loadDiff(buffer: org.mwg.struct.Buffer): void;
+                        private internal_load(buffer, diff);
                         newKey(): number;
                         index(): number;
                         world(): number;
@@ -975,11 +981,13 @@ declare module org {
                         getOrCreateFromKey(key: string, elemType: number): any;
                         declareDirty(): void;
                         save(buffer: org.mwg.struct.Buffer): void;
+                        saveDiff(buffer: org.mwg.struct.Buffer): void;
                         each(callBack: org.mwg.plugin.NodeStateCallback): void;
                         loadFrom(origin: org.mwg.chunk.StateChunk): void;
                         private internal_set(p_key, p_type, p_unsafe_elem, replaceIfPresent, initial);
                         private allocate(newCapacity);
                         load(buffer: org.mwg.struct.Buffer): void;
+                        loadDiff(buffer: org.mwg.struct.Buffer): void;
                     }
                     class HeapStringLongMap implements org.mwg.struct.StringLongMap {
                         private parent;
@@ -1020,6 +1028,7 @@ declare module org {
                         private _back_meta;
                         private _k;
                         private _colors;
+                        private _diff;
                         private _magic;
                         private _size;
                         private _dirty;
@@ -1030,7 +1039,10 @@ declare module org {
                         size(): number;
                         range(startKey: number, endKey: number, maxElements: number, walker: org.mwg.chunk.TreeWalker): void;
                         save(buffer: org.mwg.struct.Buffer): void;
+                        saveDiff(buffer: org.mwg.struct.Buffer): void;
                         load(buffer: org.mwg.struct.Buffer): void;
+                        loadDiff(buffer: org.mwg.struct.Buffer): void;
+                        private internal_load(buffer, initial);
                         index(): number;
                         previous(key: number): number;
                         next(key: number): number;
@@ -1042,7 +1054,7 @@ declare module org {
                         clearAt(max: number): void;
                         private reallocate(newCapacity);
                         private key(p_currentIndex);
-                        private setKey(p_currentIndex, p_paramIndex);
+                        private setKey(p_currentIndex, p_paramIndex, initial);
                         private left(p_currentIndex);
                         private setLeft(p_currentIndex, p_paramIndex);
                         private right(p_currentIndex);
@@ -1066,7 +1078,7 @@ declare module org {
                         private insertCase3(n);
                         private insertCase4(n_n);
                         private insertCase5(n);
-                        private internal_insert(p_key);
+                        private internal_insert(p_key, initial);
                         private internal_set_dirty();
                     }
                     class HeapWorldOrderChunk implements org.mwg.chunk.WorldOrderChunk {
@@ -1079,6 +1091,7 @@ declare module org {
                         private _capacity;
                         private _kv;
                         private _next;
+                        private _diff;
                         private _hash;
                         private _dirty;
                         constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_index: number);
@@ -1096,11 +1109,13 @@ declare module org {
                         private internal_put(key, value, notifyUpdate);
                         private resize(newCapacity);
                         load(buffer: org.mwg.struct.Buffer): void;
+                        loadDiff(buffer: org.mwg.struct.Buffer): void;
                         index(): number;
                         remove(key: number): void;
                         size(): number;
                         chunkType(): number;
                         save(buffer: org.mwg.struct.Buffer): void;
+                        saveDiff(buffer: org.mwg.struct.Buffer): void;
                     }
                 }
             }

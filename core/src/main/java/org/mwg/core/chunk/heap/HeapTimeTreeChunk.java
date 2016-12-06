@@ -20,6 +20,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     private int[] _back_meta;
     private long[] _k;
     private boolean[] _colors;
+    private boolean[] _diff;
 
     private volatile long _magic;
     private volatile int _size = 0;
@@ -79,14 +80,52 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             Base64.encodeLongToBuffer(this._k[i], buffer);
         }
         _dirty = false;
+        if (_diff != null) {
+            CoreConstants.fillBooleanArray(_diff, false);
+        }
     }
 
     @Override
-    public synchronized final void load(Buffer buffer) {
-        if (buffer == null || buffer.length() == 0) {
-            return;
+    public synchronized void saveDiff(Buffer buffer) {
+        if (_dirty) {
+            Base64.encodeLongToBuffer(_size, buffer);
+            buffer.write(CoreConstants.CHUNK_SEP);
+            boolean isFirst = true;
+            for (int i = 0; i < _size; i++) {
+                if (_diff[i]) {
+                    if (!isFirst) {
+                        buffer.write(CoreConstants.CHUNK_SUB_SEP);
+                    } else {
+                        isFirst = false;
+                    }
+                }
+                Base64.encodeLongToBuffer(this._k[i], buffer);
+            }
+            _dirty = false;
+            CoreConstants.fillBooleanArray(_diff, false);
         }
-        final boolean initial = _k == null;
+    }
+
+    @Override
+    public synchronized final void load(final Buffer buffer) {
+        internal_load(buffer, true);
+        //TODO reset _dirty
+    }
+
+    @Override
+    public synchronized void loadDiff(final Buffer buffer) {
+        if (internal_load(buffer, false) && !_dirty) {
+            _dirty = true;
+            if (_space != null) {
+                _space.notifyUpdate(_index);
+            }
+        }
+    }
+
+    private boolean internal_load(final Buffer buffer, final boolean initial) {
+        if (buffer == null || buffer.length() == 0) {
+            return false;
+        }
         boolean isDirty = false;
         long cursor = 0;
         long previous = 0;
@@ -94,7 +133,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         while (cursor < payloadSize) {
             byte current = buffer.read(cursor);
             if (current == CoreConstants.CHUNK_SUB_SEP) {
-                boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
                 isDirty = isDirty || insertResult;
                 previous = cursor + 1;
             } else if (current == CoreConstants.CHUNK_SEP) {
@@ -103,16 +142,11 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             }
             cursor++;
         }
-        boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
         isDirty = isDirty || insertResult;
-        if (isDirty && !initial && !_dirty) {
-            _dirty = true;
-            if (_space != null) {
-                _space.notifyUpdate(_index);
-            }
-        }
-
+        return isDirty;
     }
+
 
     @Override
     public final long index() {
@@ -168,14 +202,14 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public synchronized final void insert(final long p_key) {
-        if (internal_insert(p_key)) {
+        if (internal_insert(p_key, false)) {
             internal_set_dirty();
         }
     }
 
     @Override
     public synchronized final void unsafe_insert(final long p_key) {
-        internal_insert(p_key);
+        internal_insert(p_key, false);
     }
 
     @Override
@@ -185,18 +219,21 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public synchronized final void clearAt(long max) {
+        //TODO save clear element too, to for the incremental storage
         //lock and load fromVar main memory
         long[] previousValue = _k;
         //reset the state
         _k = new long[_k.length];
         _back_meta = new int[_k.length * META_SIZE];
         _colors = new boolean[_k.length];
+        _diff = new boolean[_k.length];
+        CoreConstants.fillBooleanArray(_diff, false);
         _root = -1;
         int _previousSize = _size;
         _size = 0;
         for (int i = 0; i < _previousSize; i++) {
             if (previousValue[i] != CoreConstants.NULL_LONG && previousValue[i] < max) {
-                internal_insert(previousValue[i]);
+                internal_insert(previousValue[i], false);
             }
         }
         //dirty
@@ -207,6 +244,11 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         long[] new_back_kv = new long[newCapacity];
         if (_k != null) {
             System.arraycopy(_k, 0, new_back_kv, 0, _size);
+        }
+        boolean[] new_back_diff = new boolean[newCapacity];
+        CoreConstants.fillBooleanArray(new_back_diff, false);
+        if (_diff != null) {
+            System.arraycopy(_diff, 0, new_back_diff, 0, _size);
         }
         boolean[] new_back_colors = new boolean[newCapacity];
         if (_colors != null) {
@@ -225,6 +267,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         _back_meta = new_back_meta;
         _k = new_back_kv;
         _colors = new_back_colors;
+        _diff = new_back_diff;
     }
 
     private long key(int p_currentIndex) {
@@ -234,8 +277,11 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         return _k[p_currentIndex];
     }
 
-    private void setKey(int p_currentIndex, long p_paramIndex) {
+    private void setKey(int p_currentIndex, long p_paramIndex, boolean initial) {
         _k[p_currentIndex] = p_paramIndex;
+        if (!initial) {
+            _diff[p_currentIndex] = true;
+        }
     }
 
     /*
@@ -543,7 +589,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         }
     }
 
-    private boolean internal_insert(long p_key) {
+    private boolean internal_insert(long p_key, boolean initial) {
         if (_k == null || _k.length == _size) {
             int length = _size;
             if (length == 0) {
@@ -555,7 +601,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         }
         int newIndex = _size;
         if (newIndex == 0) {
-            setKey(newIndex, p_key);
+            setKey(newIndex, p_key, initial);
             setColor(newIndex, false);
             setLeft(newIndex, -1);
             setRight(newIndex, -1);
@@ -569,7 +615,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
                     return false;
                 } else if (p_key < key(n)) {
                     if (left(n) == -1) {
-                        setKey(newIndex, p_key);
+                        setKey(newIndex, p_key, initial);
                         setColor(newIndex, false);
                         setLeft(newIndex, -1);
                         setRight(newIndex, -1);
@@ -582,7 +628,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
                     }
                 } else {
                     if (right(n) == -1) {
-                        setKey(newIndex, p_key);
+                        setKey(newIndex, p_key, initial);
                         setColor(newIndex, false);
                         setLeft(newIndex, -1);
                         setRight(newIndex, -1);

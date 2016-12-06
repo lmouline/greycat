@@ -57,6 +57,11 @@ final class OffHeapGenChunk implements GenChunk {
     }
 
     @Override
+    public void saveDiff(Buffer buffer) {
+
+    }
+
+    @Override
     public final void load(final Buffer buffer) {
         space.lockByIndex(index);
         try {
@@ -75,6 +80,11 @@ final class OffHeapGenChunk implements GenChunk {
         } finally {
             space.unlockByIndex(index);
         }
+    }
+
+    @Override
+    public void loadDiff(Buffer buffer) {
+
     }
 
     @Override

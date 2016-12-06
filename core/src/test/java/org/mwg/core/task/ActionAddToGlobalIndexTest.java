@@ -18,10 +18,10 @@ public class ActionAddToGlobalIndexTest {
             public void on(Boolean result) {
                 newTask()
                         .then(createNode())
-                        .then(Actions.set("name", Type.STRING, "root"))
-                        .then(Actions.addToGlobalIndex("indexName", "name"))
-                        .then(Actions.defineAsGlobalVar("nodeIndexed"))
-                        .then(Actions.readGlobalIndexAll("indexName"))
+                        .then(set("name", Type.STRING, "root"))
+                        .then(addToGlobalIndex("indexName", "name"))
+                        .then(defineAsGlobalVar("nodeIndexed"))
+                        .then(readGlobalIndexAll("indexName"))
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext context) {
@@ -32,8 +32,8 @@ public class ActionAddToGlobalIndexTest {
                                 context.continueTask();
                             }
                         })
-                        .then(Actions.removeVarFromRelation("indexName", "name"))
-                        .then(Actions.readGlobalIndexAll("indexName"))
+                        .then(removeVarFromRelation("indexName", "name"))
+                        .then(readGlobalIndexAll("indexName"))
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext context) {

@@ -16,6 +16,10 @@ public interface Chunk {
 
     void save(Buffer buffer);
 
+    void saveDiff(Buffer buffer);
+
     void load(Buffer buffer);
+
+    void loadDiff(Buffer buffer);
 
 }

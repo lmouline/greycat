@@ -416,6 +416,11 @@ class HeapStateChunk implements StateChunk {
     }
 
     @Override
+    public void saveDiff(Buffer buffer) {
+
+    }
+
+    @Override
     public synchronized final void each(final NodeStateCallback callBack) {
         for (int i = 0; i < _size; i++) {
             if (_v[i] != null) {
@@ -1099,6 +1104,11 @@ class HeapStateChunk implements StateChunk {
                 internal_set(currentChunkElemKey, currentChunkElemType, toInsert, true, initial); //enhance this with boolean array
             }
         }
+    }
+
+    @Override
+    public void loadDiff(Buffer buffer) {
+
     }
 
 }

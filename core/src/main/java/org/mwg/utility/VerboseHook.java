@@ -7,7 +7,7 @@ import org.mwg.task.TaskHook;
 import java.util.HashMap;
 import java.util.Map;
 
-class VerboseHook implements TaskHook {
+public class VerboseHook implements TaskHook {
 
     private Map<TaskContext, Integer> ctxIdents = new HashMap<TaskContext, Integer>();
 

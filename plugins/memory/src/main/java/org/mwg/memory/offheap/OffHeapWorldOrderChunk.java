@@ -360,6 +360,11 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
     }
 
     @Override
+    public void loadDiff(Buffer buffer) {
+
+    }
+
+    @Override
     public final void remove(long key) {
         throw new RuntimeException("Not implemented yet!!!");
     }
@@ -392,6 +397,11 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
         } finally {
             space.unlockByIndex(index);
         }
+    }
+
+    @Override
+    public void saveDiff(Buffer buffer) {
+
     }
 
 }

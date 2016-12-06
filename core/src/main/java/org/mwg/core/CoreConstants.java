@@ -1,7 +1,17 @@
 package org.mwg.core;
 
+import java.util.Arrays;
+
 public class CoreConstants extends org.mwg.Constants {
 
+    /**
+     * {@native ts
+     * for(var i=0;i<target.length;i++){ target[i] = elem; }
+     * }
+     */
+    public static void fillBooleanArray(boolean[] target, boolean elem) {
+        Arrays.fill(target, elem);
+    }
 
     /**
      * ChunkFlags

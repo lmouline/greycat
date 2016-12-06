@@ -31,6 +31,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     private int _capacity;
     private long[] _kv;
     private int[] _next;
+    private boolean[] _diff;
     private int[] _hash;
 
     private boolean _dirty;
@@ -59,6 +60,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
         _capacity = 0;
         _kv = null;
         _next = null;
+        _diff = null;
         _hash = null;
         _dirty = false;
     }
@@ -185,6 +187,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
             _capacity = Constants.MAP_INITIAL_CAPACITY;
             _next = new int[_capacity];
             Arrays.fill(_next, 0, _capacity, -1);
+            _diff = new boolean[_capacity];
+            CoreConstants.fillBooleanArray(_diff, false);
             _hash = new int[_capacity * 2];
             Arrays.fill(_hash, 0, _capacity * 2, -1);
             _kv = new long[_capacity * 2];
@@ -207,13 +211,17 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
                 _kv = new long[newCapacity * 2];
                 _hash = new int[newCapacity * 2];
                 _next = new int[newCapacity];
+                _diff = new boolean[newCapacity];
                 _capacity = newCapacity;
                 Arrays.fill(_next, 0, newCapacity, -1);
+                CoreConstants.fillBooleanArray(_diff, false);
                 Arrays.fill(_hash, 0, newCapacity * 2, -1);
                 return true;
             } else {
                 final long[] temp_kv = new long[newCapacity * 2];
                 System.arraycopy(_kv, 0, temp_kv, 0, _size * 2);
+                final boolean[] temp_diff = new boolean[newCapacity];
+                System.arraycopy(_diff, 0, temp_diff, 0, _size);
                 final int[] temp_next = new int[newCapacity];
                 final int[] temp_hash = new int[newCapacity * 2];
                 Arrays.fill(temp_next, 0, newCapacity, -1);
@@ -227,6 +235,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
                 _hash = temp_hash;
                 _next = temp_next;
                 _kv = temp_kv;
+                _diff = temp_diff;
                 return true;
             }
         } else {
@@ -277,6 +286,11 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     }
 
     @Override
+    public void loadDiff(Buffer buffer) {
+
+    }
+
+    @Override
     public final long index() {
         return _index;
     }
@@ -315,6 +329,11 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
             Base64.encodeLongToBuffer(_kv[i * 2 + 1], buffer);
         }
         _dirty = false;
+    }
+
+    @Override
+    public void saveDiff(Buffer buffer) {
+
     }
 
 

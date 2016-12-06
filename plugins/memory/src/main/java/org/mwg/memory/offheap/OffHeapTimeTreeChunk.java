@@ -135,6 +135,32 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @Override
+    public final void saveDiff(Buffer buffer) {
+        space.lockByIndex(index);
+        try {
+            final long addr = space.addrByIndex(index);
+            final boolean dirty = OffHeapLongArray.get(addr, DIRTY) == 1;
+            if (dirty) {
+                final long size = OffHeapLongArray.get(addr, SIZE);
+                Base64.encodeLongToBuffer(size, buffer);
+                buffer.write(Constants.CHUNK_SEP);
+                boolean isFirst = true;
+                for (long i = 0; i < size; i++) {
+                    if (!isFirst) {
+                        buffer.write(Constants.CHUNK_SUB_SEP);
+                    } else {
+                        isFirst = false;
+                    }
+                    Base64.encodeLongToBuffer(key(addr, i), buffer);
+                }
+                OffHeapLongArray.set(addr, DIRTY, 0);
+            }
+        } finally {
+            space.unlockByIndex(index);
+        }
+    }
+
+    @Override
     public final void load(Buffer buffer) {
         if (buffer == null || buffer.length() == 0) {
             return;
@@ -142,29 +168,47 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         space.lockByIndex(index);
         try {
             long addr = space.addrByIndex(index);
-            final long size = OffHeapLongArray.get(addr, SIZE);
-            final boolean initial = size == 0;
-            boolean isDirty = false;
-            long cursor = 0;
-            long previous = 0;
-            long payloadSize = buffer.length();
-            while (cursor < payloadSize) {
-                byte current = buffer.read(cursor);
-                if (current == Constants.CHUNK_SUB_SEP) {
-                    boolean insertResult = internal_insert(addr, Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                    isDirty = isDirty || insertResult;
-                    previous = cursor + 1;
-                } else if (current == Constants.CHUNK_SEP) {
-                    final long treeSize = Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                    final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
-                    addr = reallocate(addr, OffHeapLongArray.get(addr, CAPACITY), closePowerOfTwo);
-                    previous = cursor + 1;
-                }
-                cursor++;
+            internal_load(addr, buffer);
+        } finally {
+            space.unlockByIndex(index);
+        }
+    }
+
+    private boolean internal_load(long addr, final Buffer buffer) {
+        boolean isDirty = false;
+        long cursor = 0;
+        long previous = 0;
+        long payloadSize = buffer.length();
+        while (cursor < payloadSize) {
+            byte current = buffer.read(cursor);
+            if (current == Constants.CHUNK_SUB_SEP) {
+                boolean insertResult = internal_insert(addr, Base64.decodeToLongWithBounds(buffer, previous, cursor), true);
+                isDirty = isDirty || insertResult;
+                previous = cursor + 1;
+            } else if (current == Constants.CHUNK_SEP) {
+                final long treeSize = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
+                addr = reallocate(addr, OffHeapLongArray.get(addr, CAPACITY), closePowerOfTwo);
+                previous = cursor + 1;
             }
-            boolean insertResult = internal_insert(addr, Base64.decodeToLongWithBounds(buffer, previous, cursor));
-            isDirty = isDirty || insertResult;
-            if (isDirty && !initial && OffHeapLongArray.get(addr, DIRTY) != 1) {
+            cursor++;
+        }
+        boolean insertResult = internal_insert(addr, Base64.decodeToLongWithBounds(buffer, previous, cursor), true);
+        isDirty = isDirty || insertResult;
+        return isDirty;
+    }
+
+
+    @Override
+    public final void loadDiff(Buffer buffer) {
+        if (buffer == null || buffer.length() == 0) {
+            return;
+        }
+        space.lockByIndex(index);
+        try {
+            long addr = space.addrByIndex(index);
+            boolean isDirty = internal_load(addr, buffer);
+            if (isDirty && OffHeapLongArray.get(addr, DIRTY) != 1) {
                 OffHeapLongArray.set(addr, DIRTY, 1);
                 space.notifyUpdate(index);
             }
@@ -234,7 +278,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     public final void insert(final long insertKey) {
         space.lockByIndex(index);
         try {
-            if (internal_insert(space.addrByIndex(index), insertKey)) {
+            if (internal_insert(space.addrByIndex(index), insertKey, false)) {
                 internal_set_dirty(space.addrByIndex(index));
             }
         } finally {
@@ -244,7 +288,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public final void unsafe_insert(final long p_key) {
-        internal_insert(space.addrByIndex(index), p_key);
+        internal_insert(space.addrByIndex(index), p_key, false);
     }
 
     @Override
@@ -271,7 +315,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             for (long i = 0; i < previousSize; i++) {
                 long currentVal = key(previous_addr, i);
                 if (currentVal < max) {
-                    internal_insert(new_addr, currentVal);
+                    internal_insert(new_addr, currentVal, false);
                 }
             }
             space.setAddrByIndex(index, new_addr);
@@ -300,20 +344,72 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         return OffHeapLongArray.get(addr, OFFSET + (index * 5));
     }
 
-    private static void setKey(final long addr, final long index, final long insertKey) {
+    private static void setKey(final long addr, final long index, final long insertKey, final boolean initial) {
         OffHeapLongArray.set(addr, OFFSET + (index * 5), insertKey);
+        if (initial) {
+            setDiff(addr, index, false);
+        } else {
+            setDiff(addr, index, true);
+        }
     }
 
+    private static final long TRUE_CLEAN = 0;
+    private static final long FALSE_CLEAN = 1;
+    private static final long TRUE_DIFF = 2;
+    private static final long FALSE_DIFF = 3;
+
+    private static boolean diff(final long addr, final long index) {
+        if (index == -1) {
+            return true;
+        }
+        long previous = OffHeapLongArray.get(addr, OFFSET + (index * 5) + 1);
+        return previous == TRUE_DIFF || previous == FALSE_DIFF;
+    }
+
+    private static void setDiff(final long addr, final long index, boolean insertDiff) {
+        final long previous = OffHeapLongArray.get(addr, OFFSET + (index * 5) + 1);
+        final long next;
+        if (previous == TRUE_CLEAN || previous == TRUE_DIFF) {
+            if (insertDiff) {
+                next = TRUE_DIFF;
+            } else {
+                next = TRUE_CLEAN;
+            }
+        } else {
+            if (insertDiff) {
+                next = FALSE_DIFF;
+            } else {
+                next = FALSE_CLEAN;
+            }
+        }
+        OffHeapLongArray.set(addr, OFFSET + (index * 5) + 1, next);
+    }
 
     private static boolean color(final long addr, final long index) {
         if (index == -1) {
             return true;
         }
-        return OffHeapLongArray.get(addr, OFFSET + (index * 5) + 1) == 1;
+        final long previous = OffHeapLongArray.get(addr, OFFSET + (index * 5) + 1);
+        return previous == TRUE_CLEAN || previous == TRUE_DIFF;
     }
 
     private static void setColor(final long addr, final long index, boolean insertColor) {
-        OffHeapLongArray.set(addr, OFFSET + (index * 5) + 1, insertColor ? 1 : 0);
+        final long previous = OffHeapLongArray.get(addr, OFFSET + (index * 5) + 1);
+        final long next;
+        if (previous == TRUE_DIFF || previous == FALSE_DIFF) {
+            if (insertColor) {
+                next = TRUE_DIFF;
+            } else {
+                next = FALSE_DIFF;
+            }
+        } else {
+            if (insertColor) {
+                next = TRUE_CLEAN;
+            } else {
+                next = FALSE_CLEAN;
+            }
+        }
+        OffHeapLongArray.set(addr, OFFSET + (index * 5) + 1, next);
     }
 
     private static long left(final long addr, final long index) {
@@ -581,7 +677,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         }
     }
 
-    private boolean internal_insert(long addr, final long insertLey) {
+    private boolean internal_insert(long addr, final long insertLey, final boolean initial) {
         long size = OffHeapLongArray.get(addr, SIZE);
         long capacity = OffHeapLongArray.get(addr, CAPACITY);
         if (capacity == size) {
@@ -594,7 +690,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             addr = reallocate(addr, capacity, nextCapacity);
         }
         if (size == 0) {
-            setKey(addr, size, insertLey);
+            setKey(addr, size, insertLey, initial);
             setColor(addr, size, false);
             setLeft(addr, size, -1);
             setRight(addr, size, -1);
@@ -608,7 +704,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                     return false;
                 } else if (insertLey < key(addr, n)) {
                     if (left(addr, n) == -1) {
-                        setKey(addr, size, insertLey);
+                        setKey(addr, size, insertLey, initial);
                         setColor(addr, size, false);
                         setLeft(addr, size, -1);
                         setRight(addr, size, -1);
@@ -621,7 +717,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                     }
                 } else {
                     if (right(addr, n) == -1) {
-                        setKey(addr, size, insertLey);
+                        setKey(addr, size, insertLey, initial);
                         setColor(addr, size, false);
                         setLeft(addr, size, -1);
                         setRight(addr, size, -1);

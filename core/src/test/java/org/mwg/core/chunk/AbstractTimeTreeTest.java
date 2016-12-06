@@ -18,6 +18,34 @@ public abstract class AbstractTimeTreeTest {
         this.factory = factory;
     }
 
+     @Test
+    public void incrementalSave() {
+        ChunkSpace space = factory.newSpace(100, null);
+        TimeTreeChunk tree = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
+        Buffer buffer = factory.newBuffer();
+        tree.saveDiff(buffer);
+        Assert.assertTrue(compareWithString(buffer, ""));
+        buffer.free();
+
+        tree.insert(5);
+        tree.insert(7);
+        tree.insert(9);
+
+        buffer = factory.newBuffer();
+        tree.saveDiff(buffer);
+        Assert.assertTrue(compareWithString(buffer, "G|K,O,S"));
+        buffer.free();
+
+        buffer = factory.newBuffer();
+        tree.saveDiff(buffer);
+        Assert.assertTrue(compareWithString(buffer, ""));
+        buffer.free();
+
+        space.free(tree);
+        space.freeAll();
+
+    }
+
     @Test
     public void nextTest() {
         ChunkSpace space = factory.newSpace(100, null);

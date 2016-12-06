@@ -443,6 +443,11 @@ class OffHeapStateChunk implements StateChunk {
     }
 
     @Override
+    public void saveDiff(Buffer buffer) {
+
+    }
+
+    @Override
     public void loadFrom(final StateChunk origin) {
         if (origin == null) {
             return;
@@ -1093,6 +1098,11 @@ class OffHeapStateChunk implements StateChunk {
         } finally {
             unlock();
         }
+    }
+
+    @Override
+    public void loadDiff(Buffer buffer) {
+
     }
 
     static void free(final long addr, final OffHeapChunkSpace space) {

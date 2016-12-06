@@ -45,7 +45,22 @@ final class HeapGenChunk implements GenChunk {
     }
 
     @Override
+    public synchronized void saveDiff(Buffer buffer) {
+        Base64.encodeLongToBuffer(_seed, buffer);
+        _dirty = false;
+    }
+
+    @Override
     public synchronized final void load(final Buffer buffer) {
+        internal_load(buffer, false);
+    }
+
+    @Override
+    public synchronized void loadDiff(final Buffer buffer) {
+        internal_load(buffer, true);
+    }
+
+    private void internal_load(Buffer buffer, boolean diff) {
         if (buffer == null || buffer.length() == 0) {
             return;
         }
@@ -53,7 +68,7 @@ final class HeapGenChunk implements GenChunk {
         long previousSeed = _seed;
         _seed = loaded;
         if (previousSeed != -1 && previousSeed != _seed) {
-            if (_space != null && !_dirty) {
+            if (_space != null && !_dirty && diff) {
                 _dirty = true;
                 _space.notifyUpdate(_index);
             }
