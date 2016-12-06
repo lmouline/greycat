@@ -311,10 +311,15 @@ public class CoreTask implements org.mwg.task.Task {
         registry.put("traverse", new TaskActionFactory() { //DefaultTask
             @Override
             public Action create(String[] params) {
-                if (params.length != 1) {
+                if (params.length == 0) {
                     throw new RuntimeException("get action need one parameter");
                 }
-                return new ActionGet(params[0]);
+                final String getName = params[0];
+                final String[] getParams = new String[params.length - 1];
+                if (params.length > 1) {
+                    System.arraycopy(params, 1, getParams, 0, params.length - 1);
+                }
+                return new ActionGet(getName, getParams);
             }
         });
         registry.put("executeExpression", new TaskActionFactory() { //DefaultTask
@@ -381,9 +386,9 @@ public class CoreTask implements org.mwg.task.Task {
     public String toString() {
         StringBuilder res = new StringBuilder();
         //todo DAG in tasks are not managed
-        for(int i=0;i<actions.length;i++) {
-            if(actions[i] instanceof CF_ActionMap) {
-                res.append(((CF_ActionMap)actions[i]).serialize());
+        for (int i = 0; i < actions.length; i++) {
+            if (actions[i] instanceof CF_ActionMap) {
+                res.append(((CF_ActionMap) actions[i]).serialize());
             } else {
                 res.append(actions[i]);
             }
