@@ -8,12 +8,12 @@ import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
-class ActionGet implements Action {
+class ActionTraverseOrAttribute implements Action {
 
     private final String _name;
     private final String[] _params;
 
-    ActionGet(final String p_name, final String... p_params) {
+    ActionTraverseOrAttribute(final String p_name, final String... p_params) {
         this._name = p_name;
         this._params = p_params;
     }
@@ -51,6 +51,8 @@ class ActionGet implements Action {
                             if (relationIndexed != null) {
                                 if (_params != null && _params.length > 0) {
                                     Query query = context.graph().newQuery();
+                                    query.setWorld(casted.world());
+                                    query.setTime(casted.time());
                                     String previous = null;
                                     for (int k = 0; k < _params.length; k++) {
                                         if (previous != null) {

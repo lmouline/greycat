@@ -53,8 +53,10 @@ class HeapRelationIndexed extends HeapLongLongArrayMap implements RelationIndexe
     }
 
     @Override
-    public void find(Callback<Node[]> callback, String... params) {
+    public void find(Callback<Node[]> callback, long world, long time, String... params) {
         Query queryObj = parent.graph().newQuery();
+        queryObj.setWorld(world);
+        queryObj.setTime(time);
         String previous = null;
         for (int i = 0; i < params.length; i++) {
             if (previous != null) {
@@ -73,7 +75,7 @@ class HeapRelationIndexed extends HeapLongLongArrayMap implements RelationIndexe
         if (foundIds == null) {
             callback.on(new BaseNode[0]);
         } else {
-            parent.graph().resolver().lookupAll(parent.world(), parent.time(), foundIds, new Callback<Node[]>() {
+            parent.graph().resolver().lookupAll(query.world(), query.time(), foundIds, new Callback<Node[]>() {
                 @Override
                 public void on(Node[] resolved) {
                     //select

@@ -53,15 +53,8 @@ public class OffHeapRelationIndexed extends OffHeapLongLongArrayMap implements R
     }
 
     @Override
-    public void find(String query, Callback<Node[]> callback) {
-        Query queryObj = chunk.graph().newQuery();
-        queryObj.parse(query);
-        findByQuery(queryObj, callback);
-    }
-
-    @Override
-    public void findUsing(Callback<Node[]> callback, String... params) {
-        Query queryObj = chunk.graph().newQuery();
+    public void find(Callback<Node[]> callback, final long world, final long time, String... params) {
+        Query queryObj = chunk.graph().newQuery().setWorld(world).setTime(time);
         String previous = null;
         for (int i = 0; i < params.length; i++) {
             if (previous != null) {

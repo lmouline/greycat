@@ -18,10 +18,35 @@ public class CoreQuery implements Query {
     private int size = 0;
     private Long _hash;
 
+    private long _world = Constants.NULL_LONG;
+    private long _time = Constants.NULL_LONG;
+
     CoreQuery(Graph graph, Resolver p_resolver) {
         _graph = graph;
         _resolver = p_resolver;
         _hash = null;
+    }
+
+    @Override
+    public final long world() {
+        return _world;
+    }
+
+    @Override
+    public final Query setWorld(final long p_world) {
+        this._world = p_world;
+        return this;
+    }
+
+    @Override
+    public final long time() {
+        return _time;
+    }
+
+    @Override
+    public final Query setTime(final long p_time) {
+        this._time = p_time;
+        return this;
     }
 
     @Override

@@ -79,7 +79,7 @@ public class IndexTest {
                         Assert.assertEquals(result[0].id(), node_t1.id());
                         passed[0]++;
                     }
-                },"name","MyName");
+                }, 0, 0, "name", "MyName");
 
                 irel.find(new Callback<Node[]>() {
                     @Override
@@ -88,9 +88,9 @@ public class IndexTest {
                         Assert.assertEquals(result[0].id(), node_t1.id());
                         passed[0]++;
                     }
-                }, "name", "MyName");
+                }, 0, 0, "name", "MyName");
 
-                irel.findByQuery(graph.newQuery().add("name", "MyName"), new Callback<Node[]>() {
+                irel.findByQuery(graph.newQuery().add("name", "MyName").setTime(0).setWorld(0), new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
                         Assert.assertEquals(result.length, 1);

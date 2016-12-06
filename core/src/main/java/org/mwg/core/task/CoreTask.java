@@ -413,7 +413,7 @@ public class CoreTask implements org.mwg.task.Task {
                 if (params.length > 1) {
                     System.arraycopy(params, 1, getParams, 0, params.length - 1);
                 }
-                return new ActionGet(getName, getParams);
+                return new ActionTraverseOrAttribute(getName, getParams);
             }
         });
         registry.put("attribute", new TaskActionFactory() { //DefaultTask
@@ -427,7 +427,7 @@ public class CoreTask implements org.mwg.task.Task {
                 if (params.length > 1) {
                     System.arraycopy(params, 1, getParams, 0, params.length - 1);
                 }
-                return new ActionGet(getName, getParams);
+                return new ActionTraverseOrAttribute(getName, getParams);
             }
         });
 
@@ -440,7 +440,6 @@ public class CoreTask implements org.mwg.task.Task {
                 return new ActionExecuteExpression(params[0]);
             }
         });
-        */
         registry.put("readGlobalIndex", new TaskActionFactory() {
             @Override
             public Action create(String[] params) {

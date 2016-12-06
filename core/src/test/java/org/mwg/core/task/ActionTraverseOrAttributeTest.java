@@ -12,7 +12,7 @@ import org.mwg.task.TaskContext;
 import static org.mwg.core.task.Actions.*;
 import static org.mwg.core.task.Actions.newTask;
 
-public class ActionGetTest extends AbstractActionTest {
+public class ActionTraverseOrAttributeTest extends AbstractActionTest {
 
     @Test
     public void test() {

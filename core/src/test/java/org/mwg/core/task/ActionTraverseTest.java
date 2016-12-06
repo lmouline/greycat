@@ -69,7 +69,7 @@ public class ActionTraverseTest extends AbstractActionTest {
             RelationIndexed irel = (RelationIndexed) root.getOrCreate("childrenIndexed", Type.RELATION_INDEXED);
             irel.add(node1, "name");
             irel.add(node2, "name");
-            irel.add(node3, "name");
+            //  irel.add(node3, "name");
 
             root.travelInTime(12, new Callback<Node>() {
                 @Override
@@ -81,7 +81,9 @@ public class ActionTraverseTest extends AbstractActionTest {
 
         });
 
-        newTask().then(readGlobalIndex("roots", "name","root2"))
+        newTask()
+                .then(setTime("0"))
+                .then(readGlobalIndex("roots", "name", "root2"))
                 .then(traverse("childrenIndexed", "name", "node2"))
                 .thenDo(new ActionFunction() {
                     @Override
@@ -101,10 +103,8 @@ public class ActionTraverseTest extends AbstractActionTest {
                 }).execute(graph, null);
 
         newTask()
-                .then(inject(12))
-                .then(defineAsGlobalVar("time"))
-                .then(setTime("{{time}}"))
-                .then(readGlobalIndex("roots", "name","root2"))
+                .then(setTime("12"))
+                .then(readGlobalIndex("roots", "name", "root2"))
                 .then(traverse("childrenIndexed", "name", "node2"))
                 .thenDo(new ActionFunction() {
                     @Override
@@ -114,7 +114,7 @@ public class ActionTraverseTest extends AbstractActionTest {
                     }
                 }).execute(graph, null);
 
-        newTask().then(readGlobalIndex("roots", "name","root2"))
+        newTask().then(readGlobalIndex("roots", "name", "root2"))
                 .then(traverse("childrenIndexed"))
                 .thenDo(new ActionFunction() {
                     @Override
@@ -125,8 +125,9 @@ public class ActionTraverseTest extends AbstractActionTest {
                     }
                 }).execute(graph, null);
 
-        newTask().then(inject(13)).then(defineAsGlobalVar("time")).then(setTime("{{time}}"))
-                .then(readGlobalIndex("roots", "name","root2"))
+        newTask()
+                .then(setTime("13"))
+                .then(readGlobalIndex("roots", "name", "root2"))
                 .then(traverse("childrenIndexed"))
                 .thenDo(new ActionFunction() {
                     @Override

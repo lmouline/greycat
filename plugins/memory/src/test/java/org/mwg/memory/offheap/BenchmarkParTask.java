@@ -8,7 +8,6 @@ import org.mwg.core.scheduler.HybridScheduler;
 import org.mwg.task.TaskResult;
 
 import static org.mwg.core.task.Actions.*;
-import static org.mwg.core.task.Actions.readGlobalIndexAll;
 import static org.mwg.core.task.Actions.save;
 
 @SuppressWarnings("Duplicates")
@@ -34,7 +33,7 @@ public class BenchmarkParTask {
                                     newTask().then(travelInTime("{{i}}")).then(set("val", Type.INT, "{{i}}")).then(clearResult()))
                             .ifThen(cond("i % 100 == 0"), newTask().then(save()))
                             .then(clearResult())
-            ).then(save()).then(readGlobalIndexAll("nodes")).execute(g, new Callback<TaskResult>() {
+            ).then(save()).then(readGlobalIndex("nodes")).execute(g, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult result) {
                     System.out.println("indexSize=" + result.size());

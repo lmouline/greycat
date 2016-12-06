@@ -5,6 +5,14 @@ package org.mwg;
  */
 public interface Query {
 
+    long world();
+
+    Query setWorld(long world);
+
+    long time();
+
+    Query setTime(long time);
+
     /**
      * Fills this query with elements from a String
      * @param flatQuery the stringified query

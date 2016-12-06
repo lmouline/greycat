@@ -105,7 +105,7 @@ public class WSServerTest {
                         graph2.index(0, 0, "nodes", new Callback<NodeIndex>() {
                             @Override
                             public void on(NodeIndex indexNodes) {
-                                indexNodes.findAll(new Callback<Node[]>() {
+                                indexNodes.find(new Callback<Node[]>() {
                                     @Override
                                     public void on(Node[] result1) {
                                         Assert.assertEquals(result1[0].toString(), node.toString());
@@ -119,7 +119,7 @@ public class WSServerTest {
                                             @Override
                                             public void on(NodeIndex graph2Nodes) {
                                                 graph2Nodes.addToIndex(newNode, "name");
-                                                graph2Nodes.findAll(new Callback<Node[]>() {
+                                                graph2Nodes.find(new Callback<Node[]>() {
                                                     @Override
                                                     public void on(Node[] result) {
                                                         Assert.assertEquals(2, result.length);
@@ -137,7 +137,7 @@ public class WSServerTest {
                                                 graph.index(0, 0, "nodes", new Callback<NodeIndex>() {
                                                     @Override
                                                     public void on(NodeIndex grapNodeIndex) {
-                                                        grapNodeIndex.findAll(new Callback<Node[]>() {
+                                                        grapNodeIndex.find(new Callback<Node[]>() {
                                                             @Override
                                                             public void on(Node[] result) {
                                                                 Assert.assertEquals(2, result.length);

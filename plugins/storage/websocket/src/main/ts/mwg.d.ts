@@ -433,12 +433,14 @@ declare module org {
             addToIndex(node: org.mwg.Node, ...attributeNames: string[]): org.mwg.NodeIndex;
             removeFromIndex(node: org.mwg.Node, ...attributeNames: string[]): org.mwg.NodeIndex;
             clear(): org.mwg.NodeIndex;
-            findAll(callback: org.mwg.Callback<org.mwg.Node[]>): void;
-            find(query: string, callback: org.mwg.Callback<org.mwg.Node[]>): void;
-            findUsing(callback: org.mwg.Callback<org.mwg.Node[]>, ...params: string[]): void;
+            find(callback: org.mwg.Callback<org.mwg.Node[]>, ...params: string[]): void;
             findByQuery(query: org.mwg.Query, callback: org.mwg.Callback<org.mwg.Node[]>): void;
         }
         interface Query {
+            world(): number;
+            setWorld(world: number): org.mwg.Query;
+            time(): number;
+            setTime(time: number): org.mwg.Query;
             parse(flatQuery: string): org.mwg.Query;
             add(attributeName: string, value: string): org.mwg.Query;
             hash(): number;
@@ -708,9 +710,7 @@ declare module org {
                 addToIndex(node: org.mwg.Node, ...attributeNames: string[]): org.mwg.NodeIndex;
                 removeFromIndex(node: org.mwg.Node, ...attributeNames: string[]): org.mwg.NodeIndex;
                 clear(): org.mwg.NodeIndex;
-                findAll(callback: org.mwg.Callback<org.mwg.Node[]>): void;
-                find(query: string, callback: org.mwg.Callback<org.mwg.Node[]>): void;
-                findUsing(callback: org.mwg.Callback<org.mwg.Node[]>, ...params: string[]): void;
+                find(callback: org.mwg.Callback<org.mwg.Node[]>, ...query: string[]): void;
                 findByQuery(query: org.mwg.Query, callback: org.mwg.Callback<org.mwg.Node[]>): void;
             }
             class CoreQuery implements org.mwg.Query {
@@ -721,7 +721,13 @@ declare module org {
                 private _values;
                 private size;
                 private _hash;
+                private _world;
+                private _time;
                 constructor(graph: org.mwg.Graph, p_resolver: org.mwg.plugin.Resolver);
+                world(): number;
+                setWorld(p_world: number): org.mwg.Query;
+                time(): number;
+                setTime(p_time: number): org.mwg.Query;
                 parse(flatQuery: string): org.mwg.Query;
                 add(attributeName: string, value: string): org.mwg.Query;
                 hash(): number;
@@ -942,8 +948,7 @@ declare module org {
                         remove(node: org.mwg.Node, ...attributeNames: string[]): org.mwg.struct.RelationIndexed;
                         private internal_add_remove(isIndex, node, ...attributeNames);
                         clear(): org.mwg.struct.RelationIndexed;
-                        find(query: string, callback: org.mwg.Callback<org.mwg.Node[]>): void;
-                        findUsing(callback: org.mwg.Callback<org.mwg.Node[]>, ...params: string[]): void;
+                        find(callback: org.mwg.Callback<org.mwg.Node[]>, world: number, time: number, ...params: string[]): void;
                         findByQuery(query: org.mwg.Query, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                         all(): Float64Array;
                         cloneIRelFor(newParent: org.mwg.core.chunk.heap.HeapStateChunk): org.mwg.core.chunk.heap.HeapRelationIndexed;
@@ -1110,6 +1115,7 @@ declare module org {
                         private resize(newCapacity);
                         load(buffer: org.mwg.struct.Buffer): void;
                         loadDiff(buffer: org.mwg.struct.Buffer): void;
+                        private internal_load(initial, buffer);
                         index(): number;
                         remove(key: number): void;
                         size(): number;
@@ -1177,7 +1183,6 @@ declare module org {
                     private _isAdd;
                     constructor(isAdd: boolean, name: string, varFrom: string, ...attributes: string[]);
                     eval(context: org.mwg.task.TaskContext): void;
-                    private internal(isAdd, relName, src, target, attributes);
                     toString(): string;
                 }
                 class ActionAddToGlobalIndex implements org.mwg.task.Action {
@@ -1234,13 +1239,6 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
-                class ActionGet implements org.mwg.task.Action {
-                    private _name;
-                    private _params;
-                    constructor(p_name: string, ...p_params: string[]);
-                    eval(context: org.mwg.task.TaskContext): void;
-                    toString(): string;
-                }
                 class ActionIndexNames implements org.mwg.task.Action {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
@@ -1281,13 +1279,7 @@ declare module org {
                 class ActionReadGlobalIndex implements org.mwg.task.Action {
                     private _indexName;
                     private _query;
-                    constructor(p_indexName: string, p_query: string);
-                    eval(context: org.mwg.task.TaskContext): void;
-                    toString(): string;
-                }
-                class ActionReadGlobalIndexAll implements org.mwg.task.Action {
-                    private _indexName;
-                    constructor(p_indexName: string);
+                    constructor(p_indexName: string, ...p_query: string[]);
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
@@ -1303,6 +1295,12 @@ declare module org {
                     constructor(name: string);
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
+                }
+                class ActionRemoveFromGlobalIndex implements org.mwg.task.Action {
+                    private _name;
+                    private _attributes;
+                    constructor(name: string, ...attributes: string[]);
+                    eval(context: org.mwg.task.TaskContext): void;
                 }
                 class ActionSave implements org.mwg.task.Action {
                     eval(context: org.mwg.task.TaskContext): void;
@@ -1362,6 +1360,13 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
+                class ActionTraverseOrAttribute implements org.mwg.task.Action {
+                    private _name;
+                    private _params;
+                    constructor(p_name: string, ...p_params: string[]);
+                    eval(context: org.mwg.task.TaskContext): void;
+                    toString(): string;
+                }
                 class ActionWith implements org.mwg.task.Action {
                     private _patternTemplate;
                     private _name;
@@ -1397,9 +1402,9 @@ declare module org {
                     static removeVarFromRelation(relName: string, varFrom: string, ...attributes: string[]): org.mwg.task.Action;
                     static traverse(name: string, ...params: string[]): org.mwg.task.Action;
                     static attribute(name: string, ...params: string[]): org.mwg.task.Action;
-                    static readGlobalIndexAll(indexName: string): org.mwg.task.Action;
-                    static readGlobalIndex(indexName: string, query: string): org.mwg.task.Action;
+                    static readGlobalIndex(indexName: string, ...query: string[]): org.mwg.task.Action;
                     static addToGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Action;
+                    static removeFromGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Action;
                     static indexNames(): org.mwg.task.Action;
                     static selectWith(name: string, pattern: string): org.mwg.task.Action;
                     static selectWithout(name: string, pattern: string): org.mwg.task.Action;
@@ -1607,6 +1612,7 @@ declare module org {
                     continueTask(): void;
                     execute(): void;
                     template(input: string): string;
+                    templates(inputs: string[]): string[];
                     toString(): string;
                 }
                 class CoreTaskResult<A> implements org.mwg.task.TaskResult<A> {
@@ -1930,8 +1936,7 @@ declare module org {
                 add(node: org.mwg.Node, ...attributeNames: string[]): org.mwg.struct.RelationIndexed;
                 remove(node: org.mwg.Node, ...attributeNames: string[]): org.mwg.struct.RelationIndexed;
                 clear(): org.mwg.struct.RelationIndexed;
-                find(query: string, callback: org.mwg.Callback<org.mwg.Node[]>): void;
-                findUsing(callback: org.mwg.Callback<org.mwg.Node[]>, ...params: string[]): void;
+                find(callback: org.mwg.Callback<org.mwg.Node[]>, world: number, time: number, ...params: string[]): void;
                 findByQuery(query: org.mwg.Query, callback: org.mwg.Callback<org.mwg.Node[]>): void;
             }
             interface StringLongMap extends org.mwg.struct.Map {
@@ -2009,6 +2014,7 @@ declare module org {
                 continueTask(): void;
                 continueWith(nextResult: org.mwg.task.TaskResult<any>): void;
                 template(input: string): string;
+                templates(inputs: string[]): string[];
             }
             interface TaskFunctionSelect {
                 (node: org.mwg.Node, context: org.mwg.task.TaskContext): boolean;

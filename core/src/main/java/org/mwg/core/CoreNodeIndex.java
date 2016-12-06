@@ -51,7 +51,7 @@ class CoreNodeIndex extends BaseNode implements NodeIndex {
             long[] flat = ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).all();
             graph().lookupAll(world(), time(), flat, callback);
         } else {
-            ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).find(callback, query);
+            ((RelationIndexed) get(CoreConstants.INDEX_ATTRIBUTE)).find(callback, world(), time(), query);
         }
     }
 

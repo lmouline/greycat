@@ -206,7 +206,7 @@ public class Actions {
      * @return the action to chain
      */
     public static Action traverse(String name, String... params) {
-        return new ActionGet(name, params);
+        return new ActionTraverseOrAttribute(name, params);
     }
 
     /**
@@ -216,7 +216,7 @@ public class Actions {
      * @return the action to chain
      */
     public static Action attribute(String name, String... params) {
-        return new ActionGet(name, params);
+        return new ActionTraverseOrAttribute(name, params);
     }
 
     //Index manipulation zone
