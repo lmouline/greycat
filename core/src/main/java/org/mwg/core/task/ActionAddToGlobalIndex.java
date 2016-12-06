@@ -25,7 +25,12 @@ class ActionAddToGlobalIndex implements Action {
 
         final TaskResult previousResult = context.result();
         final String templatedIndexName = context.template(_name);
-        final String templatedKeyAttributes;//= context.template(_flatKeyAttributes);
+        final String[] templatedKeyAttributes = new String[_attributes.length];
+        for(int i=0;i<_attributes.length;i++) {
+            templatedKeyAttributes[i] = context.template(_attributes[i]);
+        }
+
+
         final DeferCounter counter = new CoreDeferCounter(previousResult.size());
         /*final Callback<Boolean> end = new Callback<Boolean>() {
             @Override
@@ -42,7 +47,7 @@ class ActionAddToGlobalIndex implements Action {
             if (loop instanceof BaseNode) {
                 BaseNode loopBaseNode = (BaseNode) loop;
                 context.graph().index(loopBaseNode.world(), Constants.BEGINNING_OF_TIME, templatedIndexName, indexNode -> {
-                    indexNode.addToIndex(loopBaseNode,_attributes);
+                    indexNode.addToIndex(loopBaseNode,templatedIndexName);
                     counter.count();
                 });
 
