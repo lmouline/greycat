@@ -36,7 +36,7 @@ public class ActionLocalIndexOrUnindexTest {
                         .then(createNode())
                         .then(set("name", Type.STRING, "root"))
                         .then(addToGlobalIndex("rootIdx", "name"))
-                        .then(addVarToRelation("idxRelation", "name", "child"))
+                        .then(addVarToRelation("idxRelation", "child", "name"))
                         .then(readGlobalIndexAll("rootIdx"))
                         .then(traverse("idxRelation"))
                         .thenDo(new ActionFunction() {
@@ -51,7 +51,7 @@ public class ActionLocalIndexOrUnindexTest {
                             }
                         })
                         .then(readGlobalIndexAll("rootIdx"))
-                        .then(addVarToRelation("idxRelation", "name", "child"))
+                        .then(removeVarFromRelation("idxRelation", "child", "name"))
                         .then(readGlobalIndexAll("rootIdx"))
                         .then(traverse("idxRelation"))
                         .thenDo(new ActionFunction() {
