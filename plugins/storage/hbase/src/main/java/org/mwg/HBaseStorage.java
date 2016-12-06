@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO check exception handling
 public class HBaseStorage implements Storage {
     private static final String _connectedError = "PLEASE CONNECT YOUR DATABASE FIRST";
     private static final byte[] prefixKey = "prefix".getBytes();
@@ -27,6 +26,7 @@ public class HBaseStorage implements Storage {
     private String tablename;
 
     private Connection connection;
+    private Table table;
     private boolean isConnected;
     private Graph graph;
 
@@ -47,21 +47,16 @@ public class HBaseStorage implements Storage {
         final List<Get> gets = new ArrayList<>();
         while (it.hasNext()) {
             final Buffer view = it.next();
-            try {
-                if (!isFirst) {
-                    result.write(Constants.BUFFER_SEP);
-                } else {
-                    isFirst = false;
-                }
-                final Get get = new Get(view.data());
-                gets.add(get);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (!isFirst) {
+                result.write(Constants.BUFFER_SEP);
+            } else {
+                isFirst = false;
             }
+            final Get get = new Get(view.data());
+            gets.add(get);
         }
 
         try {
-            final Table table = connection.getTable(TableName.valueOf(tablename));
             Result[] res = table.get(gets);
             if (res != null) {
                 for (int i = 0; i < res.length; i++) {
@@ -72,7 +67,7 @@ public class HBaseStorage implements Storage {
                 }
             }
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -88,7 +83,6 @@ public class HBaseStorage implements Storage {
             throw new RuntimeException(_connectedError);
         }
         try {
-            final Table table = connection.getTable(TableName.valueOf(tablename));
             final List<Put> puts = new ArrayList<>();
 
             final BufferIterator it = stream.iterator();
@@ -132,7 +126,6 @@ public class HBaseStorage implements Storage {
         try {
             Configuration conf = HBaseConfiguration.create();
             connection = ConnectionFactory.createConnection(conf);
-
             Admin admin = connection.getAdmin();
 
             if (!admin.tableExists(TableName.valueOf(tablename))) {
@@ -140,6 +133,8 @@ public class HBaseStorage implements Storage {
                 tableDescriptor.addFamily(new HColumnDescriptor(COLUMN_FAMILY));
                 admin.createTable(tableDescriptor);
             }
+            table = connection.getTable(TableName.valueOf(tablename));
+
             isConnected = true;
             if (callback != null) {
                 callback.on(true);
@@ -162,7 +157,6 @@ public class HBaseStorage implements Storage {
         }
 
         try {
-            final Table table = connection.getTable(TableName.valueOf(tablename));
             final Result result = table.get(new Get(prefixKey));
             byte[] current = result.getValue(Bytes.toBytes(COLUMN_FAMILY), Bytes.toBytes(COLUMN_NAME));
             if (current == null) {
