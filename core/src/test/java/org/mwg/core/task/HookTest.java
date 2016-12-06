@@ -15,7 +15,8 @@ public class HookTest {
 
     @Test
     public void test() {
-        Graph g = GraphBuilder.newBuilder().withPlugin(new VerbosePlugin()).build();
+        Graph g = GraphBuilder.newBuilder().build();
+        //Graph g = GraphBuilder.newBuilder().withPlugin(new VerbosePlugin()).build();
         g.connect(result -> {
 
             int[] count = new int[1];
