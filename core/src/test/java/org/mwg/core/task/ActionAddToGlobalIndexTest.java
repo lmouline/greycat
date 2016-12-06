@@ -32,7 +32,7 @@ public class ActionAddToGlobalIndexTest {
                                 context.continueTask();
                             }
                         })
-                        .then(removeVarFromRelation("indexName", "name"))
+                        .then(removeFromGlobalIndex("indexName", "name"))
                         .then(readGlobalIndexAll("indexName"))
                         .thenDo(new ActionFunction() {
                             @Override

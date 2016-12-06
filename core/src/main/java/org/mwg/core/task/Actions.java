@@ -243,16 +243,26 @@ public class Actions {
     }
 
     /**
-     * Adds properties to the named global index.
+     * Adds node to the named global index.
      *
      * @param name       of the index
-     * @param attributes
+     * @param attributes Attributes of the node used for indexation
      * @return the action to chain
      */
     public static Action addToGlobalIndex(String name, String... attributes) {
         return new ActionAddToGlobalIndex(name, attributes);
     }
 
+    /**
+     * Removes a node from the named global index.
+     *
+     * @param name       of the index
+     * @param attributes attributes to used to find the node in the index
+     * @return the action to chain
+     */
+    public static Action removeFromGlobalIndex(String name, String... attributes) {
+        return new ActionRemoveFromGlobalIndex(name, attributes);
+    }
 
     /**
      * Retrieves all index names.
