@@ -478,9 +478,21 @@ class CoreTaskContext implements TaskContext {
                         }
                     }
                     TaskResult foundVar = variable(contextKey);
-                    if (foundVar == null && contextKey.equals("result")) {
-                        foundVar = result();
+
+                    if (foundVar == null) {
+                        switch (contextKey) {
+                            case "result": {
+                                foundVar = result();
+                            }break;
+                            case "time": {
+                                foundVar = wrap(_time);
+                            }break;
+                            case "world": {
+                                foundVar = wrap(_world);
+                            }break;
+                        }
                     }
+
                     if (foundVar != null) {
                         if (foundVar.size() == 1 || indexArray != -1) {
                             //show element of array
