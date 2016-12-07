@@ -5,8 +5,8 @@ import org.junit.Test;
 import org.mwg.task.ActionFunction;
 import org.mwg.task.TaskContext;
 
-import static org.mwg.core.task.Actions.setWorld;
 import static org.mwg.core.task.Actions.newTask;
+import static org.mwg.core.task.Actions.travelInWorld;
 
 public class ActionSetWorldTest extends AbstractActionTest {
 
@@ -14,7 +14,7 @@ public class ActionSetWorldTest extends AbstractActionTest {
     public void test() {
         initGraph();
         newTask()
-                .then(setWorld("10"))
+                .then(travelInWorld("10"))
                 .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext context) {

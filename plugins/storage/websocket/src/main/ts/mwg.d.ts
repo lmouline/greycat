@@ -1342,21 +1342,15 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
-                class ActionSetTime implements org.mwg.task.Action {
-                    private _varName;
-                    constructor(p_varName: string);
-                    eval(context: org.mwg.task.TaskContext): void;
-                    toString(): string;
-                }
-                class ActionSetWorld implements org.mwg.task.Action {
-                    private _varName;
-                    constructor(p_varName: string);
-                    eval(context: org.mwg.task.TaskContext): void;
-                    toString(): string;
-                }
                 class ActionTravelInTime implements org.mwg.task.Action {
                     private _time;
                     constructor(time: string);
+                    eval(context: org.mwg.task.TaskContext): void;
+                    toString(): string;
+                }
+                class ActionTravelInWorld implements org.mwg.task.Action {
+                    private _world;
+                    constructor(world: string);
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
@@ -1382,7 +1376,7 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                 }
                 class Actions {
-                    static setWorld(world: string): org.mwg.task.Action;
+                    static travelInWorld(world: string): org.mwg.task.Action;
                     static travelInTime(time: string): org.mwg.task.Action;
                     static inject(input: any): org.mwg.task.Action;
                     static defineAsGlobalVar(name: string): org.mwg.task.Action;
@@ -1409,6 +1403,7 @@ declare module org {
                     static selectWithout(name: string, pattern: string): org.mwg.task.Action;
                     static select(filterFunction: org.mwg.task.TaskFunctionSelect): org.mwg.task.Action;
                     static selectObject(filterFunction: org.mwg.task.TaskFunctionSelectObject): org.mwg.task.Action;
+                    static selectScript(script: string): org.mwg.task.Action;
                     static print(name: string): org.mwg.task.Action;
                     static println(name: string): org.mwg.task.Action;
                     static executeExpression(expression: string): org.mwg.task.Action;
@@ -1417,7 +1412,6 @@ declare module org {
                     static createTypedNode(type: string): org.mwg.task.Action;
                     static save(): org.mwg.task.Action;
                     static script(script: string): org.mwg.task.Action;
-                    static selectScript(script: string): org.mwg.task.Action;
                     static lookup(nodeId: string): org.mwg.task.Action;
                     static lookupAll(nodeIds: string): org.mwg.task.Action;
                     static clearResult(): org.mwg.task.Action;
@@ -1566,6 +1560,44 @@ declare module org {
                     parse(flat: string): org.mwg.task.Task;
                     static fillDefault(registry: java.util.Map<string, org.mwg.task.TaskActionFactory>): void;
                     toString(): string;
+                    travelInWorld(world: string): org.mwg.task.Task;
+                    travelInTime(time: string): org.mwg.task.Task;
+                    inject(input: any): org.mwg.task.Task;
+                    defineAsGlobalVar(name: string): org.mwg.task.Task;
+                    defineAsVar(name: string): org.mwg.task.Task;
+                    declareGlobalVar(name: string): org.mwg.task.Task;
+                    declareVar(name: string): org.mwg.task.Task;
+                    readVar(name: string): org.mwg.task.Task;
+                    setAsVar(name: string): org.mwg.task.Task;
+                    addToVar(name: string): org.mwg.task.Task;
+                    set(name: string, type: number, value: string): org.mwg.task.Task;
+                    force(name: string, type: number, value: string): org.mwg.task.Task;
+                    remove(name: string): org.mwg.task.Task;
+                    attributes(): org.mwg.task.Task;
+                    attributesWithTypes(filterType: number): org.mwg.task.Task;
+                    addVarToRelation(relName: string, varName: string, ...attributes: string[]): org.mwg.task.Task;
+                    removeVarFromRelation(relName: string, varFrom: string, ...attributes: string[]): org.mwg.task.Task;
+                    traverse(name: string, ...params: string[]): org.mwg.task.Task;
+                    attribute(name: string, ...params: string[]): org.mwg.task.Task;
+                    readGlobalIndex(name: string, ...query: string[]): org.mwg.task.Task;
+                    addToGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
+                    removeFromGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
+                    indexNames(): org.mwg.task.Task;
+                    selectWith(name: string, pattern: string): org.mwg.task.Task;
+                    selectWithout(name: string, pattern: string): org.mwg.task.Task;
+                    select(filterFunction: org.mwg.task.TaskFunctionSelect): org.mwg.task.Task;
+                    selectObject(filterFunction: org.mwg.task.TaskFunctionSelectObject): org.mwg.task.Task;
+                    selectScript(script: string): org.mwg.task.Task;
+                    print(name: string): org.mwg.task.Task;
+                    println(name: string): org.mwg.task.Task;
+                    executeExpression(expression: string): org.mwg.task.Task;
+                    createNode(): org.mwg.task.Task;
+                    createTypedNode(type: string): org.mwg.task.Task;
+                    save(): org.mwg.task.Task;
+                    script(script: string): org.mwg.task.Task;
+                    lookup(nodeId: string): org.mwg.task.Task;
+                    lookupAll(nodeIds: string): org.mwg.task.Task;
+                    clearResult(): org.mwg.task.Task;
                 }
                 class CoreTaskContext implements org.mwg.task.TaskContext {
                     private _globalVariables;
@@ -1622,10 +1654,10 @@ declare module org {
                     constructor(toWrap: any, protect: boolean);
                     iterator(): org.mwg.task.TaskResultIterator<any>;
                     get(index: number): A;
-                    set(index: number, input: A): void;
-                    allocate(index: number): void;
-                    add(input: A): void;
-                    clear(): void;
+                    set(index: number, input: A): org.mwg.task.TaskResult<A>;
+                    allocate(index: number): org.mwg.task.TaskResult<A>;
+                    add(input: A): org.mwg.task.TaskResult<A>;
+                    clear(): org.mwg.task.TaskResult<A>;
                     clone(): org.mwg.task.TaskResult<A>;
                     free(): void;
                     size(): number;
@@ -1985,6 +2017,44 @@ declare module org {
                 executeUsing(preparedContext: org.mwg.task.TaskContext): void;
                 executeFrom(parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, affinity: number, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                 executeFromUsing(parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, affinity: number, contextInitializer: org.mwg.Callback<org.mwg.task.TaskContext>, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
+                travelInWorld(world: string): org.mwg.task.Task;
+                travelInTime(time: string): org.mwg.task.Task;
+                inject(input: any): org.mwg.task.Task;
+                defineAsGlobalVar(name: string): org.mwg.task.Task;
+                defineAsVar(name: string): org.mwg.task.Task;
+                declareGlobalVar(name: string): org.mwg.task.Task;
+                declareVar(name: string): org.mwg.task.Task;
+                readVar(name: string): org.mwg.task.Task;
+                setAsVar(name: string): org.mwg.task.Task;
+                addToVar(name: string): org.mwg.task.Task;
+                set(name: string, type: number, value: string): org.mwg.task.Task;
+                force(name: string, type: number, value: string): org.mwg.task.Task;
+                remove(name: string): org.mwg.task.Task;
+                attributes(): org.mwg.task.Task;
+                attributesWithTypes(filterType: number): org.mwg.task.Task;
+                addVarToRelation(relName: string, varName: string, ...attributes: string[]): org.mwg.task.Task;
+                removeVarFromRelation(relName: string, varFrom: string, ...attributes: string[]): org.mwg.task.Task;
+                traverse(name: string, ...params: string[]): org.mwg.task.Task;
+                attribute(name: string, ...params: string[]): org.mwg.task.Task;
+                readGlobalIndex(indexName: string, ...query: string[]): org.mwg.task.Task;
+                addToGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
+                removeFromGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
+                indexNames(): org.mwg.task.Task;
+                selectWith(name: string, pattern: string): org.mwg.task.Task;
+                selectWithout(name: string, pattern: string): org.mwg.task.Task;
+                select(filterFunction: org.mwg.task.TaskFunctionSelect): org.mwg.task.Task;
+                selectObject(filterFunction: org.mwg.task.TaskFunctionSelectObject): org.mwg.task.Task;
+                selectScript(script: string): org.mwg.task.Task;
+                print(name: string): org.mwg.task.Task;
+                println(name: string): org.mwg.task.Task;
+                executeExpression(expression: string): org.mwg.task.Task;
+                createNode(): org.mwg.task.Task;
+                createTypedNode(type: string): org.mwg.task.Task;
+                save(): org.mwg.task.Task;
+                script(script: string): org.mwg.task.Task;
+                lookup(nodeId: string): org.mwg.task.Task;
+                lookupAll(nodeIds: string): org.mwg.task.Task;
+                clearResult(): org.mwg.task.Task;
             }
             interface TaskActionFactory {
                 (params: string[]): org.mwg.task.Action;
@@ -2032,10 +2102,10 @@ declare module org {
             interface TaskResult<A> {
                 iterator(): org.mwg.task.TaskResultIterator<any>;
                 get(index: number): A;
-                set(index: number, input: A): void;
-                allocate(index: number): void;
-                add(input: A): void;
-                clear(): void;
+                set(index: number, input: A): org.mwg.task.TaskResult<A>;
+                allocate(index: number): org.mwg.task.TaskResult<A>;
+                add(input: A): org.mwg.task.TaskResult<A>;
+                clear(): org.mwg.task.TaskResult<A>;
                 clone(): org.mwg.task.TaskResult<A>;
                 free(): void;
                 size(): number;

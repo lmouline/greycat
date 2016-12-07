@@ -127,7 +127,7 @@ class CoreTaskResult<A> implements TaskResult<A> {
     }
 
     @Override
-    public void set(int index, A input) {
+    public TaskResult<A> set(int index, A input) {
         if (index >= _capacity) {
             extendTil(index);
         }
@@ -135,10 +135,11 @@ class CoreTaskResult<A> implements TaskResult<A> {
         if (index >= _size) {
             _size++;
         }
+        return this;
     }
 
     @Override
-    public void allocate(int index) {
+    public TaskResult<A> allocate(int index) {
         if (index >= _capacity) {
             if (_backend == null) {
                 _backend = new Object[index];
@@ -147,21 +148,24 @@ class CoreTaskResult<A> implements TaskResult<A> {
                 throw new RuntimeException("Not implemented yet!!!");
             }
         }
+        return this;
     }
 
     @Override
-    public void add(A input) {
+    public TaskResult<A> add(A input) {
         if (_size >= _capacity) {
             extendTil(_size);
         }
         set(_size, input);
+        return this;
     }
 
     @Override
-    public void clear() {
+    public TaskResult<A> clear() {
         this._backend = null;
         this._capacity = 0;
         this._size = 0;
+        return this;
     }
 
     @Override

@@ -14,8 +14,8 @@ public class Actions {
      * @param world the world to which the task context will be set to
      * @return the action to chain
      */
-    public static Action setWorld(String world) {
-        return new ActionSetWorld(world);
+    public static Action travelInWorld(String world) {
+        return new ActionTravelInWorld(world);
     }
 
     /**
@@ -295,6 +295,18 @@ public class Actions {
         return new ActionSelectObject(filterFunction);
     }
 
+    /**
+     * Use a JS script to filter nodes
+     * The task context is inject in the variable 'context'. The current node is inject in the variable 'node'.
+     * <p>
+     * Should only be used to serialize {@link #select(TaskFunctionSelect)}
+     *
+     * @return the action to chain
+     */
+    public static Action selectScript(String script) {
+        return new ActionSelect(script, null);
+    }
+
     //Helper zone
 
     /**
@@ -380,18 +392,6 @@ public class Actions {
      */
     public static Action script(String script) {
         return new ActionScript(script);
-    }
-
-    /**
-     * Use a JS script to filter nodes
-     * The task context is inject in the variable 'context'. The current node is inject in the variable 'node'.
-     * <p>
-     * Should only be used to serialize {@link #select(TaskFunctionSelect)}
-     *
-     * @return the action to chain
-     */
-    public static Action selectScript(String script) {
-        return new ActionSelect(script, null);
     }
 
     /**

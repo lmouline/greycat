@@ -224,4 +224,84 @@ public interface Task {
      */
     void executeFromUsing(final TaskContext parentContext, final TaskResult initial, final byte affinity, final Callback<TaskContext> contextInitializer, final Callback<TaskResult> callback);
 
+
+
+    /* Default core actions */
+
+    Task travelInWorld(String world);
+
+    Task travelInTime(String time);
+
+    Task inject(Object input);
+
+    Task defineAsGlobalVar(String name);
+
+    Task defineAsVar(String name);
+
+    Task declareGlobalVar(String name);
+
+    Task declareVar(String name);
+
+    Task readVar(String name);
+
+    Task setAsVar(String name);
+
+    Task addToVar(String name);
+
+    Task set(String name, byte type, String value);
+
+    Task force(String name, byte type, String value);
+
+    Task remove(String name);
+
+    Task attributes();
+
+    Task attributesWithTypes(byte filterType);
+
+    Task addVarToRelation(String relName, String varName, String... attributes);
+
+    Task removeVarFromRelation(String relName, String varFrom, String... attributes);
+
+    Task traverse(String name, String... params);
+
+    Task attribute(String name, String... params);
+
+    Task readGlobalIndex(String indexName, String... query);
+
+    Task addToGlobalIndex(String name, String... attributes);
+
+    Task removeFromGlobalIndex(String name, String... attributes);
+
+    Task indexNames();
+
+    Task selectWith(String name, String pattern);
+
+    Task selectWithout(String name, String pattern);
+
+    Task select(TaskFunctionSelect filterFunction);
+
+    Task selectObject(TaskFunctionSelectObject filterFunction);
+
+    Task selectScript(String script);
+
+    Task print(String name);
+
+    Task println(String name);
+
+    Task executeExpression(String expression);
+
+    Task createNode();
+
+    Task createTypedNode(String type);
+
+    Task save();
+
+    Task script(String script);
+
+    Task lookup(String nodeId);
+
+    Task lookupAll(String nodeIds);
+
+    Task clearResult();
+
 }

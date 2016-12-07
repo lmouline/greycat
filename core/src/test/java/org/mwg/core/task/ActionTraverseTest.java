@@ -142,4 +142,25 @@ public class ActionTraverseTest extends AbstractActionTest {
         removeGraph();
     }
 
+    @Test
+    public void indexedRelationTest() {
+        initGraph();
+        newTask()
+                .then(createNode())
+                .then(set("name", Type.STRING, "toto"))
+                .then(setAsVar("child"))
+                .then(createNode())
+                .then(set("name", Type.STRING, "parent"))
+                .then(setAsVar("parent"))
+                .then(addVarToRelation("children", "child", "name"))
+                .then(inject("toto"))
+                .then(setAsVar("child_name"))
+                .then(readVar("parent"))
+                .then(traverse("children", "name", "{{child_name}}"))
+                .then(println("{{result}}"))
+                .then(context -> {
+                    Assert.assertEquals(1, context.result().size());
+                })
+                .execute(graph, null);
+    }
 }

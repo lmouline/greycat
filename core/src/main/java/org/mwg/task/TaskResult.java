@@ -6,13 +6,13 @@ public interface TaskResult<A> {
 
     A get(int index);
 
-    void set(int index, A input);
+    TaskResult<A> set(int index, A input);
 
-    void allocate(int index);
+    TaskResult<A> allocate(int index);
 
-    void add(A input);
+    TaskResult<A> add(A input);
 
-    void clear();
+    TaskResult<A> clear();
 
     TaskResult<A> clone();
 

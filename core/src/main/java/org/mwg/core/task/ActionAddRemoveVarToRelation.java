@@ -25,6 +25,7 @@ class ActionAddRemoveVarToRelation implements Action {
     public void eval(final TaskContext context) {
         final TaskResult previousResult = context.result();
         final TaskResult savedVar = context.variable(context.template(_varFrom));
+        final String[] templatedAttributes = context.templates(_attributes);
         if (previousResult != null && savedVar != null) {
             final String relName = context.template(_name);
             final TaskResultIterator previousResultIt = previousResult.iterator();
@@ -37,11 +38,10 @@ class ActionAddRemoveVarToRelation implements Action {
                         if (toAddIter instanceof BaseNode) {
                             final Node castedToAddIter = (Node) toAddIter;
                             final Node castedIter = (Node) iter;
-
                             if (_isAdd) {
-                                castedIter.addToRelation(relName, castedToAddIter, _attributes);
+                                castedIter.addToRelation(relName, castedToAddIter, templatedAttributes);
                             } else {
-                                castedIter.removeFromRelation(relName, castedToAddIter, _attributes);
+                                castedIter.removeFromRelation(relName, castedToAddIter, templatedAttributes);
                             }
                         }
                         toAddIter = savedVarIt.next();
