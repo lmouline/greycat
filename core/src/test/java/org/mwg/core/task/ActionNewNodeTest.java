@@ -24,7 +24,7 @@ public class ActionNewNodeTest extends AbstractActionTest {
         newTask()
                 .then(inject(15))
                 .then(defineAsGlobalVar("world"))
-                .then(setWorld("{{world}}"))
+                .then(travelInWorld("{{world}}"))
                 .then(inject(587))
                 .then(defineAsGlobalVar("time"))
                 .then(travelInTime("{{time[0]}}"))

@@ -14,8 +14,8 @@ public class Actions {
      * @param world the world to which the task context will be set to
      * @return the action to chain
      */
-    public static Action setWorld(String world) {
-        return new ActionSetWorld(world);
+    public static Action travelInWorld(String world) {
+        return new ActionTravelInWorld(world);
     }
 
     /**

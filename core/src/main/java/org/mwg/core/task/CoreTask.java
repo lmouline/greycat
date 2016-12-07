@@ -308,22 +308,13 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     public static void fillDefault(Map<String, TaskActionFactory> registry) {
-        registry.put("setWorld", new TaskActionFactory() { //DefaultTask
+        registry.put("travelInWorld", new TaskActionFactory() { //DefaultTask
             @Override
             public Action create(String[] params) {
                 if (params.length != 1) {
-                    throw new RuntimeException("setWorld action need one parameter");
+                    throw new RuntimeException("travelInWorld action need one parameter");
                 }
-                return new ActionSetWorld(params[0]);
-            }
-        });
-        registry.put("setTime", new TaskActionFactory() { //DefaultTask
-            @Override
-            public Action create(String[] params) {
-                if (params.length != 1) {
-                    throw new RuntimeException("setTime action need one parameter");
-                }
-                return new ActionSetTime(params[0]);
+                return new ActionTravelInWorld(params[0]);
             }
         });
         registry.put("travelInTime", new TaskActionFactory() { //DefaultTask

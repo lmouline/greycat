@@ -1342,21 +1342,15 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
-                class ActionSetTime implements org.mwg.task.Action {
-                    private _varName;
-                    constructor(p_varName: string);
-                    eval(context: org.mwg.task.TaskContext): void;
-                    toString(): string;
-                }
-                class ActionSetWorld implements org.mwg.task.Action {
-                    private _varName;
-                    constructor(p_varName: string);
-                    eval(context: org.mwg.task.TaskContext): void;
-                    toString(): string;
-                }
                 class ActionTravelInTime implements org.mwg.task.Action {
                     private _time;
                     constructor(time: string);
+                    eval(context: org.mwg.task.TaskContext): void;
+                    toString(): string;
+                }
+                class ActionTravelInWorld implements org.mwg.task.Action {
+                    private _world;
+                    constructor(world: string);
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
@@ -1382,7 +1376,7 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                 }
                 class Actions {
-                    static setWorld(world: string): org.mwg.task.Action;
+                    static travelInWorld(world: string): org.mwg.task.Action;
                     static travelInTime(time: string): org.mwg.task.Action;
                     static inject(input: any): org.mwg.task.Action;
                     static defineAsGlobalVar(name: string): org.mwg.task.Action;
