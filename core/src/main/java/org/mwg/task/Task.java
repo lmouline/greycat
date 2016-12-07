@@ -31,6 +31,15 @@ public interface Task {
     Task doWhile(Task task, ConditionalFunction cond);
 
     /**
+     * Executes a give task until a given condition evaluates to true.
+     *
+     * @param task       to execute
+     * @param condScript condition to check (JavaScript)
+     * @return this task to chain
+     */
+    Task doWhileScript(Task task, String condScript);
+
+    /**
      * Executes a task in a range.
      *
      * @param from    range start
@@ -98,12 +107,31 @@ public interface Task {
     /**
      * Executes a sub task if a given condition is evaluated to true.
      *
+     * @param condScript condition to check (JavaScript)
+     * @param then       sub task to execute if the condition is evaluated to true
+     * @return this task to chain
+     */
+    Task ifThenScript(String condScript, Task then);
+
+    /**
+     * Executes a sub task if a given condition is evaluated to true.
+     *
      * @param cond    condition to check
      * @param thenSub sub task to execute if the condition is evaluate to true
      * @param elseSub sub task to execute if the condition is evaluated to false
      * @return this task to chain
      */
     Task ifThenElse(ConditionalFunction cond, Task thenSub, Task elseSub);
+
+    /**
+     * Executes a sub task if a given condition is evaluated to true.
+     *
+     * @param condScript condition to check (JavaScript)
+     * @param thenSub    sub task to execute if the condition is evaluate to true
+     * @param elseSub    sub task to execute if the condition is evaluated to false
+     * @return this task to chain
+     */
+    Task ifThenElseScript(String condScript, Task thenSub, Task elseSub);
 
     /**
      * Similar to {@link #doWhile(Task, ConditionalFunction)} but the task is at least executed once.
@@ -115,23 +143,32 @@ public interface Task {
     Task whileDo(ConditionalFunction cond, Task task);
 
     /**
+     * Similar to {@link #doWhile(Task, ConditionalFunction)} but the task is at least executed once.
+     *
+     * @param condScript condition to check (JavaScript)
+     * @param task       to execute
+     * @return this task to chain
+     */
+    Task whileDoScript(String condScript, Task task);
+
+    /**
      * Executes and waits for a number of given sub tasks.
      * The result of these sub tasks is immediately enqueued and available in the next sub task.
      *
      * @param subTasks that needs to be executed
      * @return this task to chain
      */
-    Task map(Task... subTasks);
+    Task mapReduce(Task... subTasks);
 
     /**
-     * Parallel version of {@link #map(Task...)}.
+     * Parallel version of {@link #mapReduce(Task...)}.
      * Executes and waits a number of given sub tasks.
      * The result of these sub tasks is immediately enqueued and available in the next sub task.
      *
      * @param subTasks that have to be executed
      * @return this task to chain
      */
-    Task mapPar(Task... subTasks);
+    Task mapReducePar(Task... subTasks);
 
     /**
      * Executes a given sub task in an isolated environment.
@@ -256,6 +293,8 @@ public interface Task {
 
     Task attributes();
 
+    Task timepoints(String from, String to);
+
     Task attributesWithTypes(byte filterType);
 
     Task addVarToRelation(String relName, String varName, String... attributes);
@@ -280,9 +319,9 @@ public interface Task {
 
     Task select(TaskFunctionSelect filterFunction);
 
-    Task selectObject(TaskFunctionSelectObject filterFunction);
-
     Task selectScript(String script);
+
+    Task selectObject(TaskFunctionSelectObject filterFunction);
 
     Task print(String name);
 

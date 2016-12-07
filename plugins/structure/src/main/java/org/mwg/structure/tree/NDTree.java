@@ -2,7 +2,6 @@ package org.mwg.structure.tree;
 
 import org.mwg.*;
 import org.mwg.base.BaseNode;
-import org.mwg.core.task.Actions;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.NodeState;
 import org.mwg.plugin.NodeStateCallback;
@@ -283,7 +282,7 @@ public class NDTree extends BaseNode implements NTree {
                     }
                 }
             }
-        }).forEach(newTask().then(defineAsVar("relid")).then(readVar("parent")).then(action(TraverseById.NAME, "{{relid}}")).map(reccursiveDown));
+        }).forEach(newTask().then(defineAsVar("relid")).then(readVar("parent")).then(action(TraverseById.NAME, "{{relid}}")).mapReduce(reccursiveDown));
 
 
         return reccursiveDown;
@@ -362,7 +361,7 @@ public class NDTree extends BaseNode implements NTree {
                     }
                 }
             }
-        }).forEach(newTask().then(defineAsVar("relid")).then(readVar("parent")).then(action(TraverseById.NAME, "{{relid}}")).map(reccursiveDown));
+        }).forEach(newTask().then(defineAsVar("relid")).then(readVar("parent")).then(action(TraverseById.NAME, "{{relid}}")).mapReduce(reccursiveDown));
 
 
         return reccursiveDown;

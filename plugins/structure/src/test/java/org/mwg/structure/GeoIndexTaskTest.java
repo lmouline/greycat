@@ -6,7 +6,6 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Type;
-import org.mwg.core.task.Actions;
 import org.mwg.structure.action.NTreeInsertTo;
 import org.mwg.structure.action.NTreeNearestN;
 import org.mwg.structure.action.NTreeNearestNWithinRadius;
@@ -45,8 +44,8 @@ public class GeoIndexTaskTest {
                 Task createTenPoints = newTask().then(defineAsGlobalVar("points")).loop("0", "9", newTask().then(createNode()).then(setAttribute("lat", Type.DOUBLE, "49.{{i}}")).then(setAttribute("long", Type.DOUBLE, "6.{{i}}")).then(addToVar("points")));
 
                 newTask()
-                        .map(createGeoIndex)
-                        .map(createTenPoints)
+                        .mapReduce(createGeoIndex)
+                        .mapReduce(createTenPoints)
                         .then(readVar("points"))
                         .then(action(NTreeInsertTo.NAME, "geoIndex"))
 /*

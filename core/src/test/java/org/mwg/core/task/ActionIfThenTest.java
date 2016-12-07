@@ -70,6 +70,19 @@ public class ActionIfThenTest extends AbstractActionTest {
     }
 
     @Test
+    public void testScriptIf() {
+        initGraph();
+        newTask().inject("hello").defineAsVar("name").clearResult().ifThenScript("ctx.variable('name').get(0) == 'hello'", newTask().inject("success")).execute(graph, result -> {
+            Assert.assertEquals("success", result.get(0));
+        });
+        newTask().inject("hello2").defineAsVar("name").clearResult().ifThenScript("ctx.variable('name').get(0) == 'hello'", newTask().inject("false")).execute(graph, result -> {
+            Assert.assertEquals(0,result.size());
+        });
+        removeGraph();
+
+    }
+
+    @Test
     public void accessContextVariableInThenTask() {
         initGraph();
         Task accessVar = newTask().thenDo(new ActionFunction() {

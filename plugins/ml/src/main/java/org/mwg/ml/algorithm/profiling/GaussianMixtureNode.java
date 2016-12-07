@@ -165,7 +165,7 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
             }
         }, traverse);
 
-        Task mainTask = newTask().then(Actions.travelInTime(time() + "")).then(travelInWorld(world() + "")).then(inject(this)).map(traverse);
+        Task mainTask = newTask().then(Actions.travelInTime(time() + "")).then(travelInWorld(world() + "")).then(inject(this)).mapReduce(traverse);
         mainTask.execute(graph(), new Callback<TaskResult>() {
             @Override
             public void on(TaskResult result) {

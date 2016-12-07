@@ -55,7 +55,7 @@ class CF_ActionMap implements Action {
     public String serialize() {
         //todo dirty version, don t manage DAG
         StringBuilder res = new StringBuilder();
-        res.append("map(");
+        res.append("mapReduce(");
         for(int i=0;i<_subTasks.length;i++) {
             res.append(_subTasks[i].toString());
             if(i<_subTasks.length - 1) {
@@ -68,7 +68,7 @@ class CF_ActionMap implements Action {
 
     @Override
     public String toString() {
-        return "map()";
+        return "mapReduce()";
     }
 
 }

@@ -415,7 +415,7 @@ public class Actions {
     }
 
     public static Action timepoints(String from, String to) {
-        return new ActionTimepoints(from,to);
+        return new ActionTimepoints(from, to);
     }
 
     /**
@@ -468,6 +468,10 @@ public class Actions {
         return newTask().doWhile(task, cond);
     }
 
+    public static Task doWhileScript(Task task, String condScript) {
+        return newTask().doWhileScript(task, condScript);
+    }
+
     public static Task loop(String from, String to, Task subTask) {
         return newTask().loop(from, to, subTask);
     }
@@ -496,20 +500,32 @@ public class Actions {
         return newTask().ifThen(cond, then);
     }
 
+    public static Task ifThenScript(String condScript, Task then) {
+        return newTask().ifThenScript(condScript, then);
+    }
+
     public static Task ifThenElse(ConditionalFunction cond, Task thenSub, Task elseSub) {
         return newTask().ifThenElse(cond, thenSub, elseSub);
+    }
+
+    public static Task ifThenElseScript(String condScript, Task thenSub, Task elseSub) {
+        return newTask().ifThenElseScript(condScript, thenSub, elseSub);
     }
 
     public static Task whileDo(ConditionalFunction cond, Task task) {
         return newTask().whileDo(cond, task);
     }
 
+    public static Task whileDoScript(String condScript, Task task) {
+        return newTask().whileDoScript(condScript, task);
+    }
+
     public static Task map(Task... subTasks) {
-        return newTask().map(subTasks);
+        return newTask().mapReduce(subTasks);
     }
 
     public static Task mapPar(Task... subTasks) {
-        return newTask().mapPar(subTasks);
+        return newTask().mapReducePar(subTasks);
     }
 
     public static Task isolate(Task subTask) {

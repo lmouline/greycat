@@ -14,7 +14,7 @@ public class ActionSelectScriptTest extends AbstractActionTest {
         initGraph();
         newTask()
                 .readGlobalIndex("nodes")
-                .select((node, context) -> node.get("name").equals("root"))
+              //  .select((node, context) -> node.get("name").equals("root"))
                 .selectScript("node.get('name') == 'root'")
                 .thenDo(new ActionFunction() {
                     @Override

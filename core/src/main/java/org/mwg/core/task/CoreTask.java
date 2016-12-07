@@ -1,13 +1,13 @@
 package org.mwg.core.task;
 
-import org.mwg.Callback;
-import org.mwg.Constants;
-import org.mwg.DeferCounterSync;
-import org.mwg.Graph;
+import org.mwg.*;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.SchedulerAffinity;
 import org.mwg.task.*;
 
+import javax.script.ScriptContext;
+import javax.script.ScriptException;
+import javax.script.SimpleScriptContext;
 import java.util.Map;
 
 public class CoreTask implements org.mwg.task.Task {
@@ -16,6 +16,7 @@ public class CoreTask implements org.mwg.task.Task {
     public Action[] actions = new Action[insertCapacity];
     public int insertCursor = 0;
     TaskHook[] _hooks = null;
+
 
     @Override
     public Task addHook(final TaskHook p_hook) {
@@ -55,6 +56,11 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
+    public Task doWhileScript(Task task, String condScript) {
+        return then(new CF_ActionDoWhile(task, condFromScript(condScript)));
+    }
+
+    @Override
     public Task loop(String from, String to, Task subTask) {
         return then(new CF_ActionLoop(from, to, subTask));
     }
@@ -90,23 +96,38 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
+    public Task ifThenScript(String condScript, Task then) {
+        return then(new CF_ActionIfThen(condFromScript(condScript), then));
+    }
+
+    @Override
     public Task ifThenElse(ConditionalFunction cond, Task thenSub, Task elseSub) {
         return then(new CF_ActionIfThenElse(cond, thenSub, elseSub));
     }
 
     @Override
-    public Task whileDo(ConditionalFunction cond, Task then) {
-        return then(new CF_ActionWhileDo(cond, then));
+    public Task ifThenElseScript(String condScript, Task thenSub, Task elseSub) {
+        return then(new CF_ActionIfThenElse(condFromScript(condScript), thenSub, elseSub));
     }
 
     @Override
-    public Task map(Task... subTasks) {
+    public Task whileDo(ConditionalFunction cond, Task task) {
+        return then(new CF_ActionWhileDo(cond, task));
+    }
+
+    @Override
+    public Task whileDoScript(String condScript, Task task) {
+        return then(new CF_ActionWhileDo(condFromScript(condScript), task));
+    }
+
+    @Override
+    public Task mapReduce(Task... subTasks) {
         then(new CF_ActionMap(subTasks));
         return this;
     }
 
     @Override
-    public Task mapPar(Task... subTasks) {
+    public Task mapReducePar(Task... subTasks) {
         then(new CF_ActionMapPar(subTasks));
         return this;
     }
@@ -306,6 +327,33 @@ public class CoreTask implements org.mwg.task.Task {
             }
         }
         return this;
+    }
+
+    private static ConditionalFunction condFromScript(final String script) {
+        return new ConditionalFunction() {
+            @Override
+            public boolean eval(TaskContext context) {
+                return executeScript(script, context);
+            }
+        };
+    }
+
+    /**
+     * @native ts
+     * var print = console.log;
+     * var println = console.log;
+     * var ctx = context;
+     * return eval(script);
+     */
+    private static boolean executeScript(String script, TaskContext context) {
+        ScriptContext scriptCtx = new SimpleScriptContext();
+        scriptCtx.setAttribute("ctx", context, ScriptContext.ENGINE_SCOPE);
+        try {
+            return (boolean) TaskHelper.SCRIPT_ENGINE.eval(script, scriptCtx);
+        } catch (ScriptException | ClassCastException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public static void fillDefault(Map<String, TaskActionFactory> registry) {
@@ -559,6 +607,11 @@ public class CoreTask implements org.mwg.task.Task {
     @Override
     public Task attributes() {
         return then(Actions.attributes());
+    }
+
+    @Override
+    public Task timepoints(String from, String to) {
+        return then(Actions.timepoints(from, to));
     }
 
     @Override

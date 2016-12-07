@@ -21,7 +21,6 @@ class ActionSelect implements Action {
         this._filter = filter;
     }
 
-
     @Override
     public void eval(TaskContext ctx) {
         final TaskResult previous = ctx.result();
@@ -66,6 +65,8 @@ class ActionSelect implements Action {
             throw new RuntimeException(e);
         }
     }
+
+
 
     @Override
     public String toString() {
