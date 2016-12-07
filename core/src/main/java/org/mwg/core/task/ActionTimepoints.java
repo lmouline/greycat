@@ -25,8 +25,22 @@ class ActionTimepoints implements Action {
         String tFrom = context.template(_from);
         String tTo = context.template(_to);
 
-        long parsedFrom = Long.parseLong(tFrom);
-        long parsedTo = Long.parseLong(tTo);
+        long parsedFrom;
+        long parsedTo;
+
+        try {
+            parsedFrom = Long.parseLong(tFrom);
+        } catch (Throwable t) {
+            Double d = Double.parseDouble(tFrom);
+            parsedFrom = d.longValue();
+        }
+
+        try {
+            parsedTo = Long.parseLong(tTo);
+        } catch (Throwable t) {
+            Double d = Double.parseDouble(tTo);
+            parsedTo = d.longValue();
+        }
 
         final TaskResult next = context.newResult();
 
