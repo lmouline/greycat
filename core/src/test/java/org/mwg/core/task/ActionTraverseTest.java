@@ -114,7 +114,7 @@ public class ActionTraverseTest extends AbstractActionTest {
                     }
                 }).execute(graph, null);
 
-        newTask().then(setTime("0"))
+        newTask().then(travelInTime("0"))
                 .then(readGlobalIndex("roots", "name", "root2"))
                 .then(traverse("childrenIndexed"))
                 .thenDo(new ActionFunction() {
