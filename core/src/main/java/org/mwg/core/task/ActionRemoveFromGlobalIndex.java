@@ -23,6 +23,7 @@ class ActionRemoveFromGlobalIndex implements Action {
     public void eval(final TaskContext context) {
         final TaskResult previousResult = context.result();
         final String templatedIndexName = context.template(_name);
+        final String[] templatedAttributes = context.templates(_attributes);
         final DeferCounter counter = new CoreDeferCounter(previousResult.size());
 
         for (int i = 0; i < previousResult.size(); i++) {
@@ -30,7 +31,7 @@ class ActionRemoveFromGlobalIndex implements Action {
             if (loop instanceof BaseNode) {
                 BaseNode loopBaseNode = (BaseNode) loop;
                 context.graph().index(loopBaseNode.world(), Constants.BEGINNING_OF_TIME, templatedIndexName, indexNode -> {
-                    indexNode.removeFromIndex(loopBaseNode,_attributes);
+                    indexNode.removeFromIndex(loopBaseNode,templatedAttributes);
                     counter.count();
                 });
             } else {
