@@ -28,6 +28,7 @@ class ActionTravelInTime implements Action {
             Double d = Double.parseDouble(flatTime);
             parsedTime = d.longValue();
         }
+        context.setTime(parsedTime);
         final TaskResult previous = context.result();
         final DeferCounter defer = new CoreDeferCounter(previous.size());
         final int previousSize = previous.size();
