@@ -414,6 +414,10 @@ public class Actions {
         return new ActionLookupAll(nodeIds);
     }
 
+    public static Action timepoints(String from, String to) {
+        return new ActionTimepoints(from,to);
+    }
+
     /**
      * Resets the result of the task context.
      *
