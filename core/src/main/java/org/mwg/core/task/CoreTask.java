@@ -272,7 +272,7 @@ public class CoreTask implements org.mwg.task.Task {
                 case Constants.TASK_SEP:
                     if (!isClosed) {
                         String getName = flat.substring(previous, cursor);
-                        then(new ActionPlugin("traverse", getName));//default action
+                        then(new ActionNamed("traverse", getName));//default action
                     }
                     actionName = null;
                     isEscaped = false;
@@ -290,7 +290,7 @@ public class CoreTask implements org.mwg.task.Task {
                     } else {
                         extracted = flat.substring(previous, cursor);
                     }
-                    then(new ActionPlugin(actionName, extracted));
+                    then(new ActionNamed(actionName, extracted));
                     actionName = null;
                     previous = cursor + 1;
                     isClosed = true;
@@ -302,7 +302,7 @@ public class CoreTask implements org.mwg.task.Task {
         if (!isClosed) {
             String getName = flat.substring(previous, cursor);
             if (getName.length() > 0) {
-                then(new ActionPlugin("traverse", getName));//default action
+                then(new ActionNamed("traverse", getName));//default action
             }
         }
         return this;
@@ -542,13 +542,13 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public Task set(String name, byte type, String value) {
-        return then(Actions.set(name, type, value));
+    public Task setAttribute(String name, byte type, String value) {
+        return then(Actions.setAttribute(name, type, value));
     }
 
     @Override
-    public Task force(String name, byte type, String value) {
-        return then(Actions.force(name, type, value));
+    public Task forceAttribute(String name, byte type, String value) {
+        return then(Actions.forceAttribute(name, type, value));
     }
 
     @Override
@@ -679,5 +679,10 @@ public class CoreTask implements org.mwg.task.Task {
     @Override
     public Task clearResult() {
         return then(Actions.clearResult());
+    }
+
+    @Override
+    public Task action(String name, String... params) {
+        return then(Actions.action(name, params));
     }
 }

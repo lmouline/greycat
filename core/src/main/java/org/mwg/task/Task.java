@@ -248,9 +248,9 @@ public interface Task {
 
     Task addToVar(String name);
 
-    Task set(String name, byte type, String value);
+    Task setAttribute(String name, byte type, String value);
 
-    Task force(String name, byte type, String value);
+    Task forceAttribute(String name, byte type, String value);
 
     Task remove(String name);
 
@@ -303,5 +303,7 @@ public interface Task {
     Task lookupAll(String nodeIds);
 
     Task clearResult();
+
+    Task action(String name, String... params);
 
 }

@@ -256,7 +256,7 @@ public class SparseNDTree extends BaseNode implements NTree {
                 }
             }
         }
-    }, newTask().then(pluginAction(TraverseById.NAME, "{{next}}")));
+    }, newTask().then(action(TraverseById.NAME, "{{next}}")));
 
 
     private static Task initNearestTask() {
@@ -334,7 +334,7 @@ public class SparseNDTree extends BaseNode implements NTree {
                         }
                     }
                 }).forEach(
-                newTask().then(defineAsVar("relid")).then(readVar("parent")).then(pluginAction(TraverseById.NAME, "{{relid}}")).map(reccursiveDown));
+                newTask().then(defineAsVar("relid")).then(readVar("parent")).then(action(TraverseById.NAME, "{{relid}}")).map(reccursiveDown));
 
 
         return reccursiveDown;
@@ -411,7 +411,7 @@ public class SparseNDTree extends BaseNode implements NTree {
                     }
                 }
             }
-        }).forEach(newTask().then(defineAsVar("relid")).then(readVar("parent")).then(pluginAction(TraverseById.NAME, "{{relid}}")).map(reccursiveDown));
+        }).forEach(newTask().then(defineAsVar("relid")).then(readVar("parent")).then(action(TraverseById.NAME, "{{relid}}")).map(reccursiveDown));
 
 
         return reccursiveDown;

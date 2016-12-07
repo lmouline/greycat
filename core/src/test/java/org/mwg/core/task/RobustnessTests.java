@@ -110,7 +110,7 @@ public class RobustnessTests {
         //indexName null
         boolean exceptionCaught = false;
         try {
-            newTask().then(readGlobalIndex(null, "name","root")).execute(_graph, null);
+            newTask().then(readGlobalIndex(null, "name", "root")).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {
@@ -333,12 +333,13 @@ public class RobustnessTests {
         Assert.assertEquals(true, exceptionCaught);
     }
 
+    /*
     @Test
     public void robustnessAction() {
         //condition null
         boolean exceptionCaught = false;
         try {
-            newTask().then(pluginAction(null, "")).execute(_graph, null);
+            newTask().then(action(null, "")).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {
@@ -349,21 +350,21 @@ public class RobustnessTests {
         //subTask null
         exceptionCaught = false;
         try {
-            newTask().then(pluginAction("", null)).execute(_graph, null);
+            newTask().then(action("", null)).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {
             Assert.fail("Unexpected exception thrown");
         }
         Assert.assertEquals(true, exceptionCaught);
-    }
+    }*/
 
     @Test
     public void robustnessNodeSet() {
         //propertyName
         boolean exceptionCaught = false;
         try {
-            newTask().then(set(null, Type.STRING, "")).execute(_graph, null);
+            newTask().then(setAttribute(null, Type.STRING, "")).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {
@@ -374,7 +375,7 @@ public class RobustnessTests {
         //propertyValue
         exceptionCaught = false;
         try {
-            newTask().then(set("", Type.STRING, null)).execute(_graph, null);
+            newTask().then(setAttribute("", Type.STRING, null)).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {
@@ -388,7 +389,7 @@ public class RobustnessTests {
         //propertyName
         boolean exceptionCaught = false;
         try {
-            newTask().then(set(null, Type.STRING, "")).execute(_graph, null);
+            newTask().then(setAttribute(null, Type.STRING, "")).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {
@@ -399,7 +400,7 @@ public class RobustnessTests {
         //propertyValue
         exceptionCaught = false;
         try {
-            newTask().then(set("", Type.STRING, null)).execute(_graph, null);
+            newTask().then(setAttribute("", Type.STRING, null)).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {

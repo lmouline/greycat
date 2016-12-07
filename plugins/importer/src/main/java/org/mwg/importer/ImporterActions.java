@@ -4,7 +4,7 @@ import org.mwg.task.Action;
 import org.mwg.task.Task;
 import org.mwg.task.TaskContext;
 
-import static org.mwg.core.task.Actions.pluginAction;
+import static org.mwg.core.task.Actions.action;
 
 public class ImporterActions {
 
@@ -29,7 +29,7 @@ public class ImporterActions {
     }
 
     public static Action readJson(String pathOrVar) {
-        return pluginAction(READJSON, pathOrVar);
+        return action(READJSON, pathOrVar);
     }
 
     public static Action jsonMatch(String filter, Task then) {

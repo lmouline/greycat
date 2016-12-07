@@ -120,8 +120,8 @@ public class Actions {
      * @param value will be interpreted as a template
      * @return the action to chain
      */
-    public static Action set(String name, byte type, String value) {
-        return new ActionSet(name, type, value, false);
+    public static Action setAttribute(String name, byte type, String value) {
+        return new ActionSetAttribute(name, type, value, false);
     }
 
     /**
@@ -133,8 +133,8 @@ public class Actions {
      * @param value will be interpreted as template
      * @return the action to chain
      */
-    public static Action force(String name, byte type, String value) {
-        return new ActionSet(name, type, value, true);
+    public static Action forceAttribute(String name, byte type, String value) {
+        return new ActionSetAttribute(name, type, value, true);
     }
 
     /**
@@ -350,8 +350,8 @@ public class Actions {
      * @param params parameters of the action
      * @return the action to chain
      */
-    public static Action pluginAction(String name, String params) {
-        return new ActionPlugin(name, params);
+    public static Action action(String name, String... params) {
+        return new ActionNamed(name, params);
     }
 
     /**

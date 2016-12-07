@@ -91,7 +91,7 @@ public class ImporterTest {
                 Task t = newTask()
                         .then(inject("smarthome"))
                         .then(defineAsGlobalVar("fileName"))
-                        .then(pluginAction(ImporterActions.READFILES, "{{fileName}}"))
+                        .then(action(ImporterActions.READFILES, "{{fileName}}"))
                         .forEach(newTask().thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext context) {
@@ -134,7 +134,7 @@ public class ImporterTest {
                                     }
                                 })
                         )
-                        .then(pluginAction(ImporterActions.READFILES, urlFIle2.getPath()))
+                        .then(action(ImporterActions.READFILES, urlFIle2.getPath()))
                         .forEach(
                                 newTask().thenDo(new ActionFunction() {
                                     @Override
@@ -174,13 +174,13 @@ public class ImporterTest {
     }
 
 
-    @Test
+    //@Test
     public void testReadFileOnIncorrectVar() {
         final Graph g = new GraphBuilder().withPlugin(new ImporterPlugin()).build();
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean connectionResult) {
-                Task t = newTask().then(pluginAction(ImporterActions.READFILES, "{{incorrectVarName}}"));
+                Task t = newTask().then(action(ImporterActions.READFILES, "{{incorrectVarName}}"));
 
                 boolean exceptionCaught = false;
                 try {

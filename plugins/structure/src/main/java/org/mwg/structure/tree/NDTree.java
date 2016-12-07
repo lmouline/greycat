@@ -207,7 +207,7 @@ public class NDTree extends BaseNode implements NTree {
                 }
 
                 //todo check how to traverse on long
-            }, newTask().then(Actions.pluginAction(TraverseById.NAME, "{{next}}")));
+            }, newTask().then(action(TraverseById.NAME, "{{next}}")));
 
 
     private static Task initNearestTask() {
@@ -283,7 +283,7 @@ public class NDTree extends BaseNode implements NTree {
                     }
                 }
             }
-        }).forEach(newTask().then(defineAsVar("relid")).then(readVar("parent")).then(pluginAction(TraverseById.NAME, "{{relid}}")).map(reccursiveDown));
+        }).forEach(newTask().then(defineAsVar("relid")).then(readVar("parent")).then(action(TraverseById.NAME, "{{relid}}")).map(reccursiveDown));
 
 
         return reccursiveDown;
@@ -362,7 +362,7 @@ public class NDTree extends BaseNode implements NTree {
                     }
                 }
             }
-        }).forEach(newTask().then(defineAsVar("relid")).then(readVar("parent")).then(pluginAction(TraverseById.NAME, "{{relid}}")).map(reccursiveDown));
+        }).forEach(newTask().then(defineAsVar("relid")).then(readVar("parent")).then(action(TraverseById.NAME, "{{relid}}")).map(reccursiveDown));
 
 
         return reccursiveDown;

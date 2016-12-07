@@ -147,10 +147,10 @@ public class ActionTraverseTest extends AbstractActionTest {
         initGraph();
         newTask()
                 .then(createNode())
-                .then(set("name", Type.STRING, "toto"))
+                .then(setAttribute("name", Type.STRING, "toto"))
                 .then(setAsVar("child"))
                 .then(createNode())
-                .then(set("name", Type.STRING, "parent"))
+                .then(setAttribute("name", Type.STRING, "parent"))
                 .then(setAsVar("parent"))
                 .then(addVarToRelation("children", "child", "name"))
                 .then(inject("toto"))

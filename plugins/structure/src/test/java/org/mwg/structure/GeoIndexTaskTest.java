@@ -38,17 +38,17 @@ public class GeoIndexTaskTest {
             public void on(Boolean result) {
 
                 Task createGeoIndex = newTask().then(createTypedNode(KDTree.NAME))
-                        .then(Actions.set(KDTree.DISTANCE, Type.INT, Distances.GEODISTANCE + ""))
-                        .then(Actions.set(KDTree.FROM, Type.STRING, "lat,long"))
+                        .then(setAttribute(KDTree.DISTANCE, Type.INT, Distances.GEODISTANCE + ""))
+                        .then(setAttribute(KDTree.FROM, Type.STRING, "lat,long"))
                         .then(declareGlobalVar("geoIndex"));
 
-                Task createTenPoints = newTask().then(defineAsGlobalVar("points")).loop("0", "9", newTask().then(createNode()).then(Actions.set("lat", Type.DOUBLE, "49.{{i}}")).then(Actions.set("long", Type.DOUBLE, "6.{{i}}")).then(addToVar("points")));
+                Task createTenPoints = newTask().then(defineAsGlobalVar("points")).loop("0", "9", newTask().then(createNode()).then(setAttribute("lat", Type.DOUBLE, "49.{{i}}")).then(setAttribute("long", Type.DOUBLE, "6.{{i}}")).then(addToVar("points")));
 
                 newTask()
                         .map(createGeoIndex)
                         .map(createTenPoints)
                         .then(readVar("points"))
-                        .then(pluginAction(NTreeInsertTo.NAME, "geoIndex"))
+                        .then(action(NTreeInsertTo.NAME, "geoIndex"))
 /*
                         .fromVar("geoIndex")
                         .whileDo((new TaskFunctionConditional() {
@@ -60,7 +60,7 @@ public class GeoIndexTaskTest {
 */
                         .then(readVar("geoIndex"))
                         //.print("{{result}}")
-                        .then(pluginAction(NTreeNearestN.NAME, "49.6116,6.1319,10")) //lat,long,nb
+                        .then(action(NTreeNearestN.NAME, "49.6116,6.1319,10")) //lat,long,nb
                         //.print("{{result}}")
                         .thenDo(new ActionFunction() {
                             @Override
@@ -72,7 +72,7 @@ public class GeoIndexTaskTest {
                             }
                         })
                         .then(readVar("geoIndex"))
-                        .then(pluginAction(NTreeNearestWithinRadius.NAME, "49.6116,6.1319,100000")) //lat,long,meters
+                        .then(action(NTreeNearestWithinRadius.NAME, "49.6116,6.1319,100000")) //lat,long,meters
                         //.print("{{result}}")
                         .thenDo(new ActionFunction() {
                             @Override
@@ -97,7 +97,7 @@ public class GeoIndexTaskTest {
                             }
                         })
                         .then(readVar("geoIndex"))
-                        .then(pluginAction(NTreeNearestNWithinRadius.NAME, "49.6116,6.1319,2,100000")) //lat,long,nb,meters
+                        .then(action(NTreeNearestNWithinRadius.NAME, "49.6116,6.1319,2,100000")) //lat,long,nb,meters
                         //.print("{{result}}")
                         .thenDo(new ActionFunction() {
                             @Override

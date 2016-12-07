@@ -1261,11 +1261,10 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
-                class ActionPlugin implements org.mwg.task.Action {
-                    private _actionName;
-                    private _flatParams;
-                    private subAction;
-                    constructor(actionName: string, flatParams: string);
+                class ActionNamed implements org.mwg.task.Action {
+                    private _name;
+                    private _params;
+                    constructor(name: string, ...params: string[]);
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
@@ -1326,7 +1325,13 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                 }
-                class ActionSet implements org.mwg.task.Action {
+                class ActionSetAsVar implements org.mwg.task.Action {
+                    private _name;
+                    constructor(p_name: string);
+                    eval(context: org.mwg.task.TaskContext): void;
+                    toString(): string;
+                }
+                class ActionSetAttribute implements org.mwg.task.Action {
                     private _relationName;
                     private _variableNameToSet;
                     private _propertyType;
@@ -1335,12 +1340,6 @@ declare module org {
                     eval(context: org.mwg.task.TaskContext): void;
                     toString(): string;
                     private parseBoolean(booleanValue);
-                }
-                class ActionSetAsVar implements org.mwg.task.Action {
-                    private _name;
-                    constructor(p_name: string);
-                    eval(context: org.mwg.task.TaskContext): void;
-                    toString(): string;
                 }
                 class ActionTravelInTime implements org.mwg.task.Action {
                     private _time;
@@ -1386,8 +1385,8 @@ declare module org {
                     static readVar(name: string): org.mwg.task.Action;
                     static setAsVar(name: string): org.mwg.task.Action;
                     static addToVar(name: string): org.mwg.task.Action;
-                    static set(name: string, type: number, value: string): org.mwg.task.Action;
-                    static force(name: string, type: number, value: string): org.mwg.task.Action;
+                    static setAttribute(name: string, type: number, value: string): org.mwg.task.Action;
+                    static forceAttribute(name: string, type: number, value: string): org.mwg.task.Action;
                     static remove(name: string): org.mwg.task.Action;
                     static attributes(): org.mwg.task.Action;
                     static attributesWithTypes(filterType: number): org.mwg.task.Action;
@@ -1407,7 +1406,7 @@ declare module org {
                     static print(name: string): org.mwg.task.Action;
                     static println(name: string): org.mwg.task.Action;
                     static executeExpression(expression: string): org.mwg.task.Action;
-                    static pluginAction(name: string, params: string): org.mwg.task.Action;
+                    static action(name: string, ...params: string[]): org.mwg.task.Action;
                     static createNode(): org.mwg.task.Action;
                     static createTypedNode(type: string): org.mwg.task.Action;
                     static save(): org.mwg.task.Action;
@@ -1570,8 +1569,8 @@ declare module org {
                     readVar(name: string): org.mwg.task.Task;
                     setAsVar(name: string): org.mwg.task.Task;
                     addToVar(name: string): org.mwg.task.Task;
-                    set(name: string, type: number, value: string): org.mwg.task.Task;
-                    force(name: string, type: number, value: string): org.mwg.task.Task;
+                    setAttribute(name: string, type: number, value: string): org.mwg.task.Task;
+                    forceAttribute(name: string, type: number, value: string): org.mwg.task.Task;
                     remove(name: string): org.mwg.task.Task;
                     attributes(): org.mwg.task.Task;
                     attributesWithTypes(filterType: number): org.mwg.task.Task;
@@ -1598,6 +1597,7 @@ declare module org {
                     lookup(nodeId: string): org.mwg.task.Task;
                     lookupAll(nodeIds: string): org.mwg.task.Task;
                     clearResult(): org.mwg.task.Task;
+                    action(name: string, ...params: string[]): org.mwg.task.Task;
                 }
                 class CoreTaskContext implements org.mwg.task.TaskContext {
                     private _globalVariables;
@@ -2027,8 +2027,8 @@ declare module org {
                 readVar(name: string): org.mwg.task.Task;
                 setAsVar(name: string): org.mwg.task.Task;
                 addToVar(name: string): org.mwg.task.Task;
-                set(name: string, type: number, value: string): org.mwg.task.Task;
-                force(name: string, type: number, value: string): org.mwg.task.Task;
+                setAttribute(name: string, type: number, value: string): org.mwg.task.Task;
+                forceAttribute(name: string, type: number, value: string): org.mwg.task.Task;
                 remove(name: string): org.mwg.task.Task;
                 attributes(): org.mwg.task.Task;
                 attributesWithTypes(filterType: number): org.mwg.task.Task;
@@ -2055,6 +2055,7 @@ declare module org {
                 lookup(nodeId: string): org.mwg.task.Task;
                 lookupAll(nodeIds: string): org.mwg.task.Task;
                 clearResult(): org.mwg.task.Task;
+                action(name: string, ...params: string[]): org.mwg.task.Task;
             }
             interface TaskActionFactory {
                 (params: string[]): org.mwg.task.Action;

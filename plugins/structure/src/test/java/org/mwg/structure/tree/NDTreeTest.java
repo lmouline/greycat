@@ -85,7 +85,7 @@ public class NDTreeTest {
                 .then(defineAsVar("tabs"))
                 .then(readVar("parent"))
                 .then(attributesWithTypes(Type.RELATION))
-                .forEach(newTask().then(defineAsVar("traverseID")).then(readVar("parent")).then(pluginAction(TraverseById.NAME,"{{traverseID}}")).forEach(newTask().isolate(printer)));
+                .forEach(newTask().then(defineAsVar("traverseID")).then(readVar("parent")).then(action(TraverseById.NAME,"{{traverseID}}")).forEach(newTask().isolate(printer)));
 
         TaskContext tc=printer.prepare(root.graph(), root, new Callback<TaskResult>() {
             @Override

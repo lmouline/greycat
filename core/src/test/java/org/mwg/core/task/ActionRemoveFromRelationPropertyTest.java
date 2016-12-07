@@ -27,7 +27,7 @@ public class ActionRemoveFromRelationPropertyTest extends AbstractActionTest {
                 .then(inject("nodeName"))
                 .then(defineAsGlobalVar("name"))
                 .then(createNode())
-                .then(set("name", Type.STRING, "nodeName"))
+                .then(setAttribute("name", Type.STRING, "nodeName"))
                 .then(remove("name"))
                 .thenDo(new ActionFunction() {
                     @Override
@@ -64,7 +64,7 @@ public class ActionRemoveFromRelationPropertyTest extends AbstractActionTest {
                         context.continueWith(context.wrap(nodes));
                     }
                 })
-                .then(set("name", Type.STRING, "nodeName"))
+                .then(setAttribute("name", Type.STRING, "nodeName"))
                 .then(remove("name"))
                 .thenDo(new ActionFunction() {
                     @Override
@@ -99,7 +99,7 @@ public class ActionRemoveFromRelationPropertyTest extends AbstractActionTest {
                         context.continueWith(null);
                     }
                 })
-                .then(set("name", Type.STRING, "node"))
+                .then(setAttribute("name", Type.STRING, "node"))
                 .then(remove("name"))
                 .thenDo(new ActionFunction() {
                     @Override

@@ -8,14 +8,14 @@ import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
-class ActionSet implements Action {
+class ActionSetAttribute implements Action {
 
     private final String _relationName;
     private final String _variableNameToSet;
     private final byte _propertyType;
     private final boolean _force;
 
-    ActionSet(final String relationName, final byte propertyType, final String variableNameToSet, final boolean force) {
+    ActionSetAttribute(final String relationName, final byte propertyType, final String variableNameToSet, final boolean force) {
         this._relationName = relationName;
         this._variableNameToSet = variableNameToSet;
         this._propertyType = propertyType;

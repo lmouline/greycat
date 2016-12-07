@@ -18,7 +18,7 @@ public class ActionAddToGlobalIndexTest {
             public void on(Boolean result) {
                 newTask()
                         .then(createNode())
-                        .then(set("name", Type.STRING, "root"))
+                        .then(setAttribute("name", Type.STRING, "root"))
                         .then(addToGlobalIndex("indexName", "name"))
                         .then(defineAsGlobalVar("nodeIndexed"))
                         .then(readGlobalIndex("indexName"))
@@ -56,7 +56,7 @@ public class ActionAddToGlobalIndexTest {
             public void on(Boolean result) {
                 newTask()
                         .then(createNode())
-                        .then(set("name", Type.STRING, "root"))
+                        .then(setAttribute("name", Type.STRING, "root"))
                         .then(addToGlobalIndex("indexName", "name"))
                         .then(defineAsGlobalVar("nodeIndexed"))
                         .then(readGlobalIndex("indexName", "name","root"))

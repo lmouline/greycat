@@ -1,33 +1,35 @@
 package org.mwg.core.task;
 
-import org.mwg.Constants;
-import org.mwg.core.CoreConstants;
 import org.mwg.task.Action;
 import org.mwg.task.TaskActionFactory;
 import org.mwg.task.TaskContext;
 
-class ActionPlugin implements Action {
+class ActionNamed implements Action {
 
-    private final String _actionName;
-    private final String _flatParams;
-    //private boolean initilized = false;
+    private final String _name;
+    private final String[] _params;
 
-    private Action subAction = null;
-
-    ActionPlugin(final String actionName, final String flatParams) {
-        this._actionName = actionName;
-        this._flatParams = flatParams;
+    ActionNamed(final String name, final String... params) {
+        this._name = name;
+        this._params = params;
     }
 
     @Override
     public void eval(final TaskContext context) {
-        final String templatedName = context.template(_actionName);
-        final String templatedParams = context.template(_flatParams);
-        //if (!initilized) {
+        final String templatedName = context.template(_name);
+        final String[] templatedParams = context.templates(_params);
         final TaskActionFactory actionFactory = context.graph().taskAction(templatedName);
         if (actionFactory == null) {
             throw new RuntimeException("Unknown task action: " + templatedName);
         }
+        final Action subAction = actionFactory.create(templatedParams);
+        if (subAction != null) {
+            subAction.eval(context);
+        } else {
+            context.continueTask();
+        }
+
+        /*
         int paramsCapacity = CoreConstants.MAP_INITIAL_CAPACITY;
         String[] params = new String[paramsCapacity];
         int paramsIndex = 0;
@@ -72,20 +74,13 @@ class ActionPlugin implements Action {
             System.arraycopy(params, 0, shrinked, 0, paramsIndex);
             params = shrinked;
         }
+        */
         //add the action to the action
-        subAction = actionFactory.create(params);
-        //initilized = true;
-        // }
-        if (subAction != null) {
-            subAction.eval(context);
-        } else {
-            context.continueTask();
-        }
     }
 
     @Override
     public String toString() {
-        return _actionName + "(" + _flatParams + ")";
+        return _name + "(" + _params + ")";
     }
 
 }
