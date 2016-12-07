@@ -64,19 +64,23 @@ public class JsonObjectResult implements TaskResult<JsonMemberResult> {
     }
 
     @Override
-    public void set(int index, JsonMemberResult input) {
+    public TaskResult<JsonMemberResult> set(int index, JsonMemberResult input) {
+        return null;
     }
 
     @Override
-    public void allocate(int index) {
+    public TaskResult<JsonMemberResult> allocate(int index) {
+        return null;
     }
 
     @Override
-    public void add(JsonMemberResult input) {
+    public TaskResult<JsonMemberResult> add(JsonMemberResult input) {
+        return null;
     }
 
     @Override
-    public void clear() {
+    public TaskResult<JsonMemberResult> clear() {
+        return null;
     }
 
     @Override

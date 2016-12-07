@@ -75,23 +75,23 @@ public class IterableLines implements TaskResult<String> {
     }
 
     @Override
-    public void set(int index, String input) {
-
+    public TaskResult<String> set(int index, String input) {
+        return null;
     }
 
     @Override
-    public void allocate(int index) {
-
+    public TaskResult<String> allocate(int index) {
+        return null;
     }
 
     @Override
-    public void add(String input) {
-
+    public TaskResult<String> add(String input) {
+        return null;
     }
 
     @Override
-    public void clear() {
-        //noop
+    public TaskResult<String> clear() {
+        return null;
     }
 
     @Override

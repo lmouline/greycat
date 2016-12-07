@@ -480,4 +480,194 @@ public class CoreTask implements org.mwg.task.Task {
 
         return res.toString();
     }
+
+    @Override
+    public Task travelInWorld(String world) {
+        return then(Actions.travelInWorld(world));
+    }
+
+    @Override
+    public Task travelInTime(String time) {
+        return then(Actions.travelInTime(time));
+    }
+
+    @Override
+    public Task inject(Object input) {
+        return then(Actions.inject(input));
+    }
+
+    @Override
+    public Task defineAsGlobalVar(String name) {
+        return then(Actions.defineAsGlobalVar(name));
+    }
+
+    @Override
+    public Task defineAsVar(String name) {
+        return then(Actions.defineAsVar(name));
+    }
+
+    @Override
+    public Task declareGlobalVar(String name) {
+        return then(Actions.declareGlobalVar(name));
+    }
+
+    @Override
+    public Task declareVar(String name) {
+        return then(Actions.declareVar(name));
+    }
+
+    @Override
+    public Task readVar(String name) {
+        return then(Actions.readVar(name));
+    }
+
+    @Override
+    public Task setAsVar(String name) {
+        return then(Actions.setAsVar(name));
+    }
+
+    @Override
+    public Task addToVar(String name) {
+        return then(Actions.addToVar(name));
+    }
+
+    @Override
+    public Task set(String name, byte type, String value) {
+        return then(Actions.set(name, type, value));
+    }
+
+    @Override
+    public Task force(String name, byte type, String value) {
+        return then(Actions.force(name, type, value));
+    }
+
+    @Override
+    public Task remove(String name) {
+        return then(Actions.remove(name));
+    }
+
+    @Override
+    public Task attributes() {
+        return then(Actions.attributes());
+    }
+
+    @Override
+    public Task attributesWithTypes(byte filterType) {
+        return then(Actions.attributesWithTypes(filterType));
+    }
+
+    @Override
+    public Task addVarToRelation(String relName, String varName, String... attributes) {
+        return then(Actions.addVarToRelation(relName, varName, attributes));
+    }
+
+    @Override
+    public Task removeVarFromRelation(String relName, String varFrom, String... attributes) {
+        return then(Actions.removeVarFromRelation(relName, varFrom, attributes));
+    }
+
+    @Override
+    public Task traverse(String name, String... params) {
+        return then(Actions.traverse(name, params));
+    }
+
+    @Override
+    public Task attribute(String name, String... params) {
+        return then(Actions.attribute(name, params));
+    }
+
+    @Override
+    public Task readGlobalIndex(String name, String... query) {
+        return then(Actions.readGlobalIndex(name, query));
+    }
+
+    @Override
+    public Task addToGlobalIndex(String name, String... attributes) {
+        return then(Actions.addToGlobalIndex(name, attributes));
+    }
+
+    @Override
+    public Task removeFromGlobalIndex(String name, String... attributes) {
+        return then(Actions.removeFromGlobalIndex(name, attributes));
+    }
+
+    @Override
+    public Task indexNames() {
+        return then(Actions.indexNames());
+    }
+
+    @Override
+    public Task selectWith(String name, String pattern) {
+        return then(Actions.selectWith(name, pattern));
+    }
+
+    @Override
+    public Task selectWithout(String name, String pattern) {
+        return then(Actions.selectWithout(name, pattern));
+    }
+
+    @Override
+    public Task select(TaskFunctionSelect filterFunction) {
+        return then(Actions.select(filterFunction));
+    }
+
+    @Override
+    public Task selectObject(TaskFunctionSelectObject filterFunction) {
+        return then(Actions.selectObject(filterFunction));
+    }
+
+    @Override
+    public Task selectScript(String script) {
+        return then(Actions.selectScript(script));
+    }
+
+    @Override
+    public Task print(String name) {
+        return then(Actions.print(name));
+    }
+
+    @Override
+    public Task println(String name) {
+        return then(Actions.println(name));
+    }
+
+    @Override
+    public Task executeExpression(String expression) {
+        return then(Actions.executeExpression(expression));
+    }
+
+    @Override
+    public Task createNode() {
+        return then(Actions.createNode());
+    }
+
+    @Override
+    public Task createTypedNode(String type) {
+        return then(Actions.createTypedNode(type));
+    }
+
+    @Override
+    public Task save() {
+        return then(Actions.save());
+    }
+
+    @Override
+    public Task script(String script) {
+        return then(Actions.script(script));
+    }
+
+    @Override
+    public Task lookup(String nodeId) {
+        return then(Actions.lookup(nodeId));
+    }
+
+    @Override
+    public Task lookupAll(String nodeIds) {
+        return then(Actions.lookupAll(nodeIds));
+    }
+
+    @Override
+    public Task clearResult() {
+        return then(Actions.clearResult());
+    }
 }

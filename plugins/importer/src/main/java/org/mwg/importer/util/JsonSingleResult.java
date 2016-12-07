@@ -49,23 +49,23 @@ public class JsonSingleResult implements TaskResult {
     }
 
     @Override
-    public void set(int index, Object input) {
-
+    public TaskResult set(int index, Object input) {
+        return null;
     }
 
     @Override
-    public void allocate(int index) {
-
+    public TaskResult allocate(int index) {
+        return null;
     }
 
     @Override
-    public void add(Object input) {
-
+    public TaskResult add(Object input) {
+        return null;
     }
 
     @Override
-    public void clear() {
-
+    public TaskResult clear() {
+        return null;
     }
 
     @Override
