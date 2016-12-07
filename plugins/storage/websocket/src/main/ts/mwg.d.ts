@@ -1341,6 +1341,12 @@ declare module org {
                     toString(): string;
                     private parseBoolean(booleanValue);
                 }
+                class ActionTimepoints implements org.mwg.task.Action {
+                    private _from;
+                    private _to;
+                    constructor(from: string, to: string);
+                    eval(context: org.mwg.task.TaskContext): void;
+                }
                 class ActionTravelInTime implements org.mwg.task.Action {
                     private _time;
                     constructor(time: string);
@@ -1413,6 +1419,7 @@ declare module org {
                     static script(script: string): org.mwg.task.Action;
                     static lookup(nodeId: string): org.mwg.task.Action;
                     static lookupAll(nodeIds: string): org.mwg.task.Action;
+                    static timepoints(from: string, to: string): org.mwg.task.Action;
                     static clearResult(): org.mwg.task.Action;
                     static cond(mathExpression: string): org.mwg.task.ConditionalFunction;
                     static newTask(): org.mwg.task.Task;
