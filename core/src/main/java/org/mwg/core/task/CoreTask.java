@@ -261,6 +261,7 @@ public class CoreTask implements org.mwg.task.Task {
             switch (current) {
                 case '\'':
                     isEscaped = true;
+                    cursor++;
                     while (cursor < flatSize) {
                         if (flat.charAt(cursor) == '\'') {
                             break;
@@ -470,6 +471,15 @@ public class CoreTask implements org.mwg.task.Task {
                     throw new RuntimeException("without action needs two parameters. Received:" + params.length);
                 }
                 return new ActionWithout(params[0], params[1]);
+            }
+        });
+        registry.put("script", new TaskActionFactory() {
+            @Override
+            public Action create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("script action needs one parameter. Received:" + params.length);
+                }
+                return new ActionScript(params[0]);
             }
         });
     }
