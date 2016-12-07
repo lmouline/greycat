@@ -20,10 +20,10 @@ public class ActionReadVarTest extends AbstractActionTest {
                 .then(readVar("x"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.resultAsNodes().get(0).get("name"), "n0");
-                        Assert.assertEquals(context.resultAsNodes().get(1).get("name"), "n1");
-                        Assert.assertEquals(context.resultAsNodes().get(2).get("name"), "root");
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.resultAsNodes().get(0).get("name"), "n0");
+                        Assert.assertEquals(ctx.resultAsNodes().get(1).get("name"), "n1");
+                        Assert.assertEquals(ctx.resultAsNodes().get(2).get("name"), "root");
                     }
                 })
                 .execute(graph, null);
@@ -40,9 +40,9 @@ public class ActionReadVarTest extends AbstractActionTest {
                 .then(readVar("x[0]"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.resultAsNodes().get(0).get("name"), "n0");
-                        Assert.assertEquals(1, context.resultAsNodes().size());
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.resultAsNodes().get(0).get("name"), "n0");
+                        Assert.assertEquals(1, ctx.resultAsNodes().size());
                     }
                 })
                 .execute(graph, null);

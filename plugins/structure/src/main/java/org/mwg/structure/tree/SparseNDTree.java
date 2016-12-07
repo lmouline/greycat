@@ -265,21 +265,21 @@ public class SparseNDTree extends BaseNode implements NTree {
                 .then(defineAsVar("parent"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        SparseNDTree current = (SparseNDTree) context.result().get(0);
+                    public void eval(TaskContext ctx) {
+                        SparseNDTree current = (SparseNDTree) ctx.result().get(0);
                         NodeState state = current.graph().resolver().resolveState(current);
-                        NearestNeighborList nnl = (NearestNeighborList) context.variable("nnl").get(0);
+                        NearestNeighborList nnl = (NearestNeighborList) ctx.variable("nnl").get(0);
 
 
                         //Leave node
                         if (!state.getWithDefault(_CONTINUENAV, false)) {
                             Relation values = (Relation) state.get(_VALUES);
-                            int dim = (int) context.variable("dim").get(0);
+                            int dim = (int) ctx.variable("dim").get(0);
                             double[] k = new double[dim];
                             double[] keys = (double[]) state.get(_KEYS);
 
-                            double[] target = (double[]) context.variable("key").get(0);
-                            Distance distance = (Distance) context.variable("distance").get(0);
+                            double[] target = (double[]) ctx.variable("key").get(0);
+                            Distance distance = (Distance) ctx.variable("distance").get(0);
 
                             for (int i = 0; i < values.size(); i++) {
                                 for (int j = 0; j < dim; j++) {
@@ -287,13 +287,13 @@ public class SparseNDTree extends BaseNode implements NTree {
                                 }
                                 nnl.insert(values.get(i), distance.measure(k, target));
                             }
-                            context.continueWith(null);
+                            ctx.continueWith(null);
 
                         } else {
                             final double[] boundMax = (double[]) state.get(_BOUNDMAX);
                             final double[] boundMin = (double[]) state.get(_BOUNDMIN);
-                            final double[] target = (double[]) context.variable("key").get(0);
-                            final Distance distance = (Distance) context.variable("distance").get(0);
+                            final double[] target = (double[]) ctx.variable("key").get(0);
+                            final Distance distance = (Distance) ctx.variable("distance").get(0);
                             final double worst = nnl.getWorstDistance();
 
 
@@ -327,9 +327,9 @@ public class SparseNDTree extends BaseNode implements NTree {
                                 temp.sort();
                                 long[] relations = temp.getNodes();
                                 //double[] distances =temp.getDistances();
-                                context.continueWith(context.wrap(relations));
+                                ctx.continueWith(ctx.wrap(relations));
                             } else {
-                                context.continueWith(null);
+                                ctx.continueWith(null);
                             }
                         }
                     }
@@ -344,20 +344,20 @@ public class SparseNDTree extends BaseNode implements NTree {
         Task reccursiveDown = newTask();
         reccursiveDown.then(defineAsVar("parent")).thenDo(new ActionFunction() {
             @Override
-            public void eval(TaskContext context) {
-                SparseNDTree current = (SparseNDTree) context.result().get(0);
+            public void eval(TaskContext ctx) {
+                SparseNDTree current = (SparseNDTree) ctx.result().get(0);
                 NodeState state = current.graph().resolver().resolveState(current);
-                NearestNeighborArrayList nnl = (NearestNeighborArrayList) context.variable("nnl").get(0);
+                NearestNeighborArrayList nnl = (NearestNeighborArrayList) ctx.variable("nnl").get(0);
 
                 //Leave node
                 if (!state.getWithDefault(_CONTINUENAV, false)) {
                     Relation values = (Relation) state.get(_VALUES);
-                    int dim = (int) context.variable("dim").get(0);
+                    int dim = (int) ctx.variable("dim").get(0);
                     double[] k = new double[dim];
                     double[] keys = (double[]) state.get(_KEYS);
 
-                    double[] target = (double[]) context.variable("key").get(0);
-                    Distance distance = (Distance) context.variable("distance").get(0);
+                    double[] target = (double[]) ctx.variable("key").get(0);
+                    Distance distance = (Distance) ctx.variable("distance").get(0);
 
                     for (int i = 0; i < values.size(); i++) {
                         for (int j = 0; j < dim; j++) {
@@ -365,14 +365,14 @@ public class SparseNDTree extends BaseNode implements NTree {
                         }
                         nnl.insert(values.get(i), distance.measure(k, target));
                     }
-                    context.continueWith(null);
+                    ctx.continueWith(null);
 
                 } else {
                     final double[] boundMax = (double[]) state.get(_BOUNDMAX);
                     final double[] boundMin = (double[]) state.get(_BOUNDMIN);
-                    final double[] target = (double[]) context.variable("key").get(0);
-                    final Distance distance = (Distance) context.variable("distance").get(0);
-                    final double radius = (double) context.variable("radius").get(0);
+                    final double[] target = (double[]) ctx.variable("key").get(0);
+                    final Distance distance = (Distance) ctx.variable("distance").get(0);
+                    final double radius = (double) ctx.variable("radius").get(0);
 
 
                     if (getclosestDistance(target, boundMin, boundMax, distance) <= radius) {
@@ -405,9 +405,9 @@ public class SparseNDTree extends BaseNode implements NTree {
                         temp.sort();
                         long[] relations = temp.getNodes();
                         //double[] distances =temp.getDistances();
-                        context.continueWith(context.wrap(relations));
+                        ctx.continueWith(ctx.wrap(relations));
                     } else {
-                        context.continueWith(null);
+                        ctx.continueWith(null);
                     }
                 }
             }

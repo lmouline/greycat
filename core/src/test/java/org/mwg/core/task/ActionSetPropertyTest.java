@@ -29,9 +29,9 @@ public class ActionSetPropertyTest extends AbstractActionTest {
                 .then(setAttribute("name", Type.STRING, "{{nodeName}}"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertNotNull(context.result());
-                        TaskResult<Node> nodes = context.resultAsNodes();
+                    public void eval(TaskContext ctx) {
+                        Assert.assertNotNull(ctx.result());
+                        TaskResult<Node> nodes = ctx.resultAsNodes();
                         Assert.assertEquals("node", nodes.get(0).get("name"));
                         id[0] = nodes.get(0).id();
                     }
@@ -53,20 +53,20 @@ public class ActionSetPropertyTest extends AbstractActionTest {
                 .then(defineAsGlobalVar("nodeName"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
+                    public void eval(TaskContext ctx) {
                         Node[] nodes = new Node[5];
                         for (int i = 0; i < 5; i++) {
                             nodes[i] = graph.newNode(0, 0);
                         }
-                        context.continueWith(context.wrap(nodes));
+                        ctx.continueWith(ctx.wrap(nodes));
                     }
                 })
                 .then(setAttribute("name", Type.STRING, "{{nodeName}}"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertNotNull(context.result());
-                        TaskResult<Node> nodes = context.resultAsNodes();
+                    public void eval(TaskContext ctx) {
+                        Assert.assertNotNull(ctx.result());
+                        TaskResult<Node> nodes = ctx.resultAsNodes();
                         for (int i = 0; i < 5; i++) {
                             Assert.assertEquals("node", nodes.get(i).get("name"));
                             ids[i] = nodes.get(i).id();
@@ -90,14 +90,14 @@ public class ActionSetPropertyTest extends AbstractActionTest {
         newTask()
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        context.continueWith(null);
+                    public void eval(TaskContext ctx) {
+                        ctx.continueWith(null);
                     }
                 })
                 .then(setAttribute("name", Type.STRING, "node"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
+                    public void eval(TaskContext ctx) {
                         nextCalled[0] = true;
                     }
                 }).execute(graph, null);

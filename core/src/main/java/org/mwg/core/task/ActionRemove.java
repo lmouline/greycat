@@ -15,10 +15,10 @@ class ActionRemove implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final TaskResult previousResult = context.result();
+    public void eval(final TaskContext ctx) {
+        final TaskResult previousResult = ctx.result();
         if (previousResult != null) {
-            final String flatRelationName = context.template(_name);
+            final String flatRelationName = ctx.template(_name);
             for (int i = 0; i < previousResult.size(); i++) {
                 Object loopObj = previousResult.get(i);
                 if (loopObj instanceof BaseNode) {
@@ -27,7 +27,7 @@ class ActionRemove implements Action {
                 }
             }
         }
-        context.continueTask();
+        ctx.continueTask();
     }
 
     @Override

@@ -32,18 +32,18 @@ class ActionReadVar implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final String evaluatedName = context.template(_name);
+    public void eval(final TaskContext ctx) {
+        final String evaluatedName = ctx.template(_name);
         TaskResult varResult;
         if (_index != -1) {
-            varResult = context.wrap(context.variable(evaluatedName).get(_index));
+            varResult = ctx.wrap(ctx.variable(evaluatedName).get(_index));
         } else {
-            varResult = context.variable(evaluatedName);
+            varResult = ctx.variable(evaluatedName);
         }
         if (varResult != null) {
             varResult = varResult.clone();
         }
-        context.continueWith(varResult);
+        ctx.continueWith(varResult);
     }
 
     @Override

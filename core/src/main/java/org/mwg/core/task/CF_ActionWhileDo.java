@@ -15,8 +15,8 @@ class CF_ActionWhileDo implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final CoreTaskContext coreTaskContext = (CoreTaskContext) context;
+    public void eval(final TaskContext ctx) {
+        final CoreTaskContext coreTaskContext = (CoreTaskContext) ctx;
         final CF_ActionWhileDo selfPointer = this;
         final Callback[] recursiveAction = new Callback[1];
         recursiveAction[0] = new Callback<TaskResult>() {
@@ -24,23 +24,23 @@ class CF_ActionWhileDo implements Action {
             public void on(final TaskResult res) {
                 final TaskResult previous = coreTaskContext._result;
                 coreTaskContext._result = res;
-                if (_cond.eval(context)) {
+                if (_cond.eval(ctx)) {
                     if (previous != null) {
                         previous.free();
                     }
-                    selfPointer._then.executeFrom(context, ((CoreTaskContext) context)._result, SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+                    selfPointer._then.executeFrom(ctx, ((CoreTaskContext) ctx)._result, SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
                 } else {
                     if (previous != null) {
                         previous.free();
                     }
-                    context.continueWith(res);
+                    ctx.continueWith(res);
                 }
             }
         };
-        if (_cond.eval(context)) {
-            _then.executeFrom(context, coreTaskContext._result, SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+        if (_cond.eval(ctx)) {
+            _then.executeFrom(ctx, coreTaskContext._result, SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
         } else {
-            context.continueTask();
+            ctx.continueTask();
         }
     }
 

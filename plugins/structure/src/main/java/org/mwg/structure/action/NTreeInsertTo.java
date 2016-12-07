@@ -24,11 +24,11 @@ public class NTreeInsertTo implements Action {
     }
 
     @Override
-    public final void eval(final TaskContext context) {
-        final TaskResult previousResult = context.result();
-        final TaskResult savedVar = context.variable(context.template(_variableName));
+    public final void eval(final TaskContext ctx) {
+        final TaskResult previousResult = ctx.result();
+        final TaskResult savedVar = ctx.variable(ctx.template(_variableName));
         if (previousResult != null && savedVar != null) {
-            final DeferCounter defer = context.graph().newCounter(previousResult.size());
+            final DeferCounter defer = ctx.graph().newCounter(previousResult.size());
             final TaskResultIterator previousResultIt = previousResult.iterator();
             Object iter = previousResultIt.next();
             while (iter != null) {
@@ -56,11 +56,11 @@ public class NTreeInsertTo implements Action {
             defer.then(new Job() {
                 @Override
                 public void run() {
-                    context.continueTask();
+                    ctx.continueTask();
                 }
             });
         } else {
-            context.continueTask();
+            ctx.continueTask();
         }
     }
 

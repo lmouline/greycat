@@ -32,9 +32,9 @@ public class ActionSelectObjectTest extends AbstractActionTest {
                 }))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertNotEquals(context.result().size(), 0);
-                        Assert.assertEquals(55, context.result().get(0));
+                    public void eval(TaskContext ctx) {
+                        Assert.assertNotEquals(ctx.result().size(), 0);
+                        Assert.assertEquals(55, ctx.result().get(0));
                     }
                 })
                 .execute(graph, null);
@@ -49,9 +49,9 @@ public class ActionSelectObjectTest extends AbstractActionTest {
                 }))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertNotEquals(context.result().size(), 0);
-                        Assert.assertEquals(55, context.result().get(0));
+                    public void eval(TaskContext ctx) {
+                        Assert.assertNotEquals(ctx.result().size(), 0);
+                        Assert.assertEquals(55, ctx.result().get(0));
                     }
                 })
                 .execute(graph, null);

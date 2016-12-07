@@ -16,14 +16,14 @@ public class ActionIfThenTest extends AbstractActionTest {
 
         Task modifyResult0 = newTask().thenDo(new ActionFunction() {
             @Override
-            public void eval(TaskContext context) {
+            public void eval(TaskContext ctx) {
                 result[0] = true;
             }
         });
 
         Task modifyResult1 = newTask().thenDo(new ActionFunction() {
             @Override
-            public void eval(TaskContext context) {
+            public void eval(TaskContext ctx) {
                 result[0] = true;
             }
         });
@@ -52,8 +52,8 @@ public class ActionIfThenTest extends AbstractActionTest {
         initGraph();
         Task addVarInContext = newTask().then(inject(5)).then(defineAsGlobalVar("variable")).thenDo(new ActionFunction() {
             @Override
-            public void eval(TaskContext context) {
-                context.continueTask();
+            public void eval(TaskContext ctx) {
+                ctx.continueTask();
                 //empty action
             }
         });
@@ -61,8 +61,8 @@ public class ActionIfThenTest extends AbstractActionTest {
         newTask().ifThen(context -> true, addVarInContext).then(readVar("variable"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Integer val = (Integer) context.result().get(0);
+                    public void eval(TaskContext ctx) {
+                        Integer val = (Integer) ctx.result().get(0);
                         Assert.assertEquals(5, (int) val);
                     }
                 }).execute(graph, null);
@@ -74,10 +74,10 @@ public class ActionIfThenTest extends AbstractActionTest {
         initGraph();
         Task accessVar = newTask().thenDo(new ActionFunction() {
             @Override
-            public void eval(TaskContext context) {
-                Integer variable = (Integer) context.variable("variable").get(0);
+            public void eval(TaskContext ctx) {
+                Integer variable = (Integer) ctx.variable("variable").get(0);
                 Assert.assertEquals(5, (int) variable);
-                context.continueTask();
+                ctx.continueTask();
             }
         });
 

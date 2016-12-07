@@ -20,9 +20,9 @@ public class ActionScript implements Action {
      * eval(this._script);
      */
     @Override
-    public void eval(TaskContext context) {
+    public void eval(TaskContext ctx) {
         ScriptContext scriptCtx = new SimpleScriptContext();
-        scriptCtx.setAttribute("context",context,ScriptContext.ENGINE_SCOPE);
+        scriptCtx.setAttribute("ctx", ctx,ScriptContext.ENGINE_SCOPE);
         try {
             TaskHelper.SCRIPT_ENGINE.eval(this._script,scriptCtx);
         } catch (ScriptException e) {

@@ -24,22 +24,22 @@ public class ActionAddToGlobalIndexTest {
                         .then(readGlobalIndex("indexName"))
                         .thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
-                                Assert.assertNotNull(context.result());
-                                Node indexedNode = (Node) context.variable("nodeIndexed").get(0);
-                                Assert.assertEquals(1, context.result().size());
-                                Assert.assertEquals(indexedNode.id(), context.resultAsNodes().get(0).id());
-                                context.continueTask();
+                            public void eval(TaskContext ctx) {
+                                Assert.assertNotNull(ctx.result());
+                                Node indexedNode = (Node) ctx.variable("nodeIndexed").get(0);
+                                Assert.assertEquals(1, ctx.result().size());
+                                Assert.assertEquals(indexedNode.id(), ctx.resultAsNodes().get(0).id());
+                                ctx.continueTask();
                             }
                         })
                         .then(removeFromGlobalIndex("indexName", "name"))
                         .then(readGlobalIndex("indexName"))
                         .thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
-                                Assert.assertNotNull(context.result());
-                                Assert.assertEquals(0, context.result().size());
-                                context.continueWith(null);
+                            public void eval(TaskContext ctx) {
+                                Assert.assertNotNull(ctx.result());
+                                Assert.assertEquals(0, ctx.result().size());
+                                ctx.continueWith(null);
                             }
                         })
                         .execute(graph, null);
@@ -62,12 +62,12 @@ public class ActionAddToGlobalIndexTest {
                         .then(readGlobalIndex("indexName", "name","root"))
                         .thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
-                                Assert.assertNotNull(context.result());
-                                Node indexedNode = (Node) context.variable("nodeIndexed").get(0);
-                                Assert.assertEquals(1, context.result().size());
-                                Assert.assertEquals(indexedNode.id(), context.resultAsNodes().get(0).id());
-                                context.continueTask();
+                            public void eval(TaskContext ctx) {
+                                Assert.assertNotNull(ctx.result());
+                                Node indexedNode = (Node) ctx.variable("nodeIndexed").get(0);
+                                Assert.assertEquals(1, ctx.result().size());
+                                Assert.assertEquals(indexedNode.id(), ctx.resultAsNodes().get(0).id());
+                                ctx.continueTask();
                             }
                         })
                         .execute(graph, null);

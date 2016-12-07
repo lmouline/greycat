@@ -31,9 +31,9 @@ public class ActionRemoveFromRelationTest extends AbstractActionTest {
                 .then(removeVarFromRelation("friend", "x"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertNotNull(context.result());
-                        Node node = context.resultAsNodes().get(0);
+                    public void eval(TaskContext ctx) {
+                        Assert.assertNotNull(ctx.result());
+                        Node node = ctx.resultAsNodes().get(0);
                         Assert.assertEquals(((Relation) node.get("friend")).size(), 0);
                         id[0] = node.id();
                     }
@@ -59,21 +59,21 @@ public class ActionRemoveFromRelationTest extends AbstractActionTest {
                 .then(defineAsGlobalVar("x"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
+                    public void eval(TaskContext ctx) {
                         Node[] nodes = new Node[5];
                         for (int i = 0; i < 5; i++) {
                             nodes[i] = graph.newNode(0, 0);
                         }
-                        context.continueWith(context.wrap(nodes));
+                        ctx.continueWith(ctx.wrap(nodes));
                     }
                 })
                 .then(addVarToRelation("friend", "x"))
                 .then(removeVarFromRelation("friend", "x"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertNotNull(context.result());
-                        TaskResult<Node> nodes = context.resultAsNodes();
+                    public void eval(TaskContext ctx) {
+                        Assert.assertNotNull(ctx.result());
+                        TaskResult<Node> nodes = ctx.resultAsNodes();
                         for (int i = 0; i < 5; i++) {
                             Assert.assertEquals(((Relation) nodes.get(i).get("friend")).size(), 0);
                             ids[i] = nodes.get(i).id();
@@ -99,8 +99,8 @@ public class ActionRemoveFromRelationTest extends AbstractActionTest {
         newTask()
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        context.continueWith(null);
+                    public void eval(TaskContext ctx) {
+                        ctx.continueWith(null);
                     }
                 })
                 .then(inject(relatedNode))
@@ -109,7 +109,7 @@ public class ActionRemoveFromRelationTest extends AbstractActionTest {
                 .then(removeVarFromRelation("friend", "x"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
+                    public void eval(TaskContext ctx) {
                         nextCalled[0] = true;
                     }
                 }).execute(graph, null);

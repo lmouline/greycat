@@ -31,8 +31,8 @@ public class ActionRemoveFromRelationPropertyTest extends AbstractActionTest {
                 .then(remove("name"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        TaskResult<Node> nodes = context.resultAsNodes();
+                    public void eval(TaskContext ctx) {
+                        TaskResult<Node> nodes = ctx.resultAsNodes();
                         Assert.assertNotNull(nodes.get(0));
                         Assert.assertNull(nodes.get(0).get("name"));
                         id[0] = nodes.get(0).id();
@@ -56,20 +56,20 @@ public class ActionRemoveFromRelationPropertyTest extends AbstractActionTest {
                 .then(defineAsGlobalVar("nodeName"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
+                    public void eval(TaskContext ctx) {
                         Node[] nodes = new Node[5];
                         for (int i = 0; i < 5; i++) {
                             nodes[i] = graph.newNode(0, 0);
                         }
-                        context.continueWith(context.wrap(nodes));
+                        ctx.continueWith(ctx.wrap(nodes));
                     }
                 })
                 .then(setAttribute("name", Type.STRING, "nodeName"))
                 .then(remove("name"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        TaskResult<Node> nodes = context.resultAsNodes();
+                    public void eval(TaskContext ctx) {
+                        TaskResult<Node> nodes = ctx.resultAsNodes();
                         Assert.assertNotNull(nodes);
 
                         for (int i = 0; i < 5; i++) {
@@ -95,15 +95,15 @@ public class ActionRemoveFromRelationPropertyTest extends AbstractActionTest {
         newTask()
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        context.continueWith(null);
+                    public void eval(TaskContext ctx) {
+                        ctx.continueWith(null);
                     }
                 })
                 .then(setAttribute("name", Type.STRING, "node"))
                 .then(remove("name"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
+                    public void eval(TaskContext ctx) {
                         nextCalled[0] = true;
                     }
                 }).execute(graph, null);

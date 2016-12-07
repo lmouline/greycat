@@ -29,8 +29,8 @@ public class ActionLookupTest extends AbstractActionTest {
                 .then(lookupAll("{{ids}}"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        TaskResult<Node> nodes = context.resultAsNodes();
+                    public void eval(TaskContext ctx) {
+                        TaskResult<Node> nodes = ctx.resultAsNodes();
                         Assert.assertEquals(nodes.get(0).toString(), "{\"world\":0,\"time\":10,\"id\":1,\"name\":\"n0\",\"value\":8}");
                         Assert.assertEquals(nodes.get(1).toString(), "{\"world\":0,\"time\":10,\"id\":2,\"name\":\"n1\",\"value\":3}");
                         Assert.assertEquals(nodes.get(2).toString(), "{\"world\":0,\"time\":10,\"id\":3,\"name\":\"root\",\"children\":[1,2]}");

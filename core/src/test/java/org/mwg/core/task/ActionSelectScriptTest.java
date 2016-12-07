@@ -13,13 +13,14 @@ public class ActionSelectScriptTest extends AbstractActionTest {
     public void test() {
         initGraph();
         newTask()
-                .then(readGlobalIndex("nodes"))
-                .then(selectScript("node.get('name') == 'root'"))
+                .readGlobalIndex("nodes")
+                .select((node, context) -> node.get("name").equals("root"))
+                .selectScript("node.get('name') == 'root'")
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(1,context.result().size());
-                        Assert.assertEquals(context.resultAsNodes().get(0).get("name"), "root");
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(1, ctx.result().size());
+                        Assert.assertEquals(ctx.resultAsNodes().get(0).get("name"), "root");
                     }
                 })
                 .execute(graph, null);
@@ -34,8 +35,8 @@ public class ActionSelectScriptTest extends AbstractActionTest {
                 .then(selectScript("false"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.result().size(), 0);
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.result().size(), 0);
                     }
                 })
                 .execute(graph, null);
@@ -50,8 +51,8 @@ public class ActionSelectScriptTest extends AbstractActionTest {
                 .then(selectScript("true"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.result().size(), 3);
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.result().size(), 3);
                     }
                 })
                 .execute(graph, null);

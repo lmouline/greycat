@@ -16,13 +16,13 @@ class ActionSelectObject implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final TaskResult previous = context.result();
-        final TaskResult next = context.wrap(null);
+    public void eval(final TaskContext ctx) {
+        final TaskResult previous = ctx.result();
+        final TaskResult next = ctx.wrap(null);
         final TaskResultIterator iterator = previous.iterator();
         Object nextElem = iterator.next();
         while(nextElem != null) {
-            if(_filter.select(nextElem,context)) {
+            if(_filter.select(nextElem, ctx)) {
                 if(nextElem instanceof BaseNode) {
                     Node casted = (Node) nextElem;
                     next.add(casted.graph().cloneNode(casted));
@@ -32,7 +32,7 @@ class ActionSelectObject implements Action {
             }
             nextElem = iterator.next();
         }
-        context.continueWith(next);
+        ctx.continueWith(next);
     }
 
     @Override

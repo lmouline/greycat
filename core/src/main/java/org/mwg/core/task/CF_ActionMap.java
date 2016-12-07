@@ -18,11 +18,11 @@ class CF_ActionMap implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final TaskResult previous = context.result();
+    public void eval(final TaskContext ctx) {
+        final TaskResult previous = ctx.result();
         final AtomicInteger cursor = new AtomicInteger(0);
         final int tasksSize = _subTasks.length;
-        final TaskResult next = context.newResult();
+        final TaskResult next = ctx.newResult();
         final Callback<TaskResult>[] loopcb = new Callback[1];
         loopcb[0] = new Callback<TaskResult>() {
             @Override
@@ -37,18 +37,18 @@ class CF_ActionMap implements Action {
                     }
                 }
                 if (current < tasksSize) {
-                    _subTasks[current].executeFrom(context, previous, SchedulerAffinity.SAME_THREAD, loopcb[0]);
+                    _subTasks[current].executeFrom(ctx, previous, SchedulerAffinity.SAME_THREAD, loopcb[0]);
                 } else {
                     //end
-                    context.continueWith(next);
+                    ctx.continueWith(next);
                 }
             }
         };
         final int current = cursor.getAndIncrement();
         if (current < tasksSize) {
-            _subTasks[current].executeFrom(context, previous, SchedulerAffinity.SAME_THREAD, loopcb[0]);
+            _subTasks[current].executeFrom(ctx, previous, SchedulerAffinity.SAME_THREAD, loopcb[0]);
         } else {
-            context.continueWith(next);
+            ctx.continueWith(next);
         }
     }
 

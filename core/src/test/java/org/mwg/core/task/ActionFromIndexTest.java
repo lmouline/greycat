@@ -19,9 +19,9 @@ public class ActionFromIndexTest extends AbstractActionTest {
                 .then(readGlobalIndex("nodes", "name", "n0"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.resultAsNodes().get(0).get("name"), "n0");
-                        Assert.assertEquals(context.result().size(), 1);
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.resultAsNodes().get(0).get("name"), "n0");
+                        Assert.assertEquals(ctx.result().size(), 1);
                     }
                 })
                 .execute(graph, null);

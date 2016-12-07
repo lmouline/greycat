@@ -13,15 +13,15 @@ class ActionCreateNode implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
+    public void eval(final TaskContext ctx) {
         Node newNode;
         if (_typeNode == null) {
-            newNode = context.graph().newNode(context.world(), context.time());
+            newNode = ctx.graph().newNode(ctx.world(), ctx.time());
         } else {
-            String templatedType = context.template(_typeNode);
-            newNode = context.graph().newTypedNode(context.world(), context.time(), templatedType);
+            String templatedType = ctx.template(_typeNode);
+            newNode = ctx.graph().newTypedNode(ctx.world(), ctx.time(), templatedType);
         }
-        context.continueWith(context.wrap(newNode));
+        ctx.continueWith(ctx.wrap(newNode));
     }
 
     @Override

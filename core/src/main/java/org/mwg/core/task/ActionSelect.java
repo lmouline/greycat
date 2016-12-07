@@ -23,9 +23,9 @@ class ActionSelect implements Action {
 
 
     @Override
-    public void eval(TaskContext context) {
-        final TaskResult previous = context.result();
-        final TaskResult next = context.newResult();
+    public void eval(TaskContext ctx) {
+        final TaskResult previous = ctx.result();
+        final TaskResult next = ctx.newResult();
         final int previousSize = previous.size();
 
         for (int i = 0; i < previousSize; i++) {
@@ -33,9 +33,9 @@ class ActionSelect implements Action {
             if (obj instanceof BaseNode) {
                 final Node casted = (Node) obj;
 
-                if (_filter != null && _filter.select(casted, context)) {
+                if (_filter != null && _filter.select(casted, ctx)) {
                     next.add(casted);
-                } else if (_script != null && callScript(casted,context)) {
+                } else if (_script != null && callScript(casted, ctx)) {
                     next.add(casted);
                 } else {
                     casted.free();
@@ -47,7 +47,7 @@ class ActionSelect implements Action {
 
         //optimization to avoid the need to clone selected nodes
         previous.clear();
-        context.continueWith(next);
+        ctx.continueWith(next);
     }
 
 

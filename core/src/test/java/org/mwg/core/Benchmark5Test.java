@@ -32,18 +32,18 @@ public class Benchmark5Test {
                         newTask().loop("0", "999",
                                 newTask().thenDo(new ActionFunction() {
                                     @Override
-                                    public void eval(TaskContext context) {
+                                    public void eval(TaskContext ctx) {
                                         Random random = new Random();
                                         for (int i = 0; i < 100; i++) {
                                             random.nextFloat();
                                         }
-                                        context.continueTask();
+                                        ctx.continueTask();
                                     }
                                 })
                         )
                 ).thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
+                    public void eval(TaskContext ctx) {
                         System.out.println("End " + (System.currentTimeMillis() - previous) + " ms");
                         g.disconnect(null);
                     }

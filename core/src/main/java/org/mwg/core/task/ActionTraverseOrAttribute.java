@@ -19,13 +19,13 @@ class ActionTraverseOrAttribute implements Action {
     }
 
     @Override
-    public final void eval(final TaskContext context) {
-        final TaskResult finalResult = context.newResult();
-        final String flatName = context.template(_name);
-        final TaskResult previousResult = context.result();
+    public final void eval(final TaskContext ctx) {
+        final TaskResult finalResult = ctx.newResult();
+        final String flatName = ctx.template(_name);
+        final TaskResult previousResult = ctx.result();
         if (previousResult != null) {
             final int previousSize = previousResult.size();
-            final DeferCounter defer = context.graph().newCounter(previousSize);
+            final DeferCounter defer = ctx.graph().newCounter(previousSize);
             for (int i = 0; i < previousSize; i++) {
                 final Object loop = previousResult.get(i);
                 if (loop instanceof BaseNode) {
@@ -50,8 +50,8 @@ class ActionTraverseOrAttribute implements Action {
                             RelationIndexed relationIndexed = (RelationIndexed) casted.get(flatName);
                             if (relationIndexed != null) {
                                 if (_params != null && _params.length > 0) {
-                                    String[] templatedParams = context.templates(_params);
-                                    Query query = context.graph().newQuery();
+                                    String[] templatedParams = ctx.templates(_params);
+                                    Query query = ctx.graph().newQuery();
                                     query.setWorld(casted.world());
                                     query.setTime(casted.time());
                                     String previous = null;
@@ -78,7 +78,7 @@ class ActionTraverseOrAttribute implements Action {
                                         }
                                     });
                                 } else {
-                                    casted.graph().lookupAll(context.world(), context.time(), relationIndexed.all(), new Callback<Node[]>() {
+                                    casted.graph().lookupAll(ctx.world(), ctx.time(), relationIndexed.all(), new Callback<Node[]>() {
                                         @Override
                                         public void on(Node[] result) {
                                             if (result != null) {
@@ -117,11 +117,11 @@ class ActionTraverseOrAttribute implements Action {
                 public void run() {
                     //optimization to avoid iterating again on previous result set
                     previousResult.clear();
-                    context.continueWith(finalResult);
+                    ctx.continueWith(finalResult);
                 }
             });
         } else {
-            context.continueTask();
+            ctx.continueTask();
         }
     }
 

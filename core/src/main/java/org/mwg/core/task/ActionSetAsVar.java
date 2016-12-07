@@ -16,14 +16,14 @@ class ActionSetAsVar implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final TaskResult previousResult = context.result();
-        if (context.isGlobal(_name)) {
-            context.setGlobalVariable(context.template(_name), previousResult);
+    public void eval(final TaskContext ctx) {
+        final TaskResult previousResult = ctx.result();
+        if (ctx.isGlobal(_name)) {
+            ctx.setGlobalVariable(ctx.template(_name), previousResult);
         } else {
-            context.setVariable(context.template(_name), previousResult);
+            ctx.setVariable(ctx.template(_name), previousResult);
         }
-        context.continueTask();
+        ctx.continueTask();
     }
 
     @Override

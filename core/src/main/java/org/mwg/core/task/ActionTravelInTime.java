@@ -19,8 +19,8 @@ class ActionTravelInTime implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final String flatTime = context.template(_time);
+    public void eval(final TaskContext ctx) {
+        final String flatTime = ctx.template(_time);
         long parsedTime;
         try {
             parsedTime = Long.parseLong(flatTime);
@@ -28,8 +28,8 @@ class ActionTravelInTime implements Action {
             Double d = Double.parseDouble(flatTime);
             parsedTime = d.longValue();
         }
-        context.setTime(parsedTime);
-        final TaskResult previous = context.result();
+        ctx.setTime(parsedTime);
+        final TaskResult previous = ctx.result();
         final DeferCounter defer = new CoreDeferCounter(previous.size());
         final int previousSize = previous.size();
         for (int i = 0; i < previousSize; i++) {
@@ -52,7 +52,7 @@ class ActionTravelInTime implements Action {
         defer.then(new Job() {
             @Override
             public void run() {
-                context.continueTask();
+                ctx.continueTask();
             }
         });
     }

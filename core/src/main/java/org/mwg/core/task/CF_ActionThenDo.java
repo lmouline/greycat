@@ -16,10 +16,10 @@ class CF_ActionThenDo implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
+    public void eval(final TaskContext ctx) {
         //execute wrapped task but does not call the next method of the wrapped context
         //this allow to have exactly one call to the Context.next method
-        _wrapped.eval(context);
+        _wrapped.eval(ctx);
     }
 
     @Override

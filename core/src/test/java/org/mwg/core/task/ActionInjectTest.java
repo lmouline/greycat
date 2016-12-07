@@ -18,8 +18,8 @@ public class ActionInjectTest extends AbstractActionTest {
                 .then(inject("uselessPayload"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.resultAsStrings().get(0), "uselessPayload");
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.resultAsStrings().get(0), "uselessPayload");
                     }
                 })
                 .execute(graph, null);
@@ -42,7 +42,7 @@ public class ActionInjectTest extends AbstractActionTest {
                         .then(inject(result))
                         .thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
+                            public void eval(TaskContext ctx) {
                                 //empty task
                             }
                         })
@@ -79,7 +79,7 @@ public class ActionInjectTest extends AbstractActionTest {
                         .then(inject(result[0]))
                         .thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
+                            public void eval(TaskContext ctx) {
                                 //empty task
                             }
                         })

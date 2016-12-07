@@ -19,9 +19,9 @@ public class ActionWithoutTest extends AbstractActionTest {
                 .then(selectWithout("name", "n0"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.resultAsNodes().get(0).get("name"), "n1");
-                        Assert.assertEquals(context.resultAsNodes().get(1).get("name"), "root");
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.resultAsNodes().get(0).get("name"), "n1");
+                        Assert.assertEquals(ctx.resultAsNodes().get(1).get("name"), "root");
                     }
                 })
                 .execute(graph, null);
@@ -30,8 +30,8 @@ public class ActionWithoutTest extends AbstractActionTest {
                 .then(selectWithout("name", "n.*"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.resultAsNodes().get(0).get("name"), "root");
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.resultAsNodes().get(0).get("name"), "root");
                     }
                 })
                 .execute(graph, null);

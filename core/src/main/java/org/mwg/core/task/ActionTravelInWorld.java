@@ -20,8 +20,8 @@ class ActionTravelInWorld implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final String flatWorld = context.template(_world);
+    public void eval(final TaskContext ctx) {
+        final String flatWorld = ctx.template(_world);
         long parsedWorld;
         try {
             parsedWorld = Long.parseLong(flatWorld);
@@ -29,8 +29,8 @@ class ActionTravelInWorld implements Action {
             Double d = Double.parseDouble(flatWorld);
             parsedWorld = d.longValue();
         }
-        context.setWorld(parsedWorld);
-        final TaskResult previous = context.result();
+        ctx.setWorld(parsedWorld);
+        final TaskResult previous = ctx.result();
         final DeferCounter defer = new CoreDeferCounter(previous.size());
         final int previousSize = previous.size();
         for (int i = 0; i < previousSize; i++) {
@@ -38,7 +38,7 @@ class ActionTravelInWorld implements Action {
             if (loopObj instanceof BaseNode) {
                 Node castedPreviousNode = (Node) loopObj;
                 final int finalIndex = i;
-                context.graph().lookup(parsedWorld, castedPreviousNode.time(), castedPreviousNode.id(), new Callback<Node>() {
+                ctx.graph().lookup(parsedWorld, castedPreviousNode.time(), castedPreviousNode.id(), new Callback<Node>() {
                     @Override
                     public void on(Node result) {
                         castedPreviousNode.free();
@@ -53,7 +53,7 @@ class ActionTravelInWorld implements Action {
         defer.then(new Job() {
             @Override
             public void run() {
-                context.continueTask();
+                ctx.continueTask();
             }
         });
     }

@@ -41,15 +41,15 @@ public class ActionForeachParTest extends AbstractActionTest {
                 .forEachPar(
                         newTask().thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
-                                context.continueTask();
+                            public void eval(TaskContext ctx) {
+                                ctx.continueTask();
                             }
                         })
                 )
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        TaskResult<Node> nodes = context.resultAsNodes();
+                    public void eval(TaskContext ctx) {
+                        TaskResult<Node> nodes = ctx.resultAsNodes();
                         Assert.assertEquals(nodes.size(), 3);
                         Assert.assertEquals(nodes.get(0).get("name"), "n0");
                         Assert.assertEquals(nodes.get(1).get("name"), "n1");
@@ -65,15 +65,15 @@ public class ActionForeachParTest extends AbstractActionTest {
         newTask().then(inject(paramIterable))
                 .forEachPar(newTask().thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
-                                context.continueTask();
+                            public void eval(TaskContext ctx) {
+                                ctx.continueTask();
                             }
                         })
                 )
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        TaskResult<String> names = context.result();
+                    public void eval(TaskContext ctx) {
+                        TaskResult<String> names = ctx.result();
                         Assert.assertEquals(names.size(), 3);
                         Assert.assertEquals(names.get(0), "n0");
                         Assert.assertEquals(names.get(1), "n1");

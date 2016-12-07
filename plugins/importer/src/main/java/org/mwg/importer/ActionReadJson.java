@@ -21,9 +21,9 @@ class ActionReadJson implements Action {
     }
 
     @Override
-    public void eval(TaskContext context) {
+    public void eval(TaskContext ctx) {
         TaskResult result = null;
-        final String path = context.template(_pathOrTemplate);
+        final String path = ctx.template(_pathOrTemplate);
         InputStream foundStream;
         try {
             File file = new File(path);
@@ -61,7 +61,7 @@ class ActionReadJson implements Action {
                 }
             }
         }
-        context.continueWith(result);
+        ctx.continueWith(result);
     }
 
 }

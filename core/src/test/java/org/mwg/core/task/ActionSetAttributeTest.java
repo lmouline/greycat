@@ -27,8 +27,8 @@ public class ActionSetAttributeTest extends ActionNewNodeTest {
                 .then(setAttribute("name", Type.STRING, "{{nodeName}}"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Node node = (Node) context.result().get(0);
+                    public void eval(TaskContext ctx) {
+                        Node node = (Node) ctx.result().get(0);
                         Assert.assertNotNull(node);
                         Assert.assertEquals("node", node.get("name"));
 
@@ -52,19 +52,19 @@ public class ActionSetAttributeTest extends ActionNewNodeTest {
                 .then(defineAsGlobalVar("nodeName"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
+                    public void eval(TaskContext ctx) {
                         Node[] nodes = new Node[5];
                         for (int i = 0; i < 5; i++) {
                             nodes[i] = graph.newNode(0, 0);
                         }
-                        context.continueWith(context.wrap(nodes));
+                        ctx.continueWith(ctx.wrap(nodes));
                     }
                 })
                 .then(setAttribute("name", Type.STRING, "{{nodeName}}"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        TaskResult<Node> nodes = context.resultAsNodes();
+                    public void eval(TaskContext ctx) {
+                        TaskResult<Node> nodes = ctx.resultAsNodes();
                         Assert.assertNotNull(nodes);
                         for (int i = 0; i < 5; i++) {
                             Assert.assertEquals("node", nodes.get(i).get("name"));
@@ -91,14 +91,14 @@ public class ActionSetAttributeTest extends ActionNewNodeTest {
                 .then(defineAsGlobalVar("nodeName"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        context.continueWith(null);
+                    public void eval(TaskContext ctx) {
+                        ctx.continueWith(null);
                     }
                 })
                 .then(setAttribute("name", Type.STRING, "node"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
+                    public void eval(TaskContext ctx) {
                         nextCalled[0] = true;
                     }
                 }).execute(graph, null);

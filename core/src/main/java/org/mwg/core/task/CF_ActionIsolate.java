@@ -19,15 +19,15 @@ class CF_ActionIsolate implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final TaskResult previous = context.result();
-        _subTask.executeFrom(context, previous, SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
+    public void eval(final TaskContext ctx) {
+        final TaskResult previous = ctx.result();
+        _subTask.executeFrom(ctx, previous, SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
             @Override
             public void on(TaskResult subTaskResult) {
                 if (subTaskResult != null) {
                     subTaskResult.free();
                 }
-                context.continueWith(previous);
+                ctx.continueWith(previous);
             }
         });
     }

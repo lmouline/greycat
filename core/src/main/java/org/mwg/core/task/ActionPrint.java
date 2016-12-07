@@ -15,13 +15,13 @@ class ActionPrint implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
+    public void eval(final TaskContext ctx) {
         if (_withLineBreak) {
-            System.out.println(context.template(_name));
+            System.out.println(ctx.template(_name));
         } else {
-            System.out.print(context.template(_name));
+            System.out.print(ctx.template(_name));
         }
-        context.continueTask();
+        ctx.continueTask();
     }
 
     @Override

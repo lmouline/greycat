@@ -6,8 +6,8 @@ import org.mwg.task.TaskContext;
 class ActionClearResult implements Action {
 
     @Override
-    public void eval(final TaskContext context) {
-        context.continueWith(context.newResult());
+    public void eval(final TaskContext ctx) {
+        ctx.continueWith(ctx.newResult());
     }
 
     @Override

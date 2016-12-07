@@ -29,19 +29,19 @@ class CF_ActionIfThenElse implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        if (_condition.eval(context)) {
-            _thenSub.executeFrom(context, context.result(), SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
+    public void eval(final TaskContext ctx) {
+        if (_condition.eval(ctx)) {
+            _thenSub.executeFrom(ctx, ctx.result(), SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult res) {
-                    context.continueWith(res);
+                    ctx.continueWith(res);
                 }
             });
         } else {
-            _elseSub.executeFrom(context, context.result(), SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
+            _elseSub.executeFrom(ctx, ctx.result(), SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult res) {
-                    context.continueWith(res);
+                    ctx.continueWith(res);
                 }
             });
         }

@@ -31,9 +31,9 @@ public class ActionNewNodeTest extends AbstractActionTest {
                 .then(createNode())
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertNotNull(context.result());
-                        TaskResult<Node> n = context.resultAsNodes();
+                    public void eval(TaskContext ctx) {
+                        Assert.assertNotNull(ctx.result());
+                        TaskResult<Node> n = ctx.resultAsNodes();
                         id[0] = n.get(0).id();
                         Assert.assertEquals(15, n.get(0).world());
                         Assert.assertEquals(587, n.get(0).time());

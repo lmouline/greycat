@@ -7,11 +7,11 @@ import org.mwg.task.TaskContext;
 class ActionSave implements Action {
 
     @Override
-    public void eval(final TaskContext context) {
-        context.graph().save(new Callback<Boolean>() {
+    public void eval(final TaskContext ctx) {
+        ctx.graph().save(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                context.continueTask();
+                ctx.continueTask();
             }
         });
     }

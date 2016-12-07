@@ -65,11 +65,11 @@ public class ImporterTest {
                 final int[] nbFile = new int[1];
                 Task t = newTask().then(readFiles("smarthome")).forEach(newTask().thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        String filePath = (String) context.result().get(0);
+                    public void eval(TaskContext ctx) {
+                        String filePath = (String) ctx.result().get(0);
                         Assert.assertEquals(subFiles[nbFile[0]].getAbsolutePath(), filePath);
                         nbFile[0]++;
-                        context.continueWith(null);
+                        ctx.continueWith(null);
                     }
                 }));
                 t.execute(g, null);
@@ -94,11 +94,11 @@ public class ImporterTest {
                         .then(action(ImporterActions.READFILES, "{{fileName}}"))
                         .forEach(newTask().thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
-                                String file = (String) context.result().get(0);
+                            public void eval(TaskContext ctx) {
+                                String file = (String) ctx.result().get(0);
                                 Assert.assertEquals(subFiles[nbFile[0]].getAbsolutePath(), file);
                                 nbFile[0]++;
-                                context.continueWith(null);
+                                ctx.continueWith(null);
                             }
                         }));
                 t.execute(g, null);
@@ -126,11 +126,11 @@ public class ImporterTest {
                         .forEach(
                                 newTask().thenDo(new ActionFunction() {
                                     @Override
-                                    public void eval(TaskContext context) {
-                                        String file = (String) context.result().get(0);
+                                    public void eval(TaskContext ctx) {
+                                        String file = (String) ctx.result().get(0);
                                         Assert.assertEquals(expectecFile.getAbsolutePath(), file);
                                         nbFile[0]++;
-                                        context.continueWith(null);
+                                        ctx.continueWith(null);
                                     }
                                 })
                         )
@@ -138,15 +138,15 @@ public class ImporterTest {
                         .forEach(
                                 newTask().thenDo(new ActionFunction() {
                                     @Override
-                                    public void eval(TaskContext context) {
-                                        String file = (String) context.result().get(0);
+                                    public void eval(TaskContext ctx) {
+                                        String file = (String) ctx.result().get(0);
                                         try {
                                             Assert.assertEquals(URLDecoder.decode(expectedFile2.getAbsolutePath(), "UTF-8"), file);
                                         } catch (UnsupportedEncodingException ex) {
                                             Assert.fail(ex.getMessage());
                                         }
                                         nbFile[0]++;
-                                        context.continueWith(null);
+                                        ctx.continueWith(null);
                                     }
                                 })
                         );

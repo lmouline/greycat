@@ -20,19 +20,19 @@ class ActionAddToGlobalIndex implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
+    public void eval(final TaskContext ctx) {
 
 
-        final TaskResult previousResult = context.result();
-        final String templatedIndexName = context.template(_name);
-        final String[] templatedAttributes = context.templates(_attributes);
+        final TaskResult previousResult = ctx.result();
+        final String templatedIndexName = ctx.template(_name);
+        final String[] templatedAttributes = ctx.templates(_attributes);
         final DeferCounter counter = new CoreDeferCounter(previousResult.size());
 
         for (int i = 0; i < previousResult.size(); i++) {
             final Object loop = previousResult.get(i);
             if (loop instanceof BaseNode) {
                 BaseNode loopBaseNode = (BaseNode) loop;
-                context.graph().index(loopBaseNode.world(), Constants.BEGINNING_OF_TIME, templatedIndexName, indexNode -> {
+                ctx.graph().index(loopBaseNode.world(), Constants.BEGINNING_OF_TIME, templatedIndexName, indexNode -> {
                     indexNode.addToIndex(loopBaseNode, templatedAttributes);
                     counter.count();
                 });
@@ -43,7 +43,7 @@ class ActionAddToGlobalIndex implements Action {
         counter.then(new Job() {
             @Override
             public void run() {
-                context.continueTask();
+                ctx.continueTask();
             }
         });
     }

@@ -15,14 +15,14 @@ class CF_ActionFlatMap implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
+    public void eval(final TaskContext ctx) {
         final CF_ActionFlatMap selfPointer = this;
-        final TaskResult previousResult = context.result();
+        final TaskResult previousResult = ctx.result();
         if (previousResult == null) {
-            context.continueTask();
+            ctx.continueTask();
         } else {
             final TaskResultIterator it = previousResult.iterator();
-            final TaskResult finalResult = context.newResult();
+            final TaskResult finalResult = ctx.newResult();
             finalResult.allocate(previousResult.size());
             final Callback[] recursiveAction = new Callback[1];
             final TaskResult[] loopRes = new TaskResult[1];
@@ -37,14 +37,14 @@ class CF_ActionFlatMap implements Action {
                     loopRes[0].free();
                     final Tuple<Integer, Object> nextResult = it.nextWithIndex();
                     if (nextResult != null) {
-                        loopRes[0] = context.wrap(nextResult.right());
+                        loopRes[0] = ctx.wrap(nextResult.right());
                     } else {
                         loopRes[0] = null;
                     }
                     if (nextResult == null) {
-                        context.continueWith(finalResult);
+                        ctx.continueWith(finalResult);
                     } else {
-                        selfPointer._subTask.executeFromUsing(context, loopRes[0], SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
+                        selfPointer._subTask.executeFromUsing(ctx, loopRes[0], SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
                             @Override
                             public void on(TaskContext result) {
                                 result.defineVariable("i", nextResult.left());
@@ -55,11 +55,11 @@ class CF_ActionFlatMap implements Action {
             };
             final Tuple<Integer, Object> nextRes = it.nextWithIndex();
             if (nextRes != null) {
-                loopRes[0] = context.wrap(nextRes.right());
-                context.graph().scheduler().dispatch(SchedulerAffinity.SAME_THREAD, new Job() {
+                loopRes[0] = ctx.wrap(nextRes.right());
+                ctx.graph().scheduler().dispatch(SchedulerAffinity.SAME_THREAD, new Job() {
                     @Override
                     public void run() {
-                        _subTask.executeFromUsing(context, loopRes[0], SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
+                        _subTask.executeFromUsing(ctx, loopRes[0], SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
                             @Override
                             public void on(TaskContext result) {
                                 result.defineVariable("i", nextRes.left());
@@ -68,7 +68,7 @@ class CF_ActionFlatMap implements Action {
                     }
                 });
             } else {
-                context.continueWith(finalResult);
+                ctx.continueWith(finalResult);
             }
         }
     }

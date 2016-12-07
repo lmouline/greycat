@@ -16,15 +16,15 @@ class ActionAddToVar implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final TaskResult previousResult = context.result();
-        if (context.isGlobal(_name)) {
+    public void eval(final TaskContext ctx) {
+        final TaskResult previousResult = ctx.result();
+        if (ctx.isGlobal(_name)) {
             //TODO refactor this
-            context.addToGlobalVariable(context.template(_name), previousResult);
+            ctx.addToGlobalVariable(ctx.template(_name), previousResult);
         } else {
-            context.addToVariable(context.template(_name), previousResult);
+            ctx.addToVariable(ctx.template(_name), previousResult);
         }
-        context.continueTask();
+        ctx.continueTask();
     }
 
     @Override

@@ -23,9 +23,9 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
                 .then(traverse("name"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.result().get(0), "n0");
-                        Assert.assertEquals(context.result().get(1), "n1");
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.result().get(0), "n0");
+                        Assert.assertEquals(ctx.result().get(1), "n1");
                     }
                 })
                 .execute(graph, null);
@@ -40,9 +40,9 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
                 .parse("children.name")
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.result().get(0), "n0");
-                        Assert.assertEquals(context.result().get(1), "n1");
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.result().get(0), "n0");
+                        Assert.assertEquals(ctx.result().get(1), "n1");
                     }
                 })
                 .execute(graph, null);
@@ -57,9 +57,9 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
                 .parse("readGlobalIndex(nodes).traverse(children)")
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.resultAsNodes().get(0).get("name"), "n0");
-                        Assert.assertEquals(context.resultAsNodes().get(1).get("name"), "n1");
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.resultAsNodes().get(0).get("name"), "n0");
+                        Assert.assertEquals(ctx.resultAsNodes().get(1).get("name"), "n1");
                     }
                 })
                 .execute(graph, null);
@@ -120,8 +120,8 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
                 .then(traverse("childrenIndexed", "name", "node3"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(0, context.result().size());
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(0, ctx.result().size());
                     }
                 }).execute(graph, null);
 

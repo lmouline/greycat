@@ -19,21 +19,21 @@ class ActionJsonMatch implements Action {
     }
 
     @Override
-    public void eval(TaskContext context) {
-        TaskResult result = context.result();
+    public void eval(TaskContext ctx) {
+        TaskResult result = ctx.result();
         if (result instanceof JsonMemberResult) {
             if (_name.equals(result.get(0).toString())) {
-                _then.executeFrom(context, (TaskResult) result.get(1), SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
+                _then.executeFrom(ctx, (TaskResult) result.get(1), SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult res) {
-                        context.continueWith(res);
+                        ctx.continueWith(res);
                     }
                 });
             } else {
-                context.continueTask();
+                ctx.continueTask();
             }
         } else {
-            context.continueTask();
+            ctx.continueTask();
         }
     }
 

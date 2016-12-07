@@ -18,15 +18,15 @@ class CF_ActionMapPar implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final TaskResult previous = context.result();
-        final TaskResult next = context.newResult();
+    public void eval(final TaskContext ctx) {
+        final TaskResult previous = ctx.result();
+        final TaskResult next = ctx.newResult();
         final int subTasksSize = _subTasks.length;
         next.allocate(subTasksSize);
-        final DeferCounter waiter = context.graph().newCounter(subTasksSize);
+        final DeferCounter waiter = ctx.graph().newCounter(subTasksSize);
         for (int i = 0; i < subTasksSize; i++) {
             int finalI = i;
-            _subTasks[i].executeFrom(context, previous, SchedulerAffinity.ANY_LOCAL_THREAD, new Callback<TaskResult>() {
+            _subTasks[i].executeFrom(ctx, previous, SchedulerAffinity.ANY_LOCAL_THREAD, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult subTaskResult) {
                     next.set(finalI, subTaskResult);
@@ -37,7 +37,7 @@ class CF_ActionMapPar implements Action {
         waiter.then(new Job() {
             @Override
             public void run() {
-                context.continueWith(next);
+                ctx.continueWith(next);
             }
         });
     }

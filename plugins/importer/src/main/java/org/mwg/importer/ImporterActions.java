@@ -35,8 +35,8 @@ public class ImporterActions {
     public static Action jsonMatch(String filter, Task then) {
         return new Action() {
             @Override
-            public void eval(TaskContext context) {
-                new ActionJsonMatch(filter, then).eval(context);
+            public void eval(TaskContext ctx) {
+                new ActionJsonMatch(filter, then).eval(ctx);
             }
         };
     }

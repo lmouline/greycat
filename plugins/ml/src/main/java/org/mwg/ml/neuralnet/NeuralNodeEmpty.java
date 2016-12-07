@@ -174,10 +174,10 @@ public class NeuralNodeEmpty extends BaseNode {
                 .forEach(
                         newTask().thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
+                            public void eval(TaskContext ctx) {
                                 //Bufferize values here
 
-                                context.continueTask();
+                                ctx.continueTask();
                             }
                         }).ifThen(new ConditionalFunction() {
                                       @Override
@@ -186,12 +186,12 @@ public class NeuralNodeEmpty extends BaseNode {
                                       }
                                   }, newTask().thenDo(new ActionFunction() {
                                     @Override
-                                    public void eval(TaskContext context) {
+                                    public void eval(TaskContext ctx) {
                                         //Calculate the integration function
 
                                         //Cache calculation result, set the context
 
-                                        context.continueTask();
+                                        ctx.continueTask();
                                     }
                                 }).ifThenElse(new ConditionalFunction() {
                                     @Override
@@ -200,10 +200,10 @@ public class NeuralNodeEmpty extends BaseNode {
                                     }
                                 }, t, newTask().thenDo(new ActionFunction() {
                                     @Override
-                                    public void eval(TaskContext context) {
+                                    public void eval(TaskContext ctx) {
                                         //store output in result here
 
-                                        context.continueTask();
+                                        ctx.continueTask();
                                     }
                                 }))
                         ));

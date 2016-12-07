@@ -9,11 +9,11 @@ public interface TaskContext {
 
     long world();
 
-    void setWorld(long world);
+    TaskContext setWorld(long world);
 
     long time();
 
-    void setTime(long time);
+    TaskContext setTime(long time);
 
     TaskResult variable(String name);
 
@@ -25,19 +25,19 @@ public interface TaskContext {
 
     TaskResult newResult();
 
-    void declareVariable(String name);
+    TaskContext declareVariable(String name);
 
-    void defineVariable(String name, Object initialResult);
+    TaskContext defineVariable(String name, Object initialResult);
 
-    void defineVariableForSubTask(String name, Object initialResult);
+    TaskContext defineVariableForSubTask(String name, Object initialResult);
 
-    void setGlobalVariable(String name, Object value);
+    TaskContext setGlobalVariable(String name, Object value);
 
-    void setVariable(String name, Object value);
+    TaskContext setVariable(String name, Object value);
 
-    void addToGlobalVariable(String name, Object value);
+    TaskContext addToGlobalVariable(String name, Object value);
 
-    void addToVariable(String name, Object value);
+    TaskContext addToVariable(String name, Object value);
 
     //Object based results
     TaskResult result();

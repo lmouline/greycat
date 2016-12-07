@@ -13,9 +13,9 @@ class ActionReadLines implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final String path = context.template(_pathOrTemplate);
-        context.continueWith(new IterableLines(path));
+    public void eval(final TaskContext ctx) {
+        final String path = ctx.template(_pathOrTemplate);
+        ctx.continueWith(new IterableLines(path));
     }
 
 }

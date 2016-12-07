@@ -20,10 +20,10 @@ class ActionTimepoints implements Action {
     }
 
     @Override
-    public void eval(TaskContext context) {
-        final TaskResult previous  = context.result();
-        String tFrom = context.template(_from);
-        String tTo = context.template(_to);
+    public void eval(TaskContext ctx) {
+        final TaskResult previous  = ctx.result();
+        String tFrom = ctx.template(_from);
+        String tTo = ctx.template(_to);
 
         long parsedFrom;
         long parsedTo;
@@ -42,7 +42,7 @@ class ActionTimepoints implements Action {
             parsedTo = d.longValue();
         }
 
-        final TaskResult next = context.newResult();
+        final TaskResult next = ctx.newResult();
 
         if(previous != null) {
             DeferCounter defer = new CoreDeferCounter(previous.size());
@@ -66,11 +66,11 @@ class ActionTimepoints implements Action {
                 @Override
                 public void run() {
                     previous.clear();
-                    context.continueWith(next);
+                    ctx.continueWith(next);
                 }
             });
         } else {
-            context.continueWith(next);
+            ctx.continueWith(next);
         }
 
 

@@ -22,12 +22,12 @@ class ActionAddRemoveVarToRelation implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final TaskResult previousResult = context.result();
-        final TaskResult savedVar = context.variable(context.template(_varFrom));
-        final String[] templatedAttributes = context.templates(_attributes);
+    public void eval(final TaskContext ctx) {
+        final TaskResult previousResult = ctx.result();
+        final TaskResult savedVar = ctx.variable(ctx.template(_varFrom));
+        final String[] templatedAttributes = ctx.templates(_attributes);
         if (previousResult != null && savedVar != null) {
-            final String relName = context.template(_name);
+            final String relName = ctx.template(_name);
             final TaskResultIterator previousResultIt = previousResult.iterator();
             Object iter = previousResultIt.next();
             while (iter != null) {
@@ -50,7 +50,7 @@ class ActionAddRemoveVarToRelation implements Action {
                 iter = previousResultIt.next();
             }
         }
-        context.continueTask();
+        ctx.continueTask();
     }
 
 

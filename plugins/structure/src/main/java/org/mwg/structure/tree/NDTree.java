@@ -214,21 +214,21 @@ public class NDTree extends BaseNode implements NTree {
         Task reccursiveDown = newTask();
         reccursiveDown.then(defineAsVar("parent")).thenDo(new ActionFunction() {
             @Override
-            public void eval(TaskContext context) {
-                NDTree current = (NDTree) context.result().get(0);
+            public void eval(TaskContext ctx) {
+                NDTree current = (NDTree) ctx.result().get(0);
                 NodeState state = current.graph().resolver().resolveState(current);
-                NearestNeighborList nnl = (NearestNeighborList) context.variable("nnl").get(0);
+                NearestNeighborList nnl = (NearestNeighborList) ctx.variable("nnl").get(0);
 
                 Relation values = (Relation) state.get(_VALUES);
 
                 //Leave node
                 if (values != null) {
-                    int dim = (int) context.variable("dim").get(0);
+                    int dim = (int) ctx.variable("dim").get(0);
                     double[] k = new double[dim];
                     double[] keys = (double[]) state.get(_KEYS);
 
-                    double[] target = (double[]) context.variable("key").get(0);
-                    Distance distance = (Distance) context.variable("distance").get(0);
+                    double[] target = (double[]) ctx.variable("key").get(0);
+                    Distance distance = (Distance) ctx.variable("distance").get(0);
 
                     for (int i = 0; i < values.size(); i++) {
                         for (int j = 0; j < dim; j++) {
@@ -236,18 +236,18 @@ public class NDTree extends BaseNode implements NTree {
                         }
                         nnl.insert(values.get(i), distance.measure(k, target));
                     }
-                    context.continueWith(null);
+                    ctx.continueWith(null);
 
                 } else {
                     final double[] boundMax = (double[]) state.get(_BOUNDMAX);
                     final double[] boundMin = (double[]) state.get(_BOUNDMIN);
-                    final double[] target = (double[]) context.variable("key").get(0);
-                    final Distance distance = (Distance) context.variable("distance").get(0);
+                    final double[] target = (double[]) ctx.variable("key").get(0);
+                    final Distance distance = (Distance) ctx.variable("distance").get(0);
                     final double worst = nnl.getWorstDistance();
 
 
                     if (!nnl.isCapacityReached() || getclosestDistance(target, boundMin, boundMax, distance) <= worst) {
-                        final double[] precision = (double[]) context.variable("precision").get(0);
+                        final double[] precision = (double[]) ctx.variable("precision").get(0);
                         final int dim = boundMin.length;
                         final double[] childMin = new double[dim];
                         final double[] childMax = new double[dim];
@@ -277,9 +277,9 @@ public class NDTree extends BaseNode implements NTree {
                         temp.sort();
                         long[] relations = temp.getNodes();
                         //double[] distances =temp.getDistances();
-                        context.continueWith(context.wrap(relations));
+                        ctx.continueWith(ctx.wrap(relations));
                     } else {
-                        context.continueWith(null);
+                        ctx.continueWith(null);
                     }
                 }
             }
@@ -293,21 +293,21 @@ public class NDTree extends BaseNode implements NTree {
         Task reccursiveDown = newTask();
         reccursiveDown.then(defineAsVar("parent")).thenDo(new ActionFunction() {
             @Override
-            public void eval(TaskContext context) {
-                NDTree current = (NDTree) context.result().get(0);
+            public void eval(TaskContext ctx) {
+                NDTree current = (NDTree) ctx.result().get(0);
                 NodeState state = current.graph().resolver().resolveState(current);
-                NearestNeighborArrayList nnl = (NearestNeighborArrayList) context.variable("nnl").get(0);
+                NearestNeighborArrayList nnl = (NearestNeighborArrayList) ctx.variable("nnl").get(0);
 
                 Relation values = (Relation) state.get(_VALUES);
 
                 //Leave node
                 if (values != null) {
-                    int dim = (int) context.variable("dim").get(0);
+                    int dim = (int) ctx.variable("dim").get(0);
                     double[] k = new double[dim];
                     double[] keys = (double[]) state.get(_KEYS);
 
-                    double[] target = (double[]) context.variable("key").get(0);
-                    Distance distance = (Distance) context.variable("distance").get(0);
+                    double[] target = (double[]) ctx.variable("key").get(0);
+                    Distance distance = (Distance) ctx.variable("distance").get(0);
 
                     for (int i = 0; i < values.size(); i++) {
                         for (int j = 0; j < dim; j++) {
@@ -315,18 +315,18 @@ public class NDTree extends BaseNode implements NTree {
                         }
                         nnl.insert(values.get(i), distance.measure(k, target));
                     }
-                    context.continueWith(null);
+                    ctx.continueWith(null);
 
                 } else {
                     final double[] boundMax = (double[]) state.get(_BOUNDMAX);
                     final double[] boundMin = (double[]) state.get(_BOUNDMIN);
-                    final double[] target = (double[]) context.variable("key").get(0);
-                    final Distance distance = (Distance) context.variable("distance").get(0);
-                    final double radius = (double) context.variable("radius").get(0);
+                    final double[] target = (double[]) ctx.variable("key").get(0);
+                    final Distance distance = (Distance) ctx.variable("distance").get(0);
+                    final double radius = (double) ctx.variable("radius").get(0);
 
 
                     if (getclosestDistance(target, boundMin, boundMax, distance) <= radius) {
-                        final double[] precision = (double[]) context.variable("precision").get(0);
+                        final double[] precision = (double[]) ctx.variable("precision").get(0);
                         final int dim = boundMin.length;
                         final double[] childMin = new double[dim];
                         final double[] childMax = new double[dim];
@@ -356,9 +356,9 @@ public class NDTree extends BaseNode implements NTree {
                         temp.sort();
                         long[] relations = temp.getNodes();
                         //double[] distances =temp.getDistances();
-                        context.continueWith(context.wrap(relations));
+                        ctx.continueWith(ctx.wrap(relations));
                     } else {
-                        context.continueWith(null);
+                        ctx.continueWith(null);
                     }
                 }
             }

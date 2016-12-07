@@ -21,21 +21,21 @@ public class ActionTravelInTimeTest extends AbstractActionTest {
                 .then(defineAsGlobalVar("nodes"))
                 .forEach(newTask().thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        TaskResult<Node> nodes = context.resultAsNodes();
+                    public void eval(TaskContext ctx) {
+                        TaskResult<Node> nodes = ctx.resultAsNodes();
                         Assert.assertEquals(Constants.BEGINNING_OF_TIME, nodes.get(0).time());
-                        context.continueWith(null);
+                        ctx.continueWith(null);
                     }
                 }))
                 .then(readVar("nodes"))
                 .then(travelInTime("10"))
                 .forEach(newTask().thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        TaskResult<Node> nodes = context.resultAsNodes();
+                    public void eval(TaskContext ctx) {
+                        TaskResult<Node> nodes = ctx.resultAsNodes();
                         Node it = nodes.get(0);
                         Assert.assertEquals(10, it.time());
-                        context.continueWith(null);
+                        ctx.continueWith(null);
                     }
                 }))
                 .execute(graph, null);

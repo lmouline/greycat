@@ -19,13 +19,13 @@ public class ActionTraverseOrKeep implements Action {
     }
 
     @Override
-    public final void eval(final TaskContext context) {
-        final String flatName = context.template(_name);
-        final TaskResult previousResult = context.result();
+    public final void eval(final TaskContext ctx) {
+        final String flatName = ctx.template(_name);
+        final TaskResult previousResult = ctx.result();
         if (previousResult != null) {
-            final TaskResult finalResult = context.newResult();
+            final TaskResult finalResult = ctx.newResult();
             final int previousSize = previousResult.size();
-            final DeferCounter defer = context.graph().newCounter(previousSize);
+            final DeferCounter defer = ctx.graph().newCounter(previousSize);
             for (int i = 0; i < previousSize; i++) {
                 final Object loop = previousResult.get(i);
                 if (loop instanceof BaseNode) {
@@ -55,11 +55,11 @@ public class ActionTraverseOrKeep implements Action {
             defer.then(new Job() {
                 @Override
                 public void run() {
-                    context.continueWith(finalResult);
+                    ctx.continueWith(finalResult);
                 }
             });
         } else {
-            context.continueTask();
+            ctx.continueTask();
         }
     }
 

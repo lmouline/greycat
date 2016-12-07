@@ -145,16 +145,16 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
         Task traverse = newTask();
         traverse.then(defineAsGlobalVar("parent")).then(Actions.traverse(INTERNAL_SUBGAUSSIAN)).then(new Action() {
             @Override
-            public void eval(TaskContext context) {
-                TaskResult<Node> result = context.resultAsNodes();
-                GaussianMixtureNode parent = (GaussianMixtureNode) context.variable("parent").get(0);
+            public void eval(TaskContext ctx) {
+                TaskResult<Node> result = ctx.resultAsNodes();
+                GaussianMixtureNode parent = (GaussianMixtureNode) ctx.variable("parent").get(0);
                 GaussianMixtureNode resultChild = self.filter(result, values, precisions, threshold, parent.getLevel() - 1.0);
                 if (resultChild != null) {
                     parent.internallearn(values, width, compressionFactor, compressionIter, precisions, threshold, false);
-                    context.continueWith(context.wrapClone(resultChild));
+                    ctx.continueWith(ctx.wrapClone(resultChild));
                 } else {
                     parent.internallearn(values, width, compressionFactor, compressionIter, precisions, threshold, true);
-                    context.continueWith(null);
+                    ctx.continueWith(null);
                 }
 
             }
@@ -506,8 +506,8 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
 
         deepTraverseTask.then(new Action() {
             @Override
-            public void eval(TaskContext context) {
-                TaskResult<Node> leaves = context.resultAsNodes();   // to check
+            public void eval(TaskContext ctx) {
+                TaskResult<Node> leaves = ctx.resultAsNodes();   // to check
                 Matrix covBackup = VolatileMatrix.empty(nbfeature, nbfeature);
                 for (int i = 0; i < nbfeature; i++) {
                     covBackup.set(i, i, err[i]);
@@ -531,7 +531,7 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
                         distributions[i] = mvnBackup.clone(avg); //this can be optimized later by inverting covBackup only once
                     }
                 }
-                context.continueTask();
+                ctx.continueTask();
                 callback.on(new ProbaDistribution(totals, distributions, globalTotal));
             }
         });

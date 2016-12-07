@@ -17,8 +17,8 @@ public class ActionSetWorldTest extends AbstractActionTest {
                 .then(travelInWorld("10"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.world(), 10);
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.world(), 10);
                     }
                 })
                 .execute(graph,null);

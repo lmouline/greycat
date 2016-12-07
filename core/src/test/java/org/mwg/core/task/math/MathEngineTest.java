@@ -78,48 +78,48 @@ public class MathEngineTest {
                         .then(defineAsGlobalVar("aVar"))
                         .thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
-                                String computedValue = context.template("{{=aVar * 2}}");
+                            public void eval(TaskContext ctx) {
+                                String computedValue = ctx.template("{{=aVar * 2}}");
                                 Assert.assertEquals("110", computedValue);
-                                context.continueTask();
+                                ctx.continueTask();
                             }
                         })
                         .then(inject(new int[]{1, 2}))
                         .then(defineAsGlobalVar("anArray"))
                         .thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
-                                String computedValue = context.template("{{=anArray[0] +  anArray[1] * 2}}");
+                            public void eval(TaskContext ctx) {
+                                String computedValue = ctx.template("{{=anArray[0] +  anArray[1] * 2}}");
                                 Assert.assertEquals("5", computedValue);
-                                context.continueTask();
+                                ctx.continueTask();
                             }
                         })
                         .then(inject(new int[]{1}))
                         .then(defineAsGlobalVar("anArray"))
                         .thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
-                                String computedValue = context.template("{{=anArray * 2}}");
+                            public void eval(TaskContext ctx) {
+                                String computedValue = ctx.template("{{=anArray * 2}}");
                                 Assert.assertEquals("2", computedValue);
-                                context.continueTask();
+                                ctx.continueTask();
                             }
                         })
                         .then(inject(new int[]{1, 2, 3}))
                         .thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
-                                String computedValue = context.template("{{=result[2] * 2}}");
+                            public void eval(TaskContext ctx) {
+                                String computedValue = ctx.template("{{=result[2] * 2}}");
                                 Assert.assertEquals("6", computedValue);
-                                context.continueTask();
+                                ctx.continueTask();
                             }
                         })
                         .then(inject(8))
                         .thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
-                                String computedValue = context.template("{{=result * 2}}");
+                            public void eval(TaskContext ctx) {
+                                String computedValue = ctx.template("{{=result * 2}}");
                                 Assert.assertEquals("16", computedValue);
-                                context.continueTask();
+                                ctx.continueTask();
                             }
                         })
                         .execute(graph, new Callback<TaskResult>() {

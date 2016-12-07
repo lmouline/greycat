@@ -7,11 +7,11 @@ import org.mwg.task.TaskContext;
 class ActionIndexNames implements Action {
 
     @Override
-    public void eval(TaskContext context) {
-        context.graph().indexNames(context.world(), context.time(), new Callback<String[]>() {
+    public void eval(TaskContext ctx) {
+        ctx.graph().indexNames(ctx.world(), ctx.time(), new Callback<String[]>() {
             @Override
             public void on(String[] result) {
-                context.continueWith(context.wrap(result));
+                ctx.continueWith(ctx.wrap(result));
             }
         });
     }

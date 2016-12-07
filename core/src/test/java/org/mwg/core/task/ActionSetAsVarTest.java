@@ -21,10 +21,10 @@ public class ActionSetAsVarTest extends AbstractActionTest {
                 .then(defineAsGlobalVar("myVar"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.result().get(0), "hello");
-                        Assert.assertEquals(context.variable("myVar").get(0), "hello");
-                        context.continueTask();
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.result().get(0), "hello");
+                        Assert.assertEquals(ctx.variable("myVar").get(0), "hello");
+                        ctx.continueTask();
                     }
                 })
                 .execute(graph, new Callback<TaskResult>() {

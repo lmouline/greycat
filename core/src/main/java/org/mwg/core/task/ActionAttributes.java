@@ -16,18 +16,18 @@ class ActionAttributes implements Action {
     }
 
     @Override
-    public void eval(TaskContext context) {
-        final TaskResult previous = context.result();
-        final TaskResult result = context.newResult();
+    public void eval(TaskContext ctx) {
+        final TaskResult previous = ctx.result();
+        final TaskResult result = ctx.newResult();
         for (int i = 0; i < previous.size(); i++) {
             if (previous.get(i) instanceof BaseNode) {
                 final Node n = (Node) previous.get(i);
-                final NodeState nState = context.graph().resolver().resolveState(n);
+                final NodeState nState = ctx.graph().resolver().resolveState(n);
                 nState.each(new NodeStateCallback() {
                     @Override
                     public void on(long attributeKey, byte elemType, Object elem) {
                         if (_filter == -1 || elemType == _filter) {
-                            String retrieved = context.graph().resolver().hashToString(attributeKey);
+                            String retrieved = ctx.graph().resolver().hashToString(attributeKey);
                             if (retrieved != null) {
                                 result.add(retrieved);
                             } else {
@@ -40,7 +40,7 @@ class ActionAttributes implements Action {
             }
         }
         previous.clear();
-        context.continueWith(result);
+        ctx.continueWith(result);
     }
 
     @Override

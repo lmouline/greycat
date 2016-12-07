@@ -71,10 +71,10 @@ public class ActionWhileDoTest extends AbstractActionTest {
                             }
                         }, newTask().then(traverse("child")), newTask().thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
+                            public void eval(TaskContext ctx) {
                                 //System.out.println("if is false");
-                                context.addToGlobalVariable("leaves", context.wrap(context.resultAsNodes().get(0).id()));
-                                context.continueWith(null);
+                                ctx.addToGlobalVariable("leaves", ctx.wrap(ctx.resultAsNodes().get(0).id()));
+                                ctx.continueWith(null);
                             }
                         }))),
                         new ConditionalFunction() {

@@ -23,12 +23,12 @@ class ActionSetAttribute implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final TaskResult previousResult = context.result();
-        final String flatRelationName = context.template(_relationName);
+    public void eval(final TaskContext ctx) {
+        final TaskResult previousResult = ctx.result();
+        final String flatRelationName = ctx.template(_relationName);
         if (previousResult != null) {
             Object toSet;
-            Object templateBased = context.template(this._variableNameToSet);
+            Object templateBased = ctx.template(this._variableNameToSet);
             switch (_propertyType) {
                 case Type.BOOL:
                     toSet = parseBoolean(templateBased.toString());
@@ -57,7 +57,7 @@ class ActionSetAttribute implements Action {
                 }
             }
         }
-        context.continueTask();
+        ctx.continueTask();
     }
 
     @Override

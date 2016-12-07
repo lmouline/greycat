@@ -14,12 +14,12 @@ class ActionLookup implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final long idL = Long.parseLong(context.template(_id));
-        context.graph().lookup(context.world(), context.time(), idL, new Callback<Node>() {
+    public void eval(final TaskContext ctx) {
+        final long idL = Long.parseLong(ctx.template(_id));
+        ctx.graph().lookup(ctx.world(), ctx.time(), idL, new Callback<Node>() {
             @Override
             public void on(Node result) {
-                context.continueWith(context.wrap(result));
+                ctx.continueWith(ctx.wrap(result));
             }
         });
     }

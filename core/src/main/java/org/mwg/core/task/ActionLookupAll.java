@@ -14,8 +14,8 @@ class ActionLookupAll implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        String afterTemplate = context.template(_ids).trim();
+    public void eval(final TaskContext ctx) {
+        String afterTemplate = ctx.template(_ids).trim();
         if(afterTemplate.startsWith("[")){
             afterTemplate = afterTemplate.substring(1,afterTemplate.length()-1);
         }
@@ -24,10 +24,10 @@ class ActionLookupAll implements Action {
         for (int i = 0; i < values.length; i++) {
             ids[i] = Long.parseLong(values[i]);
         }
-        context.graph().lookupAll(context.world(), context.time(), ids, new Callback<Node[]>() {
+        ctx.graph().lookupAll(ctx.world(), ctx.time(), ids, new Callback<Node[]>() {
             @Override
             public void on(Node[] result) {
-                context.continueWith(context.wrap(result));
+                ctx.continueWith(ctx.wrap(result));
             }
         });
     }

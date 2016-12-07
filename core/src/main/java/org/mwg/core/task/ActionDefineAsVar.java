@@ -17,13 +17,13 @@ class ActionDefineAsVar implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
+    public void eval(final TaskContext ctx) {
         if (_global) {
-            context.setGlobalVariable(context.template(_name), context.result());
+            ctx.setGlobalVariable(ctx.template(_name), ctx.result());
         } else {
-            context.defineVariable(context.template(_name), context.result());
+            ctx.defineVariable(ctx.template(_name), ctx.result());
         }
-        context.continueTask();
+        ctx.continueTask();
     }
 
     @Override

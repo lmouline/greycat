@@ -23,13 +23,13 @@ class CF_ActionLoop implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
+    public void eval(final TaskContext ctx) {
 
-        final String lowerString = context.template(_lower);
-        final String upperString = context.template(_upper);
-        final int lower = (int) Double.parseDouble(context.template(lowerString));
-        final int upper = (int) Double.parseDouble(context.template(upperString));
-        final TaskResult previous = context.result();
+        final String lowerString = ctx.template(_lower);
+        final String upperString = ctx.template(_upper);
+        final int lower = (int) Double.parseDouble(ctx.template(lowerString));
+        final int upper = (int) Double.parseDouble(ctx.template(upperString));
+        final TaskResult previous = ctx.result();
         final CF_ActionLoop selfPointer = this;
         final AtomicInteger cursor = new AtomicInteger(lower);
         if ((upper - lower) >= 0) {
@@ -42,10 +42,10 @@ class CF_ActionLoop implements Action {
                         res.free();
                     }
                     if (current > upper) {
-                        context.continueTask();
+                        ctx.continueTask();
                     } else {
                         //recursive call
-                        selfPointer._subTask.executeFromUsing(context, previous, SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
+                        selfPointer._subTask.executeFromUsing(ctx, previous, SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
                             @Override
                             public void on(TaskContext result) {
                                 result.defineVariable("i", current);
@@ -54,14 +54,14 @@ class CF_ActionLoop implements Action {
                     }
                 }
             };
-            _subTask.executeFromUsing(context, previous, SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
+            _subTask.executeFromUsing(ctx, previous, SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
                 @Override
                 public void on(TaskContext result) {
                     result.defineVariable("i", cursor.getAndIncrement());
                 }
             }, recursiveAction[0]);
         } else {
-            context.continueTask();
+            ctx.continueTask();
         }
     }
 

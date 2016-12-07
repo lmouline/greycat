@@ -19,8 +19,8 @@ public class ActionWithTest extends AbstractActionTest {
                 .then(selectWith("name", "n0"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.resultAsNodes().get(0).get("name"), "n0");
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.resultAsNodes().get(0).get("name"), "n0");
                     }
                 })
                 .execute(graph, null);
@@ -29,9 +29,9 @@ public class ActionWithTest extends AbstractActionTest {
                 .then(selectWith("name", "n.*"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.resultAsNodes().get(0).get("name"), "n0");
-                        Assert.assertEquals(context.resultAsNodes().get(1).get("name"), "n1");
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.resultAsNodes().get(0).get("name"), "n0");
+                        Assert.assertEquals(ctx.resultAsNodes().get(1).get("name"), "n1");
                     }
                 })
                 .execute(graph, null);

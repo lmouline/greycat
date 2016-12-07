@@ -25,17 +25,17 @@ public class ActionForeachTest extends AbstractActionTest {
                 .forEach(
                         newTask().thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
+                            public void eval(TaskContext ctx) {
                                 i[0]++;
-                                Assert.assertEquals(context.result().get(0), i[0]);
-                                context.continueTask();
+                                Assert.assertEquals(ctx.result().get(0), i[0]);
+                                ctx.continueTask();
                             }
                         })
                 )
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        TaskResult<Long> result = context.result();
+                    public void eval(TaskContext ctx) {
+                        TaskResult<Long> result = ctx.result();
                         Assert.assertEquals(result.size(), 3);
                         Assert.assertEquals(result.get(0), (Long) 1l);
                         Assert.assertEquals(result.get(1), (Long) 2l);
@@ -68,15 +68,15 @@ public class ActionForeachTest extends AbstractActionTest {
                         newTask()
                                 .thenDo(new ActionFunction() {
                                     @Override
-                                    public void eval(TaskContext context) {
-                                        context.continueTask();
+                                    public void eval(TaskContext ctx) {
+                                        ctx.continueTask();
                                     }
                                 })
                 )
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        TaskResult<String> names = context.result();
+                    public void eval(TaskContext ctx) {
+                        TaskResult<String> names = ctx.result();
                         Assert.assertEquals(names.size(), 3);
                         Assert.assertEquals(names.get(0), "n0");
                         Assert.assertEquals(names.get(1), "n1");

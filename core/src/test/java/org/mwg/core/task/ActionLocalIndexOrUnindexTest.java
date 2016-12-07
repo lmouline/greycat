@@ -41,8 +41,8 @@ public class ActionLocalIndexOrUnindexTest {
                         .then(traverse("idxRelation"))
                         .thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
-                                TaskResult result = context.result();
+                            public void eval(TaskContext ctx) {
+                                TaskResult result = ctx.result();
                                 Assert.assertEquals(3, result.size());
 
                                 Assert.assertEquals("child1", ((BaseNode) result.get(0)).get("name"));
@@ -56,8 +56,8 @@ public class ActionLocalIndexOrUnindexTest {
                         .then(traverse("idxRelation"))
                         .thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
-                                TaskResult result = context.result();
+                            public void eval(TaskContext ctx) {
+                                TaskResult result = ctx.result();
                                 Assert.assertEquals(0, result.size());
                             }
                         })

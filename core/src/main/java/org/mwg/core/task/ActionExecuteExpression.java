@@ -22,9 +22,9 @@ class ActionExecuteExpression implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final TaskResult previous = context.result();
-        final TaskResult<Double> next = context.newResult();
+    public void eval(final TaskContext ctx) {
+        final TaskResult previous = ctx.result();
+        final TaskResult<Double> next = ctx.newResult();
         final int previousSize = previous.size();
         for (int i = 0; i < previousSize; i++) {
             final Object loop = previous.get(i);
@@ -33,15 +33,15 @@ class ActionExecuteExpression implements Action {
             variables.put("TRUE", 1.0);
             variables.put("FALSE", 0.0);
             if (loop instanceof BaseNode) {
-                next.add(_engine.eval((Node) loop, context, variables));
+                next.add(_engine.eval((Node) loop, ctx, variables));
                 ((BaseNode) loop).free();
             } else {
-                next.add(_engine.eval(null, context, variables));
+                next.add(_engine.eval(null, ctx, variables));
             }
         }
         //optimization to avoid iteration on previous result for free
         previous.clear();
-        context.continueWith(next);
+        ctx.continueWith(next);
     }
 
     @Override

@@ -13,10 +13,10 @@ class ActionSplit implements Action {
     }
 
     @Override
-    public void eval(TaskContext context) {
-        final String splitPattern = context.template(this._splitPattern);
-        TaskResult previous = context.result();
-        TaskResult next = context.wrap(null);
+    public void eval(TaskContext ctx) {
+        final String splitPattern = ctx.template(this._splitPattern);
+        TaskResult previous = ctx.result();
+        TaskResult next = ctx.wrap(null);
         for (int i = 0; i < previous.size(); i++) {
             final Object loop = previous.get(0);
             if (loop instanceof String) {
@@ -30,7 +30,7 @@ class ActionSplit implements Action {
                 }
             }
         }
-        context.continueWith(next);
+        ctx.continueWith(next);
     }
 
     @Override

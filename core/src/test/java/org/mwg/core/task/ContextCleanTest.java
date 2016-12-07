@@ -62,8 +62,8 @@ public class ContextCleanTest {
                         .then(select((node, context) -> true))
                         .thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
-                                retention[0] = context;
+                            public void eval(TaskContext ctx) {
+                                retention[0] = ctx;
                             }
                         })
                         /*

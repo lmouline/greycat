@@ -14,11 +14,11 @@ class CF_ActionForEach implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
+    public void eval(final TaskContext ctx) {
         final CF_ActionForEach selfPointer = this;
-        final TaskResult previousResult = context.result();
+        final TaskResult previousResult = ctx.result();
         if (previousResult == null) {
-            context.continueTask();
+            ctx.continueTask();
         } else {
             final TaskResultIterator it = previousResult.iterator();
             final Callback[] recursiveAction = new Callback[1];
@@ -31,9 +31,9 @@ class CF_ActionForEach implements Action {
                     }
                     final Tuple<Integer, Object> nextResult = it.nextWithIndex();
                     if (nextResult == null) {
-                        context.continueTask();
+                        ctx.continueTask();
                     } else {
-                        selfPointer._subTask.executeFromUsing(context, context.wrap(nextResult.right()), SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
+                        selfPointer._subTask.executeFromUsing(ctx, ctx.wrap(nextResult.right()), SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
                             @Override
                             public void on(TaskContext result) {
                                 result.defineVariable("i", nextResult.left());
@@ -44,14 +44,14 @@ class CF_ActionForEach implements Action {
             };
             final Tuple<Integer, Object> nextRes = it.nextWithIndex();
             if (nextRes != null) {
-                _subTask.executeFromUsing(context, context.wrap(nextRes.right()), SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
+                _subTask.executeFromUsing(ctx, ctx.wrap(nextRes.right()), SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
                     @Override
                     public void on(TaskContext result) {
                         result.defineVariable("i", nextRes.left());
                     }
                 }, recursiveAction[0]);
             } else {
-                context.continueTask();
+                ctx.continueTask();
             }
         }
     }

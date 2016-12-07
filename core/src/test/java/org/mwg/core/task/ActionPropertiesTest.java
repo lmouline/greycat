@@ -49,15 +49,15 @@ public class ActionPropertiesTest {
                 .then(attributes())
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        TaskResult<String> result = context.result();
+                    public void eval(TaskContext ctx) {
+                        TaskResult<String> result = ctx.result();
                         Assert.assertEquals(4, result.size());
 
                         Assert.assertEquals("id", result.get(0));
                         Assert.assertEquals("attribute", result.get(1));
                         Assert.assertEquals("rel1", result.get(2));
                         Assert.assertEquals("localIindex1", result.get(3));
-                        context.continueTask();
+                        ctx.continueTask();
                     }
                 })
                 .execute(graph, null);
@@ -75,8 +75,8 @@ public class ActionPropertiesTest {
                 )
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        TaskResult<String> result = context.result();
+                    public void eval(TaskContext ctx) {
+                        TaskResult<String> result = ctx.result();
                         Assert.assertEquals(2, result.size());
 
                         Assert.assertEquals("rel1", result.get(0));

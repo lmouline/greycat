@@ -24,16 +24,16 @@ class CF_ActionIfThen implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        if (_condition.eval(context)) {
-            _action.executeFrom(context, context.result(),SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
+    public void eval(final TaskContext ctx) {
+        if (_condition.eval(ctx)) {
+            _action.executeFrom(ctx, ctx.result(),SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult res) {
-                    context.continueWith(res);
+                    ctx.continueWith(res);
                 }
             });
         } else {
-            context.continueTask();
+            ctx.continueTask();
         }
     }
 

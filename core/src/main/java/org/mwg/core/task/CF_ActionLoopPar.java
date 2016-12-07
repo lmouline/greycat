@@ -23,18 +23,18 @@ class CF_ActionLoopPar implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final String lowerString = context.template(_lower);
-        final String upperString = context.template(_upper);
-        final int lower = (int) Double.parseDouble(context.template(lowerString));
-        final int upper = (int) Double.parseDouble(context.template(upperString));
-        final TaskResult previous = context.result();
-        final TaskResult next = context.newResult();
+    public void eval(final TaskContext ctx) {
+        final String lowerString = ctx.template(_lower);
+        final String upperString = ctx.template(_upper);
+        final int lower = (int) Double.parseDouble(ctx.template(lowerString));
+        final int upper = (int) Double.parseDouble(ctx.template(upperString));
+        final TaskResult previous = ctx.result();
+        final TaskResult next = ctx.newResult();
         if ((upper - lower) > 0) {
-            DeferCounter waiter = context.graph().newCounter((upper - lower) + 1);
+            DeferCounter waiter = ctx.graph().newCounter((upper - lower) + 1);
             for (int i = lower; i <= upper; i++) {
                 final int finalI = i;
-                _subTask.executeFromUsing(context, previous, SchedulerAffinity.ANY_LOCAL_THREAD, new Callback<TaskContext>() {
+                _subTask.executeFromUsing(ctx, previous, SchedulerAffinity.ANY_LOCAL_THREAD, new Callback<TaskContext>() {
                     @Override
                     public void on(TaskContext result) {
                         result.defineVariable("i", finalI);
@@ -54,11 +54,11 @@ class CF_ActionLoopPar implements Action {
             waiter.then(new Job() {
                 @Override
                 public void run() {
-                    context.continueWith(next);
+                    ctx.continueWith(next);
                 }
             });
         } else {
-            context.continueWith(next);
+            ctx.continueWith(next);
         }
     }
 

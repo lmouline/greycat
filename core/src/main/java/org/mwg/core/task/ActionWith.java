@@ -31,10 +31,10 @@ class ActionWith implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final Pattern pattern = Pattern.compile(context.template(_patternTemplate));
-        final TaskResult previous = context.result();
-        final TaskResult next = context.newResult();
+    public void eval(final TaskContext ctx) {
+        final Pattern pattern = Pattern.compile(ctx.template(_patternTemplate));
+        final TaskResult previous = ctx.result();
+        final TaskResult next = ctx.newResult();
         final int previousSize = previous.size();
         for (int i = 0; i < previousSize; i++) {
             final Object obj = previous.get(i);
@@ -48,6 +48,6 @@ class ActionWith implements Action {
                 next.add(obj);
             }
         }
-        context.continueWith(next);
+        ctx.continueWith(next);
     }
 }

@@ -15,9 +15,9 @@ class ActionDeclareVar implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        context.declareVariable(context.template(_name));
-        context.continueTask();
+    public void eval(final TaskContext ctx) {
+        ctx.declareVariable(ctx.template(_name));
+        ctx.continueTask();
     }
 
     @Override

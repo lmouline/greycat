@@ -63,8 +63,9 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
-    public final void setWorld(long p_world) {
+    public final TaskContext setWorld(long p_world) {
         this._world = p_world;
+        return this;
     }
 
     @Override
@@ -73,8 +74,9 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
-    public final void setTime(long p_time) {
+    public final TaskContext setTime(long p_time) {
         this._time = p_time;
+        return this;
     }
 
     @Override
@@ -130,11 +132,12 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
-    public void declareVariable(final String name) {
+    public TaskContext declareVariable(final String name) {
         if (this._localVariables == null) {
             this._localVariables = new HashMap<String, TaskResult>();
         }
         this._localVariables.put(name, new CoreTaskResult(null, false));
+        return this;
     }
 
     private TaskResult lazyWrap(Object input) {
@@ -146,31 +149,34 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
-    public void defineVariable(final String name, Object initialResult) {
+    public TaskContext defineVariable(final String name, Object initialResult) {
         if (this._localVariables == null) {
             this._localVariables = new HashMap<String, TaskResult>();
         }
         this._localVariables.put(name, lazyWrap(initialResult).clone());
+        return this;
     }
 
     @Override
-    public void defineVariableForSubTask(String name, Object initialResult) {
+    public TaskContext defineVariableForSubTask(String name, Object initialResult) {
         if (this._nextVariables == null) {
             this._nextVariables = new HashMap<String, TaskResult>();
         }
         this._nextVariables.put(name, lazyWrap(initialResult).clone());
+        return this;
     }
 
     @Override
-    public final void setGlobalVariable(final String name, final Object value) {
+    public final TaskContext setGlobalVariable(final String name, final Object value) {
         final TaskResult previous = this._globalVariables.put(name, lazyWrap(value).clone());
         if (previous != null) {
             previous.free();
         }
+        return this;
     }
 
     @Override
-    public final void setVariable(final String name, final Object value) {
+    public final TaskContext setVariable(final String name, final Object value) {
         Map<String, TaskResult> target = internal_deep_resolve_map(name);
         if (target == null) {
             if (this._localVariables == null) {
@@ -182,6 +188,7 @@ class CoreTaskContext implements TaskContext {
         if (previous != null) {
             previous.free();
         }
+        return this;
     }
 
     private Map<String, TaskResult> internal_deep_resolve_map(final String name) {
@@ -206,7 +213,7 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
-    public final void addToGlobalVariable(final String name, final Object value) {
+    public final TaskContext addToGlobalVariable(final String name, final Object value) {
         TaskResult previous = this._globalVariables.get(name);
         if (previous == null) {
             previous = new CoreTaskResult(null, false);
@@ -231,10 +238,11 @@ class CoreTaskContext implements TaskContext {
                 previous.add(value);
             }
         }
+        return this;
     }
 
     @Override
-    public final void addToVariable(final String name, final Object value) {
+    public final TaskContext addToVariable(final String name, final Object value) {
         Map<String, TaskResult> target = internal_deep_resolve_map(name);
         if (target == null) {
             if (this._localVariables == null) {
@@ -266,6 +274,7 @@ class CoreTaskContext implements TaskContext {
                 previous.add(value);
             }
         }
+        return this;
     }
 
     Map<String, TaskResult> globalVariables() {

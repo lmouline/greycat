@@ -105,13 +105,13 @@ public class KDTree extends BaseNode implements NTree {
         reccursiveDown
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
+                    public void eval(TaskContext ctx) {
 
                         // 1. Load the variables and if kd is empty exit.
 
-                        Node node = context.resultAsNodes().get(0);
+                        Node node = ctx.resultAsNodes().get(0);
                         if (node == null) {
-                            context.continueTask();
+                            ctx.continueTask();
                             return;
                         }
 
@@ -122,14 +122,14 @@ public class KDTree extends BaseNode implements NTree {
                         double[] pivot = (double[]) node.get(KEY);
 
                         //Global variable
-                        int dim = (int) context.variable("dim").get(0);
-                        double[] target = (double[]) context.variable("key").get(0);
-                        Distance distance = (Distance) context.variable("distance").get(0);
+                        int dim = (int) ctx.variable("dim").get(0);
+                        double[] target = (double[]) ctx.variable("key").get(0);
+                        Distance distance = (Distance) ctx.variable("distance").get(0);
 
                         //Local variables
-                        int lev = (int) context.variable("lev").get(0);
-                        HRect hr = (HRect) context.variable("hr").get(0);
-                        double max_dist_sqd = (double) context.variable("max_dist_sqd").get(0);
+                        int lev = (int) ctx.variable("lev").get(0);
+                        HRect hr = (HRect) ctx.variable("hr").get(0);
+                        double max_dist_sqd = (double) ctx.variable("max_dist_sqd").get(0);
 
                         // System.out.println("T1 " + node.id() + " lev " + lev);
                         //System.out.println("traversing " + node.id() + " lev: " + lev + ", key: " + pivot[0] + " , " + pivot[1] + " distance: " + distance.measure(pivot, target));
@@ -187,27 +187,27 @@ public class KDTree extends BaseNode implements NTree {
                         }
 
                         //define contextual variables for reccursivity:
-                        context.defineVariable("further_hr", further_hr);
-                        context.defineVariable("pivot_to_target", pivot_to_target);
+                        ctx.defineVariable("further_hr", further_hr);
+                        ctx.defineVariable("pivot_to_target", pivot_to_target);
 
                         if (nearer_kd != null && nearer_kd.size() != 0) {
-                            context.defineVariable("near", nearer_st);
+                            ctx.defineVariable("near", nearer_st);
                             //The 3 variables to set for next round of reccursivity:
-                            context.defineVariableForSubTask("hr", nearer_hr);
-                            context.defineVariableForSubTask("max_dist_sqd", max_dist_sqd);
-                            context.defineVariableForSubTask("lev", lev + 1);
+                            ctx.defineVariableForSubTask("hr", nearer_hr);
+                            ctx.defineVariableForSubTask("max_dist_sqd", max_dist_sqd);
+                            ctx.defineVariableForSubTask("lev", lev + 1);
 
                         } else {
-                            context.defineVariableForSubTask("near", context.newResult());  //stop the loop
+                            ctx.defineVariableForSubTask("near", ctx.newResult());  //stop the loop
                         }
 
                         if (further_kd != null && further_kd.size() != 0) {
-                            context.defineVariableForSubTask("far", farther_st);
+                            ctx.defineVariableForSubTask("far", farther_st);
                         } else {
-                            context.defineVariableForSubTask("far", context.newResult()); //stop the loop
+                            ctx.defineVariableForSubTask("far", ctx.newResult()); //stop the loop
                         }
 
-                        context.continueTask();
+                        ctx.continueTask();
                     }
                 })
                 .isolate(
@@ -223,19 +223,19 @@ public class KDTree extends BaseNode implements NTree {
 
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
+                    public void eval(TaskContext ctx) {
 
                         //Global variables
-                        NearestNeighborList nnl = (NearestNeighborList) context.variable("nnl").get(0);
-                        double[] target = (double[]) context.variable("key").get(0);
-                        Distance distance = (Distance) context.variable("distance").get(0);
+                        NearestNeighborList nnl = (NearestNeighborList) ctx.variable("nnl").get(0);
+                        double[] target = (double[]) ctx.variable("key").get(0);
+                        Distance distance = (Distance) ctx.variable("distance").get(0);
 
                         //Local variables
-                        double max_dist_sqd = (double) context.variable("max_dist_sqd").get(0);
-                        HRect further_hr = (HRect) context.variable("further_hr").get(0);
-                        double pivot_to_target = (double) context.variable("pivot_to_target").get(0);
-                        int lev = (int) context.variable("lev").get(0);
-                        Node node = context.resultAsNodes().get(0);
+                        double max_dist_sqd = (double) ctx.variable("max_dist_sqd").get(0);
+                        HRect further_hr = (HRect) ctx.variable("further_hr").get(0);
+                        double pivot_to_target = (double) ctx.variable("pivot_to_target").get(0);
+                        int lev = (int) ctx.variable("lev").get(0);
+                        Node node = ctx.resultAsNodes().get(0);
 
                         // System.out.println("T2 " + node.id() + " lev " + lev);
                         //node.graph().save(null);
@@ -284,17 +284,17 @@ public class KDTree extends BaseNode implements NTree {
 
 
                             //The 3 variables to set for next round of reccursivity:
-                            context.defineVariableForSubTask("hr", further_hr);
-                            context.defineVariableForSubTask("max_dist_sqd", max_dist_sqd2);
-                            context.defineVariableForSubTask("lev", lev + 1);
+                            ctx.defineVariableForSubTask("hr", further_hr);
+                            ctx.defineVariableForSubTask("max_dist_sqd", max_dist_sqd2);
+                            ctx.defineVariableForSubTask("lev", lev + 1);
 
 
-                            context.defineVariable("continueFar", true);
+                            ctx.defineVariable("continueFar", true);
 
                         } else {
-                            context.defineVariable("continueFar", false);
+                            ctx.defineVariable("continueFar", false);
                         }
-                        context.continueTask();
+                        ctx.continueTask();
                     }
                 })
                 .isolate(
@@ -318,13 +318,13 @@ public class KDTree extends BaseNode implements NTree {
         reccursiveDown
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
+                    public void eval(TaskContext ctx) {
 
                         // 1. Load the variables and if kd is empty exit.
 
-                        Node node = context.resultAsNodes().get(0);
+                        Node node = ctx.resultAsNodes().get(0);
                         if (node == null) {
-                            context.continueTask();
+                            ctx.continueTask();
                             return;
                         }
 
@@ -334,14 +334,14 @@ public class KDTree extends BaseNode implements NTree {
                         double[] pivot = (double[]) node.get(KEY);
 
                         //Global variable
-                        int dim = (int) context.variable("dim").get(0);
-                        double[] target = (double[]) context.variable("key").get(0);
-                        Distance distance = (Distance) context.variable("distance").get(0);
+                        int dim = (int) ctx.variable("dim").get(0);
+                        double[] target = (double[]) ctx.variable("key").get(0);
+                        Distance distance = (Distance) ctx.variable("distance").get(0);
 
                         //Local variables
-                        int lev = (int) context.variable("lev").get(0);
-                        HRect hr = (HRect) context.variable("hr").get(0);
-                        double max_dist_sqd = (double) context.variable("max_dist_sqd").get(0);
+                        int lev = (int) ctx.variable("lev").get(0);
+                        HRect hr = (HRect) ctx.variable("hr").get(0);
+                        double max_dist_sqd = (double) ctx.variable("max_dist_sqd").get(0);
 
                         // System.out.println("T1 " + node.id() + " lev " + lev);
 
@@ -399,27 +399,27 @@ public class KDTree extends BaseNode implements NTree {
                         }
 
                         //define contextual variables for reccursivity:
-                        context.defineVariable("further_hr", further_hr);
-                        context.defineVariable("pivot_to_target", pivot_to_target);
+                        ctx.defineVariable("further_hr", further_hr);
+                        ctx.defineVariable("pivot_to_target", pivot_to_target);
 
                         if (nearer_kd != null && nearer_kd.size() != 0) {
-                            context.defineVariable("near", nearer_st);
+                            ctx.defineVariable("near", nearer_st);
                             //The 3 variables to set for next round of reccursivity:
-                            context.defineVariableForSubTask("hr", nearer_hr);
-                            context.defineVariableForSubTask("max_dist_sqd", max_dist_sqd);
-                            context.defineVariableForSubTask("lev", lev + 1);
+                            ctx.defineVariableForSubTask("hr", nearer_hr);
+                            ctx.defineVariableForSubTask("max_dist_sqd", max_dist_sqd);
+                            ctx.defineVariableForSubTask("lev", lev + 1);
 
                         } else {
-                            context.defineVariableForSubTask("near", context.newResult());  //stop the loop
+                            ctx.defineVariableForSubTask("near", ctx.newResult());  //stop the loop
                         }
 
                         if (further_kd != null && further_kd.size() != 0) {
-                            context.defineVariableForSubTask("far", farther_st);
+                            ctx.defineVariableForSubTask("far", farther_st);
                         } else {
-                            context.defineVariableForSubTask("far", context.newResult()); //stop the loop
+                            ctx.defineVariableForSubTask("far", ctx.newResult()); //stop the loop
                         }
 
-                        context.continueTask();
+                        ctx.continueTask();
                     }
                 })
                 .isolate(
@@ -435,20 +435,20 @@ public class KDTree extends BaseNode implements NTree {
 
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
+                    public void eval(TaskContext ctx) {
 
                         //Global variables
-                        NearestNeighborArrayList nnl = (NearestNeighborArrayList) context.variable("nnl").get(0);
-                        double[] target = (double[]) context.variable("key").get(0);
-                        Distance distance = (Distance) context.variable("distance").get(0);
-                        double radius = (double) context.variable("radius").get(0);
+                        NearestNeighborArrayList nnl = (NearestNeighborArrayList) ctx.variable("nnl").get(0);
+                        double[] target = (double[]) ctx.variable("key").get(0);
+                        Distance distance = (Distance) ctx.variable("distance").get(0);
+                        double radius = (double) ctx.variable("radius").get(0);
 
                         //Local variables
-                        double max_dist_sqd = (double) context.variable("max_dist_sqd").get(0);
-                        HRect further_hr = (HRect) context.variable("further_hr").get(0);
-                        double pivot_to_target = (double) context.variable("pivot_to_target").get(0);
-                        int lev = (int) context.variable("lev").get(0);
-                        Node node = context.resultAsNodes().get(0);
+                        double max_dist_sqd = (double) ctx.variable("max_dist_sqd").get(0);
+                        HRect further_hr = (HRect) ctx.variable("further_hr").get(0);
+                        double pivot_to_target = (double) ctx.variable("pivot_to_target").get(0);
+                        int lev = (int) ctx.variable("lev").get(0);
+                        Node node = ctx.resultAsNodes().get(0);
                         // System.out.println("T2 " + node.id() + " lev " + lev);
 
                         // node.graph().save(null);
@@ -488,17 +488,17 @@ public class KDTree extends BaseNode implements NTree {
 
 
                             //The 3 variables to set for next round of reccursivity:
-                            context.defineVariableForSubTask("hr", further_hr);
-                            context.defineVariableForSubTask("max_dist_sqd", max_dist_sqd2);
-                            context.defineVariableForSubTask("lev", lev + 1);
+                            ctx.defineVariableForSubTask("hr", further_hr);
+                            ctx.defineVariableForSubTask("max_dist_sqd", max_dist_sqd2);
+                            ctx.defineVariableForSubTask("lev", lev + 1);
 
 
-                            context.defineVariable("continueFar", true);
+                            ctx.defineVariable("continueFar", true);
 
                         } else {
-                            context.defineVariable("continueFar", false);
+                            ctx.defineVariable("continueFar", false);
                         }
-                        context.continueTask();
+                        ctx.continueTask();
                     }
                 })
                 .isolate(

@@ -18,9 +18,9 @@ class ActionReadFiles implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        final TaskResult next = context.wrap(null);
-        final String path = context.template(_pathOrTemplate);
+    public void eval(final TaskContext ctx) {
+        final TaskResult next = ctx.wrap(null);
+        final String path = ctx.template(_pathOrTemplate);
         if (path == null) {
             throw new RuntimeException("Variable " + _pathOrTemplate + " does not exist in the context");
         }
@@ -47,7 +47,7 @@ class ActionReadFiles implements Action {
         } else {
             next.add(file.getAbsolutePath());
         }
-        context.continueWith(next);
+        ctx.continueWith(next);
     }
 
     @Override

@@ -69,13 +69,13 @@ public class FlagTest {
             Task traverse = newTask();
             traverse.then(defineAsGlobalVar("parent")).then(Actions.traverse(relName)).thenDo(new ActionFunction() {
                 @Override
-                public void eval(TaskContext context) {
+                public void eval(TaskContext ctx) {
 
-                    TaskResult<Node> children = context.resultAsNodes();
+                    TaskResult<Node> children = ctx.resultAsNodes();
                     if (children.size() != 0) {
-                        context.continueWith(context.wrap(graph.cloneNode(children.get(0))));
+                        ctx.continueWith(ctx.wrap(graph.cloneNode(children.get(0))));
                     } else {
-                        context.continueWith(null);
+                        ctx.continueWith(null);
                     }
                 }
             }).ifThen(new ConditionalFunction() {

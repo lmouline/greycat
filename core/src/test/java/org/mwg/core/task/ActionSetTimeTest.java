@@ -18,8 +18,8 @@ public class ActionSetTimeTest extends AbstractActionTest {
                 .then(travelInTime("{{time}}"))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.time(), 10);
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.time(), 10);
                     }
                 })
                 .execute(graph, null);

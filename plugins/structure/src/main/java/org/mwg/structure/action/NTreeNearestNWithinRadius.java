@@ -27,11 +27,11 @@ public class NTreeNearestNWithinRadius implements Action {
     }
 
     @Override
-    public final void eval(final TaskContext context) {
-        final TaskResult previousResult = context.result();
-        final TaskResult<Node> nextResult = context.newResult();
+    public final void eval(final TaskContext ctx) {
+        final TaskResult previousResult = ctx.result();
+        final TaskResult<Node> nextResult = ctx.newResult();
         if (previousResult != null) {
-            final DeferCounter defer = context.graph().newCounter(previousResult.size());
+            final DeferCounter defer = ctx.graph().newCounter(previousResult.size());
             final TaskResultIterator previousResultIt = previousResult.iterator();
             Object iter = previousResultIt.next();
             while (iter != null) {
@@ -55,11 +55,11 @@ public class NTreeNearestNWithinRadius implements Action {
             defer.then(new Job() {
                 @Override
                 public void run() {
-                    context.continueWith(nextResult);
+                    ctx.continueWith(nextResult);
                 }
             });
         } else {
-            context.continueWith(nextResult);
+            ctx.continueWith(nextResult);
         }
     }
 

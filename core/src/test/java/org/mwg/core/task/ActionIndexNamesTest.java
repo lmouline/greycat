@@ -32,8 +32,8 @@ public class ActionIndexNamesTest {
                         .then(indexNames())
                         .thenDo(new ActionFunction() {
                             @Override
-                            public void eval(TaskContext context) {
-                                Assert.assertArrayEquals(indexes, context.result().asArray());
+                            public void eval(TaskContext ctx) {
+                                Assert.assertArrayEquals(indexes, ctx.result().asArray());
                             }
                         })
                         .execute(graph, new Callback<TaskResult>() {

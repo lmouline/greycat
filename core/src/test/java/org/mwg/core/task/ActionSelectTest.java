@@ -27,8 +27,8 @@ public class ActionSelectTest extends AbstractActionTest {
                 }))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.resultAsNodes().get(0).get("name"), "root");
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.resultAsNodes().get(0).get("name"), "root");
                     }
                 })
                 .execute(graph, null);
@@ -43,8 +43,8 @@ public class ActionSelectTest extends AbstractActionTest {
                 .then(select((node, context) -> false))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.result().size(), 0);
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.result().size(), 0);
                     }
                 })
                 .execute(graph, null);
@@ -59,8 +59,8 @@ public class ActionSelectTest extends AbstractActionTest {
                 .then(select((node, context) -> true))
                 .thenDo(new ActionFunction() {
                     @Override
-                    public void eval(TaskContext context) {
-                        Assert.assertEquals(context.result().size(), 3);
+                    public void eval(TaskContext ctx) {
+                        Assert.assertEquals(ctx.result().size(), 3);
                     }
                 })
                 .execute(graph, null);

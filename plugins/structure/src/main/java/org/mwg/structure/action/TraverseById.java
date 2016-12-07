@@ -20,13 +20,13 @@ public class TraverseById implements Action {
     }
 
     @Override
-    public final void eval(final TaskContext context) {
-        final TaskResult finalResult = context.wrap(null);
-        final long flatlongName = Long.parseLong(context.template(_name));
-        final TaskResult previousResult = context.result();
+    public final void eval(final TaskContext ctx) {
+        final TaskResult finalResult = ctx.wrap(null);
+        final long flatlongName = Long.parseLong(ctx.template(_name));
+        final TaskResult previousResult = ctx.result();
         if (previousResult != null) {
             final int previousSize = previousResult.size();
-            final DeferCounter defer = context.graph().newCounter(previousSize);
+            final DeferCounter defer = ctx.graph().newCounter(previousSize);
             for (int i = 0; i < previousSize; i++) {
                 final Object loop = previousResult.get(i);
                 if (loop instanceof BaseNode) {
@@ -53,11 +53,11 @@ public class TraverseById implements Action {
                 public void run() {
                     //optimization to avoid agin iteration on the previous result set
                     previousResult.clear();
-                    context.continueWith(finalResult);
+                    ctx.continueWith(finalResult);
                 }
             });
         } else {
-            context.continueTask();
+            ctx.continueTask();
         }
     }
 

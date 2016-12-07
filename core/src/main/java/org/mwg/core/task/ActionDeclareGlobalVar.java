@@ -15,9 +15,9 @@ class ActionDeclareGlobalVar implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
-        context.setGlobalVariable(context.template(_name), Actions.emptyResult());
-        context.continueTask();
+    public void eval(final TaskContext ctx) {
+        ctx.setGlobalVariable(ctx.template(_name), Actions.emptyResult());
+        ctx.continueTask();
     }
 
     @Override
