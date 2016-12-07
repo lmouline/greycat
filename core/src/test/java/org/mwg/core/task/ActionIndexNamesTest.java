@@ -18,12 +18,12 @@ public class ActionIndexNamesTest {
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                Node root1 = graph.newNode(0, 0);
+                Node root1 = graph.newNode(0, Constants.BEGINNING_OF_TIME);
                 root1.set("name", Type.INT, 1);
 
                 String[] indexes = new String[]{"idx1", "idx2", "idx3"};
                 for (int i = 0; i < indexes.length; i++) {
-                    graph.index(0, 0, indexes[i], indexNode -> {
+                    graph.index(0, Constants.BEGINNING_OF_TIME, indexes[i], indexNode -> {
                         indexNode.addToIndex(root1, "name");
                     });
                 }

@@ -2,6 +2,7 @@ package org.mwg.core.task;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.mwg.Constants;
 import org.mwg.Node;
 import org.mwg.task.ActionFunction;
 import org.mwg.task.TaskContext;
@@ -22,7 +23,7 @@ public class ActionTravelInTimeTest extends AbstractActionTest {
                     @Override
                     public void eval(TaskContext context) {
                         TaskResult<Node> nodes = context.resultAsNodes();
-                        Assert.assertEquals(0, nodes.get(0).time());
+                        Assert.assertEquals(Constants.BEGINNING_OF_TIME, nodes.get(0).time());
                         context.continueWith(null);
                     }
                 }))

@@ -1,6 +1,7 @@
 package org.mwg.core.task;
 
 import org.mwg.Callback;
+import org.mwg.Constants;
 import org.mwg.Graph;
 import org.mwg.Node;
 import org.mwg.core.task.math.CoreMathExpressionEngine;
@@ -37,7 +38,7 @@ class CoreTaskContext implements TaskContext {
             this._world = parentContext.world();
         } else {
             this._world = 0;
-            this._time = 0;
+            this._time = Constants.BEGINNING_OF_TIME;
         }
         this._graph = p_graph;
         this._parent = parentContext;

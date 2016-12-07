@@ -20,15 +20,15 @@ public class ActionPropertiesTest {
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                Node root = graph.newNode(0, 0);
+                Node root = graph.newNode(0, Constants.BEGINNING_OF_TIME);
                 root.set("id", Type.INT, 1);
                 root.set("attribute", Type.BOOL, false);
 
-                graph.index(0, 0, "root", rootIndex -> {
+                graph.index(0, Constants.BEGINNING_OF_TIME, "root", rootIndex -> {
                     rootIndex.addToIndex(root, "id");
                 });
 
-                Node child1 = graph.newNode(0, 0);
+                Node child1 = graph.newNode(0, Constants.BEGINNING_OF_TIME);
                 child1.set("name", Type.STRING, "child1");
                 root.addToRelation("rel1", child1);
 
