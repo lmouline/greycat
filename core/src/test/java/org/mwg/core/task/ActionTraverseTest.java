@@ -82,7 +82,7 @@ public class ActionTraverseTest extends AbstractActionTest {
         });
 
         newTask()
-                .then(setTime("0"))
+                .then(travelInTime("0"))
                 .then(readGlobalIndex("roots", "name", "root2"))
                 .then(traverse("childrenIndexed", "name", "node2"))
                 .thenDo(new ActionFunction() {
@@ -103,7 +103,7 @@ public class ActionTraverseTest extends AbstractActionTest {
                 }).execute(graph, null);
 
         newTask()
-                .then(setTime("12"))
+                .then(travelInTime("12"))
                 .then(readGlobalIndex("roots", "name", "root2"))
                 .then(traverse("childrenIndexed", "name", "node2"))
                 .thenDo(new ActionFunction() {
@@ -126,7 +126,7 @@ public class ActionTraverseTest extends AbstractActionTest {
                 }).execute(graph, null);
 
         newTask()
-                .then(setTime("13"))
+                .then(travelInTime("13"))
                 .then(readGlobalIndex("roots", "name", "root2"))
                 .then(traverse("childrenIndexed"))
                 .thenDo(new ActionFunction() {

@@ -1383,7 +1383,6 @@ declare module org {
                 }
                 class Actions {
                     static setWorld(world: string): org.mwg.task.Action;
-                    static setTime(time: string): org.mwg.task.Action;
                     static travelInTime(time: string): org.mwg.task.Action;
                     static inject(input: any): org.mwg.task.Action;
                     static defineAsGlobalVar(name: string): org.mwg.task.Action;

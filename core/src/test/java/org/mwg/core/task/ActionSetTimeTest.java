@@ -15,7 +15,7 @@ public class ActionSetTimeTest extends AbstractActionTest {
         newTask()
                 .then(inject(10))
                 .then(defineAsGlobalVar("time"))
-                .then(setTime("{{time}}"))
+                .then(travelInTime("{{time}}"))
                 .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext context) {

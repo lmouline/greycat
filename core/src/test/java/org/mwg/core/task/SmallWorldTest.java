@@ -22,7 +22,7 @@ public class SmallWorldTest {
             @Override
             public void on(Boolean isConnected) {
                 newTask()
-                        .then(setTime("0"))
+                        .then(travelInTime("0"))
                         .then(setWorld("0"))
                         .then(createNode()).then(set("name", Type.STRING, "room0")).then(addToGlobalIndex("rooms", "name")).then(setAsVar("room0"))
                         .then(createNode()).then(set("name", Type.STRING, "room01")).then(addToGlobalIndex("rooms", "name")).then(setAsVar("room01"))

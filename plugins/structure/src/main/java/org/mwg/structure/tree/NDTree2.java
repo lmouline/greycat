@@ -2,6 +2,7 @@ package org.mwg.structure.tree;
 
 import org.mwg.*;
 import org.mwg.base.BaseNode;
+import org.mwg.core.task.Actions;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.NodeState;
 import org.mwg.plugin.NodeStateCallback;
@@ -679,7 +680,7 @@ public class NDTree2 extends BaseNode implements NTree {
 
                 long[] res = nnl.getNodes();
                 if (res.length != 0) {
-                    Task lookupall = newTask().then(setWorld(String.valueOf(world()))).then(setTime(String.valueOf(time()))).then(readVar("res")).then(lookupAll("{{result}}"));
+                    Task lookupall = newTask().then(setWorld(String.valueOf(world()))).then(Actions.travelInTime(String.valueOf(time()))).then(readVar("res")).then(lookupAll("{{result}}"));
                     TaskContext tc = lookupall.prepare(graph(), null, new Callback<TaskResult>() {
                         @Override
                         public void on(TaskResult result) {
@@ -739,7 +740,7 @@ public class NDTree2 extends BaseNode implements NTree {
 
                 long[] res = nnl.getNodes();
                 if (res.length != 0) {
-                    Task lookupall = newTask().then(setWorld(String.valueOf(world()))).then(setTime(String.valueOf(time()))).then(readVar("res")).then(lookupAll("{{result}}"));
+                    Task lookupall = newTask().then(setWorld(String.valueOf(world()))).then(Actions.travelInTime(String.valueOf(time()))).then(readVar("res")).then(lookupAll("{{result}}"));
                     TaskContext tc = lookupall.prepare(graph(), null, new Callback<TaskResult>() {
                         @Override
                         public void on(TaskResult result) {
@@ -800,7 +801,7 @@ public class NDTree2 extends BaseNode implements NTree {
 
                 long[] res = nnl.getAllNodesWithin(radius);
                 if (res.length != 0) {
-                    Task lookupall = newTask().then(setWorld(String.valueOf(world()))).then(setTime(String.valueOf(time()))).then(readVar("res")).then(lookupAll("{{result}}"));
+                    Task lookupall = newTask().then(setWorld(String.valueOf(world()))).then(Actions.travelInTime(String.valueOf(time()))).then(readVar("res")).then(lookupAll("{{result}}"));
                     TaskContext tc = lookupall.prepare(graph(), null, new Callback<TaskResult>() {
                         @Override
                         public void on(TaskResult result) {
@@ -911,7 +912,7 @@ public class NDTree2 extends BaseNode implements NTree {
             Task[] tasks = new Task[split.length];
             for (int i = 0; i < split.length; i++) {
                 Task t = newTask().then(setWorld("" + world()));
-                t.then(setTime(time() + ""));
+                t.then(Actions.travelInTime(time() + ""));
                 t.parse(split[i].trim());
                 tasks[i] = t;
             }

@@ -19,16 +19,6 @@ public class Actions {
     }
 
     /**
-     * Sets the task context to a particular time.
-     *
-     * @param time the time to which the task context will be set to
-     * @return the action to chain
-     */
-    public static Action setTime(String time) {
-        return new ActionSetTime(time);
-    }
-
-    /**
      * Switches the time of the task context, i.e. travels the task context in time.
      *
      * @param time time to which the task context is switched to for all nodes

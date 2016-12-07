@@ -27,7 +27,7 @@ public class ActionNewNodeTest extends AbstractActionTest {
                 .then(setWorld("{{world}}"))
                 .then(inject(587))
                 .then(defineAsGlobalVar("time"))
-                .then(setTime("{{time[0]}}"))
+                .then(travelInTime("{{time[0]}}"))
                 .then(createNode())
                 .thenDo(new ActionFunction() {
                     @Override

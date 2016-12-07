@@ -25,7 +25,7 @@ public class ActionLookupTest extends AbstractActionTest {
                     }
                     context.continueTask();
                 })
-                .then(setTime("10"))
+                .then(travelInTime("10"))
                 .then(lookupAll("{{ids}}"))
                 .thenDo(new ActionFunction() {
                     @Override
