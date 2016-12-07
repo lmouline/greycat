@@ -645,8 +645,7 @@ public class KDTree extends BaseNode implements NTree {
         });
 
 
-        TaskResult res = tc.newResult();
-        res.add(key);
+        TaskResult res = tc.newResult().add(key);
 
         // (this, distance, key, hr, max_dist_sqd, 0, dim, err, nnl);
 
