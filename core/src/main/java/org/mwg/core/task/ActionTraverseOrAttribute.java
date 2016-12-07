@@ -50,16 +50,17 @@ class ActionTraverseOrAttribute implements Action {
                             RelationIndexed relationIndexed = (RelationIndexed) casted.get(flatName);
                             if (relationIndexed != null) {
                                 if (_params != null && _params.length > 0) {
+                                    String[] templatedParams = context.templates(_params);
                                     Query query = context.graph().newQuery();
                                     query.setWorld(casted.world());
                                     query.setTime(casted.time());
                                     String previous = null;
-                                    for (int k = 0; k < _params.length; k++) {
+                                    for (int k = 0; k < templatedParams.length; k++) {
                                         if (previous != null) {
-                                            query.add(previous, _params[k]);
+                                            query.add(previous, templatedParams[k]);
                                             previous = null;
                                         } else {
-                                            previous = _params[k];
+                                            previous = templatedParams[k];
                                         }
                                     }
                                     relationIndexed.findByQuery(query, new Callback<Node[]>() {
