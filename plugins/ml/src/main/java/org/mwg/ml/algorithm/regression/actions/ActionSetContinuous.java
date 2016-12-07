@@ -16,47 +16,41 @@ import static org.mwg.core.task.Actions.readVar;
  */
 public class ActionSetContinuous implements Action {
 
+    public final static String NAME = "setContinuous";
+    private final Task polyTask;
+
     private final String _relName;
     private final String _value;
 
-    ActionSetContinuous(final String relName, final String c_value) {
+    public ActionSetContinuous(final String relName, final String c_value) {
         if (relName == null || c_value == null) {
             throw new RuntimeException("name or value should not be null");
         }
         this._relName = relName;
         this._value = c_value;
-    }
 
-    private static final Task polyTask = initPolyTask();
-
-    private static Task initPolyTask() {
-        Task result = newTask()
+        polyTask = newTask()
                 .then(defineAsVar("origin"))
-                .then(traverse("{{relname}}"))
-                .then(setAttribute(PolynomialNode.VALUE, Type.DOUBLE, "{{polyvalue}}"))
+                .then(traverse(_relName))
+                .then(setAttribute(PolynomialNode.VALUE, Type.DOUBLE, _value))
                 .then(readVar("origin"));
-        return result;
     }
 
     @Override
     public void eval(final TaskContext context) {
-        TaskContext polyContext = polyTask.prepare(context.graph(), context.result(), new Callback<TaskResult>() {
+
+        polyTask.executeWith(context.graph(), context.result(), new Callback<TaskResult>() {
             @Override
             public void on(TaskResult result) {
-                context.continueTask();
+                context.continueWith(result);
             }
         });
-
-        polyContext.setVariable("relname", _relName);
-        polyContext.setVariable("polyvalue", _value);
-        polyTask.executeUsing(polyContext);
-
 
     }
 
     @Override
     public String toString() {
-        return "setContinuous(\'" + _relName + ": " + _value + "\')";
+        return NAME + "(\'" + _relName + ": " + _value + "\')";
     }
 
 }

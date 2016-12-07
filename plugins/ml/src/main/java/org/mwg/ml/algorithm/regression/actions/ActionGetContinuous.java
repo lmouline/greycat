@@ -14,42 +14,36 @@ import static org.mwg.core.task.Actions.*;
  */
 public class ActionGetContinuous implements Action {
 
+    public final static String NAME = "getContinuous";
+    private final Task polyTask;
     private final String _relName;
 
-    ActionGetContinuous(final String relName) {
+    public ActionGetContinuous(final String relName) {
         if (relName == null) {
             throw new RuntimeException("name should not be null");
         }
         this._relName = relName;
-    }
 
-    private static final Task polyTask = initPolyTask();
-
-    private static Task initPolyTask() {
-        Task result = newTask()
-                .then(traverse("{{relname}}"))
+        polyTask = newTask()
+                .then(traverse(relName))
                 .then(attribute(PolynomialNode.VALUE));
-        return result;
     }
+
 
     @Override
     public void eval(final TaskContext context) {
-        TaskContext polyContext = polyTask.prepare(context.graph(), context.result(), new Callback<TaskResult>() {
+
+        polyTask.executeWith(context.graph(), context.result(), new Callback<TaskResult>() {
             @Override
             public void on(TaskResult result) {
-                context.continueTask();
+                context.continueWith(result);
             }
         });
-
-        polyContext.setVariable("relname", _relName);
-        polyTask.executeUsing(polyContext);
-
-
     }
 
     @Override
     public String toString() {
-        return "setContinuous(\'" + _relName + "\')";
+        return NAME + "(\'" + _relName + "\')";
     }
 
 }

@@ -9,11 +9,15 @@ import org.mwg.ml.algorithm.profiling.GaussianSlotNode;
 import org.mwg.ml.algorithm.profiling.GaussianTreeNode;
 import org.mwg.ml.algorithm.regression.LiveLinearRegressionNode;
 import org.mwg.ml.algorithm.regression.PolynomialNode;
+import org.mwg.ml.algorithm.regression.actions.ActionGetContinuous;
+import org.mwg.ml.algorithm.regression.actions.ActionSetContinuous;
 import org.mwg.ml.neuralnet.FlatNeuralNode;
 import org.mwg.ml.neuralnet.NeuralNode;
 import org.mwg.ml.neuralnet.NeuralNodeEmpty;
 import org.mwg.plugin.NodeFactory;
 import org.mwg.structure.StructurePlugin;
+import org.mwg.task.Action;
+import org.mwg.task.TaskActionFactory;
 
 public class MLPlugin extends StructurePlugin {
 
@@ -94,6 +98,25 @@ public class MLPlugin extends StructurePlugin {
         });
 
 
+        declareTaskAction(ActionSetContinuous.NAME, new TaskActionFactory() {
+            @Override
+            public Action create(String[] params) {
+                if(params.length!=2){
+                    throw new RuntimeException("set continuous requires 2 parameters");
+                }
+                return new ActionSetContinuous(params[0],params[1]);
+            }
+        });
+
+        declareTaskAction(ActionGetContinuous.NAME, new TaskActionFactory() {
+            @Override
+            public Action create(String[] params) {
+                if(params.length!=1){
+                    throw new RuntimeException("set continuous takes 1 parameter");
+                }
+                return new ActionGetContinuous(params[0]);
+            }
+        });
 
 
     }
