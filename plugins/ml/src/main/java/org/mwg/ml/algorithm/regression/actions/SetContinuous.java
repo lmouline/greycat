@@ -14,7 +14,7 @@ import static org.mwg.core.task.Actions.readVar;
 /**
  * Created by assaad on 07/12/2016.
  */
-public class ActionSetContinuous implements Action {
+public class SetContinuous implements Action {
 
     public final static String NAME = "setContinuous";
     private final Task polyTask;
@@ -22,7 +22,7 @@ public class ActionSetContinuous implements Action {
     private final String _relName;
     private final String _value;
 
-    public ActionSetContinuous(final String relName, final String c_value) {
+    public SetContinuous(final String relName, final String c_value) {
         if (relName == null || c_value == null) {
             throw new RuntimeException("name or value should not be null");
         }

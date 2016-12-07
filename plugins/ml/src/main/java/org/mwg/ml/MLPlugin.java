@@ -9,8 +9,8 @@ import org.mwg.ml.algorithm.profiling.GaussianSlotNode;
 import org.mwg.ml.algorithm.profiling.GaussianTreeNode;
 import org.mwg.ml.algorithm.regression.LiveLinearRegressionNode;
 import org.mwg.ml.algorithm.regression.PolynomialNode;
-import org.mwg.ml.algorithm.regression.actions.ActionGetContinuous;
-import org.mwg.ml.algorithm.regression.actions.ActionSetContinuous;
+import org.mwg.ml.algorithm.regression.actions.ReadContinuous;
+import org.mwg.ml.algorithm.regression.actions.SetContinuous;
 import org.mwg.ml.neuralnet.FlatNeuralNode;
 import org.mwg.ml.neuralnet.NeuralNode;
 import org.mwg.ml.neuralnet.NeuralNodeEmpty;
@@ -98,23 +98,23 @@ public class MLPlugin extends StructurePlugin {
         });
 
 
-        declareTaskAction(ActionSetContinuous.NAME, new TaskActionFactory() {
+        declareTaskAction(SetContinuous.NAME, new TaskActionFactory() {
             @Override
             public Action create(String[] params) {
                 if(params.length!=2){
                     throw new RuntimeException("set continuous requires 2 parameters");
                 }
-                return new ActionSetContinuous(params[0],params[1]);
+                return new SetContinuous(params[0],params[1]);
             }
         });
 
-        declareTaskAction(ActionGetContinuous.NAME, new TaskActionFactory() {
+        declareTaskAction(ReadContinuous.NAME, new TaskActionFactory() {
             @Override
             public Action create(String[] params) {
                 if(params.length!=1){
                     throw new RuntimeException("set continuous takes 1 parameter");
                 }
-                return new ActionGetContinuous(params[0]);
+                return new ReadContinuous(params[0]);
             }
         });
 

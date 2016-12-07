@@ -12,13 +12,13 @@ import static org.mwg.core.task.Actions.*;
 /**
  * Created by assaad on 07/12/2016.
  */
-public class ActionGetContinuous implements Action {
+public class ReadContinuous implements Action {
 
-    public final static String NAME = "getContinuous";
+    public final static String NAME = "readContinuous";
     private final Task polyTask;
     private final String _relName;
 
-    public ActionGetContinuous(final String relName) {
+    public ReadContinuous(final String relName) {
         if (relName == null) {
             throw new RuntimeException("name should not be null");
         }
