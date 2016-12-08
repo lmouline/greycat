@@ -587,6 +587,11 @@ public class KDTree extends BaseNode implements NTree {
     }
 
     @Override
+    public void setDistanceThreshold(double distanceThreshold) {
+        this.set(DISTANCE_THRESHOLD,Type.DOUBLE,distanceThreshold);
+    }
+
+    @Override
     public void setFrom(String extractor) {
         set(FROM, Type.STRING, extractor);
     }

@@ -19,6 +19,8 @@ public interface NTree {
 
     void setDistance(int distanceType);
 
+    void setDistanceThreshold(double distanceThreshold);
+
     void setFrom(String extractor);
 
 }

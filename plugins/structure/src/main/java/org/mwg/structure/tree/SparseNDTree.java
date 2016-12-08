@@ -43,9 +43,6 @@ public class SparseNDTree extends BaseNode implements NTree {
     private static long _VALUES = 8;
     private static long _KEYS = 9;
 
-    private static String _VALUES_STR = "8";
-    private static String _KEYS_STR = "9";
-
     //to store only on the root node
     private static int _CONTINUENAV = 10;
     private static int _NUMNODES = 11;
@@ -951,6 +948,11 @@ public class SparseNDTree extends BaseNode implements NTree {
         } else {
             callback.on(null);
         }
+    }
+
+    @Override
+    public void setDistanceThreshold(double distanceThreshold) {
+        this.set(DISTANCE_THRESHOLD,Type.DOUBLE,distanceThreshold);
     }
 
     @Override

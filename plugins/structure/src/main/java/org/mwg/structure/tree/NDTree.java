@@ -42,8 +42,6 @@ public class NDTree extends BaseNode implements NTree {
     private static long _VALUES = 8;
     private static long _KEYS = 9;
 
-    private static String _VALUES_STR = "8";
-    private static String _KEYS_STR = "9";
 
     //to store only on the root node
     private static long _PRECISION = 10;
@@ -570,6 +568,11 @@ public class NDTree extends BaseNode implements NTree {
     @Override
     public void setDistance(int distanceType) {
         setAt(_DISTANCE, Type.INT, distanceType);
+    }
+
+    @Override
+    public void setDistanceThreshold(double distanceThreshold) {
+        this.set(DISTANCE_THRESHOLD,Type.DOUBLE,distanceThreshold);
     }
 
     @Override
