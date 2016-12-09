@@ -41,8 +41,8 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
                 .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext ctx) {
-                        Assert.assertEquals(ctx.result().get(0), "n0");
-                        Assert.assertEquals(ctx.result().get(1), "n1");
+                        Assert.assertEquals("n0", ctx.result().get(0));
+                        Assert.assertEquals("n1", ctx.result().get(1));
                     }
                 })
                 .execute(graph, null);

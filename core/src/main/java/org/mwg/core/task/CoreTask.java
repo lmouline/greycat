@@ -391,7 +391,7 @@ public class CoreTask implements org.mwg.task.Task {
             cursor++;
         }
         if (!isClosed) {
-            final String getName = flat.substring(previous, cursor - 1);
+            final String getName = flat.substring(previous, cursor);
             if (getName.length() > 0) {
                 if (actionName != null) {
                     if (graph == null) {
