@@ -278,15 +278,18 @@ public class CoreTask implements org.mwg.task.Task {
         boolean isClosed = false;
         boolean isEscaped = false;
         while (cursor < flatSize) {
-            char current = flat.charAt(cursor);
+            final char current = flat.charAt(cursor);
             switch (current) {
                 case '\"':
                 case '\'':
                     isEscaped = true;
                     cursor++;
+                    boolean previousBackS = false;
                     while (cursor < flatSize) {
                         char loopChar = flat.charAt(cursor);
-                        if (loopChar == '\'' || loopChar == '\"') {
+                        if (loopChar == '\\') {
+                            previousBackS = true;
+                        } else if (current == loopChar && !previousBackS) {
                             break;
                         }
                         cursor++;
