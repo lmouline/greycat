@@ -280,11 +280,13 @@ public class CoreTask implements org.mwg.task.Task {
         while (cursor < flatSize) {
             char current = flat.charAt(cursor);
             switch (current) {
+                case '\"':
                 case '\'':
                     isEscaped = true;
                     cursor++;
                     while (cursor < flatSize) {
-                        if (flat.charAt(cursor) == '\'') {
+                        char loopChar = flat.charAt(cursor);
+                        if (loopChar == '\'' || loopChar == '\"') {
                             break;
                         }
                         cursor++;
@@ -292,8 +294,8 @@ public class CoreTask implements org.mwg.task.Task {
                     break;
                 case Constants.TASK_SEP:
                     if (!isClosed) {
-                        String getName = flat.substring(previous, cursor);
-                        then(new ActionNamed("traverse", getName));//default action
+                        final String getName = flat.substring(previous, cursor);
+                        then(new ActionTraverseOrAttribute(getName));//default action
                     }
                     actionName = null;
                     isEscaped = false;

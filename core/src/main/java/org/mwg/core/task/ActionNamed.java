@@ -16,13 +16,13 @@ class ActionNamed implements Action {
 
     @Override
     public void eval(final TaskContext ctx) {
-        final String templatedName = ctx.template(_name);
-        final String[] templatedParams = ctx.templates(_params);
-        final TaskActionFactory actionFactory = ctx.graph().taskAction(templatedName);
+        // final String templatedName = ctx.template(_name);
+        // final String[] templatedParams = ctx.templates(_params);
+        final TaskActionFactory actionFactory = ctx.graph().taskAction(this._name);
         if (actionFactory == null) {
-            throw new RuntimeException("Unknown task action: " + templatedName);
+            throw new RuntimeException("Unknown task action: " + _params);
         }
-        final Action subAction = actionFactory.create(templatedParams);
+        final Action subAction = actionFactory.create(ctx.templates(_params));
         if (subAction != null) {
             subAction.eval(ctx);
         } else {
