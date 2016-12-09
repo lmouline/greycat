@@ -141,8 +141,8 @@ public class NDTreeTest {
                 }
 
 
-                ndTree.setAt(NDTree.BOUNDMIN, Type.DOUBLE_ARRAY, boundMin);
-                ndTree.setAt(NDTree.BOUNDMAX, Type.DOUBLE_ARRAY, boundMax);
+                ndTree.setAt(NDTree.BOUND_MIN, Type.DOUBLE_ARRAY, boundMin);
+                ndTree.setAt(NDTree.BOUND_MAX, Type.DOUBLE_ARRAY, boundMax);
                 ndTree.setAt(NDTree.PRECISION, Type.DOUBLE_ARRAY, precisions);
 
                 sparseNdTree.setBounds(boundMin, boundMax);
@@ -262,8 +262,8 @@ public class NDTreeTest {
                     boundMax[i] = 1;
                 }
 
-                ndTree.setAt(NDTree.BOUNDMIN, Type.DOUBLE_ARRAY, boundMin);
-                ndTree.setAt(NDTree.BOUNDMAX, Type.DOUBLE_ARRAY, boundMax);
+                ndTree.setAt(NDTree.BOUND_MIN, Type.DOUBLE_ARRAY, boundMin);
+                ndTree.setAt(NDTree.BOUND_MAX, Type.DOUBLE_ARRAY, boundMax);
                 ndTree.setAt(NDTree.PRECISION, Type.DOUBLE_ARRAY, precisions);
 
 

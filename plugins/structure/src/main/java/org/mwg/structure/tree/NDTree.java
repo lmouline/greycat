@@ -36,10 +36,9 @@ public class NDTree extends BaseNode implements NTree {
 //    private static long _MIN = 4;  //not needed because the node has boundmin and boundmax
 //    private static long _MAX = 5;   //not needed because the node has boundmin and boundmax
 
-
     // Subspace related stuff
-    public static long BOUNDMIN = 6;
-    public static long BOUNDMAX = 7;
+    public static long BOUND_MIN = 6;
+    public static long BOUND_MAX = 7;
     private static long _VALUES = 8;
     private static long _KEYS = 9;
 
@@ -70,21 +69,21 @@ public class NDTree extends BaseNode implements NTree {
     public Node setAt(long index, byte type, Object value) {
         NodeState state = unphasedState();
 
-        if ((index == BOUNDMIN && state.get(BOUNDMIN) != null) || (index == BOUNDMAX && state.get(BOUNDMAX) != null) || (index == PRECISION && state.get(PRECISION) != null)) {
+        if ((index == BOUND_MIN && state.get(BOUND_MIN) != null) || (index == BOUND_MAX && state.get(BOUND_MAX) != null) || (index == PRECISION && state.get(PRECISION) != null)) {
             throw new RuntimeException("Bounds and precisions can't be changed!, you need to re-index");
         }
 
-        if ((index == BOUNDMIN || index == BOUNDMAX || index == PRECISION) && type != Type.DOUBLE_ARRAY) {
+        if ((index == BOUND_MIN || index == BOUND_MAX || index == PRECISION) && type != Type.DOUBLE_ARRAY) {
             throw new RuntimeException("Bounds and precisions should be of type double[]");
         }
 
         //These are only the allowed index to set from outside!! The rest are forbidden
-        if (index == BOUNDMIN || index == BOUNDMAX || index == PRECISION || index == FROM || index == DISTANCE || index == DISTANCE_THRESHOLD || index == STAT) {
+        if (index == BOUND_MIN || index == BOUND_MAX || index == PRECISION || index == FROM || index == DISTANCE || index == DISTANCE_THRESHOLD || index == STAT) {
             super.setAt(index, type, value);
             return this;
         }
 
-        throw new RuntimeException("Can set any index except BOUNDMIN, BOUNDMAX, PRECISION, DISTANCE");
+        throw new RuntimeException("Can set any index except BOUND_MIN, BOUND_MAX, PRECISION, DISTANCE");
     }
 
     private void privateSetAt(long index, byte type, Object value) {
@@ -121,8 +120,8 @@ public class NDTree extends BaseNode implements NTree {
 
                     //Get state variables here
 
-                    double[] boundMax = (double[]) state.get(BOUNDMAX);
-                    double[] boundMin = (double[]) state.get(BOUNDMIN);
+                    double[] boundMax = (double[]) state.get(BOUND_MAX);
+                    double[] boundMin = (double[]) state.get(BOUND_MIN);
                     double[] centerKey = new double[boundMax.length];
                     for (int i = 0; i < centerKey.length; i++) {
                         centerKey[i] = (boundMax[i] + boundMin[i]) / 2;
@@ -172,8 +171,8 @@ public class NDTree extends BaseNode implements NTree {
                             //Create the new subspace node
                             NDTree newChild = (NDTree) current.graph().newTypedNode(current.world(), current.time(), NAME);
                             NodeState newState = newChild.graph().resolver().resolveState(newChild);
-                            newState.set(BOUNDMIN, Type.DOUBLE_ARRAY, newBoundMin);
-                            newState.set(BOUNDMAX, Type.DOUBLE_ARRAY, newBoundMax);
+                            newState.set(BOUND_MIN, Type.DOUBLE_ARRAY, newBoundMin);
+                            newState.set(BOUND_MAX, Type.DOUBLE_ARRAY, newBoundMax);
                             Relation relChild = (Relation) state.getOrCreate(traverseId, Type.RELATION);
                             relChild.add(newChild.id());
                             newChild.free();
@@ -234,8 +233,8 @@ public class NDTree extends BaseNode implements NTree {
                     ctx.continueWith(null);
 
                 } else {
-                    final double[] boundMax = (double[]) state.get(BOUNDMAX);
-                    final double[] boundMin = (double[]) state.get(BOUNDMIN);
+                    final double[] boundMax = (double[]) state.get(BOUND_MAX);
+                    final double[] boundMin = (double[]) state.get(BOUND_MIN);
                     final double[] target = (double[]) ctx.variable("key").get(0);
                     final Distance distance = (Distance) ctx.variable("distance").get(0);
                     final double worst = nnl.getWorstDistance();
@@ -313,8 +312,8 @@ public class NDTree extends BaseNode implements NTree {
                     ctx.continueWith(null);
 
                 } else {
-                    final double[] boundMax = (double[]) state.get(BOUNDMAX);
-                    final double[] boundMin = (double[]) state.get(BOUNDMIN);
+                    final double[] boundMax = (double[]) state.get(BOUND_MAX);
+                    final double[] boundMin = (double[]) state.get(BOUND_MIN);
                     final double[] target = (double[]) ctx.variable("key").get(0);
                     final Distance distance = (Distance) ctx.variable("distance").get(0);
                     final double radius = (double) ctx.variable("radius").get(0);
@@ -753,8 +752,8 @@ public class NDTree extends BaseNode implements NTree {
             throw new RuntimeException("Key size should always be the same");
         }
 
-        double[] min = (double[]) state.get(BOUNDMIN);
-        double[] max = (double[]) state.get(BOUNDMAX);
+        double[] min = (double[]) state.get(BOUND_MIN);
+        double[] max = (double[]) state.get(BOUND_MAX);
 
         if (min == null || max == null) {
             throw new RuntimeException("Please set min and max boundary before inserting in the tree");
