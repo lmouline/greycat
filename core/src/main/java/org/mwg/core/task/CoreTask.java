@@ -521,6 +521,36 @@ public class CoreTask implements org.mwg.task.Task {
                 return new ActionScript(params[0]);
             }
         });
+
+        registry.put("createNode", new TaskActionFactory() {
+            @Override
+            public Action create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("script action needs zero parameter. Received:" + params.length);
+                }
+                return new ActionCreateNode(null);
+            }
+        });
+
+        registry.put("print", new TaskActionFactory() {
+            @Override
+            public Action create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("print action needs one parameter. Received:" + params.length);
+                }
+                return new ActionPrint(params[0],false);
+            }
+        });
+
+        registry.put("println", new TaskActionFactory() {
+            @Override
+            public Action create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("println action needs one parameter. Received:" + params.length);
+                }
+                return new ActionPrint(params[0],true);
+            }
+        });
     }
 
 
