@@ -3,7 +3,7 @@ package org.mwg.structure;
 import org.mwg.Callback;
 import org.mwg.Node;
 
-public interface NTree {
+public interface NTree extends Node {
 
     void nearestN(final double[] keys, final int nbElem, final Callback<Node[]> callback);
 

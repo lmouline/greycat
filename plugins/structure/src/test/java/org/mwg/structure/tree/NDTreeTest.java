@@ -21,23 +21,23 @@ import static org.mwg.core.task.Actions.*;
 
 public class NDTreeTest {
 
-    private static void printArray(double[] key){
+    private static void printArray(double[] key) {
         System.out.print("[");
-        for(int i=0;i<key.length;i++){
+        for (int i = 0; i < key.length; i++) {
             System.out.print(key[i]);
-            if(i!=(key.length-1)){
+            if (i != (key.length - 1)) {
                 System.out.print(",");
             }
         }
         System.out.print("] ");
     }
 
-    private static void printgraph(Node root, String name){
-        Task printer= newTask();
+    private static void printgraph(Node root, String name) {
+        Task printer = newTask();
 
         printer
                 .then(defineAsVar("parent"))
-            .loop("0","{{tabs}}", newTask().then(Actions.print("\t")))
+                .loop("0", "{{tabs}}", newTask().then(Actions.print("\t")))
 //                .then(new Action() {
 //                    @Override
 //                    public void eval(TaskContext context) {
@@ -85,9 +85,9 @@ public class NDTreeTest {
                 .then(defineAsVar("tabs"))
                 .then(readVar("parent"))
                 .then(attributesWithTypes(Type.RELATION))
-                .forEach(newTask().then(defineAsVar("traverseID")).then(readVar("parent")).then(action(TraverseById.NAME,"{{traverseID}}")).forEach(newTask().isolate(printer)));
+                .forEach(newTask().then(defineAsVar("traverseID")).then(readVar("parent")).then(action(TraverseById.NAME, "{{traverseID}}")).forEach(newTask().isolate(printer)));
 
-        TaskContext tc=printer.prepare(root.graph(), root, new Callback<TaskResult>() {
+        TaskContext tc = printer.prepare(root.graph(), root, new Callback<TaskResult>() {
             @Override
             public void on(TaskResult result) {
                 System.out.println("--");
@@ -95,8 +95,8 @@ public class NDTreeTest {
             }
         });
 
-        tc.defineVariable("tabs",-1);
-        tc.defineVariable("name",name);
+        tc.defineVariable("tabs", -1);
+        tc.defineVariable("name", name);
 
         printer.executeUsing(tc);
 
@@ -141,7 +141,10 @@ public class NDTreeTest {
                 }
 
 
-                ndTree.setBounds(boundMin, boundMax, precisions);
+                ndTree.setAt(NDTree.BOUNDMIN, Type.DOUBLE_ARRAY, boundMin);
+                ndTree.setAt(NDTree.BOUNDMAX, Type.DOUBLE_ARRAY, boundMax);
+                ndTree.setAt(NDTree.PRECISION, Type.DOUBLE_ARRAY, precisions);
+
                 sparseNdTree.setBounds(boundMin, boundMax);
 
 
@@ -197,8 +200,8 @@ public class NDTreeTest {
                                 public void on(Node[] result2) {
 
                                     Assert.assertTrue(result2.length == result.length);
-                                   for (int i = 0; i < result.length; i++) {
-                                       Assert.assertTrue(result[i].id() == result2[i].id());
+                                    for (int i = 0; i < result.length; i++) {
+                                        Assert.assertTrue(result[i].id() == result2[i].id());
                                     }
                                 }
                             });
@@ -206,7 +209,6 @@ public class NDTreeTest {
                         }
                     });
                 }
-
 
 
             }
@@ -260,7 +262,10 @@ public class NDTreeTest {
                     boundMax[i] = 1;
                 }
 
-                ndTree.setBounds(boundMin, boundMax, precisions);
+                ndTree.setAt(NDTree.BOUNDMIN, Type.DOUBLE_ARRAY, boundMin);
+                ndTree.setAt(NDTree.BOUNDMAX, Type.DOUBLE_ARRAY, boundMax);
+                ndTree.setAt(NDTree.PRECISION, Type.DOUBLE_ARRAY, precisions);
+
 
                 Random random = new Random();
                 random.setSeed(125362l);

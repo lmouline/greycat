@@ -26,7 +26,8 @@ public class NDTree extends BaseNode implements NTree {
     }
 
     //To store only on root node
-    private static long _STAT = 0;
+    public static long STAT = 0;
+    public static boolean STAT_DEF = false;
 
     //Gaussian related stats on each subspace node
     private static long _TOTAL = 1;
@@ -37,72 +38,69 @@ public class NDTree extends BaseNode implements NTree {
 
 
     // Subspace related stuff
-    private static long _BOUNDMIN = 6;
-    private static long _BOUNDMAX = 7;
+    public static long BOUNDMIN = 6;
+    public static long BOUNDMAX = 7;
     private static long _VALUES = 8;
     private static long _KEYS = 9;
 
 
     //to store only on the root node
-    private static long _PRECISION = 10;
+    public static long PRECISION = 10;
     private static long _NUMNODES = 11;
     private static long _DIM = 12;
-    private static long _DISTANCE = 13;
-    private static long _DISTANCETHRESHOLD = 14;
-    private static long _FROM = 15;
-
-    public static final String DISTANCE_THRESHOLD = "threshold";       //Distance threshold to define when 2 keys are not considered the same anymopre
+    public static long DISTANCE = 13;
+    public static long DISTANCE_THRESHOLD = 14;
     public static final double DISTANCE_THRESHOLD_DEF = 1e-10;
-    public static final int DISTANCE_TYPE_DEF = 0;
 
-    public static boolean STAT_DEF = false;
+    public static long FROM = 15;
+
+    public static final int DISTANCE_TYPE_DEF = 0;
 
 
     //The beginning of relations navigation
     static long _RELCONST = 16; //Should be always a power of 2
 
 
-    public void setBounds(double[] min, double[] max, double[] precisions) {
-
-        NodeState state = unphasedState();
-
-        if (state.get(_BOUNDMIN) != null) {
-            throw new RuntimeException("Bounds can't be changed!, you need to re-index");
-        }
-
-        if (min.length != max.length) {
-            throw new RuntimeException("Min and max bounds should be the same array length");
-        }
-        if (precisions.length != max.length) {
-            throw new RuntimeException("Max and precision should be the same array length");
-        }
-
-        for (int i = 0; i < min.length; i++) {
-            if (min[i] >= max[i]) {
-                throw new RuntimeException("Min should be always exclusively smaller than max");
-            }
-            if (precisions[i] > (max[i] - min[i])) {
-                throw new RuntimeException("Precision should always be smaller than max-min");
-            }
-        }
-
-        state.set(_DIM, Type.INT, min.length);
-        state.set(_BOUNDMIN, Type.DOUBLE_ARRAY, min);
-        state.set(_BOUNDMAX, Type.DOUBLE_ARRAY, max);
-        state.set(_PRECISION, Type.DOUBLE_ARRAY, precisions);
-
+    @Override
+    public Node set(String name, byte type, Object value) {
+        throw new RuntimeException("You can't use the set string on " + NAME + " to avoid long collisions");
     }
 
-    private static void updateCount(boolean updateCount, Node root) {
+    @Override
+    public Node setAt(long index, byte type, Object value) {
+        NodeState state = unphasedState();
+
+        if ((index == BOUNDMIN && state.get(BOUNDMIN) != null) || (index == BOUNDMAX && state.get(BOUNDMAX) != null) || (index == PRECISION && state.get(PRECISION) != null)) {
+            throw new RuntimeException("Bounds and precisions can't be changed!, you need to re-index");
+        }
+
+        if ((index == BOUNDMIN || index == BOUNDMAX || index == PRECISION) && type != Type.DOUBLE_ARRAY) {
+            throw new RuntimeException("Bounds and precisions should be of type double[]");
+        }
+
+        //These are only the allowed index to set from outside!! The rest are forbidden
+        if (index == BOUNDMIN || index == BOUNDMAX || index == PRECISION || index == FROM || index == DISTANCE || index == DISTANCE_THRESHOLD || index == STAT) {
+            super.setAt(index, type, value);
+            return this;
+        }
+
+        throw new RuntimeException("Can set any index except BOUNDMIN, BOUNDMAX, PRECISION, DISTANCE");
+    }
+
+    private void privateSetAt(long index, byte type, Object value) {
+        super.setAt(index, type, value);
+    }
+
+    private static void updateCount(boolean updateCount, NDTree root) {
         if (!updateCount) {
             return;
         }
         if (root.getAt(_NUMNODES) != null) {
             int count = (int) root.getAt(_NUMNODES);
             count++;
-            root.setAt(_NUMNODES, Type.INT, count);
+            root.privateSetAt(_NUMNODES, Type.INT, count);
         } else {
-            root.setAt(_NUMNODES, Type.INT, 1);
+            root.privateSetAt(_NUMNODES, Type.INT, 1);
         }
     }
 
@@ -115,7 +113,7 @@ public class NDTree extends BaseNode implements NTree {
                 @Override
                 public boolean eval(TaskContext context) {
 
-                    Node root = (Node) context.variable("root").get(0);
+                    NDTree root = (NDTree) context.variable("root").get(0);
 
                     Node current = context.resultAsNodes().get(0);
                     NodeState state = current.graph().resolver().resolveState(current);
@@ -123,8 +121,8 @@ public class NDTree extends BaseNode implements NTree {
 
                     //Get state variables here
 
-                    double[] boundMax = (double[]) state.get(_BOUNDMAX);
-                    double[] boundMin = (double[]) state.get(_BOUNDMIN);
+                    double[] boundMax = (double[]) state.get(BOUNDMAX);
+                    double[] boundMin = (double[]) state.get(BOUNDMIN);
                     double[] centerKey = new double[boundMax.length];
                     for (int i = 0; i < centerKey.length; i++) {
                         centerKey[i] = (boundMax[i] + boundMin[i]) / 2;
@@ -174,8 +172,8 @@ public class NDTree extends BaseNode implements NTree {
                             //Create the new subspace node
                             NDTree newChild = (NDTree) current.graph().newTypedNode(current.world(), current.time(), NAME);
                             NodeState newState = newChild.graph().resolver().resolveState(newChild);
-                            newState.set(_BOUNDMIN, Type.DOUBLE_ARRAY, newBoundMin);
-                            newState.set(_BOUNDMAX, Type.DOUBLE_ARRAY, newBoundMax);
+                            newState.set(BOUNDMIN, Type.DOUBLE_ARRAY, newBoundMin);
+                            newState.set(BOUNDMAX, Type.DOUBLE_ARRAY, newBoundMax);
                             Relation relChild = (Relation) state.getOrCreate(traverseId, Type.RELATION);
                             relChild.add(newChild.id());
                             newChild.free();
@@ -236,8 +234,8 @@ public class NDTree extends BaseNode implements NTree {
                     ctx.continueWith(null);
 
                 } else {
-                    final double[] boundMax = (double[]) state.get(_BOUNDMAX);
-                    final double[] boundMin = (double[]) state.get(_BOUNDMIN);
+                    final double[] boundMax = (double[]) state.get(BOUNDMAX);
+                    final double[] boundMin = (double[]) state.get(BOUNDMIN);
                     final double[] target = (double[]) ctx.variable("key").get(0);
                     final Distance distance = (Distance) ctx.variable("distance").get(0);
                     final double worst = nnl.getWorstDistance();
@@ -315,8 +313,8 @@ public class NDTree extends BaseNode implements NTree {
                     ctx.continueWith(null);
 
                 } else {
-                    final double[] boundMax = (double[]) state.get(_BOUNDMAX);
-                    final double[] boundMin = (double[]) state.get(_BOUNDMIN);
+                    final double[] boundMax = (double[]) state.get(BOUNDMAX);
+                    final double[] boundMin = (double[]) state.get(BOUNDMIN);
                     final double[] target = (double[]) ctx.variable("key").get(0);
                     final Distance distance = (Distance) ctx.variable("distance").get(0);
                     final double radius = (double) ctx.variable("radius").get(0);
@@ -372,7 +370,7 @@ public class NDTree extends BaseNode implements NTree {
     //region Gaussian and stat related code for each node subspace
     public void setUpdateStat(boolean value) {
         NodeState state = unphasedState();
-        state.set(_STAT, Type.BOOL, value);
+        state.set(STAT, Type.BOOL, value);
     }
 
     private static void updateGaussian(NodeState state, double[] key) {
@@ -552,7 +550,7 @@ public class NDTree extends BaseNode implements NTree {
 
 
     protected Distance getDistance(NodeState state) {
-        int d = state.getWithDefault(_DISTANCE, DISTANCE_TYPE_DEF);
+        int d = state.getWithDefault(DISTANCE, DISTANCE_TYPE_DEF);
         Distance distance;
         if (d == Distances.EUCLIDEAN) {
             distance = EuclideanDistance.instance();
@@ -567,17 +565,17 @@ public class NDTree extends BaseNode implements NTree {
 
     @Override
     public void setDistance(int distanceType) {
-        setAt(_DISTANCE, Type.INT, distanceType);
+        super.setAt(DISTANCE, Type.INT, distanceType);
     }
 
     @Override
     public void setDistanceThreshold(double distanceThreshold) {
-        this.set(DISTANCE_THRESHOLD,Type.DOUBLE,distanceThreshold);
+        super.setAt(DISTANCE_THRESHOLD, Type.DOUBLE, distanceThreshold);
     }
 
     @Override
     public void setFrom(String extractor) {
-        setAt(_FROM, Type.STRING, extractor);
+        super.setAt(FROM, Type.STRING, extractor);
     }
 
 
@@ -628,7 +626,7 @@ public class NDTree extends BaseNode implements NTree {
         tc.setGlobalVariable("key", res);
         tc.setGlobalVariable("distance", distance);
         tc.setGlobalVariable("dim", dim);
-        final double[] precisions = (double[]) state.get(_PRECISION);
+        final double[] precisions = (double[]) state.get(PRECISION);
         TaskResult resPres = tc.newResult();
         resPres.add(precisions);
         tc.setGlobalVariable("precision", resPres);
@@ -684,7 +682,7 @@ public class NDTree extends BaseNode implements NTree {
         tc.setGlobalVariable("distance", distance);
         tc.setGlobalVariable("dim", dim);
         tc.setGlobalVariable("radius", radius);
-        final double[] precisions = (double[]) state.get(_PRECISION);
+        final double[] precisions = (double[]) state.get(PRECISION);
         TaskResult resPres = tc.newResult();
         resPres.add(precisions);
         tc.setGlobalVariable("precision", resPres);
@@ -740,7 +738,7 @@ public class NDTree extends BaseNode implements NTree {
         tc.setGlobalVariable("distance", distance);
         tc.setGlobalVariable("dim", dim);
 //        tc.defineVariable("lev", 0);
-        final double[] precisions = (double[]) state.get(_PRECISION);
+        final double[] precisions = (double[]) state.get(PRECISION);
         TaskResult resPres = tc.newResult();
         resPres.add(precisions);
         tc.setGlobalVariable("precision", resPres);
@@ -755,8 +753,8 @@ public class NDTree extends BaseNode implements NTree {
             throw new RuntimeException("Key size should always be the same");
         }
 
-        double[] min = (double[]) state.get(_BOUNDMIN);
-        double[] max = (double[]) state.get(_BOUNDMAX);
+        double[] min = (double[]) state.get(BOUNDMIN);
+        double[] max = (double[]) state.get(BOUNDMAX);
 
         if (min == null || max == null) {
             throw new RuntimeException("Please set min and max boundary before inserting in the tree");
@@ -806,9 +804,9 @@ public class NDTree extends BaseNode implements NTree {
         tc.setGlobalVariable("value", value);
 
 
-        final double[] precisions = (double[]) state.get(_PRECISION);
+        final double[] precisions = (double[]) state.get(PRECISION);
 
-        final boolean updateStat = (boolean) state.getWithDefault(_STAT, STAT_DEF);
+        final boolean updateStat = (boolean) state.getWithDefault(STAT, STAT_DEF);
         tc.setGlobalVariable("updatestat", updateStat);
 
         tc.setGlobalVariable("root", this);
@@ -822,7 +820,7 @@ public class NDTree extends BaseNode implements NTree {
 
 
     protected void extractFeatures(final Node current, final Callback<double[]> callback) {
-        String query = (String) super.getAt(_FROM);
+        String query = (String) super.getAt(FROM);
         if (query != null) {
             //TODO CACHE TO AVOID PARSING EVERY TIME
             String[] split = query.split(",");
