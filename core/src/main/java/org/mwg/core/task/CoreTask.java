@@ -1,6 +1,7 @@
 package org.mwg.core.task;
 
 import org.mwg.*;
+import org.mwg.core.CoreConstants;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.SchedulerAffinity;
 import org.mwg.task.*;
@@ -267,7 +268,7 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public Task parse(final String flat) {
+    public Task parse(final String flat, final Graph graph) {
         if (flat == null) {
             throw new RuntimeException("flat should not be null");
         }
@@ -277,6 +278,12 @@ public class CoreTask implements org.mwg.task.Task {
         String actionName = null;
         boolean isClosed = false;
         boolean isEscaped = false;
+
+        //Param storage
+        int paramsCapacity = 0;
+        String[] params = null;
+        int paramsIndex = 0;
+
         while (cursor < flatSize) {
             final char current = flat.charAt(cursor);
             switch (current) {
@@ -291,6 +298,8 @@ public class CoreTask implements org.mwg.task.Task {
                             previousBackS = true;
                         } else if (current == loopChar && !previousBackS) {
                             break;
+                        } else {
+                            previousBackS = false;
                         }
                         cursor++;
                     }
@@ -303,6 +312,10 @@ public class CoreTask implements org.mwg.task.Task {
                     actionName = null;
                     isEscaped = false;
                     previous = cursor + 1;
+                    paramsCapacity = 0;
+                    params = null;
+                    paramsIndex = 0;
+                    isClosed = false;
                     break;
                 case Constants.TASK_PARAM_OPEN:
                     actionName = flat.substring(previous, cursor);
@@ -310,25 +323,92 @@ public class CoreTask implements org.mwg.task.Task {
                     break;
                 case Constants.TASK_PARAM_CLOSE:
                     //ADD LAST PARAM
-                    String extracted;
+                    String lastParamExtracted;
                     if (isEscaped) {
-                        extracted = flat.substring(previous + 1, cursor - 1);
+                        lastParamExtracted = flat.substring(previous + 1, cursor - 1);
                     } else {
-                        extracted = flat.substring(previous, cursor);
+                        lastParamExtracted = flat.substring(previous, cursor);
                     }
-                    then(new ActionNamed(actionName, extracted));
+                    if (lastParamExtracted.length() > 0) {
+                        if ((paramsIndex + 1) != paramsCapacity) {
+                            String[] newParams = new String[paramsIndex + 1];
+                            if (params != null) {
+                                System.arraycopy(params, 0, newParams, 0, paramsIndex);
+                            }
+                            params = newParams;
+                            paramsCapacity = paramsIndex + 1;
+                        }
+                        params[paramsIndex] = lastParamExtracted;
+                        paramsIndex++;
+                    } else {
+                        //shrink params
+                        if (paramsIndex < paramsCapacity) {
+                            String[] shrinked = new String[paramsIndex];
+                            System.arraycopy(params, 0, shrinked, 0, paramsIndex);
+                            params = shrinked;
+                        }
+                    }
+                    if (graph == null) {
+                        then(new ActionNamed(actionName, params));
+                    } else {
+                        final TaskActionFactory factory = graph.taskAction(actionName);
+                        if (factory == null) {
+                            throw new RuntimeException("Parse error, unknown action : " + actionName);
+                        }
+                        then(factory.create(params));
+                    }
                     actionName = null;
                     previous = cursor + 1;
                     isClosed = true;
                     //ADD TASK
                     break;
+                case Constants.QUERY_SEP:
+                    String paramExtracted;
+                    if (isEscaped) {
+                        paramExtracted = flat.substring(previous + 1, cursor - 1);
+                    } else {
+                        paramExtracted = flat.substring(previous, cursor);
+                    }
+                    if (paramExtracted.length() > 0) {
+                        if (paramsIndex >= paramsCapacity) {
+                            int newParamsCapacity = paramsCapacity * 2;
+                            if (newParamsCapacity == 0) {
+                                newParamsCapacity = CoreConstants.MAP_INITIAL_CAPACITY;
+                            }
+                            String[] newParams = new String[newParamsCapacity];
+                            if (params != null) {
+                                System.arraycopy(params, 0, newParams, 0, paramsCapacity);
+                            }
+                            params = newParams;
+                            paramsCapacity = newParamsCapacity;
+                        }
+                        params[paramsIndex] = paramExtracted;
+                        paramsIndex++;
+                    }
+                    previous = cursor + 1;
+                    break;
             }
             cursor++;
         }
         if (!isClosed) {
-            String getName = flat.substring(previous, cursor);
+            final String getName = flat.substring(previous, cursor - 1);
             if (getName.length() > 0) {
-                then(new ActionNamed("traverse", getName));//default action
+                if (actionName != null) {
+                    if (graph == null) {
+                        then(new ActionNamed(actionName, params));
+                    } else {
+                        final TaskActionFactory factory = graph.taskAction(actionName);
+                        if (factory == null) {
+                            throw new RuntimeException("Parse error, unknown action : " + actionName);
+                        }
+                        final String[] singleParam = new String[1];
+                        singleParam[0] = getName;
+                        then(factory.create(singleParam));
+                    }
+                } else {
+                    then(new ActionTraverseOrAttribute(getName));//default action
+                }
+
             }
         }
         return this;
@@ -530,10 +610,19 @@ public class CoreTask implements org.mwg.task.Task {
         registry.put("createNode", new TaskActionFactory() {
             @Override
             public Action create(String[] params) {
-                if (params.length != 1) {
-                    throw new RuntimeException("script action needs zero parameter. Received:" + params.length);
+                if (params != null && params.length != 0) {
+                    throw new RuntimeException("createNode action needs zero parameter. Received:" + params.length);
                 }
                 return new ActionCreateNode(null);
+            }
+        });
+        registry.put("createTypedNode", new TaskActionFactory() {
+            @Override
+            public Action create(String[] params) {
+                if (params.length != 1) {
+                    throw new RuntimeException("createTypedNode action needs one parameter. Received:" + params.length);
+                }
+                return new ActionCreateNode(params[0]);
             }
         });
 
@@ -543,17 +632,21 @@ public class CoreTask implements org.mwg.task.Task {
                 if (params.length != 1) {
                     throw new RuntimeException("print action needs one parameter. Received:" + params.length);
                 }
-                return new ActionPrint(params[0],false);
+                return new ActionPrint(params[0], false);
             }
         });
 
         registry.put("println", new TaskActionFactory() {
             @Override
             public Action create(String[] params) {
-                if (params.length != 1) {
-                    throw new RuntimeException("println action needs one parameter. Received:" + params.length);
+                if (params == null || params.length != 1) {
+                    if (params != null) {
+                        throw new RuntimeException("println action needs one parameter. Received:" + params.length);
+                    } else {
+                        throw new RuntimeException("println action needs one parameter. Received: 0");
+                    }
                 }
-                return new ActionPrint(params[0],true);
+                return new ActionPrint(params[0], true);
             }
         });
     }

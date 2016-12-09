@@ -187,7 +187,7 @@ public interface Task {
      * @param flat string definition of the task
      * @return this task to chain
      */
-    Task parse(String flat);
+    Task parse(final String flat, final Graph graph);
 
     /**
      * Creates a hook to extend the Task API.

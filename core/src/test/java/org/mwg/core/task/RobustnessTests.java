@@ -324,7 +324,7 @@ public class RobustnessTests {
     public void robustnessParse() {
         boolean exceptionCaught = false;
         try {
-            new CoreTask().parse(null).execute(_graph, null);
+            new CoreTask().parse(null, null).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {

@@ -37,7 +37,7 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
         initGraph();
         newTask()
                 .then(readGlobalIndex("nodes"))
-                .parse("children.name")
+                .parse("children.name", graph)
                 .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext ctx) {
@@ -54,7 +54,7 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
     public void testParse() {
         initGraph();
         newTask()
-                .parse("readGlobalIndex(nodes).traverse(children)")
+                .parse("readGlobalIndex(nodes).traverse(children)", graph)
                 .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext ctx) {

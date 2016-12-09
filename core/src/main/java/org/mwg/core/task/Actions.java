@@ -1,5 +1,6 @@
 package org.mwg.core.task;
 
+import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.core.task.math.MathConditional;
 import org.mwg.task.*;
@@ -532,8 +533,8 @@ public class Actions {
         return newTask().isolate(subTask);
     }
 
-    public static Task parse(String flat) {
-        return newTask().parse(flat);
+    public static Task parse(String flat, Graph graph) {
+        return newTask().parse(flat, graph);
     }
 
 }
