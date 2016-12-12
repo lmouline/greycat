@@ -816,8 +816,8 @@ public class KDTree extends BaseNode implements NTree {
             String[] split = query.split(",");
             Task[] tasks = new Task[split.length];
             for (int i = 0; i < split.length; i++) {
-                Task t = newTask().then(travelInWorld("" + world()));
-                t.then(org.mwg.core.task.Actions.travelInTime(time() + ""));
+                Task t = newTask().then(travelInWorld("" + current.world()));
+                t.then(org.mwg.core.task.Actions.travelInTime(current.time() + ""));
                 t.parse(split[i].trim(), graph());
                 tasks[i] = t;
             }
@@ -838,7 +838,12 @@ public class KDTree extends BaseNode implements NTree {
                                 if (currentResult == null) {
                                     result[i] = Constants.NULL_LONG;
                                 } else {
-                                    result[i] = Double.parseDouble(currentResult.get(0).toString());
+                                    if(currentResult.size() == 0) {
+                                        //TODO LOG
+                                        System.out.println("Feature extraction yield no result for query:" + tasks[i].toString() + " on node " + initial.toString());
+                                    } else {
+                                        result[i] = Double.parseDouble(currentResult.get(0).toString());
+                                    }
                                     currentResult.free();
                                 }
                                 waiter.count();
