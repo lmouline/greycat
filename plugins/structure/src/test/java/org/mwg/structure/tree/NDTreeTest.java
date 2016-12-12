@@ -143,7 +143,7 @@ public class NDTreeTest {
 
                 ndTree.setAt(NDTree.BOUND_MIN, Type.DOUBLE_ARRAY, boundMin);
                 ndTree.setAt(NDTree.BOUND_MAX, Type.DOUBLE_ARRAY, boundMax);
-                ndTree.setAt(NDTree.PRECISION, Type.DOUBLE_ARRAY, precisions);
+                ndTree.setAt(NDTree.RESOLUTION, Type.DOUBLE_ARRAY, precisions);
 
                 sparseNdTree.setBounds(boundMin, boundMax);
 
@@ -264,7 +264,7 @@ public class NDTreeTest {
 
                 ndTree.setAt(NDTree.BOUND_MIN, Type.DOUBLE_ARRAY, boundMin);
                 ndTree.setAt(NDTree.BOUND_MAX, Type.DOUBLE_ARRAY, boundMax);
-                ndTree.setAt(NDTree.PRECISION, Type.DOUBLE_ARRAY, precisions);
+                ndTree.setAt(NDTree.RESOLUTION, Type.DOUBLE_ARRAY, precisions);
 
 
                 Random random = new Random();

@@ -33,8 +33,8 @@ public class SparseNDTree extends BaseNode implements NTree {
     private static long _TOTAL = 1;
     private static long _SUM = 2;
     private static long _SUMSQ = 3;
-//    private static long _MIN = 4;  //not needed because the node has boundmin and boundmax
-//    private static long _MAX = 5;   //not needed because the node has boundmin and boundmax
+    public static long MAX_CHILDREN = 4;
+    public static int MAX_CHILDREN_DEF = 4;
 
 
     // Subspace related stuff
@@ -56,8 +56,6 @@ public class SparseNDTree extends BaseNode implements NTree {
 
     public static boolean STAT_DEF = false;
 
-    private static int MAXINSIDE = 2;
-
 
     //The beginning of relations navigation
     static long _RELCONST = 16; //Should be always a power of 2
@@ -67,7 +65,6 @@ public class SparseNDTree extends BaseNode implements NTree {
     private static Task nearestTask = initNearestTask();
     private static Task nearestRadiusTask = initRadusTask();
     //Insert key/value task
-
 
 
     @Override
@@ -88,18 +85,17 @@ public class SparseNDTree extends BaseNode implements NTree {
         }
 
         //These are only the allowed index to set from outside!! The rest are forbidden
-        if (index == BOUND_MIN || index == BOUND_MAX || index == FROM || index == DISTANCE || index == DISTANCE_THRESHOLD || index == STAT) {
+        if (index == BOUND_MIN || index == BOUND_MAX || index == FROM || index == DISTANCE || index == DISTANCE_THRESHOLD || index == STAT || index == MAX_CHILDREN) {
             super.setAt(index, type, value);
             return this;
         }
 
-        throw new RuntimeException("Can set any index except BOUND_MIN, BOUND_MAX, PRECISION, DISTANCE");
+        throw new RuntimeException("Can't set any index except BOUND_MIN, BOUND_MAX, DISTANCE, MAX_CHILDREN");
     }
 
     private void privateSetAt(long index, byte type, Object value) {
         super.setAt(index, type, value);
     }
-
 
 
     private static void createChildAndIndex(int dim, double[] centerKey, double[] boundMin, double[] boundMax, double[] keyToInsert, long valueID, Node current, NodeState state, long traverseId, boolean updateStat) {
@@ -223,7 +219,9 @@ public class SparseNDTree extends BaseNode implements NTree {
                     updateCount(updateCount, root);
                     updateGaussian(updateStat, state, keyToInsert);
 
-                    if (rel.size() <= MAXINSIDE) {
+                    int maxchildren = (int) context.variable("maxchildren").get(0);
+
+                    if (rel.size() <= maxchildren) {
                         return false;
                     } else {
                         state.set(_CONTINUENAV, Type.BOOL, true);
@@ -250,6 +248,7 @@ public class SparseNDTree extends BaseNode implements NTree {
                             tc.setGlobalVariable("updatecount", false);
                             tc.setGlobalVariable("updatestatchild", updateStat);
                             tc.setGlobalVariable("root", current);
+                            tc.setGlobalVariable("maxchildren", maxchildren);
 
 
                             TaskResult res = tc.newResult();
@@ -926,6 +925,7 @@ public class SparseNDTree extends BaseNode implements NTree {
         tc.setGlobalVariable("updatecount", true);
         tc.setGlobalVariable("updatestatchild", state.getWithDefault(STAT, STAT_DEF));
         tc.setGlobalVariable("root", this);
+        tc.setGlobalVariable("maxchildren", state.getWithDefault(MAX_CHILDREN, MAX_CHILDREN_DEF));
 
         //Set local variables
         insert.executeUsing(tc);
@@ -941,7 +941,7 @@ public class SparseNDTree extends BaseNode implements NTree {
             for (int i = 0; i < split.length; i++) {
                 Task t = newTask().then(travelInWorld("" + world()));
                 t.then(org.mwg.core.task.Actions.travelInTime(time() + ""));
-                t.parse(split[i].trim(),graph());
+                t.parse(split[i].trim(), graph());
                 tasks[i] = t;
             }
             //END TODO IN CACHE
@@ -984,7 +984,7 @@ public class SparseNDTree extends BaseNode implements NTree {
 
     @Override
     public void setDistanceThreshold(double distanceThreshold) {
-        super.setAt(DISTANCE_THRESHOLD,Type.DOUBLE,distanceThreshold);
+        super.setAt(DISTANCE_THRESHOLD, Type.DOUBLE, distanceThreshold);
     }
 
     @Override
