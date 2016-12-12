@@ -1443,7 +1443,7 @@ declare module org {
                     static map(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                     static mapPar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                     static isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                    static parse(flat: string): org.mwg.task.Task;
+                    static parse(flat: string, graph: org.mwg.Graph): org.mwg.task.Task;
                 }
                 class CF_ActionDoWhile implements org.mwg.task.Action {
                     private _cond;
@@ -1571,7 +1571,7 @@ declare module org {
                     executeUsing(preparedContext: org.mwg.task.TaskContext): void;
                     executeFrom(parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, affinity: number, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                     executeFromUsing(parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, affinity: number, contextInitializer: org.mwg.Callback<org.mwg.task.TaskContext>, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
-                    parse(flat: string): org.mwg.task.Task;
+                    parse(flat: string, graph: org.mwg.Graph): org.mwg.task.Task;
                     private static condFromScript(script);
                     private static executeScript(script, context);
                     static fillDefault(registry: java.util.Map<string, org.mwg.task.TaskActionFactory>): void;
@@ -2030,7 +2030,7 @@ declare module org {
                 mapReduce(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                 mapReducePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                 isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                parse(flat: string): org.mwg.task.Task;
+                parse(flat: string, graph: org.mwg.Graph): org.mwg.task.Task;
                 addHook(hook: org.mwg.task.TaskHook): org.mwg.task.Task;
                 execute(graph: org.mwg.Graph, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                 executeSync(graph: org.mwg.Graph): org.mwg.task.TaskResult<any>;

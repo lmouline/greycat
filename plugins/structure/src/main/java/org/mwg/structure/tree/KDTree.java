@@ -588,7 +588,7 @@ public class KDTree extends BaseNode implements NTree {
 
     @Override
     public void setDistanceThreshold(double distanceThreshold) {
-        this.set(DISTANCE_THRESHOLD,Type.DOUBLE,distanceThreshold);
+        this.set(DISTANCE_THRESHOLD, Type.DOUBLE, distanceThreshold);
     }
 
     @Override
@@ -818,7 +818,7 @@ public class KDTree extends BaseNode implements NTree {
             for (int i = 0; i < split.length; i++) {
                 Task t = newTask().then(travelInWorld("" + world()));
                 t.then(org.mwg.core.task.Actions.travelInTime(time() + ""));
-                t.parse(split[i].trim());
+                t.parse(split[i].trim(), graph());
                 tasks[i] = t;
             }
             //END TODO IN CACHE
