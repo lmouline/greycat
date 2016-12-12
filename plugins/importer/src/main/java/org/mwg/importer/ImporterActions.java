@@ -12,10 +12,11 @@ public class ImporterActions {
 
     public static final String READLINES = "readLines";
 
+    /*
     public static final String READJSON = "readJson";
 
     public static final String JSONMATCH = "jsonMatch";
-
+*/
     public static Action split(String path) {
         return new ActionSplit(path);
     }
@@ -28,17 +29,9 @@ public class ImporterActions {
         return new ActionReadFiles(pathOrVar);
     }
 
+    /*
     public static Action readJson(String pathOrVar) {
         return action(READJSON, pathOrVar);
     }
-
-    public static Action jsonMatch(String filter, Task then) {
-        return new Action() {
-            @Override
-            public void eval(TaskContext ctx) {
-                new ActionJsonMatch(filter, then).eval(ctx);
-            }
-        };
-    }
-
+*/
 }

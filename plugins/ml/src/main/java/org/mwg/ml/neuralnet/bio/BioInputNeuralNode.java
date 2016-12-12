@@ -33,7 +33,7 @@ class BioInputNeuralNode extends BaseNode {
         job[0] = newTask().then(readVar("target")).forEach(
                 newTask()
                         .then(lookup("{{result}}"))
-                        .then(context -> {
+                        .thenDo(context -> {
                             BioNeuralNode neural = (BioNeuralNode) context.result().get(0);
                             LongLongMap outputs = (LongLongMap) neural.get(BioNeuralNetwork.RELATION_OUTPUTS);
                             outputs.each((key, value1) -> context.addToVariable("target", key));

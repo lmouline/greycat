@@ -1,5 +1,7 @@
 package org.mwg.importer;
 
+import org.mwg.Constants;
+import org.mwg.core.task.TaskHelper;
 import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
@@ -51,9 +53,18 @@ class ActionReadFiles implements Action {
     }
 
     @Override
-    public String toString() {
-        return "readFiles(\'" + _pathOrTemplate + "\')";
+    public void serialize(StringBuilder builder) {
+        builder.append("readFiles");
+        builder.append(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_pathOrTemplate, builder);
+        builder.append(Constants.TASK_PARAM_CLOSE);
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
+    }
 
 }

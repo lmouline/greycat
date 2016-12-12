@@ -1,5 +1,7 @@
 package org.mwg.importer;
 
+import org.mwg.Constants;
+import org.mwg.core.task.TaskHelper;
 import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
@@ -34,8 +36,18 @@ class ActionSplit implements Action {
     }
 
     @Override
+    public void serialize(StringBuilder builder) {
+        builder.append("split");
+        builder.append(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_splitPattern, builder);
+        builder.append(Constants.TASK_PARAM_CLOSE);
+    }
+
+    @Override
     public String toString() {
-        return "split(\'" + _splitPattern + "\')";
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
     }
 
 }

@@ -26,6 +26,7 @@ public class ImporterPlugin extends BasePlugin {
             }
         });
 
+        /*
         declareTaskAction(ImporterActions.READJSON, new TaskActionFactory() {
             @Override
             public Action create(String[] params) {
@@ -35,6 +36,7 @@ public class ImporterPlugin extends BasePlugin {
                 return new ActionReadJson(params[0]);
             }
         });
+        */
 
         /*
         declareTaskAction(ImporterActions.JSONMATCH, new TaskActionFactory() {

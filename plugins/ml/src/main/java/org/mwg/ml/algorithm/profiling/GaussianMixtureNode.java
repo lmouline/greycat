@@ -143,7 +143,7 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
         final GaussianMixtureNode self = this;
 
         Task traverse = newTask();
-        traverse.then(defineAsGlobalVar("parent")).then(Actions.traverse(INTERNAL_SUBGAUSSIAN)).then(new Action() {
+        traverse.then(defineAsGlobalVar("parent")).then(Actions.traverse(INTERNAL_SUBGAUSSIAN)).thenDo(new ActionFunction() {
             @Override
             public void eval(TaskContext ctx) {
                 TaskResult<Node> result = ctx.resultAsNodes();
@@ -503,8 +503,7 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
         for (int i = 0; i < this.getLevel() - level; i++) {
             deepTraverseTask.then(new ActionTraverseOrKeep(INTERNAL_SUBGAUSSIAN));
         }
-
-        deepTraverseTask.then(new Action() {
+        deepTraverseTask.thenDo(new ActionFunction() {
             @Override
             public void eval(TaskContext ctx) {
                 TaskResult<Node> leaves = ctx.resultAsNodes();   // to check

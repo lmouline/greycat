@@ -19,11 +19,13 @@
             <artifactId>core</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!--
         <dependency>
             <groupId>com.eclipsesource.minimal-json</groupId>
             <artifactId>minimal-json</artifactId>
             <version>0.9.4</version>
         </dependency>
+        -->
         <!-- Test -->
         <dependency>
             <groupId>junit</groupId>
