@@ -31,7 +31,7 @@ class ActionRemoveFromGlobalIndex implements Action {
             if (loop instanceof BaseNode) {
                 BaseNode loopBaseNode = (BaseNode) loop;
                 ctx.graph().index(loopBaseNode.world(), Constants.BEGINNING_OF_TIME, templatedIndexName, indexNode -> {
-                    indexNode.removeFromIndex(loopBaseNode,templatedAttributes);
+                    indexNode.removeFromIndex(loopBaseNode, templatedAttributes);
                     counter.count();
                 });
             } else {
@@ -46,14 +46,22 @@ class ActionRemoveFromGlobalIndex implements Action {
         });
     }
 
-    /*
+    @Override
+    public void serialize(StringBuilder builder) {
+        builder.append(ActionNames.REMOVE_FROM_GLOBAL_INDEX);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_name, builder);
+        builder.append(Constants.QUERY_SEP);
+        TaskHelper.serializeStringParams(_attributes, builder);
+        builder.append(Constants.TASK_PARAM_CLOSE);
+    }
+
     @Override
     public String toString() {
-        if (_isIndexation) {
-            return "indexNode('" + _indexName + "','" + _flatKeyAttributes + "')";
-        } else {
-            return "unindexNode('" + _indexName + "','" + _flatKeyAttributes + "')";
-        }
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
     }
-    */
+
+
 }

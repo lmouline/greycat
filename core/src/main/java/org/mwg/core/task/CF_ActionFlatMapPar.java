@@ -69,4 +69,10 @@ class CF_ActionFlatMapPar implements Action {
         return "flatMapPar()";
     }
 
+    @Override
+    public void serialize(StringBuilder builder) {
+        throw new RuntimeException("Not managed yet!");
+    }
+
 }
+

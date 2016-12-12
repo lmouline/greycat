@@ -1,5 +1,6 @@
 package org.mwg.core.task;
 
+import org.mwg.Constants;
 import org.mwg.Node;
 import org.mwg.base.BaseNode;
 import org.mwg.plugin.NodeState;
@@ -9,6 +10,7 @@ import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
 class ActionAttributes implements Action {
+
     private final byte _filter;
 
     ActionAttributes(byte filterType) {
@@ -44,11 +46,24 @@ class ActionAttributes implements Action {
     }
 
     @Override
-    public String toString() {
-        if(_filter == -1){
-           return "attributes()";
+    public void serialize(StringBuilder builder) {
+        if (_filter == -1) {
+            builder.append(ActionNames.ATTRIBUTES);
+            builder.append(Constants.TASK_PARAM_OPEN);
+            builder.append(Constants.TASK_PARAM_CLOSE);
         } else {
-            return "attributesWithTypes()";
+            builder.append(ActionNames.ATTRIBUTES_WITH_TYPE);
+            builder.append(Constants.TASK_PARAM_OPEN);
+            TaskHelper.serializeType(_filter, builder);
+            builder.append(Constants.TASK_PARAM_CLOSE);
         }
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
+    }
+
 }

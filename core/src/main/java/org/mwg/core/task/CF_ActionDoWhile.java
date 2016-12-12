@@ -45,4 +45,9 @@ class CF_ActionDoWhile implements Action {
         return "doWhile()";
     }
 
+    @Override
+    public void serialize(StringBuilder builder) {
+        throw new RuntimeException("Not managed yet!");
+    }
+
 }

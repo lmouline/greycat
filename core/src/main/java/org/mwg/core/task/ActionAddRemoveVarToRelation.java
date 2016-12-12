@@ -1,11 +1,9 @@
 package org.mwg.core.task;
 
+import org.mwg.Constants;
 import org.mwg.Node;
 import org.mwg.base.BaseNode;
-import org.mwg.task.Action;
-import org.mwg.task.TaskContext;
-import org.mwg.task.TaskResult;
-import org.mwg.task.TaskResultIterator;
+import org.mwg.task.*;
 
 class ActionAddRemoveVarToRelation implements Action {
 
@@ -53,21 +51,27 @@ class ActionAddRemoveVarToRelation implements Action {
         ctx.continueTask();
     }
 
+    @Override
+    public void serialize(StringBuilder builder) {
+        if (_isAdd) {
+            builder.append(ActionNames.ADD_VAR_TO_RELATION);
+        } else {
+            builder.append(ActionNames.REMOVE_VAR_TO_RELATION);
+        }
+        builder.append(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_name, builder);
+        builder.append(Constants.QUERY_SEP);
+        TaskHelper.serializeString(_varFrom, builder);
+        builder.append(Constants.QUERY_SEP);
+        TaskHelper.serializeStringParams(_attributes, builder);
+        builder.append(Constants.TASK_PARAM_CLOSE);
+    }
 
     @Override
     public String toString() {
-        StringBuilder attString = new StringBuilder();
-        for (int i = 0; i < _attributes.length; i++) {
-            attString.append(_attributes[i]);
-            if (i < _attributes.length - 1) {
-                attString.append(", ");
-            }
-        }
-        if (_isAdd) {
-            return "add(" + _name + "," + _varFrom + attString.toString() + ")";
-        } else {
-            return "remove(" + _name + "," + _varFrom + attString.toString() + ")";
-        }
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
     }
 
 }

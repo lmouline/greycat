@@ -1,6 +1,7 @@
 package org.mwg.core.task;
 
 import org.mwg.Callback;
+import org.mwg.Constants;
 import org.mwg.DeferCounter;
 import org.mwg.Node;
 import org.mwg.base.BaseNode;
@@ -58,8 +59,18 @@ class ActionTravelInTime implements Action {
     }
 
     @Override
+    public void serialize(StringBuilder builder) {
+        builder.append(ActionNames.TRAVEL_IN_TIME);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        builder.append(_time);
+        builder.append(Constants.TASK_PARAM_CLOSE);
+    }
+
+    @Override
     public String toString() {
-        return "travelInTime(\'" + _time + "\')";
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
     }
 
 }

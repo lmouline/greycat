@@ -65,4 +65,9 @@ class CF_ActionForEachPar implements Action {
         return "foreachPar()";
     }
 
+    @Override
+    public void serialize(StringBuilder builder) {
+        throw new RuntimeException("Not managed yet!");
+    }
+
 }

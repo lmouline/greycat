@@ -1,5 +1,6 @@
 package org.mwg.core.task;
 
+import org.mwg.Constants;
 import org.mwg.Node;
 import org.mwg.base.BaseNode;
 import org.mwg.core.task.math.CoreMathExpressionEngine;
@@ -45,8 +46,18 @@ class ActionExecuteExpression implements Action {
     }
 
     @Override
+    public void serialize(StringBuilder builder) {
+        builder.append(ActionNames.EXECUTE_EXPRESSION);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_expression, builder);
+        builder.append(Constants.TASK_PARAM_CLOSE);
+    }
+
+    @Override
     public String toString() {
-        return "executeExpression(\'" + _expression + "\')";
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
     }
 
 }

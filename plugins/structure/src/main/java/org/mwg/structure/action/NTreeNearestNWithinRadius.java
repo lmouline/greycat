@@ -1,16 +1,15 @@
 package org.mwg.structure.action;
 
 import org.mwg.Callback;
+import org.mwg.Constants;
 import org.mwg.DeferCounter;
 import org.mwg.Node;
+import org.mwg.core.task.TaskHelper;
 import org.mwg.plugin.Job;
 import org.mwg.structure.NTree;
 import org.mwg.structure.tree.KDTree;
 import org.mwg.structure.tree.NDTree;
-import org.mwg.task.Action;
-import org.mwg.task.TaskContext;
-import org.mwg.task.TaskResult;
-import org.mwg.task.TaskResultIterator;
+import org.mwg.task.*;
 
 public class NTreeNearestNWithinRadius implements Action {
 
@@ -61,6 +60,11 @@ public class NTreeNearestNWithinRadius implements Action {
         } else {
             ctx.continueWith(nextResult);
         }
+    }
+
+    @Override
+    public void serialize(StringBuilder builder) {
+        throw new RuntimeException("Not supported yet!");
     }
 
     @Override

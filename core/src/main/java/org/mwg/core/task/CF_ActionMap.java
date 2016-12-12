@@ -52,6 +52,7 @@ class CF_ActionMap implements Action {
         }
     }
 
+    /*
     public String serialize() {
         //todo dirty version, don t manage DAG
         StringBuilder res = new StringBuilder();
@@ -64,11 +65,16 @@ class CF_ActionMap implements Action {
         }
         res.append(")");
         return res.toString();
-    }
+    }*/
 
     @Override
     public String toString() {
         return "mapReduce()";
+    }
+
+    @Override
+    public void serialize(StringBuilder builder) {
+        throw new RuntimeException("Not managed yet!");
     }
 
 }

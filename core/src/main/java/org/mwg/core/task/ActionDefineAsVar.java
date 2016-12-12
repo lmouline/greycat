@@ -1,5 +1,6 @@
 package org.mwg.core.task;
 
+import org.mwg.Constants;
 import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 
@@ -27,12 +28,22 @@ class ActionDefineAsVar implements Action {
     }
 
     @Override
-    public String toString() {
-        if(_global){
-            return "defineAsGlobalVar(\'" + _name + "\')";
+    public void serialize(StringBuilder builder) {
+        if (_global) {
+            builder.append(ActionNames.DEFINE_AS_GLOBAL_VAR);
         } else {
-            return "defineAsVar(\'" + _name + "\')";
+            builder.append(ActionNames.DEFINE_AS_VAR);
         }
+        builder.append(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_name, builder);
+        builder.append(Constants.TASK_PARAM_CLOSE);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
     }
 
 }

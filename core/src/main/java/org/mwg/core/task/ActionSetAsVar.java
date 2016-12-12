@@ -1,5 +1,6 @@
 package org.mwg.core.task;
 
+import org.mwg.Constants;
 import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
@@ -27,8 +28,18 @@ class ActionSetAsVar implements Action {
     }
 
     @Override
+    public void serialize(StringBuilder builder) {
+        builder.append(ActionNames.SET_AS_VAR);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        builder.append(_name);
+        builder.append(Constants.TASK_PARAM_CLOSE);
+    }
+
+    @Override
     public String toString() {
-        return "setAsVar(\'" + _name + "\')";
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
     }
 
 }

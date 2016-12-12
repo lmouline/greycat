@@ -1,6 +1,7 @@
 package org.mwg.core.task;
 
 import org.mwg.Callback;
+import org.mwg.Constants;
 import org.mwg.Node;
 import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
@@ -25,8 +26,18 @@ class ActionLookup implements Action {
     }
 
     @Override
+    public void serialize(StringBuilder builder) {
+        builder.append(ActionNames.LOOKUP);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_id, builder);
+        builder.append(Constants.TASK_PARAM_CLOSE);
+    }
+
+    @Override
     public String toString() {
-        return "lookup(\'" + _id + "\")";
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
     }
 
 }

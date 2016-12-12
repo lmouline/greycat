@@ -42,4 +42,9 @@ class CF_ActionIfThen implements Action {
         return "ifThen()";
     }
 
+    @Override
+    public void serialize(StringBuilder builder) {
+        throw new RuntimeException("Not managed yet!");
+    }
+
 }

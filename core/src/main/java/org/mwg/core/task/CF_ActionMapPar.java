@@ -47,4 +47,9 @@ class CF_ActionMapPar implements Action {
         return "subTasksPar()";
     }
 
+    @Override
+    public void serialize(StringBuilder builder) {
+        throw new RuntimeException("Not managed yet!");
+    }
+
 }

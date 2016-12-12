@@ -26,11 +26,6 @@ class ActionWith implements Action {
     }
 
     @Override
-    public String toString() {
-        return "with(\'" + _name + "\'" + Constants.QUERY_SEP + "\'" + _patternTemplate + "\')";
-    }
-
-    @Override
     public void eval(final TaskContext ctx) {
         final Pattern pattern = Pattern.compile(ctx.template(_patternTemplate));
         final TaskResult previous = ctx.result();
@@ -50,4 +45,22 @@ class ActionWith implements Action {
         }
         ctx.continueWith(next);
     }
+
+    @Override
+    public void serialize(StringBuilder builder) {
+        builder.append(ActionNames.WITH);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_name,builder);
+        builder.append(Constants.QUERY_SEP);
+        TaskHelper.serializeString(_patternTemplate,builder);
+        builder.append(Constants.TASK_PARAM_CLOSE);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
+    }
+
 }

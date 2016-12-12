@@ -21,9 +21,9 @@ class ActionSelectObject implements Action {
         final TaskResult next = ctx.wrap(null);
         final TaskResultIterator iterator = previous.iterator();
         Object nextElem = iterator.next();
-        while(nextElem != null) {
-            if(_filter.select(nextElem, ctx)) {
-                if(nextElem instanceof BaseNode) {
+        while (nextElem != null) {
+            if (_filter.select(nextElem, ctx)) {
+                if (nextElem instanceof BaseNode) {
                     Node casted = (Node) nextElem;
                     next.add(casted.graph().cloneNode(casted));
                 } else {
@@ -33,6 +33,11 @@ class ActionSelectObject implements Action {
             nextElem = iterator.next();
         }
         ctx.continueWith(next);
+    }
+
+    @Override
+    public void serialize(StringBuilder builder) {
+        throw new RuntimeException("SelectObject remote usage not managed yet, please use SelectScript instead !");
     }
 
     @Override

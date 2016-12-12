@@ -66,7 +66,7 @@ public class Actions {
      * @return the action to chain
      */
     public static Action declareGlobalVar(String name) {
-        return new ActionDeclareGlobalVar(name);
+        return new ActionDeclareVar(true, name);
     }
 
     /**
@@ -76,7 +76,7 @@ public class Actions {
      * @return the action to chain
      */
     public static Action declareVar(String name) {
-        return new ActionDeclareVar(name);
+        return new ActionDeclareVar(false, name);
     }
 
     /**
@@ -197,7 +197,7 @@ public class Actions {
      * @return the action to chain
      */
     public static Action traverse(String name, String... params) {
-        return new ActionTraverseOrAttribute(name, params);
+        return new ActionTraverseOrAttribute(false, false, name, params);
     }
 
     /**
@@ -207,7 +207,7 @@ public class Actions {
      * @return the action to chain
      */
     public static Action attribute(String name, String... params) {
-        return new ActionTraverseOrAttribute(name, params);
+        return new ActionTraverseOrAttribute(true, false, name, params);
     }
 
     //Index manipulation zone

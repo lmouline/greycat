@@ -34,7 +34,12 @@ class CF_ActionIsolate implements Action {
 
     @Override
     public String toString() {
-        return "subTask()";
+        return "isolate()";
+    }
+
+    @Override
+    public void serialize(StringBuilder builder) {
+        throw new RuntimeException("Not managed yet!");
     }
 
 }

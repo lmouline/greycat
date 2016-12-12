@@ -1,9 +1,11 @@
 package org.mwg.structure.action;
 
 import org.mwg.Callback;
+import org.mwg.Constants;
 import org.mwg.DeferCounter;
 import org.mwg.Node;
 import org.mwg.base.BaseNode;
+import org.mwg.core.task.TaskHelper;
 import org.mwg.plugin.Job;
 import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
@@ -62,8 +64,18 @@ public class TraverseById implements Action {
     }
 
     @Override
+    public void serialize(StringBuilder builder) {
+        builder.append(NAME);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_name, builder);
+        builder.append(Constants.TASK_PARAM_CLOSE);
+    }
+
+    @Override
     public String toString() {
-        return "traverseById(\'" + _name + "\')";
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
     }
 
 }

@@ -1,12 +1,12 @@
 package org.mwg.core.task;
 
+import org.mwg.Constants;
 import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 
 class ActionPrint implements Action {
 
     private final String _name;
-
     private final boolean _withLineBreak;
 
     ActionPrint(final String p_name, boolean withLineBreak) {
@@ -25,8 +25,22 @@ class ActionPrint implements Action {
     }
 
     @Override
+    public void serialize(StringBuilder builder) {
+        if (_withLineBreak) {
+            builder.append(ActionNames.PRINT);
+        } else {
+            builder.append(ActionNames.PRINTLN);
+        }
+        builder.append(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_name, builder);
+        builder.append(Constants.TASK_PARAM_CLOSE);
+    }
+
+    @Override
     public String toString() {
-        return "print(\'" + _name + "\')";
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
     }
 
 }

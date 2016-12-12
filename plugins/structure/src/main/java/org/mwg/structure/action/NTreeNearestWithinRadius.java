@@ -62,6 +62,11 @@ public class NTreeNearestWithinRadius implements Action {
     }
 
     @Override
+    public void serialize(StringBuilder builder) {
+        throw new RuntimeException("Not implemented yet!");
+    }
+
+    @Override
     public String toString() {
         return "nTreeNearestWithinRadius(\'" + "\')";
     }

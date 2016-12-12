@@ -11,9 +11,6 @@ import org.mwg.task.TaskResult;
 import static org.mwg.core.task.Actions.*;
 import static org.mwg.core.task.Actions.readVar;
 
-/**
- * Created by assaad on 07/12/2016.
- */
 public class SetContinuous implements Action {
 
     public final static String NAME = "setContinuous";

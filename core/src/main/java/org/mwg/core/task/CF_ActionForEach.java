@@ -61,5 +61,9 @@ class CF_ActionForEach implements Action {
         return "foreach()";
     }
 
+    @Override
+    public void serialize(StringBuilder builder) {
+        throw new RuntimeException("Not managed yet!");
+    }
 
 }

@@ -295,7 +295,7 @@ public interface Task {
 
     Task timepoints(String from, String to);
 
-    Task attributesWithTypes(byte filterType);
+    Task attributesWithType(byte filterType);
 
     Task addVarToRelation(String relName, String varName, String... attributes);
 

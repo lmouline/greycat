@@ -1,5 +1,6 @@
 package org.mwg.core.task;
 
+import org.mwg.Constants;
 import org.mwg.Node;
 import org.mwg.base.BaseNode;
 import org.mwg.task.Action;
@@ -31,9 +32,18 @@ class ActionRemove implements Action {
     }
 
     @Override
-    public String toString() {
-        return "remove(\'" + _name + "\')";
+    public void serialize(StringBuilder builder) {
+        builder.append(ActionNames.REMOVE);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_name, builder);
+        builder.append(Constants.TASK_PARAM_CLOSE);
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
+    }
 
 }

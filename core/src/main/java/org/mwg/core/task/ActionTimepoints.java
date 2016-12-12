@@ -1,6 +1,7 @@
 package org.mwg.core.task;
 
 import org.mwg.Callback;
+import org.mwg.Constants;
 import org.mwg.DeferCounter;
 import org.mwg.Node;
 import org.mwg.base.BaseNode;
@@ -24,26 +25,21 @@ class ActionTimepoints implements Action {
         final TaskResult previous  = ctx.result();
         String tFrom = ctx.template(_from);
         String tTo = ctx.template(_to);
-
         long parsedFrom;
         long parsedTo;
-
         try {
             parsedFrom = Long.parseLong(tFrom);
         } catch (Throwable t) {
             Double d = Double.parseDouble(tFrom);
             parsedFrom = d.longValue();
         }
-
         try {
             parsedTo = Long.parseLong(tTo);
         } catch (Throwable t) {
             Double d = Double.parseDouble(tTo);
             parsedTo = d.longValue();
         }
-
         final TaskResult next = ctx.newResult();
-
         if(previous != null) {
             DeferCounter defer = new CoreDeferCounter(previous.size());
             for(int i=0;i<previous.size();i++) {
@@ -61,7 +57,6 @@ class ActionTimepoints implements Action {
                     });
                 }
             }
-
             defer.then(new Job() {
                 @Override
                 public void run() {
@@ -72,10 +67,20 @@ class ActionTimepoints implements Action {
         } else {
             ctx.continueWith(next);
         }
-
-
-
-
-
     }
+
+    @Override
+    public void serialize(StringBuilder builder) {
+        builder.append(ActionNames.TIMEPOINTS);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        builder.append(Constants.TASK_PARAM_CLOSE);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
+    }
+
 }

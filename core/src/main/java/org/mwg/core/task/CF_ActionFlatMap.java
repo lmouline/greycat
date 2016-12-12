@@ -78,5 +78,9 @@ class CF_ActionFlatMap implements Action {
         return "flatMap()";
     }
 
+    @Override
+    public void serialize(StringBuilder builder) {
+        throw new RuntimeException("Not managed yet!");
+    }
 
 }

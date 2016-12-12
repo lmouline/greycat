@@ -27,4 +27,9 @@ class CF_ActionThenDo implements Action {
         return "then()";
     }
 
+    @Override
+    public void serialize(StringBuilder builder) {
+        throw new RuntimeException("Not managed yet!");
+    }
+
 }

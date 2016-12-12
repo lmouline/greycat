@@ -21,13 +21,10 @@ class ActionAddToGlobalIndex implements Action {
 
     @Override
     public void eval(final TaskContext ctx) {
-
-
         final TaskResult previousResult = ctx.result();
         final String templatedIndexName = ctx.template(_name);
         final String[] templatedAttributes = ctx.templates(_attributes);
         final DeferCounter counter = new CoreDeferCounter(previousResult.size());
-
         for (int i = 0; i < previousResult.size(); i++) {
             final Object loop = previousResult.get(i);
             if (loop instanceof BaseNode) {
@@ -48,14 +45,21 @@ class ActionAddToGlobalIndex implements Action {
         });
     }
 
-    /*
+    @Override
+    public void serialize(StringBuilder builder) {
+        builder.append(ActionNames.ADD_TO_GLOBAL_INDEX);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_name, builder);
+        builder.append(Constants.QUERY_SEP);
+        TaskHelper.serializeStringParams(_attributes, builder);
+        builder.append(Constants.TASK_PARAM_CLOSE);
+    }
+
     @Override
     public String toString() {
-        if (_isIndexation) {
-            return "indexNode('" + _indexName + "','" + _flatKeyAttributes + "')";
-        } else {
-            return "unindexNode('" + _indexName + "','" + _flatKeyAttributes + "')";
-        }
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
     }
-    */
+
 }

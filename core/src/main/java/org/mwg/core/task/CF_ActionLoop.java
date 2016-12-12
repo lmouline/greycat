@@ -70,4 +70,9 @@ class CF_ActionLoop implements Action {
         return "loop(\'" + _lower + "\',\'" + _upper + "\')";
     }
 
+    @Override
+    public void serialize(StringBuilder builder) {
+        throw new RuntimeException("Not managed yet!");
+    }
+
 }

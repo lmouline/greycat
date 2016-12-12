@@ -1,5 +1,6 @@
 package org.mwg.core.task;
 
+import org.mwg.Constants;
 import org.mwg.Node;
 import org.mwg.base.BaseNode;
 import org.mwg.task.Action;
@@ -66,14 +67,25 @@ class ActionSelect implements Action {
         }
     }
 
-
+    @Override
+    public void serialize(StringBuilder builder) {
+        if (_script == null) {
+            throw new RuntimeException("Select remote usage not managed yet, please use SelectScript instead !");
+        }
+        builder.append(ActionNames.SELECT_SCRIPT);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        builder.append(_script);
+        builder.append(Constants.TASK_PARAM_CLOSE);
+    }
 
     @Override
     public String toString() {
-        if(_filter != null) {
+        if (_filter != null) {
             return "select()";
         } else {
-            return "selectScript(\"" + _script + "\");";
+            final StringBuilder res = new StringBuilder();
+            serialize(res);
+            return res.toString();
         }
     }
 }

@@ -38,39 +38,76 @@ public class Type {
         switch (p_type) {
             /* Primitives */
             case Type.BOOL:
-                return "boolean";
+                return "BOOL";
             case Type.STRING:
-                return "string";
+                return "STRING";
             case Type.LONG:
-                return "long";
+                return "LONG";
             case Type.INT:
-                return "int";
+                return "INT";
             case Type.DOUBLE:
-                return "double";
+                return "DOUBLE";
             /* Arrays */
             case Type.DOUBLE_ARRAY:
-                return "double[]";
+                return "DOUBLE_ARRAY";
             case Type.LONG_ARRAY:
-                return "long[]";
+                return "LONG_ARRAY";
             case Type.INT_ARRAY:
-                return "int[]";
+                return "INT_ARRAY";
             /* Maps */
             case Type.LONG_TO_LONG_MAP:
-                return "map(long->long)";
+                return "LONG_TO_LONG_MAP";
             case Type.LONG_TO_LONG_ARRAY_MAP:
-                return "map(long->long[])";
+                return "LONG_TO_LONG_ARRAY_MAP";
             case Type.STRING_TO_LONG_MAP:
-                return "map(string->long)";
+                return "STRING_TO_LONG_MAP";
             case Type.RELATION:
-                return "relation";
+                return "RELATION";
             case Type.RELATION_INDEXED:
-                return "indexed_relation";
+                return "RELATION_INDEXED";
             case Type.MATRIX:
-                return "matrix";
+                return "MATRIX";
             case Type.EXTERNAL:
-                return "external";
+                return "EXTERNAL";
             default:
                 return "unknown";
+        }
+    }
+
+    public static byte typeFromName(String name) {
+        switch (name) {
+            case "BOOL":
+                return Type.BOOL;
+            case "STRING":
+                return Type.STRING;
+            case "LONG":
+                return Type.LONG;
+            case "INT":
+                return Type.INT;
+            case "DOUBLE":
+                return Type.DOUBLE;
+            case "DOUBLE_ARRAY":
+                return Type.DOUBLE_ARRAY;
+            case "LONG_ARRAY":
+                return Type.LONG_ARRAY;
+            case "INT_ARRAY":
+                return Type.INT_ARRAY;
+            case "LONG_TO_LONG_MAP":
+                return Type.LONG_TO_LONG_MAP;
+            case "LONG_TO_LONG_ARRAY_MAP":
+                return Type.LONG_TO_LONG_ARRAY_MAP;
+            case "STRING_TO_LONG_MAP":
+                return Type.STRING_TO_LONG_MAP;
+            case "RELATION":
+                return Type.RELATION;
+            case "RELATION_INDEXED":
+                return Type.RELATION_INDEXED;
+            case "MATRIX":
+                return Type.MATRIX;
+            case "EXTERNAL":
+                return Type.EXTERNAL;
+            default:
+                return -1;
         }
     }
 

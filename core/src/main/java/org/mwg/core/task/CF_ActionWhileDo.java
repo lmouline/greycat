@@ -45,6 +45,11 @@ class CF_ActionWhileDo implements Action {
     }
 
     @Override
+    public void serialize(StringBuilder builder) {
+        throw new RuntimeException("Not managed yet!");
+    }
+
+    @Override
     public String toString() {
         return "whileDo()";
     }

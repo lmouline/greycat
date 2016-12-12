@@ -10,7 +10,7 @@ import org.mwg.task.TaskResult;
 import java.util.regex.Pattern;
 
 class ActionWithout implements Action {
-    
+
     private final String _patternTemplate;
     private final String _name;
 
@@ -23,11 +23,6 @@ class ActionWithout implements Action {
         }
         this._patternTemplate = stringPattern;
         this._name = name;
-    }
-
-    @Override
-    public String toString() {
-        return "without(\'" + _name + "\'" + Constants.QUERY_SEP + "\'" + _patternTemplate + "\')";
     }
 
     @Override
@@ -49,6 +44,23 @@ class ActionWithout implements Action {
             }
         }
         ctx.continueWith(next);
+    }
+
+    @Override
+    public void serialize(StringBuilder builder) {
+        builder.append(ActionNames.WITHOUT);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_name, builder);
+        builder.append(Constants.QUERY_SEP);
+        TaskHelper.serializeString(_patternTemplate, builder);
+        builder.append(Constants.TASK_PARAM_CLOSE);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
     }
 
 }

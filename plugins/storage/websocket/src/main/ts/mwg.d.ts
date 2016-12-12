@@ -464,6 +464,7 @@ declare module org {
             static MATRIX: number;
             static EXTERNAL: number;
             static typeName(p_type: number): string;
+            static typeFromName(name: string): number;
         }
         module base {
             abstract class AbstractExternalAttribute {
@@ -1183,6 +1184,7 @@ declare module org {
                     private _isAdd;
                     constructor(isAdd: boolean, name: string, varFrom: string, ...attributes: string[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionAddToGlobalIndex implements org.mwg.task.Action {
@@ -1190,39 +1192,41 @@ declare module org {
                     private _attributes;
                     constructor(name: string, ...attributes: string[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
+                    toString(): string;
                 }
                 class ActionAddToVar implements org.mwg.task.Action {
                     private _name;
                     constructor(p_name: string);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionAttributes implements org.mwg.task.Action {
                     private _filter;
                     constructor(filterType: number);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionClearResult implements org.mwg.task.Action {
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionCreateNode implements org.mwg.task.Action {
                     private _typeNode;
                     constructor(typeNode: string);
                     eval(ctx: org.mwg.task.TaskContext): void;
-                    toString(): string;
-                }
-                class ActionDeclareGlobalVar implements org.mwg.task.Action {
-                    private _name;
-                    constructor(p_name: string);
-                    eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionDeclareVar implements org.mwg.task.Action {
                     private _name;
-                    constructor(p_name: string);
+                    private _isGlobal;
+                    constructor(isGlobal: boolean, p_name: string);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionDefineAsVar implements org.mwg.task.Action {
@@ -1230,6 +1234,7 @@ declare module org {
                     private _global;
                     constructor(p_name: string, p_global: boolean);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionExecuteExpression implements org.mwg.task.Action {
@@ -1237,28 +1242,33 @@ declare module org {
                     private _expression;
                     constructor(mathExpression: string);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionIndexNames implements org.mwg.task.Action {
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionInject implements org.mwg.task.Action {
                     private _value;
                     constructor(value: any);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionLookup implements org.mwg.task.Action {
                     private _id;
                     constructor(p_id: string);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionLookupAll implements org.mwg.task.Action {
                     private _ids;
                     constructor(p_ids: string);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionNamed implements org.mwg.task.Action {
@@ -1266,33 +1276,77 @@ declare module org {
                     private _params;
                     constructor(name: string, ...params: string[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
+                }
+                class ActionNames {
+                    static ADD_VAR_TO_RELATION: string;
+                    static REMOVE_VAR_TO_RELATION: string;
+                    static ADD_TO_GLOBAL_INDEX: string;
+                    static ADD_TO_VAR: string;
+                    static ATTRIBUTES: string;
+                    static ATTRIBUTES_WITH_TYPE: string;
+                    static CLEAR_RESULT: string;
+                    static CREATE_NODE: string;
+                    static CREATE_TYPED_NODE: string;
+                    static DECLARE_GLOBAL_VAR: string;
+                    static DECLARE_VAR: string;
+                    static DEFINE_AS_GLOBAL_VAR: string;
+                    static DEFINE_AS_VAR: string;
+                    static EXECUTE_EXPRESSION: string;
+                    static INDEX_NAMES: string;
+                    static LOOKUP: string;
+                    static LOOKUP_ALL: string;
+                    static PRINT: string;
+                    static PRINTLN: string;
+                    static READ_GLOBAL_INDEX: string;
+                    static READ_VAR: string;
+                    static REMOVE: string;
+                    static REMOVE_FROM_GLOBAL_INDEX: string;
+                    static SAVE: string;
+                    static SCRIPT: string;
+                    static SELECT_SCRIPT: string;
+                    static SET_AS_VAR: string;
+                    static FORCE_ATTRIBUTE: string;
+                    static SET_ATTRIBUTE: string;
+                    static TIMEPOINTS: string;
+                    static TRAVEL_IN_TIME: string;
+                    static TRAVEL_IN_WORLD: string;
+                    static WITH: string;
+                    static WITHOUT: string;
+                    static TRAVERSE: string;
+                    static ATTRIBUTE: string;
                 }
                 class ActionPrint implements org.mwg.task.Action {
                     private _name;
                     private _withLineBreak;
                     constructor(p_name: string, withLineBreak: boolean);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionReadGlobalIndex implements org.mwg.task.Action {
-                    private _indexName;
-                    private _query;
+                    private _name;
+                    private _params;
                     constructor(p_indexName: string, ...p_query: string[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionReadVar implements org.mwg.task.Action {
+                    private _origin;
                     private _name;
                     private _index;
                     constructor(p_name: string);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionRemove implements org.mwg.task.Action {
                     private _name;
                     constructor(name: string);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionRemoveFromGlobalIndex implements org.mwg.task.Action {
@@ -1300,15 +1354,19 @@ declare module org {
                     private _attributes;
                     constructor(name: string, ...attributes: string[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
+                    toString(): string;
                 }
                 class ActionSave implements org.mwg.task.Action {
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionScript implements org.mwg.task.Action {
                     private _script;
                     constructor(script: string);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionSelect implements org.mwg.task.Action {
@@ -1317,68 +1375,81 @@ declare module org {
                     constructor(script: string, filter: org.mwg.task.TaskFunctionSelect);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     private callScript(node, context);
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionSelectObject implements org.mwg.task.Action {
                     private _filter;
                     constructor(filterFunction: org.mwg.task.TaskFunctionSelectObject);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionSetAsVar implements org.mwg.task.Action {
                     private _name;
                     constructor(p_name: string);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionSetAttribute implements org.mwg.task.Action {
-                    private _relationName;
+                    private _name;
                     private _variableNameToSet;
                     private _propertyType;
                     private _force;
-                    constructor(relationName: string, propertyType: number, variableNameToSet: string, force: boolean);
+                    constructor(name: string, propertyType: number, variableNameToSet: string, force: boolean);
                     eval(ctx: org.mwg.task.TaskContext): void;
-                    toString(): string;
                     private parseBoolean(booleanValue);
+                    serialize(builder: java.lang.StringBuilder): void;
+                    toString(): string;
                 }
                 class ActionTimepoints implements org.mwg.task.Action {
                     private _from;
                     private _to;
                     constructor(from: string, to: string);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
+                    toString(): string;
                 }
                 class ActionTravelInTime implements org.mwg.task.Action {
                     private _time;
                     constructor(time: string);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionTravelInWorld implements org.mwg.task.Action {
                     private _world;
                     constructor(world: string);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionTraverseOrAttribute implements org.mwg.task.Action {
                     private _name;
                     private _params;
-                    constructor(p_name: string, ...p_params: string[]);
+                    private _isAttribute;
+                    private _isUnknown;
+                    constructor(isAttribute: boolean, isUnknown: boolean, p_name: string, ...p_params: string[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class ActionWith implements org.mwg.task.Action {
                     private _patternTemplate;
                     private _name;
                     constructor(name: string, stringPattern: string);
-                    toString(): string;
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
+                    toString(): string;
                 }
                 class ActionWithout implements org.mwg.task.Action {
                     private _patternTemplate;
                     private _name;
                     constructor(name: string, stringPattern: string);
-                    toString(): string;
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
+                    toString(): string;
                 }
                 class Actions {
                     static travelInWorld(world: string): org.mwg.task.Action;
@@ -1451,30 +1522,35 @@ declare module org {
                     constructor(p_then: org.mwg.task.Task, p_cond: org.mwg.task.ConditionalFunction);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     toString(): string;
+                    serialize(builder: java.lang.StringBuilder): void;
                 }
                 class CF_ActionFlatMap implements org.mwg.task.Action {
                     private _subTask;
                     constructor(p_subTask: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     toString(): string;
+                    serialize(builder: java.lang.StringBuilder): void;
                 }
                 class CF_ActionFlatMapPar implements org.mwg.task.Action {
                     private _subTask;
                     constructor(p_subTask: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     toString(): string;
+                    serialize(builder: java.lang.StringBuilder): void;
                 }
                 class CF_ActionForEach implements org.mwg.task.Action {
                     private _subTask;
                     constructor(p_subTask: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     toString(): string;
+                    serialize(builder: java.lang.StringBuilder): void;
                 }
                 class CF_ActionForEachPar implements org.mwg.task.Action {
                     private _subTask;
                     constructor(p_subTask: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     toString(): string;
+                    serialize(builder: java.lang.StringBuilder): void;
                 }
                 class CF_ActionIfThen implements org.mwg.task.Action {
                     private _condition;
@@ -1482,6 +1558,7 @@ declare module org {
                     constructor(cond: org.mwg.task.ConditionalFunction, action: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     toString(): string;
+                    serialize(builder: java.lang.StringBuilder): void;
                 }
                 class CF_ActionIfThenElse implements org.mwg.task.Action {
                     private _condition;
@@ -1490,12 +1567,14 @@ declare module org {
                     constructor(cond: org.mwg.task.ConditionalFunction, p_thenSub: org.mwg.task.Task, p_elseSub: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     toString(): string;
+                    serialize(builder: java.lang.StringBuilder): void;
                 }
                 class CF_ActionIsolate implements org.mwg.task.Action {
                     private _subTask;
                     constructor(p_subTask: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     toString(): string;
+                    serialize(builder: java.lang.StringBuilder): void;
                 }
                 class CF_ActionLoop implements org.mwg.task.Action {
                     private _subTask;
@@ -1504,6 +1583,7 @@ declare module org {
                     constructor(p_lower: string, p_upper: string, p_subTask: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     toString(): string;
+                    serialize(builder: java.lang.StringBuilder): void;
                 }
                 class CF_ActionLoopPar implements org.mwg.task.Action {
                     private _subTask;
@@ -1512,31 +1592,35 @@ declare module org {
                     constructor(p_lower: string, p_upper: string, p_subTask: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     toString(): string;
+                    serialize(builder: java.lang.StringBuilder): void;
                 }
                 class CF_ActionMap implements org.mwg.task.Action {
                     private _subTasks;
                     constructor(...p_subTasks: org.mwg.task.Task[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
-                    serialize(): string;
                     toString(): string;
+                    serialize(builder: java.lang.StringBuilder): void;
                 }
                 class CF_ActionMapPar implements org.mwg.task.Action {
                     private _subTasks;
                     constructor(...p_subTasks: org.mwg.task.Task[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     toString(): string;
+                    serialize(builder: java.lang.StringBuilder): void;
                 }
                 class CF_ActionThenDo implements org.mwg.task.Action {
                     private _wrapped;
                     constructor(p_wrapped: org.mwg.task.ActionFunction);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     toString(): string;
+                    serialize(builder: java.lang.StringBuilder): void;
                 }
                 class CF_ActionWhileDo implements org.mwg.task.Action {
                     private _cond;
                     private _then;
                     constructor(p_cond: org.mwg.task.ConditionalFunction, p_then: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
                 class CoreTask implements org.mwg.task.Task {
@@ -1591,7 +1675,7 @@ declare module org {
                     remove(name: string): org.mwg.task.Task;
                     attributes(): org.mwg.task.Task;
                     timepoints(from: string, to: string): org.mwg.task.Task;
-                    attributesWithTypes(filterType: number): org.mwg.task.Task;
+                    attributesWithType(filterType: number): org.mwg.task.Task;
                     addVarToRelation(relName: string, varName: string, ...attributes: string[]): org.mwg.task.Task;
                     removeVarFromRelation(relName: string, varFrom: string, ...attributes: string[]): org.mwg.task.Task;
                     traverse(name: string, ...params: string[]): org.mwg.task.Task;
@@ -1694,6 +1778,10 @@ declare module org {
                 class TaskHelper {
                     static flatNodes(toFLat: any, strict: boolean): org.mwg.Node[];
                     static parseInt(s: string): number;
+                    static serializeString(param: string, builder: java.lang.StringBuilder): void;
+                    static serializeType(type: number, builder: java.lang.StringBuilder): void;
+                    static serializeStringParams(params: string[], builder: java.lang.StringBuilder): void;
+                    static serializeNameAndStringParams(name: string, params: string[], builder: java.lang.StringBuilder): void;
                 }
                 module math {
                     class CoreMathExpressionEngine implements org.mwg.core.task.math.MathExpressionEngine {
@@ -2003,6 +2091,7 @@ declare module org {
         module task {
             interface Action {
                 eval(ctx: org.mwg.task.TaskContext): void;
+                serialize(builder: java.lang.StringBuilder): void;
             }
             interface ActionFunction {
                 (ctx: org.mwg.task.TaskContext): void;
@@ -2054,7 +2143,7 @@ declare module org {
                 remove(name: string): org.mwg.task.Task;
                 attributes(): org.mwg.task.Task;
                 timepoints(from: string, to: string): org.mwg.task.Task;
-                attributesWithTypes(filterType: number): org.mwg.task.Task;
+                attributesWithType(filterType: number): org.mwg.task.Task;
                 addVarToRelation(relName: string, varName: string, ...attributes: string[]): org.mwg.task.Task;
                 removeVarFromRelation(relName: string, varFrom: string, ...attributes: string[]): org.mwg.task.Task;
                 traverse(name: string, ...params: string[]): org.mwg.task.Task;

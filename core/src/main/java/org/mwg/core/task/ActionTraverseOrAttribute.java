@@ -13,9 +13,14 @@ class ActionTraverseOrAttribute implements Action {
     private final String _name;
     private final String[] _params;
 
-    ActionTraverseOrAttribute(final String p_name, final String... p_params) {
+    private final boolean _isAttribute;
+    private final boolean _isUnknown;
+
+    ActionTraverseOrAttribute(final boolean isAttribute, boolean isUnknown, final String p_name, final String... p_params) {
         this._name = p_name;
         this._params = p_params;
+        this._isUnknown = isUnknown;
+        this._isAttribute = isAttribute;
     }
 
     @Override
@@ -126,7 +131,33 @@ class ActionTraverseOrAttribute implements Action {
     }
 
     @Override
-    public String toString() {
-        return "traverse(\'" + _name + "\')";
+    public void serialize(StringBuilder builder) {
+        if (_isUnknown) {
+            builder.append(_name);
+        } else {
+            if (_isAttribute) {
+                builder.append(ActionNames.ATTRIBUTE);
+                builder.append(Constants.TASK_PARAM_OPEN);
+                builder.append(_name);
+                builder.append(Constants.TASK_PARAM_CLOSE);
+            } else {
+                builder.append(ActionNames.TRAVERSE);
+                builder.append(Constants.TASK_PARAM_OPEN);
+                builder.append(_name);
+                if (_params != null && _params.length > 0) {
+                    builder.append(Constants.QUERY_SEP);
+                    TaskHelper.serializeStringParams(_params, builder);
+                }
+                builder.append(Constants.TASK_PARAM_CLOSE);
+            }
+        }
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
+    }
+
 }

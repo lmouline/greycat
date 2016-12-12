@@ -158,7 +158,7 @@ public class ActionTraverseTest extends AbstractActionTest {
                 .then(readVar("parent"))
                 .then(traverse("children", "name", "{{child_name}}"))
                 .then(println("{{result}}"))
-                .then(context -> {
+                .thenDo(context -> {
                     Assert.assertEquals(1, context.result().size());
                 })
                 .execute(graph, null);

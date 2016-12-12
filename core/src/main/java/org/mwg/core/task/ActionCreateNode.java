@@ -1,5 +1,6 @@
 package org.mwg.core.task;
 
+import org.mwg.Constants;
 import org.mwg.Node;
 import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
@@ -25,12 +26,24 @@ class ActionCreateNode implements Action {
     }
 
     @Override
-    public String toString() {
-        if (_typeNode != null) {
-            return "createTypedNode(\'" + _typeNode + "\')";
+    public void serialize(StringBuilder builder) {
+        if (_typeNode == null) {
+            builder.append(ActionNames.CREATE_NODE);
+            builder.append(Constants.TASK_PARAM_OPEN);
+            builder.append(Constants.TASK_PARAM_CLOSE);
         } else {
-            return "createNode()";
+            builder.append(ActionNames.CREATE_TYPED_NODE);
+            builder.append(Constants.TASK_PARAM_OPEN);
+            TaskHelper.serializeString(_typeNode, builder);
+            builder.append(Constants.TASK_PARAM_CLOSE);
         }
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
     }
 
 }
