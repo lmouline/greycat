@@ -1679,6 +1679,8 @@ declare module org {
                     executeUsing(preparedContext: org.mwg.task.TaskContext): void;
                     executeFrom(parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, affinity: number, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                     executeFromUsing(parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, affinity: number, contextInitializer: org.mwg.Callback<org.mwg.task.TaskContext>, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
+                    loadFromBuffer(buffer: org.mwg.struct.Buffer, graph: org.mwg.Graph): org.mwg.task.Task;
+                    saveToBuffer(buffer: org.mwg.struct.Buffer): org.mwg.task.Task;
                     parse(flat: string, graph: org.mwg.Graph): org.mwg.task.Task;
                     private sub_parse(reader, graph, contextTasks);
                     private static condFromScript(script);
@@ -2161,6 +2163,8 @@ declare module org {
                 mapReducePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                 isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 parse(flat: string, graph: org.mwg.Graph): org.mwg.task.Task;
+                loadFromBuffer(buffer: org.mwg.struct.Buffer, graph: org.mwg.Graph): org.mwg.task.Task;
+                saveToBuffer(buffer: org.mwg.struct.Buffer): org.mwg.task.Task;
                 addHook(hook: org.mwg.task.TaskHook): org.mwg.task.Task;
                 execute(graph: org.mwg.Graph, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                 executeSync(graph: org.mwg.Graph): org.mwg.task.TaskResult<any>;

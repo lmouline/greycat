@@ -10,11 +10,13 @@ class WSConstants {
     static final byte REQ_UNLOCK = 3;
     static final byte REQ_REMOVE = 4;
     static final byte REQ_UPDATE = 5;
+    static final byte REQ_TASK = 6;
 
-    static final byte RESP_GET = 6;
-    static final byte RESP_PUT = 7;
-    static final byte RESP_REMOVE = 8;
-    static final byte RESP_LOCK = 9;
-    static final byte RESP_UNLOCK = 10;
+    static final byte RESP_GET = 7;
+    static final byte RESP_PUT = 8;
+    static final byte RESP_REMOVE = 9;
+    static final byte RESP_LOCK = 10;
+    static final byte RESP_UNLOCK = 11;
+    static final byte RESP_TASK = 12;
 
 }

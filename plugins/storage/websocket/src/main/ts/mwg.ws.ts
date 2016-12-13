@@ -18,12 +18,14 @@ module org {
                 private REQ_UNLOCK = 3;
                 private REQ_REMOVE = 4;
                 private REQ_UPDATE = 5;
+                private REQ_TASK = 6;
 
-                private RESP_GET = 6;
-                private RESP_PUT = 7;
-                private RESP_REMOVE = 8;
-                private RESP_LOCK = 9;
-                private RESP_UNLOCK = 10;
+                private RESP_GET = 7;
+                private RESP_PUT = 8;
+                private RESP_REMOVE = 9;
+                private RESP_LOCK = 10;
+                private RESP_UNLOCK = 11;
+                private RESP_TASK = 12;
 
                 constructor(p_url:string) {
                     this.url = p_url;
@@ -76,6 +78,17 @@ module org {
                     this.send_rpc_req(this.REQ_UNLOCK, previousLock, callback);
                 }
 
+                tasks(flatTasks:org.mwg.struct.Buffer,callback:org.mwg.Callback<org.mwg.struct.Buffer>,...tasks: org.mwg.task.Task[]): void {
+                    /*var tasksBuffer = this.graph.newBuffer();
+                    for(var i=0;i<tasks.length;i++){
+                        if(i!=0){
+                            tasksBuffer.write(org.mwg.Constants.BUFFER_SEP);
+                        }
+                        tasks[i].saveToBuffer(tasksBuffer);
+                    }*/
+                    this.send_rpc_req(this.REQ_TASK, flatTasks, callback);
+                }
+
                 process_rpc_resp(payload:Int8Array) {
                     var payloadBuf = this.graph.newBuffer();
                     payloadBuf.writeAll(payload);
@@ -91,7 +104,7 @@ module org {
                                 var callbackCode = org.mwg.utility.Base64.decodeToIntWithBounds(callbackCodeView, 0, callbackCodeView.length());
                                 var resolvedCallback = this.callbacks.get(callbackCode);
                                 if (resolvedCallback != null) {
-                                    if (firstCode == this.RESP_GET || firstCode == this.RESP_LOCK) {
+                                    if (firstCode == this.RESP_GET || firstCode == this.RESP_LOCK || firstCode == this.RESP_TASK) {
                                         var newBuf = this.graph.newBuffer();
                                         var isFirst = true;
                                         while (it.hasNext()) {

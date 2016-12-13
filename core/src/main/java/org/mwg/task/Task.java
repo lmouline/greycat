@@ -2,6 +2,7 @@ package org.mwg.task;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
+import org.mwg.struct.Buffer;
 
 public interface Task {
 
@@ -188,6 +189,10 @@ public interface Task {
      * @return this task to chain
      */
     Task parse(final String flat, final Graph graph);
+
+    Task loadFromBuffer(final Buffer buffer, final Graph graph);
+
+    Task saveToBuffer(final Buffer buffer);
 
     /**
      * Creates a hook to extend the Task API.

@@ -17,3 +17,6 @@ buildNumber.properties
 /tempStorage/
 /fullTempStorage/
 /fullTempStorage2/
+plugins/storage/cassandra/src/main/resources/
+plugins/taskide/src/main/web/node_modules/
+

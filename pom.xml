@@ -103,6 +103,11 @@
         <module>plugins/ml</module>
 
         <!-- Plugin Java -->
+
+        <module>plugins/taskide</module>
+        <module>plugins/rest</module>
+
+
         <module>plugins/memory</module>
         <module>plugins/importer</module>
 

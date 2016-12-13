@@ -6,9 +6,12 @@ import io.undertow.websockets.WebSocketConnectionCallback;
 import io.undertow.websockets.core.*;
 import io.undertow.websockets.spi.WebSocketHttpExchange;
 import org.mwg.chunk.Chunk;
+import org.mwg.core.task.Actions;
 import org.mwg.plugin.Job;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
+import org.mwg.task.Task;
+import org.mwg.task.TaskResult;
 import org.mwg.utility.KeyHelper;
 
 import java.io.IOException;
@@ -104,6 +107,44 @@ public class WSServer implements WebSocketConnectionCallback {
                             WSServer.this.send_resp(concat, channel);
                         }
                     });
+                    break;
+                case WSConstants.REQ_TASK:
+                    final List<Task> tasks = new ArrayList<Task>();
+                    while (it.hasNext()) {
+                        Task t = Actions.newTask();
+                        t.loadFromBuffer(it.next(), graph);
+                        tasks.add(t);
+                    }
+                    final TaskResult[] results = new TaskResult[tasks.size()];
+                    final DeferCounter counter = graph.newCounter(tasks.size());
+                    counter.then(new Job() {
+                        @Override
+                        public void run() {
+                            Buffer concat = graph.newBuffer();
+                            concat.write(WSConstants.RESP_TASK);
+                            concat.write(Constants.BUFFER_SEP);
+                            concat.writeAll(callbackCodeView.data());
+                            for (int i = 0; i < results.length; i++) {
+                                concat.write(Constants.BUFFER_SEP);
+                                //improve the interface
+                                concat.writeAll(results[i].toString().getBytes());
+                                results[i].free();
+                            }
+                            payload.free();
+                            WSServer.this.send_resp(concat, channel);
+                        }
+                    });
+                    //call all subTask
+                    for (int i = 0; i < tasks.size(); i++) {
+                        int finalI = i;
+                        tasks.get(i).execute(graph, new Callback<TaskResult>() {
+                            @Override
+                            public void on(TaskResult result) {
+                                results[finalI] = result;
+                                counter.count();
+                            }
+                        });
+                    }
                     break;
                 case WSConstants.REQ_LOCK:
                     process_lock(new Callback<Buffer>() {

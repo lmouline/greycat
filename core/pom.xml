@@ -114,6 +114,7 @@
                                     <arg value="--out" />
                                     <arg value="mwg.js" />
                                 </exec>
+                                <copy file="${basedir}/target/generated-sources/package.json" todir="${basedir}/target/classes-js" />
                                 <copy file="${basedir}/target/generated-sources/jre.ts" todir="${basedir}/target/classes-js" />
                                 <copy file="${basedir}/target/generated-sources/core.ts" todir="${basedir}/target/classes-js" />
                                 <copy file="${basedir}/target/generated-sources/mwg.d.ts" todir="${basedir}/target/classes-js" />

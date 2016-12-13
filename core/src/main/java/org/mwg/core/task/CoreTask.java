@@ -4,6 +4,7 @@ import org.mwg.*;
 import org.mwg.core.CoreConstants;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.SchedulerAffinity;
+import org.mwg.struct.Buffer;
 import org.mwg.task.*;
 
 import javax.script.ScriptContext;
@@ -267,6 +268,18 @@ public class CoreTask implements org.mwg.task.Task {
                 callback.on(Actions.emptyResult());
             }
         }
+    }
+
+    @Override
+    public Task loadFromBuffer(final Buffer buffer, final Graph graph) {
+        return parse(org.mwg.utility.Base64.decodeToStringWithBounds(buffer, 0, buffer.length()), graph);
+    }
+
+    @Override
+    public Task saveToBuffer(Buffer buffer) {
+        final String saved = toString();
+        org.mwg.utility.Base64.encodeStringToBuffer(saved,buffer);
+        return this;
     }
 
     @Override
