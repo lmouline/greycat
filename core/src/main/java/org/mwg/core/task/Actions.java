@@ -521,11 +521,11 @@ public class Actions {
         return newTask().whileDoScript(condScript, task);
     }
 
-    public static Task map(Task... subTasks) {
+    public static Task mapReduce(Task... subTasks) {
         return newTask().mapReduce(subTasks);
     }
 
-    public static Task mapPar(Task... subTasks) {
+    public static Task mapReducePar(Task... subTasks) {
         return newTask().mapReducePar(subTasks);
     }
 

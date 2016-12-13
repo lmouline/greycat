@@ -72,7 +72,7 @@ class ActionSelect implements Action {
         if (_script == null) {
             throw new RuntimeException("Select remote usage not managed yet, please use SelectScript instead !");
         }
-        builder.append(ActionNames.SELECT_SCRIPT);
+        builder.append(ActionNames.SELECT);
         builder.append(Constants.TASK_PARAM_OPEN);
         builder.append(_script);
         builder.append(Constants.TASK_PARAM_CLOSE);

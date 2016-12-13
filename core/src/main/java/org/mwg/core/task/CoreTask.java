@@ -11,6 +11,7 @@ import javax.script.ScriptException;
 import javax.script.SimpleScriptContext;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class CoreTask implements org.mwg.task.Task {
 
@@ -124,13 +125,13 @@ public class CoreTask implements org.mwg.task.Task {
 
     @Override
     public Task mapReduce(Task... subTasks) {
-        then(new CF_ActionMap(subTasks));
+        then(new CF_ActionMapReduce(subTasks));
         return this;
     }
 
     @Override
     public Task mapReducePar(Task... subTasks) {
-        then(new CF_ActionMapPar(subTasks));
+        then(new CF_ActionMapReducePar(subTasks));
         return this;
     }
 
@@ -290,6 +291,7 @@ public class CoreTask implements org.mwg.task.Task {
         String[] params = null;
         int paramsIndex = 0;
         String previousTaskId = null;
+        boolean subTaskMode = false;
         while (cursor < flatSize) {
             final char current = reader.charAt(cursor);
             switch (current) {
@@ -322,6 +324,19 @@ public class CoreTask implements org.mwg.task.Task {
                     params = null;
                     paramsIndex = 0;
                     isClosed = false;
+                    break;
+                case Constants.SUB_TASK_DECLR:
+                    if (!isClosed) {
+                        final String getName = reader.extract(previous, cursor).trim();
+                        then(new ActionTraverseOrAttribute(false, true, getName));//default action
+                    }
+                    subTaskMode = true;
+                    actionName = null;
+                    isEscaped = false;
+                    previous = cursor + 1;
+                    paramsCapacity = 0;
+                    params = null;
+                    paramsIndex = 0;
                     break;
                 case Constants.TASK_PARAM_OPEN:
                     actionName = reader.extract(previous, cursor).trim();
@@ -402,11 +417,19 @@ public class CoreTask implements org.mwg.task.Task {
                         paramsIndex++;
                     }
                     previous = cursor + 1;
+                    isEscaped = false;
                     break;
                 case Constants.SUB_TASK_OPEN:
                     if (cursor > 0 && cursor + 1 < flatSize && reader.charAt(cursor + 1) != Constants.SUB_TASK_OPEN && reader.charAt(cursor - 1) != Constants.SUB_TASK_OPEN) {
                         CoreTaskReader subReader = reader.slice(cursor + 1);
-                        CoreTask subTask = new CoreTask();
+                        CoreTask subTask;
+                        if (subTaskMode) {
+                            final String subTaskName = reader.extract(previous, cursor).trim();
+                            final Integer subTaskID = TaskHelper.parseInt(subTaskName);
+                            subTask = (CoreTask) contextTasks.get(subTaskID);
+                        } else {
+                            subTask = new CoreTask();
+                        }
                         subTask.sub_parse(subReader, graph, contextTasks);
                         cursor = cursor + subReader.end() + 1;
                         previous = cursor + 1; //to skip the string param
@@ -636,6 +659,15 @@ public class CoreTask implements org.mwg.task.Task {
                 return new ActionScript(params[0]);
             }
         });
+        registry.put(ActionNames.SELECT, new TaskActionFactory() {
+            @Override
+            public Action create(String[] params, Map<Integer, Task> contextTasks) {
+                if (params.length != 1) {
+                    throw new RuntimeException(ActionNames.SELECT + " action needs one parameter. Received:" + params.length);
+                }
+                return new ActionSelect(params[0], null);
+            }
+        });
         registry.put(ActionNames.CREATE_NODE, new TaskActionFactory() {
             @Override
             public Action create(String[] params, Map<Integer, Task> contextTasks) {
@@ -718,7 +750,8 @@ public class CoreTask implements org.mwg.task.Task {
                 if (params.length != 3) {
                     throw new RuntimeException(ActionNames.LOOP + " action needs three parameters. Received:" + params.length);
                 }
-                return new CF_ActionLoop(params[0], params[1], contextTasks.get(TaskHelper.parseInt(params[2])));
+                final Task subTask = getOrCreate(contextTasks, params[2]);
+                return new CF_ActionLoop(params[0], params[1], subTask);
             }
         });
         registry.put(ActionNames.LOOP_PAR, new TaskActionFactory() {
@@ -727,7 +760,8 @@ public class CoreTask implements org.mwg.task.Task {
                 if (params.length != 3) {
                     throw new RuntimeException(ActionNames.LOOP_PAR + " action needs three parameters. Received:" + params.length);
                 }
-                return new CF_ActionLoopPar(params[0], params[1], contextTasks.get(TaskHelper.parseInt(params[2])));
+                final Task subTask = getOrCreate(contextTasks, params[2]);
+                return new CF_ActionLoopPar(params[0], params[1], subTask);
             }
         });
         registry.put(ActionNames.FOR_EACH, new TaskActionFactory() {
@@ -736,7 +770,8 @@ public class CoreTask implements org.mwg.task.Task {
                 if (params.length != 1) {
                     throw new RuntimeException(ActionNames.FOR_EACH + " action needs one parameters. Received:" + params.length);
                 }
-                return new CF_ActionForEach(contextTasks.get(TaskHelper.parseInt(params[0])));
+                final Task subTask = getOrCreate(contextTasks, params[0]);
+                return new CF_ActionForEach(subTask);
             }
         });
         registry.put(ActionNames.FOR_EACH_PAR, new TaskActionFactory() {
@@ -745,27 +780,48 @@ public class CoreTask implements org.mwg.task.Task {
                 if (params.length != 1) {
                     throw new RuntimeException(ActionNames.FOR_EACH_PAR + " action needs one parameters. Received:" + params.length);
                 }
-                return new CF_ActionForEachPar(contextTasks.get(TaskHelper.parseInt(params[0])));
+                final Task subTask = getOrCreate(contextTasks, params[0]);
+                return new CF_ActionForEachPar(subTask);
             }
         });
-        registry.put(ActionNames.MAP, new TaskActionFactory() {
+        registry.put(ActionNames.FLAT_MAP, new TaskActionFactory() {
+            @Override
+            public Action create(String[] params, Map<Integer, Task> contextTasks) {
+                if (params.length != 1) {
+                    throw new RuntimeException(ActionNames.FLAT_MAP + " action needs one parameters. Received:" + params.length);
+                }
+                final Task subTask = getOrCreate(contextTasks, params[0]);
+                return new CF_ActionFlatMap(subTask);
+            }
+        });
+        registry.put(ActionNames.FLAT_MAP_PAR, new TaskActionFactory() {
+            @Override
+            public Action create(String[] params, Map<Integer, Task> contextTasks) {
+                if (params.length != 1) {
+                    throw new RuntimeException(ActionNames.FLAT_MAP_PAR + " action needs one parameters. Received:" + params.length);
+                }
+                final Task subTask = getOrCreate(contextTasks, params[0]);
+                return new CF_ActionFlatMapPar(subTask);
+            }
+        });
+        registry.put(ActionNames.MAP_REDUCE, new TaskActionFactory() {
             @Override
             public Action create(String[] params, Map<Integer, Task> contextTasks) {
                 final Task[] subTasks = new Task[params.length];
                 for (int i = 0; i < params.length; i++) {
-                    subTasks[i] = contextTasks.get(TaskHelper.parseInt(params[i]));
+                    subTasks[i] = getOrCreate(contextTasks, params[i]);
                 }
-                return new CF_ActionMap(subTasks);
+                return new CF_ActionMapReduce(subTasks);
             }
         });
-        registry.put(ActionNames.MAP_PAR, new TaskActionFactory() {
+        registry.put(ActionNames.MAP_REDUCE_PAR, new TaskActionFactory() {
             @Override
             public Action create(String[] params, Map<Integer, Task> contextTasks) {
                 final Task[] subTasks = new Task[params.length];
                 for (int i = 0; i < params.length; i++) {
-                    subTasks[i] = contextTasks.get(TaskHelper.parseInt(params[i]));
+                    subTasks[i] = getOrCreate(contextTasks, params[i]);
                 }
-                return new CF_ActionMapPar(subTasks);
+                return new CF_ActionMapReducePar(subTasks);
             }
         });
         registry.put(ActionNames.DO_WHILE, new TaskActionFactory() {
@@ -774,9 +830,9 @@ public class CoreTask implements org.mwg.task.Task {
                 if (params.length != 2) {
                     throw new RuntimeException(ActionNames.DO_WHILE + " action needs two parameters. Received:" + params.length);
                 }
-                Task then = contextTasks.get(TaskHelper.parseInt(params[0]));
-                String script = params[1];
-                return new CF_ActionDoWhile(then, condFromScript(script), script);
+                final Task subTask = getOrCreate(contextTasks, params[0]);
+                final String script = params[1];
+                return new CF_ActionDoWhile(subTask, condFromScript(script), script);
             }
         });
         registry.put(ActionNames.WHILE_DO, new TaskActionFactory() {
@@ -785,9 +841,9 @@ public class CoreTask implements org.mwg.task.Task {
                 if (params.length != 2) {
                     throw new RuntimeException(ActionNames.DO_WHILE + " action needs two parameters. Received:" + params.length);
                 }
-                Task then = contextTasks.get(TaskHelper.parseInt(params[1]));
-                String script = params[0];
-                return new CF_ActionWhileDo(condFromScript(script), then, script);
+                final String script = params[0];
+                final Task subTask = getOrCreate(contextTasks, params[1]);
+                return new CF_ActionWhileDo(condFromScript(script), subTask, script);
             }
         });
         registry.put(ActionNames.ISOLATE, new TaskActionFactory() {
@@ -796,7 +852,8 @@ public class CoreTask implements org.mwg.task.Task {
                 if (params.length != 1) {
                     throw new RuntimeException(ActionNames.ISOLATE + " action needs three parameters. Received:" + params.length);
                 }
-                return new CF_ActionIsolate(contextTasks.get(TaskHelper.parseInt(params[0])));
+                final Task subTask = getOrCreate(contextTasks, params[0]);
+                return new CF_ActionIsolate(subTask);
             }
         });
         registry.put(ActionNames.IF_THEN, new TaskActionFactory() {
@@ -805,9 +862,9 @@ public class CoreTask implements org.mwg.task.Task {
                 if (params.length != 2) {
                     throw new RuntimeException(ActionNames.IF_THEN + " action needs two parameters. Received:" + params.length);
                 }
-                String script = params[0];
-                Task then = contextTasks.get(TaskHelper.parseInt(params[1]));
-                return new CF_ActionIfThen(condFromScript(script), then, script);
+                final String script = params[0];
+                final Task taskThen = getOrCreate(contextTasks, params[1]);
+                return new CF_ActionIfThen(condFromScript(script), taskThen, script);
             }
         });
         registry.put(ActionNames.IF_THEN_ELSE, new TaskActionFactory() {
@@ -816,12 +873,22 @@ public class CoreTask implements org.mwg.task.Task {
                 if (params.length != 3) {
                     throw new RuntimeException(ActionNames.IF_THEN_ELSE + " action three two parameters. Received:" + params.length);
                 }
-                String script = params[0];
-                Task taskThen = contextTasks.get(TaskHelper.parseInt(params[1]));
-                Task taskElse = contextTasks.get(TaskHelper.parseInt(params[1]));
+                final String script = params[0];
+                final Task taskThen = getOrCreate(contextTasks, params[1]);
+                final Task taskElse = getOrCreate(contextTasks, params[2]);
                 return new CF_ActionIfThenElse(condFromScript(script), taskThen, taskElse, script);
             }
         });
+    }
+
+    private static Task getOrCreate(Map<Integer, Task> contextTasks, String param) {
+        Integer taskId = TaskHelper.parseInt(param);
+        Task previous = contextTasks.get(taskId);
+        if (previous == null) {
+            previous = new CoreTask();
+            contextTasks.put(taskId, previous);
+        }
+        return previous;
     }
 
     /**
@@ -840,10 +907,34 @@ public class CoreTask implements org.mwg.task.Task {
     public String toString() {
         final StringBuilder res = new StringBuilder();
         final Map<Integer, Integer> dagCounters = new HashMap<Integer, Integer>();
-        deep_analyze(this, dagCounters);
-        //todo DAG in tasks are not managed
-        serialize(res, dagCounters);
-        //TODO save DAG > 1
+        final Map<Integer, Task> dagCollector = new HashMap<Integer, Task>();
+        deep_analyze(this, dagCounters, dagCollector);
+
+        Set<Integer> keys = dagCounters.keySet();
+        Integer[] flatKeys = keys.toArray(new Integer[keys.size()]);
+        final Map<Integer, Integer> dagIDS = new HashMap<Integer, Integer>();
+        for (int i = 0; i < flatKeys.length; i++) {
+            Integer key = flatKeys[i];
+            Integer counter = dagCounters.get(key);
+            if (counter != null && counter > 1) {
+                dagIDS.put(key, dagIDS.size());
+            }
+        }
+        serialize(res, dagIDS);
+
+        Set<Integer> set_dagIDS = dagIDS.keySet();
+        Integer[] flatDagIDS = set_dagIDS.toArray(new Integer[set_dagIDS.size()]);
+        for (int i = 0; i < flatDagIDS.length; i++) {
+            Integer key = flatDagIDS[i];
+            Integer index = dagIDS.get(key);
+            final CoreTask dagTask = (CoreTask) dagCollector.get(key);
+            res.append(Constants.SUB_TASK_DECLR);
+            res.append("" + index);
+            res.append(Constants.SUB_TASK_OPEN);
+            dagTask.serialize(res, dagIDS);
+            res.append(Constants.SUB_TASK_CLOSE);
+
+        }
         return res.toString();
     }
 
@@ -860,16 +951,17 @@ public class CoreTask implements org.mwg.task.Task {
         }
     }
 
-    private static void deep_analyze(CoreTask t, Map<Integer, Integer> counters) {
+    private static void deep_analyze(CoreTask t, Map<Integer, Integer> counters, Map<Integer, Task> dagCollector) {
         Integer tHash = t.hashCode();
         Integer previous = counters.get(tHash);
         if (previous == null) {
             counters.put(tHash, 1);
+            dagCollector.put(tHash, t);
             for (int i = 0; i < t.insertCursor; i++) {
                 if (t.actions[i] instanceof CF_Action) {
                     Task[] children = ((CF_Action) t.actions[i]).children();
                     for (int j = 0; j < children.length; j++) {
-                        deep_analyze((CoreTask) children[j], counters);
+                        deep_analyze((CoreTask) children[j], counters, dagCollector);
                     }
                 }
             }

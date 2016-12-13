@@ -1,17 +1,21 @@
 package org.mwg.core.task;
 
 import org.mwg.Callback;
+import org.mwg.Constants;
 import org.mwg.DeferCounter;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.SchedulerAffinity;
 import org.mwg.task.*;
 import org.mwg.utility.Tuple;
 
-class CF_ActionFlatMapPar implements Action {
+import java.util.Map;
+
+class CF_ActionFlatMapPar extends CF_Action {
 
     private final Task _subTask;
 
     CF_ActionFlatMapPar(final Task p_subTask) {
+        super();
         _subTask = p_subTask;
     }
 
@@ -65,14 +69,24 @@ class CF_ActionFlatMapPar implements Action {
     }
 
     @Override
-    public String toString() {
-        return "flatMapPar()";
+    public Task[] children() {
+        Task[] children_tasks = new Task[1];
+        children_tasks[0] = _subTask;
+        return children_tasks;
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        throw new RuntimeException("Not managed yet!");
+    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
+        builder.append(ActionNames.FLAT_MAP_PAR);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        final CoreTask castedAction = (CoreTask) _subTask;
+        final int castedActionHash = castedAction.hashCode();
+        if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+            castedAction.serialize(builder, dagIDS);
+        } else {
+            builder.append("" + dagIDS.get(castedActionHash));
+        }
+        builder.append(Constants.TASK_PARAM_CLOSE);
     }
-
 }
 

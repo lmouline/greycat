@@ -12,11 +12,11 @@ import org.mwg.task.TaskResult;
 
 import java.util.Map;
 
-class CF_ActionMapPar extends CF_Action {
+class CF_ActionMapReducePar extends CF_Action {
 
     private final Task[] _subTasks;
 
-    CF_ActionMapPar(final Task... p_subTasks) {
+    CF_ActionMapReducePar(final Task... p_subTasks) {
         super();
         _subTasks = p_subTasks;
     }
@@ -52,16 +52,19 @@ class CF_ActionMapPar extends CF_Action {
     }
 
     @Override
-    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> counters) {
+    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
         builder.append(ActionNames.LOOP);
         builder.append(Constants.TASK_PARAM_OPEN);
         for (int i = 0; i < _subTasks.length; i++) {
             if (i != 0) {
                 builder.append(Constants.TASK_PARAM_SEP);
             }
-            CoreTask castedSub = (CoreTask) _subTasks[i];
-            if (counters != null && counters.get(castedSub.hashCode()) == 1) {
-                castedSub.serialize(builder, counters);
+            final CoreTask castedAction = (CoreTask) _subTasks[i];
+            final int castedActionHash = castedAction.hashCode();
+            if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                castedAction.serialize(builder, dagIDS);
+            } else {
+                builder.append("" + dagIDS.get(castedActionHash));
             }
         }
         builder.append(Constants.TASK_PARAM_CLOSE);

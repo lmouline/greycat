@@ -37,6 +37,8 @@ public class Constants {
 
     public static final char SUB_TASK_CLOSE = '}';
 
+    public static final char SUB_TASK_DECLR = '#';
+
     /**
      * {@native ts
      * public static CHUNK_SEP : number = "|".charCodeAt(0);

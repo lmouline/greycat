@@ -59,22 +59,28 @@ class CF_ActionIfThenElse extends CF_Action {
     }
 
     @Override
-    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> counters) {
+    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
         if (_conditionalScript == null) {
             throw new RuntimeException("Closure is not serializable, please use Script version instead!");
         }
-        builder.append(ActionNames.IF_THEN);
+        builder.append(ActionNames.IF_THEN_ELSE);
         builder.append(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_conditionalScript, builder);
         builder.append(Constants.TASK_PARAM_SEP);
         CoreTask castedSubThen = (CoreTask) _thenSub;
-        if (counters != null && counters.get(castedSubThen.hashCode()) == 1) {
-            castedSubThen.serialize(builder, counters);
+        int castedSubThenHash = castedSubThen.hashCode();
+        if (dagIDS == null || !dagIDS.containsKey(castedSubThenHash)) {
+            castedSubThen.serialize(builder, dagIDS);
+        } else {
+            builder.append("" + dagIDS.get(castedSubThenHash));
         }
         builder.append(Constants.TASK_PARAM_SEP);
         CoreTask castedSubElse = (CoreTask) _elseSub;
-        if (counters != null && counters.get(castedSubElse.hashCode()) == 1) {
-            castedSubElse.serialize(builder, counters);
+        int castedSubElseHash = castedSubElse.hashCode();
+        if (dagIDS == null || !dagIDS.containsKey(castedSubElseHash)) {
+            castedSubElse.serialize(builder, dagIDS);
+        } else {
+            builder.append("" + dagIDS.get(castedSubElseHash));
         }
         builder.append(Constants.TASK_PARAM_CLOSE);
     }

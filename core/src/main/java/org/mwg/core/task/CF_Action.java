@@ -10,7 +10,7 @@ public abstract class CF_Action implements Action {
 
     abstract public Task[] children();
 
-    abstract public void cf_serialize(StringBuilder builder, Map<Integer, Integer> counters);
+    abstract public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS);
 
     @Override
     public abstract void eval(TaskContext ctx);

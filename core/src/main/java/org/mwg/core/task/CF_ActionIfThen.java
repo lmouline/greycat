@@ -48,7 +48,7 @@ class CF_ActionIfThen extends CF_Action {
     }
 
     @Override
-    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> counters) {
+    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
         if (_conditionalScript == null) {
             throw new RuntimeException("Closure is not serializable, please use Script version instead!");
         }
@@ -56,9 +56,12 @@ class CF_ActionIfThen extends CF_Action {
         builder.append(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_conditionalScript, builder);
         builder.append(Constants.TASK_PARAM_SEP);
-        CoreTask castedSub = (CoreTask) _action;
-        if (counters != null && counters.get(castedSub.hashCode()) == 1) {
-            castedSub.serialize(builder, counters);
+        final CoreTask castedAction = (CoreTask) _action;
+        final int castedActionHash = castedAction.hashCode();
+        if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+            castedAction.serialize(builder, dagIDS);
+        } else {
+            builder.append("" + dagIDS.get(castedActionHash));
         }
         builder.append(Constants.TASK_PARAM_CLOSE);
     }

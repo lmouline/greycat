@@ -73,16 +73,19 @@ class CF_ActionLoopPar extends CF_Action {
     }
 
     @Override
-    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> counters) {
+    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
         builder.append(ActionNames.LOOP_PAR);
         builder.append(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_lower, builder);
         builder.append(Constants.TASK_PARAM_SEP);
         TaskHelper.serializeString(_upper, builder);
         builder.append(Constants.TASK_PARAM_SEP);
-        CoreTask castedSub = (CoreTask)_subTask;
-        if (counters != null && counters.get(castedSub.hashCode()) == 1) {
-            castedSub.serialize(builder, counters);
+        final CoreTask castedAction = (CoreTask) _subTask;
+        final int castedActionHash = castedAction.hashCode();
+        if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+            castedAction.serialize(builder, dagIDS);
+        } else {
+            builder.append("" + dagIDS.get(castedActionHash));
         }
         builder.append(Constants.TASK_PARAM_CLOSE);
     }

@@ -27,9 +27,9 @@ class ActionPrint implements Action {
     @Override
     public void serialize(StringBuilder builder) {
         if (_withLineBreak) {
-            builder.append(ActionNames.PRINT);
-        } else {
             builder.append(ActionNames.PRINTLN);
+        } else {
+            builder.append(ActionNames.PRINT);
         }
         builder.append(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_name, builder);

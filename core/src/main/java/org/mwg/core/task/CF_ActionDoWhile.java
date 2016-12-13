@@ -54,15 +54,18 @@ class CF_ActionDoWhile extends CF_Action {
     }
 
     @Override
-    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> counters) {
+    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
         if (_conditionalScript == null) {
             throw new RuntimeException("Closure is not serializable, please use Script version instead!");
         }
         builder.append(ActionNames.DO_WHILE);
         builder.append(Constants.TASK_PARAM_OPEN);
-        CoreTask castedSub = (CoreTask) _then;
-        if (counters != null && counters.get(castedSub.hashCode()) == 1) {
-            castedSub.serialize(builder, counters);
+        final CoreTask castedAction = (CoreTask) _then;
+        final int castedActionHash = castedAction.hashCode();
+        if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+            castedAction.serialize(builder, dagIDS);
+        } else {
+            builder.append("" + dagIDS.get(castedActionHash));
         }
         builder.append(Constants.TASK_PARAM_SEP);
         TaskHelper.serializeString(_conditionalScript, builder);
