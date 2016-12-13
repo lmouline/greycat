@@ -1,19 +1,21 @@
 package org.mwg.core.task;
 
 import org.mwg.Callback;
+import org.mwg.Constants;
 import org.mwg.plugin.SchedulerAffinity;
-import org.mwg.task.Action;
-import org.mwg.task.TaskContext;
-import org.mwg.task.ConditionalFunction;
-import org.mwg.task.TaskResult;
+import org.mwg.task.*;
 
-class CF_ActionIfThenElse implements Action {
+import java.util.Map;
+
+class CF_ActionIfThenElse extends CF_Action {
 
     private ConditionalFunction _condition;
     private org.mwg.task.Task _thenSub;
     private org.mwg.task.Task _elseSub;
+    private String _conditionalScript;
 
-    CF_ActionIfThenElse(final ConditionalFunction cond, final org.mwg.task.Task p_thenSub, final org.mwg.task.Task p_elseSub) {
+    CF_ActionIfThenElse(final ConditionalFunction cond, final org.mwg.task.Task p_thenSub, final org.mwg.task.Task p_elseSub, final String conditionalScript) {
+        super();
         if (cond == null) {
             throw new RuntimeException("condition should not be null");
         }
@@ -23,6 +25,7 @@ class CF_ActionIfThenElse implements Action {
         if (p_elseSub == null) {
             throw new RuntimeException("elseSub should not be null");
         }
+        this._conditionalScript = conditionalScript;
         this._condition = cond;
         this._thenSub = p_thenSub;
         this._elseSub = p_elseSub;
@@ -48,13 +51,32 @@ class CF_ActionIfThenElse implements Action {
     }
 
     @Override
-    public String toString() {
-        return "ifThen()";
+    public Task[] children() {
+        Task[] children_tasks = new Task[2];
+        children_tasks[0] = _thenSub;
+        children_tasks[1] = _elseSub;
+        return children_tasks;
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        throw new RuntimeException("Not managed yet!");
+    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> counters) {
+        if (_conditionalScript == null) {
+            throw new RuntimeException("Closure is not serializable, please use Script version instead!");
+        }
+        builder.append(ActionNames.IF_THEN);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_conditionalScript, builder);
+        builder.append(Constants.TASK_PARAM_SEP);
+        CoreTask castedSubThen = (CoreTask) _thenSub;
+        if (counters != null && counters.get(castedSubThen.hashCode()) == 1) {
+            castedSubThen.serialize(builder, counters);
+        }
+        builder.append(Constants.TASK_PARAM_SEP);
+        CoreTask castedSubElse = (CoreTask) _elseSub;
+        if (counters != null && counters.get(castedSubElse.hashCode()) == 1) {
+            castedSubElse.serialize(builder, counters);
+        }
+        builder.append(Constants.TASK_PARAM_CLOSE);
     }
 
 }

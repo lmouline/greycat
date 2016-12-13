@@ -20,7 +20,7 @@ class ActionNamed implements Action {
         if (actionFactory == null) {
             throw new RuntimeException("Unknown task action: " + _params);
         }
-        final Action subAction = actionFactory.create(ctx.templates(_params));
+        final Action subAction = actionFactory.create(ctx.templates(_params), null);
         if (subAction != null) {
             subAction.eval(ctx);
         } else {

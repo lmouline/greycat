@@ -1,6 +1,7 @@
 package org.mwg.core.task;
 
 import org.mwg.Callback;
+import org.mwg.Constants;
 import org.mwg.DeferCounter;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.SchedulerAffinity;
@@ -9,11 +10,14 @@ import org.mwg.task.Task;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
-class CF_ActionMapPar implements Action {
+import java.util.Map;
+
+class CF_ActionMapPar extends CF_Action {
 
     private final Task[] _subTasks;
 
     CF_ActionMapPar(final Task... p_subTasks) {
+        super();
         _subTasks = p_subTasks;
     }
 
@@ -43,13 +47,24 @@ class CF_ActionMapPar implements Action {
     }
 
     @Override
-    public String toString() {
-        return "subTasksPar()";
+    public Task[] children() {
+        return _subTasks;
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        throw new RuntimeException("Not managed yet!");
+    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> counters) {
+        builder.append(ActionNames.LOOP);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        for (int i = 0; i < _subTasks.length; i++) {
+            if (i != 0) {
+                builder.append(Constants.TASK_PARAM_SEP);
+            }
+            CoreTask castedSub = (CoreTask) _subTasks[i];
+            if (counters != null && counters.get(castedSub.hashCode()) == 1) {
+                castedSub.serialize(builder, counters);
+            }
+        }
+        builder.append(Constants.TASK_PARAM_CLOSE);
     }
 
 }

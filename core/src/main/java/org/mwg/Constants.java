@@ -23,15 +23,19 @@ public class Constants {
 
     public static final String CACHE_MISS_ERROR = "Cache miss error";
 
-    public static final char QUERY_SEP = ',';
+    public static final char TASK_PARAM_SEP = ',';
 
-    public static final char QUERY_KV_SEP = '=';
+    // public static final char QUERY_KV_SEP = '=';
 
     public static final char TASK_SEP = '.';
 
     public static final char TASK_PARAM_OPEN = '(';
 
     public static final char TASK_PARAM_CLOSE = ')';
+
+    public static final char SUB_TASK_OPEN = '{';
+
+    public static final char SUB_TASK_CLOSE = '}';
 
     /**
      * {@native ts

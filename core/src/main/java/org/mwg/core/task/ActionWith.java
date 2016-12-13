@@ -51,7 +51,7 @@ class ActionWith implements Action {
         builder.append(ActionNames.WITH);
         builder.append(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_name,builder);
-        builder.append(Constants.QUERY_SEP);
+        builder.append(Constants.TASK_PARAM_SEP);
         TaskHelper.serializeString(_patternTemplate,builder);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }

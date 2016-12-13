@@ -39,7 +39,7 @@ public class StructurePlugin extends BasePlugin {
 
         declareTaskAction(NTreeInsertTo.NAME, new TaskActionFactory() {
             @Override
-            public Action create(String[] params) {
+            public Action create(String[] params,java.util.Map<java.lang.Integer,org.mwg.task.Task> counters) {
                 if (params.length != 1) {
                     throw new RuntimeException("Bad param number!");
                 }
@@ -48,7 +48,7 @@ public class StructurePlugin extends BasePlugin {
         });
         declareTaskAction(TraverseById.NAME, new TaskActionFactory() {
             @Override
-            public Action create(String[] params) {
+            public Action create(String[] params,java.util.Map<java.lang.Integer,org.mwg.task.Task> counters) {
                 if (params.length != 1) {
                     throw new RuntimeException("Bad param number!");
                 }
@@ -57,7 +57,7 @@ public class StructurePlugin extends BasePlugin {
         });
         declareTaskAction(NTreeNearestN.NAME, new TaskActionFactory() {
             @Override
-            public Action create(String[] params) {
+            public Action create(String[] params,java.util.Map<java.lang.Integer,org.mwg.task.Task> counters) {
                 if (params.length < 2) {
                     throw new RuntimeException("Bad param number!");
                 }
@@ -72,7 +72,7 @@ public class StructurePlugin extends BasePlugin {
         });
         declareTaskAction(NTreeNearestWithinRadius.NAME, new TaskActionFactory() {
             @Override
-            public Action create(String[] params) {
+            public Action create(String[] params,java.util.Map<java.lang.Integer,org.mwg.task.Task> counters) {
                 if (params.length < 2) {
                     throw new RuntimeException("Bad param number!");
                 }
@@ -86,7 +86,7 @@ public class StructurePlugin extends BasePlugin {
         });
         declareTaskAction(NTreeNearestNWithinRadius.NAME, new TaskActionFactory() {
             @Override
-            public Action create(String[] params) {
+            public Action create(String[] params,java.util.Map<java.lang.Integer,org.mwg.task.Task> counters) {
                 if (params.length < 3) {
                     throw new RuntimeException("Bad param number!");
                 }

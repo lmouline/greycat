@@ -49,6 +49,7 @@ public class CoreQuery implements Query {
         return this;
     }
 
+    /*
     @Override
     public Query parse(String flatQuery) {
         int cursor = 0;
@@ -60,7 +61,7 @@ public class CoreQuery implements Query {
                     currentKey = _resolver.stringToHash(flatQuery.substring(lastElemStart, cursor).trim(), false);
                 }
                 lastElemStart = cursor + 1;
-            } else if (flatQuery.charAt(cursor) == Constants.QUERY_SEP) {
+            } else if (flatQuery.charAt(cursor) == Constants.TASK_PARAM_SEP) {
                 if (currentKey != Constants.NULL_LONG) {
                     internal_add(currentKey, flatQuery.substring(lastElemStart, cursor).trim());
                 }
@@ -74,7 +75,7 @@ public class CoreQuery implements Query {
             internal_add(currentKey, flatQuery.substring(lastElemStart, cursor).trim());
         }
         return this;
-    }
+    }*/
 
     @Override
     public Query add(String attributeName, String value) {

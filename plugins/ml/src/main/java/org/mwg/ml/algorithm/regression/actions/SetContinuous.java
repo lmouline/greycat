@@ -52,7 +52,7 @@ public class SetContinuous implements Action {
         builder.append(NAME);
         builder.append(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_relName, builder);
-        builder.append(Constants.QUERY_SEP);
+        builder.append(Constants.TASK_PARAM_SEP);
         TaskHelper.serializeString(_value, builder);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }

@@ -1,17 +1,21 @@
 package org.mwg.core.task;
 
 import org.mwg.Callback;
+import org.mwg.Constants;
 import org.mwg.DeferCounter;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.SchedulerAffinity;
 import org.mwg.task.*;
 import org.mwg.utility.Tuple;
 
-class CF_ActionForEachPar implements Action {
+import java.util.Map;
+
+class CF_ActionForEachPar extends CF_Action {
 
     private final Task _subTask;
 
     CF_ActionForEachPar(final Task p_subTask) {
+        super();
         _subTask = p_subTask;
     }
 
@@ -61,13 +65,20 @@ class CF_ActionForEachPar implements Action {
     }
 
     @Override
-    public String toString() {
-        return "foreachPar()";
+    public Task[] children() {
+        Task[] children_tasks = new Task[1];
+        children_tasks[0] = _subTask;
+        return children_tasks;
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        throw new RuntimeException("Not managed yet!");
+    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> counters) {
+        builder.append(ActionNames.FOR_EACH_PAR);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        CoreTask castedSub = (CoreTask) _subTask;
+        if (counters != null && counters.get(castedSub.hashCode()) == 1) {
+            castedSub.serialize(builder, counters);
+        }
+        builder.append(Constants.TASK_PARAM_CLOSE);
     }
-
 }

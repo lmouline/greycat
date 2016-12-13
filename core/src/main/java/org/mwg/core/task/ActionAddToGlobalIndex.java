@@ -50,7 +50,7 @@ class ActionAddToGlobalIndex implements Action {
         builder.append(ActionNames.ADD_TO_GLOBAL_INDEX);
         builder.append(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_name, builder);
-        builder.append(Constants.QUERY_SEP);
+        builder.append(Constants.TASK_PARAM_SEP);
         TaskHelper.serializeStringParams(_attributes, builder);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }

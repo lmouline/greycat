@@ -18,7 +18,7 @@ public interface Query {
      * @param flatQuery the stringified query
      * @return the {@link Query}, for a fluent API
      */
-    Query parse(String flatQuery);
+  //  Query parse(String flatQuery);
 
     /**
      * Adds a filtering element based on the value of an attribute

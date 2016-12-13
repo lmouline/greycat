@@ -145,7 +145,7 @@ class ActionTraverseOrAttribute implements Action {
                 builder.append(Constants.TASK_PARAM_OPEN);
                 builder.append(_name);
                 if (_params != null && _params.length > 0) {
-                    builder.append(Constants.QUERY_SEP);
+                    builder.append(Constants.TASK_PARAM_SEP);
                     TaskHelper.serializeStringParams(_params, builder);
                 }
                 builder.append(Constants.TASK_PARAM_CLOSE);

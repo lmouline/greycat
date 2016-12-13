@@ -1,17 +1,23 @@
 package org.mwg.core.task;
 
 import org.mwg.Callback;
+import org.mwg.Constants;
 import org.mwg.plugin.SchedulerAffinity;
 import org.mwg.task.*;
 
-class CF_ActionDoWhile implements Action {
+import java.util.Map;
+
+class CF_ActionDoWhile extends CF_Action {
 
     private final ConditionalFunction _cond;
     private final Task _then;
+    private final String _conditionalScript;
 
-    CF_ActionDoWhile(final Task p_then, final ConditionalFunction p_cond) {
+    CF_ActionDoWhile(final Task p_then, final ConditionalFunction p_cond, final String conditionalScript) {
+        super();
         this._cond = p_cond;
         this._then = p_then;
+        this._conditionalScript = conditionalScript;
     }
 
     @Override
@@ -41,13 +47,26 @@ class CF_ActionDoWhile implements Action {
     }
 
     @Override
-    public String toString() {
-        return "doWhile()";
+    public Task[] children() {
+        Task[] children_tasks = new Task[1];
+        children_tasks[0] = _then;
+        return children_tasks;
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        throw new RuntimeException("Not managed yet!");
+    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> counters) {
+        if (_conditionalScript == null) {
+            throw new RuntimeException("Closure is not serializable, please use Script version instead!");
+        }
+        builder.append(ActionNames.DO_WHILE);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        CoreTask castedSub = (CoreTask) _then;
+        if (counters != null && counters.get(castedSub.hashCode()) == 1) {
+            castedSub.serialize(builder, counters);
+        }
+        builder.append(Constants.TASK_PARAM_SEP);
+        TaskHelper.serializeString(_conditionalScript, builder);
+        builder.append(Constants.TASK_PARAM_CLOSE);
     }
 
 }

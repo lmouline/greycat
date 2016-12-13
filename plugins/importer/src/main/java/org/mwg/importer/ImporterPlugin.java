@@ -2,14 +2,17 @@ package org.mwg.importer;
 
 import org.mwg.base.BasePlugin;
 import org.mwg.task.Action;
+import org.mwg.task.Task;
 import org.mwg.task.TaskActionFactory;
+
+import java.util.Map;
 
 public class ImporterPlugin extends BasePlugin {
 
     public ImporterPlugin() {
         declareTaskAction(ImporterActions.READLINES, new TaskActionFactory() {
             @Override
-            public Action create(String[] params) {
+            public Action create(String[] params, Map<Integer, Task> contextTasks) {
                 if (params.length != 1) {
                     throw new RuntimeException(ImporterActions.READLINES + " action need one parameter");
                 }
@@ -18,7 +21,7 @@ public class ImporterPlugin extends BasePlugin {
         });
         declareTaskAction(ImporterActions.READFILES, new TaskActionFactory() {
             @Override
-            public Action create(String[] params) {
+            public Action create(String[] params, Map<Integer, Task> contextTasks) {
                 if (params.length != 1) {
                     throw new RuntimeException(ImporterActions.READFILES + " action need one parameter");
                 }

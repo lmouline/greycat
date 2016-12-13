@@ -1,19 +1,22 @@
 package org.mwg.core.task;
 
 import org.mwg.Callback;
+import org.mwg.Constants;
 import org.mwg.plugin.SchedulerAffinity;
 import org.mwg.task.Action;
 import org.mwg.task.Task;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class CF_ActionMap implements Action {
+class CF_ActionMap extends CF_Action {
 
     private final Task[] _subTasks;
 
     CF_ActionMap(final Task... p_subTasks) {
+        super();
         _subTasks = p_subTasks;
     }
 
@@ -52,29 +55,25 @@ class CF_ActionMap implements Action {
         }
     }
 
-    /*
-    public String serialize() {
-        //todo dirty version, don t manage DAG
-        StringBuilder res = new StringBuilder();
-        res.append("mapReduce(");
-        for(int i=0;i<_subTasks.length;i++) {
-            res.append(_subTasks[i].toString());
-            if(i<_subTasks.length - 1) {
-                res.append(",  ");
-            }
-        }
-        res.append(")");
-        return res.toString();
-    }*/
-
     @Override
-    public String toString() {
-        return "mapReduce()";
+    public Task[] children() {
+        return _subTasks;
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        throw new RuntimeException("Not managed yet!");
+    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> counters) {
+        builder.append(ActionNames.LOOP);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        for (int i = 0; i < _subTasks.length; i++) {
+            if (i != 0) {
+                builder.append(Constants.TASK_PARAM_SEP);
+            }
+            CoreTask castedSub = (CoreTask) _subTasks[i];
+            if (counters != null && counters.get(castedSub.hashCode()) == 1) {
+                castedSub.serialize(builder, counters);
+            }
+        }
+        builder.append(Constants.TASK_PARAM_CLOSE);
     }
 
 }

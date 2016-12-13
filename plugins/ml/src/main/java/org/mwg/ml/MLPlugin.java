@@ -100,7 +100,7 @@ public class MLPlugin extends StructurePlugin {
 
         declareTaskAction(SetContinuous.NAME, new TaskActionFactory() {
             @Override
-            public Action create(String[] params) {
+            public Action create(String[] params,java.util.Map<java.lang.Integer,org.mwg.task.Task> counters) {
                 if(params.length!=2){
                     throw new RuntimeException("set continuous requires 2 parameters");
                 }
@@ -110,7 +110,7 @@ public class MLPlugin extends StructurePlugin {
 
         declareTaskAction(ReadContinuous.NAME, new TaskActionFactory() {
             @Override
-            public Action create(String[] params) {
+            public Action create(String[] params,java.util.Map<java.lang.Integer,org.mwg.task.Task> counters) {
                 if(params.length!=1){
                     throw new RuntimeException("set continuous takes 1 parameter");
                 }

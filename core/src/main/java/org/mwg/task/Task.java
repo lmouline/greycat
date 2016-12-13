@@ -222,7 +222,6 @@ public interface Task {
      */
     void executeWith(final Graph graph, final Object initial, final Callback<TaskResult> callback);
 
-
     /**
      * Prepares a context in order to initialize the task context.
      *
@@ -260,8 +259,6 @@ public interface Task {
      * @param callback           notifies when the execution is done
      */
     void executeFromUsing(final TaskContext parentContext, final TaskResult initial, final byte affinity, final Callback<TaskContext> contextInitializer, final Callback<TaskResult> callback);
-
-
 
     /* Default core actions */
 

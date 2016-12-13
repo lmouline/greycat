@@ -80,7 +80,7 @@ public class TaskHelper {
     public static void serializeStringParams(String[] params, StringBuilder builder) {
         for (int i = 0; i < params.length; i++) {
             if (i != 0) {
-                builder.append(Constants.QUERY_SEP);
+                builder.append(Constants.TASK_PARAM_SEP);
             }
             builder.append("\'");
             builder.append(params[i]);
