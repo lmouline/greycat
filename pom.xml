@@ -97,6 +97,8 @@
         -->
         <module>core</module>
 
+        <module>plugins/model</module>
+
         <!-- Plugins Java & JS -->
         <module>plugins/storage/websocket</module>
         <module>plugins/structure</module>
@@ -130,7 +132,6 @@
         <!--
         <module>plugins/mlext</module>
         <module>plugins/rest</module>
-        <module>plugins/model</module>
         -->
         <!-- Outside release-->
         <!--<module>plugins/debug</module>-->
