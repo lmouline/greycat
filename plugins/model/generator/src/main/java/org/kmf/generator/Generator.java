@@ -299,64 +299,63 @@ public class Generator {
                                 setter.addParameter(typeToClassName(prop.type()), "value");
 
                                 StringBuffer buffer = new StringBuffer();
+                                buffer.append("super.set(")
+                                        .append(prop.name().toUpperCase())
+                                        .append(", ")
+                                        .append(prop.name().toUpperCase())
+                                        .append("_TYPE")
+                                        .append(",value);");
                                 if (prop.indexes().length > 0) {
-                                    buffer.append("final " + classifier.fqn() + " self = this;\n");
-                                    buffer.append("final org.mwg.DeferCounterSync waiterUnIndex = this.graph().newSyncCounter(" + prop.indexes().length + ");\n");
-                                    buffer.append("final org.mwg.DeferCounterSync waiterIndex = this.graph().newSyncCounter(" + prop.indexes().length + ");\n");
+//                                    buffer.append("final " + classifier.fqn() + " self = this;\n");
+//                                    buffer.append("final org.mwg.DeferCounterSync waiterUnIndex = this.graph().newSyncCounter(" + prop.indexes().length + ");\n");
+//                                    buffer.append("final org.mwg.DeferCounterSync waiterIndex = this.graph().newSyncCounter(" + prop.indexes().length + ");\n");
+//
+//                                    for (KIndex index : prop.indexes()) {
+//                                        String queryParam = "";
+//                                        for (KProperty loopP : index.properties()) {
+//                                            if (!queryParam.isEmpty()) {
+//                                                queryParam += ",";
+//                                            }
+//                                            queryParam += loopP.name();
+//                                        }
+//                                        buffer.append("this.graph().unindex(")
+//                                                .append(name)
+//                                                .append("Model.IDX_")
+//                                                .append(index.fqn().toUpperCase())
+//                                                .append(",this,\"")
+//                                                .append(queryParam)
+//                                                .append("\",waiterUnIndex.wrap());");
+//                                    }
+//
+//                                    buffer.append("waiterUnIndex.then(new org.mwg.plugin.Job() {");
+//                                    buffer.append("@Override\n");
+//                                    buffer.append("public void run() {\n");
+//                                    buffer.append("self.setProperty(")
+//                                            .append(prop.name().toUpperCase())
+//                                            .append(", ")
+//                                            .append(prop.name().toUpperCase())
+//                                            .append("_TYPE")
+//                                            .append(", value);");
+//                                    for (KIndex index : prop.indexes()) {
+//                                        String queryParam = "";
+//                                        for (KProperty loopP : index.properties()) {
+//                                            if (!queryParam.isEmpty()) {
+//                                                queryParam += ",";
+//                                            }
+//                                            queryParam += loopP.name();
+//                                        }
+//                                        buffer.append("self.graph().index(")
+//                                                .append(name)
+//                                                .append("Model.IDX_")
+//                                                .append(index.fqn().toUpperCase())
+//                                                .append(",self,\"")
+//                                                .append(queryParam)
+//                                                .append("\",waiterIndex.wrap());");
+//                                    }
+//
+//                                    buffer.append("}\n});");
+//                                    buffer.append("waiterIndex.waitResult();\n");
 
-                                    for (KIndex index : prop.indexes()) {
-                                        String queryParam = "";
-                                        for (KProperty loopP : index.properties()) {
-                                            if (!queryParam.isEmpty()) {
-                                                queryParam += ",";
-                                            }
-                                            queryParam += loopP.name();
-                                        }
-                                        buffer.append("this.graph().unindex(")
-                                                .append(name)
-                                                .append("Model.IDX_")
-                                                .append(index.fqn().toUpperCase())
-                                                .append(",this,\"")
-                                                .append(queryParam)
-                                                .append("\",waiterUnIndex.wrap());");
-                                    }
-
-                                    buffer.append("waiterUnIndex.then(new org.mwg.plugin.Job() {");
-                                    buffer.append("@Override\n");
-                                    buffer.append("public void run() {\n");
-                                    buffer.append("self.setProperty(")
-                                            .append(prop.name().toUpperCase())
-                                            .append(", ")
-                                            .append(prop.name().toUpperCase())
-                                            .append("_TYPE")
-                                            .append(", value);");
-                                    for (KIndex index : prop.indexes()) {
-                                        String queryParam = "";
-                                        for (KProperty loopP : index.properties()) {
-                                            if (!queryParam.isEmpty()) {
-                                                queryParam += ",";
-                                            }
-                                            queryParam += loopP.name();
-                                        }
-                                        buffer.append("self.graph().index(")
-                                                .append(name)
-                                                .append("Model.IDX_")
-                                                .append(index.fqn().toUpperCase())
-                                                .append(",self,\"")
-                                                .append(queryParam)
-                                                .append("\",waiterIndex.wrap());");
-                                    }
-
-                                    buffer.append("}\n});");
-                                    buffer.append("waiterIndex.waitResult();\n");
-
-                                } else {
-                                    buffer.append("super.set(")
-                                            .append(prop.name().toUpperCase())
-                                            .append(", ")
-                                            .append(prop.name().toUpperCase())
-                                            .append("_TYPE")
-                                            .append(",value);");
                                 }
                                 buffer.append("return this;");
                                 setter.setBody(buffer.toString());
@@ -490,7 +489,7 @@ public class Generator {
                         "       this._graph.index(world, time, \"" + casted.fqn() + "\", new Callback<org.mwg.NodeIndex>() {\n" +
                         "           @Override\n" +
                         "           public void on(org.mwg.NodeIndex index) {\n" +
-                        "               index.find(query, new Callback<org.mwg.Node[]>() {\n" +
+                        "               index.find(new Callback<org.mwg.Node[]>() {\n" +
                         "                   @Override\n" +
                         "                   public void on(org.mwg.Node[] nodes) {\n" +
                         "                       " + resultType + "[] result = new " + resultType + "[nodes.length];\n" +
@@ -499,7 +498,7 @@ public class Generator {
                         "                       }\n" +
                         "                       callback.on(result);\n" +
                         "                   }\n" +
-                        "               });\n" +
+                        "               },query);\n" +
                         "           }\n" +
                         "       });"
                 );
@@ -514,7 +513,7 @@ public class Generator {
                         "       this._graph.index(world, time, \"" + casted.fqn() + "\", new Callback<org.mwg.NodeIndex>() {\n" +
                                 "           @Override\n" +
                                 "           public void on(org.mwg.NodeIndex index) {\n" +
-                                "               index.findAll(new Callback<org.mwg.Node[]>() {\n" +
+                                "               index.find(new Callback<org.mwg.Node[]>() {\n" +
                                 "                   @Override\n" +
                                 "                   public void on(org.mwg.Node[] nodes) {\n" +
                                 "                       " + resultType + "[] result = new " + resultType + "[nodes.length];\n" +
