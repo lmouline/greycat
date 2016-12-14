@@ -165,8 +165,10 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
             }
         }, traverse);
 
-        Task mainTask = newTask().then(Actions.travelInTime(time() + "")).then(travelInWorld(world() + "")).then(inject(this)).mapReduce(traverse);
-        mainTask.execute(graph(), new Callback<TaskResult>() {
+        Task mainTask = newTask()
+                .mapReduce(traverse);
+
+        mainTask.executeWith(graph(), this, new Callback<TaskResult>() {
             @Override
             public void on(TaskResult result) {
                 if (result != null) {
@@ -437,7 +439,6 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
         Task deepTraverseTask = newTask().then(Actions.travelInTime(time() + "")).then(travelInWorld(world() + ""));
         final int parentLevel = this.getLevel();
 
-        deepTraverseTask.then(inject(new Node[]{this}));
         for (int i = 0; i < this.getLevel() - level; i++) {
             deepTraverseTask.then(new ActionTraverseOrKeep(INTERNAL_SUBGAUSSIAN));
             final int finalI = i;
@@ -449,7 +450,7 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
             }));
         }
 
-        deepTraverseTask.execute(graph(), new Callback<TaskResult>() {
+        deepTraverseTask.executeWith(graph(), this, new Callback<TaskResult>() {
             @Override
             public void on(TaskResult result) {
 
@@ -498,11 +499,16 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
             }
         }
         final double[] err = initialPrecision;
-        Task deepTraverseTask = newTask().then(Actions.travelInTime(time() + "")).then(travelInWorld(world() + ""));
-        deepTraverseTask.then(inject(new Node[]{this}));
+        Task deepTraverseTask = newTask()
+                .then(Actions.travelInTime(time() + ""))
+                .then(travelInWorld(world() + ""));
+
+
         for (int i = 0; i < this.getLevel() - level; i++) {
             deepTraverseTask.then(new ActionTraverseOrKeep(INTERNAL_SUBGAUSSIAN));
         }
+
+
         deepTraverseTask.thenDo(new ActionFunction() {
             @Override
             public void eval(TaskContext ctx) {
@@ -535,7 +541,7 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
             }
         });
 
-        deepTraverseTask.execute(graph(), null);
+        deepTraverseTask.executeWith(graph(), this, null);
     }
 
     @Override
