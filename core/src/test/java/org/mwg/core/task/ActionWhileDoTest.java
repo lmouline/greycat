@@ -66,8 +66,8 @@ public class ActionWhileDoTest extends AbstractActionTest {
                 Task whiletask = newTask().then(inject(root)).doWhile(
                         newTask().flatMap(newTask().ifThenElse(new ConditionalFunction() {
                             @Override
-                            public boolean eval(TaskContext context) {
-                                return context.resultAsNodes().get(0).get("child") != null;
+                            public boolean eval(TaskContext ctx) {
+                                return ctx.resultAsNodes().get(0).get("child") != null;
                             }
                         }, newTask().then(traverse("child")), newTask().thenDo(new ActionFunction() {
                             @Override
@@ -79,9 +79,9 @@ public class ActionWhileDoTest extends AbstractActionTest {
                         }))),
                         new ConditionalFunction() {
                             @Override
-                            public boolean eval(TaskContext context) {
+                            public boolean eval(TaskContext ctx) {
                                 //System.out.println("condition while");
-                                return context.result().size() != 0;
+                                return ctx.result().size() != 0;
                             }
                         }
                 ).then(readVar("leaves"));

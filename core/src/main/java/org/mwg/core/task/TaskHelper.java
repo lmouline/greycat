@@ -45,13 +45,13 @@ public class TaskHelper {
                     System.arraycopy(innerNodes, 0, tmp, nodes.length, innerNodes.length);
                     nodes = tmp;
                 } else if (strict) {
-                    throw new RuntimeException("[ActionAddToGlobalIndex] The array in result contains an element with wrong type. " +
+                    throw new RuntimeException("[ActionAddRemoveToGlobalIndex] The array in result contains an element with wrong type. " +
                             "Expected type: BaseNode. Actual type: " + resAsArray[i]);
                 }
             }
             return nodes;
         } else if (strict) {
-            throw new RuntimeException("[ActionAddToGlobalIndex] Wrong type of result. Expected type is BaseNode or an array of BaseNode." +
+            throw new RuntimeException("[ActionAddRemoveToGlobalIndex] Wrong type of result. Expected type is BaseNode or an array of BaseNode." +
                     "Actual type is " + toFLat);
         }
         return new Node[0];

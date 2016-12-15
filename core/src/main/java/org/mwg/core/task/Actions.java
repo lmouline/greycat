@@ -231,7 +231,12 @@ public class Actions {
      * @return the action to chain
      */
     public static Action addToGlobalIndex(String name, String... attributes) {
-        return new ActionAddToGlobalIndex(name, attributes);
+        return new ActionAddRemoveToGlobalIndex(false,false,name, attributes);
+    }
+
+
+    public static Action addToGlobalTimedIndex(String name, String... attributes){
+        return new ActionAddRemoveToGlobalIndex(false,true,name, attributes);
     }
 
     /**
@@ -242,7 +247,18 @@ public class Actions {
      * @return the action to chain
      */
     public static Action removeFromGlobalIndex(String name, String... attributes) {
-        return new ActionRemoveFromGlobalIndex(name, attributes);
+        return new ActionAddRemoveToGlobalIndex(true, false, name, attributes);
+    }
+
+    /**
+     * Removes a node from the named global index.
+     *
+     * @param name       of the index
+     * @param attributes attributes to used to find the node in the index
+     * @return the action to chain
+     */
+    public static Action removeFromGlobalTimedIndex(String name, String... attributes) {
+        return new ActionAddRemoveToGlobalIndex(true, true,name, attributes);
     }
 
     /**

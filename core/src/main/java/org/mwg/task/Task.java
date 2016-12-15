@@ -346,7 +346,11 @@ public interface Task {
 
     Task addToGlobalIndex(String name, String... attributes);
 
+    Task addToGlobalTimedIndex(String name, String... attributes);
+
     Task removeFromGlobalIndex(String name, String... attributes);
+
+    Task removeFromGlobalTimedIndex(String name, String... attributes);
 
     Task indexNames();
 

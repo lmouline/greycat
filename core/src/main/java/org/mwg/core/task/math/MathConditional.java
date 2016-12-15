@@ -19,12 +19,12 @@ public class MathConditional {
     public ConditionalFunction conditional() {
         return new ConditionalFunction() {
             @Override
-            public boolean eval(TaskContext context) {
+            public boolean eval(TaskContext ctx) {
                 Map<String, Double> variables = new HashMap<String, Double>();
                 variables.put("PI", Math.PI);
                 variables.put("TRUE", 1.0);
                 variables.put("FALSE", 0.0);
-                return (_engine.eval(null, context, variables) >= 0.5);
+                return (_engine.eval(null, ctx, variables) >= 0.5);
             }
         };
     }

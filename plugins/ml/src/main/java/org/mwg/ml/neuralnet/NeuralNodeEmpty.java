@@ -181,7 +181,7 @@ public class NeuralNodeEmpty extends BaseNode {
                             }
                         }).ifThen(new ConditionalFunction() {
                                       @Override
-                                      public boolean eval(TaskContext context) {
+                                      public boolean eval(TaskContext ctx) {
                                           return false; //should return if buffer is full
                                       }
                                   }, newTask().thenDo(new ActionFunction() {
@@ -195,7 +195,7 @@ public class NeuralNodeEmpty extends BaseNode {
                                     }
                                 }).ifThenElse(new ConditionalFunction() {
                                     @Override
-                                    public boolean eval(TaskContext context) {
+                                    public boolean eval(TaskContext ctx) {
                                         return false; //should return true if the node is hidden or input or root
                                     }
                                 }, t, newTask().thenDo(new ActionFunction() {

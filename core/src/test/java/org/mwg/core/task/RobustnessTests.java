@@ -294,7 +294,7 @@ public class RobustnessTests {
         try {
             new CoreTask().ifThen(new ConditionalFunction() {
                 @Override
-                public boolean eval(TaskContext context) {
+                public boolean eval(TaskContext ctx) {
                     return true;
                 }
             }, null).execute(_graph, null);

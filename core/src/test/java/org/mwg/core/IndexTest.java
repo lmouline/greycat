@@ -120,25 +120,25 @@ public class IndexTest {
                         .travelInWorld("0")
                         .readGlobalIndex("indexName") //comment this line to make the test passed
                         .createNode()
-                        .setAttribute("name", Type.STRING,"156ea1e_11-SNAPSHOT")
-                        .addToGlobalIndex("indexName","name")
+                        .setAttribute("name", Type.STRING, "156ea1e_11-SNAPSHOT")
+                        .addToGlobalIndex("indexName", "name")
                         .readGlobalIndex("indexName")
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
-                                Assert.assertEquals(1,ctx.result().size());
+                                Assert.assertEquals(1, ctx.result().size());
                             }
                         })
-                        .readGlobalIndex("indexName","name","156ea1e_11-SNAPSHOT")
+                        .readGlobalIndex("indexName", "name", "156ea1e_11-SNAPSHOT")
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
-                                Assert.assertEquals(1,ctx.result().size());
+                                Assert.assertEquals(1, ctx.result().size());
                                 ctx.continueTask();
                             }
                         })
                         .save()
-                        .execute(graph,null);
+                        .execute(graph, null);
             }
         });
     }
@@ -160,21 +160,23 @@ public class IndexTest {
                         .travelInTime("0")
                         .travelInWorld("0")
                         .createNode()
-                        .setAttribute(kAtt,Type.STRING,fValue)
+                        .setAttribute(kAtt, Type.STRING, fValue)
                         .setAsVar(rootNode)
-                        .addToGlobalIndex(idxName,kAtt) //add to index at time 0
+                        .addToGlobalTimedIndex(idxName, kAtt) //add to index at time 0
                         .readVar(rootNode)
                         .travelInTime("10") //jump the context at time 10
-                        .removeFromGlobalIndex(idxName,kAtt) //remove the node from the index
-                        .setAttribute(kAtt,Type.STRING,sValue) //modify its key value
-                        .addToGlobalIndex(idxName,kAtt) //re-add to the index
+                        .removeFromGlobalTimedIndex(idxName, kAtt) //remove the node from the index
+                        .setAttribute(kAtt, Type.STRING, sValue) //modify its key value
+
+                        .addToGlobalTimedIndex(idxName, kAtt) //re-add to the index
+
                         //Check
                         .travelInTime("10")
-                        .readGlobalIndex(idxName,kAtt,sValue)
+                        .readGlobalIndex(idxName, kAtt, sValue)
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
-                                Assert.assertEquals(1,ctx.result().size());
+                                Assert.assertEquals(1, ctx.result().size());
                                 ctx.continueTask();
                             }
                         })
@@ -185,21 +187,21 @@ public class IndexTest {
                             public void eval(TaskContext ctx) {
                                 //The index works perfectly without the query
                                 Node node = (Node) ctx.result().get(0);
-                                Assert.assertEquals(1,ctx.result().size());
-                                Assert.assertEquals(fValue,node.get(kAtt));
+                                Assert.assertEquals(1, ctx.result().size());
+                                Assert.assertEquals(fValue, node.get(kAtt));
                                 ctx.continueTask();
                             }
                         })
-                        .readGlobalIndex(idxName,kAtt,fValue)
+                        .readGlobalIndex(idxName, kAtt, fValue)
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
                                 //But not with the query...
-                                Assert.assertEquals(1,ctx.result().size());
+                                Assert.assertEquals(0, ctx.result().size());
                                 ctx.continueTask();
                             }
                         })
-                        .execute(graph,null);
+                        .execute(graph, null);
             }
         });
     }

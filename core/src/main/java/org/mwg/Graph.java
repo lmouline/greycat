@@ -130,6 +130,16 @@ public interface Graph {
     void index(long world, long time, String name, Callback<NodeIndex> callback);
 
     /**
+     * Retrieve a named global index, at a precise world and time
+     *
+     * @param world
+     * @param time
+     * @param name
+     * @param callback
+     */
+    void indexIfExists(long world, long time, String name, Callback<NodeIndex> callback);
+
+    /**
      * Retrieve the list of indexes.
      *
      * @param world    The world id in which the search must be performed.

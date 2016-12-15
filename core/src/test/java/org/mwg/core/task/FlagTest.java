@@ -80,8 +80,8 @@ public class FlagTest {
                 }
             }).ifThen(new ConditionalFunction() {
                 @Override
-                public boolean eval(TaskContext context) {
-                    return (context.result() != null);
+                public boolean eval(TaskContext ctx) {
+                    return (ctx.result() != null);
                 }
             }, traverse);
 

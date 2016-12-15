@@ -27,16 +27,20 @@ class ActionReadGlobalIndex implements Action {
     public void eval(final TaskContext ctx) {
         final String name = ctx.template(_name);
         final String[] query = ctx.templates(_params);
-        ctx.graph().index(ctx.world(), ctx.time(), name, new Callback<NodeIndex>() {
+        ctx.graph().indexIfExists(ctx.world(), ctx.time(), name, new Callback<NodeIndex>() {
             @Override
             public void on(NodeIndex resolvedIndex) {
-                resolvedIndex.find(new Callback<Node[]>() {
-                    @Override
-                    public void on(Node[] result) {
-                        resolvedIndex.free();
-                        ctx.continueWith(ctx.wrap(result));
-                    }
-                }, query);
+                if(resolvedIndex != null){
+                    resolvedIndex.find(new Callback<Node[]>() {
+                        @Override
+                        public void on(Node[] result) {
+                            resolvedIndex.free();
+                            ctx.continueWith(ctx.wrap(result));
+                        }
+                    }, query);
+                } else {
+                    ctx.continueWith(ctx.newResult());
+                }
             }
         });
     }

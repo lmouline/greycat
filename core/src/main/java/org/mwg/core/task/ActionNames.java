@@ -5,6 +5,7 @@ public class ActionNames {
     public static String ADD_VAR_TO_RELATION = "addVarToRelation";
     public static String REMOVE_VAR_TO_RELATION = "removeVarToRelation";
     public static String ADD_TO_GLOBAL_INDEX = "addToGlobalIndex";
+    public static String ADD_TO_GLOBAL_TIMED_INDEX = "addToGlobalTimedIndex";
     public static String ADD_TO_VAR = "addToVar";
     public static String ATTRIBUTES = "attributes";
     public static String ATTRIBUTES_WITH_TYPE = "attributesWithType";

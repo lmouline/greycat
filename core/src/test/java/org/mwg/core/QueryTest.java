@@ -132,6 +132,11 @@ public class QueryTest implements Resolver, Graph {
 
     }
 
+    @Override
+    public void indexIfExists(long world, long time, String name, Callback<NodeIndex> callback) {
+
+    }
+
 
     @Override
     public void indexNames(long world, long time, Callback<String[]> callback) {

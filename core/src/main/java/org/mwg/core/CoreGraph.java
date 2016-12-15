@@ -436,30 +436,47 @@ public class CoreGraph implements org.mwg.Graph {
 
     @Override
     public synchronized void index(long world, long time, String name, Callback<NodeIndex> callback) {
+        internal_index(world, time, name, false, callback);
+    }
+
+    @Override
+    public synchronized void indexIfExists(long world, long time, String name, Callback<NodeIndex> callback) {
+        internal_index(world, time, name, true, callback);
+    }
+
+    private void internal_index(long world, long time, String name, boolean ifExists, Callback<NodeIndex> callback) {
         final CoreGraph selfPointer = this;
         final long indexNameCoded = this._resolver.stringToHash(name, true);
         this._resolver.lookup(world, time, CoreConstants.END_OF_TIME, new Callback<org.mwg.Node>() {
             @Override
             public void on(org.mwg.Node globalIndexNodeUnsafe) {
-                LongLongMap globalIndexContent;
-                if (globalIndexNodeUnsafe == null) {
-                    globalIndexNodeUnsafe = new BaseNode(world, time, CoreConstants.END_OF_TIME, selfPointer);
-                    selfPointer._resolver.initNode(globalIndexNodeUnsafe, CoreConstants.NULL_LONG);
-                    globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.getOrCreate(CoreConstants.INDEX_ATTRIBUTE, Type.LONG_TO_LONG_MAP);
+                if(ifExists && globalIndexNodeUnsafe == null){
+                    callback.on(null);
                 } else {
-                    globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.get(CoreConstants.INDEX_ATTRIBUTE);
-                }
-                long indexId = globalIndexContent.get(indexNameCoded);
-                globalIndexNodeUnsafe.free();
-                if (indexId == CoreConstants.NULL_LONG) {
-                    //insert null
-                    org.mwg.NodeIndex newIndexNode = (NodeIndex) selfPointer.newTypedNode(world, time, CoreNodeIndex.NAME);
-                    //newIndexNode.getOrCreate(CoreConstants.INDEX_ATTRIBUTE, Type.RELATION_INDEXED);
-                    indexId = newIndexNode.id();
-                    globalIndexContent.put(indexNameCoded, indexId);
-                    callback.on(newIndexNode);
-                } else {
-                    selfPointer._resolver.lookup(world, time, indexId, callback);
+                    LongLongMap globalIndexContent;
+                    if (globalIndexNodeUnsafe == null) {
+                        globalIndexNodeUnsafe = new BaseNode(world, time, CoreConstants.END_OF_TIME, selfPointer);
+                        selfPointer._resolver.initNode(globalIndexNodeUnsafe, CoreConstants.NULL_LONG);
+                        globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.getOrCreate(CoreConstants.INDEX_ATTRIBUTE, Type.LONG_TO_LONG_MAP);
+                    } else {
+                        globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.get(CoreConstants.INDEX_ATTRIBUTE);
+                    }
+                    long indexId = globalIndexContent.get(indexNameCoded);
+                    globalIndexNodeUnsafe.free();
+                    if (indexId == CoreConstants.NULL_LONG) {
+                        //insert null
+                        if (ifExists) {
+                            callback.on(null);
+                        } else {
+                            org.mwg.NodeIndex newIndexNode = (NodeIndex) selfPointer.newTypedNode(world, time, CoreNodeIndex.NAME);
+                            //newIndexNode.getOrCreate(CoreConstants.INDEX_ATTRIBUTE, Type.RELATION_INDEXED);
+                            indexId = newIndexNode.id();
+                            globalIndexContent.put(indexNameCoded, indexId);
+                            callback.on(newIndexNode);
+                        }
+                    } else {
+                        selfPointer._resolver.lookup(world, time, indexId, callback);
+                    }
                 }
             }
         });

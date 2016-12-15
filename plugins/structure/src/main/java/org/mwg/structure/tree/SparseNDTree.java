@@ -143,12 +143,12 @@ public class SparseNDTree extends BaseNode implements NTree {
 
     private static Task insert = newTask().whileDo(new ConditionalFunction() {
         @Override
-        public boolean eval(TaskContext context) {
-            SparseNDTree root = (SparseNDTree) context.variable("root").get(0);
-            Node current = context.resultAsNodes().get(0);
+        public boolean eval(TaskContext ctx) {
+            SparseNDTree root = (SparseNDTree) ctx.variable("root").get(0);
+            Node current = ctx.resultAsNodes().get(0);
             NodeState state = current.graph().resolver().resolveState(current);
-            boolean updateStat = (boolean) context.variable("updatestat").get(0);
-            boolean updateCount = (boolean) context.variable("updatecount").get(0);
+            boolean updateStat = (boolean) ctx.variable("updatestat").get(0);
+            boolean updateCount = (boolean) ctx.variable("updatecount").get(0);
 
             //Get state variables here
 
@@ -161,8 +161,8 @@ public class SparseNDTree extends BaseNode implements NTree {
 
             //Get variables from context
             //toDo optimize the variables here
-            double[] keyToInsert = (double[]) context.variable("key").get(0);
-            long valueToInsert = (long) context.variable("value").get(0);
+            double[] keyToInsert = (double[]) ctx.variable("key").get(0);
+            long valueToInsert = (long) ctx.variable("value").get(0);
             int dim = keyToInsert.length;
 
             //System.out.println("node id: " + current.id() + " insert: " + keyToInsert[0] + " , " + keyToInsert[1]);
@@ -179,20 +179,20 @@ public class SparseNDTree extends BaseNode implements NTree {
                 // System.out.println(traverseId-_RELCONST);
                 //Check if there is a node already in this subspace, otherwise create it
                 if (state.get(traverseId) == null) {
-                    boolean updatestatchild = (boolean) context.variable("updatestatchild").get(0);
+                    boolean updatestatchild = (boolean) ctx.variable("updatestatchild").get(0);
                     createChildAndIndex(dim, centerKey, boundMin, boundMax, keyToInsert, valueToInsert, current, state, traverseId, updatestatchild);
                     updateCount(updateCount, root);
                     return false;
                 } else {
-                    context.setVariable("next", traverseId);
+                    ctx.setVariable("next", traverseId);
                     return true;
                 }
             } else {
                 Relation rel = (Relation) state.getOrCreate(_VALUES, Type.RELATION);
                 double[] keys = (double[]) state.get(_KEYS);
 
-                double distancemin = (double) context.variable("distancemin").get(0);
-                Distance distance = (Distance) context.variable("distance").get(0);
+                double distancemin = (double) ctx.variable("distancemin").get(0);
+                Distance distance = (Distance) ctx.variable("distance").get(0);
 
 
                 if (keys != null) {
@@ -219,7 +219,7 @@ public class SparseNDTree extends BaseNode implements NTree {
                     updateCount(updateCount, root);
                     updateGaussian(updateStat, state, keyToInsert);
 
-                    int maxchildren = (int) context.variable("maxchildren").get(0);
+                    int maxchildren = (int) ctx.variable("maxchildren").get(0);
 
                     if (rel.size() <= maxchildren) {
                         return false;

@@ -43,18 +43,18 @@ public class KDTree extends BaseNode implements NTree {
     private static Task insert = newTask()
             .whileDo(new ConditionalFunction() {
                          @Override
-                         public boolean eval(TaskContext context) {
-                             Node current = context.resultAsNodes().get(0);
+                         public boolean eval(TaskContext ctx) {
+                             Node current = ctx.resultAsNodes().get(0);
                              double[] nodeKey = (double[]) current.get(KEY);
                              //Get variables from context
                              //toDo optimize the variables here
-                             int dim = (int) context.variable("dim").get(0);
-                             double[] keyToInsert = (double[]) context.variable("key").get(0);
-                             Node valueToInsert = (Node) context.variable("value").get(0);
-                             Node root = (Node) context.variable("root").get(0);
-                             Distance distance = (Distance) context.variable("distance").get(0);
-                             double err = (double) context.variable("err").get(0);
-                             int lev = (int) context.variable("lev").get(0);
+                             int dim = (int) ctx.variable("dim").get(0);
+                             double[] keyToInsert = (double[]) ctx.variable("key").get(0);
+                             Node valueToInsert = (Node) ctx.variable("value").get(0);
+                             Node root = (Node) ctx.variable("root").get(0);
+                             Distance distance = (Distance) ctx.variable("distance").get(0);
+                             double err = (double) ctx.variable("err").get(0);
+                             int lev = (int) ctx.variable("lev").get(0);
 
                              //Bootstrap, first insert ever
                              if (nodeKey == null) {
@@ -80,7 +80,7 @@ public class KDTree extends BaseNode implements NTree {
 
                                  //If there is no node to the right, we create one and the game is over
                                  if (child == null || child.size() == 0) {
-                                     KDTree childNode = (KDTree) context.graph().newTypedNode(current.world(), current.time(), NAME);
+                                     KDTree childNode = (KDTree) ctx.graph().newTypedNode(current.world(), current.time(), NAME);
                                      childNode.set(KEY, Type.DOUBLE_ARRAY, keyToInsert);
                                      ((Relation) childNode.getOrCreate(VALUE, Type.RELATION)).clear().add(valueToInsert.id());
                                      ((Relation) current.getOrCreate(nextRel, Type.RELATION)).clear().add(childNode.id());
@@ -89,8 +89,8 @@ public class KDTree extends BaseNode implements NTree {
                                      return false;
                                  } else {
                                      //Otherwise we need to prepare for the next while iteration
-                                     context.setGlobalVariable("next", nextRel);
-                                     context.setGlobalVariable("lev", (lev + 1) % dim);
+                                     ctx.setGlobalVariable("next", nextRel);
+                                     ctx.setGlobalVariable("lev", (lev + 1) % dim);
                                      return true;
                                  }
                              }
@@ -214,8 +214,8 @@ public class KDTree extends BaseNode implements NTree {
                         newTask()
                                 .ifThen(new ConditionalFunction() {
                                     @Override
-                                    public boolean eval(TaskContext context) {
-                                        return context.variable("near").size() > 0;
+                                    public boolean eval(TaskContext ctx) {
+                                        return ctx.variable("near").size() > 0;
                                     }
                                 }, newTask()
                                         .then(traverse("{{near}}"))
@@ -301,8 +301,8 @@ public class KDTree extends BaseNode implements NTree {
                         newTask()
                                 .ifThen(new ConditionalFunction() {
                                             @Override
-                                            public boolean eval(TaskContext context) {
-                                                return ((boolean) context.variable("continueFar").get(0) && context.variable("far").size() > 0); //Exploring the far depends also on the distance
+                                            public boolean eval(TaskContext ctx) {
+                                                return ((boolean) ctx.variable("continueFar").get(0) && ctx.variable("far").size() > 0); //Exploring the far depends also on the distance
                                             }
                                         },
                                         newTask()
@@ -426,8 +426,8 @@ public class KDTree extends BaseNode implements NTree {
                         newTask()
                                 .ifThen(new ConditionalFunction() {
                                     @Override
-                                    public boolean eval(TaskContext context) {
-                                        return context.variable("near").size() > 0;
+                                    public boolean eval(TaskContext ctx) {
+                                        return ctx.variable("near").size() > 0;
                                     }
                                 }, newTask()
                                         .then(traverse("{{near}}"))
@@ -505,8 +505,8 @@ public class KDTree extends BaseNode implements NTree {
                         newTask()
                                 .ifThen(new ConditionalFunction() {
                                     @Override
-                                    public boolean eval(TaskContext context) {
-                                        return ((boolean) context.variable("continueFar").get(0) && context.variable("far").size() > 0); //Exploring the far depends also on the distance
+                                    public boolean eval(TaskContext ctx) {
+                                        return ((boolean) ctx.variable("continueFar").get(0) && ctx.variable("far").size() > 0); //Exploring the far depends also on the distance
                                     }
                                 }, newTask()
                                         .then(traverse("{{far}}"))

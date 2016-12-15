@@ -509,8 +509,8 @@ public class CoreTask implements org.mwg.task.Task {
     private static ConditionalFunction condFromScript(final String script) {
         return new ConditionalFunction() {
             @Override
-            public boolean eval(TaskContext context) {
-                return executeScript(script, context);
+            public boolean eval(TaskContext ctx) {
+                return executeScript(script, ctx);
             }
         };
     }
@@ -1156,8 +1156,18 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
+    public Task addToGlobalTimedIndex(String name, String... attributes) {
+        return then(Actions.addToGlobalTimedIndex(name, attributes));
+    }
+
+    @Override
     public Task removeFromGlobalIndex(String name, String... attributes) {
         return then(Actions.removeFromGlobalIndex(name, attributes));
+    }
+
+    @Override
+    public Task removeFromGlobalTimedIndex(String name, String... attributes) {
+        return then(Actions.removeFromGlobalTimedIndex(name, attributes));
     }
 
     @Override

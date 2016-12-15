@@ -30,14 +30,14 @@ public class ActionIfThenTest extends AbstractActionTest {
 
         newTask().ifThen(new ConditionalFunction() {
             @Override
-            public boolean eval(TaskContext context) {
+            public boolean eval(TaskContext ctx) {
                 return true;
             }
         }, modifyResult0).execute(graph, null);
 
         newTask().ifThen(new ConditionalFunction() {
             @Override
-            public boolean eval(TaskContext context) {
+            public boolean eval(TaskContext ctx) {
                 return false;
             }
         }, modifyResult0).execute(graph, null);
@@ -96,7 +96,7 @@ public class ActionIfThenTest extends AbstractActionTest {
 
         newTask().then(inject(5)).then(defineAsGlobalVar("variable")).ifThen(new ConditionalFunction() {
             @Override
-            public boolean eval(TaskContext context) {
+            public boolean eval(TaskContext ctx) {
                 return true;
             }
         }, accessVar).execute(graph, null);

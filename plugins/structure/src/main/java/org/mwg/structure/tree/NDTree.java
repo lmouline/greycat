@@ -110,13 +110,13 @@ public class NDTree extends BaseNode implements NTree {
     private static Task insert = newTask()
             .whileDo(new ConditionalFunction() {
                 @Override
-                public boolean eval(TaskContext context) {
+                public boolean eval(TaskContext ctx) {
 
-                    NDTree root = (NDTree) context.variable("root").get(0);
+                    NDTree root = (NDTree) ctx.variable("root").get(0);
 
-                    Node current = context.resultAsNodes().get(0);
+                    Node current = ctx.resultAsNodes().get(0);
                     NodeState state = current.graph().resolver().resolveState(current);
-                    boolean updateStat = (boolean) context.variable("updatestat").get(0);
+                    boolean updateStat = (boolean) ctx.variable("updatestat").get(0);
 
                     //Get state variables here
 
@@ -131,9 +131,9 @@ public class NDTree extends BaseNode implements NTree {
 
                     //Get variables from context
                     //toDo optimize the variables here
-                    double[] keyToInsert = (double[]) context.variable("key").get(0);
+                    double[] keyToInsert = (double[]) ctx.variable("key").get(0);
 
-                    double[] resolution = (double[]) context.variable("resolution").get(0);
+                    double[] resolution = (double[]) ctx.variable("resolution").get(0);
                     int dim = keyToInsert.length;
 
 
@@ -182,9 +182,9 @@ public class NDTree extends BaseNode implements NTree {
                         }
                         //toDo how to optimize not to lookup
                         //In all cases we can traverse here
-                        context.setVariable("next", traverseId);
+                        ctx.setVariable("next", traverseId);
                     } else {
-                        Node valueToInsert = (Node) context.variable("value").get(0);
+                        Node valueToInsert = (Node) ctx.variable("value").get(0);
                         Relation rel = (Relation) state.getOrCreate(_VALUES, Type.RELATION);
                         rel.add(valueToInsert.id());
                         double[] keys = (double[]) state.get(_KEYS);
