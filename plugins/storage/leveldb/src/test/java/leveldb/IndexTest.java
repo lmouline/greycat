@@ -19,7 +19,7 @@ public class IndexTest {
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-               graph.index(0, 0, index, new Callback<NodeIndex>() {
+               graph.indexIfExists(0, 0, index, new Callback<NodeIndex>() {
                    @Override
                    public void on(NodeIndex result) {
                        graph.save(new Callback<Boolean>() {
