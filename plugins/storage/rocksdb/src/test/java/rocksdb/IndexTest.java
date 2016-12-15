@@ -8,9 +8,6 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 
-/**
- * Created by ludovicmouline on 15/12/2016.
- */
 public class IndexTest {
 
     @Test
@@ -22,9 +19,10 @@ public class IndexTest {
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                graph.index(0, 0, index, new Callback<NodeIndex>() {
+                graph.indexIfExists(0, 0, index, new Callback<NodeIndex>() {
                     @Override
                     public void on(NodeIndex result) {
+
                         graph.save(new Callback<Boolean>() {
                             @Override
                             public void on(Boolean result) {
