@@ -29,14 +29,13 @@ public class TaskServerTest {
                 @Override
                 public void on(NodeIndex rootsIndex) {
                     rootsIndex.addToIndex(root, "name");
-
                     graph.index(0, Constants.BEGINNING_OF_TIME, "nodes", new Callback<NodeIndex>() {
                         @Override
                         public void on(NodeIndex nodesIndex) {
                             nodesIndex.addToIndex(n0, "name");
                             nodesIndex.addToIndex(n1, "name");
                             nodesIndex.addToIndex(root, "name");
-                            new WSServer(graph,4000).start();
+                            new WSServer(graph, 4000).start();
                             System.out.println("Server started 4000");
                         }
                     });

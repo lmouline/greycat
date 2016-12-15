@@ -34,7 +34,9 @@ public class ActionScript implements Action {
     public void serialize(StringBuilder builder) {
         builder.append(ActionNames.SCRIPT);
         builder.append(Constants.TASK_PARAM_OPEN);
+        builder.append("\"");
         builder.append(_script);
+        builder.append("\"");
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

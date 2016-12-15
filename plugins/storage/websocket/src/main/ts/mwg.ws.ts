@@ -78,24 +78,34 @@ module org {
                     this.send_rpc_req(this.REQ_UNLOCK, previousLock, callback);
                 }
 
-                tasks(flatTasks:org.mwg.struct.Buffer,callback:org.mwg.Callback<org.mwg.struct.Buffer>,...tasks: org.mwg.task.Task[]): void {
-                    /*var tasksBuffer = this.graph.newBuffer();
-                    for(var i=0;i<tasks.length;i++){
+                executeTasks(callback:org.mwg.Callback<String[]>,...tasks: org.mwg.task.Task[]): void {
+                    let tasksBuffer = this.graph.newBuffer();
+                    for(let i=0;i<tasks.length;i++){
                         if(i!=0){
                             tasksBuffer.write(org.mwg.Constants.BUFFER_SEP);
                         }
                         tasks[i].saveToBuffer(tasksBuffer);
-                    }*/
-                    this.send_rpc_req(this.REQ_TASK, flatTasks, callback);
+                    }
+                    let finalCB = callback;
+                    this.send_rpc_req(this.REQ_TASK, tasksBuffer, function(resultBuffer){
+                        var result = [];
+                        var it = resultBuffer.iterator();
+                        while(it.hasNext()){
+                            let view = it.next();
+                            result.push(org.mwg.utility.Base64.decodeToStringWithBounds(view,0,view.length()));
+                        }
+                        resultBuffer.free();
+                        finalCB(result);
+                    });
                 }
 
                 process_rpc_resp(payload:Int8Array) {
-                    var payloadBuf = this.graph.newBuffer();
+                    let payloadBuf = this.graph.newBuffer();
                     payloadBuf.writeAll(payload);
-                    var it = payloadBuf.iterator();
-                    var codeView = it.next();
+                    let it = payloadBuf.iterator();
+                    let codeView = it.next();
                     if (codeView != null && codeView.length() != 0) {
-                        var firstCode = codeView.read(0);
+                        let firstCode = codeView.read(0);
                         if(firstCode == this.REQ_UPDATE){
                             //console.log("NOTIFY UPDATE"); //TODO
                         } else {

@@ -2,13 +2,25 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import SplitPane from 'react-split-pane';
 import MonacoEditor from 'react-monaco-editor';
-import {Button} from 'react-bootstrap';
 import renderjson from 'renderjson';
 
-import 'bootstrap/dist/css/bootstrap.css';
+import 'bulma/css/bulma.css';
 import './index.css';
 
-window.context = {};
+global.context = {};
+
+let defaultURL = "ws://"+window.location.hostname+":4000";
+
+global.context.ws = new global.org.mwg.plugin.WSClient(defaultURL);
+global.context.graph = global.org.mwg.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
+global.context.graph.connect(null);
+
+global.context.url =function(val){
+    global.context.ws = new global.org.mwg.plugin.WSClient('ws://'+val);
+    global.context.graph = global.org.mwg.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
+    global.context.graph.connect(null);
+    console.log('change url to ws://'+val);
+};
 
 renderjson.set_show_to_level(3);
 
@@ -16,17 +28,24 @@ class Editor extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            code: 'travelInWorld(0)'
+            code: 'readGlobalIndex(nodes)'
         };
-        window.context.code = this.state.code;
+        global.context.code = this.state.code;
     }
 
     editorDidMount(editor, monaco) {
         editor.focus();
+        editor.layout();
+        global.context.layout = function(){
+            editor.layout();
+        };
+        window.onresize = function(){
+            global.context.layout();
+        }
     }
 
     onChange(newValue, e) {
-        window.context.code = newValue;
+        global.context.code = newValue;
     }
 
     render() {
@@ -57,42 +76,46 @@ const LoadingButton = React.createClass({
     render() {
         let isLoading = this.state.isLoading;
         return (
-            <Button
-                bsStyle="primary"
-                disabled={isLoading}
-                onClick={!isLoading ? this.handleClick : null}>
-                {isLoading ? 'Loading...' : 'Loading state'}
-            </Button>
+            <button className={isLoading ? 'button is-primary is-loading' : 'button is-primary'}
+                    onClick={!isLoading ? this.handleClick : null}>
+                {isLoading ? '' : 'Execute'}
+            </button>
         );
     },
     handleClick() {
-        this.setState({isLoading: true});
-        let targetDomElem = document.getElementById("json_result");
-        while (targetDomElem.firstChild) {
-            targetDomElem.removeChild(targetDomElem.firstChild);
-        }
-        targetDomElem.appendChild(
-            renderjson({ hello: [1,2,3,4], there: { a:1, b:2, c:["hello", null] } })
-        );
-
-        //console.log(window.context.code);
-
-        setTimeout(() => {
-
-            // Completed of async action, set loading state back
-            this.setState({isLoading: false});
-        }, 2000);
+        let self = this;
+        self.setState({isLoading: true});
+        let task = global.org.mwg.core.task.Actions.newTask();
+        task.parse(global.context.code, window.context.graph);
+        global.context.ws.executeTasks(function (results) {
+            let targetDomElem = document.getElementById("json_result");
+            while (targetDomElem.firstChild) {
+                targetDomElem.removeChild(targetDomElem.firstChild);
+            }
+            targetDomElem.appendChild(
+                renderjson(JSON.parse(results[0]))
+            );
+            self.setState({isLoading: false});
+        }, task);
     }
 });
 
 ReactDOM.render(
-    <SplitPane split="vertical" defaultSize="40%" minSize={50}>
-        <Editor />
-        <SplitPane split="horizontal" defaultSize="10%">
-            <div>
+    <SplitPane split="horizontal" defaultSize={50} allowResize={false}>
+        <div className="message-header is-primary flex">
+            <p className="control is-horizontal has-addons">
+                <input className="input" defaultValue={defaultURL} type="text" placeholder="IP:PORT" onChange={event => global.context.url(event.target.value)} />
                 <LoadingButton />
+            </p>
+
+        </div>
+        <SplitPane split="vertical" defaultSize="40%" minSize={50} onChange={
+            size => global.context.layout()
+        }>
+            <Editor />
+            <div id="json_result">
+
             </div>
-            <div id="json_result"></div>
         </SplitPane>
     </SplitPane>,
     document.getElementById('root')

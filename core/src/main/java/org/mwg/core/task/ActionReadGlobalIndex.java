@@ -46,8 +46,10 @@ class ActionReadGlobalIndex implements Action {
         builder.append(ActionNames.READ_GLOBAL_INDEX);
         builder.append(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_name, builder);
-        builder.append(Constants.TASK_PARAM_SEP);
-        TaskHelper.serializeStringParams(_params, builder);
+        if(_params != null && _params.length > 0){
+            builder.append(Constants.TASK_PARAM_SEP);
+            TaskHelper.serializeStringParams(_params, builder);
+        }
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

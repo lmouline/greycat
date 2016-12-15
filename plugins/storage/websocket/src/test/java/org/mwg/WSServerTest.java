@@ -61,7 +61,6 @@ public class WSServerTest {
     @Test
     public void test() {
 
-
         final Graph graph = new GraphBuilder()
                 .withMemorySize(10000)
                 .build();

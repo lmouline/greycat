@@ -1,0 +1,6 @@
+{
+  "name": "mwg-plugin-ws",
+  "version": "1.0.0",
+  "main": "mwg.ws.js",
+  "typings": "mwg.ws.d.ts"
+}

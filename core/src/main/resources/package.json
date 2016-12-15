@@ -1,0 +1,6 @@
+{
+  "name": "mwg",
+  "version": "1.0.0",
+  "main": "mwg.js",
+  "typings": "mwg.d.ts"
+}

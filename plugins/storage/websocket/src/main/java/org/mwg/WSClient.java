@@ -6,8 +6,11 @@ import io.undertow.websockets.client.WebSocketClient;
 import io.undertow.websockets.core.*;
 import org.mwg.chunk.Chunk;
 import org.mwg.plugin.Storage;
+import org.mwg.plugin.TaskExecutor;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
+import org.mwg.task.Task;
+import org.mwg.task.TaskResult;
 import org.mwg.utility.Base64;
 import org.xnio.*;
 
@@ -18,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class WSClient implements Storage {
+public class WSClient implements Storage, TaskExecutor {
 
     private final String url;
 
@@ -114,7 +117,6 @@ public class WSClient implements Storage {
     @Override
     public void disconnect(Callback<Boolean> callback) {
         try {
-            System.out.println("CloseClient");
             channel.sendClose();
             channel.close();
             _worker.shutdown();
@@ -125,6 +127,32 @@ public class WSClient implements Storage {
         } finally {
             callback.on(true);
         }
+    }
+
+    @Override
+    public void executeTasks(final Callback<String[]> callback, final Task... tasks) {
+        final Buffer buffer = graph.newBuffer();
+        for (int i = 0; i < tasks.length; i++) {
+            if (i != 0) {
+                buffer.write(Constants.BUFFER_SEP);
+            }
+            tasks[i].saveToBuffer(buffer);
+        }
+        send_rpc_req(WSConstants.REQ_TASK, buffer, new Callback<Buffer>() {
+            @Override
+            public void on(Buffer result) {
+                buffer.free();
+                String[] results = new String[tasks.length];
+                BufferIterator it = result.iterator();
+                int i = 0;
+                while (it.hasNext()) {
+                    Buffer view = it.next();
+                    results[i] = Base64.decodeToStringWithBounds(view, 0, view.length());
+                    i++;
+                }
+                callback.on(results);
+            }
+        });
     }
 
     private class MessageReceiver extends AbstractReceiveListener {
@@ -206,7 +234,7 @@ public class WSClient implements Storage {
                     int callbackCode = Base64.decodeToIntWithBounds(callbackCodeView, 0, callbackCodeView.length());
                     Callback resolvedCallback = callbacks.get(callbackCode);
                     if (resolvedCallback != null) {
-                        if (firstCode == WSConstants.RESP_LOCK || firstCode == WSConstants.RESP_GET) {
+                        if (firstCode == WSConstants.RESP_LOCK || firstCode == WSConstants.RESP_GET || firstCode == WSConstants.RESP_TASK) {
                             Buffer newBuf = graph.newBuffer();//will be free by the core
                             boolean isFirst = true;
                             while (it.hasNext()) {

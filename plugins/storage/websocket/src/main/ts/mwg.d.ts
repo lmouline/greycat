@@ -2043,6 +2043,9 @@ declare module org {
                 unlock(previousLock: org.mwg.struct.Buffer, callback: org.mwg.Callback<boolean>): void;
                 disconnect(callback: org.mwg.Callback<boolean>): void;
             }
+            interface TaskExecutor {
+                executeTasks(callback: org.mwg.Callback<string[]>, ...tasks: org.mwg.task.Task[]): void;
+            }
         }
         module struct {
             interface Buffer {

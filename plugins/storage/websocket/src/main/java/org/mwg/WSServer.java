@@ -12,6 +12,7 @@ import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
 import org.mwg.task.Task;
 import org.mwg.task.TaskResult;
+import org.mwg.utility.Base64;
 import org.mwg.utility.KeyHelper;
 
 import java.io.IOException;
@@ -109,11 +110,16 @@ public class WSServer implements WebSocketConnectionCallback {
                     });
                     break;
                 case WSConstants.REQ_TASK:
-                    final List<Task> tasks = new ArrayList<Task>();
+                    final List<Object> tasks = new ArrayList<Object>();
                     while (it.hasNext()) {
                         Task t = Actions.newTask();
-                        t.loadFromBuffer(it.next(), graph);
-                        tasks.add(t);
+                        try {
+                            t.loadFromBuffer(it.next(), graph);
+                            tasks.add(t);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            tasks.add(new TaskError(t, e.getMessage()));
+                        }
                     }
                     final TaskResult[] results = new TaskResult[tasks.size()];
                     final DeferCounter counter = graph.newCounter(tasks.size());
@@ -124,10 +130,10 @@ public class WSServer implements WebSocketConnectionCallback {
                             concat.write(WSConstants.RESP_TASK);
                             concat.write(Constants.BUFFER_SEP);
                             concat.writeAll(callbackCodeView.data());
-                            for (int i = 0; i < results.length; i++) {
+                            for (int i = 0; i < tasks.size(); i++) {
                                 concat.write(Constants.BUFFER_SEP);
                                 //improve the interface
-                                concat.writeAll(results[i].toString().getBytes());
+                                Base64.encodeStringToBuffer(results[i].toString(), concat);
                                 results[i].free();
                             }
                             payload.free();
@@ -137,13 +143,19 @@ public class WSServer implements WebSocketConnectionCallback {
                     //call all subTask
                     for (int i = 0; i < tasks.size(); i++) {
                         int finalI = i;
-                        tasks.get(i).execute(graph, new Callback<TaskResult>() {
-                            @Override
-                            public void on(TaskResult result) {
-                                results[finalI] = result;
-                                counter.count();
-                            }
-                        });
+                        Object elem = tasks.get(i);
+                        if (elem instanceof TaskError) {
+                            results[finalI] = (TaskResult) elem;
+                            counter.count();
+                        } else {
+                            ((Task) elem).execute(graph, new Callback<TaskResult>() {
+                                @Override
+                                public void on(TaskResult result) {
+                                    results[finalI] = result;
+                                    counter.count();
+                                }
+                            });
+                        }
                     }
                     break;
                 case WSConstants.REQ_LOCK:
