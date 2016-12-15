@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class StorageTest {
 
-    //@Test
+    @Test
     public void test() throws IOException {
         /*
         OffHeapByteArray.alloc_counter = 0;
@@ -17,7 +17,7 @@ public class StorageTest {
 */
         //Unsafe.DEBUG_MODE = true;
 
-        test(new GraphBuilder().withStorage(new HBaseStorage("data")).withScheduler(new NoopScheduler()).withMemorySize(2000000).build());
+        test(new GraphBuilder().withStorage(new HBaseStorage("data2")).withScheduler(new NoopScheduler()).withMemorySize(2000000).build());
     }
 
     final int valuesToInsert = 1000000;

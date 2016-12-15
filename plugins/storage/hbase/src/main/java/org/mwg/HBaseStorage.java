@@ -125,8 +125,20 @@ public class HBaseStorage implements Storage {
         // Create a connection to the cluster.
         try {
             Configuration conf = HBaseConfiguration.create();
+            conf.set("hbase.zookeeper.quorum", "192.168.25.60");
+//            conf.set("hbase.zookeeper.quorum", "localhost");
+            conf.set("hbase.zookeeper.property.clientPort", "2280");
+
+//            conf.set("zookeeper.znode.parent", "/hbase");
+
+
+//            conf.set("hbase.master", "192.168.25.60:16000");
+
             connection = ConnectionFactory.createConnection(conf);
+            HBaseAdmin.checkHBaseAvailable(conf);
+
             Admin admin = connection.getAdmin();
+
 
             if (!admin.tableExists(TableName.valueOf(tablename))) {
                 HTableDescriptor tableDescriptor = new HTableDescriptor(TableName.valueOf(tablename));
