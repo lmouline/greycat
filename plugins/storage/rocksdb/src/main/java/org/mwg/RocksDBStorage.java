@@ -118,6 +118,7 @@ public class RocksDBStorage implements Storage {
             _options.dispose();
             _options = null;
             _db = null;
+            _isConnected = false;
             if (callback != null) {
                 callback.on(true);
             }
@@ -135,7 +136,7 @@ public class RocksDBStorage implements Storage {
     public void connect(Graph graph, Callback<Boolean> callback) {
         if (_isConnected) {
             if (callback != null) {
-                callback.on(null);
+                callback.on(true);
             }
             return;
         }
@@ -159,7 +160,7 @@ public class RocksDBStorage implements Storage {
         } catch (RocksDBException e) {
             e.printStackTrace();
             if (callback != null) {
-                callback.on(null);
+                callback.on(false);
             }
         }
     }

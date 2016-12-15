@@ -4,7 +4,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
 import org.mwg.core.scheduler.NoopScheduler;
+import org.mwg.core.task.Actions;
 import org.mwg.struct.RelationIndexed;
+import org.mwg.task.ActionFunction;
+import org.mwg.task.TaskContext;
 
 public class IndexTest {
 
@@ -105,6 +108,102 @@ public class IndexTest {
             }
         });
     }
+
+    @Test
+    public void testReadBeforeSet() {
+        Graph graph = new GraphBuilder().build();
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                Actions.newTask()
+                        .travelInTime(System.currentTimeMillis() + "")
+                        .travelInWorld("0")
+                        .readGlobalIndex("indexName") //comment this line to make the test passed
+                        .createNode()
+                        .setAttribute("name", Type.STRING,"156ea1e_11-SNAPSHOT")
+                        .addToGlobalIndex("indexName","name")
+                        .readGlobalIndex("indexName")
+                        .thenDo(new ActionFunction() {
+                            @Override
+                            public void eval(TaskContext ctx) {
+                                Assert.assertEquals(1,ctx.result().size());
+                            }
+                        })
+                        .readGlobalIndex("indexName","name","156ea1e_11-SNAPSHOT")
+                        .thenDo(new ActionFunction() {
+                            @Override
+                            public void eval(TaskContext ctx) {
+                                Assert.assertEquals(1,ctx.result().size());
+                                ctx.continueTask();
+                            }
+                        })
+                        .save()
+                        .execute(graph,null);
+            }
+        });
+    }
+
+    @Test
+    public void testModificationKeyAttribute() {
+        Graph graph = new GraphBuilder().build();
+
+        final String rootNode = "rootNode";
+        final String kAtt = "name";
+        final String fValue = "root";
+        final String sValue = "newName";
+        final String idxName = "indexName";
+
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                Actions.newTask()
+                        .travelInTime("0")
+                        .travelInWorld("0")
+                        .createNode()
+                        .setAttribute(kAtt,Type.STRING,fValue)
+                        .setAsVar(rootNode)
+                        .addToGlobalIndex(idxName,kAtt) //add to index at time 0
+                        .readVar(rootNode)
+                        .travelInTime("10") //jump the context at time 10
+                        .removeFromGlobalIndex(idxName,kAtt) //remove the node from the index
+                        .setAttribute(kAtt,Type.STRING,sValue) //modify its key value
+                        .addToGlobalIndex(idxName,kAtt) //re-add to the index
+                        //Check
+                        .travelInTime("10")
+                        .readGlobalIndex(idxName,kAtt,sValue)
+                        .thenDo(new ActionFunction() {
+                            @Override
+                            public void eval(TaskContext ctx) {
+                                Assert.assertEquals(1,ctx.result().size());
+                                ctx.continueTask();
+                            }
+                        })
+                        .travelInTime("0") //jump the context at time 0
+                        .readGlobalIndex(idxName)
+                        .thenDo(new ActionFunction() {
+                            @Override
+                            public void eval(TaskContext ctx) {
+                                //The index works perfectly without the query
+                                Node node = (Node) ctx.result().get(0);
+                                Assert.assertEquals(1,ctx.result().size());
+                                Assert.assertEquals(fValue,node.get(kAtt));
+                                ctx.continueTask();
+                            }
+                        })
+                        .readGlobalIndex(idxName,kAtt,fValue)
+                        .thenDo(new ActionFunction() {
+                            @Override
+                            public void eval(TaskContext ctx) {
+                                //But not with the query...
+                                Assert.assertEquals(1,ctx.result().size());
+                                ctx.continueTask();
+                            }
+                        })
+                        .execute(graph,null);
+            }
+        });
+    }
+
 
     /*
     private void test(final Graph graph) {

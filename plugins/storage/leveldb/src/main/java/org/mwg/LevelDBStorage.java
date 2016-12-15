@@ -119,6 +119,7 @@ public class LevelDBStorage implements Storage {
         try {
             db.close();
             db = null;
+            isConnected = false;
             if (callback != null) {
                 callback.on(true);
             }
