@@ -9,17 +9,17 @@ import './index.css';
 
 global.context = {};
 
-let defaultURL = "ws://"+window.location.hostname+":4000";
+let defaultURL = "ws://" + window.location.hostname + ":4000";
 
 global.context.ws = new global.org.mwg.plugin.WSClient(defaultURL);
 global.context.graph = global.org.mwg.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
 global.context.graph.connect(null);
 
-global.context.url =function(val){
-    global.context.ws = new global.org.mwg.plugin.WSClient('ws://'+val);
+global.context.url = function (val) {
+    global.context.ws = new global.org.mwg.plugin.WSClient('ws://' + val);
     global.context.graph = global.org.mwg.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
     global.context.graph.connect(null);
-    console.log('change url to ws://'+val);
+    console.log('change url to ws://' + val);
 };
 
 renderjson.set_show_to_level(3);
@@ -36,10 +36,10 @@ class Editor extends React.Component {
     editorDidMount(editor, monaco) {
         editor.focus();
         editor.layout();
-        global.context.layout = function(){
+        global.context.layout = function () {
             editor.layout();
         };
-        window.onresize = function(){
+        window.onresize = function () {
             global.context.layout();
         }
     }
@@ -104,7 +104,8 @@ ReactDOM.render(
     <SplitPane split="horizontal" defaultSize={50} allowResize={false}>
         <div className="message-header is-primary flex">
             <p className="control is-horizontal has-addons">
-                <input className="input" defaultValue={defaultURL} type="text" placeholder="IP:PORT" onChange={event => global.context.url(event.target.value)} />
+                <input className="input" defaultValue={defaultURL} type="text" placeholder="IP:PORT"
+                       onChange={event => global.context.url(event.target.value)}/>
                 <LoadingButton />
             </p>
 

@@ -465,14 +465,6 @@ public class Actions {
         return newTask().thenDo(actionFunction);
     }
 
-    public static Task doWhile(Task task, ConditionalFunction cond) {
-        return newTask().doWhile(task, cond);
-    }
-
-    public static Task doWhileScript(Task task, String condScript) {
-        return newTask().doWhileScript(task, condScript);
-    }
-
     public static Task loop(String from, String to, Task subTask) {
         return newTask().loop(from, to, subTask);
     }
@@ -497,6 +489,14 @@ public class Actions {
         return newTask().flatMapPar(subTask);
     }
 
+    public static Task map(Task subTask) {
+        return newTask().map(subTask);
+    }
+
+    public static Task mapPar(Task subTask) {
+        return newTask().mapPar(subTask);
+    }
+
     public static Task ifThen(ConditionalFunction cond, Task then) {
         return newTask().ifThen(cond, then);
     }
@@ -513,6 +513,14 @@ public class Actions {
         return newTask().ifThenElseScript(condScript, thenSub, elseSub);
     }
 
+    public static Task doWhile(Task task, ConditionalFunction cond) {
+        return newTask().doWhile(task, cond);
+    }
+
+    public static Task doWhileScript(Task task, String condScript) {
+        return newTask().doWhileScript(task, condScript);
+    }
+
     public static Task whileDo(ConditionalFunction cond, Task task) {
         return newTask().whileDo(cond, task);
     }
@@ -527,6 +535,14 @@ public class Actions {
 
     public static Task mapReducePar(Task... subTasks) {
         return newTask().mapReducePar(subTasks);
+    }
+
+    public static Task flatMapReduce(Task... subTasks) {
+        return newTask().flatMapReduce(subTasks);
+    }
+
+    public static Task flatMapReducePar(Task... subTasks) {
+        return newTask().flatMapReducePar(subTasks);
     }
 
     public static Task isolate(Task subTask) {

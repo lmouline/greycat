@@ -56,12 +56,15 @@ public class ParseTest extends AbstractActionTest {
     public void testSCRIPT() {
         initGraph();
         Task t = newTask();
-        t.parse("readGlobalIndex(nodes).script(\"print(ctx);ctx.continueTask();\")",graph);
-        Assert.assertEquals("readGlobalIndex('nodes').script(\"print(ctx);ctx.continueTask();\")",t.toString());
+        t.parse("readGlobalIndex(nodes).script(\"print(ctx);ctx.continueTask();\")", graph);
+        Assert.assertEquals("readGlobalIndex('nodes').script('print(ctx);ctx.continueTask();')", t.toString());
+
+        Task t2 = newTask();
+        t2.parse("readGlobalIndex(nodes).select('node.get(\'name\') == \"root\"')", graph);
+        Assert.assertEquals("readGlobalIndex('nodes').select('node.get(\\'name\\') == \"root\"')", t2.toString());
+
         removeGraph();
     }
-
-
 
 
 }

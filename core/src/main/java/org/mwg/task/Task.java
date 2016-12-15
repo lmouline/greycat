@@ -79,7 +79,7 @@ public interface Task {
     Task forEachPar(Task subTask);
 
     /**
-     * Iterates through a collection and calls the sub task for each element and then aggregates all results.
+     * Iterates through a collection and calls the sub task for each element and then aggregates all results in a flat resultSet.
      *
      * @param subTask sub task to call for each element
      * @return this task to chain
@@ -88,13 +88,29 @@ public interface Task {
 
     /**
      * Parallel version of {@link #flatMap(Task)}.
-     * Iterates through a collection and calls the sub task for each element in parallel and then aggregates all results.
-     * Creates as many threads as elements in the collection.
+     * Iterates through a collection and calls the sub task for each element in parallel and then aggregates all results in a flat resultSet.
      *
      * @param subTask sub task to call for each element
      * @return this task to chain
      */
     Task flatMapPar(Task subTask);
+
+    /**
+     * Iterates through a collection and calls the sub task for each element and then aggregates all results in an array of array manner.
+     *
+     * @param subTask sub task to call for each element
+     * @return this task to chain
+     */
+    Task map(Task subTask);
+
+    /**
+     * Parallel version of {@link #flatMap(Task)}.
+     * Iterates through a collection and calls the sub task for each element in parallel and then aggregates all results in an array of array manner.
+     *
+     * @param subTask sub task to call for each element
+     * @return this task to chain
+     */
+    Task mapPar(Task subTask);
 
     /**
      * Executes a sub task if a given condition is evaluated to true.
@@ -154,7 +170,7 @@ public interface Task {
 
     /**
      * Executes and waits for a number of given sub tasks.
-     * The result of these sub tasks is immediately enqueued and available in the next sub task.
+     * The result of these sub tasks is immediately enqueued and available in the next sub task in a array of array manner.
      *
      * @param subTasks that needs to be executed
      * @return this task to chain
@@ -164,12 +180,31 @@ public interface Task {
     /**
      * Parallel version of {@link #mapReduce(Task...)}.
      * Executes and waits a number of given sub tasks.
-     * The result of these sub tasks is immediately enqueued and available in the next sub task.
+     * The result of these sub tasks is immediately enqueued and available in the next sub task in a array of array manner.
      *
      * @param subTasks that have to be executed
      * @return this task to chain
      */
     Task mapReducePar(Task... subTasks);
+
+    /**
+     * Executes and waits for a number of given sub tasks.
+     * The result of these sub tasks is immediately enqueued and available in the next sub task as a flat array.
+     *
+     * @param subTasks that needs to be executed
+     * @return this task to chain
+     */
+    Task flatMapReduce(Task... subTasks);
+
+    /**
+     * Parallel version of {@link #flatMapReduce(Task...)}.
+     * Executes and waits a number of given sub tasks.
+     * The result of these sub tasks is immediately enqueued and available in the next sub task as a flat array.
+     *
+     * @param subTasks that have to be executed
+     * @return this task to chain
+     */
+    Task flatMapReducePar(Task... subTasks);
 
     /**
      * Executes a given sub task in an isolated environment.

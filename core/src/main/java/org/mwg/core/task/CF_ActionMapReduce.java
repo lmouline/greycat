@@ -14,9 +14,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 class CF_ActionMapReduce extends CF_Action {
 
     private final Task[] _subTasks;
+    private final boolean _flat;
 
-    CF_ActionMapReduce(final Task... p_subTasks) {
+    CF_ActionMapReduce(final boolean flat, final Task... p_subTasks) {
         super();
+        _flat = flat;
         _subTasks = p_subTasks;
     }
 
@@ -32,11 +34,15 @@ class CF_ActionMapReduce extends CF_Action {
             public void on(final TaskResult result) {
                 final int current = cursor.getAndIncrement();
                 if (result != null) {
-                    for (int i = 0; i < result.size(); i++) {
-                        final Object loop = result.get(i);
-                        if (loop != null) {
-                            next.add(loop);
+                    if (_flat) {
+                        for (int i = 0; i < result.size(); i++) {
+                            final Object loop = result.get(i);
+                            if (loop != null) {
+                                next.add(loop);
+                            }
                         }
+                    } else {
+                        next.add(result);
                     }
                 }
                 if (current < tasksSize) {
@@ -62,7 +68,11 @@ class CF_ActionMapReduce extends CF_Action {
 
     @Override
     public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
-        builder.append(ActionNames.LOOP);
+        if (_flat) {
+            builder.append(ActionNames.FLAT_MAP_REDUCE);
+        } else {
+            builder.append(ActionNames.MAP_REDUCE);
+        }
         builder.append(Constants.TASK_PARAM_OPEN);
         for (int i = 0; i < _subTasks.length; i++) {
             if (i != 0) {

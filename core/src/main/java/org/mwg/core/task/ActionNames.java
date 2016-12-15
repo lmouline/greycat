@@ -42,10 +42,14 @@ public class ActionNames {
     public static String LOOP_PAR = "loopPar";
     public static String FOR_EACH = "forEach";
     public static String FOR_EACH_PAR = "forEachPar";
+    public static String MAP = "map";
+    public static String MAP_PAR = "mapPar";
     public static String FLAT_MAP = "flatMap";
     public static String FLAT_MAP_PAR = "flatMapPar";
     public static String MAP_REDUCE = "mapReduce";
     public static String MAP_REDUCE_PAR = "mapPar";
+    public static String FLAT_MAP_REDUCE = "flatMapReduce";
+    public static String FLAT_MAP_REDUCE_PAR = "flatMapPar";
     public static String DO_WHILE = "doWhile";
     public static String WHILE_DO = "whileDo";
     public static String ISOLATE = "isolate";

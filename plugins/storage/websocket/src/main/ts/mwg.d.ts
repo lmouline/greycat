@@ -1320,10 +1320,14 @@ declare module org {
                     static LOOP_PAR: string;
                     static FOR_EACH: string;
                     static FOR_EACH_PAR: string;
+                    static MAP: string;
+                    static MAP_PAR: string;
                     static FLAT_MAP: string;
                     static FLAT_MAP_PAR: string;
                     static MAP_REDUCE: string;
                     static MAP_REDUCE_PAR: string;
+                    static FLAT_MAP_REDUCE: string;
+                    static FLAT_MAP_REDUCE_PAR: string;
                     static DO_WHILE: string;
                     static WHILE_DO: string;
                     static ISOLATE: string;
@@ -1510,22 +1514,26 @@ declare module org {
                     static emptyResult(): org.mwg.task.TaskResult<any>;
                     static then(action: org.mwg.task.Action): org.mwg.task.Task;
                     static thenDo(actionFunction: org.mwg.task.ActionFunction): org.mwg.task.Task;
-                    static doWhile(task: org.mwg.task.Task, cond: org.mwg.task.ConditionalFunction): org.mwg.task.Task;
-                    static doWhileScript(task: org.mwg.task.Task, condScript: string): org.mwg.task.Task;
                     static loop(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                     static loopPar(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                     static forEach(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     static forEachPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     static flatMap(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     static flatMapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                    static map(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                    static mapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     static ifThen(cond: org.mwg.task.ConditionalFunction, then: org.mwg.task.Task): org.mwg.task.Task;
                     static ifThenScript(condScript: string, then: org.mwg.task.Task): org.mwg.task.Task;
                     static ifThenElse(cond: org.mwg.task.ConditionalFunction, thenSub: org.mwg.task.Task, elseSub: org.mwg.task.Task): org.mwg.task.Task;
                     static ifThenElseScript(condScript: string, thenSub: org.mwg.task.Task, elseSub: org.mwg.task.Task): org.mwg.task.Task;
+                    static doWhile(task: org.mwg.task.Task, cond: org.mwg.task.ConditionalFunction): org.mwg.task.Task;
+                    static doWhileScript(task: org.mwg.task.Task, condScript: string): org.mwg.task.Task;
                     static whileDo(cond: org.mwg.task.ConditionalFunction, task: org.mwg.task.Task): org.mwg.task.Task;
                     static whileDoScript(condScript: string, task: org.mwg.task.Task): org.mwg.task.Task;
                     static mapReduce(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                     static mapReducePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
+                    static flatMapReduce(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
+                    static flatMapReducePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                     static isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     static parse(flat: string, graph: org.mwg.Graph): org.mwg.task.Task;
                 }
@@ -1541,20 +1549,6 @@ declare module org {
                     private _then;
                     private _conditionalScript;
                     constructor(p_then: org.mwg.task.Task, p_cond: org.mwg.task.ConditionalFunction, conditionalScript: string);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                }
-                class CF_ActionFlatMap extends org.mwg.core.task.CF_Action {
-                    private _subTask;
-                    constructor(p_subTask: org.mwg.task.Task);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                }
-                class CF_ActionFlatMapPar extends org.mwg.core.task.CF_Action {
-                    private _subTask;
-                    constructor(p_subTask: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
@@ -1617,16 +1611,34 @@ declare module org {
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
+                class CF_ActionMap extends org.mwg.core.task.CF_Action {
+                    private _subTask;
+                    private _flat;
+                    constructor(p_subTask: org.mwg.task.Task, flat: boolean);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
+                class CF_ActionMapPar extends org.mwg.core.task.CF_Action {
+                    private _subTask;
+                    private _flat;
+                    constructor(p_subTask: org.mwg.task.Task, flat: boolean);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
                 class CF_ActionMapReduce extends org.mwg.core.task.CF_Action {
                     private _subTasks;
-                    constructor(...p_subTasks: org.mwg.task.Task[]);
+                    private _flat;
+                    constructor(flat: boolean, ...p_subTasks: org.mwg.task.Task[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
                 class CF_ActionMapReducePar extends org.mwg.core.task.CF_Action {
                     private _subTasks;
-                    constructor(...p_subTasks: org.mwg.task.Task[]);
+                    private _flat;
+                    constructor(flat: boolean, ...p_subTasks: org.mwg.task.Task[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
@@ -1662,7 +1674,9 @@ declare module org {
                     forEach(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     forEachPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     flatMap(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                    map(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     flatMapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                    mapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     ifThen(cond: org.mwg.task.ConditionalFunction, then: org.mwg.task.Task): org.mwg.task.Task;
                     ifThenScript(condScript: string, then: org.mwg.task.Task): org.mwg.task.Task;
                     ifThenElse(cond: org.mwg.task.ConditionalFunction, thenSub: org.mwg.task.Task, elseSub: org.mwg.task.Task): org.mwg.task.Task;
@@ -1671,6 +1685,8 @@ declare module org {
                     whileDoScript(condScript: string, task: org.mwg.task.Task): org.mwg.task.Task;
                     mapReduce(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                     mapReducePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
+                    flatMapReduce(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
+                    flatMapReducePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                     isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     execute(graph: org.mwg.Graph, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                     executeSync(graph: org.mwg.Graph): org.mwg.task.TaskResult<any>;
@@ -2156,6 +2172,8 @@ declare module org {
                 forEachPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 flatMap(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 flatMapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                map(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                mapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 ifThen(cond: org.mwg.task.ConditionalFunction, then: org.mwg.task.Task): org.mwg.task.Task;
                 ifThenScript(condScript: string, then: org.mwg.task.Task): org.mwg.task.Task;
                 ifThenElse(cond: org.mwg.task.ConditionalFunction, thenSub: org.mwg.task.Task, elseSub: org.mwg.task.Task): org.mwg.task.Task;
@@ -2164,6 +2182,8 @@ declare module org {
                 whileDoScript(condScript: string, task: org.mwg.task.Task): org.mwg.task.Task;
                 mapReduce(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                 mapReducePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
+                flatMapReduce(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
+                flatMapReducePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                 isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 parse(flat: string, graph: org.mwg.Graph): org.mwg.task.Task;
                 loadFromBuffer(buffer: org.mwg.struct.Buffer, graph: org.mwg.Graph): org.mwg.task.Task;

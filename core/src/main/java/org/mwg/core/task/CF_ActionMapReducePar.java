@@ -15,10 +15,12 @@ import java.util.Map;
 class CF_ActionMapReducePar extends CF_Action {
 
     private final Task[] _subTasks;
+    private final boolean _flat;
 
-    CF_ActionMapReducePar(final Task... p_subTasks) {
+    CF_ActionMapReducePar(final boolean flat, final Task... p_subTasks) {
         super();
         _subTasks = p_subTasks;
+        _flat = flat;
     }
 
     @Override
@@ -38,6 +40,22 @@ class CF_ActionMapReducePar extends CF_Action {
                 }
             });
         }
+
+        if (_flat) {
+            final TaskResult nextFlat = ctx.newResult();
+            for (int i = 0; i < next.size(); i++) {
+                Object loop = nextFlat.get(i);
+                if (loop instanceof CoreTaskResult) {
+                    CoreTaskResult casted = (CoreTaskResult) loop;
+                    for (int j = 0; j < casted.size(); j++) {
+                        final Object loop2 = casted.get(i);
+                        if (loop2 != null) {
+                            next.add(loop2);
+                        }
+                    }
+                }
+            }
+        }
         waiter.then(new Job() {
             @Override
             public void run() {
@@ -53,7 +71,11 @@ class CF_ActionMapReducePar extends CF_Action {
 
     @Override
     public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
-        builder.append(ActionNames.LOOP);
+        if (_flat) {
+            builder.append(ActionNames.FLAT_MAP_REDUCE_PAR);
+        } else {
+            builder.append(ActionNames.MAP_REDUCE_PAR);
+        }
         builder.append(Constants.TASK_PARAM_OPEN);
         for (int i = 0; i < _subTasks.length; i++) {
             if (i != 0) {

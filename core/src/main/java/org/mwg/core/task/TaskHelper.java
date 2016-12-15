@@ -65,10 +65,31 @@ public class TaskHelper {
         return Integer.parseInt(s);
     }
 
-    //TODO inject escape char
     public static void serializeString(String param, StringBuilder builder) {
         builder.append("\'");
-        builder.append(param);
+        boolean escapteActivated = false;
+        boolean previousIsEscape = false;
+        for (int i = 0; i < param.length(); i++) {
+            final char current = param.charAt(i);
+            if (current == '\'') {
+                if (!escapteActivated) {
+                    escapteActivated = true;
+                    builder.append(param.substring(0, i));
+                }
+                if (!previousIsEscape) {
+                    builder.append('\\');
+                }
+                builder.append(param.charAt(i));
+            } else {
+                if (escapteActivated) {
+                    builder.append(param.charAt(i));
+                }
+            }
+            previousIsEscape = (current == '\\');
+        }
+        if (!escapteActivated) {
+            builder.append(param);
+        }
         builder.append("\'");
     }
 
@@ -82,9 +103,7 @@ public class TaskHelper {
             if (i != 0) {
                 builder.append(Constants.TASK_PARAM_SEP);
             }
-            builder.append("\'");
-            builder.append(params[i]);
-            builder.append("\'");
+            serializeString(params[i], builder);
         }
     }
 

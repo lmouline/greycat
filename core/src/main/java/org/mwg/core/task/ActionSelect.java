@@ -74,7 +74,7 @@ class ActionSelect implements Action {
         }
         builder.append(ActionNames.SELECT);
         builder.append(Constants.TASK_PARAM_OPEN);
-        builder.append(_script);
+        TaskHelper.serializeString(_script, builder);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

@@ -86,12 +86,22 @@ public class CoreTask implements org.mwg.task.Task {
 
     @Override
     public Task flatMap(Task subTask) {
-        return then(new CF_ActionFlatMap(subTask));
+        return then(new CF_ActionMap(subTask, true));
+    }
+
+    @Override
+    public Task map(Task subTask) {
+        return then(new CF_ActionMap(subTask, false));
     }
 
     @Override
     public Task flatMapPar(Task subTask) {
-        return then(new CF_ActionFlatMapPar(subTask));
+        return then(new CF_ActionMapPar(subTask, true));
+    }
+
+    @Override
+    public Task mapPar(Task subTask) {
+        return then(new CF_ActionMapPar(subTask, false));
     }
 
     @Override
@@ -126,13 +136,25 @@ public class CoreTask implements org.mwg.task.Task {
 
     @Override
     public Task mapReduce(Task... subTasks) {
-        then(new CF_ActionMapReduce(subTasks));
+        then(new CF_ActionMapReduce(false, subTasks));
         return this;
     }
 
     @Override
     public Task mapReducePar(Task... subTasks) {
-        then(new CF_ActionMapReducePar(subTasks));
+        then(new CF_ActionMapReducePar(false, subTasks));
+        return this;
+    }
+
+    @Override
+    public Task flatMapReduce(Task... subTasks) {
+        then(new CF_ActionMapReduce(true, subTasks));
+        return this;
+    }
+
+    @Override
+    public Task flatMapReducePar(Task... subTasks) {
+        then(new CF_ActionMapReducePar(true, subTasks));
         return this;
     }
 
@@ -278,7 +300,7 @@ public class CoreTask implements org.mwg.task.Task {
     @Override
     public Task saveToBuffer(Buffer buffer) {
         final String saved = toString();
-        org.mwg.utility.Base64.encodeStringToBuffer(saved,buffer);
+        org.mwg.utility.Base64.encodeStringToBuffer(saved, buffer);
         return this;
     }
 
@@ -462,7 +484,7 @@ public class CoreTask implements org.mwg.task.Task {
             cursor++;
         }
         if (!isClosed) {
-            final String getName = reader.extract(previous, cursor);
+            final String getName = reader.extract(previous, flatSize);
             if (getName.length() > 0) {
                 if (actionName != null) {
                     if (graph == null) {
@@ -804,7 +826,7 @@ public class CoreTask implements org.mwg.task.Task {
                     throw new RuntimeException(ActionNames.FLAT_MAP + " action needs one parameters. Received:" + params.length);
                 }
                 final Task subTask = getOrCreate(contextTasks, params[0]);
-                return new CF_ActionFlatMap(subTask);
+                return new CF_ActionMap(subTask, true);
             }
         });
         registry.put(ActionNames.FLAT_MAP_PAR, new TaskActionFactory() {
@@ -814,7 +836,27 @@ public class CoreTask implements org.mwg.task.Task {
                     throw new RuntimeException(ActionNames.FLAT_MAP_PAR + " action needs one parameters. Received:" + params.length);
                 }
                 final Task subTask = getOrCreate(contextTasks, params[0]);
-                return new CF_ActionFlatMapPar(subTask);
+                return new CF_ActionMapPar(subTask, true);
+            }
+        });
+        registry.put(ActionNames.MAP, new TaskActionFactory() {
+            @Override
+            public Action create(String[] params, Map<Integer, Task> contextTasks) {
+                if (params.length != 1) {
+                    throw new RuntimeException(ActionNames.MAP + " action needs one parameters. Received:" + params.length);
+                }
+                final Task subTask = getOrCreate(contextTasks, params[0]);
+                return new CF_ActionMap(subTask, false);
+            }
+        });
+        registry.put(ActionNames.MAP_PAR, new TaskActionFactory() {
+            @Override
+            public Action create(String[] params, Map<Integer, Task> contextTasks) {
+                if (params.length != 1) {
+                    throw new RuntimeException(ActionNames.MAP_PAR + " action needs one parameters. Received:" + params.length);
+                }
+                final Task subTask = getOrCreate(contextTasks, params[0]);
+                return new CF_ActionMapPar(subTask, false);
             }
         });
         registry.put(ActionNames.MAP_REDUCE, new TaskActionFactory() {
@@ -824,7 +866,7 @@ public class CoreTask implements org.mwg.task.Task {
                 for (int i = 0; i < params.length; i++) {
                     subTasks[i] = getOrCreate(contextTasks, params[i]);
                 }
-                return new CF_ActionMapReduce(subTasks);
+                return new CF_ActionMapReduce(false, subTasks);
             }
         });
         registry.put(ActionNames.MAP_REDUCE_PAR, new TaskActionFactory() {
@@ -834,7 +876,27 @@ public class CoreTask implements org.mwg.task.Task {
                 for (int i = 0; i < params.length; i++) {
                     subTasks[i] = getOrCreate(contextTasks, params[i]);
                 }
-                return new CF_ActionMapReducePar(subTasks);
+                return new CF_ActionMapReducePar(false, subTasks);
+            }
+        });
+        registry.put(ActionNames.FLAT_MAP_REDUCE, new TaskActionFactory() {
+            @Override
+            public Action create(String[] params, Map<Integer, Task> contextTasks) {
+                final Task[] subTasks = new Task[params.length];
+                for (int i = 0; i < params.length; i++) {
+                    subTasks[i] = getOrCreate(contextTasks, params[i]);
+                }
+                return new CF_ActionMapReduce(true, subTasks);
+            }
+        });
+        registry.put(ActionNames.FLAT_MAP_REDUCE_PAR, new TaskActionFactory() {
+            @Override
+            public Action create(String[] params, Map<Integer, Task> contextTasks) {
+                final Task[] subTasks = new Task[params.length];
+                for (int i = 0; i < params.length; i++) {
+                    subTasks[i] = getOrCreate(contextTasks, params[i]);
+                }
+                return new CF_ActionMapReducePar(true, subTasks);
             }
         });
         registry.put(ActionNames.DO_WHILE, new TaskActionFactory() {

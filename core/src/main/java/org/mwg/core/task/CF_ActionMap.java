@@ -9,18 +9,20 @@ import org.mwg.utility.Tuple;
 
 import java.util.Map;
 
-class CF_ActionFlatMap extends CF_Action {
+class CF_ActionMap extends CF_Action {
 
     private final Task _subTask;
+    private final boolean _flat;
 
-    CF_ActionFlatMap(final Task p_subTask) {
+    CF_ActionMap(final Task p_subTask, final boolean flat) {
         super();
+        _flat = flat;
         _subTask = p_subTask;
     }
 
     @Override
     public void eval(final TaskContext ctx) {
-        final CF_ActionFlatMap selfPointer = this;
+        final CF_ActionMap selfPointer = this;
         final TaskResult previousResult = ctx.result();
         if (previousResult == null) {
             ctx.continueTask();
@@ -34,8 +36,12 @@ class CF_ActionFlatMap extends CF_Action {
                 @Override
                 public void on(final TaskResult res) {
                     if (res != null) {
-                        for (int i = 0; i < res.size(); i++) {
-                            finalResult.add(res.get(i));
+                        if (_flat) {
+                            for (int i = 0; i < res.size(); i++) {
+                                finalResult.add(res.get(i));
+                            }
+                        } else {
+                            finalResult.add(res);
                         }
                     }
                     loopRes[0].free();
@@ -86,7 +92,11 @@ class CF_ActionFlatMap extends CF_Action {
 
     @Override
     public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
-        builder.append(ActionNames.FLAT_MAP);
+        if (_flat) {
+            builder.append(ActionNames.FLAT_MAP);
+        } else {
+            builder.append(ActionNames.MAP);
+        }
         builder.append(Constants.TASK_PARAM_OPEN);
         final CoreTask castedAction = (CoreTask) _subTask;
         final int castedActionHash = castedAction.hashCode();

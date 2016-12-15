@@ -10,12 +10,14 @@ import org.mwg.utility.Tuple;
 
 import java.util.Map;
 
-class CF_ActionFlatMapPar extends CF_Action {
+class CF_ActionMapPar extends CF_Action {
 
     private final Task _subTask;
+    private final boolean _flat;
 
-    CF_ActionFlatMapPar(final Task p_subTask) {
+    CF_ActionMapPar(final Task p_subTask, final boolean flat) {
         super();
+        _flat = flat;
         _subTask = p_subTask;
     }
 
@@ -45,8 +47,12 @@ class CF_ActionFlatMapPar extends CF_Action {
                         @Override
                         public void on(TaskResult result) {
                             if (result != null) {
-                                for (int i = 0; i < result.size(); i++) {
-                                    finalResult.add(result.get(i));
+                                if (_flat) {
+                                    for (int i = 0; i < result.size(); i++) {
+                                        finalResult.add(result.get(i));
+                                    }
+                                } else {
+                                    finalResult.add(result);
                                 }
                             }
                             waiter.count();
@@ -77,7 +83,11 @@ class CF_ActionFlatMapPar extends CF_Action {
 
     @Override
     public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
-        builder.append(ActionNames.FLAT_MAP_PAR);
+        if (_flat) {
+            builder.append(ActionNames.FLAT_MAP_PAR);
+        } else {
+            builder.append(ActionNames.MAP_PAR);
+        }
         builder.append(Constants.TASK_PARAM_OPEN);
         final CoreTask castedAction = (CoreTask) _subTask;
         final int castedActionHash = castedAction.hashCode();
