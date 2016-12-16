@@ -1,4 +1,4 @@
-package org.mwg.ml.common;
+package org.mwg.ml.actions;
 
 import org.mwg.*;
 import org.mwg.base.BaseNode;
