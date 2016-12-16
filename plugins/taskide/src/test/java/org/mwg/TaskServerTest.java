@@ -1,7 +1,5 @@
 package org.mwg;
 
-import org.mwg.core.scheduler.NoopScheduler;
-
 public class TaskServerTest {
 
     public static void main(String[] args) {
@@ -35,7 +33,9 @@ public class TaskServerTest {
                             nodesIndex.addToIndex(n0, "name");
                             nodesIndex.addToIndex(n1, "name");
                             nodesIndex.addToIndex(root, "name");
-                            new WSServer(graph, 4000).start();
+                            WSServer server = new WSServer(graph, 4000);
+                            TaskIDE.attach(server);
+                            server.start();
                             System.out.println("Server started 4000");
                         }
                     });

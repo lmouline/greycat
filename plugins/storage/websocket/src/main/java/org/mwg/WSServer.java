@@ -2,6 +2,8 @@ package org.mwg;
 
 import io.undertow.Handlers;
 import io.undertow.Undertow;
+import io.undertow.server.HttpHandler;
+import io.undertow.server.handlers.PathHandler;
 import io.undertow.websockets.WebSocketConnectionCallback;
 import io.undertow.websockets.core.*;
 import io.undertow.websockets.spi.WebSocketHttpExchange;
@@ -17,32 +19,43 @@ import org.mwg.utility.KeyHelper;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class WSServer implements WebSocketConnectionCallback {
 
     private final Graph graph;
     private final int port;
-    private final Undertow server;
+    private Undertow server;
 
     private Set<WebSocketChannel> peers;
+    private Map<String, HttpHandler> handlers = new HashMap<String, HttpHandler>();
 
     public WSServer(Graph p_graph, int p_port) {
         this.graph = p_graph;
         this.port = p_port;
-        this.server = Undertow.builder().addHttpListener(port, "0.0.0.0", Handlers.websocket(this)).build();
         peers = new HashSet<WebSocketChannel>();
     }
 
+    public WSServer addHandler(String prefix, HttpHandler httpHandler) {
+        handlers.put(prefix, httpHandler);
+        return this;
+    }
+
+    public static final String PREFIX = "ws";
+
     public void start() {
+        PathHandler pathHandler = Handlers.path();
+        for (String name : handlers.keySet()) {
+            pathHandler.addPrefixPath(name, handlers.get(name));
+        }
+        pathHandler.addPrefixPath(PREFIX, Handlers.websocket(this));
+        this.server = Undertow.builder().addHttpListener(port, "0.0.0.0", pathHandler).build();
         server.start();
     }
 
     public void stop() {
         server.stop();
+        server = null;
     }
 
     @Override

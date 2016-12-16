@@ -2533,29 +2533,45 @@ var org;
                     return new org.mwg.core.CoreQuery(this, this._resolver);
                 };
                 CoreGraph.prototype.index = function (world, time, name, callback) {
+                    this.internal_index(world, time, name, false, callback);
+                };
+                CoreGraph.prototype.indexIfExists = function (world, time, name, callback) {
+                    this.internal_index(world, time, name, true, callback);
+                };
+                CoreGraph.prototype.internal_index = function (world, time, name, ifExists, callback) {
                     var selfPointer = this;
                     var indexNameCoded = this._resolver.stringToHash(name, true);
                     this._resolver.lookup(world, time, org.mwg.core.CoreConstants.END_OF_TIME, function (globalIndexNodeUnsafe) {
                         {
-                            var globalIndexContent;
-                            if (globalIndexNodeUnsafe == null) {
-                                globalIndexNodeUnsafe = new org.mwg.base.BaseNode(world, time, org.mwg.core.CoreConstants.END_OF_TIME, selfPointer);
-                                selfPointer._resolver.initNode(globalIndexNodeUnsafe, org.mwg.core.CoreConstants.NULL_LONG);
-                                globalIndexContent = globalIndexNodeUnsafe.getOrCreate(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE, org.mwg.Type.LONG_TO_LONG_MAP);
+                            if (ifExists && globalIndexNodeUnsafe == null) {
+                                callback(null);
                             }
                             else {
-                                globalIndexContent = globalIndexNodeUnsafe.get(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE);
-                            }
-                            var indexId = globalIndexContent.get(indexNameCoded);
-                            globalIndexNodeUnsafe.free();
-                            if (indexId == org.mwg.core.CoreConstants.NULL_LONG) {
-                                var newIndexNode = selfPointer.newTypedNode(world, time, org.mwg.core.CoreNodeIndex.NAME);
-                                indexId = newIndexNode.id();
-                                globalIndexContent.put(indexNameCoded, indexId);
-                                callback(newIndexNode);
-                            }
-                            else {
-                                selfPointer._resolver.lookup(world, time, indexId, callback);
+                                var globalIndexContent = void 0;
+                                if (globalIndexNodeUnsafe == null) {
+                                    globalIndexNodeUnsafe = new org.mwg.base.BaseNode(world, time, org.mwg.core.CoreConstants.END_OF_TIME, selfPointer);
+                                    selfPointer._resolver.initNode(globalIndexNodeUnsafe, org.mwg.core.CoreConstants.NULL_LONG);
+                                    globalIndexContent = globalIndexNodeUnsafe.getOrCreate(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE, org.mwg.Type.LONG_TO_LONG_MAP);
+                                }
+                                else {
+                                    globalIndexContent = globalIndexNodeUnsafe.get(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE);
+                                }
+                                var indexId = globalIndexContent.get(indexNameCoded);
+                                globalIndexNodeUnsafe.free();
+                                if (indexId == org.mwg.core.CoreConstants.NULL_LONG) {
+                                    if (ifExists) {
+                                        callback(null);
+                                    }
+                                    else {
+                                        var newIndexNode = selfPointer.newTypedNode(world, time, org.mwg.core.CoreNodeIndex.NAME);
+                                        indexId = newIndexNode.id();
+                                        globalIndexContent.put(indexNameCoded, indexId);
+                                        callback(newIndexNode);
+                                    }
+                                }
+                                else {
+                                    selfPointer._resolver.lookup(world, time, indexId, callback);
+                                }
                             }
                         }
                     });
@@ -7575,6 +7591,76 @@ var org;
             })(scheduler = core.scheduler || (core.scheduler = {}));
             var task;
             (function (task_1) {
+                var ActionAddRemoveToGlobalIndex = (function () {
+                    function ActionAddRemoveToGlobalIndex(remove, timed, name) {
+                        var attributes = [];
+                        for (var _i = 3; _i < arguments.length; _i++) {
+                            attributes[_i - 3] = arguments[_i];
+                        }
+                        this._name = name;
+                        this._timed = timed;
+                        this._attributes = attributes;
+                        this._remove = remove;
+                    }
+                    ActionAddRemoveToGlobalIndex.prototype.eval = function (ctx) {
+                        var _this = this;
+                        var previousResult = ctx.result();
+                        var templatedIndexName = ctx.template(this._name);
+                        var templatedAttributes = ctx.templates(this._attributes);
+                        var counter = new org.mwg.core.utility.CoreDeferCounter(previousResult.size());
+                        var _loop_4 = function (i) {
+                            var loop = previousResult.get(i);
+                            if (loop instanceof org.mwg.base.BaseNode) {
+                                var loopBaseNode_1 = loop;
+                                var indexTime = org.mwg.Constants.BEGINNING_OF_TIME;
+                                if (this_2._timed) {
+                                    indexTime = ctx.time();
+                                }
+                                ctx.graph().index(loopBaseNode_1.world(), indexTime, templatedIndexName, function (indexNode) {
+                                    if (_this._remove) {
+                                        indexNode.removeFromIndex.apply(indexNode, [loopBaseNode_1].concat(templatedAttributes));
+                                    }
+                                    else {
+                                        indexNode.addToIndex.apply(indexNode, [loopBaseNode_1].concat(templatedAttributes));
+                                    }
+                                    counter.count();
+                                });
+                            }
+                            else {
+                                counter.count();
+                            }
+                        };
+                        var this_2 = this;
+                        for (var i = 0; i < previousResult.size(); i++) {
+                            _loop_4(i);
+                        }
+                        counter.then(function () {
+                            {
+                                ctx.continueTask();
+                            }
+                        });
+                    };
+                    ActionAddRemoveToGlobalIndex.prototype.serialize = function (builder) {
+                        if (this._timed) {
+                            builder.append(org.mwg.core.task.ActionNames.ADD_TO_GLOBAL_TIMED_INDEX);
+                        }
+                        else {
+                            builder.append(org.mwg.core.task.ActionNames.ADD_TO_GLOBAL_INDEX);
+                        }
+                        builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
+                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder);
+                        builder.append(org.mwg.Constants.TASK_PARAM_SEP);
+                        org.mwg.core.task.TaskHelper.serializeStringParams(this._attributes, builder);
+                        builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
+                    };
+                    ActionAddRemoveToGlobalIndex.prototype.toString = function () {
+                        var res = new java.lang.StringBuilder();
+                        this.serialize(res);
+                        return res.toString();
+                    };
+                    return ActionAddRemoveToGlobalIndex;
+                }());
+                task_1.ActionAddRemoveToGlobalIndex = ActionAddRemoveToGlobalIndex;
                 var ActionAddRemoveVarToRelation = (function () {
                     function ActionAddRemoveVarToRelation(isAdd, name, varFrom) {
                         var attributes = [];
@@ -7640,58 +7726,6 @@ var org;
                     return ActionAddRemoveVarToRelation;
                 }());
                 task_1.ActionAddRemoveVarToRelation = ActionAddRemoveVarToRelation;
-                var ActionAddToGlobalIndex = (function () {
-                    function ActionAddToGlobalIndex(name) {
-                        var attributes = [];
-                        for (var _i = 1; _i < arguments.length; _i++) {
-                            attributes[_i - 1] = arguments[_i];
-                        }
-                        this._name = name;
-                        this._attributes = attributes;
-                    }
-                    ActionAddToGlobalIndex.prototype.eval = function (ctx) {
-                        var previousResult = ctx.result();
-                        var templatedIndexName = ctx.template(this._name);
-                        var templatedAttributes = ctx.templates(this._attributes);
-                        var counter = new org.mwg.core.utility.CoreDeferCounter(previousResult.size());
-                        var _loop_4 = function (i) {
-                            var loop = previousResult.get(i);
-                            if (loop instanceof org.mwg.base.BaseNode) {
-                                var loopBaseNode_1 = loop;
-                                ctx.graph().index(loopBaseNode_1.world(), org.mwg.Constants.BEGINNING_OF_TIME, templatedIndexName, function (indexNode) {
-                                    indexNode.addToIndex.apply(indexNode, [loopBaseNode_1].concat(templatedAttributes));
-                                    counter.count();
-                                });
-                            }
-                            else {
-                                counter.count();
-                            }
-                        };
-                        for (var i = 0; i < previousResult.size(); i++) {
-                            _loop_4(i);
-                        }
-                        counter.then(function () {
-                            {
-                                ctx.continueTask();
-                            }
-                        });
-                    };
-                    ActionAddToGlobalIndex.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.ADD_TO_GLOBAL_INDEX);
-                        builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder);
-                        builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeStringParams(this._attributes, builder);
-                        builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
-                    };
-                    ActionAddToGlobalIndex.prototype.toString = function () {
-                        var res = new java.lang.StringBuilder();
-                        this.serialize(res);
-                        return res.toString();
-                    };
-                    return ActionAddToGlobalIndex;
-                }());
-                task_1.ActionAddToGlobalIndex = ActionAddToGlobalIndex;
                 var ActionAddToVar = (function () {
                     function ActionAddToVar(p_name) {
                         if (p_name == null) {
@@ -8086,6 +8120,7 @@ var org;
                 ActionNames.ADD_VAR_TO_RELATION = "addVarToRelation";
                 ActionNames.REMOVE_VAR_TO_RELATION = "removeVarToRelation";
                 ActionNames.ADD_TO_GLOBAL_INDEX = "addToGlobalIndex";
+                ActionNames.ADD_TO_GLOBAL_TIMED_INDEX = "addToGlobalTimedIndex";
                 ActionNames.ADD_TO_VAR = "addToVar";
                 ActionNames.ATTRIBUTES = "attributes";
                 ActionNames.ATTRIBUTES_WITH_TYPE = "attributesWithType";
@@ -8123,10 +8158,14 @@ var org;
                 ActionNames.LOOP_PAR = "loopPar";
                 ActionNames.FOR_EACH = "forEach";
                 ActionNames.FOR_EACH_PAR = "forEachPar";
+                ActionNames.MAP = "map";
+                ActionNames.MAP_PAR = "mapPar";
                 ActionNames.FLAT_MAP = "flatMap";
                 ActionNames.FLAT_MAP_PAR = "flatMapPar";
                 ActionNames.MAP_REDUCE = "mapReduce";
                 ActionNames.MAP_REDUCE_PAR = "mapPar";
+                ActionNames.FLAT_MAP_REDUCE = "flatMapReduce";
+                ActionNames.FLAT_MAP_REDUCE_PAR = "flatMapPar";
                 ActionNames.DO_WHILE = "doWhile";
                 ActionNames.WHILE_DO = "whileDo";
                 ActionNames.ISOLATE = "isolate";
@@ -8184,14 +8223,19 @@ var org;
                     ActionReadGlobalIndex.prototype.eval = function (ctx) {
                         var name = ctx.template(this._name);
                         var query = ctx.templates(this._params);
-                        ctx.graph().index(ctx.world(), ctx.time(), name, function (resolvedIndex) {
+                        ctx.graph().indexIfExists(ctx.world(), ctx.time(), name, function (resolvedIndex) {
                             {
-                                resolvedIndex.find.apply(resolvedIndex, [function (result) {
-                                        {
-                                            resolvedIndex.free();
-                                            ctx.continueWith(ctx.wrap(result));
-                                        }
-                                    }].concat(query));
+                                if (resolvedIndex != null) {
+                                    resolvedIndex.find.apply(resolvedIndex, [function (result) {
+                                            {
+                                                resolvedIndex.free();
+                                                ctx.continueWith(ctx.wrap(result));
+                                            }
+                                        }].concat(query));
+                                }
+                                else {
+                                    ctx.continueWith(ctx.newResult());
+                                }
                             }
                         });
                     };
@@ -8298,58 +8342,6 @@ var org;
                     return ActionRemove;
                 }());
                 task_1.ActionRemove = ActionRemove;
-                var ActionRemoveFromGlobalIndex = (function () {
-                    function ActionRemoveFromGlobalIndex(name) {
-                        var attributes = [];
-                        for (var _i = 1; _i < arguments.length; _i++) {
-                            attributes[_i - 1] = arguments[_i];
-                        }
-                        this._name = name;
-                        this._attributes = attributes;
-                    }
-                    ActionRemoveFromGlobalIndex.prototype.eval = function (ctx) {
-                        var previousResult = ctx.result();
-                        var templatedIndexName = ctx.template(this._name);
-                        var templatedAttributes = ctx.templates(this._attributes);
-                        var counter = new org.mwg.core.utility.CoreDeferCounter(previousResult.size());
-                        var _loop_5 = function (i) {
-                            var loop = previousResult.get(i);
-                            if (loop instanceof org.mwg.base.BaseNode) {
-                                var loopBaseNode_2 = loop;
-                                ctx.graph().index(loopBaseNode_2.world(), org.mwg.Constants.BEGINNING_OF_TIME, templatedIndexName, function (indexNode) {
-                                    indexNode.removeFromIndex.apply(indexNode, [loopBaseNode_2].concat(templatedAttributes));
-                                    counter.count();
-                                });
-                            }
-                            else {
-                                counter.count();
-                            }
-                        };
-                        for (var i = 0; i < previousResult.size(); i++) {
-                            _loop_5(i);
-                        }
-                        counter.then(function () {
-                            {
-                                ctx.continueTask();
-                            }
-                        });
-                    };
-                    ActionRemoveFromGlobalIndex.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.REMOVE_FROM_GLOBAL_INDEX);
-                        builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder);
-                        builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeStringParams(this._attributes, builder);
-                        builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
-                    };
-                    ActionRemoveFromGlobalIndex.prototype.toString = function () {
-                        var res = new java.lang.StringBuilder();
-                        this.serialize(res);
-                        return res.toString();
-                    };
-                    return ActionRemoveFromGlobalIndex;
-                }());
-                task_1.ActionRemoveFromGlobalIndex = ActionRemoveFromGlobalIndex;
                 var ActionSave = (function () {
                     function ActionSave() {
                     }
@@ -8384,9 +8376,7 @@ var org;
                     ActionScript.prototype.serialize = function (builder) {
                         builder.append(org.mwg.core.task.ActionNames.SCRIPT);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        builder.append("\"");
-                        builder.append(this._script);
-                        builder.append("\"");
+                        org.mwg.core.task.TaskHelper.serializeString(this._script, builder);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionScript.prototype.toString = function () {
@@ -8437,7 +8427,7 @@ var org;
                         }
                         builder.append(org.mwg.core.task.ActionNames.SELECT);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        builder.append(this._script);
+                        org.mwg.core.task.TaskHelper.serializeString(this._script, builder);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionSelect.prototype.toString = function () {
@@ -8634,7 +8624,7 @@ var org;
                         var next = ctx.newResult();
                         if (previous != null) {
                             var defer_1 = new org.mwg.core.utility.CoreDeferCounter(previous.size());
-                            var _loop_6 = function (i) {
+                            var _loop_5 = function (i) {
                                 if (previous.get(i) instanceof org.mwg.base.BaseNode) {
                                     var casted_1 = previous.get(i);
                                     casted_1.timepoints(parsedFrom, parsedTo, function (result) {
@@ -8649,7 +8639,7 @@ var org;
                                 }
                             };
                             for (var i = 0; i < previous.size(); i++) {
-                                _loop_6(i);
+                                _loop_5(i);
                             }
                             defer_1.then(function () {
                                 {
@@ -8701,7 +8691,7 @@ var org;
                         var previous = ctx.result();
                         var defer = new org.mwg.core.utility.CoreDeferCounter(previous.size());
                         var previousSize = previous.size();
-                        var _loop_7 = function (i) {
+                        var _loop_6 = function (i) {
                             var loopObj = previous.get(i);
                             if (loopObj instanceof org.mwg.base.BaseNode) {
                                 var castedPreviousNode_1 = loopObj;
@@ -8719,7 +8709,7 @@ var org;
                             }
                         };
                         for (var i = 0; i < previousSize; i++) {
-                            _loop_7(i);
+                            _loop_6(i);
                         }
                         defer.then(function () {
                             {
@@ -8767,7 +8757,7 @@ var org;
                         var previous = ctx.result();
                         var defer = new org.mwg.core.utility.CoreDeferCounter(previous.size());
                         var previousSize = previous.size();
-                        var _loop_8 = function (i) {
+                        var _loop_7 = function (i) {
                             var loopObj = previous.get(i);
                             if (loopObj instanceof org.mwg.base.BaseNode) {
                                 var castedPreviousNode_2 = loopObj;
@@ -8785,7 +8775,7 @@ var org;
                             }
                         };
                         for (var i = 0; i < previousSize; i++) {
-                            _loop_8(i);
+                            _loop_7(i);
                         }
                         defer.then(function () {
                             {
@@ -8825,7 +8815,7 @@ var org;
                         if (previousResult != null) {
                             var previousSize = previousResult.size();
                             var defer_2 = ctx.graph().newCounter(previousSize);
-                            var _loop_9 = function (i) {
+                            var _loop_8 = function (i) {
                                 var loop = previousResult.get(i);
                                 if (loop instanceof org.mwg.base.BaseNode) {
                                     var casted_2 = loop;
@@ -8846,8 +8836,8 @@ var org;
                                         case org.mwg.Type.RELATION_INDEXED:
                                             var relationIndexed = casted_2.get(flatName);
                                             if (relationIndexed != null) {
-                                                if (this_2._params != null && this_2._params.length > 0) {
-                                                    var templatedParams = ctx.templates(this_2._params);
+                                                if (this_3._params != null && this_3._params.length > 0) {
+                                                    var templatedParams = ctx.templates(this_3._params);
                                                     var query = ctx.graph().newQuery();
                                                     query.setWorld(casted_2.world());
                                                     query.setTime(casted_2.time());
@@ -8910,9 +8900,9 @@ var org;
                                     defer_2.count();
                                 }
                             };
-                            var this_2 = this;
+                            var this_3 = this;
                             for (var i = 0; i < previousSize; i++) {
-                                _loop_9(i);
+                                _loop_8(i);
                             }
                             defer_2.then(function () {
                                 {
@@ -9143,7 +9133,15 @@ var org;
                         for (var _i = 1; _i < arguments.length; _i++) {
                             attributes[_i - 1] = arguments[_i];
                         }
-                        return new ((_a = org.mwg.core.task.ActionAddToGlobalIndex).bind.apply(_a, [void 0, name].concat(attributes)))();
+                        return new ((_a = org.mwg.core.task.ActionAddRemoveToGlobalIndex).bind.apply(_a, [void 0, false, false, name].concat(attributes)))();
+                        var _a;
+                    };
+                    Actions.addToGlobalTimedIndex = function (name) {
+                        var attributes = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            attributes[_i - 1] = arguments[_i];
+                        }
+                        return new ((_a = org.mwg.core.task.ActionAddRemoveToGlobalIndex).bind.apply(_a, [void 0, false, true, name].concat(attributes)))();
                         var _a;
                     };
                     Actions.removeFromGlobalIndex = function (name) {
@@ -9151,7 +9149,15 @@ var org;
                         for (var _i = 1; _i < arguments.length; _i++) {
                             attributes[_i - 1] = arguments[_i];
                         }
-                        return new ((_a = org.mwg.core.task.ActionRemoveFromGlobalIndex).bind.apply(_a, [void 0, name].concat(attributes)))();
+                        return new ((_a = org.mwg.core.task.ActionAddRemoveToGlobalIndex).bind.apply(_a, [void 0, true, false, name].concat(attributes)))();
+                        var _a;
+                    };
+                    Actions.removeFromGlobalTimedIndex = function (name) {
+                        var attributes = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            attributes[_i - 1] = arguments[_i];
+                        }
+                        return new ((_a = org.mwg.core.task.ActionAddRemoveToGlobalIndex).bind.apply(_a, [void 0, true, true, name].concat(attributes)))();
                         var _a;
                     };
                     Actions.indexNames = function () {
@@ -9228,12 +9234,6 @@ var org;
                     Actions.thenDo = function (actionFunction) {
                         return org.mwg.core.task.Actions.newTask().thenDo(actionFunction);
                     };
-                    Actions.doWhile = function (task, cond) {
-                        return org.mwg.core.task.Actions.newTask().doWhile(task, cond);
-                    };
-                    Actions.doWhileScript = function (task, condScript) {
-                        return org.mwg.core.task.Actions.newTask().doWhileScript(task, condScript);
-                    };
                     Actions.loop = function (from, to, subTask) {
                         return org.mwg.core.task.Actions.newTask().loop(from, to, subTask);
                     };
@@ -9252,6 +9252,12 @@ var org;
                     Actions.flatMapPar = function (subTask) {
                         return org.mwg.core.task.Actions.newTask().flatMapPar(subTask);
                     };
+                    Actions.map = function (subTask) {
+                        return org.mwg.core.task.Actions.newTask().map(subTask);
+                    };
+                    Actions.mapPar = function (subTask) {
+                        return org.mwg.core.task.Actions.newTask().mapPar(subTask);
+                    };
                     Actions.ifThen = function (cond, then) {
                         return org.mwg.core.task.Actions.newTask().ifThen(cond, then);
                     };
@@ -9263,6 +9269,12 @@ var org;
                     };
                     Actions.ifThenElseScript = function (condScript, thenSub, elseSub) {
                         return org.mwg.core.task.Actions.newTask().ifThenElseScript(condScript, thenSub, elseSub);
+                    };
+                    Actions.doWhile = function (task, cond) {
+                        return org.mwg.core.task.Actions.newTask().doWhile(task, cond);
+                    };
+                    Actions.doWhileScript = function (task, condScript) {
+                        return org.mwg.core.task.Actions.newTask().doWhileScript(task, condScript);
                     };
                     Actions.whileDo = function (cond, task) {
                         return org.mwg.core.task.Actions.newTask().whileDo(cond, task);
@@ -9284,6 +9296,22 @@ var org;
                             subTasks[_i] = arguments[_i];
                         }
                         return (_a = org.mwg.core.task.Actions.newTask()).mapReducePar.apply(_a, subTasks);
+                        var _a;
+                    };
+                    Actions.flatMapReduce = function () {
+                        var subTasks = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            subTasks[_i] = arguments[_i];
+                        }
+                        return (_a = org.mwg.core.task.Actions.newTask()).flatMapReduce.apply(_a, subTasks);
+                        var _a;
+                    };
+                    Actions.flatMapReducePar = function () {
+                        var subTasks = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            subTasks[_i] = arguments[_i];
+                        }
+                        return (_a = org.mwg.core.task.Actions.newTask()).flatMapReducePar.apply(_a, subTasks);
                         var _a;
                     };
                     Actions.isolate = function (subTask) {
@@ -9369,164 +9397,6 @@ var org;
                     return CF_ActionDoWhile;
                 }(org.mwg.core.task.CF_Action));
                 task_1.CF_ActionDoWhile = CF_ActionDoWhile;
-                var CF_ActionFlatMap = (function (_super) {
-                    __extends(CF_ActionFlatMap, _super);
-                    function CF_ActionFlatMap(p_subTask) {
-                        var _this = _super.call(this) || this;
-                        _this._subTask = p_subTask;
-                        return _this;
-                    }
-                    CF_ActionFlatMap.prototype.eval = function (ctx) {
-                        var _this = this;
-                        var selfPointer = this;
-                        var previousResult = ctx.result();
-                        if (previousResult == null) {
-                            ctx.continueTask();
-                        }
-                        else {
-                            var it_1 = previousResult.iterator();
-                            var finalResult_1 = ctx.newResult();
-                            finalResult_1.allocate(previousResult.size());
-                            var recursiveAction_1 = new Array(1);
-                            var loopRes_1 = new Array(1);
-                            recursiveAction_1[0] = function (res) {
-                                {
-                                    if (res != null) {
-                                        for (var i = 0; i < res.size(); i++) {
-                                            finalResult_1.add(res.get(i));
-                                        }
-                                    }
-                                    loopRes_1[0].free();
-                                    var nextResult_1 = it_1.nextWithIndex();
-                                    if (nextResult_1 != null) {
-                                        loopRes_1[0] = ctx.wrap(nextResult_1.right());
-                                    }
-                                    else {
-                                        loopRes_1[0] = null;
-                                    }
-                                    if (nextResult_1 == null) {
-                                        ctx.continueWith(finalResult_1);
-                                    }
-                                    else {
-                                        selfPointer._subTask.executeFromUsing(ctx, loopRes_1[0], org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
-                                            {
-                                                result.defineVariable("i", nextResult_1.left());
-                                            }
-                                        }, recursiveAction_1[0]);
-                                    }
-                                }
-                            };
-                            var nextRes_1 = it_1.nextWithIndex();
-                            if (nextRes_1 != null) {
-                                loopRes_1[0] = ctx.wrap(nextRes_1.right());
-                                ctx.graph().scheduler().dispatch(org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function () {
-                                    {
-                                        _this._subTask.executeFromUsing(ctx, loopRes_1[0], org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
-                                            {
-                                                result.defineVariable("i", nextRes_1.left());
-                                            }
-                                        }, recursiveAction_1[0]);
-                                    }
-                                });
-                            }
-                            else {
-                                ctx.continueWith(finalResult_1);
-                            }
-                        }
-                    };
-                    CF_ActionFlatMap.prototype.children = function () {
-                        var children_tasks = new Array(1);
-                        children_tasks[0] = this._subTask;
-                        return children_tasks;
-                    };
-                    CF_ActionFlatMap.prototype.cf_serialize = function (builder, dagIDS) {
-                        builder.append(org.mwg.core.task.ActionNames.FLAT_MAP);
-                        builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        var castedAction = this._subTask;
-                        var castedActionHash = castedAction.hashCode();
-                        if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
-                            castedAction.serialize(builder, dagIDS);
-                        }
-                        else {
-                            builder.append("" + dagIDS.get(castedActionHash));
-                        }
-                        builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
-                    };
-                    return CF_ActionFlatMap;
-                }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionFlatMap = CF_ActionFlatMap;
-                var CF_ActionFlatMapPar = (function (_super) {
-                    __extends(CF_ActionFlatMapPar, _super);
-                    function CF_ActionFlatMapPar(p_subTask) {
-                        var _this = _super.call(this) || this;
-                        _this._subTask = p_subTask;
-                        return _this;
-                    }
-                    CF_ActionFlatMapPar.prototype.eval = function (ctx) {
-                        var _this = this;
-                        var previousResult = ctx.result();
-                        var finalResult = ctx.wrap(null);
-                        var it = previousResult.iterator();
-                        var previousSize = previousResult.size();
-                        if (previousSize == -1) {
-                            throw new Error("Foreach on non array structure are not supported yet!");
-                        }
-                        finalResult.allocate(previousSize);
-                        var waiter = ctx.graph().newCounter(previousSize);
-                        var dequeueJob = new Array(1);
-                        dequeueJob[0] = function () {
-                            {
-                                var loop_1 = it.nextWithIndex();
-                                if (loop_1 != null) {
-                                    _this._subTask.executeFromUsing(ctx, ctx.wrap(loop_1.right()), org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (result) {
-                                        {
-                                            result.defineVariable("i", loop_1.left());
-                                        }
-                                    }, function (result) {
-                                        {
-                                            if (result != null) {
-                                                for (var i = 0; i < result.size(); i++) {
-                                                    finalResult.add(result.get(i));
-                                                }
-                                            }
-                                            waiter.count();
-                                            dequeueJob[0]();
-                                        }
-                                    });
-                                }
-                            }
-                        };
-                        var nbThread = ctx.graph().scheduler().workers();
-                        for (var i = 0; i < nbThread; i++) {
-                            dequeueJob[0]();
-                        }
-                        waiter.then(function () {
-                            {
-                                ctx.continueWith(finalResult);
-                            }
-                        });
-                    };
-                    CF_ActionFlatMapPar.prototype.children = function () {
-                        var children_tasks = new Array(1);
-                        children_tasks[0] = this._subTask;
-                        return children_tasks;
-                    };
-                    CF_ActionFlatMapPar.prototype.cf_serialize = function (builder, dagIDS) {
-                        builder.append(org.mwg.core.task.ActionNames.FLAT_MAP_PAR);
-                        builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        var castedAction = this._subTask;
-                        var castedActionHash = castedAction.hashCode();
-                        if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
-                            castedAction.serialize(builder, dagIDS);
-                        }
-                        else {
-                            builder.append("" + dagIDS.get(castedActionHash));
-                        }
-                        builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
-                    };
-                    return CF_ActionFlatMapPar;
-                }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionFlatMapPar = CF_ActionFlatMapPar;
                 var CF_ActionForEach = (function (_super) {
                     __extends(CF_ActionForEach, _super);
                     function CF_ActionForEach(p_subTask) {
@@ -9541,33 +9411,33 @@ var org;
                             ctx.continueTask();
                         }
                         else {
-                            var it_2 = previousResult.iterator();
-                            var recursiveAction_2 = new Array(1);
-                            recursiveAction_2[0] = function (res) {
+                            var it_1 = previousResult.iterator();
+                            var recursiveAction_1 = new Array(1);
+                            recursiveAction_1[0] = function (res) {
                                 {
                                     if (res != null) {
                                         res.free();
                                     }
-                                    var nextResult_2 = it_2.nextWithIndex();
-                                    if (nextResult_2 == null) {
+                                    var nextResult_1 = it_1.nextWithIndex();
+                                    if (nextResult_1 == null) {
                                         ctx.continueTask();
                                     }
                                     else {
-                                        selfPointer._subTask.executeFromUsing(ctx, ctx.wrap(nextResult_2.right()), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
+                                        selfPointer._subTask.executeFromUsing(ctx, ctx.wrap(nextResult_1.right()), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
                                             {
-                                                result.defineVariable("i", nextResult_2.left());
+                                                result.defineVariable("i", nextResult_1.left());
                                             }
-                                        }, recursiveAction_2[0]);
+                                        }, recursiveAction_1[0]);
                                     }
                                 }
                             };
-                            var nextRes_2 = it_2.nextWithIndex();
-                            if (nextRes_2 != null) {
-                                this._subTask.executeFromUsing(ctx, ctx.wrap(nextRes_2.right()), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
+                            var nextRes_1 = it_1.nextWithIndex();
+                            if (nextRes_1 != null) {
+                                this._subTask.executeFromUsing(ctx, ctx.wrap(nextRes_1.right()), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
                                     {
-                                        result.defineVariable("i", nextRes_2.left());
+                                        result.defineVariable("i", nextRes_1.left());
                                     }
-                                }, recursiveAction_2[0]);
+                                }, recursiveAction_1[0]);
                             }
                             else {
                                 ctx.continueTask();
@@ -9614,11 +9484,11 @@ var org;
                         var dequeueJob = new Array(1);
                         dequeueJob[0] = function () {
                             {
-                                var loop_2 = it.nextWithIndex();
-                                if (loop_2 != null) {
-                                    _this._subTask.executeFromUsing(ctx, ctx.wrap(loop_2.right()), org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (result) {
+                                var loop_1 = it.nextWithIndex();
+                                if (loop_1 != null) {
+                                    _this._subTask.executeFromUsing(ctx, ctx.wrap(loop_1.right()), org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (result) {
                                         {
-                                            result.defineVariable("i", loop_2.left());
+                                            result.defineVariable("i", loop_1.left());
                                         }
                                     }, function (result) {
                                         {
@@ -9847,8 +9717,8 @@ var org;
                         var selfPointer = this;
                         var cursor = new java.util.concurrent.atomic.AtomicInteger(lower);
                         if ((upper - lower) >= 0) {
-                            var recursiveAction_3 = new Array(1);
-                            recursiveAction_3[0] = function (res) {
+                            var recursiveAction_2 = new Array(1);
+                            recursiveAction_2[0] = function (res) {
                                 {
                                     var current_1 = cursor.getAndIncrement();
                                     if (res != null) {
@@ -9862,7 +9732,7 @@ var org;
                                             {
                                                 result.defineVariable("i", current_1);
                                             }
-                                        }, recursiveAction_3[0]);
+                                        }, recursiveAction_2[0]);
                                     }
                                 }
                             };
@@ -9870,7 +9740,7 @@ var org;
                                 {
                                     result.defineVariable("i", cursor.getAndIncrement());
                                 }
-                            }, recursiveAction_3[0]);
+                            }, recursiveAction_2[0]);
                         }
                         else {
                             ctx.continueTask();
@@ -9919,9 +9789,9 @@ var org;
                         var next = ctx.newResult();
                         if ((upper - lower) > 0) {
                             var waiter_1 = ctx.graph().newCounter((upper - lower) + 1);
-                            var _loop_10 = function (i) {
+                            var _loop_9 = function (i) {
                                 var finalI = i;
-                                this_3._subTask.executeFromUsing(ctx, previous, org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (result) {
+                                this_4._subTask.executeFromUsing(ctx, previous, org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (result) {
                                     {
                                         result.defineVariable("i", finalI);
                                     }
@@ -9936,9 +9806,9 @@ var org;
                                     }
                                 });
                             };
-                            var this_3 = this;
+                            var this_4 = this;
                             for (var i = lower; i <= upper; i++) {
-                                _loop_10(i);
+                                _loop_9(i);
                             }
                             waiter_1.then(function () {
                                 {
@@ -9975,14 +9845,195 @@ var org;
                     return CF_ActionLoopPar;
                 }(org.mwg.core.task.CF_Action));
                 task_1.CF_ActionLoopPar = CF_ActionLoopPar;
+                var CF_ActionMap = (function (_super) {
+                    __extends(CF_ActionMap, _super);
+                    function CF_ActionMap(p_subTask, flat) {
+                        var _this = _super.call(this) || this;
+                        _this._flat = flat;
+                        _this._subTask = p_subTask;
+                        return _this;
+                    }
+                    CF_ActionMap.prototype.eval = function (ctx) {
+                        var _this = this;
+                        var selfPointer = this;
+                        var previousResult = ctx.result();
+                        if (previousResult == null) {
+                            ctx.continueTask();
+                        }
+                        else {
+                            var it_2 = previousResult.iterator();
+                            var finalResult_1 = ctx.newResult();
+                            finalResult_1.allocate(previousResult.size());
+                            var recursiveAction_3 = new Array(1);
+                            var loopRes_1 = new Array(1);
+                            recursiveAction_3[0] = function (res) {
+                                {
+                                    if (res != null) {
+                                        if (_this._flat) {
+                                            for (var i = 0; i < res.size(); i++) {
+                                                finalResult_1.add(res.get(i));
+                                            }
+                                        }
+                                        else {
+                                            finalResult_1.add(res);
+                                        }
+                                    }
+                                    loopRes_1[0].free();
+                                    var nextResult_2 = it_2.nextWithIndex();
+                                    if (nextResult_2 != null) {
+                                        loopRes_1[0] = ctx.wrap(nextResult_2.right());
+                                    }
+                                    else {
+                                        loopRes_1[0] = null;
+                                    }
+                                    if (nextResult_2 == null) {
+                                        ctx.continueWith(finalResult_1);
+                                    }
+                                    else {
+                                        selfPointer._subTask.executeFromUsing(ctx, loopRes_1[0], org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
+                                            {
+                                                result.defineVariable("i", nextResult_2.left());
+                                            }
+                                        }, recursiveAction_3[0]);
+                                    }
+                                }
+                            };
+                            var nextRes_2 = it_2.nextWithIndex();
+                            if (nextRes_2 != null) {
+                                loopRes_1[0] = ctx.wrap(nextRes_2.right());
+                                ctx.graph().scheduler().dispatch(org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function () {
+                                    {
+                                        _this._subTask.executeFromUsing(ctx, loopRes_1[0], org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
+                                            {
+                                                result.defineVariable("i", nextRes_2.left());
+                                            }
+                                        }, recursiveAction_3[0]);
+                                    }
+                                });
+                            }
+                            else {
+                                ctx.continueWith(finalResult_1);
+                            }
+                        }
+                    };
+                    CF_ActionMap.prototype.children = function () {
+                        var children_tasks = new Array(1);
+                        children_tasks[0] = this._subTask;
+                        return children_tasks;
+                    };
+                    CF_ActionMap.prototype.cf_serialize = function (builder, dagIDS) {
+                        if (this._flat) {
+                            builder.append(org.mwg.core.task.ActionNames.FLAT_MAP);
+                        }
+                        else {
+                            builder.append(org.mwg.core.task.ActionNames.MAP);
+                        }
+                        builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
+                        var castedAction = this._subTask;
+                        var castedActionHash = castedAction.hashCode();
+                        if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                            castedAction.serialize(builder, dagIDS);
+                        }
+                        else {
+                            builder.append("" + dagIDS.get(castedActionHash));
+                        }
+                        builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
+                    };
+                    return CF_ActionMap;
+                }(org.mwg.core.task.CF_Action));
+                task_1.CF_ActionMap = CF_ActionMap;
+                var CF_ActionMapPar = (function (_super) {
+                    __extends(CF_ActionMapPar, _super);
+                    function CF_ActionMapPar(p_subTask, flat) {
+                        var _this = _super.call(this) || this;
+                        _this._flat = flat;
+                        _this._subTask = p_subTask;
+                        return _this;
+                    }
+                    CF_ActionMapPar.prototype.eval = function (ctx) {
+                        var _this = this;
+                        var previousResult = ctx.result();
+                        var finalResult = ctx.wrap(null);
+                        var it = previousResult.iterator();
+                        var previousSize = previousResult.size();
+                        if (previousSize == -1) {
+                            throw new Error("Foreach on non array structure are not supported yet!");
+                        }
+                        finalResult.allocate(previousSize);
+                        var waiter = ctx.graph().newCounter(previousSize);
+                        var dequeueJob = new Array(1);
+                        dequeueJob[0] = function () {
+                            {
+                                var loop_2 = it.nextWithIndex();
+                                if (loop_2 != null) {
+                                    _this._subTask.executeFromUsing(ctx, ctx.wrap(loop_2.right()), org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (result) {
+                                        {
+                                            result.defineVariable("i", loop_2.left());
+                                        }
+                                    }, function (result) {
+                                        {
+                                            if (result != null) {
+                                                if (_this._flat) {
+                                                    for (var i = 0; i < result.size(); i++) {
+                                                        finalResult.add(result.get(i));
+                                                    }
+                                                }
+                                                else {
+                                                    finalResult.add(result);
+                                                }
+                                            }
+                                            waiter.count();
+                                            dequeueJob[0]();
+                                        }
+                                    });
+                                }
+                            }
+                        };
+                        var nbThread = ctx.graph().scheduler().workers();
+                        for (var i = 0; i < nbThread; i++) {
+                            dequeueJob[0]();
+                        }
+                        waiter.then(function () {
+                            {
+                                ctx.continueWith(finalResult);
+                            }
+                        });
+                    };
+                    CF_ActionMapPar.prototype.children = function () {
+                        var children_tasks = new Array(1);
+                        children_tasks[0] = this._subTask;
+                        return children_tasks;
+                    };
+                    CF_ActionMapPar.prototype.cf_serialize = function (builder, dagIDS) {
+                        if (this._flat) {
+                            builder.append(org.mwg.core.task.ActionNames.FLAT_MAP_PAR);
+                        }
+                        else {
+                            builder.append(org.mwg.core.task.ActionNames.MAP_PAR);
+                        }
+                        builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
+                        var castedAction = this._subTask;
+                        var castedActionHash = castedAction.hashCode();
+                        if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                            castedAction.serialize(builder, dagIDS);
+                        }
+                        else {
+                            builder.append("" + dagIDS.get(castedActionHash));
+                        }
+                        builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
+                    };
+                    return CF_ActionMapPar;
+                }(org.mwg.core.task.CF_Action));
+                task_1.CF_ActionMapPar = CF_ActionMapPar;
                 var CF_ActionMapReduce = (function (_super) {
                     __extends(CF_ActionMapReduce, _super);
-                    function CF_ActionMapReduce() {
+                    function CF_ActionMapReduce(flat) {
                         var p_subTasks = [];
-                        for (var _i = 0; _i < arguments.length; _i++) {
-                            p_subTasks[_i] = arguments[_i];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            p_subTasks[_i - 1] = arguments[_i];
                         }
                         var _this = _super.call(this) || this;
+                        _this._flat = flat;
                         _this._subTasks = p_subTasks;
                         return _this;
                     }
@@ -9997,11 +10048,16 @@ var org;
                             {
                                 var current_2 = cursor.getAndIncrement();
                                 if (result != null) {
-                                    for (var i = 0; i < result.size(); i++) {
-                                        var loop = result.get(i);
-                                        if (loop != null) {
-                                            next.add(loop);
+                                    if (_this._flat) {
+                                        for (var i = 0; i < result.size(); i++) {
+                                            var loop = result.get(i);
+                                            if (loop != null) {
+                                                next.add(loop);
+                                            }
                                         }
+                                    }
+                                    else {
+                                        next.add(result);
                                     }
                                 }
                                 if (current_2 < tasksSize) {
@@ -10024,7 +10080,12 @@ var org;
                         return this._subTasks;
                     };
                     CF_ActionMapReduce.prototype.cf_serialize = function (builder, dagIDS) {
-                        builder.append(org.mwg.core.task.ActionNames.LOOP);
+                        if (this._flat) {
+                            builder.append(org.mwg.core.task.ActionNames.FLAT_MAP_REDUCE);
+                        }
+                        else {
+                            builder.append(org.mwg.core.task.ActionNames.MAP_REDUCE);
+                        }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         for (var i = 0; i < this._subTasks.length; i++) {
                             if (i != 0) {
@@ -10046,13 +10107,14 @@ var org;
                 task_1.CF_ActionMapReduce = CF_ActionMapReduce;
                 var CF_ActionMapReducePar = (function (_super) {
                     __extends(CF_ActionMapReducePar, _super);
-                    function CF_ActionMapReducePar() {
+                    function CF_ActionMapReducePar(flat) {
                         var p_subTasks = [];
-                        for (var _i = 0; _i < arguments.length; _i++) {
-                            p_subTasks[_i] = arguments[_i];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            p_subTasks[_i - 1] = arguments[_i];
                         }
                         var _this = _super.call(this) || this;
                         _this._subTasks = p_subTasks;
+                        _this._flat = flat;
                         return _this;
                     }
                     CF_ActionMapReducePar.prototype.eval = function (ctx) {
@@ -10061,18 +10123,33 @@ var org;
                         var subTasksSize = this._subTasks.length;
                         next.allocate(subTasksSize);
                         var waiter = ctx.graph().newCounter(subTasksSize);
-                        var _loop_11 = function (i) {
+                        var _loop_10 = function (i) {
                             var finalI = i;
-                            this_4._subTasks[i].executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (subTaskResult) {
+                            this_5._subTasks[i].executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (subTaskResult) {
                                 {
                                     next.set(finalI, subTaskResult);
                                     waiter.count();
                                 }
                             });
                         };
-                        var this_4 = this;
+                        var this_5 = this;
                         for (var i = 0; i < subTasksSize; i++) {
-                            _loop_11(i);
+                            _loop_10(i);
+                        }
+                        if (this._flat) {
+                            var nextFlat = ctx.newResult();
+                            for (var i = 0; i < next.size(); i++) {
+                                var loop = nextFlat.get(i);
+                                if (loop instanceof org.mwg.core.task.CoreTaskResult) {
+                                    var casted = loop;
+                                    for (var j = 0; j < casted.size(); j++) {
+                                        var loop2 = casted.get(i);
+                                        if (loop2 != null) {
+                                            next.add(loop2);
+                                        }
+                                    }
+                                }
+                            }
                         }
                         waiter.then(function () {
                             {
@@ -10084,7 +10161,12 @@ var org;
                         return this._subTasks;
                     };
                     CF_ActionMapReducePar.prototype.cf_serialize = function (builder, dagIDS) {
-                        builder.append(org.mwg.core.task.ActionNames.LOOP);
+                        if (this._flat) {
+                            builder.append(org.mwg.core.task.ActionNames.FLAT_MAP_REDUCE_PAR);
+                        }
+                        else {
+                            builder.append(org.mwg.core.task.ActionNames.MAP_REDUCE_PAR);
+                        }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         for (var i = 0; i < this._subTasks.length; i++) {
                             if (i != 0) {
@@ -10241,10 +10323,16 @@ var org;
                         return this.then(new org.mwg.core.task.CF_ActionForEachPar(subTask));
                     };
                     CoreTask.prototype.flatMap = function (subTask) {
-                        return this.then(new org.mwg.core.task.CF_ActionFlatMap(subTask));
+                        return this.then(new org.mwg.core.task.CF_ActionMap(subTask, true));
+                    };
+                    CoreTask.prototype.map = function (subTask) {
+                        return this.then(new org.mwg.core.task.CF_ActionMap(subTask, false));
                     };
                     CoreTask.prototype.flatMapPar = function (subTask) {
-                        return this.then(new org.mwg.core.task.CF_ActionFlatMapPar(subTask));
+                        return this.then(new org.mwg.core.task.CF_ActionMapPar(subTask, true));
+                    };
+                    CoreTask.prototype.mapPar = function (subTask) {
+                        return this.then(new org.mwg.core.task.CF_ActionMapPar(subTask, false));
                     };
                     CoreTask.prototype.ifThen = function (cond, then) {
                         return this.then(new org.mwg.core.task.CF_ActionIfThen(cond, then, null));
@@ -10269,7 +10357,7 @@ var org;
                         for (var _i = 0; _i < arguments.length; _i++) {
                             subTasks[_i] = arguments[_i];
                         }
-                        this.then(new ((_a = org.mwg.core.task.CF_ActionMapReduce).bind.apply(_a, [void 0].concat(subTasks)))());
+                        this.then(new ((_a = org.mwg.core.task.CF_ActionMapReduce).bind.apply(_a, [void 0, false].concat(subTasks)))());
                         return this;
                         var _a;
                     };
@@ -10278,7 +10366,25 @@ var org;
                         for (var _i = 0; _i < arguments.length; _i++) {
                             subTasks[_i] = arguments[_i];
                         }
-                        this.then(new ((_a = org.mwg.core.task.CF_ActionMapReducePar).bind.apply(_a, [void 0].concat(subTasks)))());
+                        this.then(new ((_a = org.mwg.core.task.CF_ActionMapReducePar).bind.apply(_a, [void 0, false].concat(subTasks)))());
+                        return this;
+                        var _a;
+                    };
+                    CoreTask.prototype.flatMapReduce = function () {
+                        var subTasks = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            subTasks[_i] = arguments[_i];
+                        }
+                        this.then(new ((_a = org.mwg.core.task.CF_ActionMapReduce).bind.apply(_a, [void 0, true].concat(subTasks)))());
+                        return this;
+                        var _a;
+                    };
+                    CoreTask.prototype.flatMapReducePar = function () {
+                        var subTasks = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            subTasks[_i] = arguments[_i];
+                        }
+                        this.then(new ((_a = org.mwg.core.task.CF_ActionMapReducePar).bind.apply(_a, [void 0, true].concat(subTasks)))());
                         return this;
                         var _a;
                     };
@@ -10594,7 +10700,7 @@ var org;
                             cursor++;
                         }
                         if (!isClosed) {
-                            var getName = reader.extract(previous, cursor);
+                            var getName = reader.extract(previous, flatSize);
                             if (getName.length > 0) {
                                 if (actionName != null) {
                                     if (graph == null) {
@@ -10618,9 +10724,9 @@ var org;
                         var _a, _b;
                     };
                     CoreTask.condFromScript = function (script) {
-                        return function (context) {
+                        return function (ctx) {
                             {
-                                return org.mwg.core.task.CoreTask.executeScript(script, context);
+                                return org.mwg.core.task.CoreTask.executeScript(script, ctx);
                             }
                         };
                     };
@@ -10896,7 +11002,7 @@ var org;
                                     throw new Error(org.mwg.core.task.ActionNames.FLAT_MAP + " action needs one parameters. Received:" + params.length);
                                 }
                                 var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.core.task.CF_ActionFlatMap(subTask);
+                                return new org.mwg.core.task.CF_ActionMap(subTask, true);
                             }
                         });
                         registry.put(org.mwg.core.task.ActionNames.FLAT_MAP_PAR, function (params, contextTasks) {
@@ -10905,7 +11011,25 @@ var org;
                                     throw new Error(org.mwg.core.task.ActionNames.FLAT_MAP_PAR + " action needs one parameters. Received:" + params.length);
                                 }
                                 var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.core.task.CF_ActionFlatMapPar(subTask);
+                                return new org.mwg.core.task.CF_ActionMapPar(subTask, true);
+                            }
+                        });
+                        registry.put(org.mwg.core.task.ActionNames.MAP, function (params, contextTasks) {
+                            {
+                                if (params.length != 1) {
+                                    throw new Error(org.mwg.core.task.ActionNames.MAP + " action needs one parameters. Received:" + params.length);
+                                }
+                                var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
+                                return new org.mwg.core.task.CF_ActionMap(subTask, false);
+                            }
+                        });
+                        registry.put(org.mwg.core.task.ActionNames.MAP_PAR, function (params, contextTasks) {
+                            {
+                                if (params.length != 1) {
+                                    throw new Error(org.mwg.core.task.ActionNames.MAP_PAR + " action needs one parameters. Received:" + params.length);
+                                }
+                                var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
+                                return new org.mwg.core.task.CF_ActionMapPar(subTask, false);
                             }
                         });
                         registry.put(org.mwg.core.task.ActionNames.MAP_REDUCE, function (params, contextTasks) {
@@ -10914,7 +11038,7 @@ var org;
                                 for (var i = 0; i < params.length; i++) {
                                     subTasks[i] = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[i]);
                                 }
-                                return new ((_a = org.mwg.core.task.CF_ActionMapReduce).bind.apply(_a, [void 0].concat(subTasks)))();
+                                return new ((_a = org.mwg.core.task.CF_ActionMapReduce).bind.apply(_a, [void 0, false].concat(subTasks)))();
                             }
                             var _a;
                         });
@@ -10924,7 +11048,27 @@ var org;
                                 for (var i = 0; i < params.length; i++) {
                                     subTasks[i] = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[i]);
                                 }
-                                return new ((_a = org.mwg.core.task.CF_ActionMapReducePar).bind.apply(_a, [void 0].concat(subTasks)))();
+                                return new ((_a = org.mwg.core.task.CF_ActionMapReducePar).bind.apply(_a, [void 0, false].concat(subTasks)))();
+                            }
+                            var _a;
+                        });
+                        registry.put(org.mwg.core.task.ActionNames.FLAT_MAP_REDUCE, function (params, contextTasks) {
+                            {
+                                var subTasks = new Array(params.length);
+                                for (var i = 0; i < params.length; i++) {
+                                    subTasks[i] = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[i]);
+                                }
+                                return new ((_a = org.mwg.core.task.CF_ActionMapReduce).bind.apply(_a, [void 0, true].concat(subTasks)))();
+                            }
+                            var _a;
+                        });
+                        registry.put(org.mwg.core.task.ActionNames.FLAT_MAP_REDUCE_PAR, function (params, contextTasks) {
+                            {
+                                var subTasks = new Array(params.length);
+                                for (var i = 0; i < params.length; i++) {
+                                    subTasks[i] = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[i]);
+                                }
+                                return new ((_a = org.mwg.core.task.CF_ActionMapReducePar).bind.apply(_a, [void 0, true].concat(subTasks)))();
                             }
                             var _a;
                         });
@@ -11152,12 +11296,28 @@ var org;
                         return this.then((_a = org.mwg.core.task.Actions).addToGlobalIndex.apply(_a, [name].concat(attributes)));
                         var _a;
                     };
+                    CoreTask.prototype.addToGlobalTimedIndex = function (name) {
+                        var attributes = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            attributes[_i - 1] = arguments[_i];
+                        }
+                        return this.then((_a = org.mwg.core.task.Actions).addToGlobalTimedIndex.apply(_a, [name].concat(attributes)));
+                        var _a;
+                    };
                     CoreTask.prototype.removeFromGlobalIndex = function (name) {
                         var attributes = [];
                         for (var _i = 1; _i < arguments.length; _i++) {
                             attributes[_i - 1] = arguments[_i];
                         }
                         return this.then((_a = org.mwg.core.task.Actions).removeFromGlobalIndex.apply(_a, [name].concat(attributes)));
+                        var _a;
+                    };
+                    CoreTask.prototype.removeFromGlobalTimedIndex = function (name) {
+                        var attributes = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            attributes[_i - 1] = arguments[_i];
+                        }
+                        return this.then((_a = org.mwg.core.task.Actions).removeFromGlobalTimedIndex.apply(_a, [name].concat(attributes)));
                         var _a;
                     };
                     CoreTask.prototype.indexNames = function () {
@@ -12022,13 +12182,13 @@ var org;
                                     nodes = tmp;
                                 }
                                 else if (strict) {
-                                    throw new Error("[ActionAddToGlobalIndex] The array in result contains an element with wrong type. " + "Expected type: BaseNode. Actual type: " + resAsArray[i]);
+                                    throw new Error("[ActionAddRemoveToGlobalIndex] The array in result contains an element with wrong type. " + "Expected type: BaseNode. Actual type: " + resAsArray[i]);
                                 }
                             }
                             return nodes;
                         }
                         else if (strict) {
-                            throw new Error("[ActionAddToGlobalIndex] Wrong type of result. Expected type is BaseNode or an array of BaseNode." + "Actual type is " + toFLat);
+                            throw new Error("[ActionAddRemoveToGlobalIndex] Wrong type of result. Expected type is BaseNode or an array of BaseNode." + "Actual type is " + toFLat);
                         }
                         return new Array(0);
                     };
@@ -12037,7 +12197,30 @@ var org;
                     };
                     TaskHelper.serializeString = function (param, builder) {
                         builder.append("\'");
-                        builder.append(param);
+                        var escapteActivated = false;
+                        var previousIsEscape = false;
+                        for (var i = 0; i < param.length; i++) {
+                            var current = param.charAt(i);
+                            if (current == '\'') {
+                                if (!escapteActivated) {
+                                    escapteActivated = true;
+                                    builder.append(param.substring(0, i));
+                                }
+                                if (!previousIsEscape) {
+                                    builder.append('\\');
+                                }
+                                builder.append(param.charAt(i));
+                            }
+                            else {
+                                if (escapteActivated) {
+                                    builder.append(param.charAt(i));
+                                }
+                            }
+                            previousIsEscape = (current == '\\');
+                        }
+                        if (!escapteActivated) {
+                            builder.append(param);
+                        }
                         builder.append("\'");
                     };
                     TaskHelper.serializeType = function (type, builder) {
@@ -12048,9 +12231,7 @@ var org;
                             if (i != 0) {
                                 builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                             }
-                            builder.append("\'");
-                            builder.append(params[i]);
-                            builder.append("\'");
+                            org.mwg.core.task.TaskHelper.serializeString(params[i], builder);
                         }
                     };
                     TaskHelper.serializeNameAndStringParams = function (name, params, builder) {
@@ -12343,13 +12524,13 @@ var org;
                         }
                         MathConditional.prototype.conditional = function () {
                             var _this = this;
-                            return function (context) {
+                            return function (ctx) {
                                 {
                                     var variables = new java.util.HashMap();
                                     variables.put("PI", Math.PI);
                                     variables.put("TRUE", 1.0);
                                     variables.put("FALSE", 0.0);
-                                    return (_this._engine.eval(null, context, variables) >= 0.5);
+                                    return (_this._engine.eval(null, ctx, variables) >= 0.5);
                                 }
                             };
                         };

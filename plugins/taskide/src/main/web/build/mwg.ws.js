@@ -274,7 +274,7 @@ var org;
                     });
                 };
                 WSClient.prototype.process_rpc_resp = function (payload) {
-                    let payloadBuf = this.graph.newBuffer();
+                    var payloadBuf = this.graph.newBuffer();
                     payloadBuf.writeAll(payload);
                     var it = payloadBuf.iterator();
                     var codeView = it.next();

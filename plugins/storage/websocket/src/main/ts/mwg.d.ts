@@ -370,6 +370,7 @@ declare module org {
             connect(callback: org.mwg.Callback<boolean>): void;
             disconnect(callback: org.mwg.Callback<boolean>): void;
             index(world: number, time: number, name: string, callback: org.mwg.Callback<org.mwg.NodeIndex>): void;
+            indexIfExists(world: number, time: number, name: string, callback: org.mwg.Callback<org.mwg.NodeIndex>): void;
             indexNames(world: number, time: number, callback: org.mwg.Callback<string[]>): void;
             newCounter(expectedEventsCount: number): org.mwg.DeferCounter;
             newSyncCounter(expectedEventsCount: number): org.mwg.DeferCounterSync;
@@ -694,6 +695,8 @@ declare module org {
                 newBuffer(): org.mwg.struct.Buffer;
                 newQuery(): org.mwg.Query;
                 index(world: number, time: number, name: string, callback: org.mwg.Callback<org.mwg.NodeIndex>): void;
+                indexIfExists(world: number, time: number, name: string, callback: org.mwg.Callback<org.mwg.NodeIndex>): void;
+                private internal_index(world, time, name, ifExists, callback);
                 indexNames(world: number, time: number, callback: org.mwg.Callback<string[]>): void;
                 newCounter(expectedCountCalls: number): org.mwg.DeferCounter;
                 newSyncCounter(expectedCountCalls: number): org.mwg.DeferCounterSync;
@@ -1177,20 +1180,22 @@ declare module org {
                 }
             }
             module task {
+                class ActionAddRemoveToGlobalIndex implements org.mwg.task.Action {
+                    private _name;
+                    private _attributes;
+                    private _timed;
+                    private _remove;
+                    constructor(remove: boolean, timed: boolean, name: string, ...attributes: string[]);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
+                    toString(): string;
+                }
                 class ActionAddRemoveVarToRelation implements org.mwg.task.Action {
                     private _name;
                     private _varFrom;
                     private _attributes;
                     private _isAdd;
                     constructor(isAdd: boolean, name: string, varFrom: string, ...attributes: string[]);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    serialize(builder: java.lang.StringBuilder): void;
-                    toString(): string;
-                }
-                class ActionAddToGlobalIndex implements org.mwg.task.Action {
-                    private _name;
-                    private _attributes;
-                    constructor(name: string, ...attributes: string[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
@@ -1283,6 +1288,7 @@ declare module org {
                     static ADD_VAR_TO_RELATION: string;
                     static REMOVE_VAR_TO_RELATION: string;
                     static ADD_TO_GLOBAL_INDEX: string;
+                    static ADD_TO_GLOBAL_TIMED_INDEX: string;
                     static ADD_TO_VAR: string;
                     static ATTRIBUTES: string;
                     static ATTRIBUTES_WITH_TYPE: string;
@@ -1362,14 +1368,6 @@ declare module org {
                 class ActionRemove implements org.mwg.task.Action {
                     private _name;
                     constructor(name: string);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    serialize(builder: java.lang.StringBuilder): void;
-                    toString(): string;
-                }
-                class ActionRemoveFromGlobalIndex implements org.mwg.task.Action {
-                    private _name;
-                    private _attributes;
-                    constructor(name: string, ...attributes: string[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
@@ -1490,7 +1488,9 @@ declare module org {
                     static attribute(name: string, ...params: string[]): org.mwg.task.Action;
                     static readGlobalIndex(indexName: string, ...query: string[]): org.mwg.task.Action;
                     static addToGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Action;
+                    static addToGlobalTimedIndex(name: string, ...attributes: string[]): org.mwg.task.Action;
                     static removeFromGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Action;
+                    static removeFromGlobalTimedIndex(name: string, ...attributes: string[]): org.mwg.task.Action;
                     static indexNames(): org.mwg.task.Action;
                     static selectWith(name: string, pattern: string): org.mwg.task.Action;
                     static selectWithout(name: string, pattern: string): org.mwg.task.Action;
@@ -1729,7 +1729,9 @@ declare module org {
                     attribute(name: string, ...params: string[]): org.mwg.task.Task;
                     readGlobalIndex(name: string, ...query: string[]): org.mwg.task.Task;
                     addToGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
+                    addToGlobalTimedIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
                     removeFromGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
+                    removeFromGlobalTimedIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
                     indexNames(): org.mwg.task.Task;
                     selectWith(name: string, pattern: string): org.mwg.task.Task;
                     selectWithout(name: string, pattern: string): org.mwg.task.Task;
@@ -2159,7 +2161,7 @@ declare module org {
                 (ctx: org.mwg.task.TaskContext): void;
             }
             interface ConditionalFunction {
-                (context: org.mwg.task.TaskContext): boolean;
+                (ctx: org.mwg.task.TaskContext): boolean;
             }
             interface Task {
                 then(nextAction: org.mwg.task.Action): org.mwg.task.Task;
@@ -2218,7 +2220,9 @@ declare module org {
                 attribute(name: string, ...params: string[]): org.mwg.task.Task;
                 readGlobalIndex(indexName: string, ...query: string[]): org.mwg.task.Task;
                 addToGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
+                addToGlobalTimedIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
                 removeFromGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
+                removeFromGlobalTimedIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
                 indexNames(): org.mwg.task.Task;
                 selectWith(name: string, pattern: string): org.mwg.task.Task;
                 selectWithout(name: string, pattern: string): org.mwg.task.Task;
