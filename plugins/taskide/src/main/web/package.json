@@ -52,8 +52,6 @@
   },
   "dependencies": {
     "bulma": "^0.2.3",
-    "mwg": "latest",
-    "mwg-plugin-ws": "latest",
     "react": "^15.3.2",
     "react-bootstrap": "0.30.7",
     "react-dom": "^15.3.2",

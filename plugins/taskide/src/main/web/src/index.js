@@ -9,7 +9,7 @@ import './index.css';
 
 global.context = {};
 
-let defaultURL = "ws://" + window.location.hostname + ":4000";
+let defaultURL = "ws://" + window.location.hostname + ":"+window.location.port+"/ws";
 
 global.context.ws = new global.org.mwg.plugin.WSClient(defaultURL);
 global.context.graph = global.org.mwg.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
@@ -86,22 +86,33 @@ const LoadingButton = React.createClass({
         let self = this;
         self.setState({isLoading: true});
         let task = global.org.mwg.core.task.Actions.newTask();
-        task.parse(global.context.code, window.context.graph);
-        global.context.ws.executeTasks(function (results) {
+        try {
+            task.parse(global.context.code, window.context.graph);
+            global.context.ws.executeTasks(function (results) {
+                let targetDomElem = document.getElementById("json_result");
+                while (targetDomElem.firstChild) {
+                    targetDomElem.removeChild(targetDomElem.firstChild);
+                }
+                targetDomElem.appendChild(
+                    renderjson(JSON.parse(results[0]))
+                );
+                self.setState({isLoading: false});
+            }, task);
+        } catch (e) {
             let targetDomElem = document.getElementById("json_result");
             while (targetDomElem.firstChild) {
                 targetDomElem.removeChild(targetDomElem.firstChild);
             }
             targetDomElem.appendChild(
-                renderjson(JSON.parse(results[0]))
+                renderjson({message: e.message})
             );
             self.setState({isLoading: false});
-        }, task);
+        }
     }
 });
 
 ReactDOM.render(
-    <SplitPane split="horizontal" defaultSize={50} allowResize={false}>
+    <SplitPane split="horizontal" defaultSize={47} allowResize={false}>
         <div className="message-header is-primary flex">
             <p className="control is-horizontal has-addons">
                 <input className="input" defaultValue={defaultURL} type="text" placeholder="IP:PORT"

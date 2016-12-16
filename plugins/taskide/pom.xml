@@ -7,10 +7,6 @@
     <version>11-SNAPSHOT</version>
     <name>mwg :: Plugins :: TaskIDE</name>
 
-    <properties>
-        <undertow.version>1.4.7.Final</undertow.version>
-    </properties>
-
     <parent>
         <artifactId>mwg</artifactId>
         <groupId>org.kevoree.mwg</groupId>
@@ -25,9 +21,9 @@
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.undertow</groupId>
-            <artifactId>undertow-core</artifactId>
-            <version>${undertow.version}</version>
+            <groupId>org.kevoree.mwg.plugins</groupId>
+            <artifactId>websocket</artifactId>
+            <version>${project.parent.version}</version>
         </dependency>
         <!-- Test dependencies -->
         <dependency>
@@ -36,12 +32,44 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.kevoree.mwg.plugins</groupId>
-            <artifactId>websocket</artifactId>
-            <version>${project.parent.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <copy file="${basedir}/../../core/target/classes-js/mwg.js"
+                                      todir="${basedir}/src/main/web/public" overwrite="true"/>
+                                <copy file="${basedir}/../storage/websocket/target/classes-js/mwg.ws.js"
+                                      todir="${basedir}/src/main/web/public" overwrite="true"/>
+                                <echo message="npm install"/>
+                                <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
+                                    <arg value="install"/>
+                                </exec>
+                                <echo message="static build"/>
+                                <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
+                                    <arg value="run"/>
+                                    <arg value="build"/>
+                                </exec>
+                                <copydir src="${basedir}/src/main/web/build"
+                                      dest="${basedir}/target/classes/taskide" forceoverwrite="true"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
