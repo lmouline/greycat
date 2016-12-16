@@ -471,9 +471,9 @@ public class BaseNode implements Node {
                                 builder.append(resolveName);
                                 builder.append("\":");
                                 if ((Boolean) elem) {
-                                    builder.append("0");
-                                } else {
                                     builder.append("1");
+                                } else {
+                                    builder.append("0");
                                 }
                                 break;
                             }
