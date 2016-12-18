@@ -141,6 +141,9 @@
         <module>plugins/mlx</module>
         -->
 
+        <module>plugins/benchmark</module>
+
+
     </modules>
 
     <build>
