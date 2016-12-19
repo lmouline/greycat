@@ -42,8 +42,7 @@ public abstract class AbstractEGraphTest {
         Relation children = (Relation) eNode.getOrCreate("children", Type.RELATION);
         children.add(secondENode.id());
         Assert.assertEquals("{\"id\":0,\"name\":\"hello\",\"children\":[1]}", eNode.toString());
-
-        System.out.println(egraph.toString());
+        Assert.assertEquals("{\"root\":0,\"nodes\":[{\"id\":0,\"name\":\"hello\",\"children\":[1]},{\"id\":1}]}", egraph.toString());
 
     }
 

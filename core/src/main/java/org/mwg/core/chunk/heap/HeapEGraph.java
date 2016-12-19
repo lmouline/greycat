@@ -5,6 +5,7 @@ import org.mwg.struct.ENode;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 class HeapEGraph implements EGraph {
 
@@ -65,7 +66,15 @@ class HeapEGraph implements EGraph {
             builder.append(",");
         }
         builder.append("\"nodes\":[");
-        //TODO
+        Set<Long> keys = _nodesMapping.keySet();
+        Long[] flat = keys.toArray(new Long[keys.size()]);
+        for(int i=0;i<flat.length;i++){
+            if(i!=0){
+                builder.append(",");
+            }
+            ENode eNode = _nodesMapping.get(flat[i]);
+            builder.append(eNode.toString());
+        }
         builder.append("]}");
         return builder.toString();
     }
