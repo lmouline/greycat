@@ -1,5 +1,6 @@
 package org.mwg.core.chunk;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
@@ -11,6 +12,7 @@ import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.plugin.MemoryFactory;
 import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
+import org.mwg.struct.Relation;
 
 public abstract class AbstractEGraphTest {
 
@@ -32,14 +34,17 @@ public abstract class AbstractEGraphTest {
 
         ENode eNode = egraph.newNode();
         egraph.setRoot(eNode);
-        eNode.set("name",Type.STRING,"hello");
-        System.out.println(eNode.toString());
+        eNode.set("name", Type.STRING, "hello");
+        Assert.assertEquals("{\"id\":0,\"name\":\"hello\"}", eNode.toString());
 
+        ENode secondENode = egraph.newNode();
 
-        //System.out.println(egraph);
-        //TODO
+        Relation children = (Relation) eNode.getOrCreate("children", Type.RELATION);
+        children.add(secondENode.id());
+        Assert.assertEquals("{\"id\":0,\"name\":\"hello\",\"children\":[1]}", eNode.toString());
+
+        System.out.println(egraph.toString());
+
     }
-
-    //TODO
 
 }

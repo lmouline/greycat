@@ -19,7 +19,7 @@ public class HeapAtomicByteArray {
 
     private final byte[] _back;
 
-    public HeapAtomicByteArray(int initialSize) {
+    HeapAtomicByteArray(int initialSize) {
         _back = new byte[initialSize];
     }
 

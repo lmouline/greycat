@@ -8,10 +8,6 @@ public interface ENode {
 
     ENode setAt(long key, byte type, Object value);
 
-    ENode add(String name);
-
-    ENode addAt(long key);
-
     Object get(String name);
 
     Object getAt(long key);
@@ -21,5 +17,7 @@ public interface ENode {
     Object getOrCreateAt(final long key, final byte type);
 
     void drop();
+
+    EGraph graph();
 
 }

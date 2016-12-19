@@ -12,17 +12,17 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class HeapENode implements ENode {
+class HeapENode implements ENode {
 
     private final HeapEGraph egraph;
     private final HeapStateChunk chunk;
-    private final Graph graph;
+    private final Graph _graph;
     private final long _id;
 
     HeapENode(HeapStateChunk p_chunk, HeapEGraph p_egraph, Graph p_graph, long p_id) {
         chunk = p_chunk;
         egraph = p_egraph;
-        graph = p_graph;
+        _graph = p_graph;
         _id = p_id;
     }
 
@@ -292,7 +292,7 @@ public class HeapENode implements ENode {
 
     @Override
     public ENode set(String name, byte type, Object value) {
-        internal_set(graph.resolver().stringToHash(name, true), type, value, true, false);
+        internal_set(_graph.resolver().stringToHash(name, true), type, value, true, false);
         return this;
     }
 
@@ -303,18 +303,8 @@ public class HeapENode implements ENode {
     }
 
     @Override
-    public ENode add(String name) {
-        return null;
-    }
-
-    @Override
-    public ENode addAt(long key) {
-        return null;
-    }
-
-    @Override
     public Object get(String name) {
-        return internal_get(graph.resolver().stringToHash(name, false));
+        return internal_get(_graph.resolver().stringToHash(name, false));
     }
 
     @Override
@@ -333,12 +323,17 @@ public class HeapENode implements ENode {
     }
 
     @Override
+    public EGraph graph() {
+        return egraph;
+    }
+
+    @Override
     public Object getOrCreate(String key, byte type) {
         Object previous = get(key);
         if (previous != null) {
             return previous;
         } else {
-            return getOrCreateAt(graph.resolver().stringToHash(key, true), type);
+            return getOrCreateAt(_graph.resolver().stringToHash(key, true), type);
         }
     }
 
@@ -387,7 +382,7 @@ public class HeapENode implements ENode {
 
         for (int i = 0; i < _size; i++) {
             final Object elem = _v[i];
-            final Resolver resolver = graph.resolver();
+            final Resolver resolver = _graph.resolver();
             final long attributeKey = _k[i];
             final byte elemType = _type[i];
             if (elem != null) {

@@ -6,7 +6,7 @@ import org.mwg.struct.ENode;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HeapEGraph implements EGraph {
+class HeapEGraph implements EGraph {
 
     private final HeapStateChunk parent;
     private boolean _dirty;
@@ -55,5 +55,19 @@ public class HeapEGraph implements EGraph {
         return _nodesMapping.get(id);
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("{");
+        if (_root != -1) {
+            builder.append("\"root\":");
+            builder.append(_root);
+            builder.append(",");
+        }
+        builder.append("\"nodes\":[");
+        //TODO
+        builder.append("]}");
+        return builder.toString();
+    }
 
 }
