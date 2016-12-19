@@ -44,7 +44,7 @@ public class ETreeTest {
 
                 Random random = new Random();
                 random.setSeed(125362l);
-                int ins = 10000;
+                int ins = 100;
 
 
                 double[][] keys = new double[ins][];

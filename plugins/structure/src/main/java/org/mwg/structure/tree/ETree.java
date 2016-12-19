@@ -17,22 +17,26 @@ import org.mwg.structure.NTree;
 public class ETree extends BaseNode implements NTree {
     public static String NAME = "ETree";
 
-    public static String BOUND_MIN = "_min";
-    public static String BOUND_MAX = "_max";
-    public static String RESOLUTION = "_resolution";
-    public static String BUFFER_SIZE = "_buffersize";
+    public static String BOUND_MIN = "min";
+    public static String BOUND_MAX = "max";
+    public static String RESOLUTION = "resolution";
+    public static String BUFFER_SIZE = "buffersize";
+    public static String DISTANCE = "distance";
+    public static int DISTANCE_DEF = 0;
+
     public static int BUFFER_SIZE_DEF = 0;
 
 
     private static String EGRAPH = "_egraph";
 
     private static long _TOTAL = 0;
-    private static long _BUFFER = 1;
-    private static long _SUBNODES = 2;
-    private static long _VALUE = 3;
-    private static long _MIN = 4;
-    private static long _MAX = 5;
-    private static long _PROFILE = 6;
+    private static long _BUFFER_KEYS = 1;
+    private static long _BUFFER_VALUES = 2;
+    private static long _SUBNODES = 3;
+    private static long _VALUE = 4;
+    private static long _MIN = 5;
+    private static long _MAX = 6;
+    private static long _PROFILE = 7;
 
     private static int _REL = 16;
 
@@ -95,6 +99,18 @@ public class ETree extends BaseNode implements NTree {
 
     public static int counter = 0;
 
+    private static void check(double[] values, double[] min, double[] max) {
+        if (values.length != min.length) {
+            throw new RuntimeException("Values dimension mismatch");
+        }
+        for (int i = 0; i < min.length; i++) {
+            if (values[i] < min[i] || values[i] > max[i]) {
+                throw new RuntimeException("Values should be between min, max!");
+            }
+        }
+    }
+
+
     private static ENode createNewNode(final ENode parent, final double[] min, final double[] max, final double[] center, final double[] keyToInsert, final int buffersize) {
         ENode node = parent.graph().newNode();
         double[] minChild = new double[min.length];
@@ -124,12 +140,12 @@ public class ETree extends BaseNode implements NTree {
         return node;
     }
 
-    private static void subInsert(final ENode from, final double[] values, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final int lev, final ENode root) {
-        int index = getRelationId(center, values);
+    private static void subInsert(final ENode from, final double[] keys, final Node value, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final int lev, final ENode root) {
+        int index = getRelationId(center, keys);
 
         ENode child;
         if (from.getAt(index) == null) {
-            child = createNewNode(from, min, max, center, values, buffersize);
+            child = createNewNode(from, min, max, center, keys, buffersize);
             from.setAt(index, Type.LONG, child.id());
         } else {
             child = from.graph().lookup((long) from.getAt(index));
@@ -137,15 +153,15 @@ public class ETree extends BaseNode implements NTree {
         double[] childmin = (double[]) child.getAt(_MIN);
         double[] childmax = (double[]) child.getAt(_MAX);
         double[] childcenter = getCenterMinMax(childmin, childmax);
-        internalInsert(child, values, childmin, childmax, childcenter, resolution, buffersize, lev + 1, root);
+        internalInsert(child, keys, value, childmin, childmax, childcenter, resolution, buffersize, lev + 1, root);
     }
 
-    private static void internalInsert(final ENode node, final double[] keys, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final int lev, final ENode root) {
+    private static void internalInsert(final ENode node, final double[] keys, final Node value, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final int lev, final ENode root) {
         if ((int) node.getAt(_SUBNODES) != 0) {
-            subInsert(node, keys, min, max, center, resolution, buffersize, lev, root);
+            subInsert(node, keys, value, min, max, center, resolution, buffersize, lev, root);
         } else if (checkCreateLevels(min, max, resolution)) {
 
-            if (node.getAt(_BUFFER) != null) {
+            if (node.getAt(_BUFFER_KEYS) != null) {
                 throw new RuntimeException("should not go here");
                 //todo bufferize keys here and check if buffer is full etc
 //                if (_tempValues.size() < buffersize) {
@@ -160,7 +176,7 @@ public class ETree extends BaseNode implements NTree {
 //                    _tempValues = null;
 //                }
             } else {
-                subInsert(node, keys, min, max, center, resolution, buffersize, lev, root);
+                subInsert(node, keys, value, min, max, center, resolution, buffersize, lev, root);
             }
         }
         //Else we reached here last level of the tree, and the array is full, we need to start a profiler
@@ -188,6 +204,8 @@ public class ETree extends BaseNode implements NTree {
 
         double[] min = (double[]) state.getFromKey(BOUND_MIN);
         double[] max = (double[]) state.getFromKey(BOUND_MAX);
+        check(keys, min, max);
+
         double[] resolution = (double[]) state.getFromKey(RESOLUTION);
         EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
         int buffersize = state.getFromKeyWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
@@ -201,7 +219,10 @@ public class ETree extends BaseNode implements NTree {
             root.setAt(_MIN, Type.DOUBLE_ARRAY, min);
             root.setAt(_MAX, Type.DOUBLE_ARRAY, max);
         }
-        internalInsert(root, keys, min, max, getCenterMinMax(min, max), resolution, buffersize, 0, root);
+        internalInsert(root, keys, value, min, max, getCenterMinMax(min, max), resolution, buffersize, 0, root);
+        if(callback!=null) {
+            callback.on(true);
+        }
     }
 
     @Override
@@ -211,7 +232,14 @@ public class ETree extends BaseNode implements NTree {
 
     @Override
     public int size() {
-        return 0;
+        NodeState state = unphasedState();
+        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
+        ENode root = graph.root();
+        if (root == null) {
+            return 0;
+        } else {
+            return (int) root.getAt(_TOTAL);
+        }
     }
 
     @Override
