@@ -831,6 +831,7 @@ declare module org {
                     }
                     class HeapENode implements org.mwg.struct.ENode {
                         private egraph;
+                        private chunk;
                         private graph;
                         private _id;
                         private _capacity;
@@ -841,7 +842,7 @@ declare module org {
                         private _hash;
                         private _type;
                         private _dirty;
-                        constructor(p_egraph: org.mwg.core.chunk.heap.HeapEGraph, p_graph: org.mwg.Graph, p_id: number);
+                        constructor(p_chunk: org.mwg.core.chunk.heap.HeapStateChunk, p_egraph: org.mwg.core.chunk.heap.HeapEGraph, p_graph: org.mwg.Graph, p_id: number);
                         private declareDirty();
                         private internal_find(p_key);
                         private internal_get(p_key);
@@ -854,6 +855,8 @@ declare module org {
                         getAt(key: number): any;
                         id(): number;
                         drop(): void;
+                        getOrCreate(key: string, type: number): any;
+                        getOrCreateAt(key: number, type: number): any;
                         toString(): string;
                     }
                     class HeapFixedStack implements org.mwg.chunk.Stack {
@@ -2130,13 +2133,15 @@ declare module org {
                 drop(eNode: org.mwg.struct.ENode): org.mwg.struct.EGraph;
             }
             interface ENode {
+                id(): number;
                 set(name: string, type: number, value: any): org.mwg.struct.ENode;
                 setAt(key: number, type: number, value: any): org.mwg.struct.ENode;
                 add(name: string): org.mwg.struct.ENode;
                 addAt(key: number): org.mwg.struct.ENode;
                 get(name: string): any;
                 getAt(key: number): any;
-                id(): number;
+                getOrCreate(key: string, type: number): any;
+                getOrCreateAt(key: number, type: number): any;
                 drop(): void;
             }
             interface LongLongArrayMap extends org.mwg.struct.Map {

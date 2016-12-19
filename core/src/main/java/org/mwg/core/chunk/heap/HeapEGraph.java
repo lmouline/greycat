@@ -33,7 +33,7 @@ public class HeapEGraph implements EGraph {
 
     @Override
     public ENode newNode() {
-        HeapENode newNode = new HeapENode(this, parent.graph(), counter);
+        HeapENode newNode = new HeapENode(parent, this, parent.graph(), counter);
         counter++;
         _nodesMapping.put(newNode.id(), newNode);
         return newNode;

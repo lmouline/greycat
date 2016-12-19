@@ -4,8 +4,6 @@ import org.mwg.Constants;
 import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.base.BaseNode;
-import org.mwg.plugin.NodeState;
-import org.mwg.plugin.NodeStateCallback;
 import org.mwg.plugin.Resolver;
 import org.mwg.struct.*;
 import org.mwg.utility.HashHelper;
@@ -17,10 +15,12 @@ import java.util.Set;
 public class HeapENode implements ENode {
 
     private final HeapEGraph egraph;
+    private final HeapStateChunk chunk;
     private final Graph graph;
     private final long _id;
 
-    HeapENode(HeapEGraph p_egraph, Graph p_graph, long p_id) {
+    HeapENode(HeapStateChunk p_chunk, HeapEGraph p_egraph, Graph p_graph, long p_id) {
+        chunk = p_chunk;
         egraph = p_egraph;
         graph = p_graph;
         _id = p_id;
@@ -333,13 +333,59 @@ public class HeapENode implements ENode {
     }
 
     @Override
+    public Object getOrCreate(String key, byte type) {
+        Object previous = get(key);
+        if (previous != null) {
+            return previous;
+        } else {
+            return getOrCreateAt(graph.resolver().stringToHash(key, true), type);
+        }
+    }
+
+    @Override
+    public final Object getOrCreateAt(final long key, final byte type) {
+        final int found = internal_find(key);
+        if (found != -1) {
+            if (_type[found] == type) {
+                return _v[found];
+            }
+        }
+        Object toSet = null;
+        switch (type) {
+            case Type.RELATION:
+                toSet = new HeapRelation(chunk, null);
+                break;
+            case Type.RELATION_INDEXED:
+                toSet = new HeapRelationIndexed(chunk);
+                break;
+            case Type.MATRIX:
+                toSet = new HeapMatrix(chunk, null);
+                break;
+            case Type.EGRAPH:
+                toSet = new HeapEGraph(chunk);
+                break;
+            case Type.STRING_TO_LONG_MAP:
+                toSet = new HeapStringLongMap(chunk);
+                break;
+            case Type.LONG_TO_LONG_MAP:
+                toSet = new HeapLongLongMap(chunk);
+                break;
+            case Type.LONG_TO_LONG_ARRAY_MAP:
+                toSet = new HeapLongLongArrayMap(chunk);
+                break;
+        }
+        internal_set(key, type, toSet, true, false);
+        return toSet;
+    }
+
+    @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         final boolean[] isFirst = {true};
         builder.append("{\"id\":");
         builder.append(id());
 
-        for(int i=0;i<_size;i++){
+        for (int i = 0; i < _size; i++) {
             final Object elem = _v[i];
             final Resolver resolver = graph.resolver();
             final long attributeKey = _k[i];

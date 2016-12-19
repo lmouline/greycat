@@ -4002,7 +4002,7 @@ var org;
                             return this.lookup(this._root);
                         };
                         HeapEGraph.prototype.newNode = function () {
-                            var newNode = new org.mwg.core.chunk.heap.HeapENode(this, this.parent.graph(), this.counter);
+                            var newNode = new org.mwg.core.chunk.heap.HeapENode(this.parent, this, this.parent.graph(), this.counter);
                             this.counter++;
                             this._nodesMapping.put(newNode.id(), newNode);
                             return newNode;
@@ -4022,7 +4022,8 @@ var org;
                     }());
                     heap.HeapEGraph = HeapEGraph;
                     var HeapENode = (function () {
-                        function HeapENode(p_egraph, p_graph, p_id) {
+                        function HeapENode(p_chunk, p_egraph, p_graph, p_id) {
+                            this.chunk = p_chunk;
                             this.egraph = p_egraph;
                             this.graph = p_graph;
                             this._id = p_id;
@@ -4308,6 +4309,49 @@ var org;
                         };
                         HeapENode.prototype.drop = function () {
                             this.egraph.drop(this);
+                        };
+                        HeapENode.prototype.getOrCreate = function (key, type) {
+                            var previous = this.get(key);
+                            if (previous != null) {
+                                return previous;
+                            }
+                            else {
+                                return this.getOrCreateAt(this.graph.resolver().stringToHash(key, true), type);
+                            }
+                        };
+                        HeapENode.prototype.getOrCreateAt = function (key, type) {
+                            var found = this.internal_find(key);
+                            if (found != -1) {
+                                if (this._type[found] == type) {
+                                    return this._v[found];
+                                }
+                            }
+                            var toSet = null;
+                            switch (type) {
+                                case org.mwg.Type.RELATION:
+                                    toSet = new org.mwg.core.chunk.heap.HeapRelation(this.chunk, null);
+                                    break;
+                                case org.mwg.Type.RELATION_INDEXED:
+                                    toSet = new org.mwg.core.chunk.heap.HeapRelationIndexed(this.chunk);
+                                    break;
+                                case org.mwg.Type.MATRIX:
+                                    toSet = new org.mwg.core.chunk.heap.HeapMatrix(this.chunk, null);
+                                    break;
+                                case org.mwg.Type.EGRAPH:
+                                    toSet = new org.mwg.core.chunk.heap.HeapEGraph(this.chunk);
+                                    break;
+                                case org.mwg.Type.STRING_TO_LONG_MAP:
+                                    toSet = new org.mwg.core.chunk.heap.HeapStringLongMap(this.chunk);
+                                    break;
+                                case org.mwg.Type.LONG_TO_LONG_MAP:
+                                    toSet = new org.mwg.core.chunk.heap.HeapLongLongMap(this.chunk);
+                                    break;
+                                case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
+                                    toSet = new org.mwg.core.chunk.heap.HeapLongLongArrayMap(this.chunk);
+                                    break;
+                            }
+                            this.internal_set(key, type, toSet, true, false);
+                            return toSet;
                         };
                         HeapENode.prototype.toString = function () {
                             var builder = new java.lang.StringBuilder();
