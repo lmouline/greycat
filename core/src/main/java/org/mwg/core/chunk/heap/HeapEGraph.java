@@ -51,7 +51,7 @@ class HeapEGraph implements EGraph {
         _nodesMapping.remove(eNode.id());
         return this;
     }
-
+    @Override
     public ENode lookup(long id) {
         return _nodesMapping.get(id);
     }

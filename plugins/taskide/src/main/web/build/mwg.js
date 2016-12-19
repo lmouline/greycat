@@ -4018,6 +4018,27 @@ var org;
                         HeapEGraph.prototype.lookup = function (id) {
                             return this._nodesMapping.get(id);
                         };
+                        HeapEGraph.prototype.toString = function () {
+                            var builder = new java.lang.StringBuilder();
+                            builder.append("{");
+                            if (this._root != -1) {
+                                builder.append("\"root\":");
+                                builder.append(this._root);
+                                builder.append(",");
+                            }
+                            builder.append("\"nodes\":[");
+                            var keys = this._nodesMapping.keySet();
+                            var flat = keys.toArray(new Array(keys.size()));
+                            for (var i = 0; i < flat.length; i++) {
+                                if (i != 0) {
+                                    builder.append(",");
+                                }
+                                var eNode = this._nodesMapping.get(flat[i]);
+                                builder.append(eNode.toString());
+                            }
+                            builder.append("]}");
+                            return builder.toString();
+                        };
                         return HeapEGraph;
                     }());
                     heap.HeapEGraph = HeapEGraph;
@@ -4025,7 +4046,7 @@ var org;
                         function HeapENode(p_chunk, p_egraph, p_graph, p_id) {
                             this.chunk = p_chunk;
                             this.egraph = p_egraph;
-                            this.graph = p_graph;
+                            this._graph = p_graph;
                             this._id = p_id;
                         }
                         HeapENode.prototype.declareDirty = function () {
@@ -4285,21 +4306,15 @@ var org;
                             }
                         };
                         HeapENode.prototype.set = function (name, type, value) {
-                            this.internal_set(this.graph.resolver().stringToHash(name, true), type, value, true, false);
+                            this.internal_set(this._graph.resolver().stringToHash(name, true), type, value, true, false);
                             return this;
                         };
                         HeapENode.prototype.setAt = function (key, type, value) {
                             this.internal_set(key, type, value, true, false);
                             return this;
                         };
-                        HeapENode.prototype.add = function (name) {
-                            return null;
-                        };
-                        HeapENode.prototype.addAt = function (key) {
-                            return null;
-                        };
                         HeapENode.prototype.get = function (name) {
-                            return this.internal_get(this.graph.resolver().stringToHash(name, false));
+                            return this.internal_get(this._graph.resolver().stringToHash(name, false));
                         };
                         HeapENode.prototype.getAt = function (key) {
                             return this.internal_get(key);
@@ -4310,13 +4325,16 @@ var org;
                         HeapENode.prototype.drop = function () {
                             this.egraph.drop(this);
                         };
+                        HeapENode.prototype.graph = function () {
+                            return this.egraph;
+                        };
                         HeapENode.prototype.getOrCreate = function (key, type) {
                             var previous = this.get(key);
                             if (previous != null) {
                                 return previous;
                             }
                             else {
-                                return this.getOrCreateAt(this.graph.resolver().stringToHash(key, true), type);
+                                return this.getOrCreateAt(this._graph.resolver().stringToHash(key, true), type);
                             }
                         };
                         HeapENode.prototype.getOrCreateAt = function (key, type) {
@@ -4360,7 +4378,7 @@ var org;
                             builder.append(this.id());
                             var _loop_4 = function (i) {
                                 var elem = this_2._v[i];
-                                var resolver = this_2.graph.resolver();
+                                var resolver = this_2._graph.resolver();
                                 var attributeKey = this_2._k[i];
                                 var elemType = this_2._type[i];
                                 if (elem != null) {

@@ -828,11 +828,12 @@ declare module org {
                         setRoot(eNode: org.mwg.struct.ENode): org.mwg.struct.EGraph;
                         drop(eNode: org.mwg.struct.ENode): org.mwg.struct.EGraph;
                         lookup(id: number): org.mwg.struct.ENode;
+                        toString(): string;
                     }
                     class HeapENode implements org.mwg.struct.ENode {
                         private egraph;
                         private chunk;
-                        private graph;
+                        private _graph;
                         private _id;
                         private _capacity;
                         private _size;
@@ -849,12 +850,11 @@ declare module org {
                         private internal_set(p_key, p_type, p_unsafe_elem, replaceIfPresent, initial);
                         set(name: string, type: number, value: any): org.mwg.struct.ENode;
                         setAt(key: number, type: number, value: any): org.mwg.struct.ENode;
-                        add(name: string): org.mwg.struct.ENode;
-                        addAt(key: number): org.mwg.struct.ENode;
                         get(name: string): any;
                         getAt(key: number): any;
                         id(): number;
                         drop(): void;
+                        graph(): org.mwg.struct.EGraph;
                         getOrCreate(key: string, type: number): any;
                         getOrCreateAt(key: number, type: number): any;
                         toString(): string;
@@ -2131,18 +2131,18 @@ declare module org {
                 newNode(): org.mwg.struct.ENode;
                 setRoot(eNode: org.mwg.struct.ENode): org.mwg.struct.EGraph;
                 drop(eNode: org.mwg.struct.ENode): org.mwg.struct.EGraph;
+                lookup(id: number): org.mwg.struct.ENode;
             }
             interface ENode {
                 id(): number;
                 set(name: string, type: number, value: any): org.mwg.struct.ENode;
                 setAt(key: number, type: number, value: any): org.mwg.struct.ENode;
-                add(name: string): org.mwg.struct.ENode;
-                addAt(key: number): org.mwg.struct.ENode;
                 get(name: string): any;
                 getAt(key: number): any;
                 getOrCreate(key: string, type: number): any;
                 getOrCreateAt(key: number, type: number): any;
                 drop(): void;
+                graph(): org.mwg.struct.EGraph;
             }
             interface LongLongArrayMap extends org.mwg.struct.Map {
                 get(key: number): Float64Array;

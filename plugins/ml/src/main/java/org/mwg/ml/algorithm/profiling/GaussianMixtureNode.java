@@ -407,8 +407,6 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
     }
 
 
-
-
     private static Task getSelectTraverseTask() {
         Task deepTraverse = newTask()
                 .loop("0", "{{requestedLev}}", newTask()
@@ -430,7 +428,6 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
     }
 
     private static Task selectTraverseTask = getSelectTraverseTask();
-
 
 
     private static Task getDeepTraverseTask() {
@@ -510,13 +507,20 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
                 callback.on(new ProbaDistribution(totals, distributions, globalTotal));
             }
         });
+        TaskResult resMin = context.newResult();
+        resMin.add(finalMin);
 
+        TaskResult resMax = context.newResult();
+        resMax.add(finalMax);
+
+        TaskResult resErr = context.newResult();
+        resErr.add(err);
 
         context.setGlobalVariable("requestedLev", this.getLevel() - level);
         context.setGlobalVariable("rootLevel", level);
-        context.setGlobalVariable("finalMin", context.wrap(finalMin));
-        context.setGlobalVariable("finalMax", context.wrap(finalMax));
-        context.setGlobalVariable("err", context.wrap(err));
+        context.setGlobalVariable("finalMin", resMin);
+        context.setGlobalVariable("finalMax", resMax);
+        context.setGlobalVariable("err", resErr);
         context.setGlobalVariable("threshold", threshold);
 
         selectTraverseTask.executeUsing(context);
@@ -540,7 +544,7 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
         }
         final double[] err = initialResolution;
 
-        TaskContext context =deepTraverseTask.prepare(graph(), this, new Callback<TaskResult>() {
+        TaskContext context = deepTraverseTask.prepare(graph(), this, new Callback<TaskResult>() {
             @Override
             public void on(TaskResult leaves) {
                 Matrix covBackup = VolatileMatrix.empty(nbfeature, nbfeature);
@@ -571,7 +575,7 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
             }
         });
 
-        context.setGlobalVariable("requestedLev",this.getLevel()-level);
+        context.setGlobalVariable("requestedLev", this.getLevel() - level);
         deepTraverseTask.executeUsing(context);
 
     }

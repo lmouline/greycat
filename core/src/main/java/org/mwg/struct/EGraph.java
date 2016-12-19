@@ -10,4 +10,5 @@ public interface EGraph {
 
     EGraph drop(ENode eNode);
 
+    ENode lookup(long id);
 }
