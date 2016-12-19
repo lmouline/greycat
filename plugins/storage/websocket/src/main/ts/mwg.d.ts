@@ -464,6 +464,7 @@ declare module org {
             static RELATION: number;
             static RELATION_INDEXED: number;
             static MATRIX: number;
+            static EGRAPH: number;
             static EXTERNAL: number;
             static typeName(p_type: number): string;
             static typeFromName(name: string): number;
@@ -536,7 +537,7 @@ declare module org {
                 rephase(): org.mwg.Node;
                 timepoints(beginningOfSearch: number, endOfSearch: number, callback: org.mwg.Callback<Float64Array>): void;
                 travelInTime<A extends org.mwg.Node>(targetTime: number, callback: org.mwg.Callback<A>): void;
-                private isNaN(toTest);
+                static isNaN(toTest: number): boolean;
                 toString(): string;
             }
             class BasePlugin implements org.mwg.plugin.Plugin {
@@ -813,6 +814,47 @@ declare module org {
                         freeAll(): void;
                         available(): number;
                         printMarked(): void;
+                    }
+                    class HeapEGraph implements org.mwg.struct.EGraph {
+                        private parent;
+                        private _dirty;
+                        private _nodesMapping;
+                        private counter;
+                        private _root;
+                        constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk);
+                        declareDirty(): void;
+                        root(): org.mwg.struct.ENode;
+                        newNode(): org.mwg.struct.ENode;
+                        setRoot(eNode: org.mwg.struct.ENode): org.mwg.struct.EGraph;
+                        drop(eNode: org.mwg.struct.ENode): org.mwg.struct.EGraph;
+                        lookup(id: number): org.mwg.struct.ENode;
+                    }
+                    class HeapENode implements org.mwg.struct.ENode {
+                        private egraph;
+                        private graph;
+                        private _id;
+                        private _capacity;
+                        private _size;
+                        private _k;
+                        private _v;
+                        private _next;
+                        private _hash;
+                        private _type;
+                        private _dirty;
+                        constructor(p_egraph: org.mwg.core.chunk.heap.HeapEGraph, p_graph: org.mwg.Graph, p_id: number);
+                        private declareDirty();
+                        private internal_find(p_key);
+                        private internal_get(p_key);
+                        private internal_set(p_key, p_type, p_unsafe_elem, replaceIfPresent, initial);
+                        set(name: string, type: number, value: any): org.mwg.struct.ENode;
+                        setAt(key: number, type: number, value: any): org.mwg.struct.ENode;
+                        add(name: string): org.mwg.struct.ENode;
+                        addAt(key: number): org.mwg.struct.ENode;
+                        get(name: string): any;
+                        getAt(key: number): any;
+                        id(): number;
+                        drop(): void;
+                        toString(): string;
                     }
                     class HeapFixedStack implements org.mwg.chunk.Stack {
                         private _next;
@@ -2080,6 +2122,22 @@ declare module org {
             interface BufferIterator {
                 hasNext(): boolean;
                 next(): org.mwg.struct.Buffer;
+            }
+            interface EGraph {
+                root(): org.mwg.struct.ENode;
+                newNode(): org.mwg.struct.ENode;
+                setRoot(eNode: org.mwg.struct.ENode): org.mwg.struct.EGraph;
+                drop(eNode: org.mwg.struct.ENode): org.mwg.struct.EGraph;
+            }
+            interface ENode {
+                set(name: string, type: number, value: any): org.mwg.struct.ENode;
+                setAt(key: number, type: number, value: any): org.mwg.struct.ENode;
+                add(name: string): org.mwg.struct.ENode;
+                addAt(key: number): org.mwg.struct.ENode;
+                get(name: string): any;
+                getAt(key: number): any;
+                id(): number;
+                drop(): void;
             }
             interface LongLongArrayMap extends org.mwg.struct.Map {
                 get(key: number): Float64Array;

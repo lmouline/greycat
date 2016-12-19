@@ -1381,6 +1381,8 @@ var org;
                         return "RELATION_INDEXED";
                     case org.mwg.Type.MATRIX:
                         return "MATRIX";
+                    case org.mwg.Type.EGRAPH:
+                        return "EGRAPH";
                     case org.mwg.Type.EXTERNAL:
                         return "EXTERNAL";
                     default:
@@ -1419,6 +1421,8 @@ var org;
                         return org.mwg.Type.MATRIX;
                     case "EXTERNAL":
                         return org.mwg.Type.EXTERNAL;
+                    case "EGRAPH":
+                        return org.mwg.Type.EGRAPH;
                     default:
                         return -1;
                 }
@@ -1439,7 +1443,8 @@ var org;
         Type.RELATION = 12;
         Type.RELATION_INDEXED = 13;
         Type.MATRIX = 15;
-        Type.EXTERNAL = 16;
+        Type.EGRAPH = 16;
+        Type.EXTERNAL = 17;
         mwg.Type = Type;
         var base;
         (function (base) {
@@ -1801,7 +1806,7 @@ var org;
                 BaseNode.prototype.travelInTime = function (targetTime, callback) {
                     this._resolver.lookup(this._world, targetTime, this._id, callback);
                 };
-                BaseNode.prototype.isNaN = function (toTest) {
+                BaseNode.isNaN = function (toTest) {
                     return isNaN(toTest);
                 };
                 BaseNode.prototype.toString = function () {
@@ -1829,10 +1834,10 @@ var org;
                                             builder.append(resolveName);
                                             builder.append("\":");
                                             if (elem) {
-                                                builder.append("0");
+                                                builder.append("1");
                                             }
                                             else {
-                                                builder.append("1");
+                                                builder.append("0");
                                             }
                                             break;
                                         }
@@ -1860,7 +1865,7 @@ var org;
                                             break;
                                         }
                                         case org.mwg.Type.DOUBLE: {
-                                            if (!_this.isNaN(elem)) {
+                                            if (!org.mwg.base.BaseNode.isNaN(elem)) {
                                                 builder.append(",\"");
                                                 builder.append(resolveName);
                                                 builder.append("\":");
@@ -3980,6 +3985,547 @@ var org;
                     }());
                     HeapChunkSpace.HASH_LOAD_FACTOR = 4;
                     heap.HeapChunkSpace = HeapChunkSpace;
+                    var HeapEGraph = (function () {
+                        function HeapEGraph(p_parent) {
+                            this.counter = 0;
+                            this._root = -1;
+                            this.parent = p_parent;
+                            this._nodesMapping = new java.util.HashMap();
+                        }
+                        HeapEGraph.prototype.declareDirty = function () {
+                            if (!this._dirty) {
+                                this._dirty = true;
+                                this.parent.declareDirty();
+                            }
+                        };
+                        HeapEGraph.prototype.root = function () {
+                            return this.lookup(this._root);
+                        };
+                        HeapEGraph.prototype.newNode = function () {
+                            var newNode = new org.mwg.core.chunk.heap.HeapENode(this, this.parent.graph(), this.counter);
+                            this.counter++;
+                            this._nodesMapping.put(newNode.id(), newNode);
+                            return newNode;
+                        };
+                        HeapEGraph.prototype.setRoot = function (eNode) {
+                            this._root = eNode.id();
+                            return this;
+                        };
+                        HeapEGraph.prototype.drop = function (eNode) {
+                            this._nodesMapping.remove(eNode.id());
+                            return this;
+                        };
+                        HeapEGraph.prototype.lookup = function (id) {
+                            return this._nodesMapping.get(id);
+                        };
+                        return HeapEGraph;
+                    }());
+                    heap.HeapEGraph = HeapEGraph;
+                    var HeapENode = (function () {
+                        function HeapENode(p_egraph, p_graph, p_id) {
+                            this.egraph = p_egraph;
+                            this.graph = p_graph;
+                            this._id = p_id;
+                        }
+                        HeapENode.prototype.declareDirty = function () {
+                            if (!this._dirty) {
+                                this._dirty = true;
+                                this.egraph.declareDirty();
+                            }
+                        };
+                        HeapENode.prototype.internal_find = function (p_key) {
+                            if (this._size == 0) {
+                                return -1;
+                            }
+                            else if (this._hash == null) {
+                                for (var i = 0; i < this._size; i++) {
+                                    if (this._k[i] == p_key) {
+                                        return i;
+                                    }
+                                }
+                                return -1;
+                            }
+                            else {
+                                var hashIndex = org.mwg.utility.HashHelper.longHash(p_key, this._capacity * 2);
+                                var m = this._hash[hashIndex];
+                                while (m >= 0) {
+                                    if (p_key == this._k[m]) {
+                                        return m;
+                                    }
+                                    else {
+                                        m = this._next[m];
+                                    }
+                                }
+                                return -1;
+                            }
+                        };
+                        HeapENode.prototype.internal_get = function (p_key) {
+                            if (this._size == 0) {
+                                return null;
+                            }
+                            var found = this.internal_find(p_key);
+                            if (found != -1) {
+                                return this._v[found];
+                            }
+                            return null;
+                        };
+                        HeapENode.prototype.internal_set = function (p_key, p_type, p_unsafe_elem, replaceIfPresent, initial) {
+                            var param_elem = null;
+                            if (p_unsafe_elem != null) {
+                                try {
+                                    switch (p_type) {
+                                        case org.mwg.Type.BOOL:
+                                            param_elem = p_unsafe_elem;
+                                            break;
+                                        case org.mwg.Type.DOUBLE:
+                                            param_elem = p_unsafe_elem;
+                                            break;
+                                        case org.mwg.Type.LONG:
+                                            if (p_unsafe_elem instanceof Number) {
+                                                var preCasting = p_unsafe_elem;
+                                                param_elem = preCasting;
+                                            }
+                                            else {
+                                                param_elem = p_unsafe_elem;
+                                            }
+                                            break;
+                                        case org.mwg.Type.INT:
+                                            param_elem = p_unsafe_elem;
+                                            break;
+                                        case org.mwg.Type.STRING:
+                                            param_elem = p_unsafe_elem;
+                                            break;
+                                        case org.mwg.Type.MATRIX:
+                                            param_elem = p_unsafe_elem;
+                                            break;
+                                        case org.mwg.Type.RELATION:
+                                            param_elem = p_unsafe_elem;
+                                            break;
+                                        case org.mwg.Type.EXTERNAL:
+                                            param_elem = p_unsafe_elem;
+                                            break;
+                                        case org.mwg.Type.DOUBLE_ARRAY:
+                                            var castedParamDouble = p_unsafe_elem;
+                                            var clonedDoubleArray = new Float64Array(castedParamDouble.length);
+                                            java.lang.System.arraycopy(castedParamDouble, 0, clonedDoubleArray, 0, castedParamDouble.length);
+                                            param_elem = clonedDoubleArray;
+                                            break;
+                                        case org.mwg.Type.LONG_ARRAY:
+                                            var castedParamLong = p_unsafe_elem;
+                                            var clonedLongArray = new Float64Array(castedParamLong.length);
+                                            java.lang.System.arraycopy(castedParamLong, 0, clonedLongArray, 0, castedParamLong.length);
+                                            param_elem = clonedLongArray;
+                                            break;
+                                        case org.mwg.Type.INT_ARRAY:
+                                            var castedParamInt = p_unsafe_elem;
+                                            var clonedIntArray = new Int32Array(castedParamInt.length);
+                                            java.lang.System.arraycopy(castedParamInt, 0, clonedIntArray, 0, castedParamInt.length);
+                                            param_elem = clonedIntArray;
+                                            break;
+                                        case org.mwg.Type.STRING_TO_LONG_MAP:
+                                            param_elem = p_unsafe_elem;
+                                            break;
+                                        case org.mwg.Type.LONG_TO_LONG_MAP:
+                                            param_elem = p_unsafe_elem;
+                                            break;
+                                        case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
+                                            param_elem = p_unsafe_elem;
+                                            break;
+                                        case org.mwg.Type.RELATION_INDEXED:
+                                            param_elem = p_unsafe_elem;
+                                            break;
+                                        default:
+                                            throw new Error("Internal Exception, unknown type");
+                                    }
+                                }
+                                catch ($ex$) {
+                                    if ($ex$ instanceof Error) {
+                                        var e = $ex$;
+                                        {
+                                            throw new Error("mwDB usage error, set method called with type " + org.mwg.Type.typeName(p_type) + " while param object is " + p_unsafe_elem);
+                                        }
+                                    }
+                                    else {
+                                        throw $ex$;
+                                    }
+                                }
+                            }
+                            if (this._k == null) {
+                                if (param_elem == null) {
+                                    return;
+                                }
+                                this._capacity = org.mwg.Constants.MAP_INITIAL_CAPACITY;
+                                this._k = new Float64Array(this._capacity);
+                                this._v = new Array(this._capacity);
+                                this._type = new Int8Array(this._capacity);
+                                this._k[0] = p_key;
+                                this._v[0] = param_elem;
+                                this._type[0] = p_type;
+                                this._size = 1;
+                                if (!initial) {
+                                    this.declareDirty();
+                                }
+                                return;
+                            }
+                            var entry = -1;
+                            var p_entry = -1;
+                            var hashIndex = -1;
+                            if (this._hash == null) {
+                                for (var i = 0; i < this._size; i++) {
+                                    if (this._k[i] == p_key) {
+                                        entry = i;
+                                        break;
+                                    }
+                                }
+                            }
+                            else {
+                                hashIndex = org.mwg.utility.HashHelper.longHash(p_key, this._capacity * 2);
+                                var m = this._hash[hashIndex];
+                                while (m != -1) {
+                                    if (this._k[m] == p_key) {
+                                        entry = m;
+                                        break;
+                                    }
+                                    p_entry = m;
+                                    m = this._next[m];
+                                }
+                            }
+                            if (entry != -1) {
+                                if (replaceIfPresent || (p_type != this._type[entry])) {
+                                    if (param_elem == null) {
+                                        if (this._hash != null) {
+                                            if (p_entry != -1) {
+                                                this._next[p_entry] = this._next[entry];
+                                            }
+                                            else {
+                                                this._hash[hashIndex] = -1;
+                                            }
+                                        }
+                                        var indexVictim = this._size - 1;
+                                        if (entry == indexVictim) {
+                                            this._k[entry] = -1;
+                                            this._v[entry] = null;
+                                            this._type[entry] = -1;
+                                        }
+                                        else {
+                                            this._k[entry] = this._k[indexVictim];
+                                            this._v[entry] = this._v[indexVictim];
+                                            this._type[entry] = this._type[indexVictim];
+                                            if (this._hash != null) {
+                                                this._next[entry] = this._next[indexVictim];
+                                                var victimHash = org.mwg.utility.HashHelper.longHash(this._k[entry], this._capacity * 2);
+                                                var m = this._hash[victimHash];
+                                                if (m == indexVictim) {
+                                                    this._hash[victimHash] = entry;
+                                                }
+                                                else {
+                                                    while (m != -1) {
+                                                        if (this._next[m] == indexVictim) {
+                                                            this._next[m] = entry;
+                                                            break;
+                                                        }
+                                                        m = this._next[m];
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        this._size--;
+                                    }
+                                    else {
+                                        this._v[entry] = param_elem;
+                                        if (this._type[entry] != p_type) {
+                                            this._type[entry] = p_type;
+                                        }
+                                    }
+                                }
+                                if (!initial) {
+                                    this.declareDirty();
+                                }
+                                return;
+                            }
+                            if (this._size < this._capacity) {
+                                this._k[this._size] = p_key;
+                                this._v[this._size] = param_elem;
+                                this._type[this._size] = p_type;
+                                if (this._hash != null) {
+                                    this._next[this._size] = this._hash[hashIndex];
+                                    this._hash[hashIndex] = this._size;
+                                }
+                                this._size++;
+                                this.declareDirty();
+                                return;
+                            }
+                            var newCapacity = this._capacity * 2;
+                            var ex_k = new Float64Array(newCapacity);
+                            java.lang.System.arraycopy(this._k, 0, ex_k, 0, this._capacity);
+                            this._k = ex_k;
+                            var ex_v = new Array(newCapacity);
+                            java.lang.System.arraycopy(this._v, 0, ex_v, 0, this._capacity);
+                            this._v = ex_v;
+                            var ex_type = new Int8Array(newCapacity);
+                            java.lang.System.arraycopy(this._type, 0, ex_type, 0, this._capacity);
+                            this._type = ex_type;
+                            this._capacity = newCapacity;
+                            this._k[this._size] = p_key;
+                            this._v[this._size] = param_elem;
+                            this._type[this._size] = p_type;
+                            this._size++;
+                            this._hash = new Int32Array(this._capacity * 2);
+                            java.util.Arrays.fill(this._hash, 0, this._capacity * 2, -1);
+                            this._next = new Int32Array(this._capacity);
+                            java.util.Arrays.fill(this._next, 0, this._capacity, -1);
+                            for (var i = 0; i < this._size; i++) {
+                                var keyHash = org.mwg.utility.HashHelper.longHash(this._k[i], this._capacity * 2);
+                                this._next[i] = this._hash[keyHash];
+                                this._hash[keyHash] = i;
+                            }
+                            if (!initial) {
+                                this.declareDirty();
+                            }
+                        };
+                        HeapENode.prototype.set = function (name, type, value) {
+                            this.internal_set(this.graph.resolver().stringToHash(name, true), type, value, true, false);
+                            return this;
+                        };
+                        HeapENode.prototype.setAt = function (key, type, value) {
+                            this.internal_set(key, type, value, true, false);
+                            return this;
+                        };
+                        HeapENode.prototype.add = function (name) {
+                            return null;
+                        };
+                        HeapENode.prototype.addAt = function (key) {
+                            return null;
+                        };
+                        HeapENode.prototype.get = function (name) {
+                            return this.internal_get(this.graph.resolver().stringToHash(name, false));
+                        };
+                        HeapENode.prototype.getAt = function (key) {
+                            return this.internal_get(key);
+                        };
+                        HeapENode.prototype.id = function () {
+                            return this._id;
+                        };
+                        HeapENode.prototype.drop = function () {
+                            this.egraph.drop(this);
+                        };
+                        HeapENode.prototype.toString = function () {
+                            var builder = new java.lang.StringBuilder();
+                            var isFirst = [true];
+                            builder.append("{\"id\":");
+                            builder.append(this.id());
+                            var _loop_4 = function (i) {
+                                var elem = this_2._v[i];
+                                var resolver = this_2.graph.resolver();
+                                var attributeKey = this_2._k[i];
+                                var elemType = this_2._type[i];
+                                if (elem != null) {
+                                    var resolveName = resolver.hashToString(attributeKey);
+                                    if (resolveName == null) {
+                                        resolveName = attributeKey + "";
+                                    }
+                                    switch (elemType) {
+                                        case org.mwg.Type.BOOL: {
+                                            builder.append(",\"");
+                                            builder.append(resolveName);
+                                            builder.append("\":");
+                                            if (elem) {
+                                                builder.append("1");
+                                            }
+                                            else {
+                                                builder.append("0");
+                                            }
+                                            break;
+                                        }
+                                        case org.mwg.Type.STRING: {
+                                            builder.append(",\"");
+                                            builder.append(resolveName);
+                                            builder.append("\":");
+                                            builder.append("\"");
+                                            builder.append(elem);
+                                            builder.append("\"");
+                                            break;
+                                        }
+                                        case org.mwg.Type.LONG: {
+                                            builder.append(",\"");
+                                            builder.append(resolveName);
+                                            builder.append("\":");
+                                            builder.append(elem);
+                                            break;
+                                        }
+                                        case org.mwg.Type.INT: {
+                                            builder.append(",\"");
+                                            builder.append(resolveName);
+                                            builder.append("\":");
+                                            builder.append(elem);
+                                            break;
+                                        }
+                                        case org.mwg.Type.DOUBLE: {
+                                            if (!org.mwg.base.BaseNode.isNaN(elem)) {
+                                                builder.append(",\"");
+                                                builder.append(resolveName);
+                                                builder.append("\":");
+                                                builder.append(elem);
+                                            }
+                                            break;
+                                        }
+                                        case org.mwg.Type.DOUBLE_ARRAY: {
+                                            builder.append(",\"");
+                                            builder.append(resolveName);
+                                            builder.append("\":");
+                                            builder.append("[");
+                                            var castedArr = elem;
+                                            for (var j = 0; j < castedArr.length; j++) {
+                                                if (j != 0) {
+                                                    builder.append(",");
+                                                }
+                                                builder.append(castedArr[j]);
+                                            }
+                                            builder.append("]");
+                                            break;
+                                        }
+                                        case org.mwg.Type.RELATION:
+                                            builder.append(",\"");
+                                            builder.append(resolveName);
+                                            builder.append("\":");
+                                            builder.append("[");
+                                            var castedRelArr = elem;
+                                            for (var j = 0; j < castedRelArr.size(); j++) {
+                                                if (j != 0) {
+                                                    builder.append(",");
+                                                }
+                                                builder.append(castedRelArr.get(j));
+                                            }
+                                            builder.append("]");
+                                            break;
+                                        case org.mwg.Type.LONG_ARRAY: {
+                                            builder.append(",\"");
+                                            builder.append(resolveName);
+                                            builder.append("\":");
+                                            builder.append("[");
+                                            var castedArr2 = elem;
+                                            for (var j = 0; j < castedArr2.length; j++) {
+                                                if (j != 0) {
+                                                    builder.append(",");
+                                                }
+                                                builder.append(castedArr2[j]);
+                                            }
+                                            builder.append("]");
+                                            break;
+                                        }
+                                        case org.mwg.Type.INT_ARRAY: {
+                                            builder.append(",\"");
+                                            builder.append(resolveName);
+                                            builder.append("\":");
+                                            builder.append("[");
+                                            var castedArr3 = elem;
+                                            for (var j = 0; j < castedArr3.length; j++) {
+                                                if (j != 0) {
+                                                    builder.append(",");
+                                                }
+                                                builder.append(castedArr3[j]);
+                                            }
+                                            builder.append("]");
+                                            break;
+                                        }
+                                        case org.mwg.Type.LONG_TO_LONG_MAP: {
+                                            builder.append(",\"");
+                                            builder.append(resolveName);
+                                            builder.append("\":");
+                                            builder.append("{");
+                                            var castedMapL2L = elem;
+                                            isFirst[0] = true;
+                                            castedMapL2L.each(function (key, value) {
+                                                {
+                                                    if (!isFirst[0]) {
+                                                        builder.append(",");
+                                                    }
+                                                    else {
+                                                        isFirst[0] = false;
+                                                    }
+                                                    builder.append("\"");
+                                                    builder.append(key);
+                                                    builder.append("\":");
+                                                    builder.append(value);
+                                                }
+                                            });
+                                            builder.append("}");
+                                            break;
+                                        }
+                                        case org.mwg.Type.RELATION_INDEXED:
+                                        case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP: {
+                                            builder.append(",\"");
+                                            builder.append(resolveName);
+                                            builder.append("\":");
+                                            builder.append("{");
+                                            var castedMapL2LA = elem;
+                                            isFirst[0] = true;
+                                            var keys_3 = new java.util.HashSet();
+                                            castedMapL2LA.each(function (key, value) {
+                                                {
+                                                    keys_3.add(key);
+                                                }
+                                            });
+                                            var flatKeys = keys_3.toArray(new Array(keys_3.size()));
+                                            for (var k = 0; k < flatKeys.length; k++) {
+                                                var values = castedMapL2LA.get(flatKeys[k]);
+                                                if (!isFirst[0]) {
+                                                    builder.append(",");
+                                                }
+                                                else {
+                                                    isFirst[0] = false;
+                                                }
+                                                builder.append("\"");
+                                                builder.append(flatKeys[k]);
+                                                builder.append("\":[");
+                                                for (var j = 0; j < values.length; j++) {
+                                                    if (j != 0) {
+                                                        builder.append(",");
+                                                    }
+                                                    builder.append(values[j]);
+                                                }
+                                                builder.append("]");
+                                            }
+                                            builder.append("}");
+                                            break;
+                                        }
+                                        case org.mwg.Type.STRING_TO_LONG_MAP: {
+                                            builder.append(",\"");
+                                            builder.append(resolveName);
+                                            builder.append("\":");
+                                            builder.append("{");
+                                            var castedMapS2L = elem;
+                                            isFirst[0] = true;
+                                            castedMapS2L.each(function (key, value) {
+                                                {
+                                                    if (!isFirst[0]) {
+                                                        builder.append(",");
+                                                    }
+                                                    else {
+                                                        isFirst[0] = false;
+                                                    }
+                                                    builder.append("\"");
+                                                    builder.append(key);
+                                                    builder.append("\":");
+                                                    builder.append(value);
+                                                }
+                                            });
+                                            builder.append("}");
+                                            break;
+                                        }
+                                    }
+                                }
+                            };
+                            var this_2 = this;
+                            for (var i = 0; i < this._size; i++) {
+                                _loop_4(i);
+                            }
+                            builder.append("}");
+                            return builder.toString();
+                        };
+                        return HeapENode;
+                    }());
+                    heap.HeapENode = HeapENode;
                     var HeapFixedStack = (function () {
                         function HeapFixedStack(capacity, fill) {
                             this._capacity = capacity;
@@ -5447,6 +5993,9 @@ var org;
                                 case org.mwg.Type.MATRIX:
                                     toSet = new org.mwg.core.chunk.heap.HeapMatrix(this, null);
                                     break;
+                                case org.mwg.Type.EGRAPH:
+                                    toSet = new org.mwg.core.chunk.heap.HeapEGraph(this);
+                                    break;
                                 case org.mwg.Type.STRING_TO_LONG_MAP:
                                     toSet = new org.mwg.core.chunk.heap.HeapStringLongMap(this);
                                     break;
@@ -5760,6 +6309,9 @@ var org;
                                             param_elem = p_unsafe_elem;
                                             break;
                                         case org.mwg.Type.RELATION_INDEXED:
+                                            param_elem = p_unsafe_elem;
+                                            break;
+                                        case org.mwg.Type.EGRAPH:
                                             param_elem = p_unsafe_elem;
                                             break;
                                         default:
@@ -7608,12 +8160,12 @@ var org;
                         var templatedIndexName = ctx.template(this._name);
                         var templatedAttributes = ctx.templates(this._attributes);
                         var counter = new org.mwg.core.utility.CoreDeferCounter(previousResult.size());
-                        var _loop_4 = function (i) {
+                        var _loop_5 = function (i) {
                             var loop = previousResult.get(i);
                             if (loop instanceof org.mwg.base.BaseNode) {
                                 var loopBaseNode_1 = loop;
                                 var indexTime = org.mwg.Constants.BEGINNING_OF_TIME;
-                                if (this_2._timed) {
+                                if (this_3._timed) {
                                     indexTime = ctx.time();
                                 }
                                 ctx.graph().index(loopBaseNode_1.world(), indexTime, templatedIndexName, function (indexNode) {
@@ -7630,9 +8182,9 @@ var org;
                                 counter.count();
                             }
                         };
-                        var this_2 = this;
+                        var this_3 = this;
                         for (var i = 0; i < previousResult.size(); i++) {
-                            _loop_4(i);
+                            _loop_5(i);
                         }
                         counter.then(function () {
                             {
@@ -8624,7 +9176,7 @@ var org;
                         var next = ctx.newResult();
                         if (previous != null) {
                             var defer_1 = new org.mwg.core.utility.CoreDeferCounter(previous.size());
-                            var _loop_5 = function (i) {
+                            var _loop_6 = function (i) {
                                 if (previous.get(i) instanceof org.mwg.base.BaseNode) {
                                     var casted_1 = previous.get(i);
                                     casted_1.timepoints(parsedFrom, parsedTo, function (result) {
@@ -8639,7 +9191,7 @@ var org;
                                 }
                             };
                             for (var i = 0; i < previous.size(); i++) {
-                                _loop_5(i);
+                                _loop_6(i);
                             }
                             defer_1.then(function () {
                                 {
@@ -8691,7 +9243,7 @@ var org;
                         var previous = ctx.result();
                         var defer = new org.mwg.core.utility.CoreDeferCounter(previous.size());
                         var previousSize = previous.size();
-                        var _loop_6 = function (i) {
+                        var _loop_7 = function (i) {
                             var loopObj = previous.get(i);
                             if (loopObj instanceof org.mwg.base.BaseNode) {
                                 var castedPreviousNode_1 = loopObj;
@@ -8709,7 +9261,7 @@ var org;
                             }
                         };
                         for (var i = 0; i < previousSize; i++) {
-                            _loop_6(i);
+                            _loop_7(i);
                         }
                         defer.then(function () {
                             {
@@ -8757,7 +9309,7 @@ var org;
                         var previous = ctx.result();
                         var defer = new org.mwg.core.utility.CoreDeferCounter(previous.size());
                         var previousSize = previous.size();
-                        var _loop_7 = function (i) {
+                        var _loop_8 = function (i) {
                             var loopObj = previous.get(i);
                             if (loopObj instanceof org.mwg.base.BaseNode) {
                                 var castedPreviousNode_2 = loopObj;
@@ -8775,7 +9327,7 @@ var org;
                             }
                         };
                         for (var i = 0; i < previousSize; i++) {
-                            _loop_7(i);
+                            _loop_8(i);
                         }
                         defer.then(function () {
                             {
@@ -8815,7 +9367,7 @@ var org;
                         if (previousResult != null) {
                             var previousSize = previousResult.size();
                             var defer_2 = ctx.graph().newCounter(previousSize);
-                            var _loop_8 = function (i) {
+                            var _loop_9 = function (i) {
                                 var loop = previousResult.get(i);
                                 if (loop instanceof org.mwg.base.BaseNode) {
                                     var casted_2 = loop;
@@ -8836,8 +9388,8 @@ var org;
                                         case org.mwg.Type.RELATION_INDEXED:
                                             var relationIndexed = casted_2.get(flatName);
                                             if (relationIndexed != null) {
-                                                if (this_3._params != null && this_3._params.length > 0) {
-                                                    var templatedParams = ctx.templates(this_3._params);
+                                                if (this_4._params != null && this_4._params.length > 0) {
+                                                    var templatedParams = ctx.templates(this_4._params);
                                                     var query = ctx.graph().newQuery();
                                                     query.setWorld(casted_2.world());
                                                     query.setTime(casted_2.time());
@@ -8900,9 +9452,9 @@ var org;
                                     defer_2.count();
                                 }
                             };
-                            var this_3 = this;
+                            var this_4 = this;
                             for (var i = 0; i < previousSize; i++) {
-                                _loop_8(i);
+                                _loop_9(i);
                             }
                             defer_2.then(function () {
                                 {
@@ -9789,9 +10341,9 @@ var org;
                         var next = ctx.newResult();
                         if ((upper - lower) > 0) {
                             var waiter_1 = ctx.graph().newCounter((upper - lower) + 1);
-                            var _loop_9 = function (i) {
+                            var _loop_10 = function (i) {
                                 var finalI = i;
-                                this_4._subTask.executeFromUsing(ctx, previous, org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (result) {
+                                this_5._subTask.executeFromUsing(ctx, previous, org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (result) {
                                     {
                                         result.defineVariable("i", finalI);
                                     }
@@ -9806,9 +10358,9 @@ var org;
                                     }
                                 });
                             };
-                            var this_4 = this;
+                            var this_5 = this;
                             for (var i = lower; i <= upper; i++) {
-                                _loop_9(i);
+                                _loop_10(i);
                             }
                             waiter_1.then(function () {
                                 {
@@ -10123,18 +10675,18 @@ var org;
                         var subTasksSize = this._subTasks.length;
                         next.allocate(subTasksSize);
                         var waiter = ctx.graph().newCounter(subTasksSize);
-                        var _loop_10 = function (i) {
+                        var _loop_11 = function (i) {
                             var finalI = i;
-                            this_5._subTasks[i].executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (subTaskResult) {
+                            this_6._subTasks[i].executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (subTaskResult) {
                                 {
                                     next.set(finalI, subTaskResult);
                                     waiter.count();
                                 }
                             });
                         };
-                        var this_5 = this;
+                        var this_6 = this;
                         for (var i = 0; i < subTasksSize; i++) {
-                            _loop_10(i);
+                            _loop_11(i);
                         }
                         if (this._flat) {
                             var nextFlat = ctx.newResult();

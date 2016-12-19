@@ -14,13 +14,11 @@ import io.undertow.util.StatusCodes;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.OutputStreamWriter;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class Server implements HttpHandler {
-
 
     public static void main(String[] args) {
         File dataDir;
@@ -95,7 +93,7 @@ public class Server implements HttpHandler {
 
     @Override
     public void handleRequest(HttpServerExchange httpServerExchange) throws Exception {
-        if(httpServerExchange.getRequestPath().equals("/rpc/charts")){
+        if (httpServerExchange.getRequestPath().equals("/rpc/charts")) {
             httpServerExchange.getResponseHeaders().add(new HttpString("Access-Control-Allow-Origin"), "*");
             httpServerExchange.setStatusCode(StatusCodes.OK);
             httpServerExchange.getResponseSender().send(root.get("charts").toString());

@@ -441,7 +441,7 @@ public class BaseNode implements Node {
      * @native ts
      * return isNaN(toTest);
      */
-    private boolean isNaN(double toTest) {
+    public static boolean isNaN(double toTest) {
         return Double.NaN == toTest;
     }
 

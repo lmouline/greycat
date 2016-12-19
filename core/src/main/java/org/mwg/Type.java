@@ -26,7 +26,8 @@ public class Type {
     public static final byte RELATION = 12;
     public static final byte RELATION_INDEXED = 13;
     public static final byte MATRIX = 15;
-    public static final byte EXTERNAL = 16;
+    public static final byte EGRAPH = 16;
+    public static final byte EXTERNAL = 17;
 
     /**
      * Convert a type that represent a byte to a readable String representation
@@ -67,6 +68,8 @@ public class Type {
                 return "RELATION_INDEXED";
             case Type.MATRIX:
                 return "MATRIX";
+            case Type.EGRAPH:
+                return "EGRAPH";
             case Type.EXTERNAL:
                 return "EXTERNAL";
             default:
@@ -106,6 +109,8 @@ public class Type {
                 return Type.MATRIX;
             case "EXTERNAL":
                 return Type.EXTERNAL;
+            case "EGRAPH":
+                return Type.EGRAPH;
             default:
                 return -1;
         }

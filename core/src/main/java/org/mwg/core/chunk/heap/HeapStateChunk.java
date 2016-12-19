@@ -31,7 +31,7 @@ class HeapStateChunk implements StateChunk {
 
     private boolean _dirty;
 
-    Graph graph(){
+    Graph graph() {
         return _space.graph();
     }
 
@@ -236,6 +236,9 @@ class HeapStateChunk implements StateChunk {
                 break;
             case Type.MATRIX:
                 toSet = new HeapMatrix(this, null);
+                break;
+            case Type.EGRAPH:
+                toSet = new HeapEGraph(this);
                 break;
             case Type.STRING_TO_LONG_MAP:
                 toSet = new HeapStringLongMap(this);
@@ -578,6 +581,9 @@ class HeapStateChunk implements StateChunk {
                     case Type.RELATION_INDEXED:
                         param_elem = (RelationIndexed) p_unsafe_elem;
                         break;
+                    case Type.EGRAPH:
+                        param_elem = (EGraph) p_unsafe_elem;
+                        break;
                     default:
                         throw new RuntimeException("Internal Exception, unknown type");
                 }
@@ -745,7 +751,6 @@ class HeapStateChunk implements StateChunk {
         }
         _type = ex_type;
         _capacity = newCapacity;
-
         _hash = new int[_capacity * 2];
         Arrays.fill(_hash, 0, _capacity * 2, -1);
         _next = new int[_capacity];
@@ -1108,7 +1113,7 @@ class HeapStateChunk implements StateChunk {
 
     @Override
     public void loadDiff(Buffer buffer) {
-
+        //TODO
     }
 
 }
