@@ -959,6 +959,7 @@ declare module org {
                         fillWithRandom(min: number, max: number, seed: number): org.mwg.struct.Matrix;
                         rows(): number;
                         columns(): number;
+                        column(index: number): Float64Array;
                         get(rowIndex: number, columnIndex: number): number;
                         set(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.Matrix;
                         add(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.Matrix;
@@ -2173,6 +2174,7 @@ declare module org {
                 fillWithRandom(min: number, max: number, seed: number): org.mwg.struct.Matrix;
                 rows(): number;
                 columns(): number;
+                column(i: number): Float64Array;
                 get(rowIndex: number, columnIndex: number): number;
                 set(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.Matrix;
                 add(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.Matrix;

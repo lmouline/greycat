@@ -46,7 +46,7 @@ public abstract class AbstractMatrixTest {
         Buffer buffer = factory.newBuffer();
         chunk.save(buffer);
 
-      //  Assert.assertEquals(buffer.toString(), "C|A,a,c:QAI:QBA:AAA:P4EeuFHrhR7:P5EeuFHrhR7:P4EeuFHrhR7:P5EeuFHrhR7:P5OuFHrhR64:P5EeuFHrhR7:P5OuFHrhR64:P6EeuFHrhR7:P5OuFHrhR64:P6EeuFHrhR7:P6JmZmZmZma");
+        //  Assert.assertEquals(buffer.toString(), "C|A,a,c:QAI:QBA:AAA:P4EeuFHrhR7:P5EeuFHrhR7:P4EeuFHrhR7:P5EeuFHrhR7:P5OuFHrhR64:P5EeuFHrhR7:P5OuFHrhR64:P6EeuFHrhR7:P5OuFHrhR64:P6EeuFHrhR7:P6JmZmZmZma");
 
         StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
         chunk2.load(buffer);
@@ -66,6 +66,29 @@ public abstract class AbstractMatrixTest {
         space.free(chunk2);
         space.freeAll();
 
+    }
+
+    @Test
+    public void extractTest() {
+        ChunkSpace space = factory.newSpace(100, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+        Matrix matrix = (Matrix) chunk.getOrCreate(0, Type.MATRIX);
+        matrix.init(3, 2);
+        for (int i = 0; i < 2; i++) {
+            matrix.set(0, i, i + 1);
+            matrix.set(1, i, i + 1);
+            matrix.set(2, i, i + 1);
+        }
+        for (int i = 0; i < 2; i++) {
+            double[] extracted = matrix.column(i);
+            Assert.assertEquals(3, extracted.length);
+            double val = i + 1;
+            Assert.assertEquals(val + "", extracted[0] + "");
+            Assert.assertEquals(val + "", extracted[1] + "");
+            Assert.assertEquals(val + "", extracted[2] + "");
+        }
+        space.free(chunk);
+        space.freeAll();
     }
 
     private boolean compareBuffers(Buffer buffer, Buffer buffer2) {

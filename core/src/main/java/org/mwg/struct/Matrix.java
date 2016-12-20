@@ -14,6 +14,8 @@ public interface Matrix {
 
     int columns();
 
+    double[] column(int i);
+
     double get(int rowIndex, int columnIndex);
 
     Matrix set(int rowIndex, int columnIndex, double value);
@@ -27,8 +29,6 @@ public interface Matrix {
     double unsafeGet(int index);
 
     Matrix unsafeSet(int index, double value);
-
-
 
 
 }

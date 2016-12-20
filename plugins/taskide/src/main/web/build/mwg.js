@@ -5364,6 +5364,15 @@ var org;
                             }
                             return result;
                         };
+                        HeapMatrix.prototype.column = function (index) {
+                            var result;
+                            {
+                                var nbRows = this.backend[HeapMatrix.INDEX_ROWS];
+                                result = new Float64Array(nbRows);
+                                java.lang.System.arraycopy(this.backend, HeapMatrix.INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
+                            }
+                            return result;
+                        };
                         HeapMatrix.prototype.get = function (rowIndex, columnIndex) {
                             var result = 0;
                             {

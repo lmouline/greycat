@@ -146,6 +146,26 @@ class OffHeapMatrix implements Matrix {
     }
 
     @Override
+    public double[] column(int columnIndex) {
+        double[] result = null;
+        chunk.lock();
+        try {
+            final long addr = chunk.addrByIndex(index);
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                long nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
+                result = new double[(int) nbRows];
+                long base = INDEX_OFFSET + (columnIndex * nbRows);
+                for (int i = 0; i < nbRows; i++) {
+                    result[i] = OffHeapDoubleArray.get(addr, base + i);
+                }
+            }
+        } finally {
+            chunk.unlock();
+        }
+        return result;
+    }
+
+    @Override
     public final double get(int rowIndex, int columnIndex) {
         chunk.lock();
         double result = 0;

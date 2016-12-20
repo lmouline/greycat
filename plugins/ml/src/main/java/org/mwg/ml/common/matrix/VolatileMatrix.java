@@ -1,6 +1,5 @@
 package org.mwg.ml.common.matrix;
 
-
 import org.mwg.struct.Matrix;
 
 import java.util.Random;
@@ -45,6 +44,13 @@ public class VolatileMatrix implements Matrix {
     @Override
     public int columns() {
         return _nbColumns;
+    }
+
+    @Override
+    public double[] column(int index) {
+        double[] result = new double[_nbRows];
+        System.arraycopy(_data, (index * _nbRows), result, 0, _nbRows);
+        return result;
     }
 
     @Override
@@ -178,12 +184,6 @@ public class VolatileMatrix implements Matrix {
     }*/
 
 
-
-
-
-
-
-
     public static Matrix random(int rows, int columns, double min, double max) {
         VolatileMatrix res = new VolatileMatrix(null, rows, columns);
         Random rand = new Random();
@@ -207,8 +207,6 @@ public class VolatileMatrix implements Matrix {
         }
         return err;
     }
-
-
 
 
     public static Matrix identity(int rows, int columns) {

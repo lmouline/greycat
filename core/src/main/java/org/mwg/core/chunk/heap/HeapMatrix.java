@@ -83,7 +83,7 @@ class HeapMatrix implements Matrix {
                     aligned = true;
                 }
                 for (int i = 0; i < backend[INDEX_ROWS] * backend[INDEX_COLUMNS]; i++) {
-                    backend[i+INDEX_OFFSET] = rand.nextDouble() * (max - min) + min;
+                    backend[i + INDEX_OFFSET] = rand.nextDouble() * (max - min) + min;
                 }
                 parent.declareDirty();
             }
@@ -109,6 +109,17 @@ class HeapMatrix implements Matrix {
             if (backend != null) {
                 result = (int) backend[INDEX_COLUMNS];
             }
+        }
+        return result;
+    }
+
+    @Override
+    public final double[] column(int index) {
+        double[] result;
+        synchronized (parent) {
+            final int nbRows = (int) backend[INDEX_ROWS];
+            result = new double[nbRows];
+            System.arraycopy(backend, INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
         }
         return result;
     }
