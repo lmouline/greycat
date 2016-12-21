@@ -214,6 +214,12 @@ class OffHeapMatrix implements Matrix {
     }
 
     @Override
+    public Matrix appendColumn(double[] newColumn) {
+        //TODO :-)
+        return null;
+    }
+
+    @Override
     public double[] data() {
         chunk.lock();
         double[] flat;

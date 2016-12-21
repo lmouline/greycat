@@ -22,6 +22,8 @@ public interface Matrix {
 
     Matrix add(int rowIndex, int columnIndex, double value);
 
+    Matrix appendColumn(double[] newColumn);
+
     double[] data();
 
     int leadingDimension();

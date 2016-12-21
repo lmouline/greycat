@@ -1,5 +1,6 @@
 package org.mwg.core.chunk.heap;
 
+import org.mwg.Constants;
 import org.mwg.struct.Matrix;
 
 import java.util.Arrays;
@@ -9,7 +10,8 @@ class HeapMatrix implements Matrix {
 
     private static final int INDEX_ROWS = 0;
     private static final int INDEX_COLUMNS = 1;
-    private static final int INDEX_OFFSET = 2;
+    private static final int INDEX_MAX_COLUMN = 2;
+    private static final int INDEX_OFFSET = 3;
 
     private final HeapStateChunk parent;
     private double[] backend = null;
@@ -30,8 +32,50 @@ class HeapMatrix implements Matrix {
             backend = new double[rows * columns + INDEX_OFFSET];
             backend[INDEX_ROWS] = rows;
             backend[INDEX_COLUMNS] = columns;
+            backend[INDEX_MAX_COLUMN] = columns;//direct allocation
             aligned = true;
             parent.declareDirty();
+        }
+        return this;
+    }
+
+    public final Matrix appendColumn(double[] newColumn) {
+        synchronized (parent) {
+            int nbRows;
+            int nbColumns;
+            int nbMaxColumn;
+            if (backend == null) {
+                nbRows = newColumn.length;
+                nbColumns = Constants.MAP_INITIAL_CAPACITY;
+                nbMaxColumn = 0;
+                backend = new double[nbRows * nbColumns + INDEX_OFFSET];
+                backend[INDEX_ROWS] = nbRows;
+                backend[INDEX_COLUMNS] = nbColumns;
+                backend[INDEX_MAX_COLUMN] = nbMaxColumn;
+            } else {
+                nbColumns = (int) backend[INDEX_COLUMNS];
+                nbRows = (int) backend[INDEX_ROWS];
+                nbMaxColumn = (int) backend[INDEX_MAX_COLUMN];
+            }
+            if (!aligned || nbMaxColumn == nbColumns) {
+                if (nbMaxColumn == nbColumns) {
+                    nbColumns = nbColumns * 2;
+                    final int newLength = nbColumns * nbRows + INDEX_OFFSET;
+                    double[] next_backend = new double[newLength];
+                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                    backend = next_backend;
+                    aligned = true;
+                } else {
+                    //direct copy
+                    double[] next_backend = new double[backend.length];
+                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                    backend = next_backend;
+                    aligned = true;
+                }
+            }
+            //just insert
+            System.arraycopy(newColumn, 0, backend, (nbMaxColumn * nbRows) + INDEX_OFFSET, newColumn.length);
+            backend[INDEX_MAX_COLUMN] = nbMaxColumn + 1;
         }
         return this;
     }
@@ -48,6 +92,7 @@ class HeapMatrix implements Matrix {
                 }
                 Arrays.fill(backend, INDEX_OFFSET, backend.length - INDEX_OFFSET, value);
                 parent.declareDirty();
+                backend[INDEX_MAX_COLUMN] = backend[INDEX_COLUMNS];
             }
         }
         return this;
@@ -63,6 +108,7 @@ class HeapMatrix implements Matrix {
                     backend = next_backend;
                     aligned = true;
                 }
+                //reInit ?
                 System.arraycopy(values, 0, backend, INDEX_OFFSET, values.length);
                 parent.declareDirty();
             }
@@ -107,7 +153,7 @@ class HeapMatrix implements Matrix {
         int result = 0;
         synchronized (parent) {
             if (backend != null) {
-                result = (int) backend[INDEX_COLUMNS];
+                result = (int) backend[INDEX_MAX_COLUMN];
             }
         }
         return result;
@@ -148,6 +194,10 @@ class HeapMatrix implements Matrix {
                 }
                 final int nbRows = (int) backend[INDEX_ROWS];
                 backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
+                //update maxColumn field
+                /*if (backend[columnIndex] > backend[INDEX_MAX_COLUMN]) {
+                    backend[INDEX_COLUMNS] = columnIndex;
+                }*/
                 parent.declareDirty();
             }
         }
@@ -166,6 +216,10 @@ class HeapMatrix implements Matrix {
                 }
                 final int nbRows = (int) backend[INDEX_ROWS];
                 backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+                //update maxColumn field
+                /*if (backend[columnIndex] > backend[INDEX_MAX_COLUMN]) {
+                    backend[INDEX_COLUMNS] = columnIndex;
+                }*/
                 parent.declareDirty();
             }
         }

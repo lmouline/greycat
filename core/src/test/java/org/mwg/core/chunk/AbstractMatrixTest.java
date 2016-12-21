@@ -91,6 +91,29 @@ public abstract class AbstractMatrixTest {
         space.freeAll();
     }
 
+    @Test
+    public void appendTest() {
+        ChunkSpace space = factory.newSpace(100, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+        Matrix matrix = (Matrix) chunk.getOrCreate(0, Type.MATRIX);
+        matrix.appendColumn(new double[]{1, 2, 3});
+        matrix.appendColumn(new double[]{4, 5, 6});
+
+        Assert.assertEquals(matrix.rows(), 3);
+        Assert.assertEquals(matrix.columns(), 2);
+
+        Assert.assertTrue(matrix.get(0, 0) == 1);
+        Assert.assertTrue(matrix.get(1, 0) == 2);
+        Assert.assertTrue(matrix.get(2, 0) == 3);
+
+        Assert.assertTrue(matrix.get(0, 1) == 4);
+        Assert.assertTrue(matrix.get(1, 1) == 5);
+        Assert.assertTrue(matrix.get(2, 1) == 6);
+
+        space.free(chunk);
+        space.freeAll();
+    }
+
     private boolean compareBuffers(Buffer buffer, Buffer buffer2) {
         if (buffer.length() != buffer2.length()) {
             return false;
