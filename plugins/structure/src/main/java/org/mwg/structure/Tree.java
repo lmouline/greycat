@@ -2,25 +2,33 @@ package org.mwg.structure;
 
 import org.mwg.Callback;
 import org.mwg.Node;
+import org.mwg.Type;
 
-public interface NTree extends Node {
+public interface Tree extends Node {
 
-    void nearestN(final double[] keys, final int nbElem, final Callback<Node[]> callback);
-
-    void nearestWithinRadius(final double[] keys, final double radius, final Callback<Node[]> callback);
-
-    void nearestNWithinRadius(final double[] keys, int nbElem, double radius, final Callback<Node[]> callback);
-
-    void insertWith(final double[] keys, final Node value, final Callback<Boolean> callback);
-
-    void insert(final Node value, final Callback<Boolean> callback);
-
-    int size();
-
+    //Settings param
     void setDistance(int distanceType);
 
     void setDistanceThreshold(double distanceThreshold);
 
-    void setFrom(String extractor);
+    void setStrategy(byte strategy);
+
+
+    //Insert functions
+    void insertWith(final double[] keys, final Type valuetype, final Object value, final Callback<Boolean> callback);
+
+
+
+    //Retrieve functions
+    void nearestN(final double[] keys, final int nbElem, final Callback<Object[]> callback);
+
+    void nearestWithinRadius(final double[] keys, final double radius, final Callback<Object[]> callback);
+
+    void nearestNWithinRadius(final double[] keys, int nbElem, double radius, final Callback<Object[]> callback);
+
+
+    //Tree properties
+    int size();
+
 
 }
