@@ -76,6 +76,7 @@ class HeapMatrix implements Matrix {
             //just insert
             System.arraycopy(newColumn, 0, backend, (nbMaxColumn * nbRows) + INDEX_OFFSET, newColumn.length);
             backend[INDEX_MAX_COLUMN] = nbMaxColumn + 1;
+            parent.declareDirty();
         }
         return this;
     }

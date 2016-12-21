@@ -1,5 +1,6 @@
 package org.mwg.ml.common.matrix;
 
+import org.mwg.Constants;
 import org.mwg.struct.Matrix;
 
 import java.util.Random;
@@ -8,8 +9,9 @@ import java.util.Random;
 public class VolatileMatrix implements Matrix {
 
     private double[] _data;
-    private final int _nbRows;
-    private final int _nbColumns;
+    private int _nbRows;
+    private int _nbColumns;
+    private int _nbMaxColumn;
 
     private VolatileMatrix(double[] backend, int p_nbRows, int p_nbColumns) {
         this._nbRows = p_nbRows;
@@ -26,6 +28,7 @@ public class VolatileMatrix implements Matrix {
         if (rows != _nbRows && columns != _nbColumns) {
             throw new RuntimeException("Bad API usage !");
         }
+        _nbMaxColumn = columns;
         this._data = new double[_nbRows * _nbColumns];
         return this;
     }
@@ -69,6 +72,27 @@ public class VolatileMatrix implements Matrix {
         int raw_index = rowIndex + columnIndex * _nbRows;
         _data[raw_index] = value + _data[raw_index];
         return this;
+    }
+
+    @Override
+    public Matrix appendColumn(double[] newColumn) {
+        if (_data == null) {
+            _nbRows = newColumn.length;
+            _nbColumns = Constants.MAP_INITIAL_CAPACITY;
+            _nbMaxColumn = 0;
+            _data = new double[_nbRows * _nbColumns];
+        }
+        if (_nbMaxColumn == _nbColumns) {
+            _nbColumns = _nbColumns * 2;
+            final int newLength = _nbColumns * _nbRows;
+            double[] next_backend = new double[newLength];
+            System.arraycopy(_data, 0, next_backend, 0, _data.length);
+            _data = next_backend;
+        }
+        //just insert
+        System.arraycopy(newColumn, 0, _data, _nbColumns * _nbRows, newColumn.length);
+        _nbMaxColumn = _nbMaxColumn + 1;
+        return null;
     }
 
     @Override

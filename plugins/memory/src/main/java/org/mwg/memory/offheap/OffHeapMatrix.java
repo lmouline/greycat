@@ -13,8 +13,8 @@ class OffHeapMatrix implements Matrix {
 
     private static final int INDEX_ROWS = 0;
     private static final int INDEX_COLUMNS = 1;
-    private static final int INDEX_OFFSET = 2;
-
+    private static final int INDEX_MAX_COLUMN = 2;
+    private static final int INDEX_OFFSET = 3;
     private final long index;
     private final OffHeapStateChunk chunk;
 
@@ -34,8 +34,50 @@ class OffHeapMatrix implements Matrix {
             addr = OffHeapDoubleArray.allocate(rows * columns + INDEX_OFFSET);
             OffHeapDoubleArray.set(addr, INDEX_ROWS, rows);
             OffHeapDoubleArray.set(addr, INDEX_COLUMNS, columns);
+            OffHeapDoubleArray.set(addr, INDEX_MAX_COLUMN, columns);
             chunk.setAddrByIndex(index, addr);
             chunk.declareDirty();
+        } finally {
+            chunk.unlock();
+        }
+        return this;
+    }
+
+    @Override
+    public Matrix appendColumn(double[] newColumn) {
+        chunk.lock();
+        try {
+            int nbRows;
+            int nbColumns;
+            int nbMaxColumn;
+            long addr = chunk.addrByIndex(index);
+            if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+                nbRows = newColumn.length;
+                nbColumns = Constants.MAP_INITIAL_CAPACITY;
+                nbMaxColumn = 0;
+                addr = OffHeapDoubleArray.allocate(nbRows * nbColumns + INDEX_OFFSET);
+                OffHeapDoubleArray.set(addr, INDEX_ROWS, nbRows);
+                OffHeapDoubleArray.set(addr, INDEX_COLUMNS, nbColumns);
+                OffHeapDoubleArray.set(addr, INDEX_MAX_COLUMN, nbMaxColumn);
+                chunk.setAddrByIndex(index, addr);
+                chunk.declareDirty();
+            } else {
+                nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
+                nbColumns = (int) OffHeapDoubleArray.get(addr, INDEX_COLUMNS);
+                nbMaxColumn = (int) OffHeapDoubleArray.get(addr, INDEX_MAX_COLUMN);
+            }
+            if (nbMaxColumn == nbColumns) {
+                nbColumns = nbColumns * 2;
+                final int newLength = nbColumns * nbRows + INDEX_OFFSET;
+                addr = OffHeapDoubleArray.reallocate(addr, newLength);
+                chunk.setAddrByIndex(index, addr);
+                chunk.declareDirty();
+            }
+            for (int i = 0; i < newColumn.length; i++) {
+                long base = nbMaxColumn * nbRows + INDEX_OFFSET;
+                OffHeapDoubleArray.set(addr, i + base, newColumn[i]);
+            }
+            OffHeapDoubleArray.set(addr, INDEX_MAX_COLUMN, nbMaxColumn + 1);
         } finally {
             chunk.unlock();
         }
@@ -137,7 +179,7 @@ class OffHeapMatrix implements Matrix {
         try {
             final long addr = chunk.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-                result = (int) OffHeapDoubleArray.get(addr, INDEX_COLUMNS);
+                result = (int) OffHeapDoubleArray.get(addr, INDEX_MAX_COLUMN);
             }
         } finally {
             chunk.unlock();
@@ -211,12 +253,6 @@ class OffHeapMatrix implements Matrix {
             chunk.unlock();
         }
         return this;
-    }
-
-    @Override
-    public Matrix appendColumn(double[] newColumn) {
-        //TODO :-)
-        return null;
     }
 
     @Override

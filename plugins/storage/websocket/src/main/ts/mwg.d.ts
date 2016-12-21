@@ -948,12 +948,14 @@ declare module org {
                     class HeapMatrix implements org.mwg.struct.Matrix {
                         private static INDEX_ROWS;
                         private static INDEX_COLUMNS;
+                        private static INDEX_MAX_COLUMN;
                         private static INDEX_OFFSET;
                         private parent;
                         private backend;
                         private aligned;
                         constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapMatrix);
                         init(rows: number, columns: number): org.mwg.struct.Matrix;
+                        appendColumn(newColumn: Float64Array): org.mwg.struct.Matrix;
                         fill(value: number): org.mwg.struct.Matrix;
                         fillWith(values: Float64Array): org.mwg.struct.Matrix;
                         fillWithRandom(min: number, max: number, seed: number): org.mwg.struct.Matrix;
@@ -2178,6 +2180,7 @@ declare module org {
                 get(rowIndex: number, columnIndex: number): number;
                 set(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.Matrix;
                 add(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.Matrix;
+                appendColumn(newColumn: Float64Array): org.mwg.struct.Matrix;
                 data(): Float64Array;
                 leadingDimension(): number;
                 unsafeGet(index: number): number;

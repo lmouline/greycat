@@ -5292,7 +5292,49 @@ var org;
                                 this.backend = new Float64Array(rows * columns + HeapMatrix.INDEX_OFFSET);
                                 this.backend[HeapMatrix.INDEX_ROWS] = rows;
                                 this.backend[HeapMatrix.INDEX_COLUMNS] = columns;
+                                this.backend[HeapMatrix.INDEX_MAX_COLUMN] = columns;
                                 this.aligned = true;
+                                this.parent.declareDirty();
+                            }
+                            return this;
+                        };
+                        HeapMatrix.prototype.appendColumn = function (newColumn) {
+                            {
+                                var nbRows;
+                                var nbColumns;
+                                var nbMaxColumn;
+                                if (this.backend == null) {
+                                    nbRows = newColumn.length;
+                                    nbColumns = org.mwg.Constants.MAP_INITIAL_CAPACITY;
+                                    nbMaxColumn = 0;
+                                    this.backend = new Float64Array(nbRows * nbColumns + HeapMatrix.INDEX_OFFSET);
+                                    this.backend[HeapMatrix.INDEX_ROWS] = nbRows;
+                                    this.backend[HeapMatrix.INDEX_COLUMNS] = nbColumns;
+                                    this.backend[HeapMatrix.INDEX_MAX_COLUMN] = nbMaxColumn;
+                                }
+                                else {
+                                    nbColumns = this.backend[HeapMatrix.INDEX_COLUMNS];
+                                    nbRows = this.backend[HeapMatrix.INDEX_ROWS];
+                                    nbMaxColumn = this.backend[HeapMatrix.INDEX_MAX_COLUMN];
+                                }
+                                if (!this.aligned || nbMaxColumn == nbColumns) {
+                                    if (nbMaxColumn == nbColumns) {
+                                        nbColumns = nbColumns * 2;
+                                        var newLength = nbColumns * nbRows + HeapMatrix.INDEX_OFFSET;
+                                        var next_backend = new Float64Array(newLength);
+                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                        this.backend = next_backend;
+                                        this.aligned = true;
+                                    }
+                                    else {
+                                        var next_backend = new Float64Array(this.backend.length);
+                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                        this.backend = next_backend;
+                                        this.aligned = true;
+                                    }
+                                }
+                                java.lang.System.arraycopy(newColumn, 0, this.backend, (nbMaxColumn * nbRows) + HeapMatrix.INDEX_OFFSET, newColumn.length);
+                                this.backend[HeapMatrix.INDEX_MAX_COLUMN] = nbMaxColumn + 1;
                                 this.parent.declareDirty();
                             }
                             return this;
@@ -5308,6 +5350,7 @@ var org;
                                     }
                                     java.util.Arrays.fill(this.backend, HeapMatrix.INDEX_OFFSET, this.backend.length - HeapMatrix.INDEX_OFFSET, value);
                                     this.parent.declareDirty();
+                                    this.backend[HeapMatrix.INDEX_MAX_COLUMN] = this.backend[HeapMatrix.INDEX_COLUMNS];
                                 }
                             }
                             return this;
@@ -5359,7 +5402,7 @@ var org;
                             var result = 0;
                             {
                                 if (this.backend != null) {
-                                    result = this.backend[HeapMatrix.INDEX_COLUMNS];
+                                    result = this.backend[HeapMatrix.INDEX_MAX_COLUMN];
                                 }
                             }
                             return result;
@@ -5471,7 +5514,8 @@ var org;
                     }());
                     HeapMatrix.INDEX_ROWS = 0;
                     HeapMatrix.INDEX_COLUMNS = 1;
-                    HeapMatrix.INDEX_OFFSET = 2;
+                    HeapMatrix.INDEX_MAX_COLUMN = 2;
+                    HeapMatrix.INDEX_OFFSET = 3;
                     heap.HeapMatrix = HeapMatrix;
                     var HeapRelation = (function () {
                         function HeapRelation(p_listener, origin) {
