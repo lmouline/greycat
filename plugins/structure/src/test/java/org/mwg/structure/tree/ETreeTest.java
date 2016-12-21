@@ -26,9 +26,9 @@ public class ETreeTest {
                     boundMin[i] = 0;
                     boundMax[i] = 1;
                 }
-                eTree.set(ETree.BOUND_MIN, Type.DOUBLE_ARRAY, boundMin);
-                eTree.set(ETree.BOUND_MAX, Type.DOUBLE_ARRAY, boundMax);
-                eTree.set(ETree.RESOLUTION, Type.DOUBLE_ARRAY, precisions);
+                eTree.setAt(ETree.BOUND_MIN, Type.DOUBLE_ARRAY, boundMin);
+                eTree.setAt(ETree.BOUND_MAX, Type.DOUBLE_ARRAY, boundMax);
+                eTree.setAt(ETree.RESOLUTION, Type.DOUBLE_ARRAY, precisions);
                 Random random = new Random();
                 random.setSeed(125362l);
                 int ins = 10000000;
