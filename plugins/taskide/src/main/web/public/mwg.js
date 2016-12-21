@@ -6369,20 +6369,65 @@ var org;
                                         case org.mwg.Type.BOOL:
                                             param_elem = p_unsafe_elem;
                                             break;
-                                        case org.mwg.Type.DOUBLE:
-                                            param_elem = p_unsafe_elem;
-                                            break;
-                                        case org.mwg.Type.LONG:
+                                        case org.mwg.Type.INT:
                                             if (p_unsafe_elem instanceof Number) {
+                                                param_elem = p_unsafe_elem;
+                                            }
+                                            else if (p_unsafe_elem instanceof Number) {
                                                 var preCasting = p_unsafe_elem;
                                                 param_elem = preCasting;
+                                            }
+                                            else if (p_unsafe_elem instanceof Number) {
+                                                var preCastingLong = p_unsafe_elem;
+                                                param_elem = preCastingLong;
+                                            }
+                                            else if (p_unsafe_elem instanceof Number) {
+                                                var preCastingLong = p_unsafe_elem;
+                                                param_elem = preCastingLong;
                                             }
                                             else {
                                                 param_elem = p_unsafe_elem;
                                             }
                                             break;
-                                        case org.mwg.Type.INT:
-                                            param_elem = p_unsafe_elem;
+                                        case org.mwg.Type.DOUBLE:
+                                            if (p_unsafe_elem instanceof Number) {
+                                                param_elem = p_unsafe_elem;
+                                            }
+                                            else if (p_unsafe_elem instanceof Number) {
+                                                var preCasting = p_unsafe_elem;
+                                                param_elem = preCasting;
+                                            }
+                                            else if (p_unsafe_elem instanceof Number) {
+                                                var preCastingLong = p_unsafe_elem;
+                                                param_elem = preCastingLong;
+                                            }
+                                            else if (p_unsafe_elem instanceof Number) {
+                                                var preCastingLong = p_unsafe_elem;
+                                                param_elem = preCastingLong;
+                                            }
+                                            else {
+                                                param_elem = p_unsafe_elem;
+                                            }
+                                            break;
+                                        case org.mwg.Type.LONG:
+                                            if (p_unsafe_elem instanceof Number) {
+                                                param_elem = p_unsafe_elem;
+                                            }
+                                            else if (p_unsafe_elem instanceof Number) {
+                                                var preCasting = p_unsafe_elem;
+                                                param_elem = preCasting;
+                                            }
+                                            else if (p_unsafe_elem instanceof Number) {
+                                                var preCastingLong = p_unsafe_elem;
+                                                param_elem = preCastingLong;
+                                            }
+                                            else if (p_unsafe_elem instanceof Number) {
+                                                var preCastingLong = p_unsafe_elem;
+                                                param_elem = preCastingLong;
+                                            }
+                                            else {
+                                                param_elem = p_unsafe_elem;
+                                            }
                                             break;
                                         case org.mwg.Type.STRING:
                                             param_elem = p_unsafe_elem;

@@ -525,19 +525,53 @@ class HeapStateChunk implements StateChunk {
                     case Type.BOOL:
                         param_elem = (boolean) p_unsafe_elem;
                         break;
+                    case Type.INT:
+                        if (p_unsafe_elem instanceof Integer) {
+                            param_elem = (int) p_unsafe_elem;
+                        } else if (p_unsafe_elem instanceof Double) {
+                            double preCasting = (Double) p_unsafe_elem;
+                            param_elem = (int) preCasting;
+                        } else if (p_unsafe_elem instanceof Long) {
+                            long preCastingLong = (Long) p_unsafe_elem;
+                            param_elem = (int) preCastingLong;
+                        } else if (p_unsafe_elem instanceof Float) {
+                            float preCastingLong = (Float) p_unsafe_elem;
+                            param_elem = (int) preCastingLong;
+                        } else {
+                            param_elem = (int) p_unsafe_elem;
+                        }
+                        break;
                     case Type.DOUBLE:
-                        param_elem = (double) p_unsafe_elem;
+                        if (p_unsafe_elem instanceof Double) {
+                            param_elem = (double) p_unsafe_elem;
+                        } else if (p_unsafe_elem instanceof Integer) {
+                            int preCasting = (Integer) p_unsafe_elem;
+                            param_elem = (double) preCasting;
+                        } else if (p_unsafe_elem instanceof Long) {
+                            long preCastingLong = (Long) p_unsafe_elem;
+                            param_elem = (double) preCastingLong;
+                        } else if (p_unsafe_elem instanceof Float) {
+                            float preCastingLong = (Float) p_unsafe_elem;
+                            param_elem = (double) preCastingLong;
+                        } else {
+                            param_elem = (double) p_unsafe_elem;
+                        }
                         break;
                     case Type.LONG:
-                        if (p_unsafe_elem instanceof Integer) {
+                        if (p_unsafe_elem instanceof Long) {
+                            param_elem = (long) p_unsafe_elem;
+                        } else if (p_unsafe_elem instanceof Integer) {
                             int preCasting = (Integer) p_unsafe_elem;
                             param_elem = (long) preCasting;
+                        } else if (p_unsafe_elem instanceof Double) {
+                            double preCastingLong = (Double) p_unsafe_elem;
+                            param_elem = (long) preCastingLong;
+                        } else if (p_unsafe_elem instanceof Float) {
+                            float preCastingLong = (Float) p_unsafe_elem;
+                            param_elem = (long) preCastingLong;
                         } else {
                             param_elem = (long) p_unsafe_elem;
                         }
-                        break;
-                    case Type.INT:
-                        param_elem = (int) p_unsafe_elem;
                         break;
                     case Type.STRING:
                         param_elem = (String) p_unsafe_elem;

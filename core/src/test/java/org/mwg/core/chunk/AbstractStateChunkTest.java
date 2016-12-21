@@ -23,6 +23,30 @@ public abstract class AbstractStateChunkTest {
     }
 
     @Test
+    public void castTest() {
+        ChunkSpace space = factory.newSpace(100, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+
+        chunk.set(0, Type.DOUBLE, 1.5d);
+        chunk.set(0, Type.DOUBLE, 1);
+        chunk.set(0, Type.DOUBLE, 1L);
+        chunk.set(0, Type.DOUBLE, 1f);
+
+        chunk.set(0, Type.INT, 1);
+        chunk.set(0, Type.INT, 1.5d);
+        chunk.set(0, Type.INT, 1L);
+        chunk.set(0, Type.INT, 1f);
+
+        chunk.set(0, Type.LONG, 1);
+        chunk.set(0, Type.LONG, 1.5d);
+        chunk.set(0, Type.LONG, 1L);
+        chunk.set(0, Type.LONG, 1f);
+
+        space.free(chunk);
+        space.freeAll();
+    }
+
+    @Test
     public void saveLoadPrimitif() {
         ChunkSpace space = factory.newSpace(100, null);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);

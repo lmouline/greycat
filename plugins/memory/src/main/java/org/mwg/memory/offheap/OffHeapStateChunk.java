@@ -530,19 +530,31 @@ class OffHeapStateChunk implements StateChunk {
                     case Type.BOOL:
                         param_elem = ((boolean) p_unsafe_elem) ? 1 : 0;
                         break;
-                    // case Type.DOUBLE:
-                    //      param_double_elem = (double) p_unsafe_elem;
-                    //     break;
                     case Type.LONG:
-                        if (p_unsafe_elem instanceof Integer) {
-                            int preCasting = (Integer) p_unsafe_elem;
-                            param_elem = (long) preCasting;
+                        if (p_unsafe_elem instanceof Long) {
+                            param_elem = (long) p_unsafe_elem;
+                        } else if (p_unsafe_elem instanceof Double) {
+                            param_elem = (long) (double) p_unsafe_elem;
+                        } else if (p_unsafe_elem instanceof Float) {
+                            param_elem = (long) (float) p_unsafe_elem;
+                        } else if (p_unsafe_elem instanceof Integer) {
+                            param_elem = (long) (int) p_unsafe_elem;
                         } else {
                             param_elem = (long) p_unsafe_elem;
                         }
                         break;
                     case Type.INT:
-                        param_elem = (int) p_unsafe_elem;
+                        if (p_unsafe_elem instanceof Integer) {
+                            param_elem = (int) p_unsafe_elem;
+                        } else if (p_unsafe_elem instanceof Double) {
+                            param_elem = (int) (double) p_unsafe_elem;
+                        } else if (p_unsafe_elem instanceof Float) {
+                            param_elem = (int) (float) p_unsafe_elem;
+                        } else if (p_unsafe_elem instanceof Long) {
+                            param_elem = (int) (long) p_unsafe_elem;
+                        } else {
+                            param_elem = (int) p_unsafe_elem;
+                        }
                         break;
                     case Type.STRING:
                         param_elem = OffHeapString.fromObject((String) p_unsafe_elem);
@@ -576,9 +588,17 @@ class OffHeapStateChunk implements StateChunk {
     }
 
     private double toDoubleValue(final Object p_unsafe_elem) {
+        if (p_unsafe_elem instanceof Double) {
+            return (double) p_unsafe_elem;
+        } else if (p_unsafe_elem instanceof Integer) {
+            return (double) (int) p_unsafe_elem;
+        } else if (p_unsafe_elem instanceof Float) {
+            return (double) (float) p_unsafe_elem;
+        } else if (p_unsafe_elem instanceof Long) {
+            return (double) (long) p_unsafe_elem;
+        }
         return (double) p_unsafe_elem;
     }
-
 
     private long internal_set(final long p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
         long addr = space.addrByIndex(index);
