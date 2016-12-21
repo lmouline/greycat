@@ -8,13 +8,13 @@ import org.mwg.base.BaseNode;
 import org.mwg.plugin.NodeState;
 import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
-import org.mwg.structure.NTree;
+import org.mwg.structure.Tree;
 
 
 /**
  * Created by assaad on 19/12/2016.
  */
-public class ETree extends BaseNode implements NTree {
+public class ETree extends BaseNode implements Tree {
     public static String NAME = "ETree";
 
     public static String BOUND_MIN = "min";
@@ -45,20 +45,7 @@ public class ETree extends BaseNode implements NTree {
         super(p_world, p_time, p_id, p_graph);
     }
 
-    @Override
-    public void nearestN(double[] keys, int nbElem, Callback<Node[]> callback) {
 
-    }
-
-    @Override
-    public void nearestWithinRadius(double[] keys, double radius, Callback<Node[]> callback) {
-
-    }
-
-    @Override
-    public void nearestNWithinRadius(double[] keys, int nbElem, double radius, Callback<Node[]> callback) {
-
-    }
 
     private static int getRelationId(double[] centerKey, double[] keyToInsert) {
         int result = 0;
@@ -97,7 +84,6 @@ public class ETree extends BaseNode implements NTree {
         return getCenterMinMax(min, max);
     }
 
-    public static int counter = 0;
 
     private static void check(double[] values, double[] min, double[] max) {
         if (values.length != min.length) {
@@ -136,11 +122,10 @@ public class ETree extends BaseNode implements NTree {
         if (buffersize != 0) {
             //todo create buffer here
         }
-        counter++;
         return node;
     }
 
-    private static void subInsert(final ENode from, final double[] keys, final Node value, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final int lev, final ENode root) {
+    private static void subInsert(final ENode from, final double[] keys, final Object value, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final int lev, final ENode root) {
         int index = getRelationId(center, keys);
 
         ENode child;
@@ -156,7 +141,7 @@ public class ETree extends BaseNode implements NTree {
         internalInsert(child, keys, value, childmin, childmax, childcenter, resolution, buffersize, lev + 1, root);
     }
 
-    private static void internalInsert(final ENode node, final double[] keys, final Node value, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final int lev, final ENode root) {
+    private static void internalInsert(final ENode node, final double[] keys, final Object value, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final int lev, final ENode root) {
         if ((int) node.getAt(_SUBNODES) != 0) {
             subInsert(node, keys, value, min, max, center, resolution, buffersize, lev, root);
         } else if (checkCreateLevels(min, max, resolution)) {
@@ -198,8 +183,24 @@ public class ETree extends BaseNode implements NTree {
         node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + 1);
     }
 
+
     @Override
-    public void insertWith(double[] keys, Node value, Callback<Boolean> callback) {
+    public void setDistance(int distanceType) {
+
+    }
+
+    @Override
+    public void setDistanceThreshold(double distanceThreshold) {
+
+    }
+
+    @Override
+    public void setStrategy(byte strategy) {
+
+    }
+
+    @Override
+    public void insertWith(double[] keys, final Type valuetype, final Object value, Callback<Boolean> callback) {
         NodeState state = unphasedState();
 
         double[] min = (double[]) state.getFromKey(BOUND_MIN);
@@ -226,9 +227,20 @@ public class ETree extends BaseNode implements NTree {
     }
 
     @Override
-    public void insert(Node value, Callback<Boolean> callback) {
+    public void nearestN(double[] keys, int nbElem, Callback<Object[]> callback) {
 
     }
+
+    @Override
+    public void nearestWithinRadius(double[] keys, double radius, Callback<Object[]> callback) {
+
+    }
+
+    @Override
+    public void nearestNWithinRadius(double[] keys, int nbElem, double radius, Callback<Object[]> callback) {
+
+    }
+
 
     @Override
     public int size() {
@@ -242,18 +254,7 @@ public class ETree extends BaseNode implements NTree {
         }
     }
 
-    @Override
-    public void setDistance(int distanceType) {
 
-    }
 
-    @Override
-    public void setDistanceThreshold(double distanceThreshold) {
 
-    }
-
-    @Override
-    public void setFrom(String extractor) {
-
-    }
 }
