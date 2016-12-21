@@ -2,7 +2,6 @@ package org.mwg.structure.tree;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
-import org.mwg.Node;
 import org.mwg.Type;
 import org.mwg.base.BaseNode;
 import org.mwg.plugin.NodeState;
@@ -10,13 +9,9 @@ import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
 import org.mwg.structure.Tree;
 
-
-/**
- * Created by assaad on 19/12/2016.
- */
 public class ETree extends BaseNode implements Tree {
-    public static String NAME = "ETree";
 
+    public static String NAME = "ETree";
     public static String BOUND_MIN = "min";
     public static String BOUND_MAX = "max";
     public static String RESOLUTION = "resolution";
@@ -25,8 +20,6 @@ public class ETree extends BaseNode implements Tree {
     public static int DISTANCE_DEF = 0;
 
     public static int BUFFER_SIZE_DEF = 0;
-
-
     private static String EGRAPH = "_egraph";
 
     private static long _TOTAL = 0;
@@ -37,14 +30,11 @@ public class ETree extends BaseNode implements Tree {
     private static long _MIN = 5;
     private static long _MAX = 6;
     private static long _PROFILE = 7;
-
     private static int _REL = 16;
-
 
     public ETree(long p_world, long p_time, long p_id, Graph p_graph) {
         super(p_world, p_time, p_id, p_graph);
     }
-
 
 
     private static int getRelationId(double[] centerKey, double[] keyToInsert) {
@@ -132,6 +122,8 @@ public class ETree extends BaseNode implements Tree {
         if (from.getAt(index) == null) {
             child = createNewNode(from, min, max, center, keys, buffersize);
             from.setAt(index, Type.LONG, child.id());
+
+            //from.setAt(index, Type.RELATION, child);
         } else {
             child = from.graph().lookup((long) from.getAt(index));
         }
@@ -221,7 +213,7 @@ public class ETree extends BaseNode implements Tree {
             root.setAt(_MAX, Type.DOUBLE_ARRAY, max);
         }
         internalInsert(root, keys, value, min, max, getCenterMinMax(min, max), resolution, buffersize, 0, root);
-        if(callback!=null) {
+        if (callback != null) {
             callback.on(true);
         }
     }
@@ -253,8 +245,6 @@ public class ETree extends BaseNode implements Tree {
             return (int) root.getAt(_TOTAL);
         }
     }
-
-
 
 
 }

@@ -4,6 +4,8 @@ import org.mwg.plugin.Job;
 
 public abstract class AbstractExternalAttribute {
 
+    //TODO adapt this with BaseImpl
+
     public abstract String name();
 
     public abstract String save();
