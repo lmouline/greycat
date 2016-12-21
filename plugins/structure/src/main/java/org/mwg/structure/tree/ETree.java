@@ -7,20 +7,30 @@ import org.mwg.base.BaseNode;
 import org.mwg.plugin.NodeState;
 import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
+import org.mwg.struct.Matrix;
+import org.mwg.structure.IndexStrategy;
 import org.mwg.structure.Tree;
+import org.mwg.structure.distance.Distance;
+import org.mwg.structure.distance.Distances;
 
 public class ETree extends BaseNode implements Tree {
 
     public static String NAME = "ETree";
-    public static String BOUND_MIN = "min";
-    public static String BOUND_MAX = "max";
-    public static String RESOLUTION = "resolution";
-    public static String BUFFER_SIZE = "buffersize";
-    public static String DISTANCE = "distance";
-    public static int DISTANCE_DEF = 0;
 
-    public static int BUFFER_SIZE_DEF = 0;
-    private static String EGRAPH = "_egraph";
+    public static long BOUND_MIN = 0;
+    public static long BOUND_MAX = 1;
+    public static long RESOLUTION = 2;
+    public static long BUFFER_SIZE = 3;
+    public static long STRATEGY_TYPE = 4;
+    public static long DISTANCE = 5;
+    public static long DISTANCE_THRESHOLD = 6;
+    private static long EGRAPH = 7;
+
+    public static int BUFFER_SIZE_DEF = 20;
+    public static Byte STRATEGY_DEF = IndexStrategy.DEFAULT;
+    public static int DISTANCE_DEF = Distances.DEFAULT;
+    public static double DISTANCE_THRESHOLD_DEF = 1e-20;
+
 
     private static long _TOTAL = 0;
     private static long _BUFFER_KEYS = 1;
@@ -87,7 +97,7 @@ public class ETree extends BaseNode implements Tree {
     }
 
 
-    private static ENode createNewNode(final ENode parent, final double[] min, final double[] max, final double[] center, final double[] keyToInsert, final int buffersize) {
+    private static ENode createNewNode(final ENode parent, int index, final double[] min, final double[] max, final double[] center, final double[] keyToInsert, final int buffersize) {
         ENode node = parent.graph().newNode();
         double[] minChild = new double[min.length];
         double[] maxChild = new double[max.length];
@@ -108,6 +118,7 @@ public class ETree extends BaseNode implements Tree {
         node.setAt(_TOTAL, Type.INT, 0);
 
         parent.setAt(_SUBNODES, Type.INT, (int) parent.getAt(_SUBNODES) + 1);
+        parent.setAt(index, Type.LONG, node.id());
 
         if (buffersize != 0) {
             //todo create buffer here
@@ -115,32 +126,40 @@ public class ETree extends BaseNode implements Tree {
         return node;
     }
 
-    private static void subInsert(final ENode from, final double[] keys, final Object value, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final int lev, final ENode root) {
+    private static void subInsert(final ENode from, final double[] keys, final Type valuetype, final Object value, final byte strategyType, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final ENode root) {
         int index = getRelationId(center, keys);
 
         ENode child;
         if (from.getAt(index) == null) {
-            child = createNewNode(from, min, max, center, keys, buffersize);
-            from.setAt(index, Type.LONG, child.id());
+            child = createNewNode(from, index, min, max, center, keys, buffersize);
 
-            //from.setAt(index, Type.RELATION, child);
         } else {
             child = from.graph().lookup((long) from.getAt(index));
         }
         double[] childmin = (double[]) child.getAt(_MIN);
         double[] childmax = (double[]) child.getAt(_MAX);
         double[] childcenter = getCenterMinMax(childmin, childmax);
-        internalInsert(child, keys, value, childmin, childmax, childcenter, resolution, buffersize, lev + 1, root);
+        internalInsert(child, keys, valuetype, value, strategyType, childmin, childmax, childcenter, resolution, buffersize, root);
     }
 
-    private static void internalInsert(final ENode node, final double[] keys, final Object value, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final int lev, final ENode root) {
+    private static void internalInsert(final ENode node, final double[] keys, final Type valuetype, final Object value, final byte strategyType, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final ENode root) {
         if ((int) node.getAt(_SUBNODES) != 0) {
-            subInsert(node, keys, value, min, max, center, resolution, buffersize, lev, root);
+            subInsert(node, keys, valuetype, value, strategyType, min, max, center, resolution, buffersize, root);
         } else if (checkCreateLevels(min, max, resolution)) {
 
-            if (node.getAt(_BUFFER_KEYS) != null) {
-                throw new RuntimeException("should not go here");
-                //todo bufferize keys here and check if buffer is full etc
+            Matrix buffer = (Matrix) node.getAt(_BUFFER_KEYS);
+            if (buffer != null) {
+//                for (int i = 0; i < buffer.columns(); i++) {
+//                    if (compare(keys, buffer.column(i))) {
+//
+//                    }
+//
+//                }
+//
+//                if (buffer.columns() < buffersize) {
+//
+//                }
+
 //                if (_tempValues.size() < buffersize) {
 //                    _tempValues.add(keys);
 //                } else {
@@ -153,7 +172,7 @@ public class ETree extends BaseNode implements Tree {
 //                    _tempValues = null;
 //                }
             } else {
-                subInsert(node, keys, value, min, max, center, resolution, buffersize, lev, root);
+                subInsert(node, keys, valuetype, value, strategyType, min, max, center, resolution, buffersize, root);
             }
         }
         //Else we reached here last level of the tree, and the array is full, we need to start a profiler
@@ -175,16 +194,21 @@ public class ETree extends BaseNode implements Tree {
         node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + 1);
     }
 
+    private static boolean compare(double[] keys, double[] column) {
+        return false;
+    }
+
 
     @Override
     public void setDistance(int distanceType) {
-
+        super.setAt(DISTANCE, Type.INT, distanceType);
     }
 
     @Override
     public void setDistanceThreshold(double distanceThreshold) {
-
+        super.setAt(DISTANCE_THRESHOLD, Type.DOUBLE, distanceThreshold);
     }
+
 
     @Override
     public void setStrategy(byte strategy) {
@@ -195,13 +219,16 @@ public class ETree extends BaseNode implements Tree {
     public void insertWith(double[] keys, final Type valuetype, final Object value, Callback<Boolean> callback) {
         NodeState state = unphasedState();
 
-        double[] min = (double[]) state.getFromKey(BOUND_MIN);
-        double[] max = (double[]) state.getFromKey(BOUND_MAX);
+        double[] min = (double[]) state.get(BOUND_MIN);
+        double[] max = (double[]) state.get(BOUND_MAX);
         check(keys, min, max);
 
-        double[] resolution = (double[]) state.getFromKey(RESOLUTION);
-        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
-        int buffersize = state.getFromKeyWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
+        double[] resolution = (double[]) state.get(RESOLUTION);
+        EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
+        byte strategyType = state.getWithDefault(STRATEGY_TYPE, STRATEGY_DEF);
+        int buffersize = state.getWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
+        Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
+
 
         ENode root = graph.root();
         if (root == null) {
@@ -212,11 +239,12 @@ public class ETree extends BaseNode implements Tree {
             root.setAt(_MIN, Type.DOUBLE_ARRAY, min);
             root.setAt(_MAX, Type.DOUBLE_ARRAY, max);
         }
-        internalInsert(root, keys, value, min, max, getCenterMinMax(min, max), resolution, buffersize, 0, root);
+        internalInsert(root, keys, valuetype, value, strategyType, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
         if (callback != null) {
             callback.on(true);
         }
     }
+
 
     @Override
     public void nearestN(double[] keys, int nbElem, Callback<Object[]> callback) {
@@ -237,7 +265,7 @@ public class ETree extends BaseNode implements Tree {
     @Override
     public int size() {
         NodeState state = unphasedState();
-        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
+        EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
         ENode root = graph.root();
         if (root == null) {
             return 0;

@@ -31,7 +31,9 @@ public class ETreeTest {
                 eTree.set(ETree.RESOLUTION, Type.DOUBLE_ARRAY, precisions);
                 Random random = new Random();
                 random.setSeed(125362l);
-                int ins = 1000000;
+                int ins = 10000000;
+
+
                 double[][] keys = new double[ins][];
                 for (int i = 0; i < ins; i++) {
                     //temp.setProperty("value", Type.DOUBLE, random.nextDouble());
@@ -45,8 +47,13 @@ public class ETreeTest {
                 for (int i = 0; i < ins; i++) {
                     eTree.insertWith(keys[i], null, null, null);
                 }
-                long te = System.currentTimeMillis() - ts;
+                long te=System.currentTimeMillis()-ts;
+
                 System.out.println(te);
+
+
+
+
             }
         });
     }
