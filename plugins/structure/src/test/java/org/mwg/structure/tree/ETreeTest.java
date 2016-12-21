@@ -1,12 +1,8 @@
 package org.mwg.structure.tree;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
-import org.mwg.structure.KDTreeJava;
 import org.mwg.structure.StructurePlugin;
-import org.mwg.structure.distance.Distances;
-import org.mwg.structure.distance.GeoDistance;
 
 import java.util.Random;
 
@@ -44,7 +40,7 @@ public class ETreeTest {
 
                 Random random = new Random();
                 random.setSeed(125362l);
-                int ins = 100;
+                int ins = 10000;
 
 
                 double[][] keys = new double[ins][];
