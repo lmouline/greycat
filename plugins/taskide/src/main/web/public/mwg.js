@@ -3974,6 +3974,9 @@ var org;
                         HeapChunkSpace.prototype.available = function () {
                             return this._lru.size();
                         };
+                        HeapChunkSpace.prototype.newVolatileGraph = function () {
+                            return new org.mwg.core.chunk.heap.HeapEGraph(null, null, this._graph);
+                        };
                         HeapChunkSpace.prototype.printMarked = function () {
                             for (var i = 0; i < this._chunkValues.length(); i++) {
                                 if (this._chunkValues.get(i) != null) {
@@ -4001,17 +4004,18 @@ var org;
                     HeapChunkSpace.HASH_LOAD_FACTOR = 4;
                     heap.HeapChunkSpace = HeapChunkSpace;
                     var HeapEGraph = (function () {
-                        function HeapEGraph(p_parent, origin) {
+                        function HeapEGraph(p_parent, origin, p_graph) {
                             this._nodes = null;
                             this._nodes_capacity = 0;
                             this._nodes_index = 0;
                             this.parent = p_parent;
+                            this._graph = p_graph;
                             if (origin != null) {
                                 this._nodes_index = origin._nodes_index;
                                 this._nodes_capacity = origin._nodes_capacity;
                                 this._nodes = new Array(this._nodes_capacity);
                                 for (var i = 0; i < this._nodes_index; i++) {
-                                    this._nodes[i] = new org.mwg.core.chunk.heap.HeapENode(this.parent, this, this.parent.graph(), i, origin._nodes[i]);
+                                    this._nodes[i] = new org.mwg.core.chunk.heap.HeapENode(this.parent, this, this._graph, i, origin._nodes[i]);
                                 }
                                 for (var i = 0; i < this._nodes_index; i++) {
                                     this._nodes[i].rebase();
@@ -4021,7 +4025,9 @@ var org;
                         HeapEGraph.prototype.declareDirty = function () {
                             if (!this._dirty) {
                                 this._dirty = true;
-                                this.parent.declareDirty();
+                                if (this.parent != null) {
+                                    this.parent.declareDirty();
+                                }
                             }
                         };
                         HeapEGraph.prototype.newNode = function () {
@@ -4037,7 +4043,7 @@ var org;
                                 this._nodes_capacity = newCapacity;
                                 this._nodes = newNodes;
                             }
-                            var newNode = new org.mwg.core.chunk.heap.HeapENode(this.parent, this, this.parent.graph(), this._nodes_index, null);
+                            var newNode = new org.mwg.core.chunk.heap.HeapENode(this.parent, this, this._graph, this._nodes_index, null);
                             this._nodes[this._nodes_index] = newNode;
                             this._nodes_index++;
                             return newNode;
@@ -4790,19 +4796,25 @@ var org;
                             }
                             this._back[this._size] = eNode;
                             this._size++;
-                            this.parent.declareDirty();
+                            if (this.parent != null) {
+                                this.parent.declareDirty();
+                            }
                             return this;
                         };
                         HeapERelation.prototype.addAll = function (eNodes) {
                             this.allocate(eNodes.length + this._size);
                             java.lang.System.arraycopy(eNodes, 0, this._back, this._size, eNodes.length);
-                            this.parent.declareDirty();
+                            if (this.parent != null) {
+                                this.parent.declareDirty();
+                            }
                             return this;
                         };
                         HeapERelation.prototype.clear = function () {
                             this._size = 0;
                             this._back = null;
-                            this.parent.declareDirty();
+                            if (this.parent != null) {
+                                this.parent.declareDirty();
+                            }
                             return this;
                         };
                         HeapERelation.prototype.toString = function () {
@@ -5038,110 +5050,163 @@ var org;
                             }
                         }
                         HeapLMatrix.prototype.init = function (rows, columns) {
-                            {
-                                this.backend = new Float64Array(rows * columns + HeapLMatrix.INDEX_OFFSET);
-                                this.backend[HeapLMatrix.INDEX_ROWS] = rows;
-                                this.backend[HeapLMatrix.INDEX_COLUMNS] = columns;
-                                this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = columns;
-                                this.aligned = true;
+                            if (this.parent != null) {
+                                {
+                                    this.internal_init(rows, columns);
+                                }
                                 this.parent.declareDirty();
                             }
+                            else {
+                                this.internal_init(rows, columns);
+                            }
                             return this;
+                        };
+                        HeapLMatrix.prototype.internal_init = function (rows, columns) {
+                            this.backend = new Float64Array(rows * columns + HeapLMatrix.INDEX_OFFSET);
+                            this.backend[HeapLMatrix.INDEX_ROWS] = rows;
+                            this.backend[HeapLMatrix.INDEX_COLUMNS] = columns;
+                            this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = columns;
+                            this.aligned = true;
                         };
                         HeapLMatrix.prototype.appendColumn = function (newColumn) {
-                            {
-                                var nbRows;
-                                var nbColumns;
-                                var nbMaxColumn;
-                                if (this.backend == null) {
-                                    nbRows = newColumn.length;
-                                    nbColumns = org.mwg.Constants.MAP_INITIAL_CAPACITY;
-                                    nbMaxColumn = 0;
-                                    this.backend = new Float64Array(nbRows * nbColumns + HeapLMatrix.INDEX_OFFSET);
-                                    this.backend[HeapLMatrix.INDEX_ROWS] = nbRows;
-                                    this.backend[HeapLMatrix.INDEX_COLUMNS] = nbColumns;
-                                    this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = nbMaxColumn;
+                            if (this.parent != null) {
+                                {
+                                    this.internal_appendColumn(newColumn);
+                                    this.parent.declareDirty();
+                                }
+                            }
+                            else {
+                                this.internal_appendColumn(newColumn);
+                            }
+                            return this;
+                        };
+                        HeapLMatrix.prototype.internal_appendColumn = function (newColumn) {
+                            var nbRows;
+                            var nbColumns;
+                            var nbMaxColumn;
+                            if (this.backend == null) {
+                                nbRows = newColumn.length;
+                                nbColumns = org.mwg.Constants.MAP_INITIAL_CAPACITY;
+                                nbMaxColumn = 0;
+                                this.backend = new Float64Array(nbRows * nbColumns + HeapLMatrix.INDEX_OFFSET);
+                                this.backend[HeapLMatrix.INDEX_ROWS] = nbRows;
+                                this.backend[HeapLMatrix.INDEX_COLUMNS] = nbColumns;
+                                this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = nbMaxColumn;
+                            }
+                            else {
+                                nbColumns = this.backend[HeapLMatrix.INDEX_COLUMNS];
+                                nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
+                                nbMaxColumn = this.backend[HeapLMatrix.INDEX_MAX_COLUMN];
+                            }
+                            if (!this.aligned || nbMaxColumn == nbColumns) {
+                                if (nbMaxColumn == nbColumns) {
+                                    nbColumns = nbColumns * 2;
+                                    var newLength = nbColumns * nbRows + HeapLMatrix.INDEX_OFFSET;
+                                    var next_backend = new Float64Array(newLength);
+                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                    this.backend = next_backend;
+                                    this.aligned = true;
                                 }
                                 else {
-                                    nbColumns = this.backend[HeapLMatrix.INDEX_COLUMNS];
-                                    nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
-                                    nbMaxColumn = this.backend[HeapLMatrix.INDEX_MAX_COLUMN];
+                                    var next_backend = new Float64Array(this.backend.length);
+                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                    this.backend = next_backend;
+                                    this.aligned = true;
                                 }
-                                if (!this.aligned || nbMaxColumn == nbColumns) {
-                                    if (nbMaxColumn == nbColumns) {
-                                        nbColumns = nbColumns * 2;
-                                        var newLength = nbColumns * nbRows + HeapLMatrix.INDEX_OFFSET;
-                                        var next_backend = new Float64Array(newLength);
-                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                        this.backend = next_backend;
-                                        this.aligned = true;
-                                    }
-                                    else {
-                                        var next_backend = new Float64Array(this.backend.length);
-                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                        this.backend = next_backend;
-                                        this.aligned = true;
-                                    }
-                                }
-                                java.lang.System.arraycopy(newColumn, 0, this.backend, (nbMaxColumn * nbRows) + HeapLMatrix.INDEX_OFFSET, newColumn.length);
-                                this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = nbMaxColumn + 1;
-                                this.parent.declareDirty();
                             }
-                            return this;
+                            java.lang.System.arraycopy(newColumn, 0, this.backend, (nbMaxColumn * nbRows) + HeapLMatrix.INDEX_OFFSET, newColumn.length);
+                            this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = nbMaxColumn + 1;
                         };
                         HeapLMatrix.prototype.fill = function (value) {
-                            {
-                                if (this.backend != null) {
-                                    if (!this.aligned) {
-                                        var next_backend = new Float64Array(this.backend.length);
-                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                        this.backend = next_backend;
-                                        this.aligned = true;
-                                    }
-                                    java.util.Arrays.fill(this.backend, HeapLMatrix.INDEX_OFFSET, this.backend.length - HeapLMatrix.INDEX_OFFSET, value);
-                                    this.parent.declareDirty();
-                                    this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = this.backend[HeapLMatrix.INDEX_COLUMNS];
+                            if (this.parent != null) {
+                                {
+                                    this.internal_fill(value);
                                 }
                             }
+                            else {
+                                this.internal_fill(value);
+                            }
                             return this;
+                        };
+                        HeapLMatrix.prototype.internal_fill = function (value) {
+                            if (this.backend != null) {
+                                if (!this.aligned) {
+                                    var next_backend = new Float64Array(this.backend.length);
+                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                    this.backend = next_backend;
+                                    this.aligned = true;
+                                }
+                                java.util.Arrays.fill(this.backend, HeapLMatrix.INDEX_OFFSET, this.backend.length - HeapLMatrix.INDEX_OFFSET, value);
+                                this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = this.backend[HeapLMatrix.INDEX_COLUMNS];
+                                if (this.parent != null) {
+                                    this.parent.declareDirty();
+                                }
+                            }
                         };
                         HeapLMatrix.prototype.fillWith = function (values) {
-                            {
-                                if (this.backend != null) {
-                                    if (!this.aligned) {
-                                        var next_backend = new Float64Array(this.backend.length);
-                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                        this.backend = next_backend;
-                                        this.aligned = true;
-                                    }
-                                    java.lang.System.arraycopy(values, 0, this.backend, HeapLMatrix.INDEX_OFFSET, values.length);
-                                    this.parent.declareDirty();
+                            if (this.parent != null) {
+                                {
+                                    this.internal_fillWith(values);
                                 }
+                            }
+                            else {
+                                this.internal_fillWith(values);
                             }
                             return this;
                         };
-                        HeapLMatrix.prototype.fillWithRandom = function (min, max, seed) {
-                            {
-                                var rand = new java.util.Random();
-                                rand.setSeed(seed);
-                                if (this.backend != null) {
-                                    if (!this.aligned) {
-                                        var next_backend = new Float64Array(this.backend.length);
-                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                        this.backend = next_backend;
-                                        this.aligned = true;
-                                    }
-                                    for (var i = 0; i < this.backend[HeapLMatrix.INDEX_ROWS] * this.backend[HeapLMatrix.INDEX_COLUMNS]; i++) {
-                                        this.backend[i + HeapLMatrix.INDEX_OFFSET] = rand.nextInt() * (max - min) + min;
-                                    }
+                        HeapLMatrix.prototype.internal_fillWith = function (values) {
+                            if (this.backend != null) {
+                                if (!this.aligned) {
+                                    var next_backend = new Float64Array(this.backend.length);
+                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                    this.backend = next_backend;
+                                    this.aligned = true;
+                                }
+                                java.lang.System.arraycopy(values, 0, this.backend, HeapLMatrix.INDEX_OFFSET, values.length);
+                                if (this.parent != null) {
                                     this.parent.declareDirty();
                                 }
                             }
+                        };
+                        HeapLMatrix.prototype.fillWithRandom = function (min, max, seed) {
+                            if (this.parent != null) {
+                                {
+                                    this.internal_fillWithRandom(min, max, seed);
+                                }
+                            }
+                            else {
+                                this.internal_fillWithRandom(min, max, seed);
+                            }
                             return this;
+                        };
+                        HeapLMatrix.prototype.internal_fillWithRandom = function (min, max, seed) {
+                            var rand = new java.util.Random();
+                            rand.setSeed(seed);
+                            if (this.backend != null) {
+                                if (!this.aligned) {
+                                    var next_backend = new Float64Array(this.backend.length);
+                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                    this.backend = next_backend;
+                                    this.aligned = true;
+                                }
+                                for (var i = 0; i < this.backend[HeapLMatrix.INDEX_ROWS] * this.backend[HeapLMatrix.INDEX_COLUMNS]; i++) {
+                                    this.backend[i + HeapLMatrix.INDEX_OFFSET] = rand.nextInt() * (max - min) + min;
+                                }
+                                if (this.parent != null) {
+                                    this.parent.declareDirty();
+                                }
+                            }
                         };
                         HeapLMatrix.prototype.rows = function () {
                             var result = 0;
-                            {
+                            if (this.parent != null) {
+                                {
+                                    if (this.backend != null) {
+                                        result = this.backend[HeapLMatrix.INDEX_ROWS];
+                                    }
+                                }
+                            }
+                            else {
                                 if (this.backend != null) {
                                     result = this.backend[HeapLMatrix.INDEX_ROWS];
                                 }
@@ -5150,7 +5215,14 @@ var org;
                         };
                         HeapLMatrix.prototype.columns = function () {
                             var result = 0;
-                            {
+                            if (this.parent != null) {
+                                {
+                                    if (this.backend != null) {
+                                        result = this.backend[HeapLMatrix.INDEX_MAX_COLUMN];
+                                    }
+                                }
+                            }
+                            else {
                                 if (this.backend != null) {
                                     result = this.backend[HeapLMatrix.INDEX_MAX_COLUMN];
                                 }
@@ -5159,7 +5231,14 @@ var org;
                         };
                         HeapLMatrix.prototype.column = function (index) {
                             var result;
-                            {
+                            if (this.parent != null) {
+                                {
+                                    var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
+                                    result = new Float64Array(nbRows);
+                                    java.lang.System.arraycopy(this.backend, HeapLMatrix.INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
+                                }
+                            }
+                            else {
                                 var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
                                 result = new Float64Array(nbRows);
                                 java.lang.System.arraycopy(this.backend, HeapLMatrix.INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
@@ -5168,7 +5247,15 @@ var org;
                         };
                         HeapLMatrix.prototype.get = function (rowIndex, columnIndex) {
                             var result = 0;
-                            {
+                            if (this.parent != null) {
+                                {
+                                    if (this.backend != null) {
+                                        var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
+                                        result = this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+                                    }
+                                }
+                            }
+                            else {
                                 if (this.backend != null) {
                                     var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
                                     result = this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
@@ -5177,40 +5264,68 @@ var org;
                             return result;
                         };
                         HeapLMatrix.prototype.set = function (rowIndex, columnIndex, value) {
-                            {
-                                if (this.backend != null) {
-                                    if (!this.aligned) {
-                                        var next_backend = new Float64Array(this.backend.length);
-                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                        this.backend = next_backend;
-                                        this.aligned = true;
-                                    }
-                                    var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
-                                    this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
-                                    this.parent.declareDirty();
+                            if (this.parent != null) {
+                                {
+                                    this.internal_set(rowIndex, columnIndex, value);
                                 }
+                            }
+                            else {
+                                this.internal_set(rowIndex, columnIndex, value);
                             }
                             return this;
                         };
-                        HeapLMatrix.prototype.add = function (rowIndex, columnIndex, value) {
-                            {
-                                if (this.backend != null) {
-                                    if (!this.aligned) {
-                                        var next_backend = new Float64Array(this.backend.length);
-                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                        this.backend = next_backend;
-                                        this.aligned = true;
-                                    }
-                                    var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
-                                    this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+                        HeapLMatrix.prototype.internal_set = function (rowIndex, columnIndex, value) {
+                            if (this.backend != null) {
+                                if (!this.aligned) {
+                                    var next_backend = new Float64Array(this.backend.length);
+                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                    this.backend = next_backend;
+                                    this.aligned = true;
+                                }
+                                var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
+                                this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
+                                if (this.parent != null) {
                                     this.parent.declareDirty();
                                 }
                             }
+                        };
+                        HeapLMatrix.prototype.add = function (rowIndex, columnIndex, value) {
+                            if (this.parent != null) {
+                                {
+                                    this.internal_add(rowIndex, columnIndex, value);
+                                }
+                            }
+                            else {
+                                this.internal_add(rowIndex, columnIndex, value);
+                            }
                             return this;
+                        };
+                        HeapLMatrix.prototype.internal_add = function (rowIndex, columnIndex, value) {
+                            if (this.backend != null) {
+                                if (!this.aligned) {
+                                    var next_backend = new Float64Array(this.backend.length);
+                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                    this.backend = next_backend;
+                                    this.aligned = true;
+                                }
+                                var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
+                                this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+                                if (this.parent != null) {
+                                    this.parent.declareDirty();
+                                }
+                            }
                         };
                         HeapLMatrix.prototype.data = function () {
                             var copy = null;
-                            {
+                            if (this.parent != null) {
+                                {
+                                    if (this.backend != null) {
+                                        copy = new Float64Array(this.backend.length - HeapLMatrix.INDEX_OFFSET);
+                                        java.lang.System.arraycopy(this.backend, HeapLMatrix.INDEX_OFFSET, copy, 0, this.backend.length - HeapLMatrix.INDEX_OFFSET);
+                                    }
+                                }
+                            }
+                            else {
                                 if (this.backend != null) {
                                     copy = new Float64Array(this.backend.length - HeapLMatrix.INDEX_OFFSET);
                                     java.lang.System.arraycopy(this.backend, HeapLMatrix.INDEX_OFFSET, copy, 0, this.backend.length - HeapLMatrix.INDEX_OFFSET);
@@ -5226,7 +5341,14 @@ var org;
                         };
                         HeapLMatrix.prototype.unsafeGet = function (index) {
                             var result = 0;
-                            {
+                            if (this.parent != null) {
+                                {
+                                    if (this.backend != null) {
+                                        result = this.backend[HeapLMatrix.INDEX_OFFSET + index];
+                                    }
+                                }
+                            }
+                            else {
                                 if (this.backend != null) {
                                     result = this.backend[HeapLMatrix.INDEX_OFFSET + index];
                                 }
@@ -5234,19 +5356,29 @@ var org;
                             return result;
                         };
                         HeapLMatrix.prototype.unsafeSet = function (index, value) {
-                            {
-                                if (this.backend != null) {
-                                    if (!this.aligned) {
-                                        var next_backend = new Float64Array(this.backend.length);
-                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                        this.backend = next_backend;
-                                        this.aligned = true;
-                                    }
-                                    this.backend[HeapLMatrix.INDEX_OFFSET + index] = value;
+                            if (this.parent != null) {
+                                {
+                                    this.internal_unsafeSet(index, value);
+                                }
+                            }
+                            else {
+                                this.internal_unsafeSet(index, value);
+                            }
+                            return this;
+                        };
+                        HeapLMatrix.prototype.internal_unsafeSet = function (index, value) {
+                            if (this.backend != null) {
+                                if (!this.aligned) {
+                                    var next_backend = new Float64Array(this.backend.length);
+                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                    this.backend = next_backend;
+                                    this.aligned = true;
+                                }
+                                this.backend[HeapLMatrix.INDEX_OFFSET + index] = value;
+                                if (this.parent != null) {
                                     this.parent.declareDirty();
                                 }
                             }
-                            return this;
                         };
                         HeapLMatrix.prototype.unsafe_data = function () {
                             return this.backend;
@@ -5771,110 +5903,163 @@ var org;
                             }
                         }
                         HeapMatrix.prototype.init = function (rows, columns) {
-                            {
-                                this.backend = new Float64Array(rows * columns + HeapMatrix.INDEX_OFFSET);
-                                this.backend[HeapMatrix.INDEX_ROWS] = rows;
-                                this.backend[HeapMatrix.INDEX_COLUMNS] = columns;
-                                this.backend[HeapMatrix.INDEX_MAX_COLUMN] = columns;
-                                this.aligned = true;
+                            if (this.parent != null) {
+                                {
+                                    this.internal_init(rows, columns);
+                                }
                                 this.parent.declareDirty();
                             }
+                            else {
+                                this.internal_init(rows, columns);
+                            }
                             return this;
+                        };
+                        HeapMatrix.prototype.internal_init = function (rows, columns) {
+                            this.backend = new Float64Array(rows * columns + HeapMatrix.INDEX_OFFSET);
+                            this.backend[HeapMatrix.INDEX_ROWS] = rows;
+                            this.backend[HeapMatrix.INDEX_COLUMNS] = columns;
+                            this.backend[HeapMatrix.INDEX_MAX_COLUMN] = columns;
+                            this.aligned = true;
                         };
                         HeapMatrix.prototype.appendColumn = function (newColumn) {
-                            {
-                                var nbRows;
-                                var nbColumns;
-                                var nbMaxColumn;
-                                if (this.backend == null) {
-                                    nbRows = newColumn.length;
-                                    nbColumns = org.mwg.Constants.MAP_INITIAL_CAPACITY;
-                                    nbMaxColumn = 0;
-                                    this.backend = new Float64Array(nbRows * nbColumns + HeapMatrix.INDEX_OFFSET);
-                                    this.backend[HeapMatrix.INDEX_ROWS] = nbRows;
-                                    this.backend[HeapMatrix.INDEX_COLUMNS] = nbColumns;
-                                    this.backend[HeapMatrix.INDEX_MAX_COLUMN] = nbMaxColumn;
+                            if (this.parent != null) {
+                                {
+                                    this.internal_appendColumn(newColumn);
+                                    this.parent.declareDirty();
+                                }
+                            }
+                            else {
+                                this.internal_appendColumn(newColumn);
+                            }
+                            return this;
+                        };
+                        HeapMatrix.prototype.internal_appendColumn = function (newColumn) {
+                            var nbRows;
+                            var nbColumns;
+                            var nbMaxColumn;
+                            if (this.backend == null) {
+                                nbRows = newColumn.length;
+                                nbColumns = org.mwg.Constants.MAP_INITIAL_CAPACITY;
+                                nbMaxColumn = 0;
+                                this.backend = new Float64Array(nbRows * nbColumns + HeapMatrix.INDEX_OFFSET);
+                                this.backend[HeapMatrix.INDEX_ROWS] = nbRows;
+                                this.backend[HeapMatrix.INDEX_COLUMNS] = nbColumns;
+                                this.backend[HeapMatrix.INDEX_MAX_COLUMN] = nbMaxColumn;
+                            }
+                            else {
+                                nbColumns = this.backend[HeapMatrix.INDEX_COLUMNS];
+                                nbRows = this.backend[HeapMatrix.INDEX_ROWS];
+                                nbMaxColumn = this.backend[HeapMatrix.INDEX_MAX_COLUMN];
+                            }
+                            if (!this.aligned || nbMaxColumn == nbColumns) {
+                                if (nbMaxColumn == nbColumns) {
+                                    nbColumns = nbColumns * 2;
+                                    var newLength = nbColumns * nbRows + HeapMatrix.INDEX_OFFSET;
+                                    var next_backend = new Float64Array(newLength);
+                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                    this.backend = next_backend;
+                                    this.aligned = true;
                                 }
                                 else {
-                                    nbColumns = this.backend[HeapMatrix.INDEX_COLUMNS];
-                                    nbRows = this.backend[HeapMatrix.INDEX_ROWS];
-                                    nbMaxColumn = this.backend[HeapMatrix.INDEX_MAX_COLUMN];
+                                    var next_backend = new Float64Array(this.backend.length);
+                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                    this.backend = next_backend;
+                                    this.aligned = true;
                                 }
-                                if (!this.aligned || nbMaxColumn == nbColumns) {
-                                    if (nbMaxColumn == nbColumns) {
-                                        nbColumns = nbColumns * 2;
-                                        var newLength = nbColumns * nbRows + HeapMatrix.INDEX_OFFSET;
-                                        var next_backend = new Float64Array(newLength);
-                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                        this.backend = next_backend;
-                                        this.aligned = true;
-                                    }
-                                    else {
-                                        var next_backend = new Float64Array(this.backend.length);
-                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                        this.backend = next_backend;
-                                        this.aligned = true;
-                                    }
-                                }
-                                java.lang.System.arraycopy(newColumn, 0, this.backend, (nbMaxColumn * nbRows) + HeapMatrix.INDEX_OFFSET, newColumn.length);
-                                this.backend[HeapMatrix.INDEX_MAX_COLUMN] = nbMaxColumn + 1;
-                                this.parent.declareDirty();
                             }
-                            return this;
+                            java.lang.System.arraycopy(newColumn, 0, this.backend, (nbMaxColumn * nbRows) + HeapMatrix.INDEX_OFFSET, newColumn.length);
+                            this.backend[HeapMatrix.INDEX_MAX_COLUMN] = nbMaxColumn + 1;
                         };
                         HeapMatrix.prototype.fill = function (value) {
-                            {
-                                if (this.backend != null) {
-                                    if (!this.aligned) {
-                                        var next_backend = new Float64Array(this.backend.length);
-                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                        this.backend = next_backend;
-                                        this.aligned = true;
-                                    }
-                                    java.util.Arrays.fill(this.backend, HeapMatrix.INDEX_OFFSET, this.backend.length - HeapMatrix.INDEX_OFFSET, value);
-                                    this.parent.declareDirty();
-                                    this.backend[HeapMatrix.INDEX_MAX_COLUMN] = this.backend[HeapMatrix.INDEX_COLUMNS];
+                            if (this.parent != null) {
+                                {
+                                    this.internal_fill(value);
                                 }
                             }
+                            else {
+                                this.internal_fill(value);
+                            }
                             return this;
+                        };
+                        HeapMatrix.prototype.internal_fill = function (value) {
+                            if (this.backend != null) {
+                                if (!this.aligned) {
+                                    var next_backend = new Float64Array(this.backend.length);
+                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                    this.backend = next_backend;
+                                    this.aligned = true;
+                                }
+                                java.util.Arrays.fill(this.backend, HeapMatrix.INDEX_OFFSET, this.backend.length - HeapMatrix.INDEX_OFFSET, value);
+                                this.backend[HeapMatrix.INDEX_MAX_COLUMN] = this.backend[HeapMatrix.INDEX_COLUMNS];
+                                if (this.parent != null) {
+                                    this.parent.declareDirty();
+                                }
+                            }
                         };
                         HeapMatrix.prototype.fillWith = function (values) {
-                            {
-                                if (this.backend != null) {
-                                    if (!this.aligned) {
-                                        var next_backend = new Float64Array(this.backend.length);
-                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                        this.backend = next_backend;
-                                        this.aligned = true;
-                                    }
-                                    java.lang.System.arraycopy(values, 0, this.backend, HeapMatrix.INDEX_OFFSET, values.length);
-                                    this.parent.declareDirty();
+                            if (this.parent != null) {
+                                {
+                                    this.internal_fillWith(values);
                                 }
+                            }
+                            else {
+                                this.internal_fillWith(values);
                             }
                             return this;
                         };
-                        HeapMatrix.prototype.fillWithRandom = function (min, max, seed) {
-                            {
-                                var rand = new java.util.Random();
-                                rand.setSeed(seed);
-                                if (this.backend != null) {
-                                    if (!this.aligned) {
-                                        var next_backend = new Float64Array(this.backend.length);
-                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                        this.backend = next_backend;
-                                        this.aligned = true;
-                                    }
-                                    for (var i = 0; i < this.backend[HeapMatrix.INDEX_ROWS] * this.backend[HeapMatrix.INDEX_COLUMNS]; i++) {
-                                        this.backend[i + HeapMatrix.INDEX_OFFSET] = rand.nextDouble() * (max - min) + min;
-                                    }
+                        HeapMatrix.prototype.internal_fillWith = function (values) {
+                            if (this.backend != null) {
+                                if (!this.aligned) {
+                                    var next_backend = new Float64Array(this.backend.length);
+                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                    this.backend = next_backend;
+                                    this.aligned = true;
+                                }
+                                java.lang.System.arraycopy(values, 0, this.backend, HeapMatrix.INDEX_OFFSET, values.length);
+                                if (this.parent != null) {
                                     this.parent.declareDirty();
                                 }
                             }
+                        };
+                        HeapMatrix.prototype.fillWithRandom = function (min, max, seed) {
+                            if (this.parent != null) {
+                                {
+                                    this.internal_fillWithRandom(min, max, seed);
+                                }
+                            }
+                            else {
+                                this.internal_fillWithRandom(min, max, seed);
+                            }
                             return this;
+                        };
+                        HeapMatrix.prototype.internal_fillWithRandom = function (min, max, seed) {
+                            var rand = new java.util.Random();
+                            rand.setSeed(seed);
+                            if (this.backend != null) {
+                                if (!this.aligned) {
+                                    var next_backend = new Float64Array(this.backend.length);
+                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                    this.backend = next_backend;
+                                    this.aligned = true;
+                                }
+                                for (var i = 0; i < this.backend[HeapMatrix.INDEX_ROWS] * this.backend[HeapMatrix.INDEX_COLUMNS]; i++) {
+                                    this.backend[i + HeapMatrix.INDEX_OFFSET] = rand.nextInt() * (max - min) + min;
+                                }
+                                if (this.parent != null) {
+                                    this.parent.declareDirty();
+                                }
+                            }
                         };
                         HeapMatrix.prototype.rows = function () {
                             var result = 0;
-                            {
+                            if (this.parent != null) {
+                                {
+                                    if (this.backend != null) {
+                                        result = this.backend[HeapMatrix.INDEX_ROWS];
+                                    }
+                                }
+                            }
+                            else {
                                 if (this.backend != null) {
                                     result = this.backend[HeapMatrix.INDEX_ROWS];
                                 }
@@ -5883,7 +6068,14 @@ var org;
                         };
                         HeapMatrix.prototype.columns = function () {
                             var result = 0;
-                            {
+                            if (this.parent != null) {
+                                {
+                                    if (this.backend != null) {
+                                        result = this.backend[HeapMatrix.INDEX_MAX_COLUMN];
+                                    }
+                                }
+                            }
+                            else {
                                 if (this.backend != null) {
                                     result = this.backend[HeapMatrix.INDEX_MAX_COLUMN];
                                 }
@@ -5892,7 +6084,14 @@ var org;
                         };
                         HeapMatrix.prototype.column = function (index) {
                             var result;
-                            {
+                            if (this.parent != null) {
+                                {
+                                    var nbRows = this.backend[HeapMatrix.INDEX_ROWS];
+                                    result = new Float64Array(nbRows);
+                                    java.lang.System.arraycopy(this.backend, HeapMatrix.INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
+                                }
+                            }
+                            else {
                                 var nbRows = this.backend[HeapMatrix.INDEX_ROWS];
                                 result = new Float64Array(nbRows);
                                 java.lang.System.arraycopy(this.backend, HeapMatrix.INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
@@ -5901,7 +6100,15 @@ var org;
                         };
                         HeapMatrix.prototype.get = function (rowIndex, columnIndex) {
                             var result = 0;
-                            {
+                            if (this.parent != null) {
+                                {
+                                    if (this.backend != null) {
+                                        var nbRows = this.backend[HeapMatrix.INDEX_ROWS];
+                                        result = this.backend[HeapMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+                                    }
+                                }
+                            }
+                            else {
                                 if (this.backend != null) {
                                     var nbRows = this.backend[HeapMatrix.INDEX_ROWS];
                                     result = this.backend[HeapMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
@@ -5910,40 +6117,68 @@ var org;
                             return result;
                         };
                         HeapMatrix.prototype.set = function (rowIndex, columnIndex, value) {
-                            {
-                                if (this.backend != null) {
-                                    if (!this.aligned) {
-                                        var next_backend = new Float64Array(this.backend.length);
-                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                        this.backend = next_backend;
-                                        this.aligned = true;
-                                    }
-                                    var nbRows = this.backend[HeapMatrix.INDEX_ROWS];
-                                    this.backend[HeapMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
-                                    this.parent.declareDirty();
+                            if (this.parent != null) {
+                                {
+                                    this.internal_set(rowIndex, columnIndex, value);
                                 }
+                            }
+                            else {
+                                this.internal_set(rowIndex, columnIndex, value);
                             }
                             return this;
                         };
-                        HeapMatrix.prototype.add = function (rowIndex, columnIndex, value) {
-                            {
-                                if (this.backend != null) {
-                                    if (!this.aligned) {
-                                        var next_backend = new Float64Array(this.backend.length);
-                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                        this.backend = next_backend;
-                                        this.aligned = true;
-                                    }
-                                    var nbRows = this.backend[HeapMatrix.INDEX_ROWS];
-                                    this.backend[HeapMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + this.backend[HeapMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+                        HeapMatrix.prototype.internal_set = function (rowIndex, columnIndex, value) {
+                            if (this.backend != null) {
+                                if (!this.aligned) {
+                                    var next_backend = new Float64Array(this.backend.length);
+                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                    this.backend = next_backend;
+                                    this.aligned = true;
+                                }
+                                var nbRows = this.backend[HeapMatrix.INDEX_ROWS];
+                                this.backend[HeapMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
+                                if (this.parent != null) {
                                     this.parent.declareDirty();
                                 }
                             }
+                        };
+                        HeapMatrix.prototype.add = function (rowIndex, columnIndex, value) {
+                            if (this.parent != null) {
+                                {
+                                    this.internal_add(rowIndex, columnIndex, value);
+                                }
+                            }
+                            else {
+                                this.internal_add(rowIndex, columnIndex, value);
+                            }
                             return this;
+                        };
+                        HeapMatrix.prototype.internal_add = function (rowIndex, columnIndex, value) {
+                            if (this.backend != null) {
+                                if (!this.aligned) {
+                                    var next_backend = new Float64Array(this.backend.length);
+                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                    this.backend = next_backend;
+                                    this.aligned = true;
+                                }
+                                var nbRows = this.backend[HeapMatrix.INDEX_ROWS];
+                                this.backend[HeapMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + this.backend[HeapMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+                                if (this.parent != null) {
+                                    this.parent.declareDirty();
+                                }
+                            }
                         };
                         HeapMatrix.prototype.data = function () {
                             var copy = null;
-                            {
+                            if (this.parent != null) {
+                                {
+                                    if (this.backend != null) {
+                                        copy = new Float64Array(this.backend.length - HeapMatrix.INDEX_OFFSET);
+                                        java.lang.System.arraycopy(this.backend, HeapMatrix.INDEX_OFFSET, copy, 0, this.backend.length - HeapMatrix.INDEX_OFFSET);
+                                    }
+                                }
+                            }
+                            else {
                                 if (this.backend != null) {
                                     copy = new Float64Array(this.backend.length - HeapMatrix.INDEX_OFFSET);
                                     java.lang.System.arraycopy(this.backend, HeapMatrix.INDEX_OFFSET, copy, 0, this.backend.length - HeapMatrix.INDEX_OFFSET);
@@ -5959,7 +6194,14 @@ var org;
                         };
                         HeapMatrix.prototype.unsafeGet = function (index) {
                             var result = 0;
-                            {
+                            if (this.parent != null) {
+                                {
+                                    if (this.backend != null) {
+                                        result = this.backend[HeapMatrix.INDEX_OFFSET + index];
+                                    }
+                                }
+                            }
+                            else {
                                 if (this.backend != null) {
                                     result = this.backend[HeapMatrix.INDEX_OFFSET + index];
                                 }
@@ -5967,19 +6209,29 @@ var org;
                             return result;
                         };
                         HeapMatrix.prototype.unsafeSet = function (index, value) {
-                            {
-                                if (this.backend != null) {
-                                    if (!this.aligned) {
-                                        var next_backend = new Float64Array(this.backend.length);
-                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                        this.backend = next_backend;
-                                        this.aligned = true;
-                                    }
-                                    this.backend[HeapMatrix.INDEX_OFFSET + index] = value;
+                            if (this.parent != null) {
+                                {
+                                    this.internal_unsafeSet(index, value);
+                                }
+                            }
+                            else {
+                                this.internal_unsafeSet(index, value);
+                            }
+                            return this;
+                        };
+                        HeapMatrix.prototype.internal_unsafeSet = function (index, value) {
+                            if (this.backend != null) {
+                                if (!this.aligned) {
+                                    var next_backend = new Float64Array(this.backend.length);
+                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                    this.backend = next_backend;
+                                    this.aligned = true;
+                                }
+                                this.backend[HeapMatrix.INDEX_OFFSET + index] = value;
+                                if (this.parent != null) {
                                     this.parent.declareDirty();
                                 }
                             }
-                            return this;
                         };
                         HeapMatrix.prototype.unsafe_data = function () {
                             return this.backend;
@@ -6595,7 +6847,7 @@ var org;
                                     toSet = new org.mwg.core.chunk.heap.HeapLMatrix(this, null);
                                     break;
                                 case org.mwg.Type.EGRAPH:
-                                    toSet = new org.mwg.core.chunk.heap.HeapEGraph(this, null);
+                                    toSet = new org.mwg.core.chunk.heap.HeapEGraph(this, null, this._space.graph());
                                     break;
                                 case org.mwg.Type.STRING_TO_LONG_MAP:
                                     toSet = new org.mwg.core.chunk.heap.HeapStringLongMap(this);
@@ -6853,7 +7105,7 @@ var org;
                                             break;
                                         case org.mwg.Type.EGRAPH:
                                             if (casted._v[i] != null) {
-                                                this._v[i] = new org.mwg.core.chunk.heap.HeapEGraph(this, casted._v[i]);
+                                                this._v[i] = new org.mwg.core.chunk.heap.HeapEGraph(this, casted._v[i], this._space.graph());
                                             }
                                             break;
                                         case org.mwg.Type.EXTERNAL:

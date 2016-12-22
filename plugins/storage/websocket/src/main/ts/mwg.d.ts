@@ -595,6 +595,7 @@ declare module org {
                 clear(): void;
                 freeAll(): void;
                 available(): number;
+                newVolatileGraph(): org.mwg.struct.EGraph;
             }
             class ChunkType {
                 static STATE_CHUNK: number;
@@ -816,16 +817,18 @@ declare module org {
                         clear(): void;
                         freeAll(): void;
                         available(): number;
+                        newVolatileGraph(): org.mwg.struct.EGraph;
                         printMarked(): void;
                     }
                     class HeapEGraph implements org.mwg.struct.EGraph {
+                        private _graph;
                         private parent;
                         private _dirty;
                         _nodes: org.mwg.core.chunk.heap.HeapENode[];
                         private _nodes_capacity;
                         private _nodes_index;
                         private _root;
-                        constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapEGraph);
+                        constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapEGraph, p_graph: org.mwg.Graph);
                         declareDirty(): void;
                         newNode(): org.mwg.struct.ENode;
                         root(): org.mwg.struct.ENode;
@@ -921,20 +924,28 @@ declare module org {
                         private aligned;
                         constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapLMatrix);
                         init(rows: number, columns: number): org.mwg.struct.LMatrix;
+                        private internal_init(rows, columns);
                         appendColumn(newColumn: Float64Array): org.mwg.struct.LMatrix;
+                        private internal_appendColumn(newColumn);
                         fill(value: number): org.mwg.struct.LMatrix;
+                        private internal_fill(value);
                         fillWith(values: Float64Array): org.mwg.struct.LMatrix;
+                        private internal_fillWith(values);
                         fillWithRandom(min: number, max: number, seed: number): org.mwg.struct.LMatrix;
+                        private internal_fillWithRandom(min, max, seed);
                         rows(): number;
                         columns(): number;
                         column(index: number): Float64Array;
                         get(rowIndex: number, columnIndex: number): number;
                         set(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.LMatrix;
+                        private internal_set(rowIndex, columnIndex, value);
                         add(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.LMatrix;
+                        private internal_add(rowIndex, columnIndex, value);
                         data(): Float64Array;
                         leadingDimension(): number;
                         unsafeGet(index: number): number;
                         unsafeSet(index: number, value: number): org.mwg.struct.LMatrix;
+                        private internal_unsafeSet(index, value);
                         unsafe_data(): Float64Array;
                         unsafe_init(size: number): void;
                         unsafe_set(index: number, value: number): void;
@@ -1002,20 +1013,28 @@ declare module org {
                         private aligned;
                         constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapMatrix);
                         init(rows: number, columns: number): org.mwg.struct.Matrix;
+                        private internal_init(rows, columns);
                         appendColumn(newColumn: Float64Array): org.mwg.struct.Matrix;
+                        private internal_appendColumn(newColumn);
                         fill(value: number): org.mwg.struct.Matrix;
+                        private internal_fill(value);
                         fillWith(values: Float64Array): org.mwg.struct.Matrix;
+                        private internal_fillWith(values);
                         fillWithRandom(min: number, max: number, seed: number): org.mwg.struct.Matrix;
+                        private internal_fillWithRandom(min, max, seed);
                         rows(): number;
                         columns(): number;
                         column(index: number): Float64Array;
                         get(rowIndex: number, columnIndex: number): number;
                         set(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.Matrix;
+                        private internal_set(rowIndex, columnIndex, value);
                         add(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.Matrix;
+                        private internal_add(rowIndex, columnIndex, value);
                         data(): Float64Array;
                         leadingDimension(): number;
                         unsafeGet(index: number): number;
                         unsafeSet(index: number, value: number): org.mwg.struct.Matrix;
+                        private internal_unsafeSet(index, value);
                         unsafe_data(): Float64Array;
                         unsafe_init(size: number): void;
                         unsafe_set(index: number, value: number): void;
