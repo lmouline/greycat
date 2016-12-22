@@ -35,15 +35,22 @@ public abstract class AbstractEGraphTest {
         ENode eNode = egraph.newNode();
         egraph.setRoot(eNode);
         eNode.set("name", Type.STRING, "hello");
-        Assert.assertEquals("{\"id\":0,\"name\":\"hello\"}", eNode.toString());
+        Assert.assertEquals("{\"name\":\"hello\"}", eNode.toString());
 
         ENode secondENode = egraph.newNode();
+        secondENode.set("name",Type.STRING,"secondNode");
 
+        eNode.set("children", Type.ENODE, secondENode);
+
+        ENode retrieved = (ENode) eNode.get("children");
+        Assert.assertEquals(retrieved.toString(),retrieved.toString());
+
+        /*
         Relation children = (Relation) eNode.getOrCreate("children", Type.RELATION);
         children.add(secondENode.id());
         Assert.assertEquals("{\"id\":0,\"name\":\"hello\",\"children\":[1]}", eNode.toString());
         Assert.assertEquals("{\"root\":0,\"nodes\":[{\"id\":0,\"name\":\"hello\",\"children\":[1]},{\"id\":1}]}", egraph.toString());
-
+*/
     }
 
 }

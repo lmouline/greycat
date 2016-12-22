@@ -2,8 +2,6 @@ package org.mwg.struct;
 
 public interface ENode {
 
-    long id();
-
     ENode set(String name, byte type, Object value);
 
     ENode setAt(long key, byte type, Object value);

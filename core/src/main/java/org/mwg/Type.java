@@ -28,7 +28,8 @@ public class Type {
     public static final byte MATRIX = 15;
     public static final byte LMATRIX = 16;
     public static final byte EGRAPH = 17;
-    public static final byte EXTERNAL = 18;
+    public static final byte ENODE = 18;
+    public static final byte EXTERNAL = 19;
 
     /**
      * Convert a type that represent a byte to a readable String representation
@@ -73,6 +74,8 @@ public class Type {
                 return "LMATRIX";
             case Type.EGRAPH:
                 return "EGRAPH";
+            case Type.ENODE:
+                return "ENODE";
             case Type.EXTERNAL:
                 return "EXTERNAL";
             default:
@@ -116,6 +119,8 @@ public class Type {
                 return Type.EXTERNAL;
             case "EGRAPH":
                 return Type.EGRAPH;
+            case "ENODE":
+                return Type.ENODE;
             default:
                 return -1;
         }

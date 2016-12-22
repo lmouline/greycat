@@ -17,9 +17,9 @@ class HeapENode implements ENode {
     private final HeapEGraph egraph;
     private final HeapStateChunk chunk;
     private final Graph _graph;
-    private final long _id;
+    int _id;
 
-    HeapENode(HeapStateChunk p_chunk, HeapEGraph p_egraph, Graph p_graph, long p_id) {
+    HeapENode(HeapStateChunk p_chunk, HeapEGraph p_egraph, Graph p_graph, int p_id) {
         chunk = p_chunk;
         egraph = p_egraph;
         _graph = p_graph;
@@ -112,6 +112,9 @@ class HeapENode implements ENode {
                         break;
                     case Type.RELATION:
                         param_elem = (Relation) p_unsafe_elem;
+                        break;
+                    case Type.ENODE:
+                        param_elem = (ENode) p_unsafe_elem;
                         break;
                     case Type.EXTERNAL:
                         param_elem = p_unsafe_elem;
@@ -316,11 +319,6 @@ class HeapENode implements ENode {
     }
 
     @Override
-    public long id() {
-        return _id;
-    }
-
-    @Override
     public void drop() {
         egraph.drop(this);
     }
@@ -383,22 +381,26 @@ class HeapENode implements ENode {
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         final boolean[] isFirst = {true};
-        builder.append("{\"id\":");
-        builder.append(id());
-
+        boolean isFirstField = true;
+        builder.append("{");
         for (int i = 0; i < _size; i++) {
             final Object elem = _v[i];
             final Resolver resolver = _graph.resolver();
             final long attributeKey = _k[i];
             final byte elemType = _type[i];
             if (elem != null) {
+                if (isFirstField) {
+                    isFirstField = false;
+                } else {
+                    builder.append(",");
+                }
                 String resolveName = resolver.hashToString(attributeKey);
                 if (resolveName == null) {
                     resolveName = attributeKey + "";
                 }
                 switch (elemType) {
                     case Type.BOOL: {
-                        builder.append(",\"");
+                        builder.append("\"");
                         builder.append(resolveName);
                         builder.append("\":");
                         if ((Boolean) elem) {
@@ -409,7 +411,7 @@ class HeapENode implements ENode {
                         break;
                     }
                     case Type.STRING: {
-                        builder.append(",\"");
+                        builder.append("\"");
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("\"");
@@ -418,14 +420,14 @@ class HeapENode implements ENode {
                         break;
                     }
                     case Type.LONG: {
-                        builder.append(",\"");
+                        builder.append("\"");
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append(elem);
                         break;
                     }
                     case Type.INT: {
-                        builder.append(",\"");
+                        builder.append("\"");
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append(elem);
@@ -433,7 +435,7 @@ class HeapENode implements ENode {
                     }
                     case Type.DOUBLE: {
                         if (!BaseNode.isNaN((double) elem)) {
-                            builder.append(",\"");
+                            builder.append("\"");
                             builder.append(resolveName);
                             builder.append("\":");
                             builder.append(elem);
@@ -441,7 +443,7 @@ class HeapENode implements ENode {
                         break;
                     }
                     case Type.DOUBLE_ARRAY: {
-                        builder.append(",\"");
+                        builder.append("\"");
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("[");
@@ -456,7 +458,7 @@ class HeapENode implements ENode {
                         break;
                     }
                     case Type.RELATION:
-                        builder.append(",\"");
+                        builder.append("\"");
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("[");
@@ -470,7 +472,7 @@ class HeapENode implements ENode {
                         builder.append("]");
                         break;
                     case Type.LONG_ARRAY: {
-                        builder.append(",\"");
+                        builder.append("\"");
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("[");
@@ -485,7 +487,7 @@ class HeapENode implements ENode {
                         break;
                     }
                     case Type.INT_ARRAY: {
-                        builder.append(",\"");
+                        builder.append("\"");
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("[");
@@ -500,7 +502,7 @@ class HeapENode implements ENode {
                         break;
                     }
                     case Type.LONG_TO_LONG_MAP: {
-                        builder.append(",\"");
+                        builder.append("\"");
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("{");
@@ -525,7 +527,7 @@ class HeapENode implements ENode {
                     }
                     case Type.RELATION_INDEXED:
                     case Type.LONG_TO_LONG_ARRAY_MAP: {
-                        builder.append(",\"");
+                        builder.append("\"");
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("{");
@@ -561,7 +563,7 @@ class HeapENode implements ENode {
                         break;
                     }
                     case Type.STRING_TO_LONG_MAP: {
-                        builder.append(",\"");
+                        builder.append("\"");
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("{");

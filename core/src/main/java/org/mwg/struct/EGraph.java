@@ -9,6 +9,4 @@ public interface EGraph {
     EGraph setRoot(ENode eNode);
 
     EGraph drop(ENode eNode);
-
-    ENode lookup(long id);
 }

@@ -117,7 +117,7 @@ public class ETree extends BaseNode implements Tree {
         node.setAt(_TOTAL, Type.INT, 0);
 
         parent.setAt(_SUBNODES, Type.INT, (int) parent.getAt(_SUBNODES) + 1);
-        parent.setAt(index, Type.LONG, node.id());
+        parent.setAt(index, Type.ENODE, node);
 
         if (buffersize != 0) {
             //todo create buffer here
@@ -128,12 +128,9 @@ public class ETree extends BaseNode implements Tree {
     private static void subInsert(final ENode from, final double[] keys, final Type valuetype, final Object value, final byte strategyType, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final ENode root) {
         int index = getRelationId(center, keys);
 
-        ENode child;
-        if (from.getAt(index) == null) {
+        ENode child = (ENode) from.getAt(index);
+        if (child == null) {
             child = createNewNode(from, index, min, max, center, keys, buffersize);
-
-        } else {
-            child = from.graph().lookup((long) from.getAt(index));
         }
         double[] childmin = (double[]) child.getAt(_MIN);
         double[] childmax = (double[]) child.getAt(_MAX);
