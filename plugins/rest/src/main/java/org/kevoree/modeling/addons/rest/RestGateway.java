@@ -7,7 +7,6 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
 import org.mwg.Constants;
 import org.mwg.Graph;
-import org.mwg.plugin.AbstractNode;
 import org.mwg.task.Action;
 import org.mwg.task.TaskContext;
 
@@ -17,8 +16,6 @@ import java.io.InputStreamReader;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.mwg.task.Actions.setWorld;
 
 public class RestGateway implements HttpHandler {
 
