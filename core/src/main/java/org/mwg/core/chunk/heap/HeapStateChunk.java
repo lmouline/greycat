@@ -237,6 +237,9 @@ class HeapStateChunk implements StateChunk {
             case Type.MATRIX:
                 toSet = new HeapMatrix(this, null);
                 break;
+            case Type.LMATRIX:
+                toSet = new HeapLMatrix(this, null);
+                break;
             case Type.EGRAPH:
                 toSet = new HeapEGraph(this);
                 break;
@@ -366,6 +369,17 @@ class HeapStateChunk implements StateChunk {
                                 for (int j = 0; j < unsafeContent.length; j++) {
                                     buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
                                     Base64.encodeDoubleToBuffer(unsafeContent[j], buffer);
+                                }
+                            }
+                            break;
+                        case Type.LMATRIX:
+                            HeapLMatrix castedLMatrix = (HeapLMatrix) loopValue;
+                            final long[] unsafeLContent = castedLMatrix.unsafe_data();
+                            if (unsafeLContent != null) {
+                                Base64.encodeIntToBuffer(unsafeLContent.length, buffer);
+                                for (int j = 0; j < unsafeLContent.length; j++) {
+                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                    Base64.encodeLongToBuffer(unsafeLContent[j], buffer);
                                 }
                             }
                             break;
@@ -503,6 +517,11 @@ class HeapStateChunk implements StateChunk {
                             _v[i] = new HeapMatrix(this, (HeapMatrix) casted._v[i]);
                         }
                         break;
+                    case Type.LMATRIX:
+                        if (casted._v[i] != null) {
+                            _v[i] = new HeapLMatrix(this, (HeapLMatrix) casted._v[i]);
+                        }
+                        break;
                     case Type.EXTERNAL:
                         if (casted._v[i] != null) {
                             _v[i] = ((AbstractExternalAttribute) casted._v[i]).copy();
@@ -587,6 +606,9 @@ class HeapStateChunk implements StateChunk {
                         break;
                     case Type.MATRIX:
                         param_elem = (Matrix) p_unsafe_elem;
+                        break;
+                    case Type.LMATRIX:
+                        param_elem = (LMatrix) p_unsafe_elem;
                         break;
                     case Type.RELATION:
                         param_elem = (Relation) p_unsafe_elem;
@@ -825,6 +847,7 @@ class HeapStateChunk implements StateChunk {
         int[] currentIntArr = null;
         //map sub creation variables
         HeapMatrix currentMatrix = null;
+        HeapLMatrix currentLMatrix = null;
         HeapRelation currentRelation = null;
         HeapStringLongMap currentStringLongMap = null;
         HeapLongLongMap currentLongLongMap = null;
@@ -910,6 +933,15 @@ class HeapStateChunk implements StateChunk {
                                 }
                                 toInsert = currentMatrix;
                                 break;
+                            case Type.LMATRIX:
+                                if (currentLMatrix == null) {
+                                    currentLMatrix = new HeapLMatrix(this, null);
+                                    currentLMatrix.unsafe_init(Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
+                                } else {
+                                    currentLMatrix.unsafe_set(currentSubIndex, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                                }
+                                toInsert = currentLMatrix;
+                                break;
                             case Type.STRING_TO_LONG_MAP:
                                 if (currentMapStringKey != null) {
                                     currentStringLongMap.put(currentMapStringKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
@@ -974,6 +1006,10 @@ class HeapStateChunk implements StateChunk {
                             currentMatrix = new HeapMatrix(this, null);
                             currentMatrix.unsafe_init((int) currentSubSize);
                             break;
+                        case Type.LMATRIX:
+                            currentLMatrix = new HeapLMatrix(this, null);
+                            currentLMatrix.unsafe_init((int) currentSubSize);
+                            break;
                         case Type.STRING_TO_LONG_MAP:
                             currentStringLongMap = new HeapStringLongMap(this);
                             currentStringLongMap.reallocate((int) currentSubSize);
@@ -1002,6 +1038,10 @@ class HeapStateChunk implements StateChunk {
                             break;
                         case Type.MATRIX:
                             currentMatrix.unsafe_set(currentSubIndex, Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor));
+                            currentSubIndex++;
+                            break;
+                        case Type.LMATRIX:
+                            currentLMatrix.unsafe_set(currentSubIndex, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
                             currentSubIndex++;
                             break;
                         case Type.LONG_ARRAY:
@@ -1127,6 +1167,12 @@ class HeapStateChunk implements StateChunk {
                         currentMatrix.unsafe_set(currentSubIndex, Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor));
                     }
                     toInsert = currentMatrix;
+                    break;
+                case Type.LMATRIX:
+                    if (currentLMatrix != null) {
+                        currentLMatrix.unsafe_set(currentSubIndex, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                    }
+                    toInsert = currentLMatrix;
                     break;
                 case Type.STRING_TO_LONG_MAP:
                     if (currentMapStringKey != null) {
