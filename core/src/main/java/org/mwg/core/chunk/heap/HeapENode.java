@@ -107,6 +107,9 @@ class HeapENode implements ENode {
                     case Type.MATRIX:
                         param_elem = (Matrix) p_unsafe_elem;
                         break;
+                    case Type.LMATRIX:
+                        param_elem = (LMatrix) p_unsafe_elem;
+                        break;
                     case Type.RELATION:
                         param_elem = (Relation) p_unsafe_elem;
                         break;
@@ -355,6 +358,9 @@ class HeapENode implements ENode {
                 break;
             case Type.MATRIX:
                 toSet = new HeapMatrix(chunk, null);
+                break;
+            case Type.LMATRIX:
+                toSet = new HeapLMatrix(chunk, null);
                 break;
             case Type.EGRAPH:
                 toSet = new HeapEGraph(chunk);
