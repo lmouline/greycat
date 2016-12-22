@@ -26,122 +26,176 @@ class HeapMatrix implements Matrix {
     }
 
     @Override
-    public final Matrix init(int rows, int columns) {
-        synchronized (parent) {
-            //clean backend for OffHeap version
-            backend = new double[rows * columns + INDEX_OFFSET];
-            backend[INDEX_ROWS] = rows;
-            backend[INDEX_COLUMNS] = columns;
-            backend[INDEX_MAX_COLUMN] = columns;//direct allocation
-            aligned = true;
+    public final Matrix init(final int rows, final int columns) {
+        if (parent != null) {
+            synchronized (parent) {
+                internal_init(rows, columns);
+            }
             parent.declareDirty();
+        } else {
+            internal_init(rows, columns);
         }
         return this;
     }
 
+    private void internal_init(final int rows, final int columns) {
+        //clean backend for OffHeap version
+        backend = new double[rows * columns + INDEX_OFFSET];
+        backend[INDEX_ROWS] = rows;
+        backend[INDEX_COLUMNS] = columns;
+        backend[INDEX_MAX_COLUMN] = columns;//direct allocation
+        aligned = true;
+    }
+
+    @Override
     public final Matrix appendColumn(double[] newColumn) {
-        synchronized (parent) {
-            int nbRows;
-            int nbColumns;
-            int nbMaxColumn;
-            if (backend == null) {
-                nbRows = newColumn.length;
-                nbColumns = Constants.MAP_INITIAL_CAPACITY;
-                nbMaxColumn = 0;
-                backend = new double[nbRows * nbColumns + INDEX_OFFSET];
-                backend[INDEX_ROWS] = nbRows;
-                backend[INDEX_COLUMNS] = nbColumns;
-                backend[INDEX_MAX_COLUMN] = nbMaxColumn;
-            } else {
-                nbColumns = (int) backend[INDEX_COLUMNS];
-                nbRows = (int) backend[INDEX_ROWS];
-                nbMaxColumn = (int) backend[INDEX_MAX_COLUMN];
+        if (parent != null) {
+            synchronized (parent) {
+                internal_appendColumn(newColumn);
+                parent.declareDirty();
             }
-            if (!aligned || nbMaxColumn == nbColumns) {
-                if (nbMaxColumn == nbColumns) {
-                    nbColumns = nbColumns * 2;
-                    final int newLength = nbColumns * nbRows + INDEX_OFFSET;
-                    double[] next_backend = new double[newLength];
-                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                    backend = next_backend;
-                    aligned = true;
-                } else {
-                    //direct copy
-                    double[] next_backend = new double[backend.length];
-                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                    backend = next_backend;
-                    aligned = true;
-                }
-            }
-            //just insert
-            System.arraycopy(newColumn, 0, backend, (nbMaxColumn * nbRows) + INDEX_OFFSET, newColumn.length);
-            backend[INDEX_MAX_COLUMN] = nbMaxColumn + 1;
-            parent.declareDirty();
+        } else {
+            internal_appendColumn(newColumn);
         }
         return this;
+    }
+
+    private void internal_appendColumn(double[] newColumn) {
+        int nbRows;
+        int nbColumns;
+        int nbMaxColumn;
+        if (backend == null) {
+            nbRows = newColumn.length;
+            nbColumns = Constants.MAP_INITIAL_CAPACITY;
+            nbMaxColumn = 0;
+            backend = new double[nbRows * nbColumns + INDEX_OFFSET];
+            backend[INDEX_ROWS] = nbRows;
+            backend[INDEX_COLUMNS] = nbColumns;
+            backend[INDEX_MAX_COLUMN] = nbMaxColumn;
+        } else {
+            nbColumns = (int) backend[INDEX_COLUMNS];
+            nbRows = (int) backend[INDEX_ROWS];
+            nbMaxColumn = (int) backend[INDEX_MAX_COLUMN];
+        }
+        if (!aligned || nbMaxColumn == nbColumns) {
+            if (nbMaxColumn == nbColumns) {
+                nbColumns = nbColumns * 2;
+                final int newLength = nbColumns * nbRows + INDEX_OFFSET;
+                double[] next_backend = new double[newLength];
+                System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                backend = next_backend;
+                aligned = true;
+            } else {
+                //direct copy
+                double[] next_backend = new double[backend.length];
+                System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                backend = next_backend;
+                aligned = true;
+            }
+        }
+        //just insert
+        System.arraycopy(newColumn, 0, backend, (nbMaxColumn * nbRows) + INDEX_OFFSET, newColumn.length);
+        backend[INDEX_MAX_COLUMN] = nbMaxColumn + 1;
     }
 
     @Override
     public final Matrix fill(double value) {
-        synchronized (parent) {
-            if (backend != null) {
-                if (!aligned) {
-                    double[] next_backend = new double[backend.length];
-                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                    backend = next_backend;
-                    aligned = true;
-                }
-                Arrays.fill(backend, INDEX_OFFSET, backend.length - INDEX_OFFSET, value);
-                parent.declareDirty();
-                backend[INDEX_MAX_COLUMN] = backend[INDEX_COLUMNS];
+        if (parent != null) {
+            synchronized (parent) {
+                internal_fill(value);
             }
+        } else {
+            internal_fill(value);
         }
         return this;
+    }
+
+    private void internal_fill(double value) {
+        if (backend != null) {
+            if (!aligned) {
+                double[] next_backend = new double[backend.length];
+                System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                backend = next_backend;
+                aligned = true;
+            }
+            Arrays.fill(backend, INDEX_OFFSET, backend.length - INDEX_OFFSET, value);
+            backend[INDEX_MAX_COLUMN] = backend[INDEX_COLUMNS];
+            if (parent != null) {
+                parent.declareDirty();
+            }
+        }
     }
 
     @Override
     public Matrix fillWith(double[] values) {
-        synchronized (parent) {
-            if (backend != null) {
-                if (!aligned) {
-                    double[] next_backend = new double[backend.length];
-                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                    backend = next_backend;
-                    aligned = true;
-                }
-                //reInit ?
-                System.arraycopy(values, 0, backend, INDEX_OFFSET, values.length);
+        if(parent != null){
+            synchronized (parent) {
+                internal_fillWith(values);
+            }
+        } else {
+            internal_fillWith(values);
+        }
+        return this;
+    }
+
+    private void internal_fillWith(double[] values){
+        if (backend != null) {
+            if (!aligned) {
+                double[] next_backend = new double[backend.length];
+                System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                backend = next_backend;
+                aligned = true;
+            }
+            //reInit ?
+            System.arraycopy(values, 0, backend, INDEX_OFFSET, values.length);
+            if(parent != null){
                 parent.declareDirty();
             }
         }
-        return this;
     }
 
     @Override
     public Matrix fillWithRandom(double min, double max, long seed) {
-        synchronized (parent) {
-            Random rand = new Random();
-            rand.setSeed(seed);
-            if (backend != null) {
-                if (!aligned) {
-                    double[] next_backend = new double[backend.length];
-                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                    backend = next_backend;
-                    aligned = true;
-                }
-                for (int i = 0; i < backend[INDEX_ROWS] * backend[INDEX_COLUMNS]; i++) {
-                    backend[i + INDEX_OFFSET] = rand.nextDouble() * (max - min) + min;
-                }
-                parent.declareDirty();
+        if (parent != null) {
+            synchronized (parent) {
+                internal_fillWithRandom(min, max, seed);
             }
+        } else {
+            internal_fillWithRandom(min, max, seed);
         }
         return this;
     }
 
+    private void internal_fillWithRandom(double min, double max, long seed){
+        Random rand = new Random();
+        rand.setSeed(seed);
+        if (backend != null) {
+            if (!aligned) {
+                double[] next_backend = new double[backend.length];
+                System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                backend = next_backend;
+                aligned = true;
+            }
+            for (int i = 0; i < backend[INDEX_ROWS] * backend[INDEX_COLUMNS]; i++) {
+                backend[i + INDEX_OFFSET] = rand.nextInt() * (max - min) + min;
+            }
+            if(parent != null){
+                parent.declareDirty();
+            }
+        }
+    }
+
+    @SuppressWarnings("Duplicates")
     @Override
     public final int rows() {
         int result = 0;
-        synchronized (parent) {
+        if (parent != null) {
+            synchronized (parent) {
+                if (backend != null) {
+                    result = (int) backend[INDEX_ROWS];
+                }
+            }
+        } else {
             if (backend != null) {
                 result = (int) backend[INDEX_ROWS];
             }
@@ -149,10 +203,17 @@ class HeapMatrix implements Matrix {
         return result;
     }
 
+    @SuppressWarnings("Duplicates")
     @Override
     public final int columns() {
         int result = 0;
-        synchronized (parent) {
+        if (parent != null) {
+            synchronized (parent) {
+                if (backend != null) {
+                    result = (int) backend[INDEX_MAX_COLUMN];
+                }
+            }
+        } else {
             if (backend != null) {
                 result = (int) backend[INDEX_MAX_COLUMN];
             }
@@ -163,7 +224,13 @@ class HeapMatrix implements Matrix {
     @Override
     public final double[] column(int index) {
         double[] result;
-        synchronized (parent) {
+        if (parent != null) {
+            synchronized (parent) {
+                final int nbRows = (int) backend[INDEX_ROWS];
+                result = new double[nbRows];
+                System.arraycopy(backend, INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
+            }
+        } else {
             final int nbRows = (int) backend[INDEX_ROWS];
             result = new double[nbRows];
             System.arraycopy(backend, INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
@@ -174,7 +241,14 @@ class HeapMatrix implements Matrix {
     @Override
     public final double get(int rowIndex, int columnIndex) {
         double result = 0;
-        synchronized (parent) {
+        if (parent != null) {
+            synchronized (parent) {
+                if (backend != null) {
+                    final int nbRows = (int) backend[INDEX_ROWS];
+                    result = backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+                }
+            }
+        } else {
             if (backend != null) {
                 final int nbRows = (int) backend[INDEX_ROWS];
                 result = backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows];
@@ -185,52 +259,71 @@ class HeapMatrix implements Matrix {
 
     @Override
     public final Matrix set(int rowIndex, int columnIndex, double value) {
-        synchronized (parent) {
-            if (backend != null) {
-                if (!aligned) {
-                    double[] next_backend = new double[backend.length];
-                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                    backend = next_backend;
-                    aligned = true;
-                }
-                final int nbRows = (int) backend[INDEX_ROWS];
-                backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
-                //update maxColumn field
-                /*if (backend[columnIndex] > backend[INDEX_MAX_COLUMN]) {
-                    backend[INDEX_COLUMNS] = columnIndex;
-                }*/
-                parent.declareDirty();
+        if (parent != null) {
+            synchronized (parent) {
+                internal_set(rowIndex, columnIndex, value);
             }
+        } else {
+            internal_set(rowIndex, columnIndex, value);
         }
         return this;
     }
 
-    @Override
-    public Matrix add(int rowIndex, int columnIndex, double value) {
-        synchronized (parent) {
-            if (backend != null) {
-                if (!aligned) {
-                    double[] next_backend = new double[backend.length];
-                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                    backend = next_backend;
-                    aligned = true;
-                }
-                final int nbRows = (int) backend[INDEX_ROWS];
-                backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows];
-                //update maxColumn field
-                /*if (backend[columnIndex] > backend[INDEX_MAX_COLUMN]) {
-                    backend[INDEX_COLUMNS] = columnIndex;
-                }*/
+    private void internal_set(int rowIndex, int columnIndex, double value) {
+        if (backend != null) {
+            if (!aligned) {
+                double[] next_backend = new double[backend.length];
+                System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                backend = next_backend;
+                aligned = true;
+            }
+            final int nbRows = (int) backend[INDEX_ROWS];
+            backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
+            if (parent != null) {
                 parent.declareDirty();
             }
         }
+    }
+
+    @Override
+    public Matrix add(int rowIndex, int columnIndex, double value) {
+        if (parent != null) {
+            synchronized (parent) {
+                internal_add(rowIndex, columnIndex, value);
+            }
+        } else {
+            internal_add(rowIndex, columnIndex, value);
+        }
         return this;
+    }
+
+    private void internal_add(int rowIndex, int columnIndex, double value) {
+        if (backend != null) {
+            if (!aligned) {
+                double[] next_backend = new double[backend.length];
+                System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                backend = next_backend;
+                aligned = true;
+            }
+            final int nbRows = (int) backend[INDEX_ROWS];
+            backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+            if (parent != null) {
+                parent.declareDirty();
+            }
+        }
     }
 
     @Override
     public final double[] data() {
         double[] copy = null;
-        synchronized (parent) {
+        if (parent != null) {
+            synchronized (parent) {
+                if (backend != null) {
+                    copy = new double[backend.length - INDEX_OFFSET];
+                    System.arraycopy(backend, INDEX_OFFSET, copy, 0, backend.length - INDEX_OFFSET);
+                }
+            }
+        } else {
             if (backend != null) {
                 copy = new double[backend.length - INDEX_OFFSET];
                 System.arraycopy(backend, INDEX_OFFSET, copy, 0, backend.length - INDEX_OFFSET);
@@ -250,7 +343,13 @@ class HeapMatrix implements Matrix {
     @Override
     public double unsafeGet(int index) {
         double result = 0;
-        synchronized (parent) {
+        if (parent != null) {
+            synchronized (parent) {
+                if (backend != null) {
+                    result = backend[INDEX_OFFSET + index];
+                }
+            }
+        } else {
             if (backend != null) {
                 result = backend[INDEX_OFFSET + index];
             }
@@ -260,19 +359,29 @@ class HeapMatrix implements Matrix {
 
     @Override
     public Matrix unsafeSet(int index, double value) {
-        synchronized (parent) {
-            if (backend != null) {
-                if (!aligned) {
-                    double[] next_backend = new double[backend.length];
-                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                    backend = next_backend;
-                    aligned = true;
-                }
-                backend[INDEX_OFFSET + index] = value;
+        if (parent != null) {
+            synchronized (parent) {
+                internal_unsafeSet(index, value);
+            }
+        } else {
+            internal_unsafeSet(index, value);
+        }
+        return this;
+    }
+
+    private void internal_unsafeSet(int index, double value) {
+        if (backend != null) {
+            if (!aligned) {
+                double[] next_backend = new double[backend.length];
+                System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                backend = next_backend;
+                aligned = true;
+            }
+            backend[INDEX_OFFSET + index] = value;
+            if (parent != null) {
                 parent.declareDirty();
             }
         }
-        return this;
     }
 
     double[] unsafe_data() {
@@ -289,5 +398,4 @@ class HeapMatrix implements Matrix {
     void unsafe_set(long index, double value) {
         backend[(int) index] = value;
     }
-
 }

@@ -10,10 +10,7 @@ import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
 import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.plugin.MemoryFactory;
-import org.mwg.struct.EGraph;
-import org.mwg.struct.ENode;
-import org.mwg.struct.ERelation;
-import org.mwg.struct.LMatrix;
+import org.mwg.struct.*;
 
 public abstract class AbstractEGraphTest {
 
@@ -75,9 +72,13 @@ public abstract class AbstractEGraphTest {
 
         LMatrix lmat = (LMatrix) eNode.getOrCreate("lmat", Type.LMATRIX);
         lmat.appendColumn(new long[]{1L, 2L, 3L});
-        //todo test all method of matrix
+        lmat.set(1, 0, 5L);
 
-        ERelation eRel = (ERelation) eNode.getOrCreate("erel",Type.ERELATION);
+        Matrix mat = (Matrix) eNode.getOrCreate("mat", Type.MATRIX);
+        mat.appendColumn(new double[]{1.0, 2.0, 3.0});
+        mat.set(1, 0, 0.7);
+
+        ERelation eRel = (ERelation) eNode.getOrCreate("erel", Type.ERELATION);
         eRel.add(eNode);
 
 
