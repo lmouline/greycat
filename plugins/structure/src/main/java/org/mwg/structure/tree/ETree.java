@@ -1,14 +1,13 @@
 package org.mwg.structure.tree;
 
-import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.base.BaseNode;
 import org.mwg.plugin.NodeState;
 import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
+import org.mwg.struct.LMatrix;
 import org.mwg.struct.Matrix;
-import org.mwg.structure.IndexStrategy;
 import org.mwg.structure.Tree;
 import org.mwg.structure.distance.Distance;
 import org.mwg.structure.distance.Distances;
@@ -21,13 +20,11 @@ public class ETree extends BaseNode implements Tree {
     public static long BOUND_MAX = 1;
     public static long RESOLUTION = 2;
     public static long BUFFER_SIZE = 3;
-    public static long STRATEGY_TYPE = 4;
-    public static long DISTANCE = 5;
-    public static long DISTANCE_THRESHOLD = 6;
-    private static long EGRAPH = 7;
+    public static long DISTANCE = 4;
+    public static long DISTANCE_THRESHOLD = 5;
+    private static long EGRAPH = 6;
 
     public static int BUFFER_SIZE_DEF = 20;
-    public static Byte STRATEGY_DEF = IndexStrategy.DEFAULT;
     public static int DISTANCE_DEF = Distances.DEFAULT;
     public static double DISTANCE_THRESHOLD_DEF = 1e-20;
 
@@ -116,6 +113,7 @@ public class ETree extends BaseNode implements Tree {
         node.setAt(_MAX, Type.DOUBLE_ARRAY, maxChild);
         node.setAt(_TOTAL, Type.INT, 0);
 
+
         parent.setAt(_SUBNODES, Type.INT, (int) parent.getAt(_SUBNODES) + 1);
         parent.setAt(index, Type.ENODE, node);
 
@@ -125,73 +123,180 @@ public class ETree extends BaseNode implements Tree {
         return node;
     }
 
-    private static void subInsert(final ENode from, final double[] keys, final Type valuetype, final Object value, final byte strategyType, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final ENode root) {
-        int index = getRelationId(center, keys);
+    private static boolean subInsert(final ENode parent, final double[] key, final byte valuetype, final Object value, final int strategyType, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final ENode root, boolean bufferupdate) {
+        int index = getRelationId(center, key);
 
-        ENode child = (ENode) from.getAt(index);
+        ENode child = (ENode) parent.getAt(index);
         if (child == null) {
-            child = createNewNode(from, index, min, max, center, keys, buffersize);
+            child = createNewNode(parent, index, min, max, center, key, buffersize);
         }
         double[] childmin = (double[]) child.getAt(_MIN);
         double[] childmax = (double[]) child.getAt(_MAX);
         double[] childcenter = getCenterMinMax(childmin, childmax);
-        internalInsert(child, keys, valuetype, value, strategyType, childmin, childmax, childcenter, resolution, buffersize, root);
+        boolean res = internalInsert(child, key, valuetype, value, strategyType, childmin, childmax, childcenter, resolution, buffersize, root);
+        res = res && bufferupdate;
+
+        if (res) {
+            switch (strategyType) {
+                case IndexStrategy.PROFILE: {
+                    parent.setAt(_TOTAL, Type.INT, (int) parent.getAt(_TOTAL) + (int) value);
+                    break;
+                }
+                case IndexStrategy.REPLACE: {
+                    parent.setAt(_TOTAL, Type.INT, (int) parent.getAt(_TOTAL) + 1);
+                    break;
+                }
+                default: {
+                    throw new RuntimeException("Index strategy is wrong!");
+                }
+            }
+        }
+        return res;
     }
 
-    private static void internalInsert(final ENode node, final double[] keys, final Type valuetype, final Object value, final byte strategyType, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final ENode root) {
+    private static boolean internalInsert(final ENode node, final double[] key, final byte valuetype, final Object value, final int strategyType, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final ENode root) {
         if ((int) node.getAt(_SUBNODES) != 0) {
-            subInsert(node, keys, valuetype, value, strategyType, min, max, center, resolution, buffersize, root);
+            return subInsert(node, key, valuetype, value, strategyType, min, max, center, resolution, buffersize, root, false);
         } else if (checkCreateLevels(min, max, resolution)) {
-
-            Matrix buffer = (Matrix) node.getAt(_BUFFER_KEYS);
+            Matrix buffer=null;
+            if (buffersize > 0) {
+                buffer = (Matrix) node.getOrCreateAt(_BUFFER_KEYS, Type.MATRIX);
+            }
             if (buffer != null) {
-//                for (int i = 0; i < buffer.columns(); i++) {
-//                    if (compare(keys, buffer.column(i))) {
-//
-//                    }
-//
-//                }
-//
-//                if (buffer.columns() < buffersize) {
-//
-//                }
+                //First step check if it already exists in the buffer
+                for (int i = 0; i < buffer.columns(); i++) {
+                    if (compare(key, buffer.column(i))) {
+                        switch (strategyType) {
+                            case IndexStrategy.PROFILE: {
+                                LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
+                                bufferValue.set(0, i, bufferValue.get(0, i) + (int) value);
+                                node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + (int) value);
+                                return true; //to update parent total
+                            }
+                            case IndexStrategy.REPLACE: {
+                                if (valuetype == Type.LONG || valuetype == Type.INT) {
+                                    LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
+                                    bufferValue.set(0, i, (long) value);
+                                } else if (valuetype == Type.DOUBLE) {
+                                    Matrix bufferValue = (Matrix) node.getAt(_BUFFER_VALUES);
+                                    bufferValue.set(0, i, (double) value);
+                                }
+                                return false; //Should not update parent total
+                            }
+                            default: {
+                                throw new RuntimeException("Index strategy is wrong!");
+                            }
+                        }
+                    }
+                }
+                //Here it is not in the buffer, we check if we can append
+                if (buffer.columns() < buffersize) {
+                    buffer.appendColumn(key);
+                    switch (strategyType) {
+                        case IndexStrategy.PROFILE: {
+                            LMatrix bufferValue = (LMatrix) node.getOrCreateAt(_BUFFER_VALUES,Type.LMATRIX);
+                            bufferValue.appendColumn(new long[]{(int) value});
+                            node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + (int) value);
+                            return true; //to update parent total
+                        }
+                        case IndexStrategy.REPLACE: {
+                            if (valuetype == Type.LONG || valuetype == Type.INT) {
+                                LMatrix bufferValue = (LMatrix) node.getOrCreateAt(_BUFFER_VALUES,Type.LMATRIX);
+                                bufferValue.appendColumn(new long[]{(long) value});
+                            } else if (valuetype == Type.DOUBLE) {
+                                Matrix bufferValue = (Matrix) node.getOrCreateAt(_BUFFER_VALUES,Type.MATRIX);
+                                bufferValue.appendColumn(new double[]{(double) value});
+                            }
+                            node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + 1);
+                            return true; //to update parent total
+                        }
+                        default: {
+                            throw new RuntimeException("Index strategy is wrong!");
+                        }
+                    }
+                }
+                //here buffer is full we need to reinsert
+                else {
+                    //reinsert all children
 
-//                if (_tempValues.size() < buffersize) {
-//                    _tempValues.add(keys);
-//                } else {
-//                    // check if we can create subchildren
-//                    _subchildren = new NDTree[getChildren(min.length)];
-//                    for (double[] _tempValue : _tempValues) {
-//                        subInsert(this, _tempValue, min, max, center, resolution, maxPerLevel, lev, root);
-//                    }
-//                    subInsert(this, keys, min, max, center, resolution, maxPerLevel, lev, root);
-//                    _tempValues = null;
-//                }
-            } else {
-                subInsert(node, keys, valuetype, value, strategyType, min, max, center, resolution, buffersize, root);
+                    if (valuetype == Type.LONG) {
+                        LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
+                        for (int i = 0; i < buffer.columns(); i++) {
+                            subInsert(node, buffer.column(i), valuetype, bufferValue.get(0, i), strategyType, min, max, center, resolution, buffersize, root, true);
+                        }
+                        node.setAt(_BUFFER_VALUES, Type.LMATRIX, null);
+                    } else if (valuetype == Type.INT) {
+                        LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
+                        for (int i = 0; i < buffer.columns(); i++) {
+                            subInsert(node, buffer.column(i), valuetype, (int) bufferValue.get(0, i), strategyType, min, max, center, resolution, buffersize, root, true);
+                        }
+                        node.setAt(_BUFFER_VALUES, Type.LMATRIX, null);
+                    } else if (valuetype == Type.DOUBLE) {
+                        Matrix bufferValue = (Matrix) node.getAt(_BUFFER_VALUES);
+                        for (int i = 0; i < buffer.columns(); i++) {
+                            subInsert(node, buffer.column(i), valuetype, bufferValue.get(0, i), strategyType, min, max, center, resolution, buffersize, root, true);
+                        }
+                        node.setAt(_BUFFER_VALUES, Type.MATRIX, null);
+                    }
+
+                    //clear the buffer, update the total, and insert the new value
+                    node.setAt(_BUFFER_KEYS, Type.MATRIX, null);
+                    return subInsert(node, key, valuetype, value, strategyType, min, max, center, resolution, buffersize, root, false);
+                }
+
+
+            } //null buffer means to subinsert as long as we can create levels
+            else {
+                return subInsert(node, key, valuetype, value, strategyType, min, max, center, resolution, buffersize, root, false);
             }
         }
         //Else we reached here last level of the tree, and the array is full, we need to start a profiler
         else {
-            //todo add the value later
-            double[] profile = (double[]) node.getAt(_PROFILE);
-            if (profile == null) {
-                profile = new double[keys.length];
-                System.arraycopy(keys, 0, profile, 0, keys.length);
-            } else {
-                for (int i = 0; i < keys.length; i++) {
-                    profile[i] += keys[i];
+            switch (strategyType) {
+                case IndexStrategy.PROFILE: {
+                    //todo add the value later
+                    double[] profile = (double[]) node.getAt(_PROFILE);
+                    if (profile == null) {
+                        profile = new double[key.length];
+                        System.arraycopy(key, 0, profile, 0, key.length);
+                    } else {
+                        for (int i = 0; i < key.length; i++) {
+                            profile[i] += key[i];
+                        }
+                    }
+                    node.setAt(_PROFILE, Type.DOUBLE_ARRAY, profile);
+                    node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + (int) value);
+                    return true; //to update parent total
+                }
+                case IndexStrategy.REPLACE: {
+                    if ((int) node.getAt(_TOTAL) == 0) {
+                        node.setAt(_PROFILE, Type.DOUBLE_ARRAY, key);
+                        node.setAt(_VALUE, valuetype, value);
+                        node.setAt(_TOTAL, Type.INT, 1);
+                        return true;
+                    } else {
+                        node.setAt(_PROFILE, Type.DOUBLE_ARRAY, key);
+                        node.setAt(_VALUE, valuetype, value);
+                        return false;
+                    }
+                }
+                default: {
+                    throw new RuntimeException("Index strategy is wrong!");
                 }
             }
-            node.setAt(_PROFILE, Type.DOUBLE_ARRAY, profile);
+
         }
 
-        //this is for everyone
-        node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + 1);
     }
 
     private static boolean compare(double[] keys, double[] column) {
-        return false;
+        //todo compare with distance
+        for (int i = 0; i < keys.length; i++) {
+            if (keys[i] != column[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 
 
@@ -212,7 +317,7 @@ public class ETree extends BaseNode implements Tree {
     }
 
     @Override
-    public void insertWith(double[] keys, final Type valuetype, final Object value, Callback<Boolean> callback) {
+    public void insertWith(double[] keys, final byte valuetype, final Object value) {
         NodeState state = unphasedState();
 
         double[] min = (double[]) state.get(BOUND_MIN);
@@ -221,7 +326,6 @@ public class ETree extends BaseNode implements Tree {
 
         double[] resolution = (double[]) state.get(RESOLUTION);
         EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
-        byte strategyType = state.getWithDefault(STRATEGY_TYPE, STRATEGY_DEF);
         int buffersize = state.getWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
         Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
 
@@ -235,26 +339,50 @@ public class ETree extends BaseNode implements Tree {
             root.setAt(_MIN, Type.DOUBLE_ARRAY, min);
             root.setAt(_MAX, Type.DOUBLE_ARRAY, max);
         }
-        internalInsert(root, keys, valuetype, value, strategyType, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
-        if (callback != null) {
-            callback.on(true);
+        internalInsert(root, keys, valuetype, value, IndexStrategy.REPLACE, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
+
+    }
+
+    @Override
+    public void profile(double[] keys, int occurance) {
+        NodeState state = unphasedState();
+
+        double[] min = (double[]) state.get(BOUND_MIN);
+        double[] max = (double[]) state.get(BOUND_MAX);
+        check(keys, min, max);
+
+        double[] resolution = (double[]) state.get(RESOLUTION);
+        EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
+        int buffersize = state.getWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
+        Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
+
+
+        ENode root = graph.root();
+        if (root == null) {
+            root = graph.newNode();
+            graph.setRoot(root);
+            root.setAt(_TOTAL, Type.INT, 0);
+            root.setAt(_SUBNODES, Type.INT, 0);
+            root.setAt(_MIN, Type.DOUBLE_ARRAY, min);
+            root.setAt(_MAX, Type.DOUBLE_ARRAY, max);
         }
-    }
-
-
-    @Override
-    public void nearestN(double[] keys, int nbElem, Callback<Object[]> callback) {
+        internalInsert(root, keys, Type.INT, occurance, IndexStrategy.PROFILE, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
 
     }
 
     @Override
-    public void nearestWithinRadius(double[] keys, double radius, Callback<Object[]> callback) {
-
+    public Object[] nearestN(double[] keys, int nbElem) {
+        return new Object[0];
     }
 
     @Override
-    public void nearestNWithinRadius(double[] keys, int nbElem, double radius, Callback<Object[]> callback) {
+    public Object[] nearestWithinRadius(double[] keys, double radius) {
+        return new Object[0];
+    }
 
+    @Override
+    public Object[] nearestNWithinRadius(double[] keys, int nbElem, double radius) {
+        return new Object[0];
     }
 
 

@@ -1,8 +1,6 @@
 package org.mwg.structure;
 
-import org.mwg.Callback;
 import org.mwg.Node;
-import org.mwg.Type;
 
 public interface Tree extends Node {
 
@@ -15,16 +13,16 @@ public interface Tree extends Node {
 
 
     //Insert functions
-    void insertWith(final double[] keys, final Type valuetype, final Object value, final Callback<Boolean> callback);
+    void insertWith(final double[] keys, final byte valuetype, final Object value);
 
-
+    void profile(final double[] keys, int occurance);
 
     //Retrieve functions
-    void nearestN(final double[] keys, final int nbElem, final Callback<Object[]> callback);
+    Object[] nearestN(final double[] keys, final int nbElem);
 
-    void nearestWithinRadius(final double[] keys, final double radius, final Callback<Object[]> callback);
+    Object[] nearestWithinRadius(final double[] keys, final double radius);
 
-    void nearestNWithinRadius(final double[] keys, int nbElem, double radius, final Callback<Object[]> callback);
+    Object[] nearestNWithinRadius(final double[] keys, final int nbElem, final double radius);
 
 
     //Tree properties

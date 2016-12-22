@@ -7,7 +7,7 @@ import org.mwg.structure.StructurePlugin;
 import java.util.Random;
 
 public class ETreeTest {
-    //@Test
+   // @Test
     public void NDTest() {
         final Graph graph = new GraphBuilder()
                 .withPlugin(new StructurePlugin())
@@ -44,7 +44,7 @@ public class ETreeTest {
                 }
                 long ts = System.currentTimeMillis();
                 for (int i = 0; i < ins; i++) {
-                    eTree.insertWith(keys[i], null, null, null);
+                    eTree.profile(keys[i], 1);
                 }
                 long te = System.currentTimeMillis() - ts;
 
