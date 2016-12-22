@@ -30,13 +30,15 @@ public class ETree extends BaseNode implements Tree {
 
 
     private static long _TOTAL = 0;
-    private static long _BUFFER_KEYS = 1;
-    private static long _BUFFER_VALUES = 2;
-    private static long _SUBNODES = 3;
-    private static long _VALUE = 4;
-    private static long _MIN = 5;
-    private static long _MAX = 6;
-    private static long _PROFILE = 7;
+    private static long _SUBNODES = 1;
+    private static long _TOTAL_SUBNODES = 2;
+    private static long _MIN = 3;
+    private static long _MAX = 4;
+    private static long _BUFFER_KEYS = 5;
+    private static long _BUFFER_VALUES = 6;
+    private static long _VALUE = 7;
+    private static long _PROFILE = 8;
+
     private static int _REL = 16;
 
     public ETree(long p_world, long p_time, long p_id, Graph p_graph) {
@@ -93,7 +95,7 @@ public class ETree extends BaseNode implements Tree {
     }
 
 
-    private static ENode createNewNode(final ENode parent, int index, final double[] min, final double[] max, final double[] center, final double[] keyToInsert, final int buffersize) {
+    private static ENode createNewNode(final ENode parent, final ENode root, int index, final double[] min, final double[] max, final double[] center, final double[] keyToInsert, final int buffersize) {
         ENode node = parent.graph().newNode();
         double[] minChild = new double[min.length];
         double[] maxChild = new double[max.length];
@@ -114,6 +116,7 @@ public class ETree extends BaseNode implements Tree {
         node.setAt(_TOTAL, Type.INT, 0);
 
 
+        root.setAt(_TOTAL_SUBNODES, Type.INT, (int) root.getAt(_TOTAL_SUBNODES) + 1);
         parent.setAt(_SUBNODES, Type.INT, (int) parent.getAt(_SUBNODES) + 1);
         parent.setAt(index, Type.ENODE, node);
 
@@ -128,13 +131,13 @@ public class ETree extends BaseNode implements Tree {
 
         ENode child = (ENode) parent.getAt(index);
         if (child == null) {
-            child = createNewNode(parent, index, min, max, center, key, buffersize);
+            child = createNewNode(parent, root, index, min, max, center, key, buffersize);
         }
         double[] childmin = (double[]) child.getAt(_MIN);
         double[] childmax = (double[]) child.getAt(_MAX);
         double[] childcenter = getCenterMinMax(childmin, childmax);
         boolean res = internalInsert(child, key, valuetype, value, strategyType, childmin, childmax, childcenter, resolution, buffersize, root);
-        res = res && bufferupdate;
+        res = res && !bufferupdate;
 
         if (res) {
             switch (strategyType) {
@@ -158,7 +161,7 @@ public class ETree extends BaseNode implements Tree {
         if ((int) node.getAt(_SUBNODES) != 0) {
             return subInsert(node, key, valuetype, value, strategyType, min, max, center, resolution, buffersize, root, false);
         } else if (checkCreateLevels(min, max, resolution)) {
-            Matrix buffer=null;
+            Matrix buffer = null;
             if (buffersize > 0) {
                 buffer = (Matrix) node.getOrCreateAt(_BUFFER_KEYS, Type.MATRIX);
             }
@@ -194,17 +197,17 @@ public class ETree extends BaseNode implements Tree {
                     buffer.appendColumn(key);
                     switch (strategyType) {
                         case IndexStrategy.PROFILE: {
-                            LMatrix bufferValue = (LMatrix) node.getOrCreateAt(_BUFFER_VALUES,Type.LMATRIX);
+                            LMatrix bufferValue = (LMatrix) node.getOrCreateAt(_BUFFER_VALUES, Type.LMATRIX);
                             bufferValue.appendColumn(new long[]{(int) value});
                             node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + (int) value);
                             return true; //to update parent total
                         }
                         case IndexStrategy.REPLACE: {
                             if (valuetype == Type.LONG || valuetype == Type.INT) {
-                                LMatrix bufferValue = (LMatrix) node.getOrCreateAt(_BUFFER_VALUES,Type.LMATRIX);
+                                LMatrix bufferValue = (LMatrix) node.getOrCreateAt(_BUFFER_VALUES, Type.LMATRIX);
                                 bufferValue.appendColumn(new long[]{(long) value});
                             } else if (valuetype == Type.DOUBLE) {
-                                Matrix bufferValue = (Matrix) node.getOrCreateAt(_BUFFER_VALUES,Type.MATRIX);
+                                Matrix bufferValue = (Matrix) node.getOrCreateAt(_BUFFER_VALUES, Type.MATRIX);
                                 bufferValue.appendColumn(new double[]{(double) value});
                             }
                             node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + 1);
@@ -362,6 +365,7 @@ public class ETree extends BaseNode implements Tree {
             root = graph.newNode();
             graph.setRoot(root);
             root.setAt(_TOTAL, Type.INT, 0);
+            root.setAt(_TOTAL_SUBNODES, Type.INT, 0);
             root.setAt(_SUBNODES, Type.INT, 0);
             root.setAt(_MIN, Type.DOUBLE_ARRAY, min);
             root.setAt(_MAX, Type.DOUBLE_ARRAY, max);
@@ -395,6 +399,18 @@ public class ETree extends BaseNode implements Tree {
             return 0;
         } else {
             return (int) root.getAt(_TOTAL);
+        }
+    }
+
+    @Override
+    public int numberOfNodes() {
+        NodeState state = unphasedState();
+        EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
+        ENode root = graph.root();
+        if (root == null) {
+            return 0;
+        } else {
+            return (int) root.getAt(_TOTAL_SUBNODES);
         }
     }
 

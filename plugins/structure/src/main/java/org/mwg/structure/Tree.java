@@ -27,6 +27,7 @@ public interface Tree extends Node {
 
     //Tree properties
     int size();
+    int numberOfNodes();
 
 
 }
