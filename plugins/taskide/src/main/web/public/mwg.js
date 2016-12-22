@@ -1387,6 +1387,8 @@ var org;
                         return "EGRAPH";
                     case org.mwg.Type.ENODE:
                         return "ENODE";
+                    case org.mwg.Type.ERELATION:
+                        return "ERELATION";
                     case org.mwg.Type.EXTERNAL:
                         return "EXTERNAL";
                     default:
@@ -1431,6 +1433,8 @@ var org;
                         return org.mwg.Type.EGRAPH;
                     case "ENODE":
                         return org.mwg.Type.ENODE;
+                    case "ERELATION":
+                        return org.mwg.Type.ERELATION;
                     default:
                         return -1;
                 }
@@ -1454,7 +1458,8 @@ var org;
         Type.LMATRIX = 16;
         Type.EGRAPH = 17;
         Type.ENODE = 18;
-        Type.EXTERNAL = 19;
+        Type.ERELATION = 19;
+        Type.EXTERNAL = 20;
         mwg.Type = Type;
         var base;
         (function (base) {
@@ -4152,6 +4157,9 @@ var org;
                                         case org.mwg.Type.RELATION:
                                             param_elem = p_unsafe_elem;
                                             break;
+                                        case org.mwg.Type.ERELATION:
+                                            param_elem = p_unsafe_elem;
+                                            break;
                                         case org.mwg.Type.ENODE:
                                             param_elem = p_unsafe_elem;
                                             break;
@@ -4375,6 +4383,9 @@ var org;
                             }
                             var toSet = null;
                             switch (type) {
+                                case org.mwg.Type.ERELATION:
+                                    toSet = new org.mwg.core.chunk.heap.HeapERelation(this.chunk, null);
+                                    break;
                                 case org.mwg.Type.RELATION:
                                     toSet = new org.mwg.core.chunk.heap.HeapRelation(this.chunk, null);
                                     break;
@@ -4495,6 +4506,20 @@ var org;
                                                     builder.append(",");
                                                 }
                                                 builder.append(castedRelArr.get(j));
+                                            }
+                                            builder.append("]");
+                                            break;
+                                        case org.mwg.Type.ERELATION:
+                                            builder.append("\"");
+                                            builder.append(resolveName);
+                                            builder.append("\":");
+                                            builder.append("[");
+                                            var castedERelArr = elem;
+                                            for (var j = 0; j < castedERelArr.size(); j++) {
+                                                if (j != 0) {
+                                                    builder.append(",");
+                                                }
+                                                builder.append(castedERelArr.node(j)._id);
                                             }
                                             builder.append("]");
                                             break;
@@ -4626,6 +4651,84 @@ var org;
                         return HeapENode;
                     }());
                     heap.HeapENode = HeapENode;
+                    var HeapERelation = (function () {
+                        function HeapERelation(p_listener, origin) {
+                            this.parent = p_listener;
+                            if (origin != null) {
+                                this._back = new Array(origin._capacity);
+                                java.lang.System.arraycopy(origin._back, 0, this._back, 0, origin._capacity);
+                                this._size = origin._size;
+                                this._capacity = origin._capacity;
+                            }
+                            else {
+                                this._back = null;
+                                this._size = 0;
+                                this._capacity = 0;
+                            }
+                        }
+                        HeapERelation.prototype.size = function () {
+                            return this._size;
+                        };
+                        HeapERelation.prototype.nodes = function () {
+                            var copy = new Array(this._size);
+                            java.lang.System.arraycopy(this._back, 0, copy, 0, this._size);
+                            return copy;
+                        };
+                        HeapERelation.prototype.node = function (index) {
+                            return this._back[index];
+                        };
+                        HeapERelation.prototype.add = function (eNode) {
+                            if (this._capacity == this._size) {
+                                if (this._capacity == 0) {
+                                    this.allocate(org.mwg.Constants.MAP_INITIAL_CAPACITY);
+                                }
+                                else {
+                                    this.allocate(this._capacity * 2);
+                                }
+                            }
+                            this._back[this._size] = eNode;
+                            this._size++;
+                            this.parent.declareDirty();
+                            return this;
+                        };
+                        HeapERelation.prototype.addAll = function (eNodes) {
+                            this.allocate(eNodes.length + this._size);
+                            java.lang.System.arraycopy(eNodes, 0, this._back, this._size, eNodes.length);
+                            this.parent.declareDirty();
+                            return this;
+                        };
+                        HeapERelation.prototype.clear = function () {
+                            this._size = 0;
+                            this._back = null;
+                            this.parent.declareDirty();
+                            return this;
+                        };
+                        HeapERelation.prototype.toString = function () {
+                            var buffer = new java.lang.StringBuilder();
+                            buffer.append("[");
+                            for (var i = 0; i < this._size; i++) {
+                                if (i != 0) {
+                                    buffer.append(",");
+                                }
+                                buffer.append(this._back[i]._id);
+                            }
+                            buffer.append("]");
+                            return buffer.toString();
+                        };
+                        HeapERelation.prototype.allocate = function (newCapacity) {
+                            var closePowerOfTwo = Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
+                            if (closePowerOfTwo > this._capacity) {
+                                var new_back = new Array(closePowerOfTwo);
+                                if (this._back != null) {
+                                    java.lang.System.arraycopy(this._back, 0, new_back, 0, this._size);
+                                }
+                                this._back = new_back;
+                                this._capacity = closePowerOfTwo;
+                            }
+                        };
+                        return HeapERelation;
+                    }());
+                    heap.HeapERelation = HeapERelation;
                     var HeapFixedStack = (function () {
                         function HeapFixedStack(capacity, fill) {
                             this._capacity = capacity;

@@ -467,6 +467,7 @@ declare module org {
             static LMATRIX: number;
             static EGRAPH: number;
             static ENODE: number;
+            static ERELATION: number;
             static EXTERNAL: number;
             static typeName(p_type: number): string;
             static typeFromName(name: string): number;
@@ -859,6 +860,21 @@ declare module org {
                         getOrCreate(key: string, type: number): any;
                         getOrCreateAt(key: number, type: number): any;
                         toString(): string;
+                    }
+                    class HeapERelation implements org.mwg.struct.ERelation {
+                        private _back;
+                        private _size;
+                        private _capacity;
+                        private parent;
+                        constructor(p_listener: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapERelation);
+                        size(): number;
+                        nodes(): org.mwg.struct.ENode[];
+                        node(index: number): org.mwg.struct.ENode;
+                        add(eNode: org.mwg.struct.ENode): org.mwg.struct.ERelation;
+                        addAll(eNodes: org.mwg.struct.ENode[]): org.mwg.struct.ERelation;
+                        clear(): org.mwg.struct.ERelation;
+                        toString(): string;
+                        allocate(newCapacity: number): void;
                     }
                     class HeapFixedStack implements org.mwg.chunk.Stack {
                         private _next;
@@ -2173,6 +2189,14 @@ declare module org {
                 getOrCreateAt(key: number, type: number): any;
                 drop(): void;
                 graph(): org.mwg.struct.EGraph;
+            }
+            interface ERelation {
+                nodes(): org.mwg.struct.ENode[];
+                node(index: number): org.mwg.struct.ENode;
+                size(): number;
+                add(eNode: org.mwg.struct.ENode): org.mwg.struct.ERelation;
+                addAll(eNodes: org.mwg.struct.ENode[]): org.mwg.struct.ERelation;
+                clear(): org.mwg.struct.ERelation;
             }
             interface LMatrix {
                 init(rows: number, columns: number): org.mwg.struct.LMatrix;
