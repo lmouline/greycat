@@ -466,6 +466,7 @@ declare module org {
             static MATRIX: number;
             static LMATRIX: number;
             static EGRAPH: number;
+            static ENODE: number;
             static EXTERNAL: number;
             static typeName(p_type: number): string;
             static typeFromName(name: string): number;
@@ -819,23 +820,23 @@ declare module org {
                     class HeapEGraph implements org.mwg.struct.EGraph {
                         private parent;
                         private _dirty;
-                        private _nodesMapping;
-                        private counter;
+                        private _nodes;
+                        private _nodes_capacity;
+                        private _nodes_index;
                         private _root;
                         constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk);
                         declareDirty(): void;
-                        root(): org.mwg.struct.ENode;
                         newNode(): org.mwg.struct.ENode;
+                        root(): org.mwg.struct.ENode;
                         setRoot(eNode: org.mwg.struct.ENode): org.mwg.struct.EGraph;
                         drop(eNode: org.mwg.struct.ENode): org.mwg.struct.EGraph;
-                        lookup(id: number): org.mwg.struct.ENode;
                         toString(): string;
                     }
                     class HeapENode implements org.mwg.struct.ENode {
                         private egraph;
                         private chunk;
                         private _graph;
-                        private _id;
+                        _id: number;
                         private _capacity;
                         private _size;
                         private _k;
@@ -853,7 +854,6 @@ declare module org {
                         setAt(key: number, type: number, value: any): org.mwg.struct.ENode;
                         get(name: string): any;
                         getAt(key: number): any;
-                        id(): number;
                         drop(): void;
                         graph(): org.mwg.struct.EGraph;
                         getOrCreate(key: string, type: number): any;
@@ -2163,10 +2163,8 @@ declare module org {
                 newNode(): org.mwg.struct.ENode;
                 setRoot(eNode: org.mwg.struct.ENode): org.mwg.struct.EGraph;
                 drop(eNode: org.mwg.struct.ENode): org.mwg.struct.EGraph;
-                lookup(id: number): org.mwg.struct.ENode;
             }
             interface ENode {
-                id(): number;
                 set(name: string, type: number, value: any): org.mwg.struct.ENode;
                 setAt(key: number, type: number, value: any): org.mwg.struct.ENode;
                 get(name: string): any;

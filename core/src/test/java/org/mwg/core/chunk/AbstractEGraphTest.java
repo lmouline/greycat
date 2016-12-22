@@ -12,6 +12,7 @@ import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.plugin.MemoryFactory;
 import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
+import org.mwg.struct.ERelation;
 import org.mwg.struct.Relation;
 
 public abstract class AbstractEGraphTest {
@@ -29,28 +30,34 @@ public abstract class AbstractEGraphTest {
 
         ChunkSpace space = factory.newSpace(100, g);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
-
+        //test embedded graph attribute
         EGraph egraph = (EGraph) chunk.getOrCreate(0, Type.EGRAPH);
 
+        //test primitive attribute
         ENode eNode = egraph.newNode();
         egraph.setRoot(eNode);
         eNode.set("name", Type.STRING, "hello");
         Assert.assertEquals("{\"name\":\"hello\"}", eNode.toString());
 
+        //test single eRelation
         ENode secondENode = egraph.newNode();
-        secondENode.set("name",Type.STRING,"secondNode");
-
+        secondENode.set("name", Type.STRING, "secondNode");
         eNode.set("children", Type.ENODE, secondENode);
-
         ENode retrieved = (ENode) eNode.get("children");
-        Assert.assertEquals(retrieved.toString(),retrieved.toString());
+        Assert.assertEquals(retrieved.toString(), retrieved.toString());
 
-        /*
-        Relation children = (Relation) eNode.getOrCreate("children", Type.RELATION);
-        children.add(secondENode.id());
-        Assert.assertEquals("{\"id\":0,\"name\":\"hello\",\"children\":[1]}", eNode.toString());
-        Assert.assertEquals("{\"root\":0,\"nodes\":[{\"id\":0,\"name\":\"hello\",\"children\":[1]},{\"id\":1}]}", egraph.toString());
-*/
+        //test eRelation
+        ERelation eRelation = (ERelation) eNode.getOrCreate("testRel", Type.ERELATION);
+        for (int i = 0; i < 3; i++) {
+            ENode loopNode = egraph.newNode();
+            secondENode.set("name", Type.STRING, "node_" + i);
+            eRelation.add(loopNode);
+        }
+
+        ERelation resolvedERelation = (ERelation) eNode.get("testRel");
+        Assert.assertEquals(3,resolvedERelation.size());
+        Assert.assertEquals("[2,3,4]",resolvedERelation.toString());
+
     }
 
 }

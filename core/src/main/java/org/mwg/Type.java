@@ -14,22 +14,25 @@ public class Type {
     public static final byte INT = 4;
     public static final byte DOUBLE = 5;
 
-    /*
-     * Primitive Arrays
-     */
     public static final byte DOUBLE_ARRAY = 6;
     public static final byte LONG_ARRAY = 7;
     public static final byte INT_ARRAY = 8;
+
     public static final byte LONG_TO_LONG_MAP = 9;
     public static final byte LONG_TO_LONG_ARRAY_MAP = 10;
     public static final byte STRING_TO_LONG_MAP = 11;
+
     public static final byte RELATION = 12;
     public static final byte RELATION_INDEXED = 13;
+
     public static final byte MATRIX = 15;
     public static final byte LMATRIX = 16;
+
     public static final byte EGRAPH = 17;
     public static final byte ENODE = 18;
-    public static final byte EXTERNAL = 19;
+    public static final byte ERELATION = 19;
+
+    public static final byte EXTERNAL = 20;
 
     /**
      * Convert a type that represent a byte to a readable String representation
@@ -76,6 +79,8 @@ public class Type {
                 return "EGRAPH";
             case Type.ENODE:
                 return "ENODE";
+            case Type.ERELATION:
+                return "ERELATION";
             case Type.EXTERNAL:
                 return "EXTERNAL";
             default:
@@ -121,6 +126,8 @@ public class Type {
                 return Type.EGRAPH;
             case "ENODE":
                 return Type.ENODE;
+            case "ERELATION":
+                return Type.ERELATION;
             default:
                 return -1;
         }

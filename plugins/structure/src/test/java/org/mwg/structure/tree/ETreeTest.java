@@ -50,7 +50,6 @@ public class ETreeTest {
 
                 System.out.println(te);
 
-
             }
         });
     }

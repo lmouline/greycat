@@ -1385,6 +1385,8 @@ var org;
                         return "LMATRIX";
                     case org.mwg.Type.EGRAPH:
                         return "EGRAPH";
+                    case org.mwg.Type.ENODE:
+                        return "ENODE";
                     case org.mwg.Type.EXTERNAL:
                         return "EXTERNAL";
                     default:
@@ -1427,6 +1429,8 @@ var org;
                         return org.mwg.Type.EXTERNAL;
                     case "EGRAPH":
                         return org.mwg.Type.EGRAPH;
+                    case "ENODE":
+                        return org.mwg.Type.ENODE;
                     default:
                         return -1;
                 }
@@ -1449,7 +1453,8 @@ var org;
         Type.MATRIX = 15;
         Type.LMATRIX = 16;
         Type.EGRAPH = 17;
-        Type.EXTERNAL = 18;
+        Type.ENODE = 18;
+        Type.EXTERNAL = 19;
         mwg.Type = Type;
         var base;
         (function (base) {
@@ -3992,10 +3997,10 @@ var org;
                     heap.HeapChunkSpace = HeapChunkSpace;
                     var HeapEGraph = (function () {
                         function HeapEGraph(p_parent) {
-                            this.counter = 0;
-                            this._root = -1;
+                            this._nodes = null;
+                            this._nodes_capacity = 0;
+                            this._nodes_index = 0;
                             this.parent = p_parent;
-                            this._nodesMapping = new java.util.HashMap();
                         }
                         HeapEGraph.prototype.declareDirty = function () {
                             if (!this._dirty) {
@@ -4003,43 +4008,59 @@ var org;
                                 this.parent.declareDirty();
                             }
                         };
-                        HeapEGraph.prototype.root = function () {
-                            return this.lookup(this._root);
-                        };
                         HeapEGraph.prototype.newNode = function () {
-                            var newNode = new org.mwg.core.chunk.heap.HeapENode(this.parent, this, this.parent.graph(), this.counter);
-                            this.counter++;
-                            this._nodesMapping.put(newNode.id(), newNode);
+                            if (this._nodes_index == this._nodes_capacity) {
+                                var newCapacity = this._nodes_capacity * 2;
+                                if (newCapacity == 0) {
+                                    newCapacity = org.mwg.Constants.MAP_INITIAL_CAPACITY;
+                                }
+                                var newNodes = new Array(newCapacity);
+                                if (this._nodes != null) {
+                                    java.lang.System.arraycopy(this._nodes, 0, newNodes, 0, this._nodes_capacity);
+                                }
+                                this._nodes_capacity = newCapacity;
+                                this._nodes = newNodes;
+                            }
+                            var newNode = new org.mwg.core.chunk.heap.HeapENode(this.parent, this, this.parent.graph(), this._nodes_index);
+                            this._nodes[this._nodes_index] = newNode;
+                            this._nodes_index++;
                             return newNode;
                         };
+                        HeapEGraph.prototype.root = function () {
+                            return this._root;
+                        };
                         HeapEGraph.prototype.setRoot = function (eNode) {
-                            this._root = eNode.id();
+                            this._root = eNode;
                             return this;
                         };
                         HeapEGraph.prototype.drop = function (eNode) {
-                            this._nodesMapping.remove(eNode.id());
+                            var casted = eNode;
+                            var previousId = casted._id;
+                            if (previousId == this._nodes_index - 1) {
+                                this._nodes[previousId] = null;
+                                this._nodes_index--;
+                            }
+                            else {
+                                this._nodes[previousId] = this._nodes[this._nodes_index - 1];
+                                this._nodes[previousId]._id = previousId;
+                                this._nodes_index--;
+                            }
                             return this;
-                        };
-                        HeapEGraph.prototype.lookup = function (id) {
-                            return this._nodesMapping.get(id);
                         };
                         HeapEGraph.prototype.toString = function () {
                             var builder = new java.lang.StringBuilder();
                             builder.append("{");
-                            if (this._root != -1) {
+                            if (this._root != null) {
                                 builder.append("\"root\":");
-                                builder.append(this._root);
+                                builder.append(this._root._id);
                                 builder.append(",");
                             }
                             builder.append("\"nodes\":[");
-                            var keys = this._nodesMapping.keySet();
-                            var flat = keys.toArray(new Array(keys.size()));
-                            for (var i = 0; i < flat.length; i++) {
+                            for (var i = 0; i < this._nodes_index; i++) {
                                 if (i != 0) {
                                     builder.append(",");
                                 }
-                                var eNode = this._nodesMapping.get(flat[i]);
-                                builder.append(eNode.toString());
+                                builder.append(this._nodes[i].toString());
                             }
                             builder.append("]}");
                             return builder.toString();
@@ -4129,6 +4150,9 @@ var org;
                                             param_elem = p_unsafe_elem;
                                             break;
                                         case org.mwg.Type.RELATION:
+                                            param_elem = p_unsafe_elem;
+                                            break;
+                                        case org.mwg.Type.ENODE:
                                             param_elem = p_unsafe_elem;
                                             break;
                                         case org.mwg.Type.EXTERNAL:
@@ -4327,9 +4351,6 @@ var org;
                         HeapENode.prototype.getAt = function (key) {
                             return this.internal_get(key);
                         };
-                        HeapENode.prototype.id = function () {
-                            return this._id;
-                        };
                         HeapENode.prototype.drop = function () {
                             this.egraph.drop(this);
                         };
@@ -4385,21 +4406,27 @@ var org;
                         HeapENode.prototype.toString = function () {
                             var builder = new java.lang.StringBuilder();
                             var isFirst = [true];
-                            builder.append("{\"id\":");
-                            builder.append(this.id());
+                            var isFirstField = true;
+                            builder.append("{");
                             var _loop_4 = function (i) {
                                 var elem = this_2._v[i];
                                 var resolver = this_2._graph.resolver();
                                 var attributeKey = this_2._k[i];
                                 var elemType = this_2._type[i];
                                 if (elem != null) {
+                                    if (isFirstField) {
+                                        isFirstField = false;
+                                    }
+                                    else {
+                                        builder.append(",");
+                                    }
                                     var resolveName = resolver.hashToString(attributeKey);
                                     if (resolveName == null) {
                                         resolveName = attributeKey + "";
                                     }
                                     switch (elemType) {
                                         case org.mwg.Type.BOOL: {
-                                            builder.append(",\"");
+                                            builder.append("\"");
                                             builder.append(resolveName);
                                             builder.append("\":");
                                             if (elem) {
@@ -4411,7 +4438,7 @@ var org;
                                             break;
                                         }
                                         case org.mwg.Type.STRING: {
-                                            builder.append(",\"");
+                                            builder.append("\"");
                                             builder.append(resolveName);
                                             builder.append("\":");
                                             builder.append("\"");
@@ -4420,14 +4447,14 @@ var org;
                                             break;
                                         }
                                         case org.mwg.Type.LONG: {
-                                            builder.append(",\"");
+                                            builder.append("\"");
                                             builder.append(resolveName);
                                             builder.append("\":");
                                             builder.append(elem);
                                             break;
                                         }
                                         case org.mwg.Type.INT: {
-                                            builder.append(",\"");
+                                            builder.append("\"");
                                             builder.append(resolveName);
                                             builder.append("\":");
                                             builder.append(elem);
@@ -4435,7 +4462,7 @@ var org;
                                         }
                                         case org.mwg.Type.DOUBLE: {
                                             if (!org.mwg.base.BaseNode.isNaN(elem)) {
-                                                builder.append(",\"");
+                                                builder.append("\"");
                                                 builder.append(resolveName);
                                                 builder.append("\":");
                                                 builder.append(elem);
@@ -4443,7 +4470,7 @@ var org;
                                             break;
                                         }
                                         case org.mwg.Type.DOUBLE_ARRAY: {
-                                            builder.append(",\"");
+                                            builder.append("\"");
                                             builder.append(resolveName);
                                             builder.append("\":");
                                             builder.append("[");
@@ -4458,7 +4485,7 @@ var org;
                                             break;
                                         }
                                         case org.mwg.Type.RELATION:
-                                            builder.append(",\"");
+                                            builder.append("\"");
                                             builder.append(resolveName);
                                             builder.append("\":");
                                             builder.append("[");
@@ -4472,7 +4499,7 @@ var org;
                                             builder.append("]");
                                             break;
                                         case org.mwg.Type.LONG_ARRAY: {
-                                            builder.append(",\"");
+                                            builder.append("\"");
                                             builder.append(resolveName);
                                             builder.append("\":");
                                             builder.append("[");
@@ -4487,7 +4514,7 @@ var org;
                                             break;
                                         }
                                         case org.mwg.Type.INT_ARRAY: {
-                                            builder.append(",\"");
+                                            builder.append("\"");
                                             builder.append(resolveName);
                                             builder.append("\":");
                                             builder.append("[");
@@ -4502,7 +4529,7 @@ var org;
                                             break;
                                         }
                                         case org.mwg.Type.LONG_TO_LONG_MAP: {
-                                            builder.append(",\"");
+                                            builder.append("\"");
                                             builder.append(resolveName);
                                             builder.append("\":");
                                             builder.append("{");
@@ -4527,7 +4554,7 @@ var org;
                                         }
                                         case org.mwg.Type.RELATION_INDEXED:
                                         case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP: {
-                                            builder.append(",\"");
+                                            builder.append("\"");
                                             builder.append(resolveName);
                                             builder.append("\":");
                                             builder.append("{");
@@ -4563,7 +4590,7 @@ var org;
                                             break;
                                         }
                                         case org.mwg.Type.STRING_TO_LONG_MAP: {
-                                            builder.append(",\"");
+                                            builder.append("\"");
                                             builder.append(resolveName);
                                             builder.append("\":");
                                             builder.append("{");
@@ -6359,6 +6386,9 @@ var org;
                                 case org.mwg.Type.MATRIX:
                                     toSet = new org.mwg.core.chunk.heap.HeapMatrix(this, null);
                                     break;
+                                case org.mwg.Type.LMATRIX:
+                                    toSet = new org.mwg.core.chunk.heap.HeapLMatrix(this, null);
+                                    break;
                                 case org.mwg.Type.EGRAPH:
                                     toSet = new org.mwg.core.chunk.heap.HeapEGraph(this);
                                     break;
@@ -6486,6 +6516,17 @@ var org;
                                                     }
                                                 }
                                                 break;
+                                            case org.mwg.Type.LMATRIX:
+                                                var castedLMatrix = loopValue;
+                                                var unsafeLContent = castedLMatrix.unsafe_data();
+                                                if (unsafeLContent != null) {
+                                                    org.mwg.utility.Base64.encodeIntToBuffer(unsafeLContent.length, buffer);
+                                                    for (var j = 0; j < unsafeLContent.length; j++) {
+                                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_SUB_SUB_SEP);
+                                                        org.mwg.utility.Base64.encodeLongToBuffer(unsafeLContent[j], buffer);
+                                                    }
+                                                }
+                                                break;
                                             case org.mwg.Type.STRING_TO_LONG_MAP:
                                                 var castedStringLongMap = loopValue;
                                                 org.mwg.utility.Base64.encodeLongToBuffer(castedStringLongMap.size(), buffer);
@@ -6600,6 +6641,11 @@ var org;
                                                 this._v[i] = new org.mwg.core.chunk.heap.HeapMatrix(this, casted._v[i]);
                                             }
                                             break;
+                                        case org.mwg.Type.LMATRIX:
+                                            if (casted._v[i] != null) {
+                                                this._v[i] = new org.mwg.core.chunk.heap.HeapLMatrix(this, casted._v[i]);
+                                            }
+                                            break;
                                         case org.mwg.Type.EXTERNAL:
                                             if (casted._v[i] != null) {
                                                 this._v[i] = casted._v[i].copy();
@@ -6696,6 +6742,9 @@ var org;
                                             param_elem = p_unsafe_elem;
                                             break;
                                         case org.mwg.Type.MATRIX:
+                                            param_elem = p_unsafe_elem;
+                                            break;
+                                        case org.mwg.Type.LMATRIX:
                                             param_elem = p_unsafe_elem;
                                             break;
                                         case org.mwg.Type.RELATION:
@@ -6931,6 +6980,7 @@ var org;
                             var currentLongArr = null;
                             var currentIntArr = null;
                             var currentMatrix = null;
+                            var currentLMatrix = null;
                             var currentRelation = null;
                             var currentStringLongMap = null;
                             var currentLongLongMap = null;
@@ -7020,6 +7070,16 @@ var org;
                                                     }
                                                     toInsert = currentMatrix;
                                                     break;
+                                                case org.mwg.Type.LMATRIX:
+                                                    if (currentLMatrix == null) {
+                                                        currentLMatrix = new org.mwg.core.chunk.heap.HeapLMatrix(this, null);
+                                                        currentLMatrix.unsafe_init(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
+                                                    }
+                                                    else {
+                                                        currentLMatrix.unsafe_set(currentSubIndex, org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                                                    }
+                                                    toInsert = currentLMatrix;
+                                                    break;
                                                 case org.mwg.Type.STRING_TO_LONG_MAP:
                                                     if (currentMapStringKey != null) {
                                                         currentStringLongMap.put(currentMapStringKey, org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
@@ -7084,6 +7144,10 @@ var org;
                                                 currentMatrix = new org.mwg.core.chunk.heap.HeapMatrix(this, null);
                                                 currentMatrix.unsafe_init(currentSubSize);
                                                 break;
+                                            case org.mwg.Type.LMATRIX:
+                                                currentLMatrix = new org.mwg.core.chunk.heap.HeapLMatrix(this, null);
+                                                currentLMatrix.unsafe_init(currentSubSize);
+                                                break;
                                             case org.mwg.Type.STRING_TO_LONG_MAP:
                                                 currentStringLongMap = new org.mwg.core.chunk.heap.HeapStringLongMap(this);
                                                 currentStringLongMap.reallocate(currentSubSize);
@@ -7113,6 +7177,10 @@ var org;
                                                 break;
                                             case org.mwg.Type.MATRIX:
                                                 currentMatrix.unsafe_set(currentSubIndex, org.mwg.utility.Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor));
+                                                currentSubIndex++;
+                                                break;
+                                            case org.mwg.Type.LMATRIX:
+                                                currentLMatrix.unsafe_set(currentSubIndex, org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
                                                 currentSubIndex++;
                                                 break;
                                             case org.mwg.Type.LONG_ARRAY:
@@ -7242,6 +7310,12 @@ var org;
                                             currentMatrix.unsafe_set(currentSubIndex, org.mwg.utility.Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor));
                                         }
                                         toInsert = currentMatrix;
+                                        break;
+                                    case org.mwg.Type.LMATRIX:
+                                        if (currentLMatrix != null) {
+                                            currentLMatrix.unsafe_set(currentSubIndex, org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                                        }
+                                        toInsert = currentLMatrix;
                                         break;
                                     case org.mwg.Type.STRING_TO_LONG_MAP:
                                         if (currentMapStringKey != null) {

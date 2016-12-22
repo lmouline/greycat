@@ -113,6 +113,9 @@ class HeapENode implements ENode {
                     case Type.RELATION:
                         param_elem = (Relation) p_unsafe_elem;
                         break;
+                    case Type.ERELATION:
+                        param_elem = (ERelation) p_unsafe_elem;
+                        break;
                     case Type.ENODE:
                         param_elem = (ENode) p_unsafe_elem;
                         break;
@@ -348,6 +351,9 @@ class HeapENode implements ENode {
         }
         Object toSet = null;
         switch (type) {
+            case Type.ERELATION:
+                toSet = new HeapERelation(chunk, null);
+                break;
             case Type.RELATION:
                 toSet = new HeapRelation(chunk, null);
                 break;
@@ -468,6 +474,20 @@ class HeapENode implements ENode {
                                 builder.append(",");
                             }
                             builder.append(castedRelArr.get(j));
+                        }
+                        builder.append("]");
+                        break;
+                    case Type.ERELATION:
+                        builder.append("\"");
+                        builder.append(resolveName);
+                        builder.append("\":");
+                        builder.append("[");
+                        ERelation castedERelArr = (ERelation) elem;
+                        for (int j = 0; j < castedERelArr.size(); j++) {
+                            if (j != 0) {
+                                builder.append(",");
+                            }
+                            builder.append(((HeapENode) castedERelArr.node(j))._id);
                         }
                         builder.append("]");
                         break;
