@@ -26,59 +26,75 @@ class HeapLMatrix implements LMatrix {
     }
 
     @Override
-    public final LMatrix init(int rows, int columns) {
-        synchronized (parent) {
-            //clean backend for OffHeap version
-            backend = new long[rows * columns + INDEX_OFFSET];
-            backend[INDEX_ROWS] = rows;
-            backend[INDEX_COLUMNS] = columns;
-            backend[INDEX_MAX_COLUMN] = columns;//direct allocation
-            aligned = true;
+    public final LMatrix init(final int rows, final int columns) {
+        if (parent != null) {
+            synchronized (parent) {
+                internal_init(rows, columns);
+            }
             parent.declareDirty();
+        } else {
+            internal_init(rows, columns);
         }
         return this;
     }
 
+    private void internal_init(final int rows, final int columns) {
+        //clean backend for OffHeap version
+        backend = new long[rows * columns + INDEX_OFFSET];
+        backend[INDEX_ROWS] = rows;
+        backend[INDEX_COLUMNS] = columns;
+        backend[INDEX_MAX_COLUMN] = columns;//direct allocation
+        aligned = true;
+    }
+
     public final LMatrix appendColumn(long[] newColumn) {
-        synchronized (parent) {
-            int nbRows;
-            int nbColumns;
-            int nbMaxColumn;
-            if (backend == null) {
-                nbRows = newColumn.length;
-                nbColumns = Constants.MAP_INITIAL_CAPACITY;
-                nbMaxColumn = 0;
-                backend = new long[nbRows * nbColumns + INDEX_OFFSET];
-                backend[INDEX_ROWS] = nbRows;
-                backend[INDEX_COLUMNS] = nbColumns;
-                backend[INDEX_MAX_COLUMN] = nbMaxColumn;
-            } else {
-                nbColumns = (int) backend[INDEX_COLUMNS];
-                nbRows = (int) backend[INDEX_ROWS];
-                nbMaxColumn = (int) backend[INDEX_MAX_COLUMN];
+        if (parent != null) {
+            synchronized (parent) {
+                internal_appendColumn(newColumn);
+                parent.declareDirty();
             }
-            if (!aligned || nbMaxColumn == nbColumns) {
-                if (nbMaxColumn == nbColumns) {
-                    nbColumns = nbColumns * 2;
-                    final int newLength = nbColumns * nbRows + INDEX_OFFSET;
-                    long[] next_backend = new long[newLength];
-                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                    backend = next_backend;
-                    aligned = true;
-                } else {
-                    //direct copy
-                    long[] next_backend = new long[backend.length];
-                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                    backend = next_backend;
-                    aligned = true;
-                }
-            }
-            //just insert
-            System.arraycopy(newColumn, 0, backend, (nbMaxColumn * nbRows) + INDEX_OFFSET, newColumn.length);
-            backend[INDEX_MAX_COLUMN] = nbMaxColumn + 1;
-            parent.declareDirty();
+        } else {
+            internal_appendColumn(newColumn);
         }
         return this;
+    }
+
+    private void internal_appendColumn(long[] newColumn) {
+        int nbRows;
+        int nbColumns;
+        int nbMaxColumn;
+        if (backend == null) {
+            nbRows = newColumn.length;
+            nbColumns = Constants.MAP_INITIAL_CAPACITY;
+            nbMaxColumn = 0;
+            backend = new long[nbRows * nbColumns + INDEX_OFFSET];
+            backend[INDEX_ROWS] = nbRows;
+            backend[INDEX_COLUMNS] = nbColumns;
+            backend[INDEX_MAX_COLUMN] = nbMaxColumn;
+        } else {
+            nbColumns = (int) backend[INDEX_COLUMNS];
+            nbRows = (int) backend[INDEX_ROWS];
+            nbMaxColumn = (int) backend[INDEX_MAX_COLUMN];
+        }
+        if (!aligned || nbMaxColumn == nbColumns) {
+            if (nbMaxColumn == nbColumns) {
+                nbColumns = nbColumns * 2;
+                final int newLength = nbColumns * nbRows + INDEX_OFFSET;
+                long[] next_backend = new long[newLength];
+                System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                backend = next_backend;
+                aligned = true;
+            } else {
+                //direct copy
+                long[] next_backend = new long[backend.length];
+                System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                backend = next_backend;
+                aligned = true;
+            }
+        }
+        //just insert
+        System.arraycopy(newColumn, 0, backend, (nbMaxColumn * nbRows) + INDEX_OFFSET, newColumn.length);
+        backend[INDEX_MAX_COLUMN] = nbMaxColumn + 1;
     }
 
     @Override

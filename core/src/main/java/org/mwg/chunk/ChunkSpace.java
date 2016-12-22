@@ -2,6 +2,7 @@ package org.mwg.chunk;
 
 import org.mwg.Callback;
 import org.mwg.Graph;
+import org.mwg.struct.EGraph;
 
 public interface ChunkSpace {
 
@@ -86,5 +87,7 @@ public interface ChunkSpace {
     void freeAll();
 
     long available();
+
+    EGraph newVolatileGraph();
 
 }

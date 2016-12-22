@@ -241,7 +241,7 @@ class HeapStateChunk implements StateChunk {
                 toSet = new HeapLMatrix(this, null);
                 break;
             case Type.EGRAPH:
-                toSet = new HeapEGraph(this, null);
+                toSet = new HeapEGraph(this, null, _space.graph());
                 break;
             case Type.STRING_TO_LONG_MAP:
                 toSet = new HeapStringLongMap(this);
@@ -524,7 +524,7 @@ class HeapStateChunk implements StateChunk {
                         break;
                     case Type.EGRAPH:
                         if (casted._v[i] != null) {
-                            _v[i] = new HeapEGraph(this, (HeapEGraph) casted._v[i]);
+                            _v[i] = new HeapEGraph(this, (HeapEGraph) casted._v[i], _space.graph());
                         }
                         break;
                     case Type.EXTERNAL:

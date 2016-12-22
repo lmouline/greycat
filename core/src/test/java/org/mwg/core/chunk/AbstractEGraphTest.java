@@ -13,7 +13,7 @@ import org.mwg.plugin.MemoryFactory;
 import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
 import org.mwg.struct.ERelation;
-import org.mwg.struct.Relation;
+import org.mwg.struct.LMatrix;
 
 public abstract class AbstractEGraphTest {
 
@@ -55,9 +55,30 @@ public abstract class AbstractEGraphTest {
         }
 
         ERelation resolvedERelation = (ERelation) eNode.get("testRel");
-        Assert.assertEquals(3,resolvedERelation.size());
-        Assert.assertEquals("[2,3,4]",resolvedERelation.toString());
+        Assert.assertEquals(3, resolvedERelation.size());
+        Assert.assertEquals("[2,3,4]", resolvedERelation.toString());
 
     }
+
+    @Test
+    public void volatildeTest() {
+        Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
+        g.connect(null);
+
+        ChunkSpace space = factory.newSpace(100, g);
+
+        EGraph eGraph = space.newVolatileGraph();
+        ENode eNode = eGraph.newNode();
+
+        Assert.assertNotNull(eGraph);
+        Assert.assertNotNull(eNode);
+
+        LMatrix lmat = (LMatrix) eNode.getOrCreate("lmat", Type.LMATRIX);
+        Assert.assertNotNull(lmat);
+
+        lmat.appendColumn(new long[]{1L, 2L, 3L});
+
+    }
+
 
 }

@@ -10,6 +10,7 @@ import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.Stack;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
+import org.mwg.struct.EGraph;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.KeyHelper;
 
@@ -401,6 +402,11 @@ public class HeapChunkSpace implements ChunkSpace {
     @Override
     public final long available() {
         return _lru.size();
+    }
+
+    @Override
+    public EGraph newVolatileGraph() {
+        return new HeapEGraph(null, null, _graph);
     }
 
     public final void printMarked() {

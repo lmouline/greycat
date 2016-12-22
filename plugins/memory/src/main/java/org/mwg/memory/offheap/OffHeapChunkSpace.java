@@ -13,6 +13,7 @@ import org.mwg.memory.offheap.primary.OffHeapByteArray;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
+import org.mwg.struct.EGraph;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.KeyHelper;
 
@@ -450,6 +451,11 @@ class OffHeapChunkSpace implements ChunkSpace {
     @Override
     public final long available() {
         return _lru.size();
+    }
+
+    @Override
+    public EGraph newVolatileGraph() {
+        throw new RuntimeException("Not implemented yet!");
     }
 
 }

@@ -1,6 +1,7 @@
 package org.mwg.core.chunk.heap;
 
 import org.mwg.Constants;
+import org.mwg.Graph;
 import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
 
@@ -10,6 +11,7 @@ import java.util.Set;
 
 class HeapEGraph implements EGraph {
 
+    private final Graph _graph;
     private final HeapStateChunk parent;
     private boolean _dirty;
 
@@ -18,15 +20,16 @@ class HeapEGraph implements EGraph {
     private int _nodes_index = 0;
     private HeapENode _root;
 
-    HeapEGraph(final HeapStateChunk p_parent, final HeapEGraph origin) {
+    HeapEGraph(final HeapStateChunk p_parent, final HeapEGraph origin, final Graph p_graph) {
         parent = p_parent;
+        _graph = p_graph;
         if (origin != null) {
             _nodes_index = origin._nodes_index;
             _nodes_capacity = origin._nodes_capacity;
             _nodes = new HeapENode[_nodes_capacity];
             //pass #1: copy nodes
             for (int i = 0; i < _nodes_index; i++) {
-                _nodes[i] = new HeapENode(parent, this, parent.graph(), i, origin._nodes[i]);
+                _nodes[i] = new HeapENode(parent, this, _graph, i, origin._nodes[i]);
             }
             //pass #2: rebase all links
             for (int i = 0; i < _nodes_index; i++) {
@@ -38,7 +41,9 @@ class HeapEGraph implements EGraph {
     void declareDirty() {
         if (!_dirty) {
             _dirty = true;
-            parent.declareDirty();
+            if (parent != null) {
+                parent.declareDirty();
+            }
         }
     }
 
@@ -56,7 +61,7 @@ class HeapEGraph implements EGraph {
             _nodes_capacity = newCapacity;
             _nodes = newNodes;
         }
-        HeapENode newNode = new HeapENode(parent, this, parent.graph(), _nodes_index, null);
+        HeapENode newNode = new HeapENode(parent, this, _graph, _nodes_index, null);
         _nodes[_nodes_index] = newNode;
         _nodes_index++;
         return newNode;

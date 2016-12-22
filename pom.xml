@@ -143,6 +143,8 @@
 
         <module>plugins/benchmark</module>
 
+        <module>plugins/search</module>
+
 
     </modules>
 
