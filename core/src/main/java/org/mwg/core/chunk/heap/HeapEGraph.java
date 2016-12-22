@@ -18,7 +18,7 @@ class HeapEGraph implements EGraph {
     private int _nodes_index = 0;
     private HeapENode _root;
 
-    HeapEGraph(HeapStateChunk p_parent, HeapEGraph origin) {
+    HeapEGraph(final HeapStateChunk p_parent, final HeapEGraph origin) {
         parent = p_parent;
         if (origin != null) {
             _nodes_index = origin._nodes_index;

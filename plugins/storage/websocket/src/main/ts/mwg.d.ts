@@ -821,11 +821,11 @@ declare module org {
                     class HeapEGraph implements org.mwg.struct.EGraph {
                         private parent;
                         private _dirty;
-                        private _nodes;
+                        _nodes: org.mwg.core.chunk.heap.HeapENode[];
                         private _nodes_capacity;
                         private _nodes_index;
                         private _root;
-                        constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk);
+                        constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapEGraph);
                         declareDirty(): void;
                         newNode(): org.mwg.struct.ENode;
                         root(): org.mwg.struct.ENode;
@@ -846,8 +846,9 @@ declare module org {
                         private _hash;
                         private _type;
                         private _dirty;
-                        constructor(p_chunk: org.mwg.core.chunk.heap.HeapStateChunk, p_egraph: org.mwg.core.chunk.heap.HeapEGraph, p_graph: org.mwg.Graph, p_id: number);
+                        constructor(p_chunk: org.mwg.core.chunk.heap.HeapStateChunk, p_egraph: org.mwg.core.chunk.heap.HeapEGraph, p_graph: org.mwg.Graph, p_id: number, origin: org.mwg.core.chunk.heap.HeapENode);
                         private declareDirty();
+                        rebase(): void;
                         private internal_find(p_key);
                         private internal_get(p_key);
                         private internal_set(p_key, p_type, p_unsafe_elem, replaceIfPresent, initial);
@@ -867,6 +868,7 @@ declare module org {
                         private _capacity;
                         private parent;
                         constructor(p_listener: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapERelation);
+                        rebase(newGraph: org.mwg.core.chunk.heap.HeapEGraph): void;
                         size(): number;
                         nodes(): org.mwg.struct.ENode[];
                         node(index: number): org.mwg.struct.ENode;
