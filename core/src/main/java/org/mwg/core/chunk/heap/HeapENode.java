@@ -3,6 +3,7 @@ package org.mwg.core.chunk.heap;
 import org.mwg.Constants;
 import org.mwg.Graph;
 import org.mwg.Type;
+import org.mwg.base.AbstractExternalAttribute;
 import org.mwg.base.BaseNode;
 import org.mwg.plugin.Resolver;
 import org.mwg.struct.*;
@@ -19,11 +20,88 @@ class HeapENode implements ENode {
     private final Graph _graph;
     int _id;
 
-    HeapENode(HeapStateChunk p_chunk, HeapEGraph p_egraph, Graph p_graph, int p_id) {
+    HeapENode(final HeapStateChunk p_chunk, final HeapEGraph p_egraph, final Graph p_graph, final int p_id, final HeapENode origin) {
         chunk = p_chunk;
         egraph = p_egraph;
         _graph = p_graph;
         _id = p_id;
+        if(origin != null){
+            _capacity = origin._capacity;
+            _size = origin._size;
+            //copy keys
+            if (origin._k != null) {
+                long[] cloned_k = new long[_capacity];
+                System.arraycopy(origin._k, 0, cloned_k, 0, _capacity);
+                _k = cloned_k;
+            }
+            //copy types
+            if (origin._type != null) {
+                byte[] cloned_type = new byte[_capacity];
+                System.arraycopy(origin._type, 0, cloned_type, 0, _capacity);
+                _type = cloned_type;
+            }
+            //copy next if not empty
+            if (origin._next != null) {
+                int[] cloned_next = new int[_capacity];
+                System.arraycopy(origin._next, 0, cloned_next, 0, _capacity);
+                _next = cloned_next;
+            }
+            if (origin._hash != null) {
+                int[] cloned_hash = new int[_capacity * 2];
+                System.arraycopy(origin._hash, 0, cloned_hash, 0, _capacity * 2);
+                _hash = cloned_hash;
+            }
+            if (origin._v != null) {
+                _v = new Object[_capacity];
+                for (int i = 0; i < _size; i++) {
+                    switch (origin._type[i]) {
+                        case Type.LONG_TO_LONG_MAP:
+                            if (origin._v[i] != null) {
+                                _v[i] = ((HeapLongLongMap) origin._v[i]).cloneFor(chunk);
+                            }
+                            break;
+                        case Type.RELATION_INDEXED:
+                            if (origin._v[i] != null) {
+                                _v[i] = ((HeapRelationIndexed) origin._v[i]).cloneIRelFor(chunk);
+                            }
+                            break;
+                        case Type.LONG_TO_LONG_ARRAY_MAP:
+                            if (origin._v[i] != null) {
+                                _v[i] = ((HeapLongLongArrayMap) origin._v[i]).cloneFor(chunk);
+                            }
+                            break;
+                        case Type.STRING_TO_LONG_MAP:
+                            if (origin._v[i] != null) {
+                                _v[i] = ((HeapStringLongMap) origin._v[i]).cloneFor(chunk);
+                            }
+                            break;
+                        case Type.RELATION:
+                            if (origin._v[i] != null) {
+                                _v[i] = new HeapRelation(chunk, (HeapRelation) origin._v[i]);
+                            }
+                            break;
+                        case Type.MATRIX:
+                            if (origin._v[i] != null) {
+                                _v[i] = new HeapMatrix(chunk, (HeapMatrix) origin._v[i]);
+                            }
+                            break;
+                        case Type.LMATRIX:
+                            if (origin._v[i] != null) {
+                                _v[i] = new HeapLMatrix(chunk, (HeapLMatrix) origin._v[i]);
+                            }
+                            break;
+                        case Type.EXTERNAL:
+                            if (origin._v[i] != null) {
+                                _v[i] = ((AbstractExternalAttribute) origin._v[i]).copy();
+                            }
+                            break;
+                        default:
+                            _v[i] = origin._v[i];
+                            break;
+                    }
+                }
+            }
+        }
     }
 
     private int _capacity;
@@ -39,6 +117,21 @@ class HeapENode implements ENode {
         if (!_dirty) {
             _dirty = true;
             egraph.declareDirty();
+        }
+    }
+
+    void rebase() {
+        for (int i = 0; i < _size; i++) {
+            switch (_type[i]) {
+                case Type.ERELATION:
+                    final HeapERelation previousERel = (HeapERelation) _v[i];
+                    previousERel.rebase(egraph);
+                    break;
+                case Type.ENODE:
+                    final HeapENode previous = (HeapENode) _v[i];
+                    _v[i] = egraph._nodes[previous._id];
+                    break;
+            }
         }
     }
 
@@ -365,9 +458,6 @@ class HeapENode implements ENode {
                 break;
             case Type.LMATRIX:
                 toSet = new HeapLMatrix(chunk, null);
-                break;
-            case Type.EGRAPH:
-                toSet = new HeapEGraph(chunk);
                 break;
             case Type.STRING_TO_LONG_MAP:
                 toSet = new HeapStringLongMap(chunk);

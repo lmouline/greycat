@@ -13,13 +13,26 @@ class HeapEGraph implements EGraph {
     private final HeapStateChunk parent;
     private boolean _dirty;
 
-    private HeapENode[] _nodes = null;
+    HeapENode[] _nodes = null;
     private int _nodes_capacity = 0;
     private int _nodes_index = 0;
     private HeapENode _root;
 
-    HeapEGraph(HeapStateChunk p_parent) {
+    HeapEGraph(HeapStateChunk p_parent, HeapEGraph origin) {
         parent = p_parent;
+        if (origin != null) {
+            _nodes_index = origin._nodes_index;
+            _nodes_capacity = origin._nodes_capacity;
+            _nodes = new HeapENode[_nodes_capacity];
+            //pass #1: copy nodes
+            for (int i = 0; i < _nodes_index; i++) {
+                _nodes[i] = new HeapENode(parent, this, parent.graph(), i, origin._nodes[i]);
+            }
+            //pass #2: rebase all links
+            for (int i = 0; i < _nodes_index; i++) {
+                _nodes[i].rebase();
+            }
+        }
     }
 
     void declareDirty() {
@@ -43,7 +56,7 @@ class HeapEGraph implements EGraph {
             _nodes_capacity = newCapacity;
             _nodes = newNodes;
         }
-        HeapENode newNode = new HeapENode(parent, this, parent.graph(), _nodes_index);
+        HeapENode newNode = new HeapENode(parent, this, parent.graph(), _nodes_index, null);
         _nodes[_nodes_index] = newNode;
         _nodes_index++;
         return newNode;

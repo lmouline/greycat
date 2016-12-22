@@ -1,6 +1,7 @@
 package org.mwg.core.chunk.heap;
 
 import org.mwg.Constants;
+import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
 import org.mwg.struct.ERelation;
 
@@ -22,6 +23,13 @@ class HeapERelation implements ERelation {
             _back = null;
             _size = 0;
             _capacity = 0;
+        }
+    }
+
+    void rebase(HeapEGraph newGraph){
+        for(int i=0;i<_size;i++){
+            final HeapENode previous = (HeapENode) _back[i];
+            _back[i] = newGraph._nodes[previous._id];
         }
     }
 
