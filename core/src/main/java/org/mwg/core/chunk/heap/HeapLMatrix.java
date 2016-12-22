@@ -99,20 +99,30 @@ class HeapLMatrix implements LMatrix {
 
     @Override
     public final LMatrix fill(long value) {
-        synchronized (parent) {
-            if (backend != null) {
-                if (!aligned) {
-                    long[] next_backend = new long[backend.length];
-                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                    backend = next_backend;
-                    aligned = true;
-                }
-                Arrays.fill(backend, INDEX_OFFSET, backend.length - INDEX_OFFSET, value);
-                parent.declareDirty();
-                backend[INDEX_MAX_COLUMN] = backend[INDEX_COLUMNS];
+        if(parent != null){
+            synchronized (parent) {
+                internal_fill(value);
             }
+        } else {
+            internal_fill(value);
         }
         return this;
+    }
+
+    private void internal_fill(long value){
+        if (backend != null) {
+            if (!aligned) {
+                long[] next_backend = new long[backend.length];
+                System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                backend = next_backend;
+                aligned = true;
+            }
+            Arrays.fill(backend, INDEX_OFFSET, backend.length - INDEX_OFFSET, value);
+            backend[INDEX_MAX_COLUMN] = backend[INDEX_COLUMNS];
+            if(parent != null){
+                parent.declareDirty();
+            }
+        }
     }
 
     @Override

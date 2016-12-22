@@ -74,9 +74,12 @@ public abstract class AbstractEGraphTest {
         Assert.assertNotNull(eNode);
 
         LMatrix lmat = (LMatrix) eNode.getOrCreate("lmat", Type.LMATRIX);
-        Assert.assertNotNull(lmat);
-
         lmat.appendColumn(new long[]{1L, 2L, 3L});
+        //todo test all method of matrix
+
+        ERelation eRel = (ERelation) eNode.getOrCreate("erel",Type.ERELATION);
+        eRel.add(eNode);
+
 
     }
 

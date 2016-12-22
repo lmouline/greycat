@@ -26,8 +26,8 @@ class HeapERelation implements ERelation {
         }
     }
 
-    void rebase(HeapEGraph newGraph){
-        for(int i=0;i<_size;i++){
+    void rebase(HeapEGraph newGraph) {
+        for (int i = 0; i < _size; i++) {
             final HeapENode previous = (HeapENode) _back[i];
             _back[i] = newGraph._nodes[previous._id];
         }
@@ -61,7 +61,9 @@ class HeapERelation implements ERelation {
         }
         _back[_size] = eNode;
         _size++;
-        parent.declareDirty();
+        if (parent != null) {
+            parent.declareDirty();
+        }
         return this;
     }
 
@@ -69,7 +71,9 @@ class HeapERelation implements ERelation {
     public final ERelation addAll(final ENode[] eNodes) {
         allocate(eNodes.length + _size);
         System.arraycopy(eNodes, 0, _back, _size, eNodes.length);
-        parent.declareDirty();
+        if (parent != null) {
+            parent.declareDirty();
+        }
         return this;
     }
 
@@ -77,7 +81,9 @@ class HeapERelation implements ERelation {
     public final ERelation clear() {
         _size = 0;
         _back = null;
-        parent.declareDirty();
+        if (parent != null) {
+            parent.declareDirty();
+        }
         return this;
     }
 
