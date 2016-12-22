@@ -99,16 +99,19 @@ public abstract class AbstractStateChunkTest {
         chunk.set(0, Type.DOUBLE, 1);
         chunk.set(0, Type.DOUBLE, 1L);
         chunk.set(0, Type.DOUBLE, 1f);
+        chunk.set(0, Type.DOUBLE, (byte)0);
 
         chunk.set(0, Type.INT, 1);
         chunk.set(0, Type.INT, 1.5d);
         chunk.set(0, Type.INT, 1L);
         chunk.set(0, Type.INT, 1f);
+        chunk.set(0, Type.INT, (byte)0);
 
         chunk.set(0, Type.LONG, 1);
         chunk.set(0, Type.LONG, 1.5d);
         chunk.set(0, Type.LONG, 1L);
         chunk.set(0, Type.LONG, 1f);
+        chunk.set(0, Type.LONG, (byte)0);
 
         space.free(chunk);
         space.freeAll();

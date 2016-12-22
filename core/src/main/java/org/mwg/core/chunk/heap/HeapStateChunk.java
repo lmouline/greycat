@@ -537,6 +537,9 @@ class HeapStateChunk implements StateChunk {
                         } else if (p_unsafe_elem instanceof Float) {
                             float preCastingLong = (Float) p_unsafe_elem;
                             param_elem = (int) preCastingLong;
+                        } else if (p_unsafe_elem instanceof Byte) {
+                            byte preCastingLong = (Byte) p_unsafe_elem;
+                            param_elem = (int) preCastingLong;
                         } else {
                             param_elem = (int) p_unsafe_elem;
                         }
@@ -553,6 +556,9 @@ class HeapStateChunk implements StateChunk {
                         } else if (p_unsafe_elem instanceof Float) {
                             float preCastingLong = (Float) p_unsafe_elem;
                             param_elem = (double) preCastingLong;
+                        } else if (p_unsafe_elem instanceof Byte) {
+                            byte preCastingLong = (Byte) p_unsafe_elem;
+                            param_elem = (double) preCastingLong;
                         } else {
                             param_elem = (double) p_unsafe_elem;
                         }
@@ -568,6 +574,9 @@ class HeapStateChunk implements StateChunk {
                             param_elem = (long) preCastingLong;
                         } else if (p_unsafe_elem instanceof Float) {
                             float preCastingLong = (Float) p_unsafe_elem;
+                            param_elem = (long) preCastingLong;
+                        } else if (p_unsafe_elem instanceof Byte) {
+                            byte preCastingLong = (Byte) p_unsafe_elem;
                             param_elem = (long) preCastingLong;
                         } else {
                             param_elem = (long) p_unsafe_elem;

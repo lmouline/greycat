@@ -539,6 +539,8 @@ class OffHeapStateChunk implements StateChunk {
                             param_elem = (long) (float) p_unsafe_elem;
                         } else if (p_unsafe_elem instanceof Integer) {
                             param_elem = (long) (int) p_unsafe_elem;
+                        } else if (p_unsafe_elem instanceof Byte) {
+                            param_elem = (long) (byte) p_unsafe_elem;
                         } else {
                             param_elem = (long) p_unsafe_elem;
                         }
@@ -552,6 +554,8 @@ class OffHeapStateChunk implements StateChunk {
                             param_elem = (int) (float) p_unsafe_elem;
                         } else if (p_unsafe_elem instanceof Long) {
                             param_elem = (int) (long) p_unsafe_elem;
+                        } else if (p_unsafe_elem instanceof Byte) {
+                            param_elem = (int) (byte) p_unsafe_elem;
                         } else {
                             param_elem = (int) p_unsafe_elem;
                         }
@@ -596,6 +600,8 @@ class OffHeapStateChunk implements StateChunk {
             return (double) (float) p_unsafe_elem;
         } else if (p_unsafe_elem instanceof Long) {
             return (double) (long) p_unsafe_elem;
+        }else if (p_unsafe_elem instanceof Byte) {
+            return (double) (byte) p_unsafe_elem;
         }
         return (double) p_unsafe_elem;
     }

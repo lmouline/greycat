@@ -1381,6 +1381,8 @@ var org;
                         return "RELATION_INDEXED";
                     case org.mwg.Type.MATRIX:
                         return "MATRIX";
+                    case org.mwg.Type.LMATRIX:
+                        return "LMATRIX";
                     case org.mwg.Type.EGRAPH:
                         return "EGRAPH";
                     case org.mwg.Type.EXTERNAL:
@@ -1419,6 +1421,8 @@ var org;
                         return org.mwg.Type.RELATION_INDEXED;
                     case "MATRIX":
                         return org.mwg.Type.MATRIX;
+                    case "LMATRIX":
+                        return org.mwg.Type.LMATRIX;
                     case "EXTERNAL":
                         return org.mwg.Type.EXTERNAL;
                     case "EGRAPH":
@@ -1443,8 +1447,9 @@ var org;
         Type.RELATION = 12;
         Type.RELATION_INDEXED = 13;
         Type.MATRIX = 15;
-        Type.EGRAPH = 16;
-        Type.EXTERNAL = 17;
+        Type.LMATRIX = 16;
+        Type.EGRAPH = 17;
+        Type.EXTERNAL = 18;
         mwg.Type = Type;
         var base;
         (function (base) {
@@ -4120,6 +4125,9 @@ var org;
                                         case org.mwg.Type.MATRIX:
                                             param_elem = p_unsafe_elem;
                                             break;
+                                        case org.mwg.Type.LMATRIX:
+                                            param_elem = p_unsafe_elem;
+                                            break;
                                         case org.mwg.Type.RELATION:
                                             param_elem = p_unsafe_elem;
                                             break;
@@ -4354,6 +4362,9 @@ var org;
                                     break;
                                 case org.mwg.Type.MATRIX:
                                     toSet = new org.mwg.core.chunk.heap.HeapMatrix(this.chunk, null);
+                                    break;
+                                case org.mwg.Type.LMATRIX:
+                                    toSet = new org.mwg.core.chunk.heap.HeapLMatrix(this.chunk, null);
                                     break;
                                 case org.mwg.Type.EGRAPH:
                                     toSet = new org.mwg.core.chunk.heap.HeapEGraph(this.chunk);
@@ -4784,6 +4795,246 @@ var org;
                         return HeapGenChunk;
                     }());
                     heap.HeapGenChunk = HeapGenChunk;
+                    var HeapLMatrix = (function () {
+                        function HeapLMatrix(p_parent, origin) {
+                            this.backend = null;
+                            this.aligned = true;
+                            this.parent = p_parent;
+                            if (origin != null) {
+                                this.aligned = false;
+                                this.backend = origin.backend;
+                            }
+                        }
+                        HeapLMatrix.prototype.init = function (rows, columns) {
+                            {
+                                this.backend = new Float64Array(rows * columns + HeapLMatrix.INDEX_OFFSET);
+                                this.backend[HeapLMatrix.INDEX_ROWS] = rows;
+                                this.backend[HeapLMatrix.INDEX_COLUMNS] = columns;
+                                this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = columns;
+                                this.aligned = true;
+                                this.parent.declareDirty();
+                            }
+                            return this;
+                        };
+                        HeapLMatrix.prototype.appendColumn = function (newColumn) {
+                            {
+                                var nbRows;
+                                var nbColumns;
+                                var nbMaxColumn;
+                                if (this.backend == null) {
+                                    nbRows = newColumn.length;
+                                    nbColumns = org.mwg.Constants.MAP_INITIAL_CAPACITY;
+                                    nbMaxColumn = 0;
+                                    this.backend = new Float64Array(nbRows * nbColumns + HeapLMatrix.INDEX_OFFSET);
+                                    this.backend[HeapLMatrix.INDEX_ROWS] = nbRows;
+                                    this.backend[HeapLMatrix.INDEX_COLUMNS] = nbColumns;
+                                    this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = nbMaxColumn;
+                                }
+                                else {
+                                    nbColumns = this.backend[HeapLMatrix.INDEX_COLUMNS];
+                                    nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
+                                    nbMaxColumn = this.backend[HeapLMatrix.INDEX_MAX_COLUMN];
+                                }
+                                if (!this.aligned || nbMaxColumn == nbColumns) {
+                                    if (nbMaxColumn == nbColumns) {
+                                        nbColumns = nbColumns * 2;
+                                        var newLength = nbColumns * nbRows + HeapLMatrix.INDEX_OFFSET;
+                                        var next_backend = new Float64Array(newLength);
+                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                        this.backend = next_backend;
+                                        this.aligned = true;
+                                    }
+                                    else {
+                                        var next_backend = new Float64Array(this.backend.length);
+                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                        this.backend = next_backend;
+                                        this.aligned = true;
+                                    }
+                                }
+                                java.lang.System.arraycopy(newColumn, 0, this.backend, (nbMaxColumn * nbRows) + HeapLMatrix.INDEX_OFFSET, newColumn.length);
+                                this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = nbMaxColumn + 1;
+                                this.parent.declareDirty();
+                            }
+                            return this;
+                        };
+                        HeapLMatrix.prototype.fill = function (value) {
+                            {
+                                if (this.backend != null) {
+                                    if (!this.aligned) {
+                                        var next_backend = new Float64Array(this.backend.length);
+                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                        this.backend = next_backend;
+                                        this.aligned = true;
+                                    }
+                                    java.util.Arrays.fill(this.backend, HeapLMatrix.INDEX_OFFSET, this.backend.length - HeapLMatrix.INDEX_OFFSET, value);
+                                    this.parent.declareDirty();
+                                    this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = this.backend[HeapLMatrix.INDEX_COLUMNS];
+                                }
+                            }
+                            return this;
+                        };
+                        HeapLMatrix.prototype.fillWith = function (values) {
+                            {
+                                if (this.backend != null) {
+                                    if (!this.aligned) {
+                                        var next_backend = new Float64Array(this.backend.length);
+                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                        this.backend = next_backend;
+                                        this.aligned = true;
+                                    }
+                                    java.lang.System.arraycopy(values, 0, this.backend, HeapLMatrix.INDEX_OFFSET, values.length);
+                                    this.parent.declareDirty();
+                                }
+                            }
+                            return this;
+                        };
+                        HeapLMatrix.prototype.fillWithRandom = function (min, max, seed) {
+                            {
+                                var rand = new java.util.Random();
+                                rand.setSeed(seed);
+                                if (this.backend != null) {
+                                    if (!this.aligned) {
+                                        var next_backend = new Float64Array(this.backend.length);
+                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                        this.backend = next_backend;
+                                        this.aligned = true;
+                                    }
+                                    for (var i = 0; i < this.backend[HeapLMatrix.INDEX_ROWS] * this.backend[HeapLMatrix.INDEX_COLUMNS]; i++) {
+                                        this.backend[i + HeapLMatrix.INDEX_OFFSET] = rand.nextInt() * (max - min) + min;
+                                    }
+                                    this.parent.declareDirty();
+                                }
+                            }
+                            return this;
+                        };
+                        HeapLMatrix.prototype.rows = function () {
+                            var result = 0;
+                            {
+                                if (this.backend != null) {
+                                    result = this.backend[HeapLMatrix.INDEX_ROWS];
+                                }
+                            }
+                            return result;
+                        };
+                        HeapLMatrix.prototype.columns = function () {
+                            var result = 0;
+                            {
+                                if (this.backend != null) {
+                                    result = this.backend[HeapLMatrix.INDEX_MAX_COLUMN];
+                                }
+                            }
+                            return result;
+                        };
+                        HeapLMatrix.prototype.column = function (index) {
+                            var result;
+                            {
+                                var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
+                                result = new Float64Array(nbRows);
+                                java.lang.System.arraycopy(this.backend, HeapLMatrix.INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
+                            }
+                            return result;
+                        };
+                        HeapLMatrix.prototype.get = function (rowIndex, columnIndex) {
+                            var result = 0;
+                            {
+                                if (this.backend != null) {
+                                    var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
+                                    result = this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+                                }
+                            }
+                            return result;
+                        };
+                        HeapLMatrix.prototype.set = function (rowIndex, columnIndex, value) {
+                            {
+                                if (this.backend != null) {
+                                    if (!this.aligned) {
+                                        var next_backend = new Float64Array(this.backend.length);
+                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                        this.backend = next_backend;
+                                        this.aligned = true;
+                                    }
+                                    var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
+                                    this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
+                                    this.parent.declareDirty();
+                                }
+                            }
+                            return this;
+                        };
+                        HeapLMatrix.prototype.add = function (rowIndex, columnIndex, value) {
+                            {
+                                if (this.backend != null) {
+                                    if (!this.aligned) {
+                                        var next_backend = new Float64Array(this.backend.length);
+                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                        this.backend = next_backend;
+                                        this.aligned = true;
+                                    }
+                                    var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
+                                    this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+                                    this.parent.declareDirty();
+                                }
+                            }
+                            return this;
+                        };
+                        HeapLMatrix.prototype.data = function () {
+                            var copy = null;
+                            {
+                                if (this.backend != null) {
+                                    copy = new Float64Array(this.backend.length - HeapLMatrix.INDEX_OFFSET);
+                                    java.lang.System.arraycopy(this.backend, HeapLMatrix.INDEX_OFFSET, copy, 0, this.backend.length - HeapLMatrix.INDEX_OFFSET);
+                                }
+                            }
+                            return copy;
+                        };
+                        HeapLMatrix.prototype.leadingDimension = function () {
+                            if (this.backend == null) {
+                                return 0;
+                            }
+                            return Math.max(this.backend[HeapLMatrix.INDEX_COLUMNS], this.backend[HeapLMatrix.INDEX_ROWS]);
+                        };
+                        HeapLMatrix.prototype.unsafeGet = function (index) {
+                            var result = 0;
+                            {
+                                if (this.backend != null) {
+                                    result = this.backend[HeapLMatrix.INDEX_OFFSET + index];
+                                }
+                            }
+                            return result;
+                        };
+                        HeapLMatrix.prototype.unsafeSet = function (index, value) {
+                            {
+                                if (this.backend != null) {
+                                    if (!this.aligned) {
+                                        var next_backend = new Float64Array(this.backend.length);
+                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                        this.backend = next_backend;
+                                        this.aligned = true;
+                                    }
+                                    this.backend[HeapLMatrix.INDEX_OFFSET + index] = value;
+                                    this.parent.declareDirty();
+                                }
+                            }
+                            return this;
+                        };
+                        HeapLMatrix.prototype.unsafe_data = function () {
+                            return this.backend;
+                        };
+                        HeapLMatrix.prototype.unsafe_init = function (size) {
+                            this.backend = new Float64Array(size);
+                            this.backend[HeapLMatrix.INDEX_ROWS] = 0;
+                            this.backend[HeapLMatrix.INDEX_COLUMNS] = 0;
+                            this.aligned = true;
+                        };
+                        HeapLMatrix.prototype.unsafe_set = function (index, value) {
+                            this.backend[index] = value;
+                        };
+                        return HeapLMatrix;
+                    }());
+                    HeapLMatrix.INDEX_ROWS = 0;
+                    HeapLMatrix.INDEX_COLUMNS = 1;
+                    HeapLMatrix.INDEX_MAX_COLUMN = 2;
+                    HeapLMatrix.INDEX_OFFSET = 3;
+                    heap.HeapLMatrix = HeapLMatrix;
                     var HeapLongLongArrayMap = (function () {
                         function HeapLongLongArrayMap(p_listener) {
                             this.mapSize = 0;
@@ -6385,6 +6636,10 @@ var org;
                                                 var preCastingLong = p_unsafe_elem;
                                                 param_elem = preCastingLong;
                                             }
+                                            else if (p_unsafe_elem instanceof Number) {
+                                                var preCastingLong = p_unsafe_elem;
+                                                param_elem = preCastingLong;
+                                            }
                                             else {
                                                 param_elem = p_unsafe_elem;
                                             }
@@ -6405,6 +6660,10 @@ var org;
                                                 var preCastingLong = p_unsafe_elem;
                                                 param_elem = preCastingLong;
                                             }
+                                            else if (p_unsafe_elem instanceof Number) {
+                                                var preCastingLong = p_unsafe_elem;
+                                                param_elem = preCastingLong;
+                                            }
                                             else {
                                                 param_elem = p_unsafe_elem;
                                             }
@@ -6416,6 +6675,10 @@ var org;
                                             else if (p_unsafe_elem instanceof Number) {
                                                 var preCasting = p_unsafe_elem;
                                                 param_elem = preCasting;
+                                            }
+                                            else if (p_unsafe_elem instanceof Number) {
+                                                var preCastingLong = p_unsafe_elem;
+                                                param_elem = preCastingLong;
                                             }
                                             else if (p_unsafe_elem instanceof Number) {
                                                 var preCastingLong = p_unsafe_elem;

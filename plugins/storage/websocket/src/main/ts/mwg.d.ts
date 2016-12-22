@@ -464,6 +464,7 @@ declare module org {
             static RELATION: number;
             static RELATION_INDEXED: number;
             static MATRIX: number;
+            static LMATRIX: number;
             static EGRAPH: number;
             static EXTERNAL: number;
             static typeName(p_type: number): string;
@@ -891,6 +892,34 @@ declare module org {
                         time(): number;
                         id(): number;
                         chunkType(): number;
+                    }
+                    class HeapLMatrix implements org.mwg.struct.LMatrix {
+                        private static INDEX_ROWS;
+                        private static INDEX_COLUMNS;
+                        private static INDEX_MAX_COLUMN;
+                        private static INDEX_OFFSET;
+                        private parent;
+                        private backend;
+                        private aligned;
+                        constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapLMatrix);
+                        init(rows: number, columns: number): org.mwg.struct.LMatrix;
+                        appendColumn(newColumn: Float64Array): org.mwg.struct.LMatrix;
+                        fill(value: number): org.mwg.struct.LMatrix;
+                        fillWith(values: Float64Array): org.mwg.struct.LMatrix;
+                        fillWithRandom(min: number, max: number, seed: number): org.mwg.struct.LMatrix;
+                        rows(): number;
+                        columns(): number;
+                        column(index: number): Float64Array;
+                        get(rowIndex: number, columnIndex: number): number;
+                        set(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.LMatrix;
+                        add(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.LMatrix;
+                        data(): Float64Array;
+                        leadingDimension(): number;
+                        unsafeGet(index: number): number;
+                        unsafeSet(index: number, value: number): org.mwg.struct.LMatrix;
+                        unsafe_data(): Float64Array;
+                        unsafe_init(size: number): void;
+                        unsafe_set(index: number, value: number): void;
                     }
                     class HeapLongLongArrayMap implements org.mwg.struct.LongLongArrayMap {
                         parent: org.mwg.core.chunk.heap.HeapStateChunk;
@@ -2146,6 +2175,23 @@ declare module org {
                 getOrCreateAt(key: number, type: number): any;
                 drop(): void;
                 graph(): org.mwg.struct.EGraph;
+            }
+            interface LMatrix {
+                init(rows: number, columns: number): org.mwg.struct.LMatrix;
+                fill(value: number): org.mwg.struct.LMatrix;
+                fillWith(values: Float64Array): org.mwg.struct.LMatrix;
+                fillWithRandom(min: number, max: number, seed: number): org.mwg.struct.LMatrix;
+                rows(): number;
+                columns(): number;
+                column(i: number): Float64Array;
+                get(rowIndex: number, columnIndex: number): number;
+                set(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.LMatrix;
+                add(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.LMatrix;
+                appendColumn(newColumn: Float64Array): org.mwg.struct.LMatrix;
+                data(): Float64Array;
+                leadingDimension(): number;
+                unsafeGet(index: number): number;
+                unsafeSet(index: number, value: number): org.mwg.struct.LMatrix;
             }
             interface LongLongArrayMap extends org.mwg.struct.Map {
                 get(key: number): Float64Array;
