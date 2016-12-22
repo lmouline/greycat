@@ -46,7 +46,6 @@ public class ETree extends BaseNode implements Tree {
         super(p_world, p_time, p_id, p_graph);
     }
 
-
     private static int getRelationId(double[] centerKey, double[] keyToInsert) {
         int result = 0;
         for (int i = 0; i < centerKey.length; i++) {

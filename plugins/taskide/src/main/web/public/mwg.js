@@ -14232,28 +14232,8 @@ var org;
                 function HashHelper() {
                 }
                 HashHelper.longHash = function (number, max) {
-                    if (max <= 0) {
-                        throw new Error("Max must be > 0");
-                    }
-                    var crc = HashHelper.PRIME5;
-                    crc += number;
-                    crc += crc << 17;
-                    crc *= HashHelper.PRIME4;
-                    crc *= HashHelper.PRIME1;
-                    crc += number;
-                    crc += crc << 17;
-                    crc *= HashHelper.PRIME4;
-                    crc *= HashHelper.PRIME1;
-                    crc += HashHelper.len;
-                    crc ^= crc >>> 15;
-                    crc *= HashHelper.PRIME2;
-                    crc += number;
-                    crc ^= crc >>> 13;
-                    crc *= HashHelper.PRIME3;
-                    crc ^= crc >>> 16;
-                    crc = (crc < 0 ? crc * -1 : crc);
-                    crc = crc % max;
-                    return crc;
+                    var hash = number % max;
+                    return hash < 0 ? hash * -1 : hash;
                 };
                 HashHelper.tripleHash = function (p0, p1, p2, p3, max) {
                     if (max <= 0) {

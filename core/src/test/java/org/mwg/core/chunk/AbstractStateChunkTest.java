@@ -8,11 +8,10 @@ import org.mwg.chunk.ChunkSpace;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
 import org.mwg.plugin.MemoryFactory;
-import org.mwg.struct.Buffer;
-import org.mwg.struct.LongLongArrayMap;
-import org.mwg.struct.LongLongMap;
-import org.mwg.struct.StringLongMap;
+import org.mwg.struct.*;
 import org.mwg.utility.HashHelper;
+
+import java.util.HashMap;
 
 public abstract class AbstractStateChunkTest {
 
@@ -20,6 +19,75 @@ public abstract class AbstractStateChunkTest {
 
     public AbstractStateChunkTest(MemoryFactory factory) {
         this.factory = factory;
+    }
+
+   // @Test
+    public void speedTest() {
+
+        int nb = 5000000;
+
+        HashMap<Long, Object> hello = new HashMap<Long, Object>();
+        long before2 = System.currentTimeMillis();
+        for (long i = -nb; i < nb; i++) {
+            hello.put(i, i);
+        }
+        long after2 = System.currentTimeMillis();
+
+        int counter2 = 0;
+        long before4 = System.currentTimeMillis();
+        for (long i = -nb; i < nb; i++) {
+            counter2 += (Long) hello.get(i);
+        }
+        long after4 = System.currentTimeMillis();
+
+        System.gc();
+
+        ChunkSpace space = factory.newSpace(100, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+
+        long before = System.currentTimeMillis();
+        for (long i = -nb; i < nb; i++) {
+            chunk.set(i, Type.LONG, i);
+        }
+        long after = System.currentTimeMillis();
+
+        System.gc();
+
+        long before3 = System.currentTimeMillis();
+        int counter = 0;
+        for (long i = -nb; i < nb; i++) {
+            counter += (Long) chunk.get(i);
+        }
+        long after3 = System.currentTimeMillis();
+
+        System.gc();
+
+        StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+        EGraph eGraph = (EGraph) chunk2.getOrCreate(0, Type.EGRAPH);
+        ENode eNode = eGraph.newNode();
+        long before5 = System.currentTimeMillis();
+        for (long i = -nb; i < nb; i++) {
+            eNode.setAt(i, Type.LONG, i);
+        }
+        long after5 = System.currentTimeMillis();
+
+        System.gc();
+
+        int counter3 = 0;
+        long before6 = System.currentTimeMillis();
+        for (long i = -nb; i < nb; i++) {
+            counter3 += (Long) eNode.getAt(i);
+        }
+        long after6 = System.currentTimeMillis();
+
+        System.out.println("node:" + (after - before) + "-" + (after3 - before3));
+        System.out.println("enode:" + (after5 - before5) + "-" + (after6 - before6));
+        System.out.println("jmap:" + (after2 - before2) + "-" + (after4 - before4));
+        System.out.println(counter + "-" + counter2 + "-" + counter3);
+
+        space.free(chunk);
+        space.free(chunk2);
+        space.freeAll();
     }
 
     @Test

@@ -29,7 +29,7 @@ public class HashHelperTest {
         Assert.assertTrue(hash == -302989728);
     }
 
-    @Test
+    //@Test
     public void longHash_0Test() {
         try {
             HashHelper.longHash(1, 0);
@@ -38,7 +38,7 @@ public class HashHelperTest {
         }
     }
 
-    @Test
+    //@Test
     public void longHash_1Test() {
         try {
             HashHelper.longHash(1, CoreConstants.BEGINNING_OF_TIME);

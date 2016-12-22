@@ -16,7 +16,11 @@ public class HashHelper {
 
     private static final int len = 24;
 
-    public static long longHash(long number, long max) {
+    public final static long longHash(long number, long max) {
+        long hash = number % max;
+        return hash < 0 ? hash * -1 : hash;
+
+        /*
         if (max <= 0) {
             throw new IllegalArgumentException("Max must be > 0");
         }
@@ -36,15 +40,19 @@ public class HashHelper {
         crc ^= crc >>> 13;
         crc *= PRIME3;
         crc ^= crc >>> 16;
+        */
+
         /*
         //To check later if we can replace by somthing better
         crc = crc & 0x7FFFFFFFFFFFFFFFL; //convert positive
         crc = crc % max;           // return between 0 and max
         */
+
+        /*
         crc = (crc < 0 ? crc * -1 : crc); // positive
         crc = crc % max;
-
         return crc;
+        */
     }
 
     public static long tripleHash(byte p0, long p1, long p2, long p3, long max) {
