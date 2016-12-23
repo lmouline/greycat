@@ -80,6 +80,7 @@ class HeapLMatrix implements LMatrix {
         if (!aligned || nbMaxColumn == nbColumns) {
             if (nbMaxColumn == nbColumns) {
                 nbColumns = nbColumns * 2;
+                backend[INDEX_COLUMNS] = nbColumns;
                 final int newLength = nbColumns * nbRows + INDEX_OFFSET;
                 long[] next_backend = new long[newLength];
                 System.arraycopy(backend, 0, next_backend, 0, backend.length);

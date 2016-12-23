@@ -80,6 +80,7 @@ class HeapMatrix implements Matrix {
         if (!aligned || nbMaxColumn == nbColumns) {
             if (nbMaxColumn == nbColumns) {
                 nbColumns = nbColumns * 2;
+                backend[INDEX_COLUMNS] = nbColumns;
                 final int newLength = nbColumns * nbRows + INDEX_OFFSET;
                 double[] next_backend = new double[newLength];
                 System.arraycopy(backend, 0, next_backend, 0, backend.length);
@@ -128,7 +129,7 @@ class HeapMatrix implements Matrix {
 
     @Override
     public Matrix fillWith(double[] values) {
-        if(parent != null){
+        if (parent != null) {
             synchronized (parent) {
                 internal_fillWith(values);
             }
@@ -138,7 +139,7 @@ class HeapMatrix implements Matrix {
         return this;
     }
 
-    private void internal_fillWith(double[] values){
+    private void internal_fillWith(double[] values) {
         if (backend != null) {
             if (!aligned) {
                 double[] next_backend = new double[backend.length];
@@ -148,7 +149,7 @@ class HeapMatrix implements Matrix {
             }
             //reInit ?
             System.arraycopy(values, 0, backend, INDEX_OFFSET, values.length);
-            if(parent != null){
+            if (parent != null) {
                 parent.declareDirty();
             }
         }
@@ -166,7 +167,7 @@ class HeapMatrix implements Matrix {
         return this;
     }
 
-    private void internal_fillWithRandom(double min, double max, long seed){
+    private void internal_fillWithRandom(double min, double max, long seed) {
         Random rand = new Random();
         rand.setSeed(seed);
         if (backend != null) {
@@ -179,7 +180,7 @@ class HeapMatrix implements Matrix {
             for (int i = 0; i < backend[INDEX_ROWS] * backend[INDEX_COLUMNS]; i++) {
                 backend[i + INDEX_OFFSET] = rand.nextInt() * (max - min) + min;
             }
-            if(parent != null){
+            if (parent != null) {
                 parent.declareDirty();
             }
         }
