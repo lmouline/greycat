@@ -101,6 +101,9 @@ class HeapENode implements ENode {
                     }
                 }
             }
+        } else {
+            _capacity = 0;
+            _size = 0;
         }
     }
 
