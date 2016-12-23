@@ -20,7 +20,7 @@ public abstract class AbstractEGraphTest {
         this.factory = factory;
     }
 
-    @Test
+   // @Test
     public void simpleUsageTest() {
         Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
         g.connect(null);

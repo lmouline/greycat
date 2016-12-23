@@ -25,7 +25,7 @@ class HeapENode implements ENode {
         egraph = p_egraph;
         _graph = p_graph;
         _id = p_id;
-        if(origin != null){
+        if (origin != null) {
             _capacity = origin._capacity;
             _size = origin._size;
             //copy keys
@@ -138,25 +138,17 @@ class HeapENode implements ENode {
     private int internal_find(final long p_key) {
         if (_size == 0) {
             return -1;
-        } else if (_hash == null) {
-            for (int i = 0; i < _size; i++) {
-                if (_k[i] == p_key) {
-                    return i;
-                }
-            }
-            return -1;
-        } else {
-            final int hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
-            int m = _hash[hashIndex];
-            while (m >= 0) {
-                if (p_key == _k[m]) {
-                    return m;
-                } else {
-                    m = _next[m];
-                }
-            }
-            return -1;
         }
+        final int hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
+        int m = _hash[hashIndex];
+        while (m >= 0) {
+            if (p_key == _k[m]) {
+                return m;
+            } else {
+                m = _next[m];
+            }
+        }
+        return -1;
     }
 
     private Object internal_get(final long p_key) {
@@ -262,10 +254,16 @@ class HeapENode implements ENode {
             _k = new long[_capacity];
             _v = new Object[_capacity];
             _type = new byte[_capacity];
+            _next = new int[_capacity];
+            _hash = new int[_capacity * 2];
+            Arrays.fill(_hash, 0, _capacity * 2, -1);
+            Arrays.fill(_next, 0, _capacity, -1);
             _k[0] = p_key;
             _v[0] = param_elem;
             _type[0] = p_type;
             _size = 1;
+            int hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
+            _hash[hashIndex] = 0;
             if (!initial) {
                 declareDirty();
             }
@@ -273,37 +271,25 @@ class HeapENode implements ENode {
         }
         int entry = -1;
         int p_entry = -1;
-        int hashIndex = -1;
-        if (_hash == null) {
-            for (int i = 0; i < _size; i++) {
-                if (_k[i] == p_key) {
-                    entry = i;
-                    break;
-                }
+        int hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
+        int m = _hash[hashIndex];
+        while (m != -1) {
+            if (_k[m] == p_key) {
+                entry = m;
+                break;
             }
-        } else {
-            hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
-            int m = _hash[hashIndex];
-            while (m != -1) {
-                if (_k[m] == p_key) {
-                    entry = m;
-                    break;
-                }
-                p_entry = m;
-                m = _next[m];
-            }
+            p_entry = m;
+            m = _next[m];
         }
         //case already present
         if (entry != -1) {
             if (replaceIfPresent || (p_type != _type[entry])) {
                 if (param_elem == null) {
-                    if (_hash != null) {
-                        //unHash previous
-                        if (p_entry != -1) {
-                            _next[p_entry] = _next[entry];
-                        } else {
-                            _hash[hashIndex] = -1;
-                        }
+                    //unHash previous
+                    if (p_entry != -1) {
+                        _next[p_entry] = _next[entry];
+                    } else {
+                        _hash[hashIndex] = -1;
                     }
                     int indexVictim = _size - 1;
                     //just pop the last value
@@ -316,22 +302,20 @@ class HeapENode implements ENode {
                         _k[entry] = _k[indexVictim];
                         _v[entry] = _v[indexVictim];
                         _type[entry] = _type[indexVictim];
-                        if (_hash != null) {
-                            _next[entry] = _next[indexVictim];
-                            int victimHash = (int) HashHelper.longHash(_k[entry], _capacity * 2);
-                            int m = _hash[victimHash];
-                            if (m == indexVictim) {
-                                //the victim was the head of hashing list
-                                _hash[victimHash] = entry;
-                            } else {
-                                //the victim is in the next, reChain it
-                                while (m != -1) {
-                                    if (_next[m] == indexVictim) {
-                                        _next[m] = entry;
-                                        break;
-                                    }
-                                    m = _next[m];
+                        _next[entry] = _next[indexVictim];
+                        int victimHash = (int) HashHelper.longHash(_k[entry], _capacity * 2);
+                        m = _hash[victimHash];
+                        if (m == indexVictim) {
+                            //the victim was the head of hashing list
+                            _hash[victimHash] = entry;
+                        } else {
+                            //the victim is in the next, reChain it
+                            while (m != -1) {
+                                if (_next[m] == indexVictim) {
+                                    _next[m] = entry;
+                                    break;
                                 }
+                                m = _next[m];
                             }
                         }
                     }
@@ -352,12 +336,12 @@ class HeapENode implements ENode {
             _k[_size] = p_key;
             _v[_size] = param_elem;
             _type[_size] = p_type;
-            if (_hash != null) {
-                _next[_size] = _hash[hashIndex];
-                _hash[hashIndex] = _size;
-            }
+            _next[_size] = _hash[hashIndex];
+            _hash[hashIndex] = _size;
             _size++;
-            declareDirty();
+            if (!initial) {
+                declareDirty();
+            }
             return;
         }
         //extend capacity
