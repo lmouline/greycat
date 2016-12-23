@@ -168,9 +168,13 @@ public class ETree extends BaseNode implements Tree {
             if (buffer != null) {
                 //First step check if it already exists in the buffer
                 for (int i = 0; i < buffer.columns(); i++) {
-                    if (compare(key, buffer.column(i))) {
+                    if (compare(key, buffer.column(i), resolution)) {
                         switch (strategyType) {
                             case IndexStrategy.PROFILE: {
+                                Matrix bufferkeys = (Matrix) node.getAt(_PROFILE);
+                                for (int j = 0; j < key.length; j++) {
+                                    bufferkeys.set(j, i, bufferkeys.get(j, i) + key[j]);
+                                }
                                 LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
                                 bufferValue.set(0, i, bufferValue.get(0, i) + (int) value);
                                 node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + (int) value);
@@ -197,6 +201,8 @@ public class ETree extends BaseNode implements Tree {
                     buffer.appendColumn(key);
                     switch (strategyType) {
                         case IndexStrategy.PROFILE: {
+                            Matrix bufferkeys = (Matrix) node.getOrCreateAt(_PROFILE, Type.MATRIX);
+                            bufferkeys.appendColumn(key);
                             LMatrix bufferValue = (LMatrix) node.getOrCreateAt(_BUFFER_VALUES, Type.LMATRIX);
                             bufferValue.appendColumn(new long[]{(int) value});
                             node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + (int) value);
@@ -220,8 +226,21 @@ public class ETree extends BaseNode implements Tree {
                 }
                 //here buffer is full we need to reinsert
                 else {
-                    //reinsert all children
+                    //if it is a profile, get the average of all the keys and update the buffer before reinserting
+                    if (strategyType == IndexStrategy.PROFILE) {
+                        Matrix bufferkeys = (Matrix) node.getAt(_PROFILE);
+                        LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
+                        for (int i = 0; i < buffer.columns(); i++) {
+                            int t = (int) bufferValue.get(0, i);
+                            for (int j = 0; j < buffer.rows(); j++) {
+                                buffer.set(j, i, bufferkeys.get(j, i) / t);
+                            }
+                        }
+                        node.setAt(_PROFILE, Type.MATRIX, null);
+                    }
 
+
+                    //reinsert all children
                     if (valuetype == Type.LONG) {
                         LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
                         for (int i = 0; i < buffer.columns(); i++) {
@@ -292,10 +311,10 @@ public class ETree extends BaseNode implements Tree {
 
     }
 
-    private static boolean compare(double[] keys, double[] column) {
+    private static boolean compare(double[] key1, double[] key2, double[] precision) {
         //todo compare with distance
-        for (int i = 0; i < keys.length; i++) {
-            if (keys[i] != column[i]) {
+        for (int i = 0; i < key1.length; i++) {
+            if (Math.abs(key1[i] - key2[i]) > precision[i]) {
                 return false;
             }
         }
