@@ -20,7 +20,7 @@ public abstract class AbstractEGraphTest {
         this.factory = factory;
     }
 
-   // @Test
+    // @Test
     public void simpleUsageTest() {
         Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
         g.connect(null);
@@ -70,16 +70,16 @@ public abstract class AbstractEGraphTest {
         Assert.assertNotNull(eGraph);
         Assert.assertNotNull(eNode);
 
-        LMatrix lmat = (LMatrix) eNode.getOrCreate("lmat", Type.LMATRIX);
-        lmat.appendColumn(new long[]{1L, 2L, 3L});
-        lmat.set(1, 0, 5L);
+        //  LMatrix lmat = (LMatrix) eNode.getOrCreate("lmat", Type.LMATRIX);
+        //   lmat.appendColumn(new long[]{1L, 2L, 3L});
+        // lmat.set(1, 0, 5L);
 
-        Matrix mat = (Matrix) eNode.getOrCreate("mat", Type.MATRIX);
-        mat.appendColumn(new double[]{1.0, 2.0, 3.0});
-        mat.set(1, 0, 0.7);
+      //  Matrix mat = (Matrix) eNode.getOrCreate("mat", Type.MATRIX);
+       // mat.appendColumn(new double[]{1.0, 2.0, 3.0});
+      //  mat.set(1, 0, 0.7);
 
-        ERelation eRel = (ERelation) eNode.getOrCreate("erel", Type.ERELATION);
-        eRel.add(eNode);
+       // ERelation eRel = (ERelation) eNode.getOrCreate("erel", Type.ERELATION);
+       // eRel.add(eNode);
 
 
     }
