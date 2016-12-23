@@ -271,7 +271,7 @@ class HeapENode implements ENode {
         }
         int entry = -1;
         int p_entry = -1;
-        int hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
+        final int hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
         int m = _hash[hashIndex];
         while (m != -1) {
             if (_k[m] == p_key) {

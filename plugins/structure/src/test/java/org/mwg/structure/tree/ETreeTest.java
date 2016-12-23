@@ -7,7 +7,7 @@ import org.mwg.structure.StructurePlugin;
 import java.util.Random;
 
 public class ETreeTest {
-    @Test
+//    @Test
     public void NDTest() {
         final Graph graph = new GraphBuilder()
                 .withPlugin(new StructurePlugin())
