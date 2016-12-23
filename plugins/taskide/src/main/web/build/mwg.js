@@ -4170,6 +4170,10 @@ var org;
                                     }
                                 }
                             }
+                            else {
+                                this._capacity = 0;
+                                this._size = 0;
+                            }
                         }
                         HeapENode.prototype.declareDirty = function () {
                             if (!this._dirty) {
@@ -4195,27 +4199,17 @@ var org;
                             if (this._size == 0) {
                                 return -1;
                             }
-                            else if (this._hash == null) {
-                                for (var i = 0; i < this._size; i++) {
-                                    if (this._k[i] == p_key) {
-                                        return i;
-                                    }
+                            var hashIndex = org.mwg.utility.HashHelper.longHash(p_key, this._capacity * 2);
+                            var m = this._hash[hashIndex];
+                            while (m >= 0) {
+                                if (p_key == this._k[m]) {
+                                    return m;
                                 }
-                                return -1;
-                            }
-                            else {
-                                var hashIndex = org.mwg.utility.HashHelper.longHash(p_key, this._capacity * 2);
-                                var m = this._hash[hashIndex];
-                                while (m >= 0) {
-                                    if (p_key == this._k[m]) {
-                                        return m;
-                                    }
-                                    else {
-                                        m = this._next[m];
-                                    }
+                                else {
+                                    m = this._next[m];
                                 }
-                                return -1;
                             }
+                            return -1;
                         };
                         HeapENode.prototype.internal_get = function (p_key) {
                             if (this._size == 0) {
@@ -4325,10 +4319,16 @@ var org;
                                 this._k = new Float64Array(this._capacity);
                                 this._v = new Array(this._capacity);
                                 this._type = new Int8Array(this._capacity);
+                                this._next = new Int32Array(this._capacity);
+                                this._hash = new Int32Array(this._capacity * 2);
+                                java.util.Arrays.fill(this._hash, 0, this._capacity * 2, -1);
+                                java.util.Arrays.fill(this._next, 0, this._capacity, -1);
                                 this._k[0] = p_key;
                                 this._v[0] = param_elem;
                                 this._type[0] = p_type;
                                 this._size = 1;
+                                var hashIndex_1 = org.mwg.utility.HashHelper.longHash(p_key, this._capacity * 2);
+                                this._hash[hashIndex_1] = 0;
                                 if (!initial) {
                                     this.declareDirty();
                                 }
@@ -4336,37 +4336,24 @@ var org;
                             }
                             var entry = -1;
                             var p_entry = -1;
-                            var hashIndex = -1;
-                            if (this._hash == null) {
-                                for (var i = 0; i < this._size; i++) {
-                                    if (this._k[i] == p_key) {
-                                        entry = i;
-                                        break;
-                                    }
+                            var hashIndex = org.mwg.utility.HashHelper.longHash(p_key, this._capacity * 2);
+                            var m = this._hash[hashIndex];
+                            while (m != -1) {
+                                if (this._k[m] == p_key) {
+                                    entry = m;
+                                    break;
                                 }
-                            }
-                            else {
-                                hashIndex = org.mwg.utility.HashHelper.longHash(p_key, this._capacity * 2);
-                                var m = this._hash[hashIndex];
-                                while (m != -1) {
-                                    if (this._k[m] == p_key) {
-                                        entry = m;
-                                        break;
-                                    }
-                                    p_entry = m;
-                                    m = this._next[m];
-                                }
+                                p_entry = m;
+                                m = this._next[m];
                             }
                             if (entry != -1) {
                                 if (replaceIfPresent || (p_type != this._type[entry])) {
                                     if (param_elem == null) {
-                                        if (this._hash != null) {
-                                            if (p_entry != -1) {
-                                                this._next[p_entry] = this._next[entry];
-                                            }
-                                            else {
-                                                this._hash[hashIndex] = -1;
-                                            }
+                                        if (p_entry != -1) {
+                                            this._next[p_entry] = this._next[entry];
+                                        }
+                                        else {
+                                            this._hash[hashIndex] = -1;
                                         }
                                         var indexVictim = this._size - 1;
                                         if (entry == indexVictim) {
@@ -4378,21 +4365,19 @@ var org;
                                             this._k[entry] = this._k[indexVictim];
                                             this._v[entry] = this._v[indexVictim];
                                             this._type[entry] = this._type[indexVictim];
-                                            if (this._hash != null) {
-                                                this._next[entry] = this._next[indexVictim];
-                                                var victimHash = org.mwg.utility.HashHelper.longHash(this._k[entry], this._capacity * 2);
-                                                var m = this._hash[victimHash];
-                                                if (m == indexVictim) {
-                                                    this._hash[victimHash] = entry;
-                                                }
-                                                else {
-                                                    while (m != -1) {
-                                                        if (this._next[m] == indexVictim) {
-                                                            this._next[m] = entry;
-                                                            break;
-                                                        }
-                                                        m = this._next[m];
+                                            this._next[entry] = this._next[indexVictim];
+                                            var victimHash = org.mwg.utility.HashHelper.longHash(this._k[entry], this._capacity * 2);
+                                            m = this._hash[victimHash];
+                                            if (m == indexVictim) {
+                                                this._hash[victimHash] = entry;
+                                            }
+                                            else {
+                                                while (m != -1) {
+                                                    if (this._next[m] == indexVictim) {
+                                                        this._next[m] = entry;
+                                                        break;
                                                     }
+                                                    m = this._next[m];
                                                 }
                                             }
                                         }
@@ -4414,12 +4399,12 @@ var org;
                                 this._k[this._size] = p_key;
                                 this._v[this._size] = param_elem;
                                 this._type[this._size] = p_type;
-                                if (this._hash != null) {
-                                    this._next[this._size] = this._hash[hashIndex];
-                                    this._hash[hashIndex] = this._size;
-                                }
+                                this._next[this._size] = this._hash[hashIndex];
+                                this._hash[hashIndex] = this._size;
                                 this._size++;
-                                this.declareDirty();
+                                if (!initial) {
+                                    this.declareDirty();
+                                }
                                 return;
                             }
                             var newCapacity = this._capacity * 2;
@@ -5101,6 +5086,7 @@ var org;
                             if (!this.aligned || nbMaxColumn == nbColumns) {
                                 if (nbMaxColumn == nbColumns) {
                                     nbColumns = nbColumns * 2;
+                                    this.backend[HeapLMatrix.INDEX_COLUMNS] = nbColumns;
                                     var newLength = nbColumns * nbRows + HeapLMatrix.INDEX_OFFSET;
                                     var next_backend = new Float64Array(newLength);
                                     java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
@@ -5954,6 +5940,7 @@ var org;
                             if (!this.aligned || nbMaxColumn == nbColumns) {
                                 if (nbMaxColumn == nbColumns) {
                                     nbColumns = nbColumns * 2;
+                                    this.backend[HeapMatrix.INDEX_COLUMNS] = nbColumns;
                                     var newLength = nbColumns * nbRows + HeapMatrix.INDEX_OFFSET;
                                     var next_backend = new Float64Array(newLength);
                                     java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);

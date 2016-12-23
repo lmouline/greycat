@@ -5,8 +5,10 @@ import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.base.AbstractExternalAttribute;
 import org.mwg.base.BaseNode;
+import org.mwg.core.CoreConstants;
 import org.mwg.plugin.Resolver;
 import org.mwg.struct.*;
+import org.mwg.utility.Base64;
 import org.mwg.utility.HashHelper;
 
 import java.util.Arrays;
@@ -369,8 +371,9 @@ class HeapENode implements ENode {
         Arrays.fill(_hash, 0, _capacity * 2, -1);
         _next = new int[_capacity];
         Arrays.fill(_next, 0, _capacity, -1);
+        final long hashCapacity = _capacity * 2;
         for (int i = 0; i < _size; i++) {
-            int keyHash = (int) HashHelper.longHash(_k[i], _capacity * 2);
+            int keyHash = (int) HashHelper.longHash(_k[i], hashCapacity);
             _next[i] = _hash[keyHash];
             _hash[keyHash] = i;
         }
@@ -690,5 +693,152 @@ class HeapENode implements ENode {
         builder.append("}");
         return builder.toString();
     }
+
+    /*
+    @SuppressWarnings("Duplicates")
+    final void save(final Buffer buffer) {
+        Base64.encodeIntToBuffer(_size, buffer);
+        for (int i = 0; i < _size; i++) {
+            if (_v[i] != null) { //there is a real value
+                final Object loopValue = _v[i];
+                if (loopValue != null) {
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                    Base64.encodeLongToBuffer(_k[i], buffer);
+                    buffer.write(CoreConstants.CHUNK_SUB_SEP);
+                    Base64.encodeIntToBuffer(_type[i], buffer);
+                    buffer.write(CoreConstants.CHUNK_SUB_SEP);
+                    switch (_type[i]) {
+                        case Type.STRING:
+                            Base64.encodeStringToBuffer((String) loopValue, buffer);
+                            break;
+                        case Type.BOOL:
+                            if ((Boolean) _v[i]) {
+                                buffer.write(CoreConstants.BOOL_TRUE);
+                            } else {
+                                buffer.write(CoreConstants.BOOL_FALSE);
+                            }
+                            break;
+                        case Type.LONG:
+                            Base64.encodeLongToBuffer((Long) loopValue, buffer);
+                            break;
+                        case Type.DOUBLE:
+                            Base64.encodeDoubleToBuffer((Double) loopValue, buffer);
+                            break;
+                        case Type.INT:
+                            Base64.encodeIntToBuffer((Integer) loopValue, buffer);
+                            break;
+                        case Type.DOUBLE_ARRAY:
+                            double[] castedDoubleArr = (double[]) loopValue;
+                            Base64.encodeIntToBuffer(castedDoubleArr.length, buffer);
+                            for (int j = 0; j < castedDoubleArr.length; j++) {
+                                buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                Base64.encodeDoubleToBuffer(castedDoubleArr[j], buffer);
+                            }
+                            break;
+                        case Type.EXTERNAL:
+                            AbstractExternalAttribute externalAttribute = (AbstractExternalAttribute) loopValue;
+                            final long encodedName = _space.graph().resolver().stringToHash(externalAttribute.name(), false);
+                            Base64.encodeLongToBuffer(encodedName, buffer);
+                            buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                            String saved = externalAttribute.save();
+                            if (saved != null) {
+                                Base64.encodeStringToBuffer(saved, buffer);
+                            }
+                            break;
+                        case Type.RELATION:
+                            HeapRelation castedLongArrRel = (HeapRelation) loopValue;
+                            Base64.encodeIntToBuffer(castedLongArrRel.size(), buffer);
+                            for (int j = 0; j < castedLongArrRel.size(); j++) {
+                                buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                Base64.encodeLongToBuffer(castedLongArrRel.unsafe_get(j), buffer);
+                            }
+                            break;
+                        case Type.LONG_ARRAY:
+                            long[] castedLongArr = (long[]) loopValue;
+                            Base64.encodeIntToBuffer(castedLongArr.length, buffer);
+                            for (int j = 0; j < castedLongArr.length; j++) {
+                                buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                Base64.encodeLongToBuffer(castedLongArr[j], buffer);
+                            }
+                            break;
+                        case Type.INT_ARRAY:
+                            int[] castedIntArr = (int[]) loopValue;
+                            Base64.encodeIntToBuffer(castedIntArr.length, buffer);
+                            for (int j = 0; j < castedIntArr.length; j++) {
+                                buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                Base64.encodeIntToBuffer(castedIntArr[j], buffer);
+                            }
+                            break;
+                        case Type.MATRIX:
+                            HeapMatrix castedMatrix = (HeapMatrix) loopValue;
+                            final double[] unsafeContent = castedMatrix.unsafe_data();
+                            if (unsafeContent != null) {
+                                Base64.encodeIntToBuffer(unsafeContent.length, buffer);
+                                for (int j = 0; j < unsafeContent.length; j++) {
+                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                    Base64.encodeDoubleToBuffer(unsafeContent[j], buffer);
+                                }
+                            }
+                            break;
+                        case Type.LMATRIX:
+                            HeapLMatrix castedLMatrix = (HeapLMatrix) loopValue;
+                            final long[] unsafeLContent = castedLMatrix.unsafe_data();
+                            if (unsafeLContent != null) {
+                                Base64.encodeIntToBuffer(unsafeLContent.length, buffer);
+                                for (int j = 0; j < unsafeLContent.length; j++) {
+                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                    Base64.encodeLongToBuffer(unsafeLContent[j], buffer);
+                                }
+                            }
+                            break;
+                        case Type.STRING_TO_LONG_MAP:
+                            HeapStringLongMap castedStringLongMap = (HeapStringLongMap) loopValue;
+                            Base64.encodeLongToBuffer(castedStringLongMap.size(), buffer);
+                            castedStringLongMap.unsafe_each(new StringLongMapCallBack() {
+                                @Override
+                                public void on(final String key, final long value) {
+                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                    Base64.encodeStringToBuffer(key, buffer);
+                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SUB_SEP);
+                                    Base64.encodeLongToBuffer(value, buffer);
+                                }
+                            });
+                            break;
+                        case Type.LONG_TO_LONG_MAP:
+                            HeapLongLongMap castedLongLongMap = (HeapLongLongMap) loopValue;
+                            Base64.encodeLongToBuffer(castedLongLongMap.size(), buffer);
+                            castedLongLongMap.unsafe_each(new LongLongMapCallBack() {
+                                @Override
+                                public void on(final long key, final long value) {
+                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                    Base64.encodeLongToBuffer(key, buffer);
+                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SUB_SEP);
+                                    Base64.encodeLongToBuffer(value, buffer);
+                                }
+                            });
+                            break;
+                        case Type.RELATION_INDEXED:
+                        case Type.LONG_TO_LONG_ARRAY_MAP:
+                            HeapLongLongArrayMap castedLongLongArrayMap = (HeapLongLongArrayMap) loopValue;
+                            Base64.encodeLongToBuffer(castedLongLongArrayMap.size(), buffer);
+                            castedLongLongArrayMap.unsafe_each(new LongLongArrayMapCallBack() {
+                                @Override
+                                public void on(final long key, final long value) {
+                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                    Base64.encodeLongToBuffer(key, buffer);
+                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SUB_SEP);
+                                    Base64.encodeLongToBuffer(value, buffer);
+                                }
+                            });
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+        _dirty = false;
+    }
+*/
 
 }

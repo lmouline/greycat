@@ -287,6 +287,7 @@ class HeapStateChunk implements StateChunk {
         }
     }
 
+    @SuppressWarnings("Duplicates")
     @Override
     public synchronized final void save(final Buffer buffer) {
         Base64.encodeIntToBuffer(_size, buffer);
@@ -422,6 +423,9 @@ class HeapStateChunk implements StateChunk {
                                     Base64.encodeLongToBuffer(value, buffer);
                                 }
                             });
+                            break;
+                        case Type.EGRAPH:
+                            //TODO
                             break;
                         default:
                             break;
