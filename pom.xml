@@ -107,7 +107,6 @@
         <!-- Plugin Java -->
 
         <module>plugins/taskide</module>
-
         <!--
         <module>plugins/rest</module>
         -->

@@ -136,7 +136,7 @@ public class RestGateway implements HttpHandler {
                 int cursor = 0;
                 int lastStart = 0;
                 while (cursor < body.length()) {
-                    if (body.charAt(cursor) == Constants.QUERY_SEP) {
+                    if (body.charAt(cursor) == Constants.TASK_SEP) {
                         String p = body.substring(lastStart, cursor).trim();
                         if (!p.equals("")) {
                             String[] pArray = p.split(Constants.QUERY_KV_SEP + "");
