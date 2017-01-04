@@ -13,7 +13,7 @@ class HeapEGraph implements EGraph {
 
     private final Graph _graph;
     private final HeapStateChunk parent;
-    private boolean _dirty;
+    boolean _dirty;
 
     HeapENode[] _nodes = null;
     private int _nodes_capacity = 0;
@@ -38,7 +38,37 @@ class HeapEGraph implements EGraph {
         }
     }
 
-    void declareDirty() {
+    @Override
+    public final int size() {
+        return _nodes_index;
+    }
+
+    final void allocate(int newCapacity) {
+        final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
+        if (closePowerOfTwo > _nodes_capacity) {
+            HeapENode[] new_back = new HeapENode[closePowerOfTwo];
+            if (_nodes != null) {
+                System.arraycopy(_nodes, 0, new_back, 0, _nodes_index);
+            }
+            _nodes = new_back;
+            _nodes_capacity = closePowerOfTwo;
+        }
+    }
+
+    final ENode nodeByIndex(int index, boolean createIfAbsent) {
+        if (index < _nodes_capacity) {
+            ENode elem = _nodes[index];
+            if (elem == null && createIfAbsent) {
+                HeapENode newNode = new HeapENode(parent, this, _graph, index, null);
+                _nodes[_nodes_index] = newNode;
+            }
+            return elem;
+        } else {
+            throw new RuntimeException("bad API usage");
+        }
+    }
+
+    final void declareDirty() {
         if (!_dirty) {
             _dirty = true;
             if (parent != null) {
@@ -48,7 +78,7 @@ class HeapEGraph implements EGraph {
     }
 
     @Override
-    public ENode newNode() {
+    public final ENode newNode() {
         if (_nodes_index == _nodes_capacity) {
             int newCapacity = _nodes_capacity * 2;
             if (newCapacity == 0) {

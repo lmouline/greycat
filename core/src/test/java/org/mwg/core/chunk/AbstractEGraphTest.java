@@ -8,8 +8,10 @@ import org.mwg.Type;
 import org.mwg.chunk.ChunkSpace;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
+import org.mwg.core.MockStorage;
 import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.plugin.MemoryFactory;
+import org.mwg.plugin.Storage;
 import org.mwg.struct.*;
 
 public abstract class AbstractEGraphTest {
@@ -57,17 +59,59 @@ public abstract class AbstractEGraphTest {
         g.connect(null);
         ChunkSpace space = factory.newSpace(100, g);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
-
         EGraph egraph = (EGraph) chunk.getOrCreate(0, Type.EGRAPH);
         ENode eNode = egraph.newNode();
-
         for (int i = 0; i < 1000000; i++) {
             eNode.setAt(i, Type.INT, i);
         }
         for (int i = 0; i < 1000000; i++) {
             Assert.assertEquals(i, (int) eNode.getAt(i));
         }
+    }
 
+    @Test
+    public void loadSaveTest() {
+
+        Storage mock = new MockStorage();
+
+        Graph g = GraphBuilder.newBuilder()
+                .withScheduler(new NoopScheduler())
+                .withStorage(mock)
+                .build();
+
+        g.connect(null);
+
+        StateChunk chunk = (StateChunk) g.space().createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+        chunk.setFromKey("name", Type.STRING, "ParentChunk");
+
+        //test embedded graph attribute
+        EGraph egraph = (EGraph) chunk.getOrCreate(0, Type.EGRAPH);
+        //test primitive attribute
+        ENode eNode = egraph.newNode();
+        egraph.setRoot(eNode);
+        eNode.set("name", Type.STRING, "root");
+        ERelation eRelation = (ERelation) eNode.getOrCreate("children", Type.ERELATION);
+        for (int i = 0; i < 99; i++) {
+            ENode loopNode = egraph.newNode();
+            loopNode.set("name", Type.STRING, "node_" + i);
+            eRelation.add(loopNode);
+        }
+        long before = System.currentTimeMillis();
+        g.save(null);
+        long after = System.currentTimeMillis();
+        System.out.println("time:"+(after - before));
+        g.disconnect(null);
+
+        g = GraphBuilder.newBuilder()
+                .withScheduler(new NoopScheduler())
+                .withStorage(mock)
+                .build();
+        g.connect(null);
+        g.space().getOrLoadAndMark(ChunkType.STATE_CHUNK, 0, 0, 0, res -> {
+            StateChunk loaded = (StateChunk) res;
+            EGraph egraphLoaded = (EGraph) loaded.get(0);
+            System.out.println("loaded:"+egraphLoaded);
+        });
     }
 
     @Test

@@ -425,7 +425,14 @@ class HeapStateChunk implements StateChunk {
                             });
                             break;
                         case Type.EGRAPH:
-                            //TODO
+                            HeapEGraph castedEGraph = (HeapEGraph) loopValue;
+                            HeapENode[] eNodes = castedEGraph._nodes;
+                            Base64.encodeIntToBuffer(castedEGraph.size(), buffer);
+                            for (int j = 0; j < eNodes.length; j++) {
+                                buffer.write(CoreConstants.CHUNK_ENODE_SEP);
+                                eNodes[i].save(buffer);
+                            }
+                            castedEGraph._dirty = false;
                             break;
                         default:
                             break;
@@ -854,13 +861,14 @@ class HeapStateChunk implements StateChunk {
         double[] currentDoubleArr = null;
         long[] currentLongArr = null;
         int[] currentIntArr = null;
-        //map sub creation variables
+        //complex attributes sub creation variables
         HeapMatrix currentMatrix = null;
         HeapLMatrix currentLMatrix = null;
         HeapRelation currentRelation = null;
         HeapStringLongMap currentStringLongMap = null;
         HeapLongLongMap currentLongLongMap = null;
         HeapLongLongArrayMap currentLongLongArrayMap = null;
+        HeapEGraph currentEGraph = null;
         //array variables
         long currentSubSize = -1;
         int currentSubIndex = 0;
@@ -970,6 +978,11 @@ class HeapStateChunk implements StateChunk {
                                 }
                                 toInsert = currentLongLongArrayMap;
                                 break;
+                            //case Type.EGRAPH:
+                            //toInsert = new HeapEGraph(this, null, _space.graph());
+                            // toInsert.lo
+                            //System.out.println("TODO");
+                            //break;
                         }
                         if (toInsert != null) {
                             //insert K/V
@@ -992,6 +1005,15 @@ class HeapStateChunk implements StateChunk {
                 } else if (currentChunkElemType == -1) {
                     currentChunkElemType = (byte) Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
                     previousStart = cursor + 1;
+                }
+            } else if (current == CoreConstants.CHUNK_ENODE_SEP) {
+                if (currentSubSize == -1) {
+                    currentSubSize = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                    currentEGraph = new HeapEGraph(this, null, _space.graph());
+                    currentEGraph.allocate((int) currentSubSize);
+                } else {
+                    HeapENode newNode = (HeapENode) currentEGraph.newNode();
+                    cursor = newNode.load(buffer, cursor + 1, this) - 1;
                 }
             } else if (current == CoreConstants.CHUNK_SUB_SUB_SEP) { //SEPARATION BETWEEN ARRAY VALUES AND MAP KEY/VALUE TUPLES
                 if (currentSubSize == -1) {
@@ -1201,6 +1223,9 @@ class HeapStateChunk implements StateChunk {
                         currentLongLongArrayMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
                     }
                     toInsert = currentLongLongArrayMap;
+                    break;
+                case Type.EGRAPH:
+                    System.out.println("TODO here");
                     break;
             }
             if (toInsert != null) {

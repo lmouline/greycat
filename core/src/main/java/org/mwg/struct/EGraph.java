@@ -9,4 +9,7 @@ public interface EGraph {
     EGraph setRoot(ENode eNode);
 
     EGraph drop(ENode eNode);
+
+    int size();
+
 }
