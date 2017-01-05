@@ -4,12 +4,12 @@ import org.mwg.Constants;
 import org.mwg.memory.offheap.primary.OffHeapDoubleArray;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.struct.Buffer;
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 import org.mwg.utility.Base64;
 
 import java.util.Random;
 
-class OffHeapMatrix implements Matrix {
+class OffHeapDMatrix implements DMatrix {
 
     private static final int INDEX_ROWS = 0;
     private static final int INDEX_COLUMNS = 1;
@@ -18,13 +18,13 @@ class OffHeapMatrix implements Matrix {
     private final long index;
     private final OffHeapStateChunk chunk;
 
-    OffHeapMatrix(final OffHeapStateChunk p_chunk, final long p_index) {
+    OffHeapDMatrix(final OffHeapStateChunk p_chunk, final long p_index) {
         chunk = p_chunk;
         index = p_index;
     }
 
     @Override
-    public final Matrix init(int rows, int columns) {
+    public final DMatrix init(int rows, int columns) {
         chunk.lock();
         try {
             long addr = chunk.addrByIndex(index);
@@ -44,7 +44,7 @@ class OffHeapMatrix implements Matrix {
     }
 
     @Override
-    public Matrix appendColumn(double[] newColumn) {
+    public DMatrix appendColumn(double[] newColumn) {
         chunk.lock();
         try {
             int nbRows;
@@ -103,7 +103,7 @@ class OffHeapMatrix implements Matrix {
     }
 
     @Override
-    public final Matrix fill(double value) {
+    public final DMatrix fill(double value) {
         chunk.lock();
         try {
             final long addr = chunk.addrByIndex(index);
@@ -120,7 +120,7 @@ class OffHeapMatrix implements Matrix {
     }
 
     @Override
-    public Matrix fillWith(double[] values) {
+    public DMatrix fillWith(double[] values) {
         chunk.lock();
         try {
             final long addr = chunk.addrByIndex(index);
@@ -137,7 +137,7 @@ class OffHeapMatrix implements Matrix {
     }
 
     @Override
-    public Matrix fillWithRandom(double min, double max, long seed) {
+    public DMatrix fillWithRandom(double min, double max, long seed) {
         chunk.lock();
         try {
             final long addr = chunk.addrByIndex(index);
@@ -224,7 +224,7 @@ class OffHeapMatrix implements Matrix {
     }
 
     @Override
-    public final Matrix set(int rowIndex, int columnIndex, double value) {
+    public final DMatrix set(int rowIndex, int columnIndex, double value) {
         chunk.lock();
         try {
             final long addr = chunk.addrByIndex(index);
@@ -239,7 +239,7 @@ class OffHeapMatrix implements Matrix {
     }
 
     @Override
-    public Matrix add(int rowIndex, int columnIndex, double value) {
+    public DMatrix add(int rowIndex, int columnIndex, double value) {
         chunk.lock();
         try {
             final long addr = chunk.addrByIndex(index);
@@ -311,7 +311,7 @@ class OffHeapMatrix implements Matrix {
     }
 
     @Override
-    public Matrix unsafeSet(int indexValue, double value) {
+    public DMatrix unsafeSet(int indexValue, double value) {
         chunk.lock();
         try {
             final long addr = chunk.addrByIndex(index);

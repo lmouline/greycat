@@ -324,40 +324,6 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
             boolean initDone = false;
             long previousStart = 0;
             long loopKey = Constants.NULL_LONG;
-
-            /*
-            while (cursor < bufferSize) {
-                if (buffer.read(cursor) == Constants.CHUNK_SEP) {
-                    if (!initDone) {
-                        final long mapSize = Base64.decodeToLongWithBounds(buffer, 0, cursor);
-                        final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(mapSize) / Math.log(2)));
-                        addr = resize(addr, initialSize, initialCapacity, closePowerOfTwo);
-                        initDone = true;
-                    } else {
-                        //extra char read
-                        OffHeapLongArray.set(addr, EXTRA, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                    }
-                    previousStart = cursor + 1;
-                } else if (buffer.read(cursor) == Constants.CHUNK_SUB_SEP) {
-                    if (loopKey != Constants.NULL_LONG) {
-                        long loopValue = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                        addr = internal_put(addr, loopKey, loopValue, !isInitial);
-                        //reset key for next round
-                        loopKey = Constants.NULL_LONG;
-                    }
-                    previousStart = cursor + 1;
-                } else if (buffer.read(cursor) == Constants.CHUNK_SUB_SUB_SEP) {
-                    loopKey = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                    previousStart = cursor + 1;
-                }
-                //loop in all case
-                cursor++;
-            }
-            if (loopKey != Constants.NULL_LONG) {
-                long loopValue = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                internal_put(addr, loopKey, loopValue, !isInitial);
-            }*/
-
             while (cursor < bufferSize) {
                 final byte current = buffer.read(cursor);
                 switch (current) {
@@ -395,7 +361,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
 
     @Override
     public void loadDiff(Buffer buffer) {
-
+        //TODO
     }
 
     @Override
@@ -415,7 +381,6 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
             }
             final long size = OffHeapLongArray.get(addr, SIZE);
             Base64.encodeLongToBuffer(size, buffer);
-            buffer.write(Constants.CHUNK_SEP);
             for (long i = 0; i < size; i++) {
                 //save KV
                 buffer.write(Constants.CHUNK_VAL_SEP);
@@ -431,7 +396,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
 
     @Override
     public void saveDiff(Buffer buffer) {
-
+        //TODO
     }
 
 }

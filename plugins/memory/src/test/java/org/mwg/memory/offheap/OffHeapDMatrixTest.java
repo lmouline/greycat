@@ -4,9 +4,9 @@ import org.junit.After;
 import org.junit.Assert;
 import org.mwg.core.chunk.AbstractMatrixTest;
 
-public class OffHeapMatrixTest extends AbstractMatrixTest {
+public class OffHeapDMatrixTest extends AbstractMatrixTest {
 
-    public OffHeapMatrixTest() {
+    public OffHeapDMatrixTest() {
         super(new OffHeapMemoryFactory());
     }
 

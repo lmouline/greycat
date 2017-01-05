@@ -118,14 +118,8 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             final long addr = space.addrByIndex(index);
             final long size = OffHeapLongArray.get(addr, SIZE);
             Base64.encodeLongToBuffer(size, buffer);
-            buffer.write(Constants.CHUNK_SEP);
-            boolean isFirst = true;
             for (long i = 0; i < size; i++) {
-                if (!isFirst) {
-                    buffer.write(Constants.CHUNK_SUB_SEP);
-                } else {
-                    isFirst = false;
-                }
+                buffer.write(Constants.CHUNK_SEP);
                 Base64.encodeLongToBuffer(key(addr, i), buffer);
             }
             OffHeapLongArray.set(addr, DIRTY, 0);
@@ -143,14 +137,8 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             if (dirty) {
                 final long size = OffHeapLongArray.get(addr, SIZE);
                 Base64.encodeLongToBuffer(size, buffer);
-                buffer.write(Constants.CHUNK_SEP);
-                boolean isFirst = true;
                 for (long i = 0; i < size; i++) {
-                    if (!isFirst) {
-                        buffer.write(Constants.CHUNK_SUB_SEP);
-                    } else {
-                        isFirst = false;
-                    }
+                    buffer.write(Constants.CHUNK_SEP);
                     Base64.encodeLongToBuffer(key(addr, i), buffer);
                 }
                 OffHeapLongArray.set(addr, DIRTY, 0);
@@ -179,17 +167,21 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         long cursor = 0;
         long previous = 0;
         long payloadSize = buffer.length();
+        boolean isFirst = true;
         while (cursor < payloadSize) {
             byte current = buffer.read(cursor);
-            if (current == Constants.CHUNK_SUB_SEP) {
-                boolean insertResult = internal_insert(addr, Base64.decodeToLongWithBounds(buffer, previous, cursor), true);
-                isDirty = isDirty || insertResult;
-                previous = cursor + 1;
-            } else if (current == Constants.CHUNK_SEP) {
-                final long treeSize = Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
-                addr = reallocate(addr, OffHeapLongArray.get(addr, CAPACITY), closePowerOfTwo);
-                previous = cursor + 1;
+            if (current == Constants.CHUNK_SEP) {
+                if (isFirst) {
+                    final long treeSize = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
+                    addr = reallocate(addr, OffHeapLongArray.get(addr, CAPACITY), closePowerOfTwo);
+                    previous = cursor + 1;
+                    isFirst = false;
+                } else {
+                    boolean insertResult = internal_insert(addr, Base64.decodeToLongWithBounds(buffer, previous, cursor), true);
+                    isDirty = isDirty || insertResult;
+                    previous = cursor + 1;
+                }
             }
             cursor++;
         }
