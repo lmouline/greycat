@@ -440,7 +440,7 @@ class OffHeapStringLongMap implements StringLongMap {
                     if (previousKey == null) {
                         previousKey = Base64.decodeToStringWithBounds(buffer, previous, cursor);
                     } else {
-                        put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                        internal_put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor));
                         previousKey = null;
                     }
                 }
@@ -455,7 +455,7 @@ class OffHeapStringLongMap implements StringLongMap {
             preAllocate(Base64.decodeToLongWithBounds(buffer, previous, cursor));
         } else {
             if (previousKey != null) {
-                put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                internal_put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor));
             }
         }
         return cursor;

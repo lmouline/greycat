@@ -358,7 +358,7 @@ class OffHeapLMatrix implements LMatrix {
         Base64.encodeLongToBuffer(size, buffer);
         for (long i = 0; i < size; i++) {
             buffer.write(Constants.CHUNK_VAL_SEP);
-            Base64.encodeDoubleToBuffer(OffHeapLongArray.get(addr, i), buffer);
+            Base64.encodeLongToBuffer(OffHeapLongArray.get(addr, i), buffer);
         }
     }
 

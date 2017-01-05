@@ -182,6 +182,13 @@ public abstract class AbstractStateChunkTest {
         Buffer buffer2 = factory.newBuffer();
         chunk2.save(buffer2);
         Assert.assertTrue(compareBuffers(buffer, buffer2));
+
+        space.free(chunk);
+        space.free(chunk2);
+        buffer2.free();
+        buffer.free();
+        space.freeAll();
+
     }
 
     @Test
@@ -208,6 +215,13 @@ public abstract class AbstractStateChunkTest {
         Buffer buffer2 = factory.newBuffer();
         chunk2.save(buffer2);
         Assert.assertTrue(compareBuffers(buffer, buffer2));
+
+        space.free(chunk);
+        space.free(chunk2);
+        buffer2.free();
+        buffer.free();
+        space.freeAll();
+
     }
 
     @Test
@@ -234,6 +248,13 @@ public abstract class AbstractStateChunkTest {
         Buffer buffer2 = factory.newBuffer();
         chunk2.save(buffer2);
         Assert.assertTrue(compareBuffers(buffer, buffer2));
+
+        space.free(chunk);
+        space.free(chunk2);
+        buffer2.free();
+        buffer.free();
+        space.freeAll();
+
     }
 
     @Test

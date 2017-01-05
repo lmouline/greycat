@@ -46,24 +46,28 @@ class OffHeapRelation implements Relation {
     public final void allocate(int newCapacity) {
         chunk.lock();
         try {
-            final long addr = chunk.addrByIndex(index);
-            if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-                //initial allocation
-                final long newly = OffHeapLongArray.allocate(newCapacity + SHIFT);
-                OffHeapLongArray.set(newly, SIZE, 0);
-                OffHeapLongArray.set(newly, CAPACITY, newCapacity);
-                chunk.setAddrByIndex(index, newly);
-            } else {
-                final long capacity = OffHeapLongArray.get(addr, CAPACITY);
-                if (capacity < newCapacity) {
-                    //extends
-                    long exAddr = OffHeapLongArray.reallocate(addr, newCapacity + SHIFT);
-                    chunk.setAddrByIndex(index, exAddr);
-                    OffHeapLongArray.set(exAddr, CAPACITY, newCapacity);
-                }
-            }
+            unsafe_allocate(newCapacity);
         } finally {
             chunk.unlock();
+        }
+    }
+
+    private void unsafe_allocate(int newCapacity){
+        final long addr = chunk.addrByIndex(index);
+        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            //initial allocation
+            final long newly = OffHeapLongArray.allocate(newCapacity + SHIFT);
+            OffHeapLongArray.set(newly, SIZE, 0);
+            OffHeapLongArray.set(newly, CAPACITY, newCapacity);
+            chunk.setAddrByIndex(index, newly);
+        } else {
+            final long capacity = OffHeapLongArray.get(addr, CAPACITY);
+            if (capacity < newCapacity) {
+                //extends
+                long exAddr = OffHeapLongArray.reallocate(addr, newCapacity + SHIFT);
+                chunk.setAddrByIndex(index, exAddr);
+                OffHeapLongArray.set(exAddr, CAPACITY, newCapacity);
+            }
         }
     }
 
@@ -328,7 +332,7 @@ class OffHeapRelation implements Relation {
         while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
-                    allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    unsafe_allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
                     isFirst = false;
                 } else {
                     internal_add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -338,9 +342,7 @@ class OffHeapRelation implements Relation {
             cursor++;
             current = buffer.read(cursor);
         }
-        if (isFirst) {
-            allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
-        } else {
+        if (!isFirst) {
             internal_add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
         }
         return cursor;

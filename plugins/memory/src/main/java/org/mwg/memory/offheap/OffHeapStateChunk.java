@@ -939,7 +939,6 @@ class OffHeapStateChunk implements StateChunk {
                                         cursor++;
                                         cursor = relation.load(buffer, cursor, payloadSize);
                                         cursor++;
-                                        internal_set(read_key, read_type, relation, true, initial);
                                         previous = cursor;
                                         state = LOAD_WAITING_TYPE;
                                         break;
@@ -948,7 +947,6 @@ class OffHeapStateChunk implements StateChunk {
                                         cursor++;
                                         cursor = dmatrix.load(buffer, cursor, payloadSize);
                                         cursor++;
-                                        internal_set(read_key, read_type, dmatrix, true, initial);
                                         previous = cursor;
                                         state = LOAD_WAITING_TYPE;
                                         break;
@@ -957,7 +955,6 @@ class OffHeapStateChunk implements StateChunk {
                                         cursor++;
                                         cursor = lmatrix.load(buffer, cursor, payloadSize);
                                         cursor++;
-                                        internal_set(read_key, read_type, lmatrix, true, initial);
                                         previous = cursor;
                                         state = LOAD_WAITING_TYPE;
                                         break;
@@ -966,7 +963,6 @@ class OffHeapStateChunk implements StateChunk {
                                         cursor++;
                                         cursor = l2lmap.load(buffer, cursor, payloadSize);
                                         cursor++;
-                                        internal_set(read_key, read_type, l2lmap, true, initial);
                                         previous = cursor;
                                         state = LOAD_WAITING_TYPE;
                                         break;
@@ -975,7 +971,6 @@ class OffHeapStateChunk implements StateChunk {
                                         cursor++;
                                         cursor = l2lrmap.load(buffer, cursor, payloadSize);
                                         cursor++;
-                                        internal_set(read_key, read_type, l2lrmap, true, initial);
                                         previous = cursor;
                                         state = LOAD_WAITING_TYPE;
                                         break;
@@ -984,7 +979,6 @@ class OffHeapStateChunk implements StateChunk {
                                         cursor++;
                                         cursor = relationIndexed.load(buffer, cursor, payloadSize);
                                         cursor++;
-                                        internal_set(read_key, read_type, relationIndexed, true, initial);
                                         previous = cursor;
                                         state = LOAD_WAITING_TYPE;
                                         break;
@@ -993,7 +987,6 @@ class OffHeapStateChunk implements StateChunk {
                                         cursor++;
                                         cursor = s2lmap.load(buffer, cursor, payloadSize);
                                         cursor++;
-                                        internal_set(read_key, read_type, s2lmap, true, initial);
                                         previous = cursor;
                                         state = LOAD_WAITING_TYPE;
                                         break;
