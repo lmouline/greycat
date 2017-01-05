@@ -377,4 +377,33 @@ class OffHeapDMatrix implements DMatrix {
         OffHeapDoubleArray.free(addr);
     }
 
+    final long load(final Buffer buffer, final long offset, final long max) {
+        long cursor = offset;
+        byte current = buffer.read(cursor);
+        boolean isFirst = true;
+        long previous = offset;
+        long elemIndex = 0;
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+            if (current == Constants.CHUNK_VAL_SEP) {
+                if (isFirst) {
+                    unsafe_init(Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                    isFirst = false;
+                } else {
+                    unsafe_set(elemIndex, Base64.decodeToDoubleWithBounds(buffer, previous, cursor));
+                    elemIndex++;
+                }
+                previous = cursor + 1;
+            }
+            cursor++;
+            current = buffer.read(cursor);
+        }
+        if (isFirst) {
+            unsafe_init((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        } else {
+            unsafe_set(elemIndex, Base64.decodeToDoubleWithBounds(buffer, previous, cursor));
+        }
+        return cursor;
+    }
+
+
 }

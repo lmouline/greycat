@@ -351,8 +351,8 @@ class OffHeapLMatrix implements LMatrix {
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return;
         }
-        final long nbRows =  OffHeapLongArray.get(addr, INDEX_ROWS);
-        final long nbColumns =  OffHeapLongArray.get(addr, INDEX_COLUMNS);
+        final long nbRows = OffHeapLongArray.get(addr, INDEX_ROWS);
+        final long nbColumns = OffHeapLongArray.get(addr, INDEX_COLUMNS);
         final long flatSize = nbRows * nbColumns;
         final long size = flatSize + INDEX_OFFSET;
         Base64.encodeLongToBuffer(size, buffer);
@@ -374,6 +374,34 @@ class OffHeapLMatrix implements LMatrix {
 
     static void free(final long addr) {
         OffHeapLongArray.free(addr);
+    }
+
+    final long load(final Buffer buffer, final long offset, final long max) {
+        long cursor = offset;
+        byte current = buffer.read(cursor);
+        boolean isFirst = true;
+        long previous = offset;
+        long elemIndex = 0;
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+            if (current == Constants.CHUNK_VAL_SEP) {
+                if (isFirst) {
+                    unsafe_init(Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                    isFirst = false;
+                } else {
+                    unsafe_set(elemIndex, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    elemIndex++;
+                }
+                previous = cursor + 1;
+            }
+            cursor++;
+            current = buffer.read(cursor);
+        }
+        if (isFirst) {
+            unsafe_init((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        } else {
+            unsafe_set(elemIndex, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        }
+        return cursor;
     }
 
 }

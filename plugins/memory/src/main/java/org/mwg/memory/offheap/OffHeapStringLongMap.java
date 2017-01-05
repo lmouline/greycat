@@ -425,6 +425,43 @@ class OffHeapStringLongMap implements StringLongMap {
         }
     }
 
+    final long load(final Buffer buffer, final long offset, final long max) {
+        long cursor = offset;
+        byte current = buffer.read(cursor);
+        boolean isFirst = true;
+        long previous = offset;
+        String previousKey = null;
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+            if (current == Constants.CHUNK_VAL_SEP) {
+                if (isFirst) {
+                    preAllocate(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    isFirst = false;
+                } else {
+                    if (previousKey == null) {
+                        previousKey = Base64.decodeToStringWithBounds(buffer, previous, cursor);
+                    } else {
+                        put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                        previousKey = null;
+                    }
+                }
+                previous = cursor + 1;
+            }
+            cursor++;
+            if (cursor < max) {
+                current = buffer.read(cursor);
+            }
+        }
+        if (isFirst) {
+            preAllocate(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        } else {
+            if (previousKey != null) {
+                put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+            }
+        }
+        return cursor;
+    }
+
+
 }
 
 

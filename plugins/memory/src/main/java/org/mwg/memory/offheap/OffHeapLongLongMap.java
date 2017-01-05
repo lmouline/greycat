@@ -328,6 +328,45 @@ class OffHeapLongLongMap implements LongLongMap {
         }
     }
 
+    final long load(final Buffer buffer, final long offset, final long max) {
+        long cursor = offset;
+        byte current = buffer.read(cursor);
+        boolean isFirst = true;
+        long previous = offset;
+        long previousKey = -1;
+        boolean waitingVal = false;
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+            if (current == Constants.CHUNK_VAL_SEP) {
+                if (isFirst) {
+                    preAllocate(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    isFirst = false;
+                } else {
+                    if (!waitingVal) {
+                        previousKey = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                        waitingVal = true;
+                    } else {
+                        waitingVal = false;
+                        internal_put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    }
+                }
+                previous = cursor + 1;
+            }
+            cursor++;
+            if (cursor < max) {
+                current = buffer.read(cursor);
+            }
+        }
+        if (isFirst) {
+            preAllocate(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        } else {
+            if (waitingVal) {
+                internal_put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+            }
+        }
+        return cursor;
+    }
+
+
 }
 
 

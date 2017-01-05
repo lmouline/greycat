@@ -320,4 +320,31 @@ class OffHeapRelation implements Relation {
         OffHeapLongArray.free(addr);
     }
 
+    final long load(final Buffer buffer, final long offset, final long max) {
+        long cursor = offset;
+        byte current = buffer.read(cursor);
+        boolean isFirst = true;
+        long previous = offset;
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+            if (current == Constants.CHUNK_VAL_SEP) {
+                if (isFirst) {
+                    allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    isFirst = false;
+                } else {
+                    internal_add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                }
+                previous = cursor + 1;
+            }
+            cursor++;
+            current = buffer.read(cursor);
+        }
+        if (isFirst) {
+            allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        } else {
+            internal_add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        }
+        return cursor;
+    }
+
+
 }

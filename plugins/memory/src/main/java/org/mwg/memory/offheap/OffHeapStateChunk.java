@@ -6,6 +6,8 @@ import org.mwg.Type;
 import org.mwg.base.BaseExternalAttribute;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
+import org.mwg.core.CoreConstants;
+import org.mwg.core.chunk.heap.*;
 import org.mwg.memory.offheap.primary.OffHeapDoubleArray;
 import org.mwg.memory.offheap.primary.OffHeapIntArray;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
@@ -375,7 +377,7 @@ class OffHeapStateChunk implements StateChunk {
                 for (int i = 0; i < size; i++) {
                     buffer.write(Constants.CHUNK_SEP);
                     final byte type = type(addr, i);
-                    Base64.encodeIntToBuffer(type, buffer);
+                    Base64.encodeIntToBuffer((int) type, buffer);
                     buffer.write(Constants.CHUNK_SEP);
                     Base64.encodeLongToBuffer(key(addr, i), buffer);
                     buffer.write(Constants.CHUNK_SEP);
@@ -385,13 +387,11 @@ class OffHeapStateChunk implements StateChunk {
                             OffHeapString.save(rawValue, buffer);
                             break;
                         case Type.BOOL:
-                            /*
                             if (rawValue == 1) {
-                                buffer.write(Constants.BOOL_TRUE);
+                                Base64.encodeIntToBuffer(CoreConstants.BOOL_TRUE, buffer);
                             } else {
-                                buffer.write(Constants.BOOL_FALSE);
+                                Base64.encodeIntToBuffer(CoreConstants.BOOL_FALSE, buffer);
                             }
-                            */
                             break;
                         case Type.LONG:
                             Base64.encodeLongToBuffer(rawValue, buffer);
@@ -436,6 +436,9 @@ class OffHeapStateChunk implements StateChunk {
                         case Type.LONG_TO_LONG_ARRAY_MAP:
                             OffHeapLongLongArrayMap.save(rawValue, buffer);
                             break;
+                        case Type.EGRAPH:
+                            //TODO waiting for thomad
+                            break;
                         default:
                             break;
                     }
@@ -451,7 +454,7 @@ class OffHeapStateChunk implements StateChunk {
 
     @Override
     public void saveDiff(Buffer buffer) {
-
+        //TODO
     }
 
     @Override
@@ -475,7 +478,6 @@ class OffHeapStateChunk implements StateChunk {
                 //nothing set yet, don't clone
                 if (castedAddr == OffHeapConstants.OFFHEAP_NULL_PTR) {
                     space.setAddrByIndex(index, OffHeapConstants.OFFHEAP_NULL_PTR);
-
                 } else {
                     final long castedCapacity = OffHeapLongArray.get(castedAddr, CAPACITY);
                     final long castedSize = OffHeapLongArray.get(castedAddr, SIZE);
@@ -520,6 +522,7 @@ class OffHeapStateChunk implements StateChunk {
                             case Type.STRING_TO_LONG_MAP:
                                 setValue(addr, i, OffHeapStringLongMap.clone(value(castedAddr, i)));
                                 break;
+                            //TODO add EGRAPH MANAGEMENT
                         }
                     }
                     space.setAddrByIndex(index, addr);
@@ -786,8 +789,252 @@ class OffHeapStateChunk implements StateChunk {
         }
     }
 
+    private static final byte LOAD_WAITING_ALLOC = 0;
+    private static final byte LOAD_WAITING_TYPE = 1;
+    private static final byte LOAD_WAITING_KEY = 2;
+    private static final byte LOAD_WAITING_VALUE = 3;
+
     @Override
     public final void load(final Buffer buffer) {
+        if (buffer != null && buffer.length() > 0) {
+            lock();
+            try {
+                long addr = space.addrByIndex(index);
+                final boolean initial = (addr == OffHeapConstants.OFFHEAP_NULL_PTR);
+                long capacity = 0;
+                if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                    capacity = OffHeapLongArray.get(addr, CAPACITY);
+                }
+                final long payloadSize = buffer.length();
+                long previous = 0;
+                long cursor = 0;
+                byte state = LOAD_WAITING_ALLOC;
+                byte read_type = -1;
+                long read_key = -1;
+                while (cursor < payloadSize) {
+                    byte current = buffer.read(cursor);
+                    if (current == Constants.CHUNK_SEP) {
+                        switch (state) {
+                            case LOAD_WAITING_ALLOC:
+                                final int stateChunkSize = Base64.decodeToIntWithBounds(buffer, 0, cursor);
+                                final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(stateChunkSize) / Math.log(2)));
+                                if (capacity < closePowerOfTwo) {
+                                    addr = allocate(addr, closePowerOfTwo);
+                                    capacity = closePowerOfTwo;
+                                }
+                                state = LOAD_WAITING_TYPE;
+                                cursor++;
+                                previous = cursor;
+                                break;
+                            case LOAD_WAITING_TYPE:
+                                read_type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                                state = LOAD_WAITING_KEY;
+                                cursor++;
+                                previous = cursor;
+                                break;
+                            case LOAD_WAITING_KEY:
+                                read_key = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                //primitive default loader
+                                switch (read_type) {
+                                    //primitive types
+                                    case Type.BOOL:
+                                    case Type.INT:
+                                    case Type.DOUBLE:
+                                    case Type.LONG:
+                                    case Type.STRING:
+                                        state = LOAD_WAITING_VALUE;
+                                        cursor++;
+                                        previous = cursor;
+                                        break;
+                                    //arrays
+                                    case Type.DOUBLE_ARRAY:
+                                        double[] doubleArrayLoaded = null;
+                                        int doubleArrayIndex = 0;
+                                        cursor++;
+                                        previous = cursor;
+                                        current = buffer.read(cursor);
+                                        while (cursor < payloadSize && current != Constants.CHUNK_SEP) {
+                                            if (current == Constants.CHUNK_VAL_SEP) {
+                                                if (doubleArrayLoaded == null) {
+                                                    doubleArrayLoaded = new double[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
+                                                } else {
+                                                    doubleArrayLoaded[doubleArrayIndex] = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
+                                                    doubleArrayIndex++;
+                                                }
+                                                previous = cursor + 1;
+                                            }
+                                            cursor++;
+                                            current = buffer.read(cursor);
+                                        }
+                                        if (doubleArrayLoaded == null) {
+                                            doubleArrayLoaded = new double[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
+                                        } else {
+                                            doubleArrayLoaded[doubleArrayIndex] = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
+                                        }
+                                        internal_set(read_key, read_type, doubleArrayLoaded, true, initial);
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                        break;
+                                    case Type.LONG_ARRAY:
+                                        long[] longArrayLoaded = null;
+                                        int longArrayIndex = 0;
+                                        cursor++;
+                                        previous = cursor;
+                                        current = buffer.read(cursor);
+                                        while (cursor < payloadSize && current != Constants.CHUNK_SEP) {
+                                            if (current == Constants.CHUNK_VAL_SEP) {
+                                                if (longArrayLoaded == null) {
+                                                    longArrayLoaded = new long[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
+                                                } else {
+                                                    longArrayLoaded[longArrayIndex] = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                                    longArrayIndex++;
+                                                }
+                                                previous = cursor + 1;
+                                            }
+                                            cursor++;
+                                            current = buffer.read(cursor);
+                                        }
+                                        if (longArrayLoaded == null) {
+                                            longArrayLoaded = new long[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
+                                        } else {
+                                            longArrayLoaded[longArrayIndex] = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                        }
+                                        internal_set(read_key, read_type, longArrayLoaded, true, initial);
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                        break;
+                                    case Type.INT_ARRAY:
+                                        int[] intArrayLoaded = null;
+                                        int intArrayIndex = 0;
+                                        cursor++;
+                                        previous = cursor;
+                                        current = buffer.read(cursor);
+                                        while (cursor < payloadSize && current != Constants.CHUNK_SEP) {
+                                            if (current == Constants.CHUNK_VAL_SEP) {
+                                                if (intArrayLoaded == null) {
+                                                    intArrayLoaded = new int[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
+                                                } else {
+                                                    intArrayLoaded[intArrayIndex] = Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                                                    intArrayIndex++;
+                                                }
+                                                previous = cursor + 1;
+                                            }
+                                            cursor++;
+                                            current = buffer.read(cursor);
+                                        }
+                                        if (intArrayLoaded == null) {
+                                            intArrayLoaded = new int[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
+                                        } else {
+                                            intArrayLoaded[intArrayIndex] = Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                                        }
+                                        internal_set(read_key, read_type, intArrayLoaded, true, initial);
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                        break;
+                                    case Type.RELATION:
+                                        OffHeapRelation relation = new OffHeapRelation(this, internal_set(read_key, read_type, null, true, initial));
+                                        cursor++;
+                                        cursor = relation.load(buffer, cursor, payloadSize);
+                                        cursor++;
+                                        internal_set(read_key, read_type, relation, true, initial);
+                                        previous = cursor;
+                                        state = LOAD_WAITING_TYPE;
+                                        break;
+                                    case Type.DMATRIX:
+                                        OffHeapDMatrix dmatrix = new OffHeapDMatrix(this, internal_set(read_key, read_type, null, true, initial));
+                                        cursor++;
+                                        cursor = dmatrix.load(buffer, cursor, payloadSize);
+                                        cursor++;
+                                        internal_set(read_key, read_type, dmatrix, true, initial);
+                                        previous = cursor;
+                                        state = LOAD_WAITING_TYPE;
+                                        break;
+                                    case Type.LMATRIX:
+                                        OffHeapLMatrix lmatrix = new OffHeapLMatrix(this, internal_set(read_key, read_type, null, true, initial));
+                                        cursor++;
+                                        cursor = lmatrix.load(buffer, cursor, payloadSize);
+                                        cursor++;
+                                        internal_set(read_key, read_type, lmatrix, true, initial);
+                                        previous = cursor;
+                                        state = LOAD_WAITING_TYPE;
+                                        break;
+                                    case Type.LONG_TO_LONG_MAP:
+                                        OffHeapLongLongMap l2lmap = new OffHeapLongLongMap(this, internal_set(read_key, read_type, null, true, initial));
+                                        cursor++;
+                                        cursor = l2lmap.load(buffer, cursor, payloadSize);
+                                        cursor++;
+                                        internal_set(read_key, read_type, l2lmap, true, initial);
+                                        previous = cursor;
+                                        state = LOAD_WAITING_TYPE;
+                                        break;
+                                    case Type.LONG_TO_LONG_ARRAY_MAP:
+                                        OffHeapLongLongArrayMap l2lrmap = new OffHeapLongLongArrayMap(this, internal_set(read_key, read_type, null, true, initial));
+                                        cursor++;
+                                        cursor = l2lrmap.load(buffer, cursor, payloadSize);
+                                        cursor++;
+                                        internal_set(read_key, read_type, l2lrmap, true, initial);
+                                        previous = cursor;
+                                        state = LOAD_WAITING_TYPE;
+                                        break;
+                                    case Type.RELATION_INDEXED:
+                                        OffHeapRelationIndexed relationIndexed = new OffHeapRelationIndexed(this, internal_set(read_key, read_type, null, true, initial));
+                                        cursor++;
+                                        cursor = relationIndexed.load(buffer, cursor, payloadSize);
+                                        cursor++;
+                                        internal_set(read_key, read_type, relationIndexed, true, initial);
+                                        previous = cursor;
+                                        state = LOAD_WAITING_TYPE;
+                                        break;
+                                    case Type.STRING_TO_LONG_MAP:
+                                        OffHeapStringLongMap s2lmap = new OffHeapStringLongMap(this, internal_set(read_key, read_type, null, true, initial));
+                                        cursor++;
+                                        cursor = s2lmap.load(buffer, cursor, payloadSize);
+                                        cursor++;
+                                        internal_set(read_key, read_type, s2lmap, true, initial);
+                                        previous = cursor;
+                                        state = LOAD_WAITING_TYPE;
+                                        break;
+                                    case Type.EGRAPH:
+                                        /*
+                                        HeapEGraph eGraph = new HeapEGraph(this, null, this.graph());
+                                        cursor++;
+                                        cursor = eGraph.load(buffer, cursor, payloadSize);
+                                        cursor++;
+                                        internal_set(read_key, read_type, eGraph, true, initial);
+                                        previous = cursor;
+                                        state = LOAD_WAITING_TYPE;
+                                        */
+
+                                        //TODO
+                                        break;
+                                    default:
+                                        throw new RuntimeException("Not implemented yet!!!");
+                                }
+                                break;
+                            case LOAD_WAITING_VALUE:
+                                load_primitive(read_key, read_type, buffer, previous, cursor, initial);
+                                state = LOAD_WAITING_TYPE;
+                                cursor++;
+                                previous = cursor;
+                                break;
+                        }
+                    } else {
+                        cursor++;
+                    }
+                }
+                if (state == LOAD_WAITING_VALUE) {
+                    load_primitive(read_key, read_type, buffer, previous, cursor, initial);
+                }
+            } finally {
+                unlock();
+            }
+        }
+
+
+
         /*
 
         if (buffer == null || buffer.length() == 0) {
@@ -1138,6 +1385,26 @@ class OffHeapStateChunk implements StateChunk {
             unlock();
         }
         */
+    }
+
+    private void load_primitive(final long read_key, final byte read_type, final Buffer buffer, final long previous, final long cursor, final boolean initial) {
+        switch (read_type) {
+            case Type.BOOL:
+                internal_set(read_key, read_type, (((byte) Base64.decodeToIntWithBounds(buffer, previous, cursor)) == CoreConstants.BOOL_TRUE), true, initial);
+                break;
+            case Type.INT:
+                internal_set(read_key, read_type, Base64.decodeToIntWithBounds(buffer, previous, cursor), true, initial);
+                break;
+            case Type.DOUBLE:
+                internal_set(read_key, read_type, Base64.decodeToDoubleWithBounds(buffer, previous, cursor), true, initial);
+                break;
+            case Type.LONG:
+                internal_set(read_key, read_type, Base64.decodeToLongWithBounds(buffer, previous, cursor), true, initial);
+                break;
+            case Type.STRING:
+                internal_set(read_key, read_type, Base64.decodeToStringWithBounds(buffer, previous, cursor), true, initial);
+                break;
+        }
     }
 
     @Override
