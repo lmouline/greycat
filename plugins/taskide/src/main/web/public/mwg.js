@@ -4037,10 +4037,13 @@ var org;
                         };
                         HeapEGraph.prototype.nodeByIndex = function (index, createIfAbsent) {
                             if (index < this._nodes_capacity) {
+                                if (index > this._nodes_index) {
+                                    this._nodes_index = index + 1;
+                                }
                                 var elem = this._nodes[index];
                                 if (elem == null && createIfAbsent) {
-                                    var newNode = new org.mwg.core.chunk.heap.HeapENode(this.parent, this, this._graph, index, null);
-                                    this._nodes[this._nodes_index] = newNode;
+                                    elem = new org.mwg.core.chunk.heap.HeapENode(this.parent, this, this._graph, index, null);
+                                    this._nodes[index] = elem;
                                 }
                                 return elem;
                             }
@@ -4075,10 +4078,21 @@ var org;
                             return newNode;
                         };
                         HeapEGraph.prototype.root = function () {
-                            return this._root;
+                            if (this._nodes_index > 0) {
+                                return this._nodes[0];
+                            }
+                            return null;
                         };
                         HeapEGraph.prototype.setRoot = function (eNode) {
-                            this._root = eNode;
+                            var casted = eNode;
+                            var previousID = casted._id;
+                            if (previousID != 0) {
+                                var previousRoot = this._nodes[0];
+                                this._nodes[previousID] = previousRoot;
+                                previousRoot._id = previousID;
+                                this._nodes[0] = casted;
+                                casted._id = 0;
+                            }
                             return this;
                         };
                         HeapEGraph.prototype.drop = function (eNode) {
@@ -4097,13 +4111,7 @@ var org;
                         };
                         HeapEGraph.prototype.toString = function () {
                             var builder = new java.lang.StringBuilder();
-                            builder.append("{");
-                            if (this._root != null) {
-                                builder.append("\"root\":");
-                                builder.append(this._root._id);
-                                builder.append(",");
-                            }
-                            builder.append("\"nodes\":[");
+                            builder.append("{\"nodes\":[");
                             for (var i = 0; i < this._nodes_index; i++) {
                                 if (i != 0) {
                                     builder.append(",");
@@ -4117,24 +4125,22 @@ var org;
                             var cursor = offset;
                             var current = buffer.read(cursor);
                             var isFirst = true;
-                            var previous = offset;
+                            var insertIndex = 0;
                             while (cursor < max && current != org.mwg.Constants.CHUNK_SEP) {
                                 if (current == org.mwg.Constants.CHUNK_ENODE_SEP) {
                                     if (isFirst) {
-                                        this.allocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                        this.allocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, offset, cursor));
                                         isFirst = false;
                                     }
-                                    else {
-                                    }
-                                    previous = cursor + 1;
+                                    cursor++;
+                                    var eNode = this.nodeByIndex(insertIndex, true);
+                                    cursor = eNode.load(buffer, cursor, this.parent);
+                                    insertIndex++;
                                 }
-                                cursor++;
+                                else {
+                                    cursor++;
+                                }
                                 current = buffer.read(cursor);
-                            }
-                            if (isFirst) {
-                                this.allocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                            }
-                            else {
                             }
                             return cursor;
                         };
@@ -4824,9 +4830,9 @@ var org;
                                     var loopValue = this._v[i];
                                     if (loopValue != null) {
                                         buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
-                                        org.mwg.utility.Base64.encodeLongToBuffer(this._k[i], buffer);
-                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
                                         org.mwg.utility.Base64.encodeIntToBuffer(this._type[i], buffer);
+                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                        org.mwg.utility.Base64.encodeLongToBuffer(this._k[i], buffer);
                                         buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
                                         switch (this._type[i]) {
                                             case org.mwg.Type.ENODE:
@@ -4979,7 +4985,10 @@ var org;
                             var read_key = -1;
                             while (cursor < payloadSize) {
                                 var current = buffer.read(cursor);
-                                if (current == org.mwg.Constants.CHUNK_SEP) {
+                                if (current == org.mwg.Constants.CHUNK_ENODE_SEP) {
+                                    break;
+                                }
+                                else if (current == org.mwg.Constants.CHUNK_SEP) {
                                     switch (state) {
                                         case HeapENode.LOAD_WAITING_ALLOC:
                                             this.allocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -5001,6 +5010,7 @@ var org;
                                                 case org.mwg.Type.DOUBLE:
                                                 case org.mwg.Type.LONG:
                                                 case org.mwg.Type.STRING:
+                                                case org.mwg.Type.ENODE:
                                                     state = HeapENode.LOAD_WAITING_VALUE;
                                                     cursor++;
                                                     previous = cursor;
@@ -5011,7 +5021,7 @@ var org;
                                                     cursor++;
                                                     previous = cursor;
                                                     current = buffer.read(cursor);
-                                                    while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP) {
+                                                    while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP) {
                                                         if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                                             if (doubleArrayLoaded == null) {
                                                                 doubleArrayLoaded = new Float64Array(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -5032,9 +5042,11 @@ var org;
                                                         doubleArrayLoaded[doubleArrayIndex] = org.mwg.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
                                                     }
                                                     this.internal_set(read_key, read_type, doubleArrayLoaded, true, initial);
-                                                    state = HeapENode.LOAD_WAITING_TYPE;
-                                                    cursor++;
-                                                    previous = cursor;
+                                                    if (current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                                                        state = HeapENode.LOAD_WAITING_TYPE;
+                                                        cursor++;
+                                                        previous = cursor;
+                                                    }
                                                     break;
                                                 case org.mwg.Type.LONG_ARRAY:
                                                     var longArrayLoaded = null;
@@ -5042,7 +5054,7 @@ var org;
                                                     cursor++;
                                                     previous = cursor;
                                                     current = buffer.read(cursor);
-                                                    while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP) {
+                                                    while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP) {
                                                         if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                                             if (longArrayLoaded == null) {
                                                                 longArrayLoaded = new Float64Array(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -5063,9 +5075,11 @@ var org;
                                                         longArrayLoaded[longArrayIndex] = org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
                                                     }
                                                     this.internal_set(read_key, read_type, longArrayLoaded, true, initial);
-                                                    state = HeapENode.LOAD_WAITING_TYPE;
-                                                    cursor++;
-                                                    previous = cursor;
+                                                    if (current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                                                        state = HeapENode.LOAD_WAITING_TYPE;
+                                                        cursor++;
+                                                        previous = cursor;
+                                                    }
                                                     break;
                                                 case org.mwg.Type.INT_ARRAY:
                                                     var intArrayLoaded = null;
@@ -5073,7 +5087,7 @@ var org;
                                                     cursor++;
                                                     previous = cursor;
                                                     current = buffer.read(cursor);
-                                                    while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP) {
+                                                    while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP) {
                                                         if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                                             if (intArrayLoaded == null) {
                                                                 intArrayLoaded = new Int32Array(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -5094,9 +5108,11 @@ var org;
                                                         intArrayLoaded[intArrayIndex] = org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
                                                     }
                                                     this.internal_set(read_key, read_type, intArrayLoaded, true, initial);
-                                                    state = HeapENode.LOAD_WAITING_TYPE;
-                                                    cursor++;
-                                                    previous = cursor;
+                                                    if (current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                                                        state = HeapENode.LOAD_WAITING_TYPE;
+                                                        cursor++;
+                                                        previous = cursor;
+                                                    }
                                                     break;
                                                 case org.mwg.Type.RELATION:
                                                     var relation = new org.mwg.core.chunk.heap.HeapRelation(p_parent, null);
@@ -5161,14 +5177,38 @@ var org;
                                                     previous = cursor;
                                                     state = HeapENode.LOAD_WAITING_TYPE;
                                                     break;
-                                                case org.mwg.Type.EGRAPH:
-                                                    var eGraph = new org.mwg.core.chunk.heap.HeapEGraph(p_parent, null, p_parent.graph());
+                                                case org.mwg.Type.ERELATION:
+                                                    var eRelation = null;
                                                     cursor++;
-                                                    cursor = eGraph.load(buffer, cursor, payloadSize);
-                                                    cursor++;
-                                                    this.internal_set(read_key, read_type, eGraph, true, initial);
                                                     previous = cursor;
-                                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                                    current = buffer.read(cursor);
+                                                    while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                                                        if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
+                                                            if (eRelation == null) {
+                                                                eRelation = new org.mwg.core.chunk.heap.HeapERelation(p_parent, null);
+                                                                eRelation.allocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                                            }
+                                                            else {
+                                                                eRelation.add(this.egraph.nodeByIndex(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor), true));
+                                                            }
+                                                            previous = cursor + 1;
+                                                        }
+                                                        cursor++;
+                                                        current = buffer.read(cursor);
+                                                    }
+                                                    if (eRelation == null) {
+                                                        eRelation = new org.mwg.core.chunk.heap.HeapERelation(p_parent, null);
+                                                        eRelation.allocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                                    }
+                                                    else {
+                                                        eRelation.add(this.egraph.nodeByIndex(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor), true));
+                                                    }
+                                                    this.internal_set(read_key, read_type, eRelation, true, initial);
+                                                    if (current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                                                        state = HeapENode.LOAD_WAITING_TYPE;
+                                                        cursor++;
+                                                        previous = cursor;
+                                                    }
                                                     break;
                                                 default:
                                                     throw new Error("Not implemented yet!!!");
@@ -5207,6 +5247,9 @@ var org;
                                     break;
                                 case org.mwg.Type.STRING:
                                     this.internal_set(read_key, read_type, org.mwg.utility.Base64.decodeToStringWithBounds(buffer, previous, cursor), true, initial);
+                                    break;
+                                case org.mwg.Type.ENODE:
+                                    this.internal_set(read_key, read_type, this.egraph.nodeByIndex(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor), true), true, initial);
                                     break;
                             }
                         };
@@ -7655,10 +7698,11 @@ var org;
                                             case org.mwg.Type.EGRAPH:
                                                 var castedEGraph = loopValue;
                                                 var eNodes = castedEGraph._nodes;
-                                                org.mwg.utility.Base64.encodeIntToBuffer(castedEGraph.size(), buffer);
-                                                for (var j = 0; j < eNodes.length; j++) {
+                                                var eGSize = castedEGraph.size();
+                                                org.mwg.utility.Base64.encodeIntToBuffer(eGSize, buffer);
+                                                for (var j = 0; j < eGSize; j++) {
                                                     buffer.write(org.mwg.core.CoreConstants.CHUNK_ENODE_SEP);
-                                                    eNodes[i].save(buffer);
+                                                    eNodes[j].save(buffer);
                                                 }
                                                 castedEGraph._dirty = false;
                                                 break;

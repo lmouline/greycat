@@ -734,9 +734,9 @@ class HeapENode implements ENode {
                 final Object loopValue = _v[i];
                 if (loopValue != null) {
                     buffer.write(CoreConstants.CHUNK_SEP);
-                    Base64.encodeLongToBuffer(_k[i], buffer);
-                    buffer.write(CoreConstants.CHUNK_SEP);
                     Base64.encodeIntToBuffer(_type[i], buffer);
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                    Base64.encodeLongToBuffer(_k[i], buffer);
                     buffer.write(CoreConstants.CHUNK_SEP);
                     switch (_type[i]) {
                         //additional types for embedded
@@ -890,7 +890,7 @@ class HeapENode implements ENode {
     private static final byte LOAD_WAITING_VALUE = 3;
 
     @SuppressWarnings("Duplicates")
-    public final long load(final Buffer buffer, final int currentCursor, final HeapStateChunk p_parent) {
+    public final long load(final Buffer buffer, final long currentCursor, final HeapStateChunk p_parent) {
         final boolean initial = _k == null;
         final long payloadSize = buffer.length();
         long cursor = currentCursor;
@@ -900,7 +900,9 @@ class HeapENode implements ENode {
         long read_key = -1;
         while (cursor < payloadSize) {
             byte current = buffer.read(cursor);
-            if (current == Constants.CHUNK_SEP) {
+            if (current == Constants.CHUNK_ENODE_SEP) {
+                break;
+            } else if (current == Constants.CHUNK_SEP) {
                 switch (state) {
                     case LOAD_WAITING_ALLOC:
                         allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -924,6 +926,7 @@ class HeapENode implements ENode {
                             case Type.DOUBLE:
                             case Type.LONG:
                             case Type.STRING:
+                            case Type.ENODE:
                                 state = LOAD_WAITING_VALUE;
                                 cursor++;
                                 previous = cursor;
@@ -935,7 +938,7 @@ class HeapENode implements ENode {
                                 cursor++;
                                 previous = cursor;
                                 current = buffer.read(cursor);
-                                while (cursor < payloadSize && current != Constants.CHUNK_SEP) {
+                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
                                     if (current == Constants.CHUNK_VAL_SEP) {
                                         if (doubleArrayLoaded == null) {
                                             doubleArrayLoaded = new double[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
@@ -954,9 +957,11 @@ class HeapENode implements ENode {
                                     doubleArrayLoaded[doubleArrayIndex] = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
                                 }
                                 internal_set(read_key, read_type, doubleArrayLoaded, true, initial);
-                                state = LOAD_WAITING_TYPE;
-                                cursor++;
-                                previous = cursor;
+                                if (current != Constants.CHUNK_ENODE_SEP) {
+                                    state = LOAD_WAITING_TYPE;
+                                    cursor++;
+                                    previous = cursor;
+                                }
                                 break;
                             case Type.LONG_ARRAY:
                                 long[] longArrayLoaded = null;
@@ -964,7 +969,7 @@ class HeapENode implements ENode {
                                 cursor++;
                                 previous = cursor;
                                 current = buffer.read(cursor);
-                                while (cursor < payloadSize && current != Constants.CHUNK_SEP) {
+                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
                                     if (current == Constants.CHUNK_VAL_SEP) {
                                         if (longArrayLoaded == null) {
                                             longArrayLoaded = new long[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
@@ -983,9 +988,11 @@ class HeapENode implements ENode {
                                     longArrayLoaded[longArrayIndex] = Base64.decodeToLongWithBounds(buffer, previous, cursor);
                                 }
                                 internal_set(read_key, read_type, longArrayLoaded, true, initial);
-                                state = LOAD_WAITING_TYPE;
-                                cursor++;
-                                previous = cursor;
+                                if (current != Constants.CHUNK_ENODE_SEP) {
+                                    state = LOAD_WAITING_TYPE;
+                                    cursor++;
+                                    previous = cursor;
+                                }
                                 break;
                             case Type.INT_ARRAY:
                                 int[] intArrayLoaded = null;
@@ -993,7 +1000,7 @@ class HeapENode implements ENode {
                                 cursor++;
                                 previous = cursor;
                                 current = buffer.read(cursor);
-                                while (cursor < payloadSize && current != Constants.CHUNK_SEP) {
+                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
                                     if (current == Constants.CHUNK_VAL_SEP) {
                                         if (intArrayLoaded == null) {
                                             intArrayLoaded = new int[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
@@ -1012,9 +1019,11 @@ class HeapENode implements ENode {
                                     intArrayLoaded[intArrayIndex] = Base64.decodeToIntWithBounds(buffer, previous, cursor);
                                 }
                                 internal_set(read_key, read_type, intArrayLoaded, true, initial);
-                                state = LOAD_WAITING_TYPE;
-                                cursor++;
-                                previous = cursor;
+                                if (current != Constants.CHUNK_ENODE_SEP) {
+                                    state = LOAD_WAITING_TYPE;
+                                    cursor++;
+                                    previous = cursor;
+                                }
                                 break;
                             case Type.RELATION:
                                 HeapRelation relation = new HeapRelation(p_parent, null);
@@ -1079,14 +1088,36 @@ class HeapENode implements ENode {
                                 previous = cursor;
                                 state = LOAD_WAITING_TYPE;
                                 break;
-                            case Type.EGRAPH:
-                                HeapEGraph eGraph = new HeapEGraph(p_parent, null, p_parent.graph());
+                            case Type.ERELATION:
+                                HeapERelation eRelation = null;
                                 cursor++;
-                                cursor = eGraph.load(buffer, cursor, payloadSize);
-                                cursor++;
-                                internal_set(read_key, read_type, eGraph, true, initial);
                                 previous = cursor;
-                                state = LOAD_WAITING_TYPE;
+                                current = buffer.read(cursor);
+                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+                                    if (current == Constants.CHUNK_VAL_SEP) {
+                                        if (eRelation == null) {
+                                            eRelation = new HeapERelation(p_parent, null);
+                                            eRelation.allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                        } else {
+                                            eRelation.add(egraph.nodeByIndex((int) Base64.decodeToLongWithBounds(buffer, previous, cursor), true));
+                                        }
+                                        previous = cursor + 1;
+                                    }
+                                    cursor++;
+                                    current = buffer.read(cursor);
+                                }
+                                if (eRelation == null) {
+                                    eRelation = new HeapERelation(p_parent, null);
+                                    eRelation.allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                } else {
+                                    eRelation.add(egraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true));
+                                }
+                                internal_set(read_key, read_type, eRelation, true, initial);
+                                if (current != Constants.CHUNK_ENODE_SEP) {
+                                    state = LOAD_WAITING_TYPE;
+                                    cursor++;
+                                    previous = cursor;
+                                }
                                 break;
                             default:
                                 throw new RuntimeException("Not implemented yet!!!");
@@ -1125,6 +1156,9 @@ class HeapENode implements ENode {
                 break;
             case Type.STRING:
                 internal_set(read_key, read_type, Base64.decodeToStringWithBounds(buffer, previous, cursor), true, initial);
+                break;
+            case Type.ENODE:
+                internal_set(read_key, read_type, egraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true), true, initial);
                 break;
         }
     }

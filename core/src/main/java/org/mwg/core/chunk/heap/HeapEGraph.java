@@ -20,7 +20,6 @@ class HeapEGraph implements EGraph {
     HeapENode[] _nodes = null;
     private int _nodes_capacity = 0;
     private int _nodes_index = 0;
-    private HeapENode _root;
 
     HeapEGraph(final HeapStateChunk p_parent, final HeapEGraph origin, final Graph p_graph) {
         parent = p_parent;
@@ -57,12 +56,15 @@ class HeapEGraph implements EGraph {
         }
     }
 
-    final ENode nodeByIndex(int index, boolean createIfAbsent) {
+    final HeapENode nodeByIndex(final int index, final boolean createIfAbsent) {
         if (index < _nodes_capacity) {
-            ENode elem = _nodes[index];
+            if (index > _nodes_index) {
+                _nodes_index = index + 1;
+            }
+            HeapENode elem = _nodes[index];
             if (elem == null && createIfAbsent) {
-                HeapENode newNode = new HeapENode(parent, this, _graph, index, null);
-                _nodes[_nodes_index] = newNode;
+                elem = new HeapENode(parent, this, _graph, index, null);
+                _nodes[index] = elem;
             }
             return elem;
         } else {
@@ -101,13 +103,24 @@ class HeapEGraph implements EGraph {
 
     @Override
     public ENode root() {
-        return _root;
+        if (_nodes_index > 0) {
+            return _nodes[0];
+        }
+        return null;
     }
 
 
     @Override
     public EGraph setRoot(ENode eNode) {
-        _root = (HeapENode) eNode;
+        HeapENode casted = (HeapENode) eNode;
+        final int previousID = casted._id;
+        if (previousID != 0) {
+            HeapENode previousRoot = _nodes[0];
+            _nodes[previousID] = previousRoot;
+            previousRoot._id = previousID;
+            _nodes[0] = casted;
+            casted._id = 0;
+        }
         return this;
     }
 
@@ -130,13 +143,7 @@ class HeapEGraph implements EGraph {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        if (_root != null) {
-            builder.append("\"root\":");
-            builder.append(_root._id);
-            builder.append(",");
-        }
-        builder.append("\"nodes\":[");
+        builder.append("{\"nodes\":[");
         for (int i = 0; i < _nodes_index; i++) {
             if (i != 0) {
                 builder.append(",");
@@ -151,24 +158,21 @@ class HeapEGraph implements EGraph {
         long cursor = offset;
         byte current = buffer.read(cursor);
         boolean isFirst = true;
-        long previous = offset;
+        int insertIndex = 0;
         while (cursor < max && current != Constants.CHUNK_SEP) {
             if (current == Constants.CHUNK_ENODE_SEP) {
                 if (isFirst) {
-                    allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    allocate(Base64.decodeToIntWithBounds(buffer, offset, cursor));
                     isFirst = false;
-                } else {
-                    // add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
                 }
-                previous = cursor + 1;
+                cursor++;
+                HeapENode eNode = nodeByIndex(insertIndex, true);
+                cursor = eNode.load(buffer, cursor, parent);
+                insertIndex++;
+            } else {
+                cursor++;
             }
-            cursor++;
             current = buffer.read(cursor);
-        }
-        if (isFirst) {
-            allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
-        } else {
-            // add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
         }
         return cursor;
     }

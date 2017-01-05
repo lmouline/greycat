@@ -18,7 +18,7 @@ public abstract class AbstractWorldOrderChunkTest {
         this.factory = factory;
     }
 
-   // @Test
+    //@Test
     public void incrementalSave() {
         ChunkSpace space = factory.newSpace(100, null);
         WorldOrderChunk map = (WorldOrderChunk) space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 1);
@@ -28,7 +28,7 @@ public abstract class AbstractWorldOrderChunkTest {
         Assert.assertTrue(compareWithString(buffer, ""));
         buffer.free();
 
-        map.put(5,6);
+        map.put(5, 6);
         map.put(7, 8);
         map.put(9, 10);
 

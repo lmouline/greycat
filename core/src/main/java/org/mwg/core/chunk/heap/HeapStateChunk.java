@@ -427,10 +427,11 @@ class HeapStateChunk implements StateChunk {
                         case Type.EGRAPH:
                             HeapEGraph castedEGraph = (HeapEGraph) loopValue;
                             HeapENode[] eNodes = castedEGraph._nodes;
-                            Base64.encodeIntToBuffer(castedEGraph.size(), buffer);
-                            for (int j = 0; j < eNodes.length; j++) {
+                            int eGSize = castedEGraph.size();
+                            Base64.encodeIntToBuffer(eGSize, buffer);
+                            for (int j = 0; j < eGSize; j++) {
                                 buffer.write(CoreConstants.CHUNK_ENODE_SEP);
-                                eNodes[i].save(buffer);
+                                eNodes[j].save(buffer);
                             }
                             castedEGraph._dirty = false;
                             break;

@@ -831,11 +831,10 @@ declare module org {
                         _nodes: org.mwg.core.chunk.heap.HeapENode[];
                         private _nodes_capacity;
                         private _nodes_index;
-                        private _root;
                         constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapEGraph, p_graph: org.mwg.Graph);
                         size(): number;
                         allocate(newCapacity: number): void;
-                        nodeByIndex(index: number, createIfAbsent: boolean): org.mwg.struct.ENode;
+                        nodeByIndex(index: number, createIfAbsent: boolean): org.mwg.core.chunk.heap.HeapENode;
                         declareDirty(): void;
                         newNode(): org.mwg.struct.ENode;
                         root(): org.mwg.struct.ENode;

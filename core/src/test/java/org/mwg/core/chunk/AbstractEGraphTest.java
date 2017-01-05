@@ -69,7 +69,7 @@ public abstract class AbstractEGraphTest {
         }
     }
 
-   // @Test
+    @Test
     public void loadSaveTest() {
 
         Storage mock = new MockStorage();
@@ -89,9 +89,10 @@ public abstract class AbstractEGraphTest {
         //test primitive attribute
         ENode eNode = egraph.newNode();
         egraph.setRoot(eNode);
+        eNode.set("self",Type.ENODE,eNode);
         eNode.set("name", Type.STRING, "root");
         ERelation eRelation = (ERelation) eNode.getOrCreate("children", Type.ERELATION);
-        for (int i = 0; i < 99; i++) {
+        for (int i = 0; i < 9999; i++) {
             ENode loopNode = egraph.newNode();
             loopNode.set("name", Type.STRING, "node_" + i);
             eRelation.add(loopNode);
@@ -99,7 +100,7 @@ public abstract class AbstractEGraphTest {
         long before = System.currentTimeMillis();
         g.save(null);
         long after = System.currentTimeMillis();
-        System.out.println("time:"+(after - before));
+        System.out.println("save time:" + (after - before));
         g.disconnect(null);
 
         g = GraphBuilder.newBuilder()
@@ -107,10 +108,18 @@ public abstract class AbstractEGraphTest {
                 .withStorage(mock)
                 .build();
         g.connect(null);
+        final long before2 = System.currentTimeMillis();
         g.space().getOrLoadAndMark(ChunkType.STATE_CHUNK, 0, 0, 0, res -> {
             StateChunk loaded = (StateChunk) res;
             EGraph egraphLoaded = (EGraph) loaded.get(0);
-            System.out.println("loaded:"+egraphLoaded);
+            long after2 = System.currentTimeMillis();
+            System.out.println("loading time:" + (after2 - before2));
+            Assert.assertEquals(egraph.toString(), egraphLoaded.toString());
+
+            ENode rootLoaded = egraphLoaded.root();
+            Assert.assertTrue(rootLoaded != null);
+            Assert.assertEquals(rootLoaded.toString(),rootLoaded.get("self").toString());
+
         });
     }
 

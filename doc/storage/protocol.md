@@ -41,8 +41,8 @@ Hereafter are the details of these strings protocol.
     EGraph := Size ( '$' ENode )
     ENode := Size ( '|' Type '|' Key '|' Value )
     EValue := PrimitiveValue | Matrix | Relation | Map | ENodeRef | ERelation
-    ENodeRef := Long
-    ERelation := Size ( ':' Long )
+    ENodeRef := Int
+    ERelation := Size ( ':' Int )
    
    
 # 2. TimeTree Chunk
