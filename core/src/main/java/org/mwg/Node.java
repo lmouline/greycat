@@ -70,6 +70,7 @@ public interface Node {
      * @param name  Must be unique per node.
      * @param type  Must be one of {@link Type} int value.
      * @param value Must be consistent with the propertyType.
+     * @return The node for fluent API.
      */
     Node set(String name, byte type, Object value);
 
@@ -79,6 +80,7 @@ public interface Node {
      * @param index Must be unique per node.
      * @param type  Must be one of {@link Type} int value.
      * @param value Must be consistent with the propertyType.
+     * @return The node for fluent API.
      */
     Node setAt(long index, byte type, Object value);
 
@@ -88,6 +90,7 @@ public interface Node {
      * @param name  Must be unique per node.
      * @param type  Must be one of {@link Type} int value.
      * @param value Must be consistent with the propertyType.
+     * @return The node for fluent API.
      */
     Node forceSet(String name, byte type, Object value);
 
@@ -97,6 +100,7 @@ public interface Node {
      * @param index Must be unique per node.
      * @param type  Must be one of {@link Type} int value.
      * @param value Must be consistent with the propertyType.
+     * @return The node for fluent API.
      */
     Node forceSetAt(long index, byte type, Object value);
 
@@ -104,6 +108,7 @@ public interface Node {
      * Removes an attribute from the node.
      *
      * @param name The name of the attribute to remove.
+     * @return The node for fluent API.
      */
     Node remove(String name);
 
@@ -149,15 +154,19 @@ public interface Node {
      *
      * @param relationName The name of the relation in which the node is added.
      * @param relatedNode  The node to insert in the relation.
+     * @param indexedAttributes The attributes' names to be used for indexing the relatedNode. The relation is not indexed if this parameter is null.
+     * @return The node for fluent API.
      */
     Node addToRelation(String relationName, Node relatedNode, String... indexedAttributes);
 
     /**
-     * Adds a node to a relation.<br>
+     * Adds a node to a relation using the relation index.<br>
      * If the relation doesn't exist, it is created on the fly.<br>
      *
-     * @param relationIndex The name of the relation in which the node is added.
+     * @param relationIndex The index number of the relation in the current node, in which the relatedNode is added.
      * @param relatedNode   The node to insert in the relation.
+     * @param indexedAttributes The attributes' names to be used for indexing the relatedNode. The relation is not indexed if this parameter is null.
+     * @return The node for fluent API.
      */
     Node addToRelationAt(long relationIndex, Node relatedNode, String... indexedAttributes);
 
@@ -166,6 +175,8 @@ public interface Node {
      *
      * @param relationName The name of the relation.
      * @param relatedNode  The node to remove.
+     * @param indexedAttributes The attributes' names to be used for finding and removing the relatedNode from the index. This is mandatory if the relation is indexed.
+     * @return The node for fluent API.
      */
     Node removeFromRelation(String relationName, Node relatedNode, String... indexedAttributes);
 
@@ -174,6 +185,8 @@ public interface Node {
      *
      * @param relationIndex The name of the relation.
      * @param relatedNode   The node to remove.
+     * @param indexedAttributes The attributes' names to be used for finding and removing the relatedNode from the index. This is mandatory if the relation is indexed.
+     * @return The node for fluent API.
      */
     Node removeFromRelationAt(long relationIndex, Node relatedNode, String... indexedAttributes);
 
@@ -195,6 +208,7 @@ public interface Node {
      * Forces the creation of a new timepoint of a node for its time.<br>
      * Clones the previous state to the exact time of this node.<br>
      * This cancels the dephasing between the current timepoint of the node and the last record timepoint.
+     * @return The node for fluent API.
      */
     Node rephase();
 
@@ -219,7 +233,7 @@ public interface Node {
     /**
      * Returns the graph that have created this node.
      *
-     * @return the graph this node belongs to
+     * @return the graph this node belongs to.
      */
     Graph graph();
 

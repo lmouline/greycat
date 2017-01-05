@@ -57,9 +57,16 @@ public class TaskHelper {
         return new Node[0];
     }
 
+
     /**
-     * @native ts
+     * Parses a String to an integer value.
+     * @param s the String to parse
+     * @return the integer value
+     */
+    /**
+     * {@native ts
      * return parseInt(s);
+     * }
      */
     public static int parseInt(String s) {
         return Integer.parseInt(s);

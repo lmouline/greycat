@@ -441,9 +441,14 @@ public class BaseNode implements Node {
      * @native ts
      * return isNaN(toTest);
      */
+    /**
+     * Tests if an element is Not A Number
+     * @param toTest the element to test
+     * @return false if the element is a number
+     */
     public static boolean isNaN(double toTest) {
         return Double.NaN == toTest;
-    }
+    }//TODO: Move to a utility class
 
     @Override
     public String toString() {

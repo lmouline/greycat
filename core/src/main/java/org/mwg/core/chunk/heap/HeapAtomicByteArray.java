@@ -23,17 +23,31 @@ public class HeapAtomicByteArray {
         _back = new byte[initialSize];
     }
 
+
     /**
-     * @native ts
+     * Retrieves the byte at a specific index.
+     * @param index The index requested
+     * @return the byte value contained at this index in the array.
+     */
+    /**
+     * {@native ts
      * return this._back[index];
+     * }
      */
     public byte get(int index) {
         return unsafe.getByteVolatile(_back, base + index * scale);
     }
 
+
     /**
-     * @native ts
+     * Sets the value of the array, for a specific index.
+     * @param index the index to set
+     * @param value the value to put
+     */
+    /**
+     * {@native ts
      * this._back[index] = value;
+     * }
      */
     public void set(int index, byte value) {
         unsafe.putByteVolatile(_back, base + index * scale, value);

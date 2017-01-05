@@ -120,22 +120,24 @@ public interface Graph {
     void disconnect(Callback<Boolean> callback);
 
     /**
-     * Retrieve a named global index, at a precise world and time
+     * Retrieve a named global index, at a precise world and time.<br>
+     * Creates the index if it does not exist.
      *
-     * @param world
-     * @param time
-     * @param name
-     * @param callback
+     * @param world     The world id in which the index has to be looked for
+     * @param time      The time at which the index has to be looked for
+     * @param name      The name of the index
+     * @param callback  The callback to be called when the index lookup is complete.
      */
     void index(long world, long time, String name, Callback<NodeIndex> callback);
 
     /**
-     * Retrieve a named global index, at a precise world and time
+     * Retrieve a named global index, at a precise world and time.<br>
+     * Returns null to the callback if it does not exist.
      *
-     * @param world
-     * @param time
-     * @param name
-     * @param callback
+     * @param world     The world id in which the index has to be looked for
+     * @param time      The time at which the index has to be looked for
+     * @param name      The name of the index
+     * @param callback  The callback to be called when the index lookup is complete.
      */
     void indexIfExists(long world, long time, String name, Callback<NodeIndex> callback);
 

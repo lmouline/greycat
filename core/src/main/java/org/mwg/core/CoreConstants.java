@@ -5,13 +5,18 @@ import java.util.Arrays;
 public class CoreConstants extends org.mwg.Constants {
 
     /**
+     * Fills an array with a boolean value.
+     * @param target the array to fill
+     * @param elem the value to put in each cell
+     */
+    /**
      * {@native ts
      * for(var i=0;i<target.length;i++){ target[i] = elem; }
      * }
      */
     public static void fillBooleanArray(boolean[] target, boolean elem) {
         Arrays.fill(target, elem);
-    }
+    }//TODO: Move to a utility class
 
     /**
      * ChunkFlags
