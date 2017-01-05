@@ -8,7 +8,7 @@ import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
 import org.mwg.plugin.MemoryFactory;
 import org.mwg.struct.Buffer;
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 
 public abstract class AbstractMatrixTest {
 
@@ -24,7 +24,7 @@ public abstract class AbstractMatrixTest {
         ChunkSpace space = factory.newSpace(100, null);
 
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
-        Matrix matrix = (Matrix) chunk.getOrCreate(0, Type.MATRIX);
+        DMatrix matrix = (DMatrix) chunk.getOrCreate(0, Type.DMATRIX);
 
         matrix.init(3, 4); //3 rows, 4 columns
 
@@ -72,7 +72,7 @@ public abstract class AbstractMatrixTest {
     public void extractTest() {
         ChunkSpace space = factory.newSpace(100, null);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
-        Matrix matrix = (Matrix) chunk.getOrCreate(0, Type.MATRIX);
+        DMatrix matrix = (DMatrix) chunk.getOrCreate(0, Type.DMATRIX);
         matrix.init(3, 2);
         for (int i = 0; i < 2; i++) {
             matrix.set(0, i, i + 1);
@@ -95,7 +95,7 @@ public abstract class AbstractMatrixTest {
     public void appendTest() {
         ChunkSpace space = factory.newSpace(100, null);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
-        Matrix matrix = (Matrix) chunk.getOrCreate(0, Type.MATRIX);
+        DMatrix matrix = (DMatrix) chunk.getOrCreate(0, Type.DMATRIX);
         matrix.appendColumn(new double[]{1, 2, 3});
         matrix.appendColumn(new double[]{4, 5, 6});
 

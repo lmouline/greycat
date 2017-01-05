@@ -8,8 +8,8 @@ import org.mwg.GraphBuilder;
 import org.mwg.core.scheduler.NoopScheduler;
 import org.mwg.ml.MLPlugin;
 import org.mwg.ml.algorithm.profiling.GaussianMixtureNode;
-import org.mwg.ml.common.matrix.VolatileMatrix;
-import org.mwg.struct.Matrix;
+import org.mwg.ml.common.matrix.VolatileDMatrix;
+import org.mwg.struct.DMatrix;
 
 public class GaussianNodeTest {
 
@@ -114,7 +114,7 @@ public class GaussianNodeTest {
                     @Override
                     public void on(GaussianMixtureNode result) {
                         double[] a = result.getAvg();
-                        Matrix c = result.getCovariance(a, null);
+                        DMatrix c = result.getCovariance(a, null);
                         if (c != null) {
                             for (int i = 0; i < a.length; i++) {
                                 avgLive[i] = a[i];
@@ -129,8 +129,8 @@ public class GaussianNodeTest {
                 });
 
 
-                Assert.assertTrue(VolatileMatrix.compare(avgLive, ravg, eps));
-                Assert.assertTrue(VolatileMatrix.compareArray(covLive, rcovData, eps));
+                Assert.assertTrue(VolatileDMatrix.compare(avgLive, ravg, eps));
+                Assert.assertTrue(VolatileDMatrix.compareArray(covLive, rcovData, eps));
 
                 gaussianNodeLive.free();
                 graph.disconnect(null);

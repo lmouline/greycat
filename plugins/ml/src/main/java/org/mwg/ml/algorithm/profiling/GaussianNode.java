@@ -5,10 +5,10 @@ import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.ml.BaseMLNode;
 import org.mwg.ml.ProfilingNode;
-import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.ml.common.matrix.VolatileDMatrix;
 import org.mwg.ml.common.matrix.operation.MultivariateNormalDistribution;
 import org.mwg.plugin.NodeState;
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 
 
 public class GaussianNode extends BaseMLNode implements ProfilingNode {
@@ -341,7 +341,7 @@ public class GaussianNode extends BaseMLNode implements ProfilingNode {
     }
 
 
-    public Matrix getCovariance(double[] avg, double[] err) {
+    public DMatrix getCovariance(double[] avg, double[] err) {
         int features = avg.length;
 
         int total = getTotal();
@@ -369,7 +369,7 @@ public class GaussianNode extends BaseMLNode implements ProfilingNode {
                     }
                 }
             }
-            return VolatileMatrix.wrap(covariances, features, features);
+            return VolatileDMatrix.wrap(covariances, features, features);
         } else {
             return null;
         }

@@ -462,7 +462,7 @@ declare module org {
             static STRING_TO_LONG_MAP: number;
             static RELATION: number;
             static RELATION_INDEXED: number;
-            static MATRIX: number;
+            static DMATRIX: number;
             static LMATRIX: number;
             static EGRAPH: number;
             static ENODE: number;
@@ -824,6 +824,43 @@ declare module org {
                         newVolatileGraph(): org.mwg.struct.EGraph;
                         printMarked(): void;
                     }
+                    class HeapDMatrix implements org.mwg.struct.DMatrix {
+                        private static INDEX_ROWS;
+                        private static INDEX_COLUMNS;
+                        private static INDEX_MAX_COLUMN;
+                        private static INDEX_OFFSET;
+                        private parent;
+                        private backend;
+                        private aligned;
+                        constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapDMatrix);
+                        init(rows: number, columns: number): org.mwg.struct.DMatrix;
+                        private internal_init(rows, columns);
+                        appendColumn(newColumn: Float64Array): org.mwg.struct.DMatrix;
+                        private internal_appendColumn(newColumn);
+                        fill(value: number): org.mwg.struct.DMatrix;
+                        private internal_fill(value);
+                        fillWith(values: Float64Array): org.mwg.struct.DMatrix;
+                        private internal_fillWith(values);
+                        fillWithRandom(min: number, max: number, seed: number): org.mwg.struct.DMatrix;
+                        private internal_fillWithRandom(min, max, seed);
+                        rows(): number;
+                        columns(): number;
+                        column(index: number): Float64Array;
+                        get(rowIndex: number, columnIndex: number): number;
+                        set(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.DMatrix;
+                        private internal_set(rowIndex, columnIndex, value);
+                        add(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.DMatrix;
+                        private internal_add(rowIndex, columnIndex, value);
+                        data(): Float64Array;
+                        leadingDimension(): number;
+                        unsafeGet(index: number): number;
+                        unsafeSet(index: number, value: number): org.mwg.struct.DMatrix;
+                        private internal_unsafeSet(index, value);
+                        unsafe_data(): Float64Array;
+                        unsafe_init(size: number): void;
+                        unsafe_set(index: number, value: number): void;
+                        load(buffer: org.mwg.struct.Buffer, offset: number, max: number): number;
+                    }
                     class HeapEGraph implements org.mwg.struct.EGraph {
                         private _graph;
                         private parent;
@@ -1019,43 +1056,6 @@ declare module org {
                         size(): number;
                         remove(requestKey: number): void;
                         put(insertKey: number, insertValue: number): void;
-                        load(buffer: org.mwg.struct.Buffer, offset: number, max: number): number;
-                    }
-                    class HeapMatrix implements org.mwg.struct.Matrix {
-                        private static INDEX_ROWS;
-                        private static INDEX_COLUMNS;
-                        private static INDEX_MAX_COLUMN;
-                        private static INDEX_OFFSET;
-                        private parent;
-                        private backend;
-                        private aligned;
-                        constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapMatrix);
-                        init(rows: number, columns: number): org.mwg.struct.Matrix;
-                        private internal_init(rows, columns);
-                        appendColumn(newColumn: Float64Array): org.mwg.struct.Matrix;
-                        private internal_appendColumn(newColumn);
-                        fill(value: number): org.mwg.struct.Matrix;
-                        private internal_fill(value);
-                        fillWith(values: Float64Array): org.mwg.struct.Matrix;
-                        private internal_fillWith(values);
-                        fillWithRandom(min: number, max: number, seed: number): org.mwg.struct.Matrix;
-                        private internal_fillWithRandom(min, max, seed);
-                        rows(): number;
-                        columns(): number;
-                        column(index: number): Float64Array;
-                        get(rowIndex: number, columnIndex: number): number;
-                        set(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.Matrix;
-                        private internal_set(rowIndex, columnIndex, value);
-                        add(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.Matrix;
-                        private internal_add(rowIndex, columnIndex, value);
-                        data(): Float64Array;
-                        leadingDimension(): number;
-                        unsafeGet(index: number): number;
-                        unsafeSet(index: number, value: number): org.mwg.struct.Matrix;
-                        private internal_unsafeSet(index, value);
-                        unsafe_data(): Float64Array;
-                        unsafe_init(size: number): void;
-                        unsafe_set(index: number, value: number): void;
                         load(buffer: org.mwg.struct.Buffer, offset: number, max: number): number;
                     }
                     class HeapRelation implements org.mwg.struct.Relation {
@@ -2221,6 +2221,23 @@ declare module org {
                 hasNext(): boolean;
                 next(): org.mwg.struct.Buffer;
             }
+            interface DMatrix {
+                init(rows: number, columns: number): org.mwg.struct.DMatrix;
+                fill(value: number): org.mwg.struct.DMatrix;
+                fillWith(values: Float64Array): org.mwg.struct.DMatrix;
+                fillWithRandom(min: number, max: number, seed: number): org.mwg.struct.DMatrix;
+                rows(): number;
+                columns(): number;
+                column(i: number): Float64Array;
+                get(rowIndex: number, columnIndex: number): number;
+                set(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.DMatrix;
+                add(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.DMatrix;
+                appendColumn(newColumn: Float64Array): org.mwg.struct.DMatrix;
+                data(): Float64Array;
+                leadingDimension(): number;
+                unsafeGet(index: number): number;
+                unsafeSet(index: number, value: number): org.mwg.struct.DMatrix;
+            }
             interface EGraph {
                 root(): org.mwg.struct.ENode;
                 newNode(): org.mwg.struct.ENode;
@@ -2284,23 +2301,6 @@ declare module org {
             }
             interface Map {
                 size(): number;
-            }
-            interface Matrix {
-                init(rows: number, columns: number): org.mwg.struct.Matrix;
-                fill(value: number): org.mwg.struct.Matrix;
-                fillWith(values: Float64Array): org.mwg.struct.Matrix;
-                fillWithRandom(min: number, max: number, seed: number): org.mwg.struct.Matrix;
-                rows(): number;
-                columns(): number;
-                column(i: number): Float64Array;
-                get(rowIndex: number, columnIndex: number): number;
-                set(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.Matrix;
-                add(rowIndex: number, columnIndex: number, value: number): org.mwg.struct.Matrix;
-                appendColumn(newColumn: Float64Array): org.mwg.struct.Matrix;
-                data(): Float64Array;
-                leadingDimension(): number;
-                unsafeGet(index: number): number;
-                unsafeSet(index: number, value: number): org.mwg.struct.Matrix;
             }
             interface Relation {
                 all(): Float64Array;

@@ -2,12 +2,12 @@ package org.mwg.ml.common.matrix.jamasolver;
 
 
 import org.mwg.ml.common.matrix.*;
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 
 public class JamaMatrixEngine implements MatrixEngine {
 
     @Override
-    public Matrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, Matrix matA, TransposeType transB, Matrix matB, double beta, Matrix matC) {
+    public DMatrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, DMatrix matA, TransposeType transB, DMatrix matB, double beta, DMatrix matC) {
         if (MatrixOps.testDimensionsAB(transA, transB, matA, matB)) {
             int[] dimC = new int[3];
             if (transA.equals(TransposeType.NOTRANSPOSE)) {
@@ -32,7 +32,7 @@ public class JamaMatrixEngine implements MatrixEngine {
                 }
             }
             if (beta == 0 || matC == null) {
-                matC = VolatileMatrix.empty(dimC[0], dimC[1]);
+                matC = VolatileDMatrix.empty(dimC[0], dimC[1]);
             }
             //perform mult here
             double temp = 0;
@@ -97,18 +97,18 @@ public class JamaMatrixEngine implements MatrixEngine {
     }
 
     @Override
-    public Matrix invert(Matrix mat, boolean invertInPlace) {
-        return solve(mat, VolatileMatrix.identity(mat.rows(), mat.rows()));
+    public DMatrix invert(DMatrix mat, boolean invertInPlace) {
+        return solve(mat, VolatileDMatrix.identity(mat.rows(), mat.rows()));
     }
 
     @Override
-    public Matrix pinv(Matrix mat, boolean invertInPlace) {
-        return solve(mat, VolatileMatrix.identity(mat.rows(), mat.rows()));
+    public DMatrix pinv(DMatrix mat, boolean invertInPlace) {
+        return solve(mat, VolatileDMatrix.identity(mat.rows(), mat.rows()));
     }
 
     @Override
-    public Matrix solveLU(Matrix matA, Matrix matB, boolean workInPlace, TransposeType transB) {
-        Matrix btem;
+    public DMatrix solveLU(DMatrix matA, DMatrix matB, boolean workInPlace, TransposeType transB) {
+        DMatrix btem;
         if (transB == TransposeType.TRANSPOSE) {
             btem = MatrixOps.transpose(matB);
         } else {
@@ -119,8 +119,8 @@ public class JamaMatrixEngine implements MatrixEngine {
     }
 
     @Override
-    public Matrix solveQR(Matrix matA, Matrix matB, boolean workInPlace, TransposeType transB) {
-        Matrix btem;
+    public DMatrix solveQR(DMatrix matA, DMatrix matB, boolean workInPlace, TransposeType transB) {
+        DMatrix btem;
         if (transB == TransposeType.TRANSPOSE) {
             btem = MatrixOps.transpose(matB);
         } else {
@@ -130,7 +130,7 @@ public class JamaMatrixEngine implements MatrixEngine {
     }
 
     @Override
-    public SVDDecompose decomposeSVD(Matrix matA, boolean workInPlace) {
+    public SVDDecompose decomposeSVD(DMatrix matA, boolean workInPlace) {
         return new SVD(matA);
     }
 
@@ -143,7 +143,7 @@ public class JamaMatrixEngine implements MatrixEngine {
      */
 
     @Override
-    public Matrix solve(Matrix A, Matrix B) {
+    public DMatrix solve(DMatrix A, DMatrix B) {
         return (A.rows() == A.columns() ? (new LU(A)).solve(B) :
                 (new QR(A)).solve(B));
     }

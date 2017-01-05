@@ -4,8 +4,8 @@ import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.base.BaseNode;
 import org.mwg.ml.common.matrix.MatrixOps;
+import org.mwg.struct.DMatrix;
 import org.mwg.struct.LongLongMap;
-import org.mwg.struct.Matrix;
 
 import java.util.Random;
 
@@ -26,9 +26,9 @@ class BioNeuralNode extends BaseNode {
     @SuppressWarnings("Duplicates")
     double learn(long sender, double value, int spikeLimit, double threshold) {
         //TODO atomic
-        final Matrix spikeSum = (Matrix) get(BioNeuralNetwork.BUFFER_SPIKE_SUM);
-        final Matrix spikeNb = (Matrix) get(BioNeuralNetwork.BUFFER_SPIKE_NB);
-        final Matrix weights = (Matrix) get(BioNeuralNetwork.WEIGHTS);
+        final DMatrix spikeSum = (DMatrix) get(BioNeuralNetwork.BUFFER_SPIKE_SUM);
+        final DMatrix spikeNb = (DMatrix) get(BioNeuralNetwork.BUFFER_SPIKE_NB);
+        final DMatrix weights = (DMatrix) get(BioNeuralNetwork.WEIGHTS);
         final LongLongMap reverse = (LongLongMap) get(BioNeuralNetwork.RELATION_INPUTS);
         final int senderIndex = (int) reverse.get(sender);
         //update neural content

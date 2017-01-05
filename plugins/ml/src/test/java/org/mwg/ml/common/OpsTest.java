@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.mwg.ml.common.matrix.*;
 import org.mwg.ml.common.matrix.blassolver.BlasMatrixEngine;
 import org.mwg.ml.common.matrix.jamasolver.JamaMatrixEngine;
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 
 public class OpsTest {
 
@@ -196,19 +196,19 @@ public class OpsTest {
 
     public void MatrixMult(MatrixEngine engine) {
         double eps = 1e-7;
-        Matrix matA = VolatileMatrix.random(dim, dim, 0, 100);
-        Matrix matB = VolatileMatrix.random(dim, dim, 0, 100);
-        Matrix res = engine.multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1.0, matA, TransposeType.NOTRANSPOSE, matB,0,null);
+        DMatrix matA = VolatileDMatrix.random(dim, dim, 0, 100);
+        DMatrix matB = VolatileDMatrix.random(dim, dim, 0, 100);
+        DMatrix res = engine.multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1.0, matA, TransposeType.NOTRANSPOSE, matB,0,null);
     }
 
     public void MatrixInvert(MatrixEngine engine) {
         double eps = 1e-7;
 
-        Matrix matA = VolatileMatrix.random(dim, dim, 0, 100);
-        Matrix res = engine.invert(matA, false);
+        DMatrix matA = VolatileDMatrix.random(dim, dim, 0, 100);
+        DMatrix res = engine.invert(matA, false);
 
         if (!enablebench) {
-            Matrix id = MatrixOps.multiply(matA, res);
+            DMatrix id = MatrixOps.multiply(matA, res);
             for (int i = 0; i < dim; i++) {
                 for (int j = 0; j < dim; j++) {
                     double x;
@@ -229,11 +229,11 @@ public class OpsTest {
         int p = dim;
         double eps = 1e-7;
 
-        Matrix matA = VolatileMatrix.random(m, n, 0, 100);
-        Matrix matB = VolatileMatrix.random(m, p, 0, 100);
-        Matrix res = engine.solveLU(matA, matB, false, TransposeType.NOTRANSPOSE);
+        DMatrix matA = VolatileDMatrix.random(m, n, 0, 100);
+        DMatrix matB = VolatileDMatrix.random(m, p, 0, 100);
+        DMatrix res = engine.solveLU(matA, matB, false, TransposeType.NOTRANSPOSE);
         if (!enablebench) {
-            Matrix temp = MatrixOps.multiply(matA, res);
+            DMatrix temp = MatrixOps.multiply(matA, res);
             for (int i = 0; i < m; i++) {
                 for (int j = 0; j < n; j++) {
                     Assert.assertTrue(Math.abs(matB.get(i, j) - temp.get(i, j)) < eps);
@@ -249,12 +249,12 @@ public class OpsTest {
         int p = dim;
         double eps = 1e-6;
 
-        Matrix matA = VolatileMatrix.random(m, n, 0, 100);
-        Matrix matB = VolatileMatrix.random(m, p, 0, 100);
+        DMatrix matA = VolatileDMatrix.random(m, n, 0, 100);
+        DMatrix matB = VolatileDMatrix.random(m, p, 0, 100);
 
-        Matrix res = engine.solveQR(matA, matB, false, TransposeType.NOTRANSPOSE);
+        DMatrix res = engine.solveQR(matA, matB, false, TransposeType.NOTRANSPOSE);
         if (!enablebench) {
-            Matrix temp = MatrixOps.multiply(matA, res);
+            DMatrix temp = MatrixOps.multiply(matA, res);
             for (int i = 0; i < m; i++) {
                 for (int j = 0; j < p; j++) {
                     Assert.assertTrue(Math.abs(matB.get(i, j) - temp.get(i, j)) < eps);
@@ -269,10 +269,10 @@ public class OpsTest {
         int n = dim;
         double eps = 1e-6;
 
-        Matrix matA = VolatileMatrix.random(m, n, 0, 100);
-        Matrix res = engine.pinv(matA, false);
+        DMatrix matA = VolatileDMatrix.random(m, n, 0, 100);
+        DMatrix res = engine.pinv(matA, false);
         if (!enablebench) {
-            Matrix id = MatrixOps.multiply(res, matA);
+            DMatrix id = MatrixOps.multiply(res, matA);
             for (int i = 0; i < id.rows(); i++) {
                 for (int j = 0; j < id.columns(); j++) {
                     double x;
@@ -293,15 +293,15 @@ public class OpsTest {
         int n = dim;
         double eps = 1e-7;
 
-        Matrix matA = VolatileMatrix.random(m, n, 0, 100);
+        DMatrix matA = VolatileDMatrix.random(m, n, 0, 100);
 
         SVDDecompose svd = engine.decomposeSVD(matA, false);
         if (!enablebench) {
-            Matrix U = svd.getU();
-            Matrix S = svd.getSMatrix();
-            Matrix Vt = svd.getVt();
+            DMatrix U = svd.getU();
+            DMatrix S = svd.getSMatrix();
+            DMatrix Vt = svd.getVt();
 
-            Matrix res = MatrixOps.multiply(U, S);
+            DMatrix res = MatrixOps.multiply(U, S);
             res = MatrixOps.multiply(res, Vt);
 
             for (int i = 0; i < m; i++) {

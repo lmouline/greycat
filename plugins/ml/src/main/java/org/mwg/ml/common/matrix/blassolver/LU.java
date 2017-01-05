@@ -2,19 +2,19 @@ package org.mwg.ml.common.matrix.blassolver;
 
 
 import org.mwg.ml.common.matrix.TransposeType;
-import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.ml.common.matrix.VolatileDMatrix;
 import org.mwg.ml.common.matrix.blassolver.blas.Blas;
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 
 class LU {
 
     /**
      * Holds the LU factors
      */
-    private Matrix LU;
+    private DMatrix LU;
     private Blas _blas;
 
-    public Matrix getLU() {
+    public DMatrix getLU() {
         return LU;
     }
 
@@ -36,27 +36,27 @@ class LU {
      */
     public LU(int m, int n, Blas blas) {
         this._blas = blas;
-        LU = VolatileMatrix.empty(m, n);
+        LU = VolatileDMatrix.empty(m, n);
         piv = new int[Math.min(m, n)];
     }
 
     /**
      * Creates an LU decomposition of the given matrix
      *
-     * @param A Matrix to decompose. Not modified
+     * @param A DMatrix to decompose. Not modified
      * @return The current decomposition
      */
-    public static LU factorize(Matrix A, Blas blas) {
+    public static LU factorize(DMatrix A, Blas blas) {
         return new LU(A.rows(), A.columns(), blas).factor(A, false);
     }
 
     /**
      * Creates an LU decomposition of the given matrix
      *
-     * @param A Matrix to decompose. Overwritten with the decomposition
+     * @param A DMatrix to decompose. Overwritten with the decomposition
      * @return The current decomposition
      */
-    public LU factor(Matrix A, boolean factorInPlace) {
+    public LU factor(DMatrix A, boolean factorInPlace) {
         if (factorInPlace) {
             singular = false;
 
@@ -73,7 +73,7 @@ class LU {
             return this;
         } else {
             singular = false;
-            Matrix B = VolatileMatrix.cloneFrom(A);
+            DMatrix B = VolatileDMatrix.cloneFrom(A);
             int[] info = new int[1];
             info[0] = 0;
             _blas.dgetrf(B.rows(), B.columns(), B.data(), 0, B.rows(), piv, 0, info);
@@ -88,10 +88,10 @@ class LU {
         }
     }
 
-    public Matrix getL() {
+    public DMatrix getL() {
         int numRows = LU.rows();
         int numCols = LU.rows() < LU.columns() ? LU.rows() : LU.columns();
-        Matrix lower = VolatileMatrix.empty(numRows, numCols);
+        DMatrix lower = VolatileDMatrix.empty(numRows, numCols);
         for (int i = 0; i < numCols; i++) {
             lower.set(i, i, 1.0);
             for (int j = 0; j < i; j++) {
@@ -109,14 +109,14 @@ class LU {
     }
 
     /*
-    public Matrix getP() {
-        return Matrix.fromPartialPivots(piv, true);
+    public DMatrix getP() {
+        return DMatrix.fromPartialPivots(piv, true);
     }*/
 
-    public Matrix getU() {
+    public DMatrix getU() {
         int numRows = LU.rows() < LU.columns() ? LU.rows() : LU.columns();
         int numCols = LU.columns();
-        Matrix upper = VolatileMatrix.empty(numRows, numCols);
+        DMatrix upper = VolatileDMatrix.empty(numRows, numCols);
         for (int i = 0; i < numRows; i++) {
             for (int j = i; j < numCols; j++) {
                 upper.set(i, j, LU.get(i, j));
@@ -143,11 +143,11 @@ class LU {
     /**
      * Computes <code>A\B</code>, overwriting <code>B</code>
      */
-    public Matrix solve(Matrix B) {
+    public DMatrix solve(DMatrix B) {
         return transSolve(B, TransposeType.NOTRANSPOSE);
     }
 
-    public Matrix transSolve(Matrix B, TransposeType trans) {
+    public DMatrix transSolve(DMatrix B, TransposeType trans) {
         /*
         if (singular) {
          //   throw new MatrixSingularException();
@@ -167,7 +167,7 @@ class LU {
         return B;
     }
 
-    public boolean invert(Matrix A) {
+    public boolean invert(DMatrix A) {
         int[] info = new int[1];
         info[0] = 0;
         _blas.dgetrf(A.rows(), A.columns(), A.data(), 0, A.rows(), piv, 0, info);

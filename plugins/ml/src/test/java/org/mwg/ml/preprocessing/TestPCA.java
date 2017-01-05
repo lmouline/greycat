@@ -1,8 +1,8 @@
 package org.mwg.ml.preprocessing;
 
 import org.mwg.ml.algorithm.preprocessing.PCA;
-import org.mwg.ml.common.matrix.VolatileMatrix;
-import org.mwg.struct.Matrix;
+import org.mwg.ml.common.matrix.VolatileDMatrix;
+import org.mwg.struct.DMatrix;
 
 import java.util.Random;
 
@@ -13,8 +13,8 @@ public class TestPCA {
     //private static DecimalFormat formatter = new DecimalFormat("#.######");
 
     /*
-    public static void print(Matrix A, String name){
-        System.out.println("Matrix "+name);
+    public static void print(DMatrix A, String name){
+        System.out.println("DMatrix "+name);
         for(int r = 0; r < A.getRowDimension(); r++){
             for(int c = 0; c < A.getColumnDimension(); c++){
                 System.out.print(formatter.format(A.get(r, c)));
@@ -39,9 +39,9 @@ public class TestPCA {
         double maxsignal = 20; //Maximum signal strength
 
         Random random = new Random();
-//        Matrix.setDefaultEngine(new JamaMatrixEngine());
+//        DMatrix.setDefaultEngine(new JamaMatrixEngine());
 
-        Matrix trainingData = VolatileMatrix.empty(len, dim);
+        DMatrix trainingData = VolatileDMatrix.empty(len, dim);
 
         for (int i = 0; i < len; i++) {
             for (int j = 0; j < dim; j++) {

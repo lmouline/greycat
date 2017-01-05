@@ -372,11 +372,11 @@ class OffHeapStateChunk implements StateChunk {
                 Base64.encodeLongToBuffer(size, buffer);
                 for (int i = 0; i < size; i++) {
                     buffer.write(Constants.CHUNK_SEP);
-                    Base64.encodeLongToBuffer(key(addr, i), buffer);
-                    buffer.write(Constants.CHUNK_SUB_SEP);
                     final byte type = type(addr, i);
                     Base64.encodeIntToBuffer(type, buffer);
-                    buffer.write(Constants.CHUNK_SUB_SEP);
+                    buffer.write(Constants.CHUNK_SEP);
+                    Base64.encodeLongToBuffer(key(addr, i), buffer);
+                    buffer.write(Constants.CHUNK_SEP);
                     final long rawValue = value(addr, i);
                     switch (type) {
                         case Type.STRING:
@@ -600,7 +600,7 @@ class OffHeapStateChunk implements StateChunk {
             return (double) (float) p_unsafe_elem;
         } else if (p_unsafe_elem instanceof Long) {
             return (double) (long) p_unsafe_elem;
-        }else if (p_unsafe_elem instanceof Byte) {
+        } else if (p_unsafe_elem instanceof Byte) {
             return (double) (byte) p_unsafe_elem;
         }
         return (double) p_unsafe_elem;

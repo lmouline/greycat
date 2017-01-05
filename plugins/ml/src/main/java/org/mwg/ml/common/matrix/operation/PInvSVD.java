@@ -3,14 +3,14 @@ package org.mwg.ml.common.matrix.operation;
 import org.mwg.ml.common.matrix.MatrixOps;
 import org.mwg.ml.common.matrix.SVDDecompose;
 import org.mwg.ml.common.matrix.TransposeType;
-import org.mwg.ml.common.matrix.VolatileMatrix;
-import org.mwg.struct.Matrix;
+import org.mwg.ml.common.matrix.VolatileDMatrix;
+import org.mwg.struct.DMatrix;
 
 public class PInvSVD {
 
     private SVDDecompose _svd;
-    private Matrix pinv;
-    private Matrix S;
+    private DMatrix pinv;
+    private DMatrix S;
     private int rank;
     private double det;
 
@@ -25,18 +25,18 @@ public class PInvSVD {
     public PInvSVD() {
     }
 
-    public PInvSVD factor(Matrix A, boolean invertInPlace) {
+    public PInvSVD factor(DMatrix A, boolean invertInPlace) {
         _svd = MatrixOps.defaultEngine().decomposeSVD(A, invertInPlace);
         //We get UxSxVt
-        Matrix[] svd = new VolatileMatrix[3];
+        DMatrix[] svd = new VolatileDMatrix[3];
         svd[0] = _svd.getU();
         svd[1] = _svd.getSMatrix();
         svd[2] = _svd.getVt();
         //  debug purpose
-        //  KMatrix t1= Matrix.multiply(svd[0],svd[1]);
-        //  KMatrix t2= Matrix.multiply(t1,svd[2]);
-        Matrix V = _svd.getVt();
-        S = VolatileMatrix.cloneFrom(_svd.getSMatrix());
+        //  KMatrix t1= DMatrix.multiply(svd[0],svd[1]);
+        //  KMatrix t2= DMatrix.multiply(t1,svd[2]);
+        DMatrix V = _svd.getVt();
+        S = VolatileDMatrix.cloneFrom(_svd.getSMatrix());
 
         double maxSingular = 0;
         int dim = Math.min(S.columns(), S.rows());
@@ -63,7 +63,7 @@ public class PInvSVD {
         }
 
         // V*W
-        Matrix temp = MatrixOps.multiplyTranspose(TransposeType.TRANSPOSE, V, TransposeType.TRANSPOSE, S);
+        DMatrix temp = MatrixOps.multiplyTranspose(TransposeType.TRANSPOSE, V, TransposeType.TRANSPOSE, S);
         //V*W*Ut
         pinv = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, temp, TransposeType.TRANSPOSE, _svd.getU());
         return this;
@@ -73,11 +73,11 @@ public class PInvSVD {
         return _svd;
     }
 
-    public Matrix getInvDeterminant() {
+    public DMatrix getInvDeterminant() {
         return S;
     }
 
-    public Matrix getPInv() {
+    public DMatrix getPInv() {
         return pinv;
     }
 }

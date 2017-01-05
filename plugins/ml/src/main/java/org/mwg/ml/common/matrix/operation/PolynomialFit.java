@@ -3,12 +3,12 @@ package org.mwg.ml.common.matrix.operation;
 
 import org.mwg.ml.common.matrix.MatrixOps;
 import org.mwg.ml.common.matrix.TransposeType;
-import org.mwg.ml.common.matrix.VolatileMatrix;
-import org.mwg.struct.Matrix;
+import org.mwg.ml.common.matrix.VolatileDMatrix;
+import org.mwg.struct.DMatrix;
 
 public class PolynomialFit {
 
-    private Matrix coef;
+    private DMatrix coef;
     private int degree = 0;
 
     public PolynomialFit(int degree) {
@@ -20,8 +20,8 @@ public class PolynomialFit {
     }
 
     public void fit(double samplePoints[], double[] observations) {
-        Matrix y = VolatileMatrix.wrap(observations, observations.length, 1);
-        Matrix a = VolatileMatrix.empty(y.rows(), degree + 1);
+        DMatrix y = VolatileDMatrix.wrap(observations, observations.length, 1);
+        DMatrix a = VolatileDMatrix.empty(y.rows(), degree + 1);
         // cset up the A matrix
         for (int i = 0; i < observations.length; i++) {
             double obs = 1;

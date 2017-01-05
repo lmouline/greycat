@@ -2,9 +2,9 @@ package org.mwg.ml.neuralnet.bio;
 
 import org.mwg.*;
 import org.mwg.base.BaseNode;
+import org.mwg.struct.DMatrix;
 import org.mwg.struct.LongLongMap;
 import org.mwg.struct.LongLongMapCallBack;
-import org.mwg.struct.Matrix;
 import org.mwg.struct.Relation;
 
 public class BioNeuralNetwork extends BaseNode {
@@ -46,13 +46,13 @@ public class BioNeuralNetwork extends BaseNode {
                 for (int j = 0; j < nodesPerLayer; j++) {
                     final BioNeuralNode neuralNode = (BioNeuralNode) graph().newTypedNode(world(), time(), BioNeuralNode.NAME);
                     //init buffer and weights
-                    Matrix spikeSum = (Matrix) neuralNode.getOrCreate(BUFFER_SPIKE_SUM, Type.MATRIX);
+                    DMatrix spikeSum = (DMatrix) neuralNode.getOrCreate(BUFFER_SPIKE_SUM, Type.DMATRIX);
                     spikeSum.init(1, inputs);
                     spikeSum.fill(0d);
-                    Matrix spikeNb = (Matrix) neuralNode.getOrCreate(BUFFER_SPIKE_NB, Type.MATRIX);
+                    DMatrix spikeNb = (DMatrix) neuralNode.getOrCreate(BUFFER_SPIKE_NB, Type.DMATRIX);
                     spikeNb.init(1, inputs);
                     spikeNb.fill(0d);
-                    Matrix weights = (Matrix) neuralNode.getOrCreate(WEIGHTS, Type.MATRIX);
+                    DMatrix weights = (DMatrix) neuralNode.getOrCreate(WEIGHTS, Type.DMATRIX);
                     weights.init(inputs, 1);
                     weights.fillWithRandom(-1d, 1d, seed);
                     seed++;
@@ -71,13 +71,13 @@ public class BioNeuralNetwork extends BaseNode {
                 for (int j = 0; j < nodesPerLayer; j++) {
                     final BioNeuralNode neuralNode = (BioNeuralNode) graph().newTypedNode(world(), time(), BioNeuralNode.NAME);
                     //init buffer and weights
-                    Matrix spikeSum = (Matrix) neuralNode.getOrCreate(BUFFER_SPIKE_SUM, Type.MATRIX);
+                    DMatrix spikeSum = (DMatrix) neuralNode.getOrCreate(BUFFER_SPIKE_SUM, Type.DMATRIX);
                     spikeSum.init(1, nodesPerLayer);
                     spikeSum.fill(0d);
-                    Matrix spikeNb = (Matrix) neuralNode.getOrCreate(BUFFER_SPIKE_NB, Type.MATRIX);
+                    DMatrix spikeNb = (DMatrix) neuralNode.getOrCreate(BUFFER_SPIKE_NB, Type.DMATRIX);
                     spikeNb.init(1, nodesPerLayer);
                     spikeNb.fill(0d);
-                    Matrix weights = (Matrix) neuralNode.getOrCreate(WEIGHTS, Type.MATRIX);
+                    DMatrix weights = (DMatrix) neuralNode.getOrCreate(WEIGHTS, Type.DMATRIX);
                     weights.init(nodesPerLayer, 1);
                     weights.fillWithRandom(-1d, 1d, seed);
                     seed++;
@@ -95,13 +95,13 @@ public class BioNeuralNetwork extends BaseNode {
         for (int i = 0; i < outputs; i++) {
             BioOutputNeuralNode output = (BioOutputNeuralNode) graph().newTypedNode(world(), time(), BioOutputNeuralNode.NAME);
             //init buffer and weights
-            Matrix spikeSum = (Matrix) output.getOrCreate(BUFFER_SPIKE_SUM, Type.MATRIX);
+            DMatrix spikeSum = (DMatrix) output.getOrCreate(BUFFER_SPIKE_SUM, Type.DMATRIX);
             spikeSum.init(1, nodesPerLayer);
             spikeSum.fill(0d);
-            Matrix spikeNb = (Matrix) output.getOrCreate(BUFFER_SPIKE_NB, Type.MATRIX);
+            DMatrix spikeNb = (DMatrix) output.getOrCreate(BUFFER_SPIKE_NB, Type.DMATRIX);
             spikeNb.init(1, nodesPerLayer);
             spikeNb.fill(0d);
-            Matrix weights = (Matrix) output.getOrCreate(WEIGHTS, Type.MATRIX);
+            DMatrix weights = (DMatrix) output.getOrCreate(WEIGHTS, Type.DMATRIX);
             weights.init(nodesPerLayer, 1);
             weights.fillWithRandom(-1d, 1d, seed);
             seed++;

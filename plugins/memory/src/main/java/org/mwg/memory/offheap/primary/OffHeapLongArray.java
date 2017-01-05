@@ -110,7 +110,7 @@ public class OffHeapLongArray {
         final long rawSize = OffHeapLongArray.get(addr, SIZE_INDEX);
         Base64.encodeLongToBuffer(rawSize, buffer);
         for (int j = 0; j < rawSize; j++) {
-            buffer.write(Constants.CHUNK_SUB_SUB_SEP);
+            buffer.write(Constants.CHUNK_VAL_SEP);
             Base64.encodeLongToBuffer(OffHeapLongArray.get(addr, j + SHIFT_INDEX), buffer);
         }
     }

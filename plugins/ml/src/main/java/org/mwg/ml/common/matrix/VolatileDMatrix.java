@@ -1,19 +1,19 @@
 package org.mwg.ml.common.matrix;
 
 import org.mwg.Constants;
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 
 import java.util.Random;
 
 //Most of the time we will be using column based matrix due to blas.
-public class VolatileMatrix implements Matrix {
+public class VolatileDMatrix implements DMatrix {
 
     private double[] _data;
     private int _nbRows;
     private int _nbColumns;
     private int _nbMaxColumn;
 
-    private VolatileMatrix(double[] backend, int p_nbRows, int p_nbColumns) {
+    private VolatileDMatrix(double[] backend, int p_nbRows, int p_nbColumns) {
         this._nbRows = p_nbRows;
         this._nbColumns = p_nbColumns;
         if (backend != null) {
@@ -24,7 +24,7 @@ public class VolatileMatrix implements Matrix {
     }
 
     @Override
-    public Matrix init(int rows, int columns) {
+    public DMatrix init(int rows, int columns) {
         if (rows != _nbRows && columns != _nbColumns) {
             throw new RuntimeException("Bad API usage !");
         }
@@ -62,20 +62,20 @@ public class VolatileMatrix implements Matrix {
     }
 
     @Override
-    public Matrix set(int rowIndex, int columnIndex, double value) {
+    public DMatrix set(int rowIndex, int columnIndex, double value) {
         _data[rowIndex + columnIndex * _nbRows] = value;
         return this;
     }
 
     @Override
-    public Matrix add(int rowIndex, int columnIndex, double value) {
+    public DMatrix add(int rowIndex, int columnIndex, double value) {
         int raw_index = rowIndex + columnIndex * _nbRows;
         _data[raw_index] = value + _data[raw_index];
         return this;
     }
 
     @Override
-    public Matrix appendColumn(double[] newColumn) {
+    public DMatrix appendColumn(double[] newColumn) {
         if (_data == null) {
             _nbRows = newColumn.length;
             _nbColumns = Constants.MAP_INITIAL_CAPACITY;
@@ -96,7 +96,7 @@ public class VolatileMatrix implements Matrix {
     }
 
     @Override
-    public Matrix fill(double value) {
+    public DMatrix fill(double value) {
         for (int i = 0; i < _nbColumns * _nbRows; i++) {
             this._data[i] = value;
         }
@@ -104,13 +104,13 @@ public class VolatileMatrix implements Matrix {
     }
 
     @Override
-    public Matrix fillWith(double[] values) {
+    public DMatrix fillWith(double[] values) {
         _data = values;
         return this;
     }
 
     @Override
-    public Matrix fillWithRandom(double min, double max, long seed) {
+    public DMatrix fillWithRandom(double min, double max, long seed) {
         Random rand = new Random();
         rand.setSeed(seed);
         for (int i = 0; i < _nbRows * _nbColumns; i++) {
@@ -130,7 +130,7 @@ public class VolatileMatrix implements Matrix {
     }
 
     @Override
-    public Matrix unsafeSet(int index, double value) {
+    public DMatrix unsafeSet(int index, double value) {
         this._data[index] = value;
         return this;
     }
@@ -173,8 +173,8 @@ public class VolatileMatrix implements Matrix {
     }
 
     //   @Override
-    public VolatileMatrix importRowMatrix(double[] rowdata, int rows, int columns) {
-        VolatileMatrix res = new VolatileMatrix(null, rows, columns);
+    public VolatileDMatrix importRowMatrix(double[] rowdata, int rows, int columns) {
+        VolatileDMatrix res = new VolatileDMatrix(null, rows, columns);
 
         int k = 0;
         for (int i = 0; i < _nbRows; i++) {
@@ -199,17 +199,17 @@ public class VolatileMatrix implements Matrix {
 
     //  @Override
     /*
-    public VolatileMatrix clone() {
+    public VolatileDMatrix clone() {
         double[] newback = new double[_data.length];
         System.arraycopy(_data, 0, newback, 0, _data.length);
-        VolatileMatrix res = new VolatileMatrix(newback, this._nbRows, this._nbColumns);
+        VolatileDMatrix res = new VolatileDMatrix(newback, this._nbRows, this._nbColumns);
         return res;
 
     }*/
 
 
-    public static Matrix random(int rows, int columns, double min, double max) {
-        VolatileMatrix res = new VolatileMatrix(null, rows, columns);
+    public static DMatrix random(int rows, int columns, double min, double max) {
+        VolatileDMatrix res = new VolatileDMatrix(null, rows, columns);
         Random rand = new Random();
         for (int i = 0; i < rows * columns; i++) {
             res.unsafeSet(i, rand.nextDouble() * (max - min) + min);
@@ -217,7 +217,7 @@ public class VolatileMatrix implements Matrix {
         return res;
     }
 
-    public static double compareMatrix(VolatileMatrix matA, VolatileMatrix matB) {
+    public static double compareMatrix(VolatileDMatrix matA, VolatileDMatrix matB) {
         double err = 0;
 
         for (int i = 0; i < matA.rows(); i++) {
@@ -233,28 +233,28 @@ public class VolatileMatrix implements Matrix {
     }
 
 
-    public static Matrix identity(int rows, int columns) {
-        Matrix res = new VolatileMatrix(null, rows, columns);
+    public static DMatrix identity(int rows, int columns) {
+        DMatrix res = new VolatileDMatrix(null, rows, columns);
         for (int i = 0; i < Math.max(rows, columns); i++) {
             res.set(i, i, 1.0);
         }
         return res;
     }
 
-    public static Matrix empty(int rows, int columns) {
-        return new VolatileMatrix(null, rows, columns);
+    public static DMatrix empty(int rows, int columns) {
+        return new VolatileDMatrix(null, rows, columns);
     }
 
-    public static Matrix wrap(double[] data, int rows, int columns) {
-        return new VolatileMatrix(data, rows, columns);
+    public static DMatrix wrap(double[] data, int rows, int columns) {
+        return new VolatileDMatrix(data, rows, columns);
     }
 
-    public static Matrix cloneFrom(Matrix origin) {
+    public static DMatrix cloneFrom(DMatrix origin) {
         //TODO checj according to .data() clone
         double[] prev = origin.data();
         double[] copy = new double[prev.length];
         System.arraycopy(prev, 0, copy, 0, copy.length);
-        return new VolatileMatrix(copy, origin.rows(), origin.columns());
+        return new VolatileDMatrix(copy, origin.rows(), origin.columns());
     }
 
 }

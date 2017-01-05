@@ -4,10 +4,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.ml.common.matrix.MatrixEngine;
 import org.mwg.ml.common.matrix.TransposeType;
-import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.ml.common.matrix.VolatileDMatrix;
 import org.mwg.ml.common.matrix.blassolver.BlasMatrixEngine;
 import org.mwg.ml.common.matrix.jamasolver.JamaMatrixEngine;
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 
 public class MultiplyTest {
 
@@ -21,8 +21,8 @@ public class MultiplyTest {
         InternalManualMult(new JamaMatrixEngine());
     }
 
-    public Matrix manualMultpily(Matrix matA, Matrix matB) {
-        Matrix matC = VolatileMatrix.empty(matA.rows(), matB.columns());
+    public DMatrix manualMultpily(DMatrix matA, DMatrix matB) {
+        DMatrix matC = VolatileDMatrix.empty(matA.rows(), matB.columns());
         for (int i = 0; i < matA.rows(); i++) {
             for (int j = 0; j < matB.columns(); j++) {
                 for (int k = 0; k < matA.columns(); k++) {
@@ -42,11 +42,11 @@ public class MultiplyTest {
         int r = 30;
         int o = 30;
         int p = 30;
-        Matrix matA = VolatileMatrix.random(r, o, 0, 100);
-        Matrix matB = VolatileMatrix.random(o, p, 0, 100);
+        DMatrix matA = VolatileDMatrix.random(r, o, 0, 100);
+        DMatrix matB = VolatileDMatrix.random(o, p, 0, 100);
 
-        Matrix result = engine.multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1, matA, TransposeType.NOTRANSPOSE, matB, 0, null);
-        Matrix matD = manualMultpily(matA, matB);
+        DMatrix result = engine.multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1, matA, TransposeType.NOTRANSPOSE, matB, 0, null);
+        DMatrix matD = manualMultpily(matA, matB);
 
         double eps = 1e-7;
 

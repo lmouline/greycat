@@ -4,9 +4,9 @@ import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.base.BaseNode;
 import org.mwg.ml.common.matrix.MatrixOps;
-import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.ml.common.matrix.VolatileDMatrix;
 import org.mwg.plugin.NodeState;
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 
 public class FlatNeuralNode extends BaseNode {
 
@@ -22,12 +22,12 @@ public class FlatNeuralNode extends BaseNode {
     private static final long MATRICES_OFFSET = 10; // matrix offset
 
 
-    private static Matrix layerWeights(NodeState state, int layer) {
-        return (Matrix) state.getOrCreate(MATRICES_OFFSET + layer * 2, Type.MATRIX);
+    private static DMatrix layerWeights(NodeState state, int layer) {
+        return (DMatrix) state.getOrCreate(MATRICES_OFFSET + layer * 2, Type.DMATRIX);
     }
 
-    private static Matrix layerBias(NodeState state, int layer) {
-        return (Matrix) state.getOrCreate(MATRICES_OFFSET + layer * 2 + 1, Type.MATRIX);
+    private static DMatrix layerBias(NodeState state, int layer) {
+        return (DMatrix) state.getOrCreate(MATRICES_OFFSET + layer * 2 + 1, Type.DMATRIX);
     }
 
 
@@ -51,8 +51,8 @@ public class FlatNeuralNode extends BaseNode {
 
         for (int i = 0; i < hiddenlayers; i++) {
 
-            Matrix weights = layerWeights(state, i);
-            Matrix biases = layerBias(state, i);
+            DMatrix weights = layerWeights(state, i);
+            DMatrix biases = layerBias(state, i);
             weights.init(previousDim, nextDim);
             biases.init(1, nextDim);
             weights.fillWithRandom(-1.0, 1.0, System.currentTimeMillis());
@@ -64,8 +64,8 @@ public class FlatNeuralNode extends BaseNode {
         }
         //create output weight and bias after hidden layers index
         nextDim = outputs;
-        Matrix weights = layerWeights(state, hiddenlayers);
-        Matrix biases = layerBias(state, hiddenlayers);
+        DMatrix weights = layerWeights(state, hiddenlayers);
+        DMatrix biases = layerBias(state, hiddenlayers);
         weights.init(previousDim, nextDim);
         biases.init(1, nextDim);
         weights.fillWithRandom(-1.0, 1.0, System.currentTimeMillis());
@@ -86,13 +86,13 @@ public class FlatNeuralNode extends BaseNode {
 
         int nbHiddenLayers = (int) state.get(NB_LAYERS);
 
-        Matrix integration;
-        Matrix activation;
+        DMatrix integration;
+        DMatrix activation;
 
 
-        Matrix input = VolatileMatrix.empty(1, nbInput);
-        Matrix weights;
-        Matrix biases;
+        DMatrix input = VolatileDMatrix.empty(1, nbInput);
+        DMatrix weights;
+        DMatrix biases;
 
         //set initial input vector as a matrix
         for (int i = 0; i < nbInput; i++) {
@@ -125,15 +125,15 @@ public class FlatNeuralNode extends BaseNode {
         int nbHiddenLayers = (int) state.get(NB_LAYERS);
         double learningRate = (double) state.get(LEARNING_RATE);
 
-        Matrix[] forwards = new Matrix[nbHiddenLayers + 1];
-        Matrix[] integrations = new Matrix[nbHiddenLayers + 1];
-        Matrix[] activations = new Matrix[nbHiddenLayers + 1];
-        Matrix[] derivations = new Matrix[nbHiddenLayers + 1];
+        DMatrix[] forwards = new DMatrix[nbHiddenLayers + 1];
+        DMatrix[] integrations = new DMatrix[nbHiddenLayers + 1];
+        DMatrix[] activations = new DMatrix[nbHiddenLayers + 1];
+        DMatrix[] derivations = new DMatrix[nbHiddenLayers + 1];
 
 
-        Matrix input = VolatileMatrix.empty(1, nbInput);
-        Matrix[] weights = new Matrix[nbHiddenLayers + 1];
-        Matrix[] biases = new Matrix[nbHiddenLayers + 1];
+        DMatrix input = VolatileDMatrix.empty(1, nbInput);
+        DMatrix[] weights = new DMatrix[nbHiddenLayers + 1];
+        DMatrix[] biases = new DMatrix[nbHiddenLayers + 1];
 
         //set initial input vector as a matrix
         for (int i = 0; i < nbInput; i++) {
@@ -162,15 +162,15 @@ public class FlatNeuralNode extends BaseNode {
         }
 
 
-        Matrix[] newWeights = new Matrix[nbHiddenLayers + 1];
-        Matrix[] newBiases = new Matrix[nbHiddenLayers + 1];
+        DMatrix[] newWeights = new DMatrix[nbHiddenLayers + 1];
+        DMatrix[] newBiases = new DMatrix[nbHiddenLayers + 1];
         double[] previousErr;
 
         //Back-propagate
 
         for (int layer = nbHiddenLayers; layer >= 0; layer--) {
-            newWeights[layer] = VolatileMatrix.empty(weights[layer].rows(), weights[layer].columns());
-            newBiases[layer] = VolatileMatrix.empty(biases[layer].rows(), biases[layer].columns());
+            newWeights[layer] = VolatileDMatrix.empty(weights[layer].rows(), weights[layer].columns());
+            newBiases[layer] = VolatileDMatrix.empty(biases[layer].rows(), biases[layer].columns());
             for (int i = 0; i < derivativeErr.length; i++) {
                 derivativeErr[i] = derivativeErr[i] * derivations[layer].get(0, i);
             }
@@ -198,11 +198,11 @@ public class FlatNeuralNode extends BaseNode {
     }
 
 
-    private Matrix activate(Matrix integration, boolean linearActivation) {
+    private DMatrix activate(DMatrix integration, boolean linearActivation) {
         if (linearActivation) {
             return integration; // for output returns a linear activation
         } else {
-            Matrix result = VolatileMatrix.empty(integration.rows(), integration.columns());
+            DMatrix result = VolatileDMatrix.empty(integration.rows(), integration.columns());
             for (int i = 0; i < integration.rows(); i++) {
                 for (int j = 0; j < integration.columns(); j++) {
                     result.set(i, j, 1 / (1 + Math.exp(-integration.get(i, j)))); //else a sigmoid
@@ -212,8 +212,8 @@ public class FlatNeuralNode extends BaseNode {
         }
     }
 
-    private Matrix derivate(Matrix integration, Matrix activation, boolean linearActivation) {
-        Matrix result = VolatileMatrix.empty(1, activation.columns());
+    private DMatrix derivate(DMatrix integration, DMatrix activation, boolean linearActivation) {
+        DMatrix result = VolatileDMatrix.empty(1, activation.columns());
         if (linearActivation) {
             for (int j = 0; j < activation.columns(); j++) {
                 result.set(0, j, 1);

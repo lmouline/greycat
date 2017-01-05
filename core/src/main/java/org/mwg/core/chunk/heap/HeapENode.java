@@ -82,9 +82,9 @@ class HeapENode implements ENode {
                                 _v[i] = new HeapRelation(chunk, (HeapRelation) origin._v[i]);
                             }
                             break;
-                        case Type.MATRIX:
+                        case Type.DMATRIX:
                             if (origin._v[i] != null) {
-                                _v[i] = new HeapMatrix(chunk, (HeapMatrix) origin._v[i]);
+                                _v[i] = new HeapDMatrix(chunk, (HeapDMatrix) origin._v[i]);
                             }
                             break;
                         case Type.LMATRIX:
@@ -226,8 +226,8 @@ class HeapENode implements ENode {
                     case Type.STRING:
                         param_elem = (String) p_unsafe_elem;
                         break;
-                    case Type.MATRIX:
-                        param_elem = (Matrix) p_unsafe_elem;
+                    case Type.DMATRIX:
+                        param_elem = (DMatrix) p_unsafe_elem;
                         break;
                     case Type.LMATRIX:
                         param_elem = (LMatrix) p_unsafe_elem;
@@ -475,8 +475,8 @@ class HeapENode implements ENode {
             case Type.RELATION_INDEXED:
                 toSet = new HeapRelationIndexed(chunk);
                 break;
-            case Type.MATRIX:
-                toSet = new HeapMatrix(chunk, null);
+            case Type.DMATRIX:
+                toSet = new HeapDMatrix(chunk, null);
                 break;
             case Type.LMATRIX:
                 toSet = new HeapLMatrix(chunk, null);
@@ -813,8 +813,8 @@ class HeapENode implements ENode {
                                 Base64.encodeIntToBuffer(castedIntArr[j], buffer);
                             }
                             break;
-                        case Type.MATRIX:
-                            HeapMatrix castedMatrix = (HeapMatrix) loopValue;
+                        case Type.DMATRIX:
+                            HeapDMatrix castedMatrix = (HeapDMatrix) loopValue;
                             final double[] unsafeContent = castedMatrix.unsafe_data();
                             if (unsafeContent != null) {
                                 Base64.encodeIntToBuffer(unsafeContent.length, buffer);
@@ -1034,8 +1034,8 @@ class HeapENode implements ENode {
                                 previous = cursor;
                                 state = LOAD_WAITING_TYPE;
                                 break;
-                            case Type.MATRIX:
-                                HeapMatrix matrix = new HeapMatrix(p_parent, null);
+                            case Type.DMATRIX:
+                                HeapDMatrix matrix = new HeapDMatrix(p_parent, null);
                                 cursor++;
                                 cursor = matrix.load(buffer, cursor, payloadSize);
                                 cursor++;

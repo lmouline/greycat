@@ -1,8 +1,8 @@
 package org.mwg.ml.common.matrix.operation;
 
 import org.mwg.ml.common.matrix.MatrixOps;
-import org.mwg.ml.common.matrix.VolatileMatrix;
-import org.mwg.struct.Matrix;
+import org.mwg.ml.common.matrix.VolatileDMatrix;
+import org.mwg.struct.DMatrix;
 
 public class MultivariateNormalDistribution {
 
@@ -10,13 +10,13 @@ public class MultivariateNormalDistribution {
     double[] max;
     double[] means;
     double[] covDiag;
-    Matrix inv;
-    Matrix covariance;
+    DMatrix inv;
+    DMatrix covariance;
     PInvSVD pinvsvd;
     int rank;
     double det;
 
-    public MultivariateNormalDistribution(double[] means, Matrix cov, boolean allowSingular) {
+    public MultivariateNormalDistribution(double[] means, DMatrix cov, boolean allowSingular) {
         this.means = means;
         if (cov != null) {
             this.covariance = cov;
@@ -31,7 +31,7 @@ public class MultivariateNormalDistribution {
             this.rank = pinvsvd.getRank();
 
             if (!allowSingular && this.rank < cov.rows()) {
-                this.covariance = VolatileMatrix.cloneFrom(cov);
+                this.covariance = VolatileDMatrix.cloneFrom(cov);
                 double[] temp = new double[covDiag.length];
                 for (int i = 0; i < covDiag.length; i++) {
                     temp[i] = Math.sqrt(covDiag[i]);
@@ -100,7 +100,7 @@ public class MultivariateNormalDistribution {
         this.max = max;
     }
 
-    public static Matrix getCovariance(double[] sum, double[] sumsquares, int total) {
+    public static DMatrix getCovariance(double[] sum, double[] sumsquares, int total) {
         if (total < 2) {
             return null;
         }
@@ -120,7 +120,7 @@ public class MultivariateNormalDistribution {
                 count++;
             }
         }
-        return VolatileMatrix.wrap(covariances, features, features);
+        return VolatileDMatrix.wrap(covariances, features, features);
     }
 
 
@@ -148,7 +148,7 @@ public class MultivariateNormalDistribution {
                 count++;
             }
         }
-        Matrix cov = VolatileMatrix.wrap(covariances, features, features);
+        DMatrix cov = VolatileDMatrix.wrap(covariances, features, features);
         return new MultivariateNormalDistribution(avg, cov, allowSingular);
     }
 
@@ -168,10 +168,10 @@ public class MultivariateNormalDistribution {
         for (int i = 0; i < features.length; i++) {
             f[i] = f[i] - means[i];
         }
-        Matrix ft = VolatileMatrix.wrap(f, 1, f.length);
-        Matrix ftt = VolatileMatrix.wrap(f, f.length, 1);
-        Matrix res = MatrixOps.multiply(ft, inv);
-        Matrix res2 = MatrixOps.multiply(res, ftt);
+        DMatrix ft = VolatileDMatrix.wrap(f, 1, f.length);
+        DMatrix ftt = VolatileDMatrix.wrap(f, f.length, 1);
+        DMatrix res = MatrixOps.multiply(ft, inv);
+        DMatrix res2 = MatrixOps.multiply(res, ftt);
         double d = Math.exp(-0.5 * res2.get(0, 0));
         return d;
     }
@@ -193,10 +193,10 @@ public class MultivariateNormalDistribution {
         for (int i = 0; i < features.length; i++) {
             f[i] = f[i] - means[i];
         }
-        Matrix ft = VolatileMatrix.wrap(f, 1, f.length);
-        Matrix ftt = VolatileMatrix.wrap(f, f.length, 1);
-        Matrix res = MatrixOps.multiply(ft, inv);
-        Matrix res2 = MatrixOps.multiply(res, ftt);
+        DMatrix ft = VolatileDMatrix.wrap(f, 1, f.length);
+        DMatrix ftt = VolatileDMatrix.wrap(f, f.length, 1);
+        DMatrix res = MatrixOps.multiply(ft, inv);
+        DMatrix res2 = MatrixOps.multiply(res, ftt);
         return -0.5 * res2.get(0, 0);
     }
 }

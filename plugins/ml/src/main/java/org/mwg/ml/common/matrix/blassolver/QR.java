@@ -3,17 +3,17 @@ package org.mwg.ml.common.matrix.blassolver;
 
 import org.mwg.ml.common.matrix.MatrixOps;
 import org.mwg.ml.common.matrix.TransposeType;
-import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.ml.common.matrix.VolatileDMatrix;
 import org.mwg.ml.common.matrix.blassolver.blas.Blas;
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 
 class QR {
 
     /**
      * The orthogonal matrix
      */
-    private Matrix Q;
-    private Matrix R;
+    private DMatrix Q;
+    private DMatrix R;
     private Blas _blas;
 
     /**
@@ -47,23 +47,23 @@ class QR {
         this.n = columns;
         this.k = Math.min(m, n);
         tau = new double[k];
-        R = VolatileMatrix.empty(n, n);
+        R = VolatileDMatrix.empty(n, n);
     }
 
     /**
      * Convenience method to compute a QR decomposition
      *
-     * @param A Matrix to decompose. Not modified
+     * @param A DMatrix to decompose. Not modified
      * @return Newly allocated decomposition
      */
-    public static QR factorize(Matrix A, boolean workInPlace, Blas blas) {
+    public static QR factorize(DMatrix A, boolean workInPlace, Blas blas) {
         return new QR(A.rows(), A.columns(), blas).factor(A, workInPlace);
     }
 
-    public QR factor(Matrix matA, boolean workInPlace) {
-        Matrix A;
+    public QR factor(DMatrix matA, boolean workInPlace) {
+        DMatrix A;
         if (!workInPlace) {
-            A = VolatileMatrix.cloneFrom(matA);
+            A = VolatileDMatrix.cloneFrom(matA);
         } else {
             A = matA;
         }
@@ -124,10 +124,10 @@ class QR {
         return this;
     }
 
-    public void solve(Matrix B, Matrix X) {
+    public void solve(DMatrix B, DMatrix X) {
         int BnumCols = B.columns();
-        Matrix Y = VolatileMatrix.empty(m, 1);
-        Matrix Z;
+        DMatrix Y = VolatileDMatrix.empty(m, 1);
+        DMatrix Z;
         // solve each column one by one
         for (int colB = 0; colB < BnumCols; colB++) {
             // make a copy of this column in the vector
@@ -147,7 +147,7 @@ class QR {
         }
     }
 
-    private void solveU(Matrix U, double[] b, int n, int m) {
+    private void solveU(DMatrix U, double[] b, int n, int m) {
         for (int i = n - 1; i >= 0; i--) {
             double sum = b[i];
             for (int j = i + 1; j < n; j++) {
@@ -160,11 +160,11 @@ class QR {
     /**
      * Returns the upper triangular factor
      */
-    public Matrix getR() {
+    public DMatrix getR() {
         return R;
     }
 
-    public Matrix getQ() {
+    public DMatrix getQ() {
         return Q;
     }
 }

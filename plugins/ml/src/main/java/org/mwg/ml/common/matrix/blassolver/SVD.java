@@ -1,9 +1,9 @@
 package org.mwg.ml.common.matrix.blassolver;
 
 import org.mwg.ml.common.matrix.SVDDecompose;
-import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.ml.common.matrix.VolatileDMatrix;
 import org.mwg.ml.common.matrix.blassolver.blas.Blas;
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 
 /**
  * Computes singular value decompositions
@@ -21,7 +21,7 @@ class SVD implements SVDDecompose {
     private final int[] iwork;
 
     /**
-     * Matrix dimension
+     * DMatrix dimension
      */
     private final int m, n;
 
@@ -43,7 +43,7 @@ class SVD implements SVDDecompose {
     /**
      * Singular vectors
      */
-    private final Matrix U, Vt;
+    private final DMatrix U, Vt;
 
     private Blas _blas;
 
@@ -63,8 +63,8 @@ class SVD implements SVDDecompose {
         // Allocate space for the decomposition
         S = new double[Math.min(m, n)];
         if (vectors) {
-            U = VolatileMatrix.empty(m, m);
-            Vt = VolatileMatrix.empty(n, n);
+            U = VolatileDMatrix.empty(m, m);
+            Vt = VolatileDMatrix.empty(n, n);
         } else
             U = Vt = null;
 
@@ -109,12 +109,12 @@ class SVD implements SVDDecompose {
     /**
      * Computes an SVD
      *
-     * @param A Matrix to decompose. Size must conform, and it will be
+     * @param A DMatrix to decompose. Size must conform, and it will be
      *          overwritten on return. Pass a copy to avoid this
      * @return The current decomposition
      */
     @Override
-    public SVD factor(Matrix A, boolean workInPlace) {
+    public SVD factor(DMatrix A, boolean workInPlace) {
         if (A.rows() != m)
             throw new IllegalArgumentException("A.numRows() != m");
         else if (A.columns() != n)
@@ -156,10 +156,10 @@ class SVD implements SVDDecompose {
      * Returns the left singular vectors, column-wise. Not available for partial
      * decompositions
      *
-     * @return Matrix of size m*m
+     * @return DMatrix of size m*m
      */
     @Override
-    public Matrix getU() {
+    public DMatrix getU() {
         return U;
     }
 
@@ -167,10 +167,10 @@ class SVD implements SVDDecompose {
      * Returns the right singular vectors, row-wise. Not available for partial
      * decompositions
      *
-     * @return Matrix of size n*n
+     * @return DMatrix of size n*n
      */
     @Override
-    public Matrix getVt() {
+    public DMatrix getVt() {
         return Vt;
     }
 
@@ -185,8 +185,8 @@ class SVD implements SVDDecompose {
     }
 
     @Override
-    public Matrix getSMatrix() {
-        Matrix matS = VolatileMatrix.empty(m, n);
+    public DMatrix getSMatrix() {
+        DMatrix matS = VolatileDMatrix.empty(m, n);
         for (int i = 0; i < S.length; i++) {
             matS.set(i, i, S[i]);
         }

@@ -1,16 +1,16 @@
 package org.mwg.ml.common.matrix;
 
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 
 public interface SVDDecompose {
     
-    SVDDecompose factor(Matrix A, boolean workInPlace);
+    SVDDecompose factor(DMatrix A, boolean workInPlace);
 
-    Matrix getU();
+    DMatrix getU();
 
-    Matrix getVt();
+    DMatrix getVt();
 
     double[] getS();
 
-    Matrix getSMatrix();
+    DMatrix getSMatrix();
 }

@@ -138,7 +138,7 @@ public abstract class AbstractEGraphTest {
         lmat.appendColumn(new long[]{1, 2, 3});
         lmat.set(1, 0, 5L);
 
-        Matrix mat = (Matrix) eNode.getOrCreate("mat", Type.MATRIX);
+        DMatrix mat = (DMatrix) eNode.getOrCreate("mat", Type.DMATRIX);
         mat.appendColumn(new double[]{1.0, 2.0, 3.0});
         mat.set(1, 0, 0.7);
 

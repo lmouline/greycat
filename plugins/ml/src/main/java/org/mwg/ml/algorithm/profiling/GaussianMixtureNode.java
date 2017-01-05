@@ -8,10 +8,10 @@ import org.mwg.ml.BaseMLNode;
 import org.mwg.ml.ProfilingNode;
 import org.mwg.ml.actions.ActionTraverseOrKeep;
 import org.mwg.ml.common.NDimentionalArray;
-import org.mwg.ml.common.matrix.VolatileMatrix;
+import org.mwg.ml.common.matrix.VolatileDMatrix;
 import org.mwg.ml.common.matrix.operation.MultivariateNormalDistribution;
 import org.mwg.plugin.NodeState;
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 import org.mwg.struct.Relation;
 import org.mwg.task.*;
 import org.mwg.utility.Enforcer;
@@ -479,7 +479,7 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
         TaskContext context = selectTraverseTask.prepare(graph(), this, new Callback<TaskResult>() {
             @Override
             public void on(TaskResult result) {
-                Matrix covBackup = VolatileMatrix.empty(nbfeature, nbfeature);
+                DMatrix covBackup = VolatileDMatrix.empty(nbfeature, nbfeature);
                 for (int i = 0; i < nbfeature; i++) {
                     covBackup.set(i, i, err[i]);
                 }
@@ -547,7 +547,7 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
         TaskContext context = deepTraverseTask.prepare(graph(), this, new Callback<TaskResult>() {
             @Override
             public void on(TaskResult leaves) {
-                Matrix covBackup = VolatileMatrix.empty(nbfeature, nbfeature);
+                DMatrix covBackup = VolatileDMatrix.empty(nbfeature, nbfeature);
                 for (int i = 0; i < nbfeature; i++) {
                     covBackup.set(i, i, err[i]);
                 }
@@ -819,7 +819,7 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
     }
 
 
-    public Matrix getCovariance(double[] avg, double[] err) {
+    public DMatrix getCovariance(double[] avg, double[] err) {
         int features = avg.length;
 
         int total = getTotal();
@@ -847,7 +847,7 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
                     }
                 }
             }
-            return VolatileMatrix.wrap(covariances, features, features);
+            return VolatileDMatrix.wrap(covariances, features, features);
         } else {
             return null;
         }

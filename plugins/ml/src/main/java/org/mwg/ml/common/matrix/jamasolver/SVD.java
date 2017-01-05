@@ -2,8 +2,8 @@ package org.mwg.ml.common.matrix.jamasolver;
 
 import org.mwg.ml.common.matrix.MatrixOps;
 import org.mwg.ml.common.matrix.SVDDecompose;
-import org.mwg.ml.common.matrix.VolatileMatrix;
-import org.mwg.struct.Matrix;
+import org.mwg.ml.common.matrix.VolatileDMatrix;
+import org.mwg.struct.DMatrix;
 
 /**
  * Singular Value Decomposition.
@@ -32,7 +32,7 @@ class SVD implements SVDDecompose {
      * @serial internal storage of U.
      * @serial internal storage of V.
      */
-    private Matrix U, V;
+    private DMatrix U, V;
 
     /**
      * Array for internal storage of singular values.
@@ -60,11 +60,11 @@ class SVD implements SVDDecompose {
      * @param Arg Rectangular matrix
      */
 
-    public SVD(Matrix Arg) {
+    public SVD(DMatrix Arg) {
 
         // Derived from LINPACK code.
         // Initialize.
-        Matrix A = VolatileMatrix.cloneFrom(Arg);
+        DMatrix A = VolatileDMatrix.cloneFrom(Arg);
         m = Arg.rows();
         n = Arg.columns();
 
@@ -75,8 +75,8 @@ class SVD implements SVDDecompose {
       */
         int nu = Math.min(m, n);
         s = new double[Math.min(m + 1, n)];
-        U = VolatileMatrix.empty(m, nu);
-        V = VolatileMatrix.empty(n, n);
+        U = VolatileDMatrix.empty(m, nu);
+        V = VolatileDMatrix.empty(n, n);
         double[] e = new double[n];
         double[] work = new double[m];
         boolean wantu = true;
@@ -484,7 +484,7 @@ class SVD implements SVDDecompose {
  * ------------------------ */
 
     @Override
-    public SVD factor(Matrix A, boolean workInPlace) {
+    public SVD factor(DMatrix A, boolean workInPlace) {
         return new SVD(A);
     }
 
@@ -495,12 +495,12 @@ class SVD implements SVDDecompose {
      */
 
     @Override
-    public Matrix getU() {
+    public DMatrix getU() {
         return U;
     }
 
     @Override
-    public Matrix getVt() {
+    public DMatrix getVt() {
         return MatrixOps.transpose(getV());
     }
 
@@ -510,7 +510,7 @@ class SVD implements SVDDecompose {
      * @return V
      */
 
-    public Matrix getV() {
+    public DMatrix getV() {
         return V;
     }
 
@@ -531,8 +531,8 @@ class SVD implements SVDDecompose {
      */
 
     @Override
-    public Matrix getSMatrix() {
-        Matrix X = VolatileMatrix.empty(Math.min(m, n), n);
+    public DMatrix getSMatrix() {
+        DMatrix X = VolatileDMatrix.empty(Math.min(m, n), n);
         for (int i = 0; i < this.s.length; i++) {
             if (i < m && i < n) {
                 X.set(i, i, this.s[i]);

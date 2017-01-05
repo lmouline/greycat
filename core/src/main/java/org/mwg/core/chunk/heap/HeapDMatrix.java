@@ -2,13 +2,13 @@ package org.mwg.core.chunk.heap;
 
 import org.mwg.Constants;
 import org.mwg.struct.Buffer;
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 import org.mwg.utility.Base64;
 
 import java.util.Arrays;
 import java.util.Random;
 
-class HeapMatrix implements Matrix {
+class HeapDMatrix implements DMatrix {
 
     private static final int INDEX_ROWS = 0;
     private static final int INDEX_COLUMNS = 1;
@@ -19,7 +19,7 @@ class HeapMatrix implements Matrix {
     private double[] backend = null;
     private boolean aligned = true;
 
-    HeapMatrix(final HeapStateChunk p_parent, final HeapMatrix origin) {
+    HeapDMatrix(final HeapStateChunk p_parent, final HeapDMatrix origin) {
         parent = p_parent;
         if (origin != null) {
             aligned = false;
@@ -28,7 +28,7 @@ class HeapMatrix implements Matrix {
     }
 
     @Override
-    public final Matrix init(final int rows, final int columns) {
+    public final DMatrix init(final int rows, final int columns) {
         if (parent != null) {
             synchronized (parent) {
                 internal_init(rows, columns);
@@ -50,7 +50,7 @@ class HeapMatrix implements Matrix {
     }
 
     @Override
-    public final Matrix appendColumn(double[] newColumn) {
+    public final DMatrix appendColumn(double[] newColumn) {
         if (parent != null) {
             synchronized (parent) {
                 internal_appendColumn(newColumn);
@@ -102,7 +102,7 @@ class HeapMatrix implements Matrix {
     }
 
     @Override
-    public final Matrix fill(double value) {
+    public final DMatrix fill(double value) {
         if (parent != null) {
             synchronized (parent) {
                 internal_fill(value);
@@ -130,7 +130,7 @@ class HeapMatrix implements Matrix {
     }
 
     @Override
-    public Matrix fillWith(double[] values) {
+    public DMatrix fillWith(double[] values) {
         if (parent != null) {
             synchronized (parent) {
                 internal_fillWith(values);
@@ -158,7 +158,7 @@ class HeapMatrix implements Matrix {
     }
 
     @Override
-    public Matrix fillWithRandom(double min, double max, long seed) {
+    public DMatrix fillWithRandom(double min, double max, long seed) {
         if (parent != null) {
             synchronized (parent) {
                 internal_fillWithRandom(min, max, seed);
@@ -261,7 +261,7 @@ class HeapMatrix implements Matrix {
     }
 
     @Override
-    public final Matrix set(int rowIndex, int columnIndex, double value) {
+    public final DMatrix set(int rowIndex, int columnIndex, double value) {
         if (parent != null) {
             synchronized (parent) {
                 internal_set(rowIndex, columnIndex, value);
@@ -289,7 +289,7 @@ class HeapMatrix implements Matrix {
     }
 
     @Override
-    public Matrix add(int rowIndex, int columnIndex, double value) {
+    public DMatrix add(int rowIndex, int columnIndex, double value) {
         if (parent != null) {
             synchronized (parent) {
                 internal_add(rowIndex, columnIndex, value);
@@ -361,7 +361,7 @@ class HeapMatrix implements Matrix {
     }
 
     @Override
-    public Matrix unsafeSet(int index, double value) {
+    public DMatrix unsafeSet(int index, double value) {
         if (parent != null) {
             synchronized (parent) {
                 internal_unsafeSet(index, value);

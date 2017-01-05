@@ -1,7 +1,7 @@
 package org.mwg.ml.common.matrix.jamasolver;
 
-import org.mwg.ml.common.matrix.VolatileMatrix;
-import org.mwg.struct.Matrix;
+import org.mwg.ml.common.matrix.VolatileDMatrix;
+import org.mwg.struct.DMatrix;
 
 /**
  * LU Decomposition.
@@ -28,7 +28,7 @@ class LU {
      *
      * @serial internal array storage.
      */
-    private Matrix LU;
+    private DMatrix LU;
 
     /**
      * Row and column dimensions, and pivot sign.
@@ -57,10 +57,10 @@ class LU {
      * @param A Rectangular matrix
      */
 
-    public LU(Matrix A) {
+    public LU(DMatrix A) {
         // Use a "left-looking", dot-product, Crout/Doolittle algorithm.
 
-        LU = VolatileMatrix.cloneFrom(A);
+        LU = VolatileDMatrix.cloneFrom(A);
         m = A.rows();
         n = A.columns();
         piv = new int[m];
@@ -144,7 +144,7 @@ class LU {
    @return               Structure to access L, U and piv.
    *\
 
-   public LUDecomposition (Matrix A, int linpackflag) {
+   public LUDecomposition (DMatrix A, int linpackflag) {
       // Initialize.
       LU = A.getArrayCopy();
       m = A.getRowDimension();
@@ -211,8 +211,8 @@ class LU {
      * @return L
      */
 
-    public Matrix getL() {
-        Matrix L = VolatileMatrix.empty(m, n);
+    public DMatrix getL() {
+        DMatrix L = VolatileDMatrix.empty(m, n);
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
                 if (i > j) {
@@ -233,8 +233,8 @@ class LU {
      * @return U
      */
 
-    public Matrix getU() {
-        Matrix U = VolatileMatrix.empty(n, n);
+    public DMatrix getU() {
+        DMatrix U = VolatileDMatrix.empty(n, n);
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 if (i <= j) {
@@ -279,12 +279,12 @@ class LU {
      * Determinant
      *
      * @return det(A)
-     * @throws IllegalArgumentException Matrix must be square
+     * @throws IllegalArgumentException DMatrix must be square
      */
 
     public double det() {
         if (m != n) {
-            throw new IllegalArgumentException("Matrix must be square.");
+            throw new IllegalArgumentException("DMatrix must be square.");
         }
         double d = (double) pivsign;
         for (int j = 0; j < n; j++) {
@@ -296,22 +296,22 @@ class LU {
     /**
      * Solve A*X = B
      *
-     * @param B A Matrix with as many rows as A and any number of columns.
+     * @param B A DMatrix with as many rows as A and any number of columns.
      * @return X so that L*U*X = B(piv,:)
-     * @throws IllegalArgumentException Matrix row dimensions must agree.
-     * @throws RuntimeException         Matrix is singular.
+     * @throws IllegalArgumentException DMatrix row dimensions must agree.
+     * @throws RuntimeException         DMatrix is singular.
      */
 
-    public Matrix solve(Matrix B) {
+    public DMatrix solve(DMatrix B) {
         if (B.rows() != m) {
-            throw new IllegalArgumentException("Matrix row dimensions must agree.");
+            throw new IllegalArgumentException("DMatrix row dimensions must agree.");
         }
         if (!this.isNonsingular()) {
-            throw new RuntimeException("Matrix is singular.");
+            throw new RuntimeException("DMatrix is singular.");
         }
         // Copy right hand side with pivoting
         int nx = B.columns();
-        Matrix X = getMatrix(B, piv, 0, nx - 1);
+        DMatrix X = getMatrix(B, piv, 0, nx - 1);
         // Solve L*Y = B(piv,:)
         for (int k = 0; k < n; k++) {
             for (int i = k + 1; i < n; i++) {
@@ -334,8 +334,8 @@ class LU {
         return X;
     }
 
-    private Matrix getMatrix(Matrix A, int[] r, int j0, int j1) {
-        Matrix B = VolatileMatrix.empty(r.length, j1 - j0 + 1);
+    private DMatrix getMatrix(DMatrix A, int[] r, int j0, int j1) {
+        DMatrix B = VolatileDMatrix.empty(r.length, j1 - j0 + 1);
         try {
             for (int i = 0; i < r.length; i++) {
                 for (int j = j0; j <= j1; j++) {

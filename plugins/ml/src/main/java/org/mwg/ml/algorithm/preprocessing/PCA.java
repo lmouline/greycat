@@ -3,11 +3,11 @@ package org.mwg.ml.algorithm.preprocessing;
 import org.mwg.ml.common.matrix.MatrixOps;
 import org.mwg.ml.common.matrix.SVDDecompose;
 import org.mwg.ml.common.matrix.TransposeType;
-import org.mwg.ml.common.matrix.VolatileMatrix;
-import org.mwg.struct.Matrix;
+import org.mwg.ml.common.matrix.VolatileDMatrix;
+import org.mwg.struct.DMatrix;
 
 public class PCA {
-    private Matrix _data;
+    private DMatrix _data;
     private int _olddim;
     private double[] _min;
     private double[] _max;
@@ -22,7 +22,7 @@ public class PCA {
         return _bestDim;
     }
 
-    public Matrix get_data() {
+    public DMatrix get_data() {
         return _data;
     }
 
@@ -57,14 +57,14 @@ public class PCA {
 
     public static double EPS = 1e-30;
 
-    private static Matrix _matrixV;
+    private static DMatrix _matrixV;
 
     public static int NOPROCESS = 0;
     public static int CENTER_ON_AVG = 1;
     public static int NORMALIZE = 2;
 
 
-    public void normalizeData(Matrix data) {
+    public void normalizeData(DMatrix data) {
         double d = 1;
         for (int j = 0; j < data.columns(); j++) {
             if (_sigma[j] < EPS) {
@@ -82,11 +82,11 @@ public class PCA {
 
 
     public double[] convertVector(double[] data) {
-        Matrix v = VolatileMatrix.wrap(clone(data), 1, data.length);
+        DMatrix v = VolatileDMatrix.wrap(clone(data), 1, data.length);
         if (_processType == NORMALIZE) {
             normalizeData(v);
         }
-        Matrix res = MatrixOps.multiply(v, _matrixV);
+        DMatrix res = MatrixOps.multiply(v, _matrixV);
         double[] result = new double[res.columns()];
         for (int i = 0; i < res.columns(); i++) {
             result[i] = res.get(0, i);
@@ -94,7 +94,7 @@ public class PCA {
         return result;
     }
 
-    public Matrix convertSpace(VolatileMatrix initial) {
+    public DMatrix convertSpace(VolatileDMatrix initial) {
         if (_processType == NORMALIZE) {
             normalizeData(initial);
         }
@@ -103,8 +103,8 @@ public class PCA {
 
 
     public void setDimension(int dim) {
-        _matrixV = VolatileMatrix.empty(_olddim, dim);
-        Matrix tempV = _svdDecompose.getVt();
+        _matrixV = VolatileDMatrix.empty(_olddim, dim);
+        DMatrix tempV = _svdDecompose.getVt();
         for (int i = 0; i < _olddim; i++) {
             for (int j = 0; j < dim; j++) {
                 _matrixV.set(i, j, tempV.get(j, i));
@@ -112,7 +112,7 @@ public class PCA {
         }
     }
 
-    public void inverseNormalizeData(Matrix data) {
+    public void inverseNormalizeData(DMatrix data) {
         for (int j = 0; j < data.columns(); j++) {
             if ((_sigma[j]) < EPS) {
                 for (int i = 0; i < data.rows(); i++) {
@@ -127,8 +127,8 @@ public class PCA {
     }
 
     public double[] inverseConvertVector(double[] data) {
-        Matrix v = VolatileMatrix.wrap(clone(data), 1, data.length);
-        Matrix res = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, v, TransposeType.TRANSPOSE, _matrixV);
+        DMatrix v = VolatileDMatrix.wrap(clone(data), 1, data.length);
+        DMatrix res = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, v, TransposeType.TRANSPOSE, _matrixV);
         if (_processType == NORMALIZE) {
             inverseNormalizeData(res);
         }
@@ -140,8 +140,8 @@ public class PCA {
         return result;
     }
 
-    public Matrix inverseConvertSpace(Matrix initial) {
-        Matrix res = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, initial, TransposeType.TRANSPOSE, _matrixV);
+    public DMatrix inverseConvertSpace(DMatrix initial) {
+        DMatrix res = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, initial, TransposeType.TRANSPOSE, _matrixV);
         if (_processType == NORMALIZE) {
             inverseNormalizeData(res);
         }
@@ -149,7 +149,7 @@ public class PCA {
     }
 
 
-    public Matrix getTransformationVector() {
+    public DMatrix getTransformationVector() {
         return _matrixV;
     }
 
@@ -196,10 +196,10 @@ public class PCA {
     }
 
 
-    private static Matrix shiftColumn(Matrix data, double[] shift, boolean workInPlace) {
-        Matrix temp = data;
+    private static DMatrix shiftColumn(DMatrix data, double[] shift, boolean workInPlace) {
+        DMatrix temp = data;
         if (!workInPlace) {
-            temp = VolatileMatrix.cloneFrom(data);
+            temp = VolatileDMatrix.cloneFrom(data);
         }
         for (int i = 0; i < temp.rows(); i++) {
             for (int j = 0; j < temp.columns(); j++) {
@@ -209,10 +209,10 @@ public class PCA {
         return temp;
     }
 
-    private static Matrix inverseShift(Matrix data, double[] shift, boolean workInPlace) {
-        Matrix temp = data;
+    private static DMatrix inverseShift(DMatrix data, double[] shift, boolean workInPlace) {
+        DMatrix temp = data;
         if (!workInPlace) {
-            temp = VolatileMatrix.cloneFrom(data);
+            temp = VolatileDMatrix.cloneFrom(data);
         }
 
         for (int i = 0; i < temp.rows(); i++) {
@@ -283,7 +283,7 @@ public class PCA {
     }
 
 
-    public PCA(Matrix data, int processType) {
+    public PCA(DMatrix data, int processType) {
         this._data = data;
         this._processType = processType;
         calculateMinMaxAvg();

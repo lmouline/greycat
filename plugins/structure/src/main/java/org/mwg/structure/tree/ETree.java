@@ -4,10 +4,10 @@ import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.base.BaseNode;
 import org.mwg.plugin.NodeState;
+import org.mwg.struct.DMatrix;
 import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
 import org.mwg.struct.LMatrix;
-import org.mwg.struct.Matrix;
 import org.mwg.structure.Tree;
 import org.mwg.structure.distance.Distance;
 import org.mwg.structure.distance.Distances;
@@ -161,9 +161,9 @@ public class ETree extends BaseNode implements Tree {
         if ((int) node.getAt(_SUBNODES) != 0) {
             return subInsert(node, key, valuetype, value, strategyType, min, max, center, resolution, buffersize, root, false);
         } else if (checkCreateLevels(min, max, resolution)) {
-            Matrix buffer = null;
+            DMatrix buffer = null;
             if (buffersize > 0) {
-                buffer = (Matrix) node.getOrCreateAt(_BUFFER_KEYS, Type.MATRIX);
+                buffer = (DMatrix) node.getOrCreateAt(_BUFFER_KEYS, Type.DMATRIX);
             }
             if (buffer != null) {
                 //First step check if it already exists in the buffer
@@ -171,7 +171,7 @@ public class ETree extends BaseNode implements Tree {
                     if (compare(key, buffer.column(i), resolution)) {
                         switch (strategyType) {
                             case IndexStrategy.PROFILE: {
-                                Matrix bufferkeys = (Matrix) node.getAt(_PROFILE);
+                                DMatrix bufferkeys = (DMatrix) node.getAt(_PROFILE);
                                 for (int j = 0; j < key.length; j++) {
                                     bufferkeys.set(j, i, bufferkeys.get(j, i) + key[j]);
                                 }
@@ -185,7 +185,7 @@ public class ETree extends BaseNode implements Tree {
                                     LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
                                     bufferValue.set(0, i, (long) value);
                                 } else if (valuetype == Type.DOUBLE) {
-                                    Matrix bufferValue = (Matrix) node.getAt(_BUFFER_VALUES);
+                                    DMatrix bufferValue = (DMatrix) node.getAt(_BUFFER_VALUES);
                                     bufferValue.set(0, i, (double) value);
                                 }
                                 return false; //Should not update parent total
@@ -201,7 +201,7 @@ public class ETree extends BaseNode implements Tree {
                     buffer.appendColumn(key);
                     switch (strategyType) {
                         case IndexStrategy.PROFILE: {
-                            Matrix bufferkeys = (Matrix) node.getOrCreateAt(_PROFILE, Type.MATRIX);
+                            DMatrix bufferkeys = (DMatrix) node.getOrCreateAt(_PROFILE, Type.DMATRIX);
                             bufferkeys.appendColumn(key);
                             LMatrix bufferValue = (LMatrix) node.getOrCreateAt(_BUFFER_VALUES, Type.LMATRIX);
                             bufferValue.appendColumn(new long[]{(int) value});
@@ -213,7 +213,7 @@ public class ETree extends BaseNode implements Tree {
                                 LMatrix bufferValue = (LMatrix) node.getOrCreateAt(_BUFFER_VALUES, Type.LMATRIX);
                                 bufferValue.appendColumn(new long[]{(long) value});
                             } else if (valuetype == Type.DOUBLE) {
-                                Matrix bufferValue = (Matrix) node.getOrCreateAt(_BUFFER_VALUES, Type.MATRIX);
+                                DMatrix bufferValue = (DMatrix) node.getOrCreateAt(_BUFFER_VALUES, Type.DMATRIX);
                                 bufferValue.appendColumn(new double[]{(double) value});
                             }
                             node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + 1);
@@ -228,7 +228,7 @@ public class ETree extends BaseNode implements Tree {
                 else {
                     //if it is a profile, get the average of all the keys and update the buffer before reinserting
                     if (strategyType == IndexStrategy.PROFILE) {
-                        Matrix bufferkeys = (Matrix) node.getAt(_PROFILE);
+                        DMatrix bufferkeys = (DMatrix) node.getAt(_PROFILE);
                         LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
                         for (int i = 0; i < buffer.columns(); i++) {
                             int t = (int) bufferValue.get(0, i);
@@ -236,7 +236,7 @@ public class ETree extends BaseNode implements Tree {
                                 buffer.set(j, i, bufferkeys.get(j, i) / t);
                             }
                         }
-                        node.setAt(_PROFILE, Type.MATRIX, null);
+                        node.setAt(_PROFILE, Type.DMATRIX, null);
                     }
 
 
@@ -254,15 +254,15 @@ public class ETree extends BaseNode implements Tree {
                         }
                         node.setAt(_BUFFER_VALUES, Type.LMATRIX, null);
                     } else if (valuetype == Type.DOUBLE) {
-                        Matrix bufferValue = (Matrix) node.getAt(_BUFFER_VALUES);
+                        DMatrix bufferValue = (DMatrix) node.getAt(_BUFFER_VALUES);
                         for (int i = 0; i < buffer.columns(); i++) {
                             subInsert(node, buffer.column(i), valuetype, bufferValue.get(0, i), strategyType, min, max, center, resolution, buffersize, root, true);
                         }
-                        node.setAt(_BUFFER_VALUES, Type.MATRIX, null);
+                        node.setAt(_BUFFER_VALUES, Type.DMATRIX, null);
                     }
 
                     //clear the buffer, update the total, and insert the new value
-                    node.setAt(_BUFFER_KEYS, Type.MATRIX, null);
+                    node.setAt(_BUFFER_KEYS, Type.DMATRIX, null);
                     return subInsert(node, key, valuetype, value, strategyType, min, max, center, resolution, buffersize, root, false);
                 }
 

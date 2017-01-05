@@ -25,7 +25,7 @@ public class Type {
     public static final byte RELATION = 12;
     public static final byte RELATION_INDEXED = 13;
 
-    public static final byte MATRIX = 15;
+    public static final byte DMATRIX = 15;
     public static final byte LMATRIX = 16;
 
     public static final byte EGRAPH = 17;
@@ -71,8 +71,8 @@ public class Type {
                 return "RELATION";
             case Type.RELATION_INDEXED:
                 return "RELATION_INDEXED";
-            case Type.MATRIX:
-                return "MATRIX";
+            case Type.DMATRIX:
+                return "DMATRIX";
             case Type.LMATRIX:
                 return "LMATRIX";
             case Type.EGRAPH:
@@ -116,8 +116,8 @@ public class Type {
                 return Type.RELATION;
             case "RELATION_INDEXED":
                 return Type.RELATION_INDEXED;
-            case "MATRIX":
-                return Type.MATRIX;
+            case "DMATRIX":
+                return Type.DMATRIX;
             case "LMATRIX":
                 return Type.LMATRIX;
             case "EXTERNAL":

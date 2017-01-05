@@ -3,7 +3,7 @@ package org.mwg.ml.common.matrix;
 import org.mwg.ml.common.matrix.blassolver.BlasMatrixEngine;
 import org.mwg.ml.common.matrix.jamasolver.JamaMatrixEngine;
 import org.mwg.ml.common.matrix.operation.PInvSVD;
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 
 public class HybridMatrixEngine implements MatrixEngine {
 
@@ -53,7 +53,7 @@ public class HybridMatrixEngine implements MatrixEngine {
 
 
     @Override
-    public Matrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, Matrix matA, TransposeType transB, Matrix matB, double beta, Matrix matC) {
+    public DMatrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, DMatrix matA, TransposeType transB, DMatrix matB, double beta, DMatrix matC) {
         if (matA.leadingDimension() < MULT_LIMIT && matB.leadingDimension() < MULT_LIMIT) {
             return jama.multiplyTransposeAlphaBeta(transA, alpha, matA, transB, matB, beta, matC);
         } else {
@@ -62,7 +62,7 @@ public class HybridMatrixEngine implements MatrixEngine {
     }
 
     @Override
-    public Matrix invert(Matrix mat, boolean invertInPlace) {
+    public DMatrix invert(DMatrix mat, boolean invertInPlace) {
         if (mat.rows() < INVERT_LIMIT) {
             return jama.invert(mat, invertInPlace);
         } else {
@@ -71,7 +71,7 @@ public class HybridMatrixEngine implements MatrixEngine {
     }
 
     @Override
-    public Matrix pinv(Matrix mat, boolean invertInPlace) {
+    public DMatrix pinv(DMatrix mat, boolean invertInPlace) {
         /*if(mat.rows()<PINV_LIMIT){
             return jama.pinv(mat,invertInPlace);
         }
@@ -85,7 +85,7 @@ public class HybridMatrixEngine implements MatrixEngine {
     }
 
     @Override
-    public Matrix solveLU(Matrix matA, Matrix matB, boolean workInPlace, TransposeType transB) {
+    public DMatrix solveLU(DMatrix matA, DMatrix matB, boolean workInPlace, TransposeType transB) {
         if (matA.leadingDimension() < SOLVELU_LIMIT && matB.leadingDimension() < SOLVELU_LIMIT) {
             return jama.solveLU(matA, matB, workInPlace, transB);
         } else {
@@ -94,7 +94,7 @@ public class HybridMatrixEngine implements MatrixEngine {
     }
 
     @Override
-    public Matrix solveQR(Matrix matA, Matrix matB, boolean workInPlace, TransposeType transB) {
+    public DMatrix solveQR(DMatrix matA, DMatrix matB, boolean workInPlace, TransposeType transB) {
         /*if(matA.leadingDimension()<SOLVEQR_LIMIT &&matB.leadingDimension()<SOLVEQR_LIMIT){
             return jama.solveQR(matA, matB, workInPlace, transB);
         }
@@ -105,7 +105,7 @@ public class HybridMatrixEngine implements MatrixEngine {
     }
 
     @Override
-    public SVDDecompose decomposeSVD(Matrix matA, boolean workInPlace) {
+    public SVDDecompose decomposeSVD(DMatrix matA, boolean workInPlace) {
         return jama.decomposeSVD(matA, workInPlace);
 //        if(matA.leadingDimension()<SOLVESVD_LIMIT){
 //            return jama.decomposeSVD(matA,workInPlace);
@@ -116,7 +116,7 @@ public class HybridMatrixEngine implements MatrixEngine {
     }
 
     @Override
-    public Matrix solve(Matrix A, Matrix B) {
+    public DMatrix solve(DMatrix A, DMatrix B) {
         return blas.solve(A, B);
     }
 }

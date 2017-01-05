@@ -1,8 +1,8 @@
 package org.mwg.ml.common.matrix.jamasolver;
 
 
-import org.mwg.ml.common.matrix.VolatileMatrix;
-import org.mwg.struct.Matrix;
+import org.mwg.ml.common.matrix.VolatileDMatrix;
+import org.mwg.struct.DMatrix;
 
 /**
  * QR Decomposition.
@@ -29,7 +29,7 @@ class QR {
      *
      * @serial internal array storage.
      */
-    private Matrix QR;
+    private DMatrix QR;
 
     /**
      * Row and column dimensions.
@@ -57,9 +57,9 @@ class QR {
      * @param A Rectangular matrix
      */
 
-    public QR(Matrix A) {
+    public QR(DMatrix A) {
         // Initialize.
-        QR = VolatileMatrix.cloneFrom(A);
+        QR = VolatileDMatrix.cloneFrom(A);
         m = A.rows();
         n = A.columns();
         Rdiag = new double[n];
@@ -120,8 +120,8 @@ class QR {
      * @return Lower trapezoidal matrix whose columns define the reflections
      */
 
-    public Matrix getH() {
-        Matrix H = VolatileMatrix.empty(m, n);
+    public DMatrix getH() {
+        DMatrix H = VolatileDMatrix.empty(m, n);
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
                 if (i >= j) {
@@ -140,8 +140,8 @@ class QR {
      * @return R
      */
 
-    public Matrix getR() {
-        Matrix R = VolatileMatrix.empty(n, n);
+    public DMatrix getR() {
+        DMatrix R = VolatileDMatrix.empty(n, n);
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 if (i < j) {
@@ -162,8 +162,8 @@ class QR {
      * @return Q
      */
 
-    public Matrix getQ() {
-        Matrix Q = VolatileMatrix.empty(m, n);
+    public DMatrix getQ() {
+        DMatrix Q = VolatileDMatrix.empty(m, n);
         for (int k = n - 1; k >= 0; k--) {
             for (int i = 0; i < m; i++) {
                 Q.set(i, k, 0.0);
@@ -188,23 +188,23 @@ class QR {
     /**
      * Least squares solution of A*X = B
      *
-     * @param B A Matrix with as many rows as A and any number of columns.
+     * @param B A DMatrix with as many rows as A and any number of columns.
      * @return X that minimizes the two norm of Q*R*X-B.
-     * @throws IllegalArgumentException Matrix row dimensions must agree.
-     * @throws RuntimeException         Matrix is rank deficient.
+     * @throws IllegalArgumentException DMatrix row dimensions must agree.
+     * @throws RuntimeException         DMatrix is rank deficient.
      */
 
-    public Matrix solve(Matrix B) {
+    public DMatrix solve(DMatrix B) {
         if (B.rows() != m) {
-            throw new IllegalArgumentException("Matrix row dimensions must agree.");
+            throw new IllegalArgumentException("DMatrix row dimensions must agree.");
         }
         if (!this.isFullRank()) {
-            throw new RuntimeException("Matrix is rank deficient.");
+            throw new RuntimeException("DMatrix is rank deficient.");
         }
 
         // Copy right hand side
         int nx = B.columns();
-        Matrix X = VolatileMatrix.cloneFrom(B);
+        DMatrix X = VolatileDMatrix.cloneFrom(B);
 
         // Compute Y = transpose(Q)*B
         for (int k = 0; k < n; k++) {
@@ -233,8 +233,8 @@ class QR {
         return (getMatrix(X, 0, n - 1, 0, nx - 1));
     }
 
-    private static Matrix getMatrix(Matrix B, int i0, int i1, int j0, int j1) {
-        Matrix X = VolatileMatrix.empty(i1 - i0 + 1, j1 - j0 + 1);
+    private static DMatrix getMatrix(DMatrix B, int i0, int i1, int j0, int j1) {
+        DMatrix X = VolatileDMatrix.empty(i1 - i0 + 1, j1 - j0 + 1);
         try {
             for (int i = i0; i <= i1; i++) {
                 for (int j = j0; j <= j1; j++) {

@@ -1,6 +1,6 @@
 package org.mwg.ml.common.matrix;
 
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 
 
 public class MatrixOps {
@@ -19,7 +19,7 @@ public class MatrixOps {
     }
 
 
-    public static void copyMatrix(Matrix source, Matrix destination) {
+    public static void copyMatrix(DMatrix source, DMatrix destination) {
         for (int row = 0; row < source.rows(); row++) {
             for(int col=0;col<source.columns();col++){
                 destination.set(row,col,source.get(row,col));
@@ -27,33 +27,33 @@ public class MatrixOps {
         }
     }
 
-    public static Matrix multiply(Matrix matA, Matrix matB) {
+    public static DMatrix multiply(DMatrix matA, DMatrix matB) {
         return defaultEngine().multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1d, matA, TransposeType.NOTRANSPOSE, matB, 0, null);
     }
 
-    public static Matrix multiplyTranspose(TransposeType transA, Matrix matA, TransposeType transB, Matrix matB) {
+    public static DMatrix multiplyTranspose(TransposeType transA, DMatrix matA, TransposeType transB, DMatrix matB) {
         return defaultEngine().multiplyTransposeAlphaBeta(transA, 1.0, matA, transB, matB, 0, null);
     }
 
-    public static Matrix multiplyTransposeAlpha(TransposeType transA, double alpha, Matrix matA, TransposeType transB, Matrix matB) {
+    public static DMatrix multiplyTransposeAlpha(TransposeType transA, double alpha, DMatrix matA, TransposeType transB, DMatrix matB) {
         return defaultEngine().multiplyTransposeAlphaBeta(transA, alpha, matA, transB, matB, 0, null);
     }
 
-    public static Matrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, Matrix matA, TransposeType transB, Matrix matB, double beta, Matrix matC) {
+    public static DMatrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, DMatrix matA, TransposeType transB, DMatrix matB, double beta, DMatrix matC) {
         return defaultEngine().multiplyTransposeAlphaBeta(transA, alpha, matA, transB, matB, beta, matC);
     }
 
-    public static Matrix invert(Matrix mat, boolean invertInPlace) {
+    public static DMatrix invert(DMatrix mat, boolean invertInPlace) {
         return defaultEngine().invert(mat, invertInPlace);
     }
 
-    public static Matrix pinv(Matrix mat, boolean invertInPlace) {
+    public static DMatrix pinv(DMatrix mat, boolean invertInPlace) {
         return defaultEngine().pinv(mat, invertInPlace);
     }
 
 
 
-    public static void scale(double alpha, VolatileMatrix matA) {
+    public static void scale(double alpha, VolatileDMatrix matA) {
         if (alpha == 0) {
             matA.fill(0);
             return;
@@ -63,8 +63,8 @@ public class MatrixOps {
         }
     }
 
-    public static Matrix transpose(Matrix matA) {
-        Matrix result =  VolatileMatrix.empty(matA.columns(), matA.rows());
+    public static DMatrix transpose(DMatrix matA) {
+        DMatrix result =  VolatileDMatrix.empty(matA.columns(), matA.rows());
         int TRANSPOSE_SWITCH = 375;
         if (matA.columns() == matA.rows()) {
             transposeSquare(matA, result);
@@ -76,7 +76,7 @@ public class MatrixOps {
         return result;
     }
 
-    private static void transposeSquare(Matrix matA, Matrix result) {
+    private static void transposeSquare(DMatrix matA, DMatrix result) {
         int index = 1;
         int indexEnd = matA.columns();
         for (int i = 0; i < matA.rows(); i++) {
@@ -93,7 +93,7 @@ public class MatrixOps {
         }
     }
 
-    private static void transposeStandard(Matrix matA, Matrix result) {
+    private static void transposeStandard(DMatrix matA, DMatrix result) {
         int index = 0;
         for (int i = 0; i < result.columns(); i++) {
             int index2 = i;
@@ -105,7 +105,7 @@ public class MatrixOps {
         }
     }
 
-    private static void transposeBlock(Matrix matA, Matrix result) {
+    private static void transposeBlock(DMatrix matA, DMatrix result) {
         int BLOCK_WIDTH = 60;
         for (int j = 0; j < matA.columns(); j += BLOCK_WIDTH) {
             int blockWidth = Math.min(BLOCK_WIDTH, matA.columns() - j);
@@ -131,7 +131,7 @@ public class MatrixOps {
     }
 
 
-    public static boolean testDimensionsAB(TransposeType transA, TransposeType transB, Matrix matA, Matrix matB) {
+    public static boolean testDimensionsAB(TransposeType transA, TransposeType transB, DMatrix matA, DMatrix matB) {
         if (transA.equals(TransposeType.NOTRANSPOSE)) {
             if (transB.equals(TransposeType.NOTRANSPOSE)) {
                 return (matA.columns() == matB.rows());
@@ -148,11 +148,11 @@ public class MatrixOps {
     }
 
 
-    public static Matrix sub(Matrix matA, Matrix matB) {
+    public static DMatrix sub(DMatrix matA, DMatrix matB) {
         if(matA.rows()!=matB.rows()|| matA.columns()!=matB.columns()){
             throw new RuntimeException("Matrices A and B have different dimensions for the substract operation");
         }
-        Matrix result= VolatileMatrix.empty(matA.rows(),matA.columns());
+        DMatrix result= VolatileDMatrix.empty(matA.rows(),matA.columns());
         int total=matA.rows()*matA.columns();
         for(int i=0;i<total;i++){
             result.unsafeSet(i,matA.unsafeGet(i)-matB.unsafeGet(i));
@@ -160,11 +160,11 @@ public class MatrixOps {
         return result;
     }
 
-    public static Matrix add(Matrix matA, Matrix matB) {
+    public static DMatrix add(DMatrix matA, DMatrix matB) {
         if(matA.rows()!=matB.rows()|| matA.columns()!=matB.columns()){
             throw new RuntimeException("Matrices A and B have different dimensions for the add operation");
         }
-        Matrix result= VolatileMatrix.empty(matA.rows(),matA.columns());
+        DMatrix result= VolatileDMatrix.empty(matA.rows(),matA.columns());
         int total=matA.rows()*matA.columns();
         for(int i=0;i<total;i++){
             result.unsafeSet(i,matA.unsafeGet(i)+matB.unsafeGet(i));

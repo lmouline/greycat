@@ -190,7 +190,7 @@ public abstract class AbstractStateChunkTest {
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
         chunk.set(0, Type.STRING, "hello");
         Assert.assertEquals(chunk.get(0), "hello");
-        Matrix rel = (Matrix) chunk.getOrCreate(1, Type.MATRIX);
+        DMatrix rel = (DMatrix) chunk.getOrCreate(1, Type.DMATRIX);
         rel.init(2, 3);
 
         rel.set(0, 0, 0.0);

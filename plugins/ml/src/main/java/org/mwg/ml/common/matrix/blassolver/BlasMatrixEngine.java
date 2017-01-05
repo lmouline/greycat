@@ -3,7 +3,7 @@ package org.mwg.ml.common.matrix.blassolver;
 import org.mwg.ml.common.matrix.*;
 import org.mwg.ml.common.matrix.blassolver.blas.Blas;
 import org.mwg.ml.common.matrix.blassolver.blas.NetlibBlas;
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 
 public class BlasMatrixEngine implements MatrixEngine {
 
@@ -29,7 +29,7 @@ public class BlasMatrixEngine implements MatrixEngine {
 
     //C=alpha*A + beta * B (with possible transpose for A or B)
     @Override
-    public Matrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, Matrix matA, TransposeType transB, Matrix matB, double beta, Matrix matC) {
+    public DMatrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, DMatrix matA, TransposeType transB, DMatrix matB, double beta, DMatrix matC) {
         if (MatrixOps.testDimensionsAB(transA, transB, matA, matB)) {
             int k = 0;
             int[] dimC = new int[2];
@@ -53,7 +53,7 @@ public class BlasMatrixEngine implements MatrixEngine {
                 }
             }
             if (beta == 0 || matC == null) {
-                matC = VolatileMatrix.empty(dimC[0], dimC[1]);
+                matC = VolatileDMatrix.empty(dimC[0], dimC[1]);
             }
             _blas.dgemm(transA, transB, matC.rows(), matC.columns(), k, alpha, matA.data(), 0, matA.rows(), matB.data(), 0, matB.rows(), beta, matC.data(), 0, matC.rows());
             return matC;
@@ -63,7 +63,7 @@ public class BlasMatrixEngine implements MatrixEngine {
     }
 
     @Override
-    public Matrix invert(Matrix mat, boolean invertInPlace) {
+    public DMatrix invert(DMatrix mat, boolean invertInPlace) {
         if (mat.rows() != mat.columns()) {
             return null;
         }
@@ -75,8 +75,8 @@ public class BlasMatrixEngine implements MatrixEngine {
                 return null;
             }
         } else {
-            Matrix result = VolatileMatrix.empty(mat.rows(), mat.columns());
-            Matrix A_temp = VolatileMatrix.empty(mat.rows(), mat.columns());
+            DMatrix result = VolatileDMatrix.empty(mat.rows(), mat.columns());
+            DMatrix A_temp = VolatileDMatrix.empty(mat.rows(), mat.columns());
             System.arraycopy(mat.data(), 0, A_temp.data(), 0, mat.columns() * mat.rows());
             LU dlu = new LU(A_temp.rows(), A_temp.columns(), _blas);
             if (dlu.invert(A_temp)) {
@@ -89,17 +89,17 @@ public class BlasMatrixEngine implements MatrixEngine {
     }
 
     @Override
-    public Matrix pinv(Matrix mat, boolean invertInPlace) {
-        return solve(mat, VolatileMatrix.identity(mat.rows(), mat.rows()));
+    public DMatrix pinv(DMatrix mat, boolean invertInPlace) {
+        return solve(mat, VolatileDMatrix.identity(mat.rows(), mat.rows()));
         /*PInvSVD pinvsvd = new PInvSVD();
         pinvsvd.factor(mat, invertInPlace);
         return pinvsvd.getPInv();*/
     }
 
     @Override
-    public Matrix solveQR(Matrix matA, Matrix matB, boolean workInPlace, TransposeType transB) {
+    public DMatrix solveQR(DMatrix matA, DMatrix matB, boolean workInPlace, TransposeType transB) {
         QR solver = QR.factorize(matA, workInPlace, _blas);
-        Matrix coef = VolatileMatrix.empty(matA.columns(), matB.columns());
+        DMatrix coef = VolatileDMatrix.empty(matA.columns(), matB.columns());
         if (transB != TransposeType.NOTRANSPOSE) {
             matB = MatrixOps.transpose(matB);
         }
@@ -108,16 +108,16 @@ public class BlasMatrixEngine implements MatrixEngine {
     }
 
     @Override
-    public SVDDecompose decomposeSVD(Matrix matA, boolean workInPlace) {
+    public SVDDecompose decomposeSVD(DMatrix matA, boolean workInPlace) {
         SVD svd = new SVD(matA.rows(), matA.columns(), _blas);
         svd.factor(matA, workInPlace);
         return svd;
     }
 
     @Override
-    public Matrix solveLU(Matrix matA, Matrix matB, boolean workInPlace, TransposeType transB) {
+    public DMatrix solveLU(DMatrix matA, DMatrix matB, boolean workInPlace, TransposeType transB) {
         if (!workInPlace) {
-            Matrix A_temp = VolatileMatrix.empty(matA.rows(), matA.columns());
+            DMatrix A_temp = VolatileDMatrix.empty(matA.rows(), matA.columns());
             System.arraycopy(matA.data(), 0, A_temp.data(), 0, matA.columns() * matA.rows());
 
             LU dlu = new LU(A_temp.rows(), A_temp.columns(), _blas);
@@ -126,7 +126,7 @@ public class BlasMatrixEngine implements MatrixEngine {
             if (dlu.isSingular()) {
                 return null;
             }
-            Matrix B_temp = VolatileMatrix.empty(matB.rows(), matB.columns());
+            DMatrix B_temp = VolatileDMatrix.empty(matB.rows(), matB.columns());
             System.arraycopy(matB.data(), 0, B_temp.data(), 0, matB.columns() * matB.rows());
             dlu.transSolve(B_temp, transB);
             return B_temp;
@@ -142,7 +142,7 @@ public class BlasMatrixEngine implements MatrixEngine {
     }
 
     @Override
-    public Matrix solve(Matrix A, Matrix B) {
+    public DMatrix solve(DMatrix A, DMatrix B) {
         return (A.rows() == A.columns() ? (new LU(A.rows(), A.columns(), _blas).factor(A, false)).solve(B) :
                 solveQR(A, B, false, TransposeType.NOTRANSPOSE));
     }

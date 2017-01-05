@@ -343,9 +343,9 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
             final long size = OffHeapLongArray.get(addr, SIZE);
             Base64.encodeLongToBuffer(size, buffer);
             for (long i = 0; i < size; i++) {
-                buffer.write(Constants.CHUNK_SUB_SUB_SEP);
+                buffer.write(Constants.CHUNK_VAL_SEP);
                 Base64.encodeLongToBuffer(key(addr, i), buffer);
-                buffer.write(Constants.CHUNK_SUB_SUB_SUB_SEP);
+                buffer.write(Constants.CHUNK_VAL_SEP);
                 Base64.encodeLongToBuffer(value(addr, i), buffer);
             }
         }

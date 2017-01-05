@@ -1,22 +1,22 @@
 package org.mwg.ml.common.matrix;
 
-import org.mwg.struct.Matrix;
+import org.mwg.struct.DMatrix;
 
 public interface MatrixEngine {
 
-    Matrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, Matrix matA, TransposeType transB, Matrix matB, double beta, Matrix matC);
+    DMatrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, DMatrix matA, TransposeType transB, DMatrix matB, double beta, DMatrix matC);
 
-    Matrix invert(Matrix mat, boolean invertInPlace);
+    DMatrix invert(DMatrix mat, boolean invertInPlace);
 
-    Matrix pinv(Matrix mat, boolean invertInPlace);
+    DMatrix pinv(DMatrix mat, boolean invertInPlace);
 
     //Solve AX=B -> return X as a result
-    Matrix solveLU(Matrix matA, Matrix matB, boolean workInPlace, TransposeType transB);
+    DMatrix solveLU(DMatrix matA, DMatrix matB, boolean workInPlace, TransposeType transB);
 
-    Matrix solveQR(Matrix matA, Matrix matB, boolean workInPlace, TransposeType transB);
+    DMatrix solveQR(DMatrix matA, DMatrix matB, boolean workInPlace, TransposeType transB);
 
-    SVDDecompose decomposeSVD(Matrix matA, boolean workInPlace);
+    SVDDecompose decomposeSVD(DMatrix matA, boolean workInPlace);
 
-    Matrix solve(Matrix A, Matrix B);
+    DMatrix solve(DMatrix A, DMatrix B);
 
 }

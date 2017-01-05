@@ -4,6 +4,7 @@ package org.mwg.memory.offheap;
 import org.mwg.Constants;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.WorldOrderChunk;
+import org.mwg.core.CoreConstants;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.LongLongMapCallBack;
@@ -323,6 +324,8 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
             boolean initDone = false;
             long previousStart = 0;
             long loopKey = Constants.NULL_LONG;
+
+            /*
             while (cursor < bufferSize) {
                 if (buffer.read(cursor) == Constants.CHUNK_SEP) {
                     if (!initDone) {
@@ -353,6 +356,37 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
             if (loopKey != Constants.NULL_LONG) {
                 long loopValue = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
                 internal_put(addr, loopKey, loopValue, !isInitial);
+            }*/
+
+            while (cursor < bufferSize) {
+                final byte current = buffer.read(cursor);
+                switch (current) {
+                    case Constants.CHUNK_SEP:
+                        OffHeapLongArray.set(addr, EXTRA, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                        previousStart = cursor + 1;
+                        break;
+                    case Constants.CHUNK_VAL_SEP:
+                        if (!initDone) {
+                            final long mapSize = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                            final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(mapSize) / Math.log(2)));
+                            addr = resize(addr, initialSize, initialCapacity, closePowerOfTwo);
+                            initDone = true;
+                        } else if (loopKey == CoreConstants.NULL_LONG) {
+                            loopKey = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                        } else {
+                            long loopValue = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                            internal_put(addr, loopKey, loopValue, !isInitial);
+                            //reset key for next round
+                            loopKey = CoreConstants.NULL_LONG;
+                        }
+                        previousStart = cursor + 1;
+                        break;
+                }
+                cursor++;
+            }
+            if (loopKey != CoreConstants.NULL_LONG) {
+                long loopValue = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                internal_put(addr, loopKey, loopValue, !isInitial);
             }
         } finally {
             space.unlockByIndex(index);
@@ -374,23 +408,19 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
         space.lockByIndex(index);
         try {
             final long addr = space.addrByIndex(index);
-            final long size = OffHeapLongArray.get(addr, SIZE);
-            Base64.encodeLongToBuffer(size, buffer);
-            buffer.write(Constants.CHUNK_SEP);
             final long extra = OffHeapLongArray.get(addr, EXTRA);
             if (extra != Constants.NULL_LONG) {
                 Base64.encodeLongToBuffer(extra, buffer);
                 buffer.write(Constants.CHUNK_SEP);
             }
-            boolean isFirst = true;
+            final long size = OffHeapLongArray.get(addr, SIZE);
+            Base64.encodeLongToBuffer(size, buffer);
+            buffer.write(Constants.CHUNK_SEP);
             for (long i = 0; i < size; i++) {
-                if (!isFirst) {
-                    buffer.write(Constants.CHUNK_SUB_SEP);
-                }
-                isFirst = false;
                 //save KV
+                buffer.write(Constants.CHUNK_VAL_SEP);
                 Base64.encodeLongToBuffer(key(addr, i), buffer);
-                buffer.write(Constants.CHUNK_SUB_SUB_SEP);
+                buffer.write(Constants.CHUNK_VAL_SEP);
                 Base64.encodeLongToBuffer(value(addr, i), buffer);
             }
             OffHeapLongArray.set(addr, DIRTY, 0);//set dirty to false
