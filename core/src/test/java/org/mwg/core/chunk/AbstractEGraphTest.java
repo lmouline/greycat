@@ -89,7 +89,7 @@ public abstract class AbstractEGraphTest {
         //test primitive attribute
         ENode eNode = egraph.newNode();
         egraph.setRoot(eNode);
-        eNode.set("self",Type.ENODE,eNode);
+        eNode.set("self", Type.ENODE, eNode);
         eNode.set("name", Type.STRING, "root");
         ERelation eRelation = (ERelation) eNode.getOrCreate("children", Type.ERELATION);
         for (int i = 0; i < 9999; i++) {
@@ -115,11 +115,9 @@ public abstract class AbstractEGraphTest {
             long after2 = System.currentTimeMillis();
             System.out.println("loading time:" + (after2 - before2));
             Assert.assertEquals(egraph.toString(), egraphLoaded.toString());
-
             ENode rootLoaded = egraphLoaded.root();
             Assert.assertTrue(rootLoaded != null);
-            Assert.assertEquals(rootLoaded.toString(),rootLoaded.get("self").toString());
-
+            Assert.assertEquals(rootLoaded.toString(), rootLoaded.get("self").toString());
         });
     }
 
