@@ -264,42 +264,44 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     }
 
     private void internal_load(final boolean initial, final Buffer buffer) {
-        if (buffer == null || buffer.length() == 0) {
-            return;
-        }
-        long cursor = 0;
-        long bufferSize = buffer.length();
-        boolean initDone = false;
-        long previousStart = 0;
-        long loopKey = CoreConstants.NULL_LONG;
-        while (cursor < bufferSize) {
-            if (buffer.read(cursor) == CoreConstants.CHUNK_SEP) {
-                if (!initDone) {
-                    resize((int) Base64.decodeToLongWithBounds(buffer, 0, cursor));
-                    initDone = true;
-                } else {
-                    //extra char read
-                    _extra = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+        if (buffer != null && buffer.length() > 0) {
+            long cursor = 0;
+            long bufferSize = buffer.length();
+            boolean initDone = false;
+            long previousStart = 0;
+            long loopKey = CoreConstants.NULL_LONG;
+            while (cursor < bufferSize) {
+                final byte current = buffer.read(cursor);
+                switch (current) {
+                    case Constants.CHUNK_SEP:
+                        _extra = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                        previousStart = cursor + 1;
+                        break;
+                    case Constants.CHUNK_VAL_SEP:
+                        if (!initDone) {
+                            resize((int) Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                            initDone = true;
+                        } else if (loopKey == CoreConstants.NULL_LONG) {
+                            loopKey = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                        } else {
+                            long loopValue = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                            internal_put(loopKey, loopValue, !initial);
+                            //reset key for next round
+                            loopKey = CoreConstants.NULL_LONG;
+                        }
+                        previousStart = cursor + 1;
+                        break;
                 }
-                previousStart = cursor + 1;
-            } else if (buffer.read(cursor) == CoreConstants.CHUNK_SUB_SEP) {
+                cursor++;
+            }
+            if (!initDone) {
+                resize((int) Base64.decodeToLongWithBounds(buffer, 0, cursor));
+            } else {
                 if (loopKey != CoreConstants.NULL_LONG) {
                     long loopValue = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
                     internal_put(loopKey, loopValue, !initial);
-                    //reset key for next round
-                    loopKey = CoreConstants.NULL_LONG;
                 }
-                previousStart = cursor + 1;
-            } else if (buffer.read(cursor) == CoreConstants.CHUNK_SUB_SUB_SEP) {
-                loopKey = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                previousStart = cursor + 1;
             }
-            //loop in all case
-            cursor++;
-        }
-        if (loopKey != CoreConstants.NULL_LONG) {
-            long loopValue = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-            internal_put(loopKey, loopValue, !initial);
         }
     }
 
@@ -325,20 +327,15 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
 
     @Override
     public synchronized final void save(final Buffer buffer) {
-        Base64.encodeLongToBuffer(_size, buffer);
-        buffer.write(CoreConstants.CHUNK_SEP);
         if (_extra != CoreConstants.NULL_LONG) {
             Base64.encodeLongToBuffer(_extra, buffer);
             buffer.write(CoreConstants.CHUNK_SEP);
         }
-        boolean isFirst = true;
+        Base64.encodeLongToBuffer(_size, buffer);
         for (int i = 0; i < _size; i++) {
-            if (!isFirst) {
-                buffer.write(CoreConstants.CHUNK_SUB_SEP);
-            }
-            isFirst = false;
+            buffer.write(CoreConstants.CHUNK_VAL_SEP);
             Base64.encodeLongToBuffer(_kv[i * 2], buffer);
-            buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+            buffer.write(CoreConstants.CHUNK_VAL_SEP);
             Base64.encodeLongToBuffer(_kv[i * 2 + 1], buffer);
         }
         _dirty = false;
@@ -347,21 +344,16 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     @Override
     public synchronized void saveDiff(Buffer buffer) {
         if (_dirty) {
-            Base64.encodeLongToBuffer(_size, buffer);
-            buffer.write(CoreConstants.CHUNK_SEP);
             if (_extra != CoreConstants.NULL_LONG) {
                 Base64.encodeLongToBuffer(_extra, buffer);
                 buffer.write(CoreConstants.CHUNK_SEP);
             }
-            boolean isFirst = true;
+            Base64.encodeLongToBuffer(_size, buffer);
             for (int i = 0; i < _size; i++) {
                 if (_diff[i]) {
-                    if (!isFirst) {
-                        buffer.write(CoreConstants.CHUNK_SUB_SEP);
-                    }
-                    isFirst = false;
+                    buffer.write(CoreConstants.CHUNK_VAL_SEP);
                     Base64.encodeLongToBuffer(_kv[i * 2], buffer);
-                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                    buffer.write(CoreConstants.CHUNK_VAL_SEP);
                     Base64.encodeLongToBuffer(_kv[i * 2 + 1], buffer);
                 }
             }

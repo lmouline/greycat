@@ -2,7 +2,7 @@ package org.mwg.base;
 
 import org.mwg.plugin.Job;
 
-public abstract class AbstractExternalAttribute {
+public abstract class BaseExternalAttribute {
 
     //TODO adapt this with BaseImpl
 
@@ -12,7 +12,7 @@ public abstract class AbstractExternalAttribute {
 
     public abstract void load(String buffer);
 
-    public abstract AbstractExternalAttribute copy();
+    public abstract BaseExternalAttribute copy();
 
     public abstract void notifyDirty(Job dirtyNotifier);
 

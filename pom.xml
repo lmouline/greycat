@@ -111,7 +111,10 @@
         <module>plugins/rest</module>
         -->
 
+        <!--
         <module>plugins/memory</module>
+        -->
+
         <module>plugins/importer</module>
 
 

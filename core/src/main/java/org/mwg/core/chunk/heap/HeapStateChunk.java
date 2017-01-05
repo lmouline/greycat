@@ -6,7 +6,7 @@ import org.mwg.Type;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
 import org.mwg.core.CoreConstants;
-import org.mwg.base.AbstractExternalAttribute;
+import org.mwg.base.BaseExternalAttribute;
 import org.mwg.plugin.ExternalAttributeFactory;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.Base64;
@@ -265,7 +265,7 @@ class HeapStateChunk implements StateChunk {
                 return _v[found];
             }
         }
-        AbstractExternalAttribute toSet = null;
+        BaseExternalAttribute toSet = null;
         final ExternalAttributeFactory factory = _space.graph().externalAttribute(externalTypeName);
         if (factory != null) {
             toSet = factory.create();
@@ -296,19 +296,19 @@ class HeapStateChunk implements StateChunk {
                 final Object loopValue = _v[i];
                 if (loopValue != null) {
                     buffer.write(CoreConstants.CHUNK_SEP);
+                    Base64.encodeIntToBuffer((int) _type[i], buffer);
+                    buffer.write(CoreConstants.CHUNK_SEP);
                     Base64.encodeLongToBuffer(_k[i], buffer);
-                    buffer.write(CoreConstants.CHUNK_SUB_SEP);
-                    Base64.encodeIntToBuffer(_type[i], buffer);
-                    buffer.write(CoreConstants.CHUNK_SUB_SEP);
+                    buffer.write(CoreConstants.CHUNK_SEP);
                     switch (_type[i]) {
                         case Type.STRING:
                             Base64.encodeStringToBuffer((String) loopValue, buffer);
                             break;
                         case Type.BOOL:
                             if ((Boolean) _v[i]) {
-                                buffer.write(CoreConstants.BOOL_TRUE);
+                                Base64.encodeIntToBuffer(CoreConstants.BOOL_TRUE, buffer);
                             } else {
-                                buffer.write(CoreConstants.BOOL_FALSE);
+                                Base64.encodeIntToBuffer(CoreConstants.BOOL_FALSE, buffer);
                             }
                             break;
                         case Type.LONG:
@@ -324,15 +324,31 @@ class HeapStateChunk implements StateChunk {
                             double[] castedDoubleArr = (double[]) loopValue;
                             Base64.encodeIntToBuffer(castedDoubleArr.length, buffer);
                             for (int j = 0; j < castedDoubleArr.length; j++) {
-                                buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
                                 Base64.encodeDoubleToBuffer(castedDoubleArr[j], buffer);
                             }
                             break;
+                        case Type.LONG_ARRAY:
+                            long[] castedLongArr = (long[]) loopValue;
+                            Base64.encodeIntToBuffer(castedLongArr.length, buffer);
+                            for (int j = 0; j < castedLongArr.length; j++) {
+                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                                Base64.encodeLongToBuffer(castedLongArr[j], buffer);
+                            }
+                            break;
+                        case Type.INT_ARRAY:
+                            int[] castedIntArr = (int[]) loopValue;
+                            Base64.encodeIntToBuffer(castedIntArr.length, buffer);
+                            for (int j = 0; j < castedIntArr.length; j++) {
+                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                                Base64.encodeIntToBuffer(castedIntArr[j], buffer);
+                            }
+                            break;
                         case Type.EXTERNAL:
-                            AbstractExternalAttribute externalAttribute = (AbstractExternalAttribute) loopValue;
+                            BaseExternalAttribute externalAttribute = (BaseExternalAttribute) loopValue;
                             final long encodedName = _space.graph().resolver().stringToHash(externalAttribute.name(), false);
                             Base64.encodeLongToBuffer(encodedName, buffer);
-                            buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                            buffer.write(CoreConstants.CHUNK_VAL_SEP);
                             String saved = externalAttribute.save();
                             if (saved != null) {
                                 Base64.encodeStringToBuffer(saved, buffer);
@@ -342,24 +358,8 @@ class HeapStateChunk implements StateChunk {
                             HeapRelation castedLongArrRel = (HeapRelation) loopValue;
                             Base64.encodeIntToBuffer(castedLongArrRel.size(), buffer);
                             for (int j = 0; j < castedLongArrRel.size(); j++) {
-                                buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
                                 Base64.encodeLongToBuffer(castedLongArrRel.unsafe_get(j), buffer);
-                            }
-                            break;
-                        case Type.LONG_ARRAY:
-                            long[] castedLongArr = (long[]) loopValue;
-                            Base64.encodeIntToBuffer(castedLongArr.length, buffer);
-                            for (int j = 0; j < castedLongArr.length; j++) {
-                                buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
-                                Base64.encodeLongToBuffer(castedLongArr[j], buffer);
-                            }
-                            break;
-                        case Type.INT_ARRAY:
-                            int[] castedIntArr = (int[]) loopValue;
-                            Base64.encodeIntToBuffer(castedIntArr.length, buffer);
-                            for (int j = 0; j < castedIntArr.length; j++) {
-                                buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
-                                Base64.encodeIntToBuffer(castedIntArr[j], buffer);
                             }
                             break;
                         case Type.MATRIX:
@@ -368,7 +368,7 @@ class HeapStateChunk implements StateChunk {
                             if (unsafeContent != null) {
                                 Base64.encodeIntToBuffer(unsafeContent.length, buffer);
                                 for (int j = 0; j < unsafeContent.length; j++) {
-                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                    buffer.write(CoreConstants.CHUNK_VAL_SEP);
                                     Base64.encodeDoubleToBuffer(unsafeContent[j], buffer);
                                 }
                             }
@@ -379,7 +379,7 @@ class HeapStateChunk implements StateChunk {
                             if (unsafeLContent != null) {
                                 Base64.encodeIntToBuffer(unsafeLContent.length, buffer);
                                 for (int j = 0; j < unsafeLContent.length; j++) {
-                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                    buffer.write(CoreConstants.CHUNK_VAL_SEP);
                                     Base64.encodeLongToBuffer(unsafeLContent[j], buffer);
                                 }
                             }
@@ -390,9 +390,9 @@ class HeapStateChunk implements StateChunk {
                             castedStringLongMap.unsafe_each(new StringLongMapCallBack() {
                                 @Override
                                 public void on(final String key, final long value) {
-                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                    buffer.write(CoreConstants.CHUNK_VAL_SEP);
                                     Base64.encodeStringToBuffer(key, buffer);
-                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SUB_SEP);
+                                    buffer.write(CoreConstants.CHUNK_VAL_SEP);
                                     Base64.encodeLongToBuffer(value, buffer);
                                 }
                             });
@@ -403,9 +403,9 @@ class HeapStateChunk implements StateChunk {
                             castedLongLongMap.unsafe_each(new LongLongMapCallBack() {
                                 @Override
                                 public void on(final long key, final long value) {
-                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                    buffer.write(CoreConstants.CHUNK_VAL_SEP);
                                     Base64.encodeLongToBuffer(key, buffer);
-                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SUB_SEP);
+                                    buffer.write(CoreConstants.CHUNK_VAL_SEP);
                                     Base64.encodeLongToBuffer(value, buffer);
                                 }
                             });
@@ -417,9 +417,9 @@ class HeapStateChunk implements StateChunk {
                             castedLongLongArrayMap.unsafe_each(new LongLongArrayMapCallBack() {
                                 @Override
                                 public void on(final long key, final long value) {
-                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SEP);
+                                    buffer.write(CoreConstants.CHUNK_VAL_SEP);
                                     Base64.encodeLongToBuffer(key, buffer);
-                                    buffer.write(CoreConstants.CHUNK_SUB_SUB_SUB_SEP);
+                                    buffer.write(CoreConstants.CHUNK_VAL_SEP);
                                     Base64.encodeLongToBuffer(value, buffer);
                                 }
                             });
@@ -540,7 +540,7 @@ class HeapStateChunk implements StateChunk {
                         break;
                     case Type.EXTERNAL:
                         if (casted._v[i] != null) {
-                            _v[i] = ((AbstractExternalAttribute) casted._v[i]).copy();
+                            _v[i] = ((BaseExternalAttribute) casted._v[i]).copy();
                         }
                         break;
                     default:
@@ -843,394 +843,249 @@ class HeapStateChunk implements StateChunk {
         }
     }
 
+    private static final byte LOAD_WAITING_ALLOC = 0;
+    private static final byte LOAD_WAITING_TYPE = 1;
+    private static final byte LOAD_WAITING_KEY = 2;
+    private static final byte LOAD_WAITING_VALUE = 3;
+
     @Override
     public final synchronized void load(final Buffer buffer) {
-        if (buffer == null || buffer.length() == 0) {
-            return;
+        if (buffer != null && buffer.length() > 0) {
+            final boolean initial = _k == null;
+            final long payloadSize = buffer.length();
+            long previous = 0;
+            long cursor = 0;
+            byte state = LOAD_WAITING_ALLOC;
+            byte read_type = -1;
+            long read_key = -1;
+            while (cursor < payloadSize) {
+                byte current = buffer.read(cursor);
+                if (current == Constants.CHUNK_SEP) {
+                    switch (state) {
+                        case LOAD_WAITING_ALLOC:
+                            allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                            state = LOAD_WAITING_TYPE;
+                            cursor++;
+                            previous = cursor;
+                            break;
+                        case LOAD_WAITING_TYPE:
+                            read_type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                            state = LOAD_WAITING_KEY;
+                            cursor++;
+                            previous = cursor;
+                            break;
+                        case LOAD_WAITING_KEY:
+                            read_key = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            //primitive default loader
+                            switch (read_type) {
+                                //primitive types
+                                case Type.BOOL:
+                                case Type.INT:
+                                case Type.DOUBLE:
+                                case Type.LONG:
+                                case Type.STRING:
+                                    state = LOAD_WAITING_VALUE;
+                                    cursor++;
+                                    previous = cursor;
+                                    break;
+                                //arrays
+                                case Type.DOUBLE_ARRAY:
+                                    double[] doubleArrayLoaded = null;
+                                    int doubleArrayIndex = 0;
+                                    cursor++;
+                                    previous = cursor;
+                                    current = buffer.read(cursor);
+                                    while (cursor < payloadSize && current != Constants.CHUNK_SEP) {
+                                        if (current == Constants.CHUNK_VAL_SEP) {
+                                            if (doubleArrayLoaded == null) {
+                                                doubleArrayLoaded = new double[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
+                                            } else {
+                                                doubleArrayLoaded[doubleArrayIndex] = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
+                                                doubleArrayIndex++;
+                                            }
+                                            previous = cursor + 1;
+                                        }
+                                        cursor++;
+                                        current = buffer.read(cursor);
+                                    }
+                                    if (doubleArrayLoaded == null) {
+                                        doubleArrayLoaded = new double[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
+                                    } else {
+                                        doubleArrayLoaded[doubleArrayIndex] = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
+                                    }
+                                    internal_set(read_key, read_type, doubleArrayLoaded, true, initial);
+                                    state = LOAD_WAITING_TYPE;
+                                    cursor++;
+                                    previous = cursor;
+                                    break;
+                                case Type.LONG_ARRAY:
+                                    long[] longArrayLoaded = null;
+                                    int longArrayIndex = 0;
+                                    cursor++;
+                                    previous = cursor;
+                                    current = buffer.read(cursor);
+                                    while (cursor < payloadSize && current != Constants.CHUNK_SEP) {
+                                        if (current == Constants.CHUNK_VAL_SEP) {
+                                            if (longArrayLoaded == null) {
+                                                longArrayLoaded = new long[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
+                                            } else {
+                                                longArrayLoaded[longArrayIndex] = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                                longArrayIndex++;
+                                            }
+                                            previous = cursor + 1;
+                                        }
+                                        cursor++;
+                                        current = buffer.read(cursor);
+                                    }
+                                    if (longArrayLoaded == null) {
+                                        longArrayLoaded = new long[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
+                                    } else {
+                                        longArrayLoaded[longArrayIndex] = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                    }
+                                    internal_set(read_key, read_type, longArrayLoaded, true, initial);
+                                    state = LOAD_WAITING_TYPE;
+                                    cursor++;
+                                    previous = cursor;
+                                    break;
+                                case Type.INT_ARRAY:
+                                    int[] intArrayLoaded = null;
+                                    int intArrayIndex = 0;
+                                    cursor++;
+                                    previous = cursor;
+                                    current = buffer.read(cursor);
+                                    while (cursor < payloadSize && current != Constants.CHUNK_SEP) {
+                                        if (current == Constants.CHUNK_VAL_SEP) {
+                                            if (intArrayLoaded == null) {
+                                                intArrayLoaded = new int[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
+                                            } else {
+                                                intArrayLoaded[intArrayIndex] = Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                                                intArrayIndex++;
+                                            }
+                                            previous = cursor + 1;
+                                        }
+                                        cursor++;
+                                        current = buffer.read(cursor);
+                                    }
+                                    if (intArrayLoaded == null) {
+                                        intArrayLoaded = new int[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
+                                    } else {
+                                        intArrayLoaded[intArrayIndex] = Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                                    }
+                                    internal_set(read_key, read_type, intArrayLoaded, true, initial);
+                                    state = LOAD_WAITING_TYPE;
+                                    cursor++;
+                                    previous = cursor;
+                                    break;
+                                case Type.RELATION:
+                                    HeapRelation relation = new HeapRelation(this, null);
+                                    cursor++;
+                                    cursor = relation.load(buffer, cursor, payloadSize);
+                                    cursor++;
+                                    internal_set(read_key, read_type, relation, true, initial);
+                                    previous = cursor;
+                                    state = LOAD_WAITING_TYPE;
+                                    break;
+                                case Type.MATRIX:
+                                    HeapMatrix matrix = new HeapMatrix(this, null);
+                                    cursor++;
+                                    cursor = matrix.load(buffer, cursor, payloadSize);
+                                    cursor++;
+                                    internal_set(read_key, read_type, matrix, true, initial);
+                                    previous = cursor;
+                                    state = LOAD_WAITING_TYPE;
+                                    break;
+                                case Type.LMATRIX:
+                                    HeapLMatrix lmatrix = new HeapLMatrix(this, null);
+                                    cursor++;
+                                    cursor = lmatrix.load(buffer, cursor, payloadSize);
+                                    cursor++;
+                                    internal_set(read_key, read_type, lmatrix, true, initial);
+                                    previous = cursor;
+                                    state = LOAD_WAITING_TYPE;
+                                    break;
+                                case Type.LONG_TO_LONG_MAP:
+                                    HeapLongLongMap l2lmap = new HeapLongLongMap(this);
+                                    cursor++;
+                                    cursor = l2lmap.load(buffer, cursor, payloadSize);
+                                    cursor++;
+                                    internal_set(read_key, read_type, l2lmap, true, initial);
+                                    previous = cursor;
+                                    state = LOAD_WAITING_TYPE;
+                                    break;
+                                case Type.LONG_TO_LONG_ARRAY_MAP:
+                                    HeapLongLongArrayMap l2lrmap = new HeapLongLongArrayMap(this);
+                                    cursor++;
+                                    cursor = l2lrmap.load(buffer, cursor, payloadSize);
+                                    cursor++;
+                                    internal_set(read_key, read_type, l2lrmap, true, initial);
+                                    previous = cursor;
+                                    state = LOAD_WAITING_TYPE;
+                                    break;
+                                case Type.RELATION_INDEXED:
+                                    HeapRelationIndexed relationIndexed = new HeapRelationIndexed(this);
+                                    cursor++;
+                                    cursor = relationIndexed.load(buffer, cursor, payloadSize);
+                                    cursor++;
+                                    internal_set(read_key, read_type, relationIndexed, true, initial);
+                                    previous = cursor;
+                                    state = LOAD_WAITING_TYPE;
+                                    break;
+                                case Type.STRING_TO_LONG_MAP:
+                                    HeapStringLongMap s2lmap = new HeapStringLongMap(this);
+                                    cursor++;
+                                    cursor = s2lmap.load(buffer, cursor, payloadSize);
+                                    cursor++;
+                                    internal_set(read_key, read_type, s2lmap, true, initial);
+                                    previous = cursor;
+                                    state = LOAD_WAITING_TYPE;
+                                    break;
+                                case Type.EGRAPH:
+                                    HeapEGraph eGraph = new HeapEGraph(this, null, this.graph());
+                                    cursor++;
+                                    cursor = eGraph.load(buffer, cursor, payloadSize);
+                                    cursor++;
+                                    internal_set(read_key, read_type, eGraph, true, initial);
+                                    previous = cursor;
+                                    state = LOAD_WAITING_TYPE;
+                                    break;
+                                default:
+                                    throw new RuntimeException("Not implemented yet!!!");
+                            }
+                            break;
+                        case LOAD_WAITING_VALUE:
+                            load_primitive(read_key, read_type, buffer, previous, cursor, initial);
+                            state = LOAD_WAITING_TYPE;
+                            cursor++;
+                            previous = cursor;
+                            break;
+                    }
+                } else {
+                    cursor++;
+                }
+            }
+            if (state == LOAD_WAITING_VALUE) {
+                load_primitive(read_key, read_type, buffer, previous, cursor, initial);
+            }
         }
-        final boolean initial = _k == null;
-        //reset size
-        int cursor = 0;
-        long payloadSize = buffer.length();
-        int previousStart = -1;
-        long currentChunkElemKey = CoreConstants.NULL_LONG;
-        byte currentChunkElemType = -1;
-        //init detections
-        boolean isFirstElem = true;
-        //array sub creation variable
-        double[] currentDoubleArr = null;
-        long[] currentLongArr = null;
-        int[] currentIntArr = null;
-        //complex attributes sub creation variables
-        HeapMatrix currentMatrix = null;
-        HeapLMatrix currentLMatrix = null;
-        HeapRelation currentRelation = null;
-        HeapStringLongMap currentStringLongMap = null;
-        HeapLongLongMap currentLongLongMap = null;
-        HeapLongLongArrayMap currentLongLongArrayMap = null;
-        HeapEGraph currentEGraph = null;
-        //array variables
-        long currentSubSize = -1;
-        int currentSubIndex = 0;
-        //map key variables
-        long currentMapLongKey = CoreConstants.NULL_LONG;
-        String currentMapStringKey = null;
-        while (cursor < payloadSize) {
-            byte current = buffer.read(cursor);
-            if (current == CoreConstants.CHUNK_SEP) {
-                if (isFirstElem) {
-                    //initial the map
-                    isFirstElem = false;
-                    final int stateChunkSize = Base64.decodeToIntWithBounds(buffer, 0, cursor);
-                    final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(stateChunkSize) / Math.log(2)));
-                    allocate(closePowerOfTwo);
-                    previousStart = cursor + 1;
-                } else {
-                    if (currentChunkElemType != -1) {
-                        Object toInsert = null;
-                        switch (currentChunkElemType) {
-                            case Type.BOOL:
-                                if (buffer.read(previousStart) == CoreConstants.BOOL_FALSE) {
-                                    toInsert = false;
-                                } else if (buffer.read(previousStart) == CoreConstants.BOOL_TRUE) {
-                                    toInsert = true;
-                                }
-                                break;
-                            case Type.STRING:
-                                toInsert = Base64.decodeToStringWithBounds(buffer, previousStart, cursor);
-                                break;
-                            case Type.DOUBLE:
-                                toInsert = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
-                                break;
-                            case Type.LONG:
-                                toInsert = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                                break;
-                            case Type.INT:
-                                toInsert = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
-                                break;
-                            case Type.DOUBLE_ARRAY:
-                                if (currentDoubleArr == null) {
-                                    currentDoubleArr = new double[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
-                                } else {
-                                    currentDoubleArr[currentSubIndex] = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
-                                }
-                                toInsert = currentDoubleArr;
-                                break;
-                            case Type.LONG_ARRAY:
-                                if (currentLongArr == null) {
-                                    currentLongArr = new long[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
-                                } else {
-                                    currentLongArr[currentSubIndex] = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                                }
-                                toInsert = currentLongArr;
-                                break;
-                            case Type.INT_ARRAY:
-                                if (currentIntArr == null) {
-                                    currentIntArr = new int[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
-                                } else {
-                                    currentIntArr[currentSubIndex] = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
-                                }
-                                toInsert = currentIntArr;
-                                break;
-                            case Type.RELATION:
-                                if (currentRelation == null) {
-                                    currentRelation = new HeapRelation(this, null);
-                                    currentRelation.allocate(Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
-                                } else {
-                                    currentRelation.add(Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                                }
-                                toInsert = currentRelation;
-                                break;
-                            case Type.MATRIX:
-                                if (currentMatrix == null) {
-                                    currentMatrix = new HeapMatrix(this, null);
-                                    currentMatrix.unsafe_init(Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
-                                } else {
-                                    currentMatrix.unsafe_set(currentSubIndex, Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor));
-                                }
-                                toInsert = currentMatrix;
-                                break;
-                            case Type.LMATRIX:
-                                if (currentLMatrix == null) {
-                                    currentLMatrix = new HeapLMatrix(this, null);
-                                    currentLMatrix.unsafe_init(Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
-                                } else {
-                                    currentLMatrix.unsafe_set(currentSubIndex, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                                }
-                                toInsert = currentLMatrix;
-                                break;
-                            case Type.STRING_TO_LONG_MAP:
-                                if (currentMapStringKey != null) {
-                                    currentStringLongMap.put(currentMapStringKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                                }
-                                toInsert = currentStringLongMap;
-                                break;
-                            case Type.LONG_TO_LONG_MAP:
-                                if (currentMapLongKey != CoreConstants.NULL_LONG) {
-                                    currentLongLongMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                                }
-                                toInsert = currentLongLongMap;
-                                break;
-                            case Type.RELATION_INDEXED:
-                            case Type.LONG_TO_LONG_ARRAY_MAP:
-                                if (currentMapLongKey != CoreConstants.NULL_LONG) {
-                                    currentLongLongArrayMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                                }
-                                toInsert = currentLongLongArrayMap;
-                                break;
-                            //case Type.EGRAPH:
-                            //toInsert = new HeapEGraph(this, null, _space.graph());
-                            // toInsert.lo
-                            //System.out.println("TODO");
-                            //break;
-                        }
-                        if (toInsert != null) {
-                            //insert K/V
-                            internal_set(currentChunkElemKey, currentChunkElemType, toInsert, true, initial); //enhance this with boolean array
-                        }
-                    }
-                    //next round, reset all variables...
-                    previousStart = cursor + 1;
-                    currentChunkElemKey = CoreConstants.NULL_LONG;
-                    currentChunkElemType = -1;
-                    currentSubSize = -1;
-                    currentSubIndex = 0;
-                    currentMapLongKey = CoreConstants.NULL_LONG;
-                    currentMapStringKey = null;
-                }
-            } else if (current == CoreConstants.CHUNK_SUB_SEP) { //SEPARATION BETWEEN KEY,TYPE,VALUE
-                if (currentChunkElemKey == CoreConstants.NULL_LONG) {
-                    currentChunkElemKey = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                    previousStart = cursor + 1;
-                } else if (currentChunkElemType == -1) {
-                    currentChunkElemType = (byte) Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
-                    previousStart = cursor + 1;
-                }
-            } else if (current == CoreConstants.CHUNK_ENODE_SEP) {
-                if (currentSubSize == -1) {
-                    currentSubSize = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                    currentEGraph = new HeapEGraph(this, null, _space.graph());
-                    currentEGraph.allocate((int) currentSubSize);
-                } else {
-                    HeapENode newNode = (HeapENode) currentEGraph.newNode();
-                    cursor = newNode.load(buffer, cursor + 1, this) - 1;
-                }
-            } else if (current == CoreConstants.CHUNK_SUB_SUB_SEP) { //SEPARATION BETWEEN ARRAY VALUES AND MAP KEY/VALUE TUPLES
-                if (currentSubSize == -1) {
-                    currentSubSize = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                    //init array or maps
-                    switch (currentChunkElemType) {
-                        case Type.DOUBLE_ARRAY:
-                            currentDoubleArr = new double[(int) currentSubSize];
-                            break;
-                        case Type.LONG_ARRAY:
-                            currentLongArr = new long[(int) currentSubSize];
-                            break;
-                        case Type.INT_ARRAY:
-                            currentIntArr = new int[(int) currentSubSize];
-                            break;
-                        case Type.RELATION:
-                            currentRelation = new HeapRelation(this, null);
-                            currentRelation.allocate((int) currentSubSize);
-                            break;
-                        case Type.MATRIX:
-                            currentMatrix = new HeapMatrix(this, null);
-                            currentMatrix.unsafe_init((int) currentSubSize);
-                            break;
-                        case Type.LMATRIX:
-                            currentLMatrix = new HeapLMatrix(this, null);
-                            currentLMatrix.unsafe_init((int) currentSubSize);
-                            break;
-                        case Type.STRING_TO_LONG_MAP:
-                            currentStringLongMap = new HeapStringLongMap(this);
-                            currentStringLongMap.reallocate((int) currentSubSize);
-                            break;
-                        case Type.LONG_TO_LONG_MAP:
-                            currentLongLongMap = new HeapLongLongMap(this);
-                            currentLongLongMap.reallocate((int) currentSubSize);
-                            break;
-                        case Type.LONG_TO_LONG_ARRAY_MAP:
-                            currentLongLongArrayMap = new HeapLongLongArrayMap(this);
-                            currentLongLongArrayMap.reallocate((int) currentSubSize);
-                            break;
-                        case Type.RELATION_INDEXED:
-                            currentLongLongArrayMap = new HeapRelationIndexed(this);
-                            currentLongLongArrayMap.reallocate((int) currentSubSize);
-                            break;
-                    }
-                } else {
-                    switch (currentChunkElemType) {
-                        case Type.DOUBLE_ARRAY:
-                            currentDoubleArr[currentSubIndex] = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
-                            currentSubIndex++;
-                            break;
-                        case Type.RELATION:
-                            currentRelation.add(Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                            break;
-                        case Type.MATRIX:
-                            currentMatrix.unsafe_set(currentSubIndex, Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor));
-                            currentSubIndex++;
-                            break;
-                        case Type.LMATRIX:
-                            currentLMatrix.unsafe_set(currentSubIndex, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                            currentSubIndex++;
-                            break;
-                        case Type.LONG_ARRAY:
-                            currentLongArr[currentSubIndex] = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                            currentSubIndex++;
-                            break;
-                        case Type.INT_ARRAY:
-                            currentIntArr[currentSubIndex] = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
-                            currentSubIndex++;
-                            break;
-                        case Type.STRING_TO_LONG_MAP:
-                            if (currentMapStringKey != null) {
-                                currentStringLongMap.put(currentMapStringKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                                currentMapStringKey = null;
-                            }
-                            break;
-                        case Type.LONG_TO_LONG_MAP:
-                            if (currentMapLongKey != CoreConstants.NULL_LONG) {
-                                currentLongLongMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                                currentMapLongKey = CoreConstants.NULL_LONG;
-                            }
-                            break;
-                        case Type.RELATION_INDEXED:
-                        case Type.LONG_TO_LONG_ARRAY_MAP:
-                            if (currentMapLongKey != CoreConstants.NULL_LONG) {
-                                currentLongLongArrayMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                                currentMapLongKey = CoreConstants.NULL_LONG;
-                            }
-                            break;
-                    }
-                }
-                previousStart = cursor + 1;
-            } else if (current == CoreConstants.CHUNK_SUB_SUB_SUB_SEP) {
-                switch (currentChunkElemType) {
-                    case Type.STRING_TO_LONG_MAP:
-                        if (currentMapStringKey == null) {
-                            currentMapStringKey = Base64.decodeToStringWithBounds(buffer, previousStart, cursor);
-                        } else {
-                            currentStringLongMap.put(currentMapStringKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                            //reset key for next loop
-                            currentMapStringKey = null;
-                        }
-                        break;
-                    case Type.LONG_TO_LONG_MAP:
-                        if (currentMapLongKey == CoreConstants.NULL_LONG) {
-                            currentMapLongKey = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                        } else {
-                            currentLongLongMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                            //reset key for next loop
-                            currentMapLongKey = CoreConstants.NULL_LONG;
-                        }
-                        break;
-                    case Type.RELATION_INDEXED:
-                    case Type.LONG_TO_LONG_ARRAY_MAP:
-                        if (currentMapLongKey == CoreConstants.NULL_LONG) {
-                            currentMapLongKey = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                        } else {
-                            currentLongLongArrayMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                            //reset key for next loop
-                            currentMapLongKey = CoreConstants.NULL_LONG;
-                        }
-                        break;
-                }
-                previousStart = cursor + 1;
-            }
-            cursor++;
-        }
-        //take the last element
-        if (currentChunkElemType != -1) {
-            Object toInsert = null;
-            switch (currentChunkElemType) {
-                case Type.BOOL:
-                    if (buffer.read(previousStart) == CoreConstants.BOOL_FALSE) {
-                        toInsert = false;
-                    } else if (buffer.read(previousStart) == CoreConstants.BOOL_TRUE) {
-                        toInsert = true;
-                    }
-                    break;
-                case Type.STRING:
-                    toInsert = Base64.decodeToStringWithBounds(buffer, previousStart, cursor);
-                    break;
-                case Type.DOUBLE:
-                    toInsert = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
-                    break;
-                case Type.LONG:
-                    toInsert = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                    break;
-                case Type.INT:
-                    toInsert = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
-                    break;
-                case Type.DOUBLE_ARRAY:
-                    if (currentDoubleArr == null) {
-                        currentDoubleArr = new double[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
-                    } else {
-                        currentDoubleArr[currentSubIndex] = Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor);
-                    }
-                    toInsert = currentDoubleArr;
-                    break;
-                case Type.LONG_ARRAY:
-                    if (currentLongArr == null) {
-                        currentLongArr = new long[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
-                    } else {
-                        currentLongArr[currentSubIndex] = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                    }
-                    toInsert = currentLongArr;
-                    break;
-                case Type.INT_ARRAY:
-                    if (currentIntArr == null) {
-                        currentIntArr = new int[Base64.decodeToIntWithBounds(buffer, previousStart, cursor)];
-                    } else {
-                        currentIntArr[currentSubIndex] = Base64.decodeToIntWithBounds(buffer, previousStart, cursor);
-                    }
-                    toInsert = currentIntArr;
-                    break;
-                case Type.RELATION:
-                    if (currentRelation != null) {
-                        currentRelation.add(Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                    }
-                    toInsert = currentRelation;
-                    break;
-                case Type.MATRIX:
-                    if (currentMatrix != null) {
-                        currentMatrix.unsafe_set(currentSubIndex, Base64.decodeToDoubleWithBounds(buffer, previousStart, cursor));
-                    }
-                    toInsert = currentMatrix;
-                    break;
-                case Type.LMATRIX:
-                    if (currentLMatrix != null) {
-                        currentLMatrix.unsafe_set(currentSubIndex, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                    }
-                    toInsert = currentLMatrix;
-                    break;
-                case Type.STRING_TO_LONG_MAP:
-                    if (currentMapStringKey != null) {
-                        currentStringLongMap.put(currentMapStringKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                    }
-                    toInsert = currentStringLongMap;
-                    break;
-                case Type.LONG_TO_LONG_MAP:
-                    if (currentMapLongKey != CoreConstants.NULL_LONG) {
-                        currentLongLongMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                    }
-                    toInsert = currentLongLongMap;
-                    break;
-                case Type.RELATION_INDEXED:
-                case Type.LONG_TO_LONG_ARRAY_MAP:
-                    if (currentMapLongKey != CoreConstants.NULL_LONG) {
-                        currentLongLongArrayMap.put(currentMapLongKey, Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
-                    }
-                    toInsert = currentLongLongArrayMap;
-                    break;
-                case Type.EGRAPH:
-                    System.out.println("TODO here");
-                    break;
-            }
-            if (toInsert != null) {
-                internal_set(currentChunkElemKey, currentChunkElemType, toInsert, true, initial); //enhance this with boolean array
-            }
+    }
+
+    private void load_primitive(final long read_key, final byte read_type, final Buffer buffer, final long previous, final long cursor, final boolean initial) {
+        switch (read_type) {
+            case Type.BOOL:
+                internal_set(read_key, read_type, (((byte) Base64.decodeToIntWithBounds(buffer, previous, cursor)) == CoreConstants.BOOL_TRUE), true, initial);
+                break;
+            case Type.INT:
+                internal_set(read_key, read_type, Base64.decodeToIntWithBounds(buffer, previous, cursor), true, initial);
+                break;
+            case Type.DOUBLE:
+                internal_set(read_key, read_type, Base64.decodeToDoubleWithBounds(buffer, previous, cursor), true, initial);
+                break;
+            case Type.LONG:
+                internal_set(read_key, read_type, Base64.decodeToLongWithBounds(buffer, previous, cursor), true, initial);
+                break;
+            case Type.STRING:
+                internal_set(read_key, read_type, Base64.decodeToStringWithBounds(buffer, previous, cursor), true, initial);
+                break;
         }
     }
 

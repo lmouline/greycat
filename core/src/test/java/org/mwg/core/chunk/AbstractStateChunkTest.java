@@ -166,6 +166,77 @@ public abstract class AbstractStateChunkTest {
     }
 
     @Test
+    public void relationSaveLoadTest() {
+        ChunkSpace space = factory.newSpace(100, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+        chunk.set(0, Type.STRING, "hello");
+        Assert.assertEquals(chunk.get(0), "hello");
+        Relation rel = (Relation) chunk.getOrCreate(1, Type.RELATION);
+        rel.add(1);
+        rel.add(2);
+        rel.add(3);
+        Buffer buffer = factory.newBuffer();
+        chunk.save(buffer);
+        StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
+        chunk2.load(buffer);
+        Buffer buffer2 = factory.newBuffer();
+        chunk2.save(buffer2);
+        Assert.assertTrue(compareBuffers(buffer, buffer2));
+    }
+
+    @Test
+    public void matrixSaveLoadTest() {
+        ChunkSpace space = factory.newSpace(100, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+        chunk.set(0, Type.STRING, "hello");
+        Assert.assertEquals(chunk.get(0), "hello");
+        Matrix rel = (Matrix) chunk.getOrCreate(1, Type.MATRIX);
+        rel.init(2, 3);
+
+        rel.set(0, 0, 0.0);
+        rel.set(0, 1, 1.0);
+        rel.set(0, 2, 2.0);
+
+        rel.set(1, 0, 0.5);
+        rel.set(1, 1, 1.5);
+        rel.set(1, 2, 2.5);
+
+        Buffer buffer = factory.newBuffer();
+        chunk.save(buffer);
+        StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
+        chunk2.load(buffer);
+        Buffer buffer2 = factory.newBuffer();
+        chunk2.save(buffer2);
+        Assert.assertTrue(compareBuffers(buffer, buffer2));
+    }
+
+    @Test
+    public void lMatrixSaveLoadTest() {
+        ChunkSpace space = factory.newSpace(100, null);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+        chunk.set(0, Type.STRING, "hello");
+        Assert.assertEquals(chunk.get(0), "hello");
+        LMatrix rel = (LMatrix) chunk.getOrCreate(1, Type.LMATRIX);
+        rel.init(2, 3);
+
+        rel.set(0, 0, 0L);
+        rel.set(0, 1, 1L);
+        rel.set(0, 2, 2L);
+
+        rel.set(1, 0, 10L);
+        rel.set(1, 1, 100L);
+        rel.set(1, 2, 1000L);
+
+        Buffer buffer = factory.newBuffer();
+        chunk.save(buffer);
+        StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
+        chunk2.load(buffer);
+        Buffer buffer2 = factory.newBuffer();
+        chunk2.save(buffer2);
+        Assert.assertTrue(compareBuffers(buffer, buffer2));
+    }
+
+    @Test
     public void saveLoadTest() {
 
         ChunkSpace space = factory.newSpace(100, null);
@@ -226,6 +297,7 @@ public abstract class AbstractStateChunkTest {
         Assert.assertTrue(compareBuffers(buffer, buffer2));
 
         //init chunk selectWith some maps
+
         LongLongMap long2longMap = (LongLongMap) chunk.getOrCreate(8, Type.LONG_TO_LONG_MAP);
         long2longMap.put(1, 1);
         long2longMap.put(Constants.END_OF_TIME, Constants.END_OF_TIME);
@@ -235,7 +307,6 @@ public abstract class AbstractStateChunkTest {
         string2longMap.put("1", 1);
         string2longMap.put(Constants.END_OF_TIME + "", Constants.END_OF_TIME);
         string2longMap.put(Constants.BEGINNING_OF_TIME + "", Constants.BEGINNING_OF_TIME);
-
 
         LongLongArrayMap long2longArrayMap = (LongLongArrayMap) chunk.getOrCreate(10, Type.LONG_TO_LONG_ARRAY_MAP);
         long2longArrayMap.put(1, 1);
@@ -268,7 +339,6 @@ public abstract class AbstractStateChunkTest {
         for (int i = 0; i < 10; i++) {
             Assert.assertEquals(chunk.get(1000 + i), i);
         }
-
 
         StateChunk chunk3 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 4);
         chunk3.loadFrom(chunk);

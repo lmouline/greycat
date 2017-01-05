@@ -2,8 +2,10 @@ package org.mwg.core.chunk.heap;
 
 import org.mwg.Constants;
 import org.mwg.Graph;
+import org.mwg.struct.Buffer;
 import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
+import org.mwg.utility.Base64;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -143,6 +145,32 @@ class HeapEGraph implements EGraph {
         }
         builder.append("]}");
         return builder.toString();
+    }
+
+    public final long load(final Buffer buffer, final long offset, final long max) {
+        long cursor = offset;
+        byte current = buffer.read(cursor);
+        boolean isFirst = true;
+        long previous = offset;
+        while (cursor < max && current != Constants.CHUNK_SEP) {
+            if (current == Constants.CHUNK_ENODE_SEP) {
+                if (isFirst) {
+                    allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    isFirst = false;
+                } else {
+                    // add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                }
+                previous = cursor + 1;
+            }
+            cursor++;
+            current = buffer.read(cursor);
+        }
+        if (isFirst) {
+            allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        } else {
+            // add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        }
+        return cursor;
     }
 
 }

@@ -69,14 +69,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     @Override
     public synchronized final void save(Buffer buffer) {
         Base64.encodeLongToBuffer(_size, buffer);
-        buffer.write(CoreConstants.CHUNK_SEP);
-        boolean isFirst = true;
         for (int i = 0; i < _size; i++) {
-            if (!isFirst) {
-                buffer.write(CoreConstants.CHUNK_SUB_SEP);
-            } else {
-                isFirst = false;
-            }
+            buffer.write(CoreConstants.CHUNK_SEP);
             Base64.encodeLongToBuffer(this._k[i], buffer);
         }
         _dirty = false;
@@ -89,17 +83,11 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     public synchronized void saveDiff(Buffer buffer) {
         if (_dirty) {
             Base64.encodeLongToBuffer(_size, buffer);
-            buffer.write(CoreConstants.CHUNK_SEP);
-            boolean isFirst = true;
             for (int i = 0; i < _size; i++) {
                 if (_diff[i]) {
-                    if (!isFirst) {
-                        buffer.write(CoreConstants.CHUNK_SUB_SEP);
-                    } else {
-                        isFirst = false;
-                    }
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                    Base64.encodeLongToBuffer(this._k[i], buffer);
                 }
-                Base64.encodeLongToBuffer(this._k[i], buffer);
             }
             _dirty = false;
             CoreConstants.fillBooleanArray(_diff, false);
@@ -130,15 +118,19 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         long cursor = 0;
         long previous = 0;
         long payloadSize = buffer.length();
+        boolean isFirst = true;
         while (cursor < payloadSize) {
-            byte current = buffer.read(cursor);
-            if (current == CoreConstants.CHUNK_SUB_SEP) {
-                boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
-                isDirty = isDirty || insertResult;
-                previous = cursor + 1;
-            } else if (current == CoreConstants.CHUNK_SEP) {
-                reallocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                previous = cursor + 1;
+            final byte current = buffer.read(cursor);
+            if (current == Constants.CHUNK_SEP) {
+                if (isFirst) {
+                    reallocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    previous = cursor + 1;
+                    isFirst = false;
+                } else {
+                    boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
+                    isDirty = isDirty || insertResult;
+                    previous = cursor + 1;
+                }
             }
             cursor++;
         }
@@ -146,7 +138,6 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         isDirty = isDirty || insertResult;
         return isDirty;
     }
-
 
     @Override
     public final long index() {

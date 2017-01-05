@@ -48,13 +48,6 @@ public class Constants {
 
     /**
      * {@native ts
-     * public static CHUNK_ESEP : number = "!".charCodeAt(0);
-     * }
-     */
-    public static final byte CHUNK_ESEP = '!';
-
-    /**
-     * {@native ts
      * public static CHUNK_ENODE_SEP : number = "$".charCodeAt(0);
      * }
      */
@@ -62,24 +55,10 @@ public class Constants {
 
     /**
      * {@native ts
-     * public static CHUNK_SUB_SEP : number = ",".charCodeAt(0);
+     * public static CHUNK_VAL_SEP : number = ":".charCodeAt(0);
      * }
      */
-    public static final byte CHUNK_SUB_SEP = ',';
-
-    /**
-     * {@native ts
-     * public static CHUNK_SUB_SUB_SEP : number = ":".charCodeAt(0);
-     * }
-     */
-    public static final byte CHUNK_SUB_SUB_SEP = ':';
-
-    /**
-     * {@native ts
-     * public static CHUNK_SUB_SUB_SUB_SEP : number = "%".charCodeAt(0);
-     * }
-     */
-    public static final byte CHUNK_SUB_SUB_SUB_SEP = '%';
+    public static final byte CHUNK_VAL_SEP = ':';
 
     /**
      * {@native ts
@@ -143,16 +122,9 @@ public class Constants {
 
     public static final int MAP_INITIAL_CAPACITY = 8;
 
-    /**
-     * @native ts
-     * public static BOOL_TRUE : number = "1".charCodeAt(0);
-     */
-    public static byte BOOL_TRUE = (byte) '1';
-    /**
-     * @native ts
-     * public static BOOL_FALSE : number = "0".charCodeAt(0);
-     */
-    public static byte BOOL_FALSE = (byte) '0';
+    public static int BOOL_TRUE = 1;
+
+    public static int BOOL_FALSE = 0;
 
 }
 

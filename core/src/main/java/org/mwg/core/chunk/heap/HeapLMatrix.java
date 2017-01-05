@@ -1,7 +1,9 @@
 package org.mwg.core.chunk.heap;
 
 import org.mwg.Constants;
+import org.mwg.struct.Buffer;
 import org.mwg.struct.LMatrix;
+import org.mwg.utility.Base64;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -398,6 +400,34 @@ class HeapLMatrix implements LMatrix {
 
     void unsafe_set(long index, long value) {
         backend[(int) index] = value;
+    }
+
+    public final long load(final Buffer buffer, final long offset, final long max) {
+        long cursor = offset;
+        byte current = buffer.read(cursor);
+        boolean isFirst = true;
+        long previous = offset;
+        long elemIndex = 0;
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+            if (current == Constants.CHUNK_VAL_SEP) {
+                if (isFirst) {
+                    unsafe_init(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    isFirst = false;
+                } else {
+                    unsafe_set(elemIndex, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    elemIndex++;
+                }
+                previous = cursor + 1;
+            }
+            cursor++;
+            current = buffer.read(cursor);
+        }
+        if (isFirst) {
+            unsafe_init((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        } else {
+            unsafe_set(elemIndex, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        }
+        return cursor;
     }
 
 }

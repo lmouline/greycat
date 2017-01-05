@@ -18,7 +18,7 @@ public abstract class AbstractTimeTreeTest {
         this.factory = factory;
     }
 
-     @Test
+    @Test
     public void incrementalSave() {
         ChunkSpace space = factory.newSpace(100, null);
         TimeTreeChunk tree = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
@@ -33,7 +33,7 @@ public abstract class AbstractTimeTreeTest {
 
         buffer = factory.newBuffer();
         tree.saveDiff(buffer);
-        Assert.assertTrue(compareWithString(buffer, "G|K,O,S"));
+        Assert.assertTrue(compareWithString(buffer, "G|K|O|S"));
         buffer.free();
 
         buffer = factory.newBuffer();
@@ -101,7 +101,6 @@ public abstract class AbstractTimeTreeTest {
 
     @Test
     public void saveLoad() {
-
         ChunkSpace space = factory.newSpace(100, null);
         TimeTreeChunk tree = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
         for (long i = 0; i <= 2; i++) {
@@ -109,27 +108,20 @@ public abstract class AbstractTimeTreeTest {
         }
         Buffer buffer = factory.newBuffer();
         tree.save(buffer);
-        Assert.assertTrue(compareWithString(buffer, "G|A,C,E"));
+        Assert.assertTrue(compareWithString(buffer, "G|A|C|E"));
         Assert.assertTrue(tree.size() == 3);
-
         TimeTreeChunk tree2 = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
         tree2.load(buffer);
         Assert.assertTrue(tree2.size() == 3);
-
         Buffer buffer2 = factory.newBuffer();
         tree2.save(buffer2);
         Assert.assertTrue(compareBuffers(buffer, buffer2));
-
         tree2.insert(10000);
-
         space.free(tree);
         space.free(tree2);
-
         buffer2.free();
         buffer.free();
-
         space.freeAll();
-
     }
 
     @Test

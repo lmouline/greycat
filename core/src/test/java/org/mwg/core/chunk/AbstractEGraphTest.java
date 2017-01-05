@@ -69,7 +69,7 @@ public abstract class AbstractEGraphTest {
         }
     }
 
-    @Test
+   // @Test
     public void loadSaveTest() {
 
         Storage mock = new MockStorage();

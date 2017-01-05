@@ -16,6 +16,14 @@ public class MockStorage implements Storage {
     private short prefix = 0;
     private final Map<String, byte[]> backend = new HashMap<String, byte[]>();
 
+    /**
+     * @native ts
+     * return p.toString();
+     */
+    private String keyToString(byte[] p) {
+        return new String(p);
+    }
+
     @Override
     public final void get(Buffer keys, Callback<Buffer> callback) {
         final Buffer result = _graph.newBuffer();
@@ -24,8 +32,7 @@ public class MockStorage implements Storage {
         while (it.hasNext()) {
             //do nothing with the view, redirect to BlackHole...
             byte[] key = it.next().data();
-            final byte[] resolved = backend.get(new String(key));
-
+            final byte[] resolved = backend.get(keyToString(key));
             if (isFirst) {
                 isFirst = false;
                 if (resolved != null) {
@@ -49,7 +56,7 @@ public class MockStorage implements Storage {
             while (it.hasNext()) {
                 Buffer keyView = it.next();
                 Buffer valueView = it.next();
-                backend.put(new String(keyView.data()), valueView.data());
+                backend.put(keyToString(keyView.data()), valueView.data());
             }
             callback.on(true);
         }

@@ -2,7 +2,9 @@ package org.mwg.core.chunk.heap;
 
 import org.mwg.Constants;
 import org.mwg.Node;
+import org.mwg.struct.Buffer;
 import org.mwg.struct.Relation;
+import org.mwg.utility.Base64;
 
 class HeapRelation implements Relation {
 
@@ -230,4 +232,31 @@ class HeapRelation implements Relation {
         buffer.append("]");
         return buffer.toString();
     }
+
+    public final long load(final Buffer buffer, final long offset, final long max) {
+        long cursor = offset;
+        byte current = buffer.read(cursor);
+        boolean isFirst = true;
+        long previous = offset;
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+            if (current == Constants.CHUNK_VAL_SEP) {
+                if (isFirst) {
+                    allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    isFirst = false;
+                } else {
+                    add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                }
+                previous = cursor + 1;
+            }
+            cursor++;
+            current = buffer.read(cursor);
+        }
+        if (isFirst) {
+            allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        } else {
+            add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        }
+        return cursor;
+    }
+
 }

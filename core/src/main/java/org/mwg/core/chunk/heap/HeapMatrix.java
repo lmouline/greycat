@@ -1,7 +1,9 @@
 package org.mwg.core.chunk.heap;
 
 import org.mwg.Constants;
+import org.mwg.struct.Buffer;
 import org.mwg.struct.Matrix;
+import org.mwg.utility.Base64;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -385,18 +387,47 @@ class HeapMatrix implements Matrix {
         }
     }
 
-    double[] unsafe_data() {
+    final double[] unsafe_data() {
         return backend;
     }
 
-    void unsafe_init(long size) {
+    final void unsafe_init(long size) {
         backend = new double[(int) size];
         backend[INDEX_ROWS] = 0;
         backend[INDEX_COLUMNS] = 0;
         aligned = true;
     }
 
-    void unsafe_set(long index, double value) {
+    final void unsafe_set(long index, double value) {
         backend[(int) index] = value;
     }
+
+    public final long load(final Buffer buffer, final long offset, final long max) {
+        long cursor = offset;
+        byte current = buffer.read(cursor);
+        boolean isFirst = true;
+        long previous = offset;
+        long elemIndex = 0;
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+            if (current == Constants.CHUNK_VAL_SEP) {
+                if (isFirst) {
+                    unsafe_init(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    isFirst = false;
+                } else {
+                    unsafe_set(elemIndex, Base64.decodeToDoubleWithBounds(buffer, previous, cursor));
+                    elemIndex++;
+                }
+                previous = cursor + 1;
+            }
+            cursor++;
+            current = buffer.read(cursor);
+        }
+        if (isFirst) {
+            unsafe_init((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+        } else {
+            unsafe_set(elemIndex, Base64.decodeToDoubleWithBounds(buffer, previous, cursor));
+        }
+        return cursor;
+    }
+
 }

@@ -6,8 +6,10 @@ import org.mwg.Node;
 import org.mwg.Query;
 import org.mwg.base.BaseNode;
 import org.mwg.plugin.NodeState;
+import org.mwg.struct.Buffer;
 import org.mwg.struct.RelationIndexed;
 import org.mwg.struct.LongLongArrayMapCallBack;
+import org.mwg.utility.Base64;
 
 class HeapRelationIndexed extends HeapLongLongArrayMap implements RelationIndexed {
 
@@ -175,5 +177,6 @@ class HeapRelationIndexed extends HeapLongLongArrayMap implements RelationIndexe
         }
         return cloned;
     }
+
 
 }

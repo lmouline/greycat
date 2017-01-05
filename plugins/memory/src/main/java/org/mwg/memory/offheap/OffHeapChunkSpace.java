@@ -4,7 +4,7 @@ package org.mwg.memory.offheap;
 import org.mwg.Callback;
 import org.mwg.Constants;
 import org.mwg.Graph;
-import org.mwg.base.AbstractExternalAttribute;
+import org.mwg.base.BaseExternalAttribute;
 import org.mwg.chunk.Chunk;
 import org.mwg.chunk.ChunkSpace;
 import org.mwg.chunk.ChunkType;
@@ -43,13 +43,13 @@ class OffHeapChunkSpace implements ChunkSpace {
     private final long marks;
     private final long addrs;
 
-    private final Map<Long, AbstractExternalAttribute> heapAttributes = new HashMap<Long, AbstractExternalAttribute>();
+    private final Map<Long, BaseExternalAttribute> heapAttributes = new HashMap<Long, BaseExternalAttribute>();
 
-    public final void mountHeapAttribute(long adr, AbstractExternalAttribute obj) {
+    public final void mountHeapAttribute(long adr, BaseExternalAttribute obj) {
         heapAttributes.put(adr, obj);
     }
 
-    public final AbstractExternalAttribute heapAttribute(long adr) {
+    public final BaseExternalAttribute heapAttribute(long adr) {
         return heapAttributes.get(adr);
     }
 
