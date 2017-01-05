@@ -9,8 +9,14 @@ import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
 import org.mwg.struct.LMatrix;
 import org.mwg.structure.Tree;
+import org.mwg.structure.TreeResult;
 import org.mwg.structure.distance.Distance;
 import org.mwg.structure.distance.Distances;
+import org.mwg.task.ActionFunction;
+import org.mwg.task.Task;
+import org.mwg.task.TaskContext;
+
+import static org.mwg.core.task.Actions.*;
 
 public class ETree extends BaseNode implements Tree {
 
@@ -120,13 +126,14 @@ public class ETree extends BaseNode implements Tree {
         parent.setAt(_SUBNODES, Type.INT, (int) parent.getAt(_SUBNODES) + 1);
         parent.setAt(index, Type.ENODE, node);
 
-        if (buffersize != 0) {
-            //todo create buffer here
-        }
+        //todo create buffer here
+       /* if (buffersize != 0) {
+
+        }*/
         return node;
     }
 
-    private static boolean subInsert(final ENode parent, final double[] key, final byte valuetype, final Object value, final int strategyType, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final ENode root, boolean bufferupdate) {
+    private static boolean subInsert(final ENode parent, final double[] key, final long value, final int strategyType, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final ENode root, boolean bufferupdate) {
         int index = getRelationId(center, key);
 
         ENode child = (ENode) parent.getAt(index);
@@ -136,7 +143,7 @@ public class ETree extends BaseNode implements Tree {
         double[] childmin = (double[]) child.getAt(_MIN);
         double[] childmax = (double[]) child.getAt(_MAX);
         double[] childcenter = getCenterMinMax(childmin, childmax);
-        boolean res = internalInsert(child, key, valuetype, value, strategyType, childmin, childmax, childcenter, resolution, buffersize, root);
+        boolean res = internalInsert(child, key, value, strategyType, childmin, childmax, childcenter, resolution, buffersize, root);
         res = res && !bufferupdate;
 
         if (res) {
@@ -145,7 +152,7 @@ public class ETree extends BaseNode implements Tree {
                     parent.setAt(_TOTAL, Type.INT, (int) parent.getAt(_TOTAL) + (int) value);
                     break;
                 }
-                case IndexStrategy.REPLACE: {
+                case IndexStrategy.INDEX: {
                     parent.setAt(_TOTAL, Type.INT, (int) parent.getAt(_TOTAL) + 1);
                     break;
                 }
@@ -157,9 +164,9 @@ public class ETree extends BaseNode implements Tree {
         return res;
     }
 
-    private static boolean internalInsert(final ENode node, final double[] key, final byte valuetype, final Object value, final int strategyType, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final ENode root) {
+    private static boolean internalInsert(final ENode node, final double[] key, final long value, final int strategyType, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final ENode root) {
         if ((int) node.getAt(_SUBNODES) != 0) {
-            return subInsert(node, key, valuetype, value, strategyType, min, max, center, resolution, buffersize, root, false);
+            return subInsert(node, key, value, strategyType, min, max, center, resolution, buffersize, root, false);
         } else if (checkCreateLevels(min, max, resolution)) {
             DMatrix buffer = null;
             if (buffersize > 0) {
@@ -176,18 +183,13 @@ public class ETree extends BaseNode implements Tree {
                                     bufferkeys.set(j, i, bufferkeys.get(j, i) + key[j]);
                                 }
                                 LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
-                                bufferValue.set(0, i, bufferValue.get(0, i) + (int) value);
-                                node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + (int) value);
+                                bufferValue.set(0, i, bufferValue.get(0, i) + value);
+                                node.setAt(_TOTAL, Type.LONG, (long) node.getAt(_TOTAL) + value);
                                 return true; //to update parent total
                             }
-                            case IndexStrategy.REPLACE: {
-                                if (valuetype == Type.LONG || valuetype == Type.INT) {
-                                    LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
-                                    bufferValue.set(0, i, (long) value);
-                                } else if (valuetype == Type.DOUBLE) {
-                                    DMatrix bufferValue = (DMatrix) node.getAt(_BUFFER_VALUES);
-                                    bufferValue.set(0, i, (double) value);
-                                }
+                            case IndexStrategy.INDEX: {
+                                LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
+                                bufferValue.set(0, i, (long) value);
                                 return false; //Should not update parent total
                             }
                             default: {
@@ -205,18 +207,14 @@ public class ETree extends BaseNode implements Tree {
                             bufferkeys.appendColumn(key);
                             LMatrix bufferValue = (LMatrix) node.getOrCreateAt(_BUFFER_VALUES, Type.LMATRIX);
                             bufferValue.appendColumn(new long[]{(int) value});
-                            node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + (int) value);
+                            node.setAt(_TOTAL, Type.LONG, (long) node.getAt(_TOTAL) + value);
                             return true; //to update parent total
                         }
-                        case IndexStrategy.REPLACE: {
-                            if (valuetype == Type.LONG || valuetype == Type.INT) {
-                                LMatrix bufferValue = (LMatrix) node.getOrCreateAt(_BUFFER_VALUES, Type.LMATRIX);
-                                bufferValue.appendColumn(new long[]{(long) value});
-                            } else if (valuetype == Type.DOUBLE) {
-                                DMatrix bufferValue = (DMatrix) node.getOrCreateAt(_BUFFER_VALUES, Type.DMATRIX);
-                                bufferValue.appendColumn(new double[]{(double) value});
-                            }
-                            node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + 1);
+
+                        case IndexStrategy.INDEX: {
+                            LMatrix bufferValue = (LMatrix) node.getOrCreateAt(_BUFFER_VALUES, Type.LMATRIX);
+                            bufferValue.appendColumn(new long[]{(long) value});
+                            node.setAt(_TOTAL, Type.LONG, (long) node.getAt(_TOTAL) + 1);
                             return true; //to update parent total
                         }
                         default: {
@@ -241,35 +239,23 @@ public class ETree extends BaseNode implements Tree {
 
 
                     //reinsert all children
-                    if (valuetype == Type.LONG) {
-                        LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
-                        for (int i = 0; i < buffer.columns(); i++) {
-                            subInsert(node, buffer.column(i), valuetype, bufferValue.get(0, i), strategyType, min, max, center, resolution, buffersize, root, true);
-                        }
-                        node.setAt(_BUFFER_VALUES, Type.LMATRIX, null);
-                    } else if (valuetype == Type.INT) {
-                        LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
-                        for (int i = 0; i < buffer.columns(); i++) {
-                            subInsert(node, buffer.column(i), valuetype, (int) bufferValue.get(0, i), strategyType, min, max, center, resolution, buffersize, root, true);
-                        }
-                        node.setAt(_BUFFER_VALUES, Type.LMATRIX, null);
-                    } else if (valuetype == Type.DOUBLE) {
-                        DMatrix bufferValue = (DMatrix) node.getAt(_BUFFER_VALUES);
-                        for (int i = 0; i < buffer.columns(); i++) {
-                            subInsert(node, buffer.column(i), valuetype, bufferValue.get(0, i), strategyType, min, max, center, resolution, buffersize, root, true);
-                        }
-                        node.setAt(_BUFFER_VALUES, Type.DMATRIX, null);
+
+                    LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
+                    for (int i = 0; i < buffer.columns(); i++) {
+                        subInsert(node, buffer.column(i), bufferValue.get(0, i), strategyType, min, max, center, resolution, buffersize, root, true);
                     }
+                    node.setAt(_BUFFER_VALUES, Type.LMATRIX, null);
 
                     //clear the buffer, update the total, and insert the new value
                     node.setAt(_BUFFER_KEYS, Type.DMATRIX, null);
-                    return subInsert(node, key, valuetype, value, strategyType, min, max, center, resolution, buffersize, root, false);
+                    return subInsert(node, key, value, strategyType, min, max, center, resolution, buffersize, root, false);
+
                 }
 
 
             } //null buffer means to subinsert as long as we can create levels
             else {
-                return subInsert(node, key, valuetype, value, strategyType, min, max, center, resolution, buffersize, root, false);
+                return subInsert(node, key, value, strategyType, min, max, center, resolution, buffersize, root, false);
             }
         }
         //Else we reached here last level of the tree, and the array is full, we need to start a profiler
@@ -290,15 +276,15 @@ public class ETree extends BaseNode implements Tree {
                     node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + (int) value);
                     return true; //to update parent total
                 }
-                case IndexStrategy.REPLACE: {
+                case IndexStrategy.INDEX: {
                     if ((int) node.getAt(_TOTAL) == 0) {
                         node.setAt(_PROFILE, Type.DOUBLE_ARRAY, key);
-                        node.setAt(_VALUE, valuetype, value);
+                        node.setAt(_VALUE, Type.LONG, value);
                         node.setAt(_TOTAL, Type.INT, 1);
                         return true;
                     } else {
                         node.setAt(_PROFILE, Type.DOUBLE_ARRAY, key);
-                        node.setAt(_VALUE, valuetype, value);
+                        node.setAt(_VALUE, Type.LONG, value);
                         return false;
                     }
                 }
@@ -339,7 +325,7 @@ public class ETree extends BaseNode implements Tree {
     }
 
     @Override
-    public void insertWith(double[] keys, final byte valuetype, final Object value) {
+    public void insert(final double[] keys, final long value) {
         NodeState state = unphasedState();
 
         double[] min = (double[]) state.get(BOUND_MIN);
@@ -361,12 +347,12 @@ public class ETree extends BaseNode implements Tree {
             root.setAt(_MIN, Type.DOUBLE_ARRAY, min);
             root.setAt(_MAX, Type.DOUBLE_ARRAY, max);
         }
-        internalInsert(root, keys, valuetype, value, IndexStrategy.REPLACE, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
+        internalInsert(root, keys, value, IndexStrategy.INDEX, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
 
     }
 
     @Override
-    public void profile(double[] keys, int occurance) {
+    public void profile(final double[] keys, final long occurrence) {
         NodeState state = unphasedState();
 
         double[] min = (double[]) state.get(BOUND_MIN);
@@ -389,23 +375,29 @@ public class ETree extends BaseNode implements Tree {
             root.setAt(_MIN, Type.DOUBLE_ARRAY, min);
             root.setAt(_MAX, Type.DOUBLE_ARRAY, max);
         }
-        internalInsert(root, keys, Type.INT, occurance, IndexStrategy.PROFILE, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
+        internalInsert(root, keys, occurrence, IndexStrategy.PROFILE, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
 
     }
 
     @Override
-    public Object[] nearestN(double[] keys, int nbElem) {
-        return new Object[0];
+    public TreeResult nearestN(double[] keys, int nbElem) {
+        return null;
     }
 
     @Override
-    public Object[] nearestWithinRadius(double[] keys, double radius) {
-        return new Object[0];
+    public TreeResult nearestWithinRadius(double[] keys, double radius) {
+        return null;
     }
 
     @Override
-    public Object[] nearestNWithinRadius(double[] keys, int nbElem, double radius) {
-        return new Object[0];
+    public TreeResult nearestNWithinRadius(double[] keys, int nbElem, double radius) {
+        return null;
+    }
+
+
+    @Override
+    public TreeResult query(double[] min, double[] max) {
+        return null;
     }
 
 
@@ -433,5 +425,98 @@ public class ETree extends BaseNode implements Tree {
         }
     }
 
+/*
+    private static Task initNearestTask() {
+        Task reccursiveDown = newTask();
+        reccursiveDown
+                .then(defineAsVar("parent"))
+                .thenDo(new ActionFunction() {
+                    @Override
+                    public void eval(TaskContext ctx) {
+                        ENode node = (ENode) ctx.result().get(0);
+
+
+
+                        if((int) node.getAt(_SUBNODES) == 0){
+                            double[] target = (double[]) ctx.variable("key").get(0);
+                            Distance distance = (Distance) ctx.variable("distance").get(0);
+                            Matrix bufferkeys = (Matrix) node.getAt(_BUFFER_KEYS);
+
+
+                        }
+                        else {
+
+                        }
+
+
+                        //Leave node
+                        if (!state.getWithDefault(_CONTINUENAV, false)) {
+                            Relation values = (Relation) state.get(_VALUES);
+                            int dim = (int) ctx.variable("dim").get(0);
+                            double[] k = new double[dim];
+                            double[] keys = (double[]) state.get(_KEYS);
+
+
+
+                            for (int i = 0; i < values.size(); i++) {
+                                for (int j = 0; j < dim; j++) {
+                                    k[j] = keys[i * dim + j];
+                                }
+                                nnl.insert(values.get(i), distance.measure(k, target));
+                            }
+                            ctx.continueWith(null);
+
+                        } else {
+                            final double[] boundMax = (double[]) state.get(BOUND_MAX);
+                            final double[] boundMin = (double[]) state.get(BOUND_MIN);
+                            final double[] target = (double[]) ctx.variable("key").get(0);
+                            final Distance distance = (Distance) ctx.variable("distance").get(0);
+                            final double worst = nnl.getWorstDistance();
+
+
+                            if (!nnl.isCapacityReached() || getclosestDistance(target, boundMin, boundMax, distance) <= worst) {
+                                final int dim = boundMin.length;
+                                final double[] childMin = new double[dim];
+                                final double[] childMax = new double[dim];
+
+                                final NearestNeighborArrayList temp = new NearestNeighborArrayList();
+
+                                state.each(new NodeStateCallback() {
+                                    @Override
+                                    public void on(long attributeKey, byte elemType, Object elem) {
+                                        if (attributeKey >= _RELCONST) {
+                                            boolean[] binaries = binaryFromLong(attributeKey, dim);
+                                            for (int i = 0; i < dim; i++) {
+                                                if (!binaries[i]) {
+                                                    childMin[i] = boundMin[i];
+                                                    childMax[i] = (boundMax[i] + boundMin[i]) / 2;
+
+                                                } else {
+                                                    childMin[i] = (boundMax[i] + boundMin[i]) / 2;
+                                                    childMax[i] = boundMax[i];
+                                                }
+                                            }
+                                            temp.insert(attributeKey, getclosestDistance(target, childMin, childMax, distance));
+                                        }
+                                    }
+                                });
+
+                                temp.sort();
+                                long[] relations = temp.getNodes();
+                                //double[] distances =temp.getDistances();
+                                ctx.continueWith(ctx.wrap(relations));
+                            } else {
+                                ctx.continueWith(null);
+                            }
+                        }
+                    }
+                }).forEach(
+                newTask().then(defineAsVar("relid")).then(readVar("parent")).then(action(TraverseById.NAME, "{{relid}}")).mapReduce(reccursiveDown));
+
+
+        return reccursiveDown;
+    }
+
+*/
 
 }

@@ -1,10 +1,8 @@
 package org.mwg.structure.tree;
 
 class IndexStrategy {
-
-    public static final int REPLACE = 0;
-    //public static final int APPEND = 1;
-    public static final int PROFILE = 2;
-    public static final int DEFAULT = REPLACE;
-
+    static final int INDEX = 0;
+    static final int PROFILE = 1;
+    //public static final int APPEND = 2;
+    static final int DEFAULT = INDEX;
 }

@@ -13,17 +13,18 @@ public interface Tree extends Node {
 
 
     //Insert functions
-    void insertWith(final double[] keys, final byte valuetype, final Object value);
+    void insert(final double[] keys, final long value);
 
-    void profile(final double[] keys, int occurance);
+    void profile(final double[] keys, final long occurrence);
 
     //Retrieve functions
-    Object[] nearestN(final double[] keys, final int nbElem);
+    TreeResult nearestN(final double[] keys, final int nbElem);
 
-    Object[] nearestWithinRadius(final double[] keys, final double radius);
+    TreeResult nearestWithinRadius(final double[] keys, final double radius);
 
-    Object[] nearestNWithinRadius(final double[] keys, final int nbElem, final double radius);
+    TreeResult nearestNWithinRadius(final double[] keys, final int nbElem, final double radius);
 
+    TreeResult query(final double[] min, final double[] max);
 
     //Tree properties
     int size();
