@@ -192,6 +192,8 @@ class OffHeapStateChunk implements StateChunk {
                     return new OffHeapRelation(this, index);
                 case Type.DMATRIX:
                     return new OffHeapDMatrix(this, index);
+                case Type.LMATRIX:
+                    return new OffHeapLMatrix(this, index);
                 case Type.STRING_TO_LONG_MAP:
                     return new OffHeapStringLongMap(this, index);
                 case Type.LONG_TO_LONG_MAP:
@@ -295,7 +297,7 @@ class OffHeapStateChunk implements StateChunk {
 
     @Override
     public final void set(final long p_elementIndex, final byte p_elemType, final Object p_unsafe_elem) {
-        if (p_elemType == Type.LONG_TO_LONG_MAP || p_elemType == Type.LONG_TO_LONG_ARRAY_MAP || p_elemType == Type.STRING_TO_LONG_MAP || p_elemType == Type.RELATION || p_elemType == Type.RELATION_INDEXED || p_elemType == Type.DMATRIX) {
+        if (p_elemType == Type.LONG_TO_LONG_MAP || p_elemType == Type.LONG_TO_LONG_ARRAY_MAP || p_elemType == Type.STRING_TO_LONG_MAP || p_elemType == Type.RELATION || p_elemType == Type.RELATION_INDEXED || p_elemType == Type.DMATRIX || p_elemType == Type.LMATRIX) {
             throw new RuntimeException("Bad API usage ! Set are forbidden for Maps and Relationship , please use getOrCreate instead");
         }
         lock();
@@ -415,6 +417,9 @@ class OffHeapStateChunk implements StateChunk {
                         case Type.DMATRIX:
                             OffHeapDMatrix.save(rawValue, buffer);
                             break;
+                        case Type.LMATRIX:
+                            OffHeapLMatrix.save(rawValue, buffer);
+                            break;
                         case Type.EXTERNAL:
                             BaseExternalAttribute externalAttribute = space.heapAttribute(rawValue);
                             if (externalAttribute != null) {
@@ -502,6 +507,9 @@ class OffHeapStateChunk implements StateChunk {
                             case Type.DMATRIX:
                                 setValue(addr, i, OffHeapDMatrix.clone(value(castedAddr, i)));
                                 break;
+                            case Type.LMATRIX:
+                                setValue(addr, i, OffHeapLMatrix.clone(value(castedAddr, i)));
+                                break;
                             case Type.LONG_TO_LONG_MAP:
                                 setValue(addr, i, OffHeapLongLongMap.clone(value(castedAddr, i)));
                                 break;
@@ -576,6 +584,7 @@ class OffHeapStateChunk implements StateChunk {
                         break;
                     case Type.RELATION:
                     case Type.DMATRIX:
+                    case Type.LMATRIX:
                     case Type.STRING_TO_LONG_MAP:
                     case Type.LONG_TO_LONG_MAP:
                     case Type.RELATION_INDEXED:
@@ -1163,6 +1172,9 @@ class OffHeapStateChunk implements StateChunk {
                 break;
             case Type.DMATRIX:
                 OffHeapDMatrix.free(addr);
+                break;
+            case Type.LMATRIX:
+                OffHeapLMatrix.free(addr);
                 break;
             case Type.EXTERNAL:
                 space.umountHeapAttribute(addr);
