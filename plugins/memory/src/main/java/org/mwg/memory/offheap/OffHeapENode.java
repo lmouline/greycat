@@ -3,7 +3,10 @@ package org.mwg.memory.offheap;
 import org.mwg.Constants;
 import org.mwg.Graph;
 import org.mwg.Type;
+import org.mwg.memory.offheap.primary.OffHeapDoubleArray;
+import org.mwg.memory.offheap.primary.OffHeapIntArray;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
+import org.mwg.memory.offheap.primary.OffHeapString;
 import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
 import org.mwg.utility.HashHelper;
@@ -122,6 +125,14 @@ public class OffHeapENode implements ENode {
         OffHeapLongArray.set(addr, OFFSET + (index * ELEM_SIZE) + 1, insertType);
     }
 
+    private static double doubleValue(final long addr, final long index) {
+        return OffHeapDoubleArray.get(addr, OFFSET + (index * ELEM_SIZE) + 2);
+    }
+
+    private static void setDoubleValue(final long addr, final long index, final double insertValue) {
+        OffHeapDoubleArray.set(addr, OFFSET + (index * ELEM_SIZE) + 2, insertValue);
+    }
+
     @Override
     public ENode set(String name, byte type, Object value) {
 //        internal_set(_graph.resolver().stringToHash(name, true), type, value, true, false);
@@ -136,14 +147,74 @@ public class OffHeapENode implements ENode {
 
     @Override
     public Object get(String name) {
-//        return internal_get(_graph.resolver().stringToHash(name, false));
+        return internal_get(_graph.resolver().stringToHash(name, false));
+    }
+
+    private Object internal_get(long p_key) {
+        long size = OffHeapLongArray.get(addr, SIZE);
+        //empty chunk, we return immediately
+        if (size == 0) {
+            return null;
+        }
+        long found = internal_find(p_key);
+        if (found != -1) {
+            int type = type(addr, found);
+            long rawValue = value(addr, found);
+
+            switch (type) {
+                case Type.BOOL:
+                    return rawValue == 1;
+                case Type.DOUBLE:
+                    return doubleValue(addr, found);
+                case Type.LONG:
+                    return rawValue;
+                case Type.INT:
+                    return (int) rawValue;
+                case Type.STRING:
+                    return OffHeapString.asObject(rawValue);
+                case Type.DOUBLE_ARRAY:
+                    return OffHeapDoubleArray.asObject(rawValue);
+                case Type.LONG_ARRAY:
+                    return OffHeapLongArray.asObject(rawValue);
+                case Type.INT_ARRAY:
+                    return OffHeapIntArray.asObject(rawValue);
+                case Type.RELATION:
+                    return new OffHeapRelation(chunk, found);
+                case Type.ERELATION:
+                    return new OffHeapERelation(chunk, found);
+                case Type.ENODE:
+                    return new OffHeapENode(chunk, egraph, _graph, OffHeapENode.getId(rawValue), rawValue);
+                case Type.DMATRIX:
+                    return new OffHeapDMatrix(chunk, found);
+                case Type.LMATRIX:
+                    return new OffHeapLMatrix(chunk, found);
+                case Type.STRING_TO_LONG_MAP:
+                    return new OffHeapStringLongMap(chunk, found);
+                case Type.LONG_TO_LONG_MAP:
+                    return new OffHeapLongLongMap(chunk, found);
+                case Type.LONG_TO_LONG_ARRAY_MAP:
+                    return new OffHeapLongLongArrayMap(chunk, found);
+                case Type.RELATION_INDEXED:
+                    return new OffHeapRelationIndexed(chunk, found);
+                case Type.EXTERNAL:
+                    OffHeapChunkSpace space = (OffHeapChunkSpace) _graph.space();
+                    return space.heapAttribute(rawValue);
+                case OffHeapConstants.OFFHEAP_NULL_PTR:
+                    return null;
+                default:
+                    throw new RuntimeException("Should never happen " + type);
+            }
+        }
         return null;
+    }
+
+    private int internal_find(long p_key) {
+        return 0;
     }
 
     @Override
     public Object getAt(long key) {
-//        return internal_get(key);
-        return null;
+        return internal_get(key);
     }
 
     @Override

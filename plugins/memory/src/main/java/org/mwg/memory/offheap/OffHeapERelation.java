@@ -5,6 +5,9 @@ import org.mwg.struct.ERelation;
 
 public class OffHeapERelation implements ERelation {
 
+    public OffHeapERelation(OffHeapStateChunk chunk, long found) {
+    }
+
     @Override
     public ENode[] nodes() {
         return new ENode[0];
