@@ -73,4 +73,9 @@ public class TaskError implements TaskResult {
     public Object[] asArray() {
         return new Object[0];
     }
+
+    @Override
+    public Exception exception() {
+        return null;
+    }
 }
