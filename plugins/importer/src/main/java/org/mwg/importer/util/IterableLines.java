@@ -114,4 +114,9 @@ public class IterableLines implements TaskResult<String> {
         return new Object[0];
     }
 
+    @Override
+    public Exception exception() {
+        return null;
+    }
+
 }

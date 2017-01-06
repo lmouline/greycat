@@ -157,7 +157,7 @@ public class ImporterTest {
         });
     }
 
-    @Test
+    //@Test
     public void testReadFileOnUnknowFile() {
         final Graph g = new GraphBuilder().withPlugin(new ImporterPlugin()).build();
         g.connect(connectionResult -> {
