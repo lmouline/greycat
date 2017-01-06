@@ -2,6 +2,7 @@ package org.mwg.memory.offheap;
 
 import org.mwg.Constants;
 import org.mwg.Graph;
+import org.mwg.Type;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
@@ -73,6 +74,22 @@ public class OffHeapENode implements ENode {
         }
     }
 
+    private void declareDirty() {
+        long dirty = OffHeapLongArray.get(addr, DIRTY);
+        if (dirty == 0) {
+            OffHeapLongArray.set(addr, DIRTY, 1);
+            egraph.declareDirty();
+        }
+    }
+
+    private static long value(final long addr, final long index) {
+        return OffHeapLongArray.get(addr, OFFSET + (index * ELEM_SIZE) + 2);
+    }
+
+    private static void setValue(final long addr, final long index, final long insertValue) {
+        OffHeapLongArray.set(addr, OFFSET + (index * ELEM_SIZE) + 2, insertValue);
+    }
+
     private static long key(final long addr, final long index) {
         return OffHeapLongArray.get(addr, OFFSET + (index * ELEM_SIZE));
     }
@@ -97,25 +114,35 @@ public class OffHeapENode implements ENode {
     private static void setHash(final long hashAddr, final long capacity, final long index, final long insertHash) {
         OffHeapLongArray.set(hashAddr, capacity + index, insertHash);
     }
+    private static byte type(final long addr, final long index) {
+        return (byte) OffHeapLongArray.get(addr, OFFSET + (index * ELEM_SIZE) + 1);
+    }
 
+    private static void setType(final long addr, final long index, final byte insertType) {
+        OffHeapLongArray.set(addr, OFFSET + (index * ELEM_SIZE) + 1, insertType);
+    }
 
     @Override
     public ENode set(String name, byte type, Object value) {
-        return null;
+//        internal_set(_graph.resolver().stringToHash(name, true), type, value, true, false);
+        return this;
     }
 
     @Override
     public ENode setAt(long key, byte type, Object value) {
-        return null;
+//        internal_set(key, type, value, true, false);
+        return this;
     }
 
     @Override
     public Object get(String name) {
+//        return internal_get(_graph.resolver().stringToHash(name, false));
         return null;
     }
 
     @Override
     public Object getAt(long key) {
+//        return internal_get(key);
         return null;
     }
 
@@ -131,12 +158,12 @@ public class OffHeapENode implements ENode {
 
     @Override
     public void drop() {
-
+        egraph.drop(this);
     }
 
     @Override
     public EGraph graph() {
-        return null;
+        return egraph;
     }
 
 
@@ -144,8 +171,22 @@ public class OffHeapENode implements ENode {
         return this.addr;
     }
 
-    public static void rebase(long addr) {
-
+    static void rebase(long addr, OffHeapEGraph egraph) {
+        long size = OffHeapLongArray.get(addr, SIZE);
+        for (int i = 0; i < size; i++) {
+            int type = type(addr, i);
+            switch (type) {
+                case Type.ERELATION:
+                    final long previousERel_ptr = value(addr, i);
+                    OffHeapERelation.rebase(previousERel_ptr);
+                    break;
+                case Type.ENODE:
+                    final long previousENode_ptr = value(addr, i);
+                    final long previousENodeId = OffHeapENode.getId(previousENode_ptr);
+                    setValue(addr, i, egraph.getNodeAddrAt(previousENodeId));
+                    break;
+            }
+        }
     }
 
     static void setId(long addr, long id) {

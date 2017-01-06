@@ -6,7 +6,6 @@ import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
-import org.mwg.utility.Base64;
 
 public class OffHeapEGraph implements EGraph {
     private final Graph _graph;
@@ -154,7 +153,8 @@ public class OffHeapEGraph implements EGraph {
     }
 
     final void declareDirty() {
-        if (OffHeapLongArray.get(addr, DIRTY) == 0) {
+        long dirty = OffHeapLongArray.get(addr, DIRTY);
+        if (dirty == 0) {
             OffHeapLongArray.set(addr, DIRTY, 1);
             if (parent != null) {
                 parent.declareDirty();
