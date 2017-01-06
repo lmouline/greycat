@@ -1932,6 +1932,7 @@ declare module org {
                     resultAsStrings(): org.mwg.task.TaskResult<string>;
                     continueWith(nextResult: org.mwg.task.TaskResult<any>): void;
                     continueTask(): void;
+                    private end_task(e);
                     execute(): void;
                     template(input: string): string;
                     templates(inputs: string[]): string[];
@@ -1953,7 +1954,9 @@ declare module org {
                     private _backend;
                     private _capacity;
                     private _size;
+                    _exception: Error;
                     asArray(): any[];
+                    exception(): Error;
                     constructor(toWrap: any, protect: boolean);
                     iterator(): org.mwg.task.TaskResultIterator<any>;
                     get(index: number): A;
@@ -2479,6 +2482,7 @@ declare module org {
                 free(): void;
                 size(): number;
                 asArray(): any[];
+                exception(): Error;
             }
             interface TaskResultIterator<A> {
                 next(): A;

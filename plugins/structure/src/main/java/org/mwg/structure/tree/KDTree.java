@@ -2,11 +2,9 @@ package org.mwg.structure.tree;
 
 import org.mwg.*;
 import org.mwg.base.BaseNode;
-import org.mwg.core.task.Actions;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.NodeState;
 import org.mwg.struct.Relation;
-import org.mwg.structure.NTree;
 import org.mwg.structure.distance.Distance;
 import org.mwg.structure.distance.Distances;
 import org.mwg.structure.distance.EuclideanDistance;
@@ -20,7 +18,7 @@ import org.mwg.utility.Enforcer;
 import static org.mwg.core.task.Actions.*;
 
 @SuppressWarnings("Duplicates")
-public class KDTree extends BaseNode implements NTree {
+public class KDTree extends BaseNode {
 
     public static final String NAME = "KDTree";
     public static final String FROM = "from";
@@ -528,7 +526,6 @@ public class KDTree extends BaseNode implements NTree {
         return super.set(propertyName, propertyType, propertyValue);
     }
 
-    @Override
     public void insert(Node value, Callback<Boolean> callback) {
         extractFeatures(value, new Callback<double[]>() {
             @Override
@@ -538,7 +535,6 @@ public class KDTree extends BaseNode implements NTree {
         });
     }
 
-    @Override
     public void insertWith(final double[] key, final Node value, final Callback<Boolean> callback) {
         final NodeState state = unphasedState();
         final int dim = state.getFromKeyWithDefault(DIMENSIONS, key.length);
@@ -576,28 +572,27 @@ public class KDTree extends BaseNode implements NTree {
         insert.executeUsing(tc);
     }
 
-    @Override
+
     public int size() {
         return graph().resolver().resolveState(this).getFromKeyWithDefault(SIZE, 0);
     }
 
-    @Override
+
     public void setDistance(int distanceType) {
         set(DISTANCE, Type.INT, distanceType);
     }
 
-    @Override
+
     public void setDistanceThreshold(double distanceThreshold) {
         this.set(DISTANCE_THRESHOLD, Type.DOUBLE, distanceThreshold);
     }
 
-    @Override
+
     public void setFrom(String extractor) {
         set(FROM, Type.STRING, extractor);
     }
 
 
-    @Override
     public void nearestNWithinRadius(final double[] key, int n, double radius, final Callback<Node[]> callback) {
         NodeState state = unphasedState();
         final int dim = state.getFromKeyWithDefault(DIMENSIONS, key.length);
@@ -667,7 +662,6 @@ public class KDTree extends BaseNode implements NTree {
 
     }
 
-    @Override
     public void nearestWithinRadius(final double[] key, final double radius, final Callback<Node[]> callback) {
         NodeState state = unphasedState();
         final int dim = state.getFromKeyWithDefault(DIMENSIONS, key.length);
@@ -732,7 +726,7 @@ public class KDTree extends BaseNode implements NTree {
         nearestRadiusTask.executeUsing(tc);
     }
 
-    @Override
+
     public void nearestN(final double[] key, final int n, final Callback<Node[]> callback) {
         NodeState state = unphasedState();
         final int dim = state.getFromKeyWithDefault(DIMENSIONS, key.length);
@@ -838,7 +832,7 @@ public class KDTree extends BaseNode implements NTree {
                                 if (currentResult == null) {
                                     result[i] = Constants.NULL_LONG;
                                 } else {
-                                    if(currentResult.size() == 0) {
+                                    if (currentResult.size() == 0) {
                                         //TODO LOG
                                         System.out.println("Feature extraction yield no result for query:" + tasks[i].toString() + " on node " + initial.toString());
                                     } else {

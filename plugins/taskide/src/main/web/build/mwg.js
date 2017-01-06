@@ -1821,7 +1821,7 @@ var org;
                     this._resolver.lookup(this._world, targetTime, this._id, callback);
                 };
                 BaseNode.isNaN = function (toTest) {
-                    return isNaN(toTest);
+                    return java.lang.Double.NaN == toTest;
                 };
                 BaseNode.prototype.toString = function () {
                     var _this = this;
@@ -13736,55 +13736,7 @@ var org;
                             nextAction = this._origin.actions[this.cursor];
                         }
                         if (nextAction == null) {
-                            if (this._localVariables != null) {
-                                var localValues = this._localVariables.keySet();
-                                var flatLocalValues = localValues.toArray(new Array(localValues.size()));
-                                for (var i = 0; i < flatLocalValues.length; i++) {
-                                    this._localVariables.get(flatLocalValues[i]).free();
-                                }
-                            }
-                            if (this._nextVariables != null) {
-                                var nextValues = this._nextVariables.keySet();
-                                var flatNextValues = nextValues.toArray(new Array(nextValues.size()));
-                                for (var i = 0; i < flatNextValues.length; i++) {
-                                    this._nextVariables.get(flatNextValues[i]).free();
-                                }
-                            }
-                            if (this._parent == null) {
-                                var globalValues = this._globalVariables.keySet();
-                                var globalFlatValues = globalValues.toArray(new Array(globalValues.size()));
-                                for (var i = 0; i < globalFlatValues.length; i++) {
-                                    this._globalVariables.get(globalFlatValues[i]).free();
-                                }
-                            }
-                            if (this._hooks != null) {
-                                for (var i = 0; i < this._hooks.length; i++) {
-                                    if (this._parent == null) {
-                                        this._hooks[i].end(this);
-                                    }
-                                    else {
-                                        this._hooks[i].afterTask(this);
-                                    }
-                                }
-                            }
-                            if (globalHooks != null) {
-                                for (var i = 0; i < globalHooks.length; i++) {
-                                    if (this._parent == null) {
-                                        globalHooks[i].end(this);
-                                    }
-                                    else {
-                                        globalHooks[i].afterTask(this);
-                                    }
-                                }
-                            }
-                            if (this._callback != null) {
-                                this._callback(this._result);
-                            }
-                            else {
-                                if (this._result != null) {
-                                    this._result.free();
-                                }
-                            }
+                            this.end_task(null);
                         }
                         else {
                             if (this._hooks != null) {
@@ -13797,7 +13749,87 @@ var org;
                                     globalHooks[i].beforeAction(nextAction, this);
                                 }
                             }
-                            nextAction.eval(this);
+                            var previousCursot = this.cursor;
+                            try {
+                                nextAction.eval(this);
+                            }
+                            catch ($ex$) {
+                                if ($ex$ instanceof Error) {
+                                    var e = $ex$;
+                                    {
+                                        if (this.cursor == previousCursot) {
+                                            this.end_task(e);
+                                        }
+                                        else {
+                                            console.error(e);
+                                        }
+                                    }
+                                }
+                                else {
+                                    throw $ex$;
+                                }
+                            }
+                        }
+                    };
+                    CoreTaskContext.prototype.end_task = function (e) {
+                        var globalHooks = this._graph.taskHooks();
+                        if (this._localVariables != null) {
+                            var localValues = this._localVariables.keySet();
+                            var flatLocalValues = localValues.toArray(new Array(localValues.size()));
+                            for (var i = 0; i < flatLocalValues.length; i++) {
+                                this._localVariables.get(flatLocalValues[i]).free();
+                            }
+                        }
+                        if (this._nextVariables != null) {
+                            var nextValues = this._nextVariables.keySet();
+                            var flatNextValues = nextValues.toArray(new Array(nextValues.size()));
+                            for (var i = 0; i < flatNextValues.length; i++) {
+                                this._nextVariables.get(flatNextValues[i]).free();
+                            }
+                        }
+                        if (this._parent == null) {
+                            var globalValues = this._globalVariables.keySet();
+                            var globalFlatValues = globalValues.toArray(new Array(globalValues.size()));
+                            for (var i = 0; i < globalFlatValues.length; i++) {
+                                this._globalVariables.get(globalFlatValues[i]).free();
+                            }
+                        }
+                        if (this._hooks != null) {
+                            for (var i = 0; i < this._hooks.length; i++) {
+                                if (this._parent == null) {
+                                    this._hooks[i].end(this);
+                                }
+                                else {
+                                    this._hooks[i].afterTask(this);
+                                }
+                            }
+                        }
+                        if (globalHooks != null) {
+                            for (var i = 0; i < globalHooks.length; i++) {
+                                if (this._parent == null) {
+                                    globalHooks[i].end(this);
+                                }
+                                else {
+                                    globalHooks[i].afterTask(this);
+                                }
+                            }
+                        }
+                        if (this._callback != null) {
+                            if (e != null) {
+                                if (this._result == null) {
+                                    this._result = new org.mwg.core.task.CoreTaskResult(null, false);
+                                }
+                                this._result._exception = e;
+                            }
+                            this._callback(this._result);
+                        }
+                        else {
+                            if (e != null) {
+                                console.error(e);
+                            }
+                            if (this._result != null) {
+                                this._result.free();
+                            }
                         }
                     };
                     CoreTaskContext.prototype.execute = function () {
@@ -13825,7 +13857,25 @@ var org;
                                 globalHooks[i].beforeAction(current, this);
                             }
                         }
-                        current.eval(this);
+                        try {
+                            current.eval(this);
+                        }
+                        catch ($ex$) {
+                            if ($ex$ instanceof Error) {
+                                var e = $ex$;
+                                {
+                                    if (this.cursor == 0) {
+                                        this.end_task(e);
+                                    }
+                                    else {
+                                        console.error(e);
+                                    }
+                                }
+                            }
+                            else {
+                                throw $ex$;
+                            }
+                        }
                     };
                     CoreTaskContext.prototype.template = function (input) {
                         if (input == null) {
@@ -14008,6 +14058,7 @@ var org;
                     function CoreTaskResult(toWrap, protect) {
                         this._capacity = 0;
                         this._size = 0;
+                        this._exception = null;
                         if (Array.isArray(toWrap)) {
                             var castedToWrap = toWrap;
                             this._size = toWrap.length;
@@ -14114,6 +14165,9 @@ var org;
                             java.lang.System.arraycopy(this._backend, 0, flat, 0, this._size);
                         }
                         return flat;
+                    };
+                    CoreTaskResult.prototype.exception = function () {
+                        return this._exception;
                     };
                     CoreTaskResult.prototype.iterator = function () {
                         return new org.mwg.core.task.CoreTaskResultIterator(this._backend);
