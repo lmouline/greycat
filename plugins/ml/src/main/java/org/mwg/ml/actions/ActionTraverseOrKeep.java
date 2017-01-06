@@ -67,7 +67,7 @@ public class ActionTraverseOrKeep implements Action {
     public void serialize(StringBuilder builder) {
         builder.append(NAME);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_name, builder);
+        TaskHelper.serializeString(_name, builder,true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

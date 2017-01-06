@@ -10,16 +10,20 @@ import './index.css';
 global.context = {};
 
 let defaultURL = "ws://" + window.location.hostname + ":"+window.location.port+"/ws";
+//let defaultURL = "ws://" + window.location.hostname + ":"+4000+"/ws";
 
 global.context.ws = new global.org.mwg.plugin.WSClient(defaultURL);
 global.context.graph = global.org.mwg.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
 global.context.graph.connect(null);
 
 global.context.url = function (val) {
-    global.context.ws = new global.org.mwg.plugin.WSClient('ws://' + val);
+    if(global.context.graph !== undefined){
+        global.context.graph.disconnect(null);
+    }
+    global.context.ws = new global.org.mwg.plugin.WSClient(val);
     global.context.graph = global.org.mwg.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
     global.context.graph.connect(null);
-    console.log('change url to ws://' + val);
+    console.log('change url to ' + val);
 };
 
 renderjson.set_show_to_level(3);
@@ -93,6 +97,7 @@ const LoadingButton = React.createClass({
                 while (targetDomElem.firstChild) {
                     targetDomElem.removeChild(targetDomElem.firstChild);
                 }
+                //console.log(results[0]);
                 targetDomElem.appendChild(
                     renderjson(JSON.parse(results[0]))
                 );

@@ -24,7 +24,7 @@ class ActionReadLines implements Action {
     public void serialize(StringBuilder builder) {
         builder.append("readLines");
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_pathOrTemplate, builder);
+        TaskHelper.serializeString(_pathOrTemplate, builder,true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

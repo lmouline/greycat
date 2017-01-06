@@ -31,6 +31,9 @@ class CF_ActionForEach extends CF_Action {
                 public void on(final TaskResult res) {
                     //we don't keep result
                     if (res != null) {
+                        if (res.output() != null) {
+                            ctx.append(res.output());
+                        }
                         res.free();
                     }
                     final Tuple<Integer, Object> nextResult = it.nextWithIndex();

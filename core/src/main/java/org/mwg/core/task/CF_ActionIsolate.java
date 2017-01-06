@@ -27,9 +27,12 @@ class CF_ActionIsolate extends CF_Action {
         final TaskResult previous = ctx.result();
         _subTask.executeFrom(ctx, previous, SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
             @Override
-            public void on(TaskResult subTaskResult) {
-                if (subTaskResult != null) {
-                    subTaskResult.free();
+            public void on(TaskResult result) {
+                if (result != null) {
+                    if (result.output() != null) {
+                        ctx.append(result.output());
+                    }
+                    result.free();
                 }
                 ctx.continueWith(previous);
             }

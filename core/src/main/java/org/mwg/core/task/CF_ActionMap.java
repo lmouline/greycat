@@ -43,6 +43,9 @@ class CF_ActionMap extends CF_Action {
                         } else {
                             finalResult.add(res);
                         }
+                        if (res.output() != null) {
+                            ctx.append(res.output());
+                        }
                     }
                     loopRes[0].free();
                     final Tuple<Integer, Object> nextResult = it.nextWithIndex();

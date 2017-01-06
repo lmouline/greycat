@@ -53,7 +53,7 @@ class ActionReadVar implements Action {
     public void serialize(StringBuilder builder) {
         builder.append(ActionNames.READ_VAR);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_origin, builder);
+        TaskHelper.serializeString(_origin, builder,true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

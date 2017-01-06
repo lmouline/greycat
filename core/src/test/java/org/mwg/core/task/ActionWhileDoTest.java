@@ -39,7 +39,7 @@ public class ActionWhileDoTest extends AbstractActionTest {
                     @Override
                     public void on(TaskResult result) {
                         //System.out.println(result.toString());
-                        Assert.assertEquals(result.toString(), "[4,5,7,8]");
+                        Assert.assertEquals(result.toString(), "{\"result\":[\"4\",\"5\",\"7\",\"8\"]}");
                         graph.save(new Callback<Boolean>() {
                             @Override
                             public void on(Boolean result) {
@@ -91,7 +91,7 @@ public class ActionWhileDoTest extends AbstractActionTest {
                     @Override
                     public void on(TaskResult result) {
                         //System.out.println(result.toString());
-                        Assert.assertEquals(result.toString(), "[4,5,7,8]");
+                        Assert.assertEquals(result.toString(), "{\"result\":[\"4\",\"5\",\"7\",\"8\"]}");
                         graph.save(new Callback<Boolean>() {
                             @Override
                             public void on(Boolean result) {

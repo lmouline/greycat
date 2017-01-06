@@ -48,9 +48,9 @@ public class SetPrecision implements Action {
     public void serialize(StringBuilder builder) {
         builder.append(NAME);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_relName, builder);
+        TaskHelper.serializeString(_relName, builder,true);
         builder.append(Constants.TASK_PARAM_SEP);
-        TaskHelper.serializeString(_value, builder);
+        TaskHelper.serializeString(_value, builder,true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

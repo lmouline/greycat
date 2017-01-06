@@ -34,7 +34,7 @@ class ActionCreateNode implements Action {
         } else {
             builder.append(ActionNames.CREATE_TYPED_NODE);
             builder.append(Constants.TASK_PARAM_OPEN);
-            TaskHelper.serializeString(_typeNode, builder);
+            TaskHelper.serializeString(_typeNode, builder,true);
             builder.append(Constants.TASK_PARAM_CLOSE);
         }
     }

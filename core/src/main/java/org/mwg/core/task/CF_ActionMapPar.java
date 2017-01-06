@@ -54,6 +54,9 @@ class CF_ActionMapPar extends CF_Action {
                                 } else {
                                     finalResult.add(result);
                                 }
+                                if (result.output() != null) {
+                                    ctx.append(result.output());
+                                }
                             }
                             waiter.count();
                             dequeueJob[0].run();

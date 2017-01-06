@@ -72,13 +72,23 @@ public class TaskHelper {
         return Integer.parseInt(s);
     }
 
-    public static void serializeString(String param, StringBuilder builder) {
-        builder.append("\'");
+    public static void serializeString(String param, StringBuilder builder, boolean singleQuote) {
+        if(singleQuote){
+            builder.append("\'");
+        } else {
+            builder.append("\"");
+        }
         boolean escapteActivated = false;
         boolean previousIsEscape = false;
         for (int i = 0; i < param.length(); i++) {
             final char current = param.charAt(i);
-            if (current == '\'') {
+            if(current == '\r' || current == '\n'){
+                if (!escapteActivated) {
+                    escapteActivated = true;
+                    builder.append(param.substring(0, i));
+                }
+                //simply ignore the '\r'
+            } else if ( (singleQuote && current == '\'') || (!singleQuote && current == '\"')) {
                 if (!escapteActivated) {
                     escapteActivated = true;
                     builder.append(param.substring(0, i));
@@ -97,7 +107,11 @@ public class TaskHelper {
         if (!escapteActivated) {
             builder.append(param);
         }
-        builder.append("\'");
+        if(singleQuote){
+            builder.append("\'");
+        } else {
+            builder.append("\"");
+        }
     }
 
     public static void serializeType(byte type, StringBuilder builder) {
@@ -110,7 +124,7 @@ public class TaskHelper {
             if (i != 0) {
                 builder.append(Constants.TASK_PARAM_SEP);
             }
-            serializeString(params[i], builder);
+            serializeString(params[i], builder,true);
         }
     }
 

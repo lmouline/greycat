@@ -32,7 +32,7 @@ class ActionAddToVar implements Action {
     public void serialize(StringBuilder builder) {
         builder.append(ActionNames.ADD_TO_VAR);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_name, builder);
+        TaskHelper.serializeString(_name, builder,true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

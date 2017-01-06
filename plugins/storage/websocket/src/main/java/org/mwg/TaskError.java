@@ -78,4 +78,9 @@ public class TaskError implements TaskResult {
     public Exception exception() {
         return null;
     }
+
+    @Override
+    public String output() {
+        return null;
+    }
 }

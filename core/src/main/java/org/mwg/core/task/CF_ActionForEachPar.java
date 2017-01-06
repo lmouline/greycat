@@ -43,6 +43,9 @@ class CF_ActionForEachPar extends CF_Action {
                         @Override
                         public void on(TaskResult result) {
                             if (result != null) {
+                                if (result.output() != null) {
+                                    ctx.append(result.output());
+                                }
                                 result.free();
                             }
                             waiter.count();

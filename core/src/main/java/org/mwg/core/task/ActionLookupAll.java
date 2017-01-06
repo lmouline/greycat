@@ -37,7 +37,7 @@ class ActionLookupAll implements Action {
     public void serialize(StringBuilder builder) {
         builder.append(ActionNames.LOOKUP_ALL);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_ids, builder);
+        TaskHelper.serializeString(_ids, builder,true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

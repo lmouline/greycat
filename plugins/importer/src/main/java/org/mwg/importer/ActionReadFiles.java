@@ -56,7 +56,7 @@ class ActionReadFiles implements Action {
     public void serialize(StringBuilder builder) {
         builder.append("readFiles");
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_pathOrTemplate, builder);
+        TaskHelper.serializeString(_pathOrTemplate, builder,true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

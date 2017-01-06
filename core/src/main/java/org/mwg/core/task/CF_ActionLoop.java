@@ -40,6 +40,9 @@ class CF_ActionLoop extends CF_Action {
                 public void on(final TaskResult res) {
                     final int current = cursor.getAndIncrement();
                     if (res != null) {
+                        if(res.output() != null){
+                            ctx.append(res.output());
+                        }
                         res.free();
                     }
                     if (current > upper) {
@@ -77,9 +80,9 @@ class CF_ActionLoop extends CF_Action {
     public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
         builder.append(ActionNames.LOOP);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_lower, builder);
+        TaskHelper.serializeString(_lower, builder,true);
         builder.append(Constants.TASK_PARAM_SEP);
-        TaskHelper.serializeString(_upper, builder);
+        TaskHelper.serializeString(_upper, builder,true);
         builder.append(Constants.TASK_PARAM_SEP);
         final CoreTask castedAction = (CoreTask) _subTask;
         final int castedActionHash = castedAction.hashCode();

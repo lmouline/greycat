@@ -14,6 +14,7 @@ class CoreTaskResult<A> implements TaskResult<A> {
     private int _size = 0;
 
     Exception _exception = null;
+    String _output = null;
 
     @Override
     public Object[] asArray() {
@@ -27,6 +28,11 @@ class CoreTaskResult<A> implements TaskResult<A> {
     @Override
     public Exception exception() {
         return _exception;
+    }
+
+    @Override
+    public String output() {
+        return _output;
     }
 
     CoreTaskResult(Object toWrap, boolean protect) {
@@ -216,17 +222,47 @@ class CoreTaskResult<A> implements TaskResult<A> {
 
     private String toJson(boolean withContent) {
         final StringBuilder builder = new StringBuilder();
-        builder.append("[");
-        for (int i = 0; i < _size; i++) {
-            if (i != 0) {
+        boolean isFirst = true;
+        builder.append("{");
+        if (_exception != null) {
+            isFirst = false;
+            builder.append("\"error\":");
+            TaskHelper.serializeString(_exception.getMessage(), builder, false);
+        }
+        if (_output != null) {
+            if (!isFirst) {
+                builder.append(",");
+            } else {
+                isFirst = false;
+            }
+            builder.append("\"output\":");
+            TaskHelper.serializeString(_output, builder, false);
+        }
+        if (_size > 0) {
+            if (!isFirst) {
                 builder.append(",");
             }
-            Object loop = _backend[i];
-            if (loop != null) {
-                builder.append(loop.toString());
+            builder.append("\"result\":[");
+            for (int i = 0; i < _size; i++) {
+                if (i != 0) {
+                    builder.append(",");
+                }
+                Object loop = _backend[i];
+                if (loop != null) {
+                    String saved = loop.toString();
+                    if (saved.length() > 0) {
+                        if (saved.charAt(0) == '{' || saved.charAt(0) == '[') { //Array or Nodes
+                            builder.append(saved);
+                        } else {
+                            //escape string
+                            TaskHelper.serializeString(saved, builder, false);
+                        }
+                    }
+                }
             }
+            builder.append("]");
         }
-        builder.append("]");
+        builder.append("}");
         return builder.toString();
     }
 

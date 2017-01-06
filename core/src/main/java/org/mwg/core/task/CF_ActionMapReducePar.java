@@ -35,12 +35,16 @@ class CF_ActionMapReducePar extends CF_Action {
             _subTasks[i].executeFrom(ctx, previous, SchedulerAffinity.ANY_LOCAL_THREAD, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult subTaskResult) {
+                    if(subTaskResult != null){
+                        if (subTaskResult.output() != null) {
+                            ctx.append(subTaskResult.output());
+                        }
+                    }
                     next.set(finalI, subTaskResult);
                     waiter.count();
                 }
             });
         }
-
         if (_flat) {
             final TaskResult nextFlat = ctx.newResult();
             for (int i = 0; i < next.size(); i++) {

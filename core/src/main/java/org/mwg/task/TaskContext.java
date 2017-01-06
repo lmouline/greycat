@@ -54,4 +54,6 @@ public interface TaskContext {
 
     String[] templates(String[] inputs);
 
+    void append(String additionalOutput);
+
 }

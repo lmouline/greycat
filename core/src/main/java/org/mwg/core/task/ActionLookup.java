@@ -29,7 +29,7 @@ class ActionLookup implements Action {
     public void serialize(StringBuilder builder) {
         builder.append(ActionNames.LOOKUP);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_id, builder);
+        TaskHelper.serializeString(_id, builder,true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

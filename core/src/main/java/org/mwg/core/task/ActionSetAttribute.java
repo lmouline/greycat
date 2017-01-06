@@ -73,11 +73,11 @@ class ActionSetAttribute implements Action {
             builder.append(ActionNames.SET_ATTRIBUTE);
         }
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_name, builder);
+        TaskHelper.serializeString(_name, builder,true);
         builder.append(Constants.TASK_PARAM_SEP);
         TaskHelper.serializeType(_propertyType, builder);
         builder.append(Constants.TASK_PARAM_SEP);
-        TaskHelper.serializeString(_variableNameToSet, builder);
+        TaskHelper.serializeString(_variableNameToSet, builder,true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

@@ -30,6 +30,11 @@ class CF_ActionWhileDo extends CF_Action {
             public void on(final TaskResult res) {
                 final TaskResult previous = coreTaskContext._result;
                 coreTaskContext._result = res;
+                if(res != null){
+                    if (res.output() != null) {
+                        ctx.append(res.output());
+                    }
+                }
                 if (_cond.eval(ctx)) {
                     if (previous != null) {
                         previous.free();
@@ -64,7 +69,7 @@ class CF_ActionWhileDo extends CF_Action {
         }
         builder.append(ActionNames.WHILE_DO);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_conditionalScript, builder);
+        TaskHelper.serializeString(_conditionalScript, builder,true);
         builder.append(Constants.TASK_PARAM_SEP);
         final CoreTask castedAction = (CoreTask) _then;
         final int castedActionHash = castedAction.hashCode();

@@ -26,4 +26,6 @@ public interface TaskResult<A> {
 
     Exception exception();
 
+    String output();
+
 }

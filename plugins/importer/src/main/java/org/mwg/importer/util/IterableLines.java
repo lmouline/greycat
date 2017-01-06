@@ -119,4 +119,9 @@ public class IterableLines implements TaskResult<String> {
         return null;
     }
 
+    @Override
+    public String output() {
+        return null;
+    }
+
 }

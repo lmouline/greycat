@@ -36,7 +36,7 @@ public class TaskServerTest {
                             WSServer server = new WSServer(graph, 4000);
                             TaskIDE.attach(server);
                             server.start();
-                            System.out.println("Server started 4000");
+                            System.out.println("Server started http://localhost:4000/taskide");
                         }
                     });
 

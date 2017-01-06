@@ -49,7 +49,7 @@ class ActionExecuteExpression implements Action {
     public void serialize(StringBuilder builder) {
         builder.append(ActionNames.EXECUTE_EXPRESSION);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_expression, builder);
+        TaskHelper.serializeString(_expression, builder,true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

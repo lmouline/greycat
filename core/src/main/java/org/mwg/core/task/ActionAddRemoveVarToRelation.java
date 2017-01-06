@@ -59,9 +59,9 @@ class ActionAddRemoveVarToRelation implements Action {
             builder.append(ActionNames.REMOVE_VAR_TO_RELATION);
         }
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_name, builder);
+        TaskHelper.serializeString(_name, builder,true);
         builder.append(Constants.TASK_PARAM_SEP);
-        TaskHelper.serializeString(_varFrom, builder);
+        TaskHelper.serializeString(_varFrom, builder,true);
         builder.append(Constants.TASK_PARAM_SEP);
         TaskHelper.serializeStringParams(_attributes, builder);
         builder.append(Constants.TASK_PARAM_CLOSE);

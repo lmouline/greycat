@@ -49,7 +49,7 @@ class ActionReadGlobalIndex implements Action {
     public void serialize(StringBuilder builder) {
         builder.append(ActionNames.READ_GLOBAL_INDEX);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_name, builder);
+        TaskHelper.serializeString(_name, builder,true);
         if(_params != null && _params.length > 0){
             builder.append(Constants.TASK_PARAM_SEP);
             TaskHelper.serializeStringParams(_params, builder);

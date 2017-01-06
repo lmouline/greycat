@@ -17,9 +17,9 @@ class ActionPrint implements Action {
     @Override
     public void eval(final TaskContext ctx) {
         if (_withLineBreak) {
-            System.out.println(ctx.template(_name));
+            ctx.append(ctx.template(_name) + '\n');
         } else {
-            System.out.print(ctx.template(_name));
+            ctx.append(ctx.template(_name));
         }
         ctx.continueTask();
     }
@@ -32,7 +32,7 @@ class ActionPrint implements Action {
             builder.append(ActionNames.PRINT);
         }
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_name, builder);
+        TaskHelper.serializeString(_name, builder,true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

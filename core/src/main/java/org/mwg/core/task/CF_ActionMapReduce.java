@@ -44,6 +44,9 @@ class CF_ActionMapReduce extends CF_Action {
                     } else {
                         next.add(result);
                     }
+                    if (result.output() != null) {
+                        ctx.append(result.output());
+                    }
                 }
                 if (current < tasksSize) {
                     _subTasks[current].executeFrom(ctx, previous, SchedulerAffinity.SAME_THREAD, loopcb[0]);

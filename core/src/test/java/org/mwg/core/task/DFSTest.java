@@ -119,7 +119,7 @@ public class DFSTest {
                     public void on(Action previous, Action next, TaskContext context) {
                         System.out.println(next);
                     }
-                })*/.executeWith(n1.graph(), initialResult, result -> Assert.assertEquals(result.toString(), "[2,4,5,7]"));
+                })*/.executeWith(n1.graph(), initialResult, result -> Assert.assertEquals(result.toString(), "{\"result\":[\"2\",\"4\",\"5\",\"7\"]}"));
 
             }
 

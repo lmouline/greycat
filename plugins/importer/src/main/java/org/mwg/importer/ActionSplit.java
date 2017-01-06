@@ -39,7 +39,7 @@ class ActionSplit implements Action {
     public void serialize(StringBuilder builder) {
         builder.append("split");
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_splitPattern, builder);
+        TaskHelper.serializeString(_splitPattern, builder,true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

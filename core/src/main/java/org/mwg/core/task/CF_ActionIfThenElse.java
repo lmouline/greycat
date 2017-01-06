@@ -37,6 +37,11 @@ class CF_ActionIfThenElse extends CF_Action {
             _thenSub.executeFrom(ctx, ctx.result(), SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult res) {
+                    if(res != null){
+                        if (res.output() != null) {
+                            ctx.append(res.output());
+                        }
+                    }
                     ctx.continueWith(res);
                 }
             });
@@ -44,6 +49,11 @@ class CF_ActionIfThenElse extends CF_Action {
             _elseSub.executeFrom(ctx, ctx.result(), SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult res) {
+                    if(res != null){
+                        if (res.output() != null) {
+                            ctx.append(res.output());
+                        }
+                    }
                     ctx.continueWith(res);
                 }
             });
@@ -65,7 +75,7 @@ class CF_ActionIfThenElse extends CF_Action {
         }
         builder.append(ActionNames.IF_THEN_ELSE);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_conditionalScript, builder);
+        TaskHelper.serializeString(_conditionalScript, builder,true);
         builder.append(Constants.TASK_PARAM_SEP);
         CoreTask castedSubThen = (CoreTask) _thenSub;
         int castedSubThenHash = castedSubThen.hashCode();

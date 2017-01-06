@@ -349,7 +349,7 @@ public class CoreTask implements org.mwg.task.Task {
                     break;
                 case Constants.TASK_SEP:
                     if (!isClosed) {
-                        final String getName = reader.extract(previous, cursor);
+                        final String getName = reader.extract(previous, cursor).trim();
                         then(new ActionTraverseOrAttribute(false, true, getName));//default action
                     }
                     actionName = null;
@@ -499,7 +499,7 @@ public class CoreTask implements org.mwg.task.Task {
                         then(factory.create(singleParam, contextTasks));
                     }
                 } else {
-                    then(new ActionTraverseOrAttribute(false, true, getName));//default action
+                    then(new ActionTraverseOrAttribute(false, true, getName.trim()));//default action
                 }
 
             }

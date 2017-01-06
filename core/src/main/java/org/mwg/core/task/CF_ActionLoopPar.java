@@ -32,7 +32,7 @@ class CF_ActionLoopPar extends CF_Action {
         final int lower = (int) Double.parseDouble(ctx.template(lowerString));
         final int upper = (int) Double.parseDouble(ctx.template(upperString));
         final TaskResult previous = ctx.result();
-        final TaskResult next = ctx.newResult();
+        // final TaskResult next = ctx.newResult();
         if ((upper - lower) > 0) {
             DeferCounter waiter = ctx.graph().newCounter((upper - lower) + 1);
             for (int i = lower; i <= upper; i++) {
@@ -45,10 +45,11 @@ class CF_ActionLoopPar extends CF_Action {
                 }, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
-                        if (result != null && result.size() > 0) {
-                            for (int i = 0; i < result.size(); i++) {
-                                next.add(result.get(i));
+                        if (result != null) {
+                            if (result.output() != null) {
+                                ctx.append(result.output());
                             }
+                            result.free();
                         }
                         waiter.count();
                     }
@@ -57,11 +58,11 @@ class CF_ActionLoopPar extends CF_Action {
             waiter.then(new Job() {
                 @Override
                 public void run() {
-                    ctx.continueWith(next);
+                    ctx.continueTask();
                 }
             });
         } else {
-            ctx.continueWith(next);
+            ctx.continueTask();
         }
     }
 
@@ -76,9 +77,9 @@ class CF_ActionLoopPar extends CF_Action {
     public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
         builder.append(ActionNames.LOOP_PAR);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_lower, builder);
+        TaskHelper.serializeString(_lower, builder,true);
         builder.append(Constants.TASK_PARAM_SEP);
-        TaskHelper.serializeString(_upper, builder);
+        TaskHelper.serializeString(_upper, builder,true);
         builder.append(Constants.TASK_PARAM_SEP);
         final CoreTask castedAction = (CoreTask) _subTask;
         final int castedActionHash = castedAction.hashCode();

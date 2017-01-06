@@ -29,6 +29,7 @@ class CoreTaskContext implements TaskContext {
     private final CoreTask _origin;
     private int cursor = 0;
     final TaskHook[] _hooks;
+    private StringBuilder _output = null;
 
     CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
         this._origin = origin;
@@ -412,10 +413,19 @@ class CoreTaskContext implements TaskContext {
                 }
                 ((CoreTaskResult) _result)._exception = e;
             }
+            if (_output != null) {
+                if (_result == null) {
+                    _result = new CoreTaskResult(null, false);
+                }
+                ((CoreTaskResult) _result)._output = _output.toString();
+            }
             this._callback.on(_result);
         } else {
             if (e != null) {
                 e.printStackTrace();
+            }
+            if (_output != null) {
+                System.out.print(_output);
             }
             if (this._result != null) {
                 this._result.free();
@@ -598,7 +608,15 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
-    public String toString() {
+    public final synchronized void append(String additionalOutput) {
+        if (_output == null) {
+            _output = new StringBuilder();
+        }
+        _output.append(additionalOutput);
+    }
+
+    @Override
+    public final String toString() {
         return "{result:" + _result.toString() + "}";
     }
 }
