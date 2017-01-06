@@ -337,54 +337,7 @@ class CoreTaskContext implements TaskContext {
             nextAction = _origin.actions[cursor];
         }
         if (nextAction == null) {
-            /* Clean */
-            if (this._localVariables != null) {
-                Set<String> localValues = this._localVariables.keySet();
-                String[] flatLocalValues = localValues.toArray(new String[localValues.size()]);
-                for (int i = 0; i < flatLocalValues.length; i++) {
-                    this._localVariables.get(flatLocalValues[i]).free();
-                }
-            }
-            if (this._nextVariables != null) {
-                Set<String> nextValues = this._nextVariables.keySet();
-                String[] flatNextValues = nextValues.toArray(new String[nextValues.size()]);
-                for (int i = 0; i < flatNextValues.length; i++) {
-                    this._nextVariables.get(flatNextValues[i]).free();
-                }
-            }
-            if (this._parent == null) {
-                Set<String> globalValues = this._globalVariables.keySet();
-                String[] globalFlatValues = globalValues.toArray(new String[globalValues.size()]);
-                for (int i = 0; i < globalFlatValues.length; i++) {
-                    this._globalVariables.get(globalFlatValues[i]).free();
-                }
-            }
-            /* End Clean */
-            if (_hooks != null) {
-                for (int i = 0; i < _hooks.length; i++) {
-                    if (this._parent == null) {
-                        _hooks[i].end(this);
-                    } else {
-                        _hooks[i].afterTask(this);
-                    }
-                }
-            }
-            if (globalHooks != null) {
-                for (int i = 0; i < globalHooks.length; i++) {
-                    if (this._parent == null) {
-                        globalHooks[i].end(this);
-                    } else {
-                        globalHooks[i].afterTask(this);
-                    }
-                }
-            }
-            if (this._callback != null) {
-                this._callback.on(_result);
-            } else {
-                if (this._result != null) {
-                    this._result.free();
-                }
-            }
+            end_task(null);
         } else {
             if (_hooks != null) {
                 for (int i = 0; i < _hooks.length; i++) {
@@ -396,10 +349,79 @@ class CoreTaskContext implements TaskContext {
                     globalHooks[i].beforeAction(nextAction, this);
                 }
             }
-            nextAction.eval(this);
+            final int previousCursot = cursor;
+            try {
+                nextAction.eval(this);
+            } catch (Exception e) {
+                if (cursor == previousCursot) {
+                    end_task(e);
+                } else {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
+    private void end_task(Exception e) {
+        final TaskHook[] globalHooks = this._graph.taskHooks();
+        /* Clean */
+        if (this._localVariables != null) {
+            Set<String> localValues = this._localVariables.keySet();
+            String[] flatLocalValues = localValues.toArray(new String[localValues.size()]);
+            for (int i = 0; i < flatLocalValues.length; i++) {
+                this._localVariables.get(flatLocalValues[i]).free();
+            }
+        }
+        if (this._nextVariables != null) {
+            Set<String> nextValues = this._nextVariables.keySet();
+            String[] flatNextValues = nextValues.toArray(new String[nextValues.size()]);
+            for (int i = 0; i < flatNextValues.length; i++) {
+                this._nextVariables.get(flatNextValues[i]).free();
+            }
+        }
+        if (this._parent == null) {
+            Set<String> globalValues = this._globalVariables.keySet();
+            String[] globalFlatValues = globalValues.toArray(new String[globalValues.size()]);
+            for (int i = 0; i < globalFlatValues.length; i++) {
+                this._globalVariables.get(globalFlatValues[i]).free();
+            }
+        }
+        /* End Clean */
+        if (_hooks != null) {
+            for (int i = 0; i < _hooks.length; i++) {
+                if (this._parent == null) {
+                    _hooks[i].end(this);
+                } else {
+                    _hooks[i].afterTask(this);
+                }
+            }
+        }
+        if (globalHooks != null) {
+            for (int i = 0; i < globalHooks.length; i++) {
+                if (this._parent == null) {
+                    globalHooks[i].end(this);
+                } else {
+                    globalHooks[i].afterTask(this);
+                }
+            }
+        }
+        if (this._callback != null) {
+            if (e != null) {
+                if (_result == null) {
+                    _result = new CoreTaskResult(null, false);
+                }
+                ((CoreTaskResult) _result)._exception = e;
+            }
+            this._callback.on(_result);
+        } else {
+            if (e != null) {
+                e.printStackTrace();
+            }
+            if (this._result != null) {
+                this._result.free();
+            }
+        }
+    }
 
     @SuppressWarnings("Duplicates")
     final void execute() {
@@ -425,7 +447,15 @@ class CoreTaskContext implements TaskContext {
                 globalHooks[i].beforeAction(current, this);
             }
         }
-        current.eval(this);
+        try {
+            current.eval(this);
+        } catch (Exception e) {
+            if (cursor == 0) {
+                end_task(e);
+            } else {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -493,13 +523,16 @@ class CoreTaskContext implements TaskContext {
                         switch (contextKey) {
                             case "result": {
                                 foundVar = result();
-                            }break;
+                            }
+                            break;
                             case "time": {
                                 foundVar = wrap(_time);
-                            }break;
+                            }
+                            break;
                             case "world": {
                                 foundVar = wrap(_world);
-                            }break;
+                            }
+                            break;
                         }
                     }
 

@@ -13,6 +13,8 @@ class CoreTaskResult<A> implements TaskResult<A> {
     private int _capacity = 0;
     private int _size = 0;
 
+    Exception _exception = null;
+
     @Override
     public Object[] asArray() {
         Object[] flat = new Object[_size];
@@ -20,6 +22,11 @@ class CoreTaskResult<A> implements TaskResult<A> {
             System.arraycopy(_backend, 0, flat, 0, _size);
         }
         return flat;
+    }
+
+    @Override
+    public Exception exception() {
+        return _exception;
     }
 
     CoreTaskResult(Object toWrap, boolean protect) {

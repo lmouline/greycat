@@ -1,7 +1,5 @@
 package org.mwg.task;
 
-import org.mwg.struct.Buffer;
-
 public interface TaskResult<A> {
 
     TaskResultIterator iterator();
@@ -25,5 +23,7 @@ public interface TaskResult<A> {
     Object[] asArray();
 
     //void saveToBuffer(Buffer buffer);
+
+    Exception exception();
 
 }
