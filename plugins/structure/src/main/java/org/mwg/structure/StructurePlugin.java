@@ -6,7 +6,7 @@ import org.mwg.base.BasePlugin;
 import org.mwg.plugin.NodeFactory;
 //import org.mwg.structure.action.*;
 import org.mwg.structure.tree.ETree;
-//import org.mwg.structure.tree.KDTree;
+import org.mwg.structure.tree.KDTree;
 //import org.mwg.structure.tree.NDTree;
 //import org.mwg.structure.tree.SparseNDTree;
 //import org.mwg.task.Action;
@@ -18,12 +18,12 @@ public class StructurePlugin extends BasePlugin {
 
     public StructurePlugin() {
         super();
-//        declareNodeType(KDTree.NAME, new NodeFactory() {
-//            @Override
-//            public Node create(long world, long time, long id, Graph graph) {
-//                return new KDTree(world, time, id, graph);
-//            }
-//        });
+        declareNodeType(KDTree.NAME, new NodeFactory() {
+            @Override
+            public Node create(long world, long time, long id, Graph graph) {
+                return new KDTree(world, time, id, graph);
+            }
+        });
 //        declareNodeType(NDTree.NAME, new NodeFactory() {
 //            @Override
 //            public Node create(long world, long time, long id, Graph graph) {
