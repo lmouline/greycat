@@ -19,9 +19,16 @@ public class VolatileResult implements TreeResult {
     private int count;
     private double radius;
 
+    private DMatrix _keys;
+    private LMatrix _values;
+    private DMatrix _distances;
+
 
     public VolatileResult(ENode node, int capacity, double radius) {
         this.node = node;
+        _keys = (DMatrix) node.getOrCreateAt(_KEYS, Type.DMATRIX);
+        _values = (LMatrix) node.getOrCreateAt(_VALUES, Type.LMATRIX);
+        _distances = (DMatrix) node.getOrCreateAt(_DISTANCES, Type.DMATRIX);
         this.capacity = capacity;
         this.radius = radius;
     }
@@ -51,93 +58,86 @@ public class VolatileResult implements TreeResult {
 
     private void add(double[] key, long value, double distance, boolean remove) {
 
-        DMatrix keys = (DMatrix) node.getOrCreateAt(_KEYS, Type.DMATRIX);
-        LMatrix values = (LMatrix) node.getOrCreateAt(_VALUES, Type.LMATRIX);
-        DMatrix distances = (DMatrix) node.getOrCreateAt(_DISTANCES, Type.DMATRIX);
-
         if (count == 0) {
-            keys.appendColumn(new double[key.length]);
-            values.appendColumn(new long[1]);
-            distances.appendColumn(new double[]{maxPriority});
+            _keys.appendColumn(new double[key.length]);
+            _values.appendColumn(new long[1]);
+            _distances.appendColumn(new double[]{maxPriority});
         }
 
 
         if (remove) {
-            if(distance>getMaxPriority(distances)){
+            if (distance > getMaxPriority()) {
                 return;
             }
-
-            remove(keys, values, distances);
-
+            remove();
             count++;
             //set at last
-            for (int i = 0; i < keys.rows(); i++) {
-                keys.set(i, count, key[i]);
+            for (int i = 0; i < _keys.rows(); i++) {
+                _keys.set(i, count, key[i]);
             }
-            values.set(0, count, value);
-            distances.set(0, count, distance);
+            _values.set(0, count, value);
+            _distances.set(0, count, distance);
         } else {
             count++;
-            keys.appendColumn(key);
-            values.appendColumn(new long[]{value});
-            distances.appendColumn(new double[]{distance});
+            _keys.appendColumn(key);
+            _values.appendColumn(new long[]{value});
+            _distances.appendColumn(new double[]{distance});
         }
 
-        bubbleUp(count, keys, values, distances);
+        bubbleUp(count);
     }
 
 
-    //value -> distances
-    //data -> values
+    //value -> _distances
+    //data -> _values
 
-    private void remove(DMatrix keys, LMatrix values, DMatrix distances) {
+    private void remove() {
         if (count == 0)
             return;
 
 
         /* swap the last element into the first */
-        for (int i = 0; i < keys.rows(); i++) {
-            keys.set(i, 1, keys.get(i, count));
-            keys.set(i, count, 0);
+        for (int i = 0; i < _keys.rows(); i++) {
+            _keys.set(i, 1, _keys.get(i, count));
+            _keys.set(i, count, 0);
         }
 
-        values.set(0, 1, values.get(0, count));
-        distances.set(0, 1, distances.get(0, count));
+        _values.set(0, 1, _values.get(0, count));
+        _distances.set(0, 1, _distances.get(0, count));
 
-        values.set(0, count, 0L);
-        distances.set(0, count, 0);
+        _values.set(0, count, 0L);
+        _distances.set(0, count, 0);
 
         count--;
-        bubbleDown(1, keys, values, distances);
-
+        bubbleDown(1);
 
     }
 
 
-    public double getMaxPriority(DMatrix distances) {
+    public double getMaxPriority() {
         if (count == 0) {
             return Double.POSITIVE_INFINITY;
         }
-        return distances.get(0,1);
+        return _distances.get(0, 1);
     }
 
 
-    //value -> distances
-    //data -> values
+    //value -> _distances
+    //data -> _values
 
-    private void bubbleUp(int pos, DMatrix keys, LMatrix values, DMatrix distances) {
+    private void bubbleUp(int pos) {
 
-        double[] okey = keys.column(pos);
-        long element = values.column(pos)[0];
-        double priority = distances.column(pos)[0];
+        double[] okey = _keys.column(pos);
+        long element = _values.column(pos)[0];
+        double priority = _distances.column(pos)[0];
 
         /* when the parent is not less than the child, end */
         int halfpos = (int) Math.floor(pos / 2);
-        while (distances.column(halfpos)[0] < priority) {
-            distances.set(0, pos, distances.get(0, halfpos));
-            values.set(0, pos, values.get(0, halfpos));
-            for (int i = 0; i < keys.rows(); i++) {
-                keys.set(i, pos, keys.get(i, halfpos));
+        while (_distances.column(halfpos)[0] < priority) {
+            _distances.set(0, pos, _distances.get(0, halfpos));
+            _values.set(0, pos, _values.get(0, halfpos));
+            for (int i = 0; i < _keys.rows(); i++) {
+                _keys.set(i, pos, _keys.get(i, halfpos));
             }
 
             /* overwrite the child with the parent */
@@ -145,24 +145,24 @@ public class VolatileResult implements TreeResult {
             halfpos = (int) Math.floor(pos / 2);
         }
 
-        distances.set(0, pos, priority);
-        values.set(0, pos, element);
+        _distances.set(0, pos, priority);
+        _values.set(0, pos, element);
 
-        for (int i = 0; i < keys.rows(); i++) {
-            keys.set(i, pos, okey[i]);
+        for (int i = 0; i < _keys.rows(); i++) {
+            _keys.set(i, pos, okey[i]);
         }
 
     }
 
 
-    //value -> distances
-    //data -> values
+    //value -> _distances
+    //data -> _values
 
-    private void bubbleDown(int pos, DMatrix keys, LMatrix values, DMatrix distances) {
+    private void bubbleDown(int pos) {
 
-        double[] okey = keys.column(pos);
-        long element = values.column(pos)[0];
-        double priority = distances.column(pos)[0];
+        double[] okey = _keys.column(pos);
+        long element = _values.column(pos)[0];
+        double priority = _distances.column(pos)[0];
 
         int child;
         /* hole is position '1' */
@@ -175,69 +175,121 @@ public class VolatileResult implements TreeResult {
             if (child != count)
 
                 /* left_child > right_child */
-                if (distances.get(0,child)  < distances.get(0,child+1))
+                if (_distances.get(0, child) < _distances.get(0, child + 1))
                     child++; /* choose the biggest child */
             /*
              * percolate down the data at 'pos', one level i.e biggest child
              * becomes the parent
              */
-            if (priority < distances.get(0,child)) {
-                distances.set(0, pos, distances.get(0, child));
-                values.set(0, pos, values.get(0, child));
-                for (int i = 0; i < keys.rows(); i++) {
-                    keys.set(i, pos, keys.get(i, child));
+            if (priority < _distances.get(0, child)) {
+                _distances.set(0, pos, _distances.get(0, child));
+                _values.set(0, pos, _values.get(0, child));
+                for (int i = 0; i < _keys.rows(); i++) {
+                    _keys.set(i, pos, _keys.get(i, child));
                 }
             } else {
                 break;
             }
         }
-        distances.set(0, pos, priority);
-        values.set(0, pos, element);
+        _distances.set(0, pos, priority);
+        _values.set(0, pos, element);
 
-        for (int i = 0; i < keys.rows(); i++) {
-            keys.set(i, pos, okey[i]);
+        for (int i = 0; i < _keys.rows(); i++) {
+            _keys.set(i, pos, okey[i]);
         }
     }
 
 
     @Override
     public double[] keys(int index) {
-        return new double[0];
+        return _keys.column(index + 1);
     }
 
     @Override
     public long value(int index) {
-        return 0;
+        return _values.get(index + 1, 0);
     }
 
     @Override
     public double distance(int index) {
-        return 0;
+        return _distances.get(index + 1, 0);
     }
 
     @Override
-    public DMatrix getAllKeys() {
-        return null;
+    public void free() {
+        node.drop();
+    }
+
+
+    private void swap(int i, int j) {
+        double[] tempkey = _keys.column(i);
+        long tempvalue = _values.get(0, i);
+        double tempdist = _distances.get(0, i);
+
+
+        _distances.set(0, i, _distances.get(0, j));
+        _values.set(0, i, _values.get(0, j));
+        for (int k = 0; k < _keys.rows(); k++) {
+            _keys.set(k, i, _keys.get(k, j));
+        }
+
+        _distances.set(0, j, tempdist);
+        _values.set(0, j, tempvalue);
+        for (int k = 0; k < _keys.rows(); k++) {
+            _keys.set(k, j, tempkey[k]);
+        }
+
+    }
+
+
+    private void quickSort(int lowerIndex, int higherIndex, boolean ascending) {
+
+        int i = lowerIndex;
+        int j = higherIndex;
+        // calculate pivot number, I am taking pivot as middle index number
+        double pivot = _distances.get(0, lowerIndex + (higherIndex - lowerIndex) / 2);
+        // Divide into two arrays
+        while (i <= j) {
+            /**
+             * In each iteration, we will identify a number from left side which
+             * is greater then the pivot value, and also we will identify a number
+             * from right side which is less then the pivot value. Once the search
+             * is done, then we exchange both numbers.
+             */
+            if(ascending) {
+                while (_distances.get(0, i) < pivot) {
+                    i++;
+                }
+                while (_distances.get(0, j) > pivot) {
+                    j--;
+                }
+            }
+            else {
+                while (_distances.get(0, i) > pivot) {
+                    i++;
+                }
+                while (_distances.get(0, j) < pivot) {
+                    j--;
+                }
+            }
+            if (i <= j) {
+                swap(i, j);
+                //move index to next position on both sides
+                i++;
+                j--;
+            }
+        }
+        // call quickSort() method recursively
+        if (lowerIndex < j)
+            quickSort(lowerIndex, j, ascending);
+        if (i < higherIndex)
+            quickSort(i, higherIndex, ascending);
     }
 
 
     @Override
-    public long[] getAllValues() {
-        return new long[0];
+    public void sort(boolean ascending) {
+        quickSort(1, count, ascending);
     }
 
-    @Override
-    public double[] getAllDistances() {
-        return new double[0];
-    }
-
-    @Override
-    public void sortByDistance(boolean ascending) {
-
-    }
-
-    @Override
-    public void sortByValue(boolean ascending) {
-
-    }
 }

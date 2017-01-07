@@ -15,10 +15,8 @@ public interface TreeResult {
     long value(int index);
     double distance(int index);
 
-    DMatrix getAllKeys();
-    long[] getAllValues();
-    double[] getAllDistances();
+    void free();
 
-    void sortByDistance(boolean ascending);
-    void sortByValue(boolean ascending);
+
+    void sort(boolean ascending);
 }

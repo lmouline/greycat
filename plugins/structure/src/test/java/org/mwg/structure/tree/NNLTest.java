@@ -35,13 +35,15 @@ public class NNLTest {
 
                 HashMap<Long, double[]> dictionary = new HashMap<Long, double[]>();
 
+                int countk=0;
+
                 for (int i = 0; i < test; i++) {
                     double[] key = new double[3];
                     long id;
                     double distance;
 
                     for (int j = 0; j < key.length; j++) {
-                        key[j] = random.nextDouble();
+                        key[j] = countk++;
                     }
                     id = count++;
                     distance = random.nextDouble();
@@ -53,6 +55,8 @@ public class NNLTest {
                     int y=0;
                 }
 
+
+                vr.sort(false);
                 int x=0;
 
 
