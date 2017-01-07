@@ -242,50 +242,65 @@ public class VolatileResult implements TreeResult {
     }
 
 
-    private void quickSort(int lowerIndex, int higherIndex, boolean ascending) {
+    private int partition(int l, int h, boolean ascending) {
+        double x = _distances.get(0, h);
+        int i = (l - 1);
 
-        int i = lowerIndex;
-        int j = higherIndex;
-        // calculate pivot number, I am taking pivot as middle index number
-        double pivot = _distances.get(0, lowerIndex + (higherIndex - lowerIndex) / 2);
-        // Divide into two arrays
-        while (i <= j) {
-            /**
-             * In each iteration, we will identify a number from left side which
-             * is greater then the pivot value, and also we will identify a number
-             * from right side which is less then the pivot value. Once the search
-             * is done, then we exchange both numbers.
-             */
+
+        for (int j = l; j <= h - 1; j++) {
             if(ascending) {
-                while (_distances.get(0, i) < pivot) {
+                if (_distances.get(0, j) <= x) {
                     i++;
-                }
-                while (_distances.get(0, j) > pivot) {
-                    j--;
+                    swap(i, j);
                 }
             }
             else {
-                while (_distances.get(0, i) > pivot) {
+                if (_distances.get(0, j) > x) {
                     i++;
+                    swap(i, j);
                 }
-                while (_distances.get(0, j) < pivot) {
-                    j--;
-                }
-            }
-            if (i <= j) {
-                swap(i, j);
-                //move index to next position on both sides
-                i++;
-                j--;
             }
         }
-        // call quickSort() method recursively
-        if (lowerIndex < j)
-            quickSort(lowerIndex, j, ascending);
-        if (i < higherIndex)
-            quickSort(i, higherIndex, ascending);
+        // swap arr[i+1] and arr[h]
+        swap(i + 1, h);
+        return (i + 1);
     }
 
+    private void quickSort(int l, int h, boolean ascending) {
+        // create auxiliary stack
+        int stack[] = new int[h - l + 1];
+
+        // initialize top of stack
+        int top = -1;
+
+        // push initial values in the stack
+        stack[++top] = l;
+        stack[++top] = h;
+
+        // keep popping elements until stack is not empty
+        while (top >= 0) {
+            // pop h and l
+            h = stack[top--];
+            l = stack[top--];
+
+            // set pivot element at it's proper position
+            int p = partition(l, h, ascending);
+
+            // If there are elements on left side of pivot,
+            // then push left side to stack
+            if (p - 1 > l) {
+                stack[++top] = l;
+                stack[++top] = p - 1;
+            }
+
+            // If there are elements on right side of pivot,
+            // then push right side to stack
+            if (p + 1 < h) {
+                stack[++top] = p + 1;
+                stack[++top] = h;
+            }
+        }
+    }
 
     @Override
     public void sort(boolean ascending) {
