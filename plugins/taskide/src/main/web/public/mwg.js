@@ -2856,109 +2856,96 @@ var org;
                 MWGResolver.prototype.lookup = function (world, time, id, callback) {
                     var _this = this;
                     var selfPointer = this;
-                    try {
-                        selfPointer._space.getOrLoadAndMark(org.mwg.chunk.ChunkType.WORLD_ORDER_CHUNK, 0, 0, id, function (theNodeWorldOrder) {
-                            {
-                                if (theNodeWorldOrder == null) {
-                                    callback(null);
-                                }
-                                else {
-                                    var closestWorld_1 = selfPointer.resolve_world(_this.globalWorldOrderChunk, theNodeWorldOrder, time, world);
-                                    selfPointer._space.getOrLoadAndMark(org.mwg.chunk.ChunkType.TIME_TREE_CHUNK, closestWorld_1, org.mwg.Constants.NULL_LONG, id, function (theNodeSuperTimeTree) {
-                                        {
-                                            if (theNodeSuperTimeTree == null) {
+                    selfPointer._space.getOrLoadAndMark(org.mwg.chunk.ChunkType.WORLD_ORDER_CHUNK, 0, 0, id, function (theNodeWorldOrder) {
+                        {
+                            if (theNodeWorldOrder == null) {
+                                callback(null);
+                            }
+                            else {
+                                var closestWorld_1 = selfPointer.resolve_world(_this.globalWorldOrderChunk, theNodeWorldOrder, time, world);
+                                selfPointer._space.getOrLoadAndMark(org.mwg.chunk.ChunkType.TIME_TREE_CHUNK, closestWorld_1, org.mwg.Constants.NULL_LONG, id, function (theNodeSuperTimeTree) {
+                                    {
+                                        if (theNodeSuperTimeTree == null) {
+                                            selfPointer._space.unmark(theNodeWorldOrder.index());
+                                            callback(null);
+                                        }
+                                        else {
+                                            var closestSuperTime = theNodeSuperTimeTree.previousOrEqual(time);
+                                            if (closestSuperTime == org.mwg.Constants.NULL_LONG) {
+                                                selfPointer._space.unmark(theNodeSuperTimeTree.index());
                                                 selfPointer._space.unmark(theNodeWorldOrder.index());
                                                 callback(null);
+                                                return;
                                             }
-                                            else {
-                                                var closestSuperTime = theNodeSuperTimeTree.previousOrEqual(time);
-                                                if (closestSuperTime == org.mwg.Constants.NULL_LONG) {
-                                                    selfPointer._space.unmark(theNodeSuperTimeTree.index());
-                                                    selfPointer._space.unmark(theNodeWorldOrder.index());
-                                                    callback(null);
-                                                    return;
-                                                }
-                                                selfPointer._space.getOrLoadAndMark(org.mwg.chunk.ChunkType.TIME_TREE_CHUNK, closestWorld_1, closestSuperTime, id, function (theNodeTimeTree) {
-                                                    {
-                                                        if (theNodeTimeTree == null) {
+                                            selfPointer._space.getOrLoadAndMark(org.mwg.chunk.ChunkType.TIME_TREE_CHUNK, closestWorld_1, closestSuperTime, id, function (theNodeTimeTree) {
+                                                {
+                                                    if (theNodeTimeTree == null) {
+                                                        selfPointer._space.unmark(theNodeSuperTimeTree.index());
+                                                        selfPointer._space.unmark(theNodeWorldOrder.index());
+                                                        callback(null);
+                                                    }
+                                                    else {
+                                                        var closestTime_1 = theNodeTimeTree.previousOrEqual(time);
+                                                        if (closestTime_1 == org.mwg.Constants.NULL_LONG) {
+                                                            selfPointer._space.unmark(theNodeTimeTree.index());
                                                             selfPointer._space.unmark(theNodeSuperTimeTree.index());
                                                             selfPointer._space.unmark(theNodeWorldOrder.index());
                                                             callback(null);
+                                                            return;
                                                         }
-                                                        else {
-                                                            var closestTime_1 = theNodeTimeTree.previousOrEqual(time);
-                                                            if (closestTime_1 == org.mwg.Constants.NULL_LONG) {
-                                                                selfPointer._space.unmark(theNodeTimeTree.index());
-                                                                selfPointer._space.unmark(theNodeSuperTimeTree.index());
-                                                                selfPointer._space.unmark(theNodeWorldOrder.index());
-                                                                callback(null);
-                                                                return;
-                                                            }
-                                                            selfPointer._space.getOrLoadAndMark(org.mwg.chunk.ChunkType.STATE_CHUNK, closestWorld_1, closestTime_1, id, function (theObjectChunk) {
-                                                                {
-                                                                    if (theObjectChunk == null) {
-                                                                        selfPointer._space.unmark(theNodeTimeTree.index());
-                                                                        selfPointer._space.unmark(theNodeSuperTimeTree.index());
-                                                                        selfPointer._space.unmark(theNodeWorldOrder.index());
-                                                                        callback(null);
+                                                        selfPointer._space.getOrLoadAndMark(org.mwg.chunk.ChunkType.STATE_CHUNK, closestWorld_1, closestTime_1, id, function (theObjectChunk) {
+                                                            {
+                                                                if (theObjectChunk == null) {
+                                                                    selfPointer._space.unmark(theNodeTimeTree.index());
+                                                                    selfPointer._space.unmark(theNodeSuperTimeTree.index());
+                                                                    selfPointer._space.unmark(theNodeWorldOrder.index());
+                                                                    callback(null);
+                                                                }
+                                                                else {
+                                                                    var castedNodeWorldOrder = theNodeWorldOrder;
+                                                                    var extraCode = castedNodeWorldOrder.extra();
+                                                                    var resolvedFactory = null;
+                                                                    if (extraCode != org.mwg.Constants.NULL_LONG) {
+                                                                        resolvedFactory = selfPointer._graph.factoryByCode(extraCode);
+                                                                    }
+                                                                    var resolvedNode = void 0;
+                                                                    if (resolvedFactory == null) {
+                                                                        resolvedNode = new org.mwg.base.BaseNode(world, time, id, selfPointer._graph);
                                                                     }
                                                                     else {
-                                                                        var castedNodeWorldOrder = theNodeWorldOrder;
-                                                                        var extraCode = castedNodeWorldOrder.extra();
-                                                                        var resolvedFactory = null;
-                                                                        if (extraCode != org.mwg.Constants.NULL_LONG) {
-                                                                            resolvedFactory = selfPointer._graph.factoryByCode(extraCode);
-                                                                        }
-                                                                        var resolvedNode = void 0;
-                                                                        if (resolvedFactory == null) {
-                                                                            resolvedNode = new org.mwg.base.BaseNode(world, time, id, selfPointer._graph);
-                                                                        }
-                                                                        else {
-                                                                            resolvedNode = resolvedFactory(world, time, id, selfPointer._graph);
-                                                                        }
-                                                                        resolvedNode._dead = false;
-                                                                        resolvedNode._index_stateChunk = theObjectChunk.index();
-                                                                        resolvedNode._index_superTimeTree = theNodeSuperTimeTree.index();
-                                                                        resolvedNode._index_timeTree = theNodeTimeTree.index();
-                                                                        resolvedNode._index_worldOrder = theNodeWorldOrder.index();
-                                                                        if (closestWorld_1 == world && closestTime_1 == time) {
-                                                                            resolvedNode._world_magic = -1;
-                                                                            resolvedNode._super_time_magic = -1;
-                                                                            resolvedNode._time_magic = -1;
-                                                                        }
-                                                                        else {
-                                                                            resolvedNode._world_magic = theNodeWorldOrder.magic();
-                                                                            resolvedNode._super_time_magic = theNodeSuperTimeTree.magic();
-                                                                            resolvedNode._time_magic = theNodeTimeTree.magic();
-                                                                        }
-                                                                        if (callback != null) {
-                                                                            var casted = resolvedNode;
-                                                                            callback(casted);
-                                                                        }
+                                                                        resolvedNode = resolvedFactory(world, time, id, selfPointer._graph);
+                                                                    }
+                                                                    resolvedNode._dead = false;
+                                                                    resolvedNode._index_stateChunk = theObjectChunk.index();
+                                                                    resolvedNode._index_superTimeTree = theNodeSuperTimeTree.index();
+                                                                    resolvedNode._index_timeTree = theNodeTimeTree.index();
+                                                                    resolvedNode._index_worldOrder = theNodeWorldOrder.index();
+                                                                    if (closestWorld_1 == world && closestTime_1 == time) {
+                                                                        resolvedNode._world_magic = -1;
+                                                                        resolvedNode._super_time_magic = -1;
+                                                                        resolvedNode._time_magic = -1;
+                                                                    }
+                                                                    else {
+                                                                        resolvedNode._world_magic = theNodeWorldOrder.magic();
+                                                                        resolvedNode._super_time_magic = theNodeSuperTimeTree.magic();
+                                                                        resolvedNode._time_magic = theNodeTimeTree.magic();
+                                                                    }
+                                                                    if (callback != null) {
+                                                                        var casted = resolvedNode;
+                                                                        callback(casted);
                                                                     }
                                                                 }
-                                                            });
-                                                        }
+                                                            }
+                                                        });
                                                     }
-                                                });
-                                            }
+                                                }
+                                            });
                                         }
-                                    });
-                                }
-                            }
-                        });
-                    }
-                    catch ($ex$) {
-                        if ($ex$ instanceof Error) {
-                            var e = $ex$;
-                            {
-                                console.error(e);
+                                    }
+                                });
                             }
                         }
-                        else {
-                            throw $ex$;
-                        }
-                    }
+                    });
                 };
                 MWGResolver.prototype.lookupTimes = function (world, from, to, id, callback) {
                     var selfPointer = this;

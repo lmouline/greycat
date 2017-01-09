@@ -34,7 +34,7 @@ public class TestSort {
                     EGraph egraph = (EGraph) kmf.getOrCreate("test", Type.EGRAPH);
                     ENode root = egraph.newNode();
                     egraph.setRoot(root);
-                    VolatileResult vr = new VolatileResult(root, capacity, -1);
+                    VolatileResult vr = new VolatileResult(root, capacity);
 
                     for (int k = 0; k < maxinsert; k++) {
                         vr.insert(new double[]{k}, k, random.nextDouble());

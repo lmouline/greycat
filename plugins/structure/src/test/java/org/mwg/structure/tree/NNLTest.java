@@ -31,7 +31,7 @@ public class NNLTest {
                 egraph.setRoot(root);
 
                 NearestNeighborList nnl = new NearestNeighborList(capacity);
-                VolatileResult vr = new VolatileResult(root, capacity, -1);
+                VolatileResult vr = new VolatileResult(root, capacity);
 
                 HashMap<Long, double[]> dictionary = new HashMap<Long, double[]>();
 

@@ -14,9 +14,9 @@ public interface TreeResult {
     double[] keys(int index);
     long value(int index);
     double distance(int index);
+    double getWorstDistance();
 
     void free();
-
-
+    boolean isCapacityReached();
     void sort(boolean ascending);
 }

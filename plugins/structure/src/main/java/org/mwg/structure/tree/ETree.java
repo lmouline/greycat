@@ -4,6 +4,7 @@ import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.base.BaseNode;
 import org.mwg.plugin.NodeState;
+import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.DMatrix;
 import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
@@ -12,11 +13,7 @@ import org.mwg.structure.Tree;
 import org.mwg.structure.TreeResult;
 import org.mwg.structure.distance.Distance;
 import org.mwg.structure.distance.Distances;
-import org.mwg.task.ActionFunction;
-import org.mwg.task.Task;
-import org.mwg.task.TaskContext;
-
-import static org.mwg.core.task.Actions.*;
+import org.mwg.structure.util.VolatileResult;
 
 public class ETree extends BaseNode implements Tree {
 
@@ -119,7 +116,7 @@ public class ETree extends BaseNode implements Tree {
         node.setAt(_SUBNODES, Type.INT, 0);
         node.setAt(_MIN, Type.DOUBLE_ARRAY, minChild);
         node.setAt(_MAX, Type.DOUBLE_ARRAY, maxChild);
-        node.setAt(_TOTAL, Type.INT, 0);
+        node.setAt(_TOTAL, Type.LONG, 0);
 
 
         root.setAt(_TOTAL_SUBNODES, Type.INT, (int) root.getAt(_TOTAL_SUBNODES) + 1);
@@ -149,11 +146,11 @@ public class ETree extends BaseNode implements Tree {
         if (res) {
             switch (strategyType) {
                 case IndexStrategy.PROFILE: {
-                    parent.setAt(_TOTAL, Type.INT, (int) parent.getAt(_TOTAL) + (int) value);
+                    parent.setAt(_TOTAL, Type.LONG, (int) parent.getAt(_TOTAL) + (int) value);
                     break;
                 }
                 case IndexStrategy.INDEX: {
-                    parent.setAt(_TOTAL, Type.INT, (int) parent.getAt(_TOTAL) + 1);
+                    parent.setAt(_TOTAL, Type.LONG, (int) parent.getAt(_TOTAL) + 1);
                     break;
                 }
                 default: {
@@ -180,7 +177,7 @@ public class ETree extends BaseNode implements Tree {
                             case IndexStrategy.PROFILE: {
                                 DMatrix bufferkeys = (DMatrix) node.getAt(_PROFILE);
                                 for (int j = 0; j < key.length; j++) {
-                                    bufferkeys.set(j, i, bufferkeys.get(j, i) + key[j]);
+                                    bufferkeys.set(j, i, bufferkeys.get(j, i) + key[j] * value);
                                 }
                                 LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
                                 bufferValue.set(0, i, bufferValue.get(0, i) + value);
@@ -269,18 +266,18 @@ public class ETree extends BaseNode implements Tree {
                         System.arraycopy(key, 0, profile, 0, key.length);
                     } else {
                         for (int i = 0; i < key.length; i++) {
-                            profile[i] += key[i];
+                            profile[i] += key[i] * value;
                         }
                     }
                     node.setAt(_PROFILE, Type.DOUBLE_ARRAY, profile);
-                    node.setAt(_TOTAL, Type.INT, (int) node.getAt(_TOTAL) + (int) value);
+                    node.setAt(_TOTAL, Type.LONG, (long) node.getAt(_TOTAL) + value);
                     return true; //to update parent total
                 }
                 case IndexStrategy.INDEX: {
                     if ((int) node.getAt(_TOTAL) == 0) {
                         node.setAt(_PROFILE, Type.DOUBLE_ARRAY, key);
                         node.setAt(_VALUE, Type.LONG, value);
-                        node.setAt(_TOTAL, Type.INT, 1);
+                        node.setAt(_TOTAL, Type.LONG, 1);
                         return true;
                     } else {
                         node.setAt(_PROFILE, Type.DOUBLE_ARRAY, key);
@@ -342,7 +339,7 @@ public class ETree extends BaseNode implements Tree {
         if (root == null) {
             root = graph.newNode();
             graph.setRoot(root);
-            root.setAt(_TOTAL, Type.INT, 0);
+            root.setAt(_TOTAL, Type.LONG, 0);
             root.setAt(_SUBNODES, Type.INT, 0);
             root.setAt(_MIN, Type.DOUBLE_ARRAY, min);
             root.setAt(_MAX, Type.DOUBLE_ARRAY, max);
@@ -369,7 +366,7 @@ public class ETree extends BaseNode implements Tree {
         if (root == null) {
             root = graph.newNode();
             graph.setRoot(root);
-            root.setAt(_TOTAL, Type.INT, 0);
+            root.setAt(_TOTAL, Type.LONG, 0);
             root.setAt(_TOTAL_SUBNODES, Type.INT, 0);
             root.setAt(_SUBNODES, Type.INT, 0);
             root.setAt(_MIN, Type.DOUBLE_ARRAY, min);
@@ -425,98 +422,164 @@ public class ETree extends BaseNode implements Tree {
         }
     }
 
-/*
-    private static Task initNearestTask() {
-        Task reccursiveDown = newTask();
-        reccursiveDown
-                .then(defineAsVar("parent"))
-                .thenDo(new ActionFunction() {
-                    @Override
-                    public void eval(TaskContext ctx) {
-                        ENode node = (ENode) ctx.result().get(0);
+
+    private static boolean[] binaryFromLong(long value, int dim) {
+        long tempvalue = value - _REL;
+        long shiftvalue = tempvalue >> 1;
+        boolean[] res = new boolean[dim];
+        for (int i = 0; i < dim; i++) {
+            res[dim - i - 1] = ((tempvalue - (shiftvalue << 1)) == 1);
+            tempvalue = shiftvalue;
+            shiftvalue = tempvalue >> 1;
+        }
+        return res;
+    }
+
+    private static boolean checkInside(final double[] targetmin, final double[] targetmax, final double[] boundMin, final double[] boundMax) {
+        for (int i = 0; i < boundMax.length; i++) {
+            if (targetmin[i] > boundMax[i] || targetmax[i] < boundMin[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
 
 
+    private static void reccursiveTraverse(final ENode node, final EGraph calcZone, final VolatileResult nnl, final int strategyType, final Distance distance, final double[] target, final double[] targetmin, final double[] targetmax, final double radius, final int capacity) {
 
-                        if((int) node.getAt(_SUBNODES) == 0){
-                            double[] target = (double[]) ctx.variable("key").get(0);
-                            Distance distance = (Distance) ctx.variable("distance").get(0);
-                            Matrix bufferkeys = (Matrix) node.getAt(_BUFFER_KEYS);
+        if ((int) node.getAt(_SUBNODES) == 0) {
+            //Leave node
+            DMatrix buffer = (DMatrix) node.getAt(_BUFFER_KEYS);
+            LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
 
+            if (buffer != null) {
+                //Bufferizing node
+                switch (strategyType) {
+                    case IndexStrategy.PROFILE: {
+                        double[] tempK = new double[target.length];
 
-                        }
-                        else {
-
-                        }
-
-
-                        //Leave node
-                        if (!state.getWithDefault(_CONTINUENAV, false)) {
-                            Relation values = (Relation) state.get(_VALUES);
-                            int dim = (int) ctx.variable("dim").get(0);
-                            double[] k = new double[dim];
-                            double[] keys = (double[]) state.get(_KEYS);
-
-
-
-                            for (int i = 0; i < values.size(); i++) {
-                                for (int j = 0; j < dim; j++) {
-                                    k[j] = keys[i * dim + j];
-                                }
-                                nnl.insert(values.get(i), distance.measure(k, target));
+                        DMatrix bufferkeys = (DMatrix) node.getAt(_PROFILE);
+                        for (int i = 0; i < buffer.columns(); i++) {
+                            long t = bufferValue.get(0, i);
+                            for (int j = 0; j < buffer.rows(); j++) {
+                                tempK[j] = bufferkeys.get(j, i) / t;
                             }
-                            ctx.continueWith(null);
+                            checkandInsert(tempK, t, target, targetmin, targetmax, distance, radius, capacity, nnl);
+                        }
+                        return;
+                    }
+                    case IndexStrategy.INDEX: {
+                        for (int i = 0; i < buffer.columns(); i++) {
+                            checkandInsert(buffer.column(i), bufferValue.get(0, i), target, targetmin, targetmax, distance, radius, capacity, nnl);
+                        }
+                        return;
 
-                        } else {
-                            final double[] boundMax = (double[]) state.get(BOUND_MAX);
-                            final double[] boundMin = (double[]) state.get(BOUND_MIN);
-                            final double[] target = (double[]) ctx.variable("key").get(0);
-                            final Distance distance = (Distance) ctx.variable("distance").get(0);
-                            final double worst = nnl.getWorstDistance();
+                    }
+                    default: {
+                        throw new RuntimeException("Index strategy is wrong!");
+                    }
+                }
 
+            } else {
+                //Very End node
+                switch (strategyType) {
+                    case IndexStrategy.PROFILE: {
+                        double[] keyo = (double[]) node.getAt(_PROFILE);
+                        double[] key = new double[keyo.length];
+                        long value = (long) node.getAt(_TOTAL);
+                        for (int i = 0; i < keyo.length; i++) {
+                            key[i] = keyo[i] / value;
+                        }
+                        checkandInsert(key, value, target, targetmin, targetmax, distance, radius, capacity, nnl);
+                        return;
+                    }
+                    case IndexStrategy.INDEX: {
+                        double[] key = (double[]) node.getAt(_PROFILE);
+                        long value = (long) node.getAt(_VALUE);
+                        checkandInsert(key, value, target, targetmin, targetmax, distance, radius, capacity, nnl);
+                        return;
+                    }
+                    default: {
+                        throw new RuntimeException("Index strategy is wrong!");
+                    }
+                }
+            }
 
-                            if (!nnl.isCapacityReached() || getclosestDistance(target, boundMin, boundMax, distance) <= worst) {
-                                final int dim = boundMin.length;
-                                final double[] childMin = new double[dim];
-                                final double[] childMax = new double[dim];
+        } else {
+            //Parent node
+            final double[] boundMax = (double[]) node.getAt(BOUND_MAX);
+            final double[] boundMin = (double[]) node.getAt(BOUND_MIN);
+            final double worst = nnl.getWorstDistance();
 
-                                final NearestNeighborArrayList temp = new NearestNeighborArrayList();
+            if (targetmin == null || targetmax == null) {
+                if (!nnl.isCapacityReached() || getclosestDistance(target, boundMin, boundMax, distance) <= worst) {
+                    final ENode tempList = calcZone.newNode();
+                    final VolatileResult childPriority = new VolatileResult(tempList, -1);
+                    final int dim = boundMax.length;
+                    final double[] childMin = new double[dim];
+                    final double[] childMax = new double[dim];
 
-                                state.each(new NodeStateCallback() {
-                                    @Override
-                                    public void on(long attributeKey, byte elemType, Object elem) {
-                                        if (attributeKey >= _RELCONST) {
-                                            boolean[] binaries = binaryFromLong(attributeKey, dim);
-                                            for (int i = 0; i < dim; i++) {
-                                                if (!binaries[i]) {
-                                                    childMin[i] = boundMin[i];
-                                                    childMax[i] = (boundMax[i] + boundMin[i]) / 2;
+                    node.each(new NodeStateCallback() {
+                        @Override
+                        public void on(long attributeKey, byte elemType, Object elem) {
+                            if (attributeKey >= _REL) {
+                                boolean[] binaries = binaryFromLong(attributeKey, dim);
+                                for (int i = 0; i < dim; i++) {
+                                    if (!binaries[i]) {
+                                        childMin[i] = boundMin[i];
+                                        childMax[i] = (boundMax[i] + boundMin[i]) / 2;
 
-                                                } else {
-                                                    childMin[i] = (boundMax[i] + boundMin[i]) / 2;
-                                                    childMax[i] = boundMax[i];
-                                                }
-                                            }
-                                            temp.insert(attributeKey, getclosestDistance(target, childMin, childMax, distance));
-                                        }
+                                    } else {
+                                        childMin[i] = (boundMax[i] + boundMin[i]) / 2;
+                                        childMax[i] = boundMax[i];
                                     }
-                                });
+                                }
+                                childPriority.insert(childMin, attributeKey, getclosestDistance(target, boundMin, boundMax, distance));
+                            }
+                        }
 
-                                temp.sort();
-                                long[] relations = temp.getNodes();
-                                //double[] distances =temp.getDistances();
-                                ctx.continueWith(ctx.wrap(relations));
-                            } else {
-                                ctx.continueWith(null);
+
+                    });
+                    childPriority.sort(true);
+                    for (int i = 0; i < childPriority.size(); i++) {
+                        ENode child = (ENode) node.getAt(childPriority.value(i));
+                        reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, radius, capacity);
+                    }
+                    childPriority.free();
+                }
+            } else {
+                node.each(new NodeStateCallback() {
+                    @Override
+                    public void on(long attributeKey, byte elemType, Object elem) {
+                        if (attributeKey >= _REL) {
+                            ENode child = (ENode) node.getAt(attributeKey);
+                            if (checkInside(targetmin, targetmax, (double[]) child.getAt(BOUND_MIN), (double[]) child.getAt(BOUND_MIN))) {
+                                reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, radius, capacity);
                             }
                         }
                     }
-                }).forEach(
-                newTask().then(defineAsVar("relid")).then(readVar("parent")).then(action(TraverseById.NAME, "{{relid}}")).mapReduce(reccursiveDown));
-
-
-        return reccursiveDown;
+                });
+            }
+        }
     }
 
-*/
+    private static double getclosestDistance(double[] target, double[] boundMin, double[] boundMax, Distance distance) {
+        double[] closest = new double[target.length];
+
+        for (int i = 0; i < target.length; i++) {
+            if (target[i] >= boundMax[i]) {
+                closest[i] = boundMax[i];
+            } else if (target[i] <= boundMin[i]) {
+                closest[i] = boundMin[i];
+            } else {
+                closest[i] = target[i];
+            }
+        }
+        return distance.measure(closest, target);
+    }
+
+    private static void checkandInsert(double[] key, long value, double[] target, double[] targetmin, double[] targetmax, Distance distance, double radius, int capacity, VolatileResult nnl) {
+
+    }
 
 }

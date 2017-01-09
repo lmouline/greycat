@@ -17,20 +17,19 @@ public class VolatileResult implements TreeResult {
     private ENode node;
     private int capacity;
     private int count;
-    private double radius;
+    private double worst;
 
     private DMatrix _keys;
     private LMatrix _values;
     private DMatrix _distances;
 
 
-    public VolatileResult(ENode node, int capacity, double radius) {
+    public VolatileResult(ENode node, int capacity) {
         this.node = node;
         _keys = (DMatrix) node.getOrCreateAt(_KEYS, Type.DMATRIX);
         _values = (LMatrix) node.getOrCreateAt(_VALUES, Type.LMATRIX);
         _distances = (DMatrix) node.getOrCreateAt(_DISTANCES, Type.DMATRIX);
         this.capacity = capacity;
-        this.radius = radius;
     }
 
 
@@ -41,9 +40,6 @@ public class VolatileResult implements TreeResult {
 
     @Override
     public boolean insert(double[] key, long value, double distance) {
-        if (radius > 0 && distance > radius) {
-            return false;
-        }
 
         if (capacity > 0 && count == capacity) {
             add(key, value, distance, true);
@@ -66,7 +62,7 @@ public class VolatileResult implements TreeResult {
 
 
         if (remove) {
-            if (distance > getMaxPriority()) {
+            if (distance > getWorstDistance()) {
                 return;
             }
             remove();
@@ -83,8 +79,8 @@ public class VolatileResult implements TreeResult {
             _values.appendColumn(new long[]{value});
             _distances.appendColumn(new double[]{distance});
         }
-
         bubbleUp(count);
+        worst = _distances.get(0, 1);
     }
 
 
@@ -114,12 +110,7 @@ public class VolatileResult implements TreeResult {
     }
 
 
-    public double getMaxPriority() {
-        if (count == 0) {
-            return Double.POSITIVE_INFINITY;
-        }
-        return _distances.get(0, 1);
-    }
+
 
 
     //value -> _distances
@@ -216,8 +207,21 @@ public class VolatileResult implements TreeResult {
     }
 
     @Override
+    public double getWorstDistance() {
+        if (count == 0) {
+            return Double.POSITIVE_INFINITY;
+        }
+        return worst;
+    }
+
+    @Override
     public void free() {
         node.drop();
+    }
+
+    @Override
+    public boolean isCapacityReached() {
+        return capacity > 0 && (count == capacity);
     }
 
 
@@ -248,13 +252,12 @@ public class VolatileResult implements TreeResult {
 
 
         for (int j = l; j <= h - 1; j++) {
-            if(ascending) {
+            if (ascending) {
                 if (_distances.get(0, j) <= x) {
                     i++;
                     swap(i, j);
                 }
-            }
-            else {
+            } else {
                 if (_distances.get(0, j) > x) {
                     i++;
                     swap(i, j);
