@@ -14,8 +14,8 @@ public class ActionNames {
     public static String CREATE_TYPED_NODE = "createTypedNode";
     public static String DECLARE_GLOBAL_VAR = "declareGlobalVar";
     public static String DECLARE_VAR = "declareVar";
-    public static String DEFINE_AS_GLOBAL_VAR = "defineGlobalVar";
-    public static String DEFINE_AS_VAR = "defineVar";
+    public static String DEFINE_AS_GLOBAL_VAR = "defineAsGlobalVar";
+    public static String DEFINE_AS_VAR = "defineAsVar";
     public static String EXECUTE_EXPRESSION = "executeExpression";
     public static String INDEX_NAMES = "indexNames";
     public static String LOOKUP = "lookup";
