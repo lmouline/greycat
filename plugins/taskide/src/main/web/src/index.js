@@ -92,6 +92,7 @@ const LoadingButton = React.createClass({
         let task = global.org.mwg.core.task.Actions.newTask();
         try {
             task.parse(global.context.code, window.context.graph);
+            console.log(task.toString());
             global.context.ws.executeTasks(function (results) {
                 let targetDomElem = document.getElementById("json_result");
                 while (targetDomElem.firstChild) {

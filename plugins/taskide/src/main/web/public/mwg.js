@@ -11497,7 +11497,9 @@ var org;
                         var castedAction = this._then;
                         var castedActionHash = castedAction.hashCode();
                         if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                            builder.append(org.mwg.Constants.SUB_TASK_OPEN);
                             castedAction.serialize(builder, dagIDS);
+                            builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
                         }
                         else {
                             builder.append("" + dagIDS.get(castedActionHash));
@@ -11579,7 +11581,9 @@ var org;
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
                         if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                            builder.append(org.mwg.Constants.SUB_TASK_OPEN);
                             castedAction.serialize(builder, dagIDS);
+                            builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
                         }
                         else {
                             builder.append("" + dagIDS.get(castedActionHash));
@@ -11660,7 +11664,9 @@ var org;
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
                         if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                            builder.append(org.mwg.Constants.SUB_TASK_OPEN);
                             castedAction.serialize(builder, dagIDS);
+                            builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
                         }
                         else {
                             builder.append("" + dagIDS.get(castedActionHash));
@@ -11727,7 +11733,9 @@ var org;
                         var castedAction = this._action;
                         var castedActionHash = castedAction.hashCode();
                         if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                            builder.append(org.mwg.Constants.SUB_TASK_OPEN);
                             castedAction.serialize(builder, dagIDS);
+                            builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
                         }
                         else {
                             builder.append("" + dagIDS.get(castedActionHash));
@@ -11801,7 +11809,9 @@ var org;
                         var castedSubThen = this._thenSub;
                         var castedSubThenHash = castedSubThen.hashCode();
                         if (dagIDS == null || !dagIDS.containsKey(castedSubThenHash)) {
+                            builder.append(org.mwg.Constants.SUB_TASK_OPEN);
                             castedSubThen.serialize(builder, dagIDS);
+                            builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
                         }
                         else {
                             builder.append("" + dagIDS.get(castedSubThenHash));
@@ -11810,7 +11820,9 @@ var org;
                         var castedSubElse = this._elseSub;
                         var castedSubElseHash = castedSubElse.hashCode();
                         if (dagIDS == null || !dagIDS.containsKey(castedSubElseHash)) {
+                            builder.append(org.mwg.Constants.SUB_TASK_OPEN);
                             castedSubElse.serialize(builder, dagIDS);
+                            builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
                         }
                         else {
                             builder.append("" + dagIDS.get(castedSubElseHash));
@@ -11864,7 +11876,9 @@ var org;
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
                         if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                            builder.append(org.mwg.Constants.SUB_TASK_OPEN);
                             castedAction.serialize(builder, dagIDS);
+                            builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
                         }
                         else {
                             builder.append("" + dagIDS.get(castedActionHash));
@@ -11948,7 +11962,9 @@ var org;
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
                         if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                            builder.append(org.mwg.Constants.SUB_TASK_OPEN);
                             castedAction.serialize(builder, dagIDS);
+                            builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
                         }
                         else {
                             builder.append("" + dagIDS.get(castedActionHash));
@@ -12032,7 +12048,9 @@ var org;
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
                         if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                            builder.append(org.mwg.Constants.SUB_TASK_OPEN);
                             castedAction.serialize(builder, dagIDS);
+                            builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
                         }
                         else {
                             builder.append("" + dagIDS.get(castedActionHash));
@@ -12141,7 +12159,9 @@ var org;
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
                         if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                            builder.append(org.mwg.Constants.SUB_TASK_OPEN);
                             castedAction.serialize(builder, dagIDS);
+                            builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
                         }
                         else {
                             builder.append("" + dagIDS.get(castedActionHash));
@@ -12237,7 +12257,9 @@ var org;
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
                         if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                            builder.append(org.mwg.Constants.SUB_TASK_OPEN);
                             castedAction.serialize(builder, dagIDS);
+                            builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
                         }
                         else {
                             builder.append("" + dagIDS.get(castedActionHash));
@@ -12328,7 +12350,9 @@ var org;
                             var castedAction = this._subTasks[i];
                             var castedActionHash = castedAction.hashCode();
                             if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                                builder.append(org.mwg.Constants.SUB_TASK_OPEN);
                                 castedAction.serialize(builder, dagIDS);
+                                builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
                             }
                             else {
                                 builder.append("" + dagIDS.get(castedActionHash));
@@ -12424,7 +12448,9 @@ var org;
                             var castedAction = this._subTasks[i];
                             var castedActionHash = castedAction.hashCode();
                             if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                                builder.append(org.mwg.Constants.SUB_TASK_OPEN);
                                 castedAction.serialize(builder, dagIDS);
+                                builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
                             }
                             else {
                                 builder.append("" + dagIDS.get(castedActionHash));
@@ -12523,7 +12549,9 @@ var org;
                         var castedAction = this._then;
                         var castedActionHash = castedAction.hashCode();
                         if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                            builder.append(org.mwg.Constants.SUB_TASK_OPEN);
                             castedAction.serialize(builder, dagIDS);
+                            builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
                         }
                         else {
                             builder.append("" + dagIDS.get(castedActionHash));
@@ -14015,7 +14043,7 @@ var org;
                                 console.error(e);
                             }
                             if (this._output != null) {
-                                console.log(this._output);
+                                console.log(this._output.toString());
                             }
                             if (this._result != null) {
                                 this._result.free();

@@ -130,8 +130,7 @@ public class WSServer implements WebSocketConnectionCallback {
                             t.loadFromBuffer(it.next(), graph);
                             tasks.add(t);
                         } catch (Exception e) {
-                            e.printStackTrace();
-                            tasks.add(new TaskError(t, e.getMessage()));
+                            tasks.add(Actions.emptyResult().setException(e));
                         }
                     }
                     final TaskResult[] results = new TaskResult[tasks.size()];
@@ -157,7 +156,7 @@ public class WSServer implements WebSocketConnectionCallback {
                     for (int i = 0; i < tasks.size(); i++) {
                         int finalI = i;
                         Object elem = tasks.get(i);
-                        if (elem instanceof TaskError) {
+                        if (elem instanceof TaskResult) {
                             results[finalI] = (TaskResult) elem;
                             counter.count();
                         } else {

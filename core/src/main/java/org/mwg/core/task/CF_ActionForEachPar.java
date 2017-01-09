@@ -79,20 +79,22 @@ class CF_ActionForEachPar extends CF_Action {
     }
 
     @Override
-    public Task[] children() {
+    public final Task[] children() {
         Task[] children_tasks = new Task[1];
         children_tasks[0] = _subTask;
         return children_tasks;
     }
 
     @Override
-    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
+    public final void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
         builder.append(ActionNames.FOR_EACH_PAR);
         builder.append(Constants.TASK_PARAM_OPEN);
         final CoreTask castedAction = (CoreTask) _subTask;
         final int castedActionHash = castedAction.hashCode();
         if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+            builder.append(Constants.SUB_TASK_OPEN);
             castedAction.serialize(builder, dagIDS);
+            builder.append(Constants.SUB_TASK_CLOSE);
         } else {
             builder.append("" + dagIDS.get(castedActionHash));
         }

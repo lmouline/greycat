@@ -433,7 +433,7 @@ class CoreTaskContext implements TaskContext {
                 e.printStackTrace();
             }
             if (_output != null) {
-                System.out.print(_output);
+                System.out.print(_output.toString());
             }
             if (this._result != null) {
                 this._result.free();

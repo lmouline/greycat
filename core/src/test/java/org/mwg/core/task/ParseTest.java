@@ -24,16 +24,16 @@ public class ParseTest extends AbstractActionTest {
     public void testSubTask() {
         initGraph();
         Task t = newTask().parse("travelInTime(0).travelInWorld(0).readGlobalIndex(nodes).loop(0,3,{ println('->{{i}}') })", graph);
-        Assert.assertEquals("travelInTime(0).travelInTime(0).readGlobalIndex('nodes').loop('0','3',println('->{{i}}'))", t.toString());
+        Assert.assertEquals("travelInTime(0).travelInTime(0).readGlobalIndex('nodes').loop('0','3',{println('->{{i}}')})", t.toString());
 
         //t.execute(graph, null);
 
         Task t2 = newTask().parse("travelInTime(0).travelInWorld(0).readGlobalIndex(nodes).loopPar(0,3,{ println('->{{i}}') })", graph);
-        Assert.assertEquals("travelInTime(0).travelInTime(0).readGlobalIndex('nodes').loopPar('0','3',println('->{{i}}'))", t2.toString());
+        Assert.assertEquals("travelInTime(0).travelInTime(0).readGlobalIndex('nodes').loopPar('0','3',{println('->{{i}}')})", t2.toString());
 
-        Task t3 = newTask().parse("travelInTime(0).travelInWorld(0).readGlobalIndex(nodes).ifThen('ctx.result().size() > 0', { println('{{result[0]}}') })", graph);
+        Task t3 = newTask().parse("travelInTime(0).travelInWorld(0).readGlobalIndex(nodes).ifThen('ctx.result().size() > 0', {println('{{result[0]}}')})", graph);
         //t3.execute(graph,null);
-        Assert.assertEquals("travelInTime(0).travelInTime(0).readGlobalIndex('nodes').ifThen('ctx.result().size() > 0',println('{{result[0]}}'))", t3.toString());
+        Assert.assertEquals("travelInTime(0).travelInTime(0).readGlobalIndex('nodes').ifThen('ctx.result().size() > 0',{println('{{result[0]}}')})", t3.toString());
 
         removeGraph();
     }
@@ -66,5 +66,28 @@ public class ParseTest extends AbstractActionTest {
         removeGraph();
     }
 
+
+    @Test
+    public void testEscape() {
+        initGraph();
+        Task t = newTask();
+        t.parse("readGlobalIndex('nodes').select('node.get(\\'name\\')==\"root\"')", graph);
+        Assert.assertEquals("readGlobalIndex('nodes').select('node.get(\\'name\\')==\"root\"')", t.toString());
+        //t.execute(graph, null);
+        removeGraph();
+    }
+
+    @Test
+    public void testForEach() {
+        initGraph();
+        Task t = newTask();
+        t.parse("readGlobalIndex('nodes').forEach({println('result')})", graph);
+        Task t2 = newTask().readGlobalIndex("nodes").forEach(newTask().println("result"));
+        Assert.assertEquals(t2.toString(), t.toString());
+        Assert.assertEquals("readGlobalIndex('nodes').forEach({println('result')})", t.toString());
+        // t2.execute(graph, null);
+
+        removeGraph();
+    }
 
 }

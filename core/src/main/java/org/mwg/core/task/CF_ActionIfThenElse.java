@@ -80,7 +80,9 @@ class CF_ActionIfThenElse extends CF_Action {
         CoreTask castedSubThen = (CoreTask) _thenSub;
         int castedSubThenHash = castedSubThen.hashCode();
         if (dagIDS == null || !dagIDS.containsKey(castedSubThenHash)) {
+            builder.append(Constants.SUB_TASK_OPEN);
             castedSubThen.serialize(builder, dagIDS);
+            builder.append(Constants.SUB_TASK_CLOSE);
         } else {
             builder.append("" + dagIDS.get(castedSubThenHash));
         }
@@ -88,7 +90,9 @@ class CF_ActionIfThenElse extends CF_Action {
         CoreTask castedSubElse = (CoreTask) _elseSub;
         int castedSubElseHash = castedSubElse.hashCode();
         if (dagIDS == null || !dagIDS.containsKey(castedSubElseHash)) {
+            builder.append(Constants.SUB_TASK_OPEN);
             castedSubElse.serialize(builder, dagIDS);
+            builder.append(Constants.SUB_TASK_CLOSE);
         } else {
             builder.append("" + dagIDS.get(castedSubElseHash));
         }

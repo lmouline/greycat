@@ -76,7 +76,9 @@ class CF_ActionDoWhile extends CF_Action {
         final CoreTask castedAction = (CoreTask) _then;
         final int castedActionHash = castedAction.hashCode();
         if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+            builder.append(Constants.SUB_TASK_OPEN);
             castedAction.serialize(builder, dagIDS);
+            builder.append(Constants.SUB_TASK_CLOSE);
         } else {
             builder.append("" + dagIDS.get(castedActionHash));
         }
