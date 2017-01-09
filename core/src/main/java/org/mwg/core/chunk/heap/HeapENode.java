@@ -6,6 +6,7 @@ import org.mwg.Type;
 import org.mwg.base.BaseExternalAttribute;
 import org.mwg.base.BaseNode;
 import org.mwg.core.CoreConstants;
+import org.mwg.plugin.NodeStateCallback;
 import org.mwg.plugin.Resolver;
 import org.mwg.struct.*;
 import org.mwg.utility.Base64;
@@ -117,6 +118,18 @@ class HeapENode implements ENode {
     private int[] _hash;
     private byte[] _type;
     private boolean _dirty;
+
+    @Override
+    public ENode clear() {
+        _capacity = 0;
+        _size = 0;
+        _k = null;
+        _v = null;
+        _next = null;
+        _hash = null;
+        _type = null;
+        return this;
+    }
 
     private void declareDirty() {
         if (!_dirty) {
@@ -1160,6 +1173,15 @@ class HeapENode implements ENode {
             case Type.ENODE:
                 internal_set(read_key, read_type, egraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true), true, initial);
                 break;
+        }
+    }
+
+    @Override
+    public final void each(final NodeStateCallback callBack) {
+        for (int i = 0; i < _size; i++) {
+            if (_v[i] != null) {
+                callBack.on(_k[i], _type[i], _v[i]);
+            }
         }
     }
 

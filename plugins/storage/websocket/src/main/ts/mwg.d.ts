@@ -870,6 +870,7 @@ declare module org {
                         private _nodes_index;
                         constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapEGraph, p_graph: org.mwg.Graph);
                         size(): number;
+                        free(): void;
                         allocate(newCapacity: number): void;
                         nodeByIndex(index: number, createIfAbsent: boolean): org.mwg.core.chunk.heap.HeapENode;
                         declareDirty(): void;
@@ -898,6 +899,7 @@ declare module org {
                         private static LOAD_WAITING_KEY;
                         private static LOAD_WAITING_VALUE;
                         constructor(p_chunk: org.mwg.core.chunk.heap.HeapStateChunk, p_egraph: org.mwg.core.chunk.heap.HeapEGraph, p_graph: org.mwg.Graph, p_id: number, origin: org.mwg.core.chunk.heap.HeapENode);
+                        clear(): org.mwg.struct.ENode;
                         private declareDirty();
                         rebase(): void;
                         private allocate(newCapacity);
@@ -916,6 +918,7 @@ declare module org {
                         save(buffer: org.mwg.struct.Buffer): void;
                         load(buffer: org.mwg.struct.Buffer, currentCursor: number, p_parent: org.mwg.core.chunk.heap.HeapStateChunk): number;
                         private load_primitive(read_key, read_type, buffer, previous, cursor, initial);
+                        each(callBack: org.mwg.plugin.NodeStateCallback): void;
                     }
                     class HeapERelation implements org.mwg.struct.ERelation {
                         private _back;
@@ -2253,6 +2256,7 @@ declare module org {
                 setRoot(eNode: org.mwg.struct.ENode): org.mwg.struct.EGraph;
                 drop(eNode: org.mwg.struct.ENode): org.mwg.struct.EGraph;
                 size(): number;
+                free(): void;
             }
             interface ENode {
                 set(name: string, type: number, value: any): org.mwg.struct.ENode;
@@ -2263,6 +2267,8 @@ declare module org {
                 getOrCreateAt(key: number, type: number): any;
                 drop(): void;
                 graph(): org.mwg.struct.EGraph;
+                each(callBack: org.mwg.plugin.NodeStateCallback): void;
+                clear(): org.mwg.struct.ENode;
             }
             interface ERelation {
                 nodes(): org.mwg.struct.ENode[];

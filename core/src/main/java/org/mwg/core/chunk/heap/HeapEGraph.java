@@ -15,8 +15,8 @@ class HeapEGraph implements EGraph {
 
     private final Graph _graph;
     private final HeapStateChunk parent;
-    boolean _dirty;
 
+    boolean _dirty;
     HeapENode[] _nodes = null;
     private int _nodes_capacity = 0;
     private int _nodes_index = 0;
@@ -42,6 +42,13 @@ class HeapEGraph implements EGraph {
     @Override
     public final int size() {
         return _nodes_index;
+    }
+
+    @Override
+    public void free() {
+        _nodes = null;
+        _nodes_capacity = 0;
+        _nodes_index = 0;
     }
 
     final void allocate(int newCapacity) {

@@ -12,4 +12,6 @@ public interface EGraph {
 
     int size();
 
+    void free();
+
 }

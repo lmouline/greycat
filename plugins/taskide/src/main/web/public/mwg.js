@@ -4414,6 +4414,11 @@ var org;
                         HeapEGraph.prototype.size = function () {
                             return this._nodes_index;
                         };
+                        HeapEGraph.prototype.free = function () {
+                            this._nodes = null;
+                            this._nodes_capacity = 0;
+                            this._nodes_index = 0;
+                        };
                         HeapEGraph.prototype.allocate = function (newCapacity) {
                             var closePowerOfTwo = Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
                             if (closePowerOfTwo > this._nodes_capacity) {
@@ -4622,6 +4627,16 @@ var org;
                                 this._size = 0;
                             }
                         }
+                        HeapENode.prototype.clear = function () {
+                            this._capacity = 0;
+                            this._size = 0;
+                            this._k = null;
+                            this._v = null;
+                            this._next = null;
+                            this._hash = null;
+                            this._type = null;
+                            return this;
+                        };
                         HeapENode.prototype.declareDirty = function () {
                             if (!this._dirty) {
                                 this._dirty = true;
@@ -5641,6 +5656,13 @@ var org;
                                 case org.mwg.Type.ENODE:
                                     this.internal_set(read_key, read_type, this.egraph.nodeByIndex(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor), true), true, initial);
                                     break;
+                            }
+                        };
+                        HeapENode.prototype.each = function (callBack) {
+                            for (var i = 0; i < this._size; i++) {
+                                if (this._v[i] != null) {
+                                    callBack(this._k[i], this._type[i], this._v[i]);
+                                }
                             }
                         };
                         return HeapENode;
@@ -11457,7 +11479,7 @@ var org;
                                     if (previous != null) {
                                         previous.free();
                                     }
-                                    selfPointer._then.executeFrom(ctx, ctx._result, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+                                    selfPointer._then.executeFrom(ctx, coreTaskContext._result, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
                                 }
                                 else {
                                     if (previous != null) {
@@ -12409,7 +12431,7 @@ var org;
                                     if (previous != null) {
                                         previous.free();
                                     }
-                                    selfPointer._then.executeFrom(ctx, ctx.result(), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+                                    selfPointer._then.executeFrom(ctx, coreTaskContext._result, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
                                 }
                                 else {
                                     if (previous != null) {

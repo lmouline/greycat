@@ -1,5 +1,7 @@
 package org.mwg.struct;
 
+import org.mwg.plugin.NodeStateCallback;
+
 public interface ENode {
 
     ENode set(String name, byte type, Object value);
@@ -17,5 +19,9 @@ public interface ENode {
     void drop();
 
     EGraph graph();
+
+    void each(final NodeStateCallback callBack);
+
+    ENode clear();
 
 }
