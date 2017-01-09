@@ -30,15 +30,23 @@ class CF_ActionForEach extends CF_Action {
                 @Override
                 public void on(final TaskResult res) {
                     //we don't keep result
+                    Exception foundException = null;
                     if (res != null) {
                         if (res.output() != null) {
                             ctx.append(res.output());
                         }
+                        if (res.exception() != null) {
+                            foundException = res.exception();
+                        }
                         res.free();
                     }
                     final Tuple<Integer, Object> nextResult = it.nextWithIndex();
-                    if (nextResult == null) {
-                        ctx.continueTask();
+                    if (nextResult == null || foundException != null) {
+                        if (foundException != null) {
+                            ctx.endTask(null, foundException);
+                        } else {
+                            ctx.continueTask();
+                        }
                     } else {
                         selfPointer._subTask.executeFromUsing(ctx, ctx.wrap(nextResult.right()), SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
                             @Override

@@ -30,12 +30,16 @@ class CF_ActionDoWhile extends CF_Action {
             public void on(final TaskResult res) {
                 final TaskResult previous = coreTaskContext._result;
                 coreTaskContext._result = res;
-                if(res != null){
+                Exception foundException = null;
+                if (res != null) {
                     if (res.output() != null) {
                         ctx.append(res.output());
                     }
+                    if (res.exception() != null) {
+                        foundException = res.exception();
+                    }
                 }
-                if (_cond.eval(ctx)) {
+                if (_cond.eval(ctx) && foundException == null) {
                     if (previous != null) {
                         previous.free();
                     }
@@ -44,7 +48,11 @@ class CF_ActionDoWhile extends CF_Action {
                     if (previous != null) {
                         previous.free();
                     }
-                    ctx.continueWith(res);
+                    if (foundException != null) {
+                        ctx.endTask(res, foundException);
+                    } else {
+                        ctx.continueWith(res);
+                    }
                 }
             }
         };
@@ -73,7 +81,7 @@ class CF_ActionDoWhile extends CF_Action {
             builder.append("" + dagIDS.get(castedActionHash));
         }
         builder.append(Constants.TASK_PARAM_SEP);
-        TaskHelper.serializeString(_conditionalScript, builder,true);
+        TaskHelper.serializeString(_conditionalScript, builder, true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

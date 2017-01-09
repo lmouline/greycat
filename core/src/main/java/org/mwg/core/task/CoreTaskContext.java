@@ -338,7 +338,7 @@ class CoreTaskContext implements TaskContext {
             nextAction = _origin.actions[cursor];
         }
         if (nextAction == null) {
-            end_task(null);
+            endTask(null, null);
         } else {
             if (_hooks != null) {
                 for (int i = 0; i < _hooks.length; i++) {
@@ -355,7 +355,7 @@ class CoreTaskContext implements TaskContext {
                 nextAction.eval(this);
             } catch (Exception e) {
                 if (cursor == previousCursot) {
-                    end_task(e);
+                    endTask(null, e);
                 } else {
                     e.printStackTrace();
                 }
@@ -363,7 +363,15 @@ class CoreTaskContext implements TaskContext {
         }
     }
 
-    private void end_task(Exception e) {
+    @Override
+    public void endTask(final TaskResult preFinalResult, final Exception e) {
+        if (preFinalResult != null) {
+            if (_result != null) {
+                _result.free();
+            }
+            _result = preFinalResult;
+        }
+
         final TaskHook[] globalHooks = this._graph.taskHooks();
         /* Clean */
         if (this._localVariables != null) {
@@ -411,13 +419,13 @@ class CoreTaskContext implements TaskContext {
                 if (_result == null) {
                     _result = new CoreTaskResult(null, false);
                 }
-                ((CoreTaskResult) _result)._exception = e;
+                _result.setException(e);
             }
             if (_output != null) {
                 if (_result == null) {
                     _result = new CoreTaskResult(null, false);
                 }
-                ((CoreTaskResult) _result)._output = _output.toString();
+                _result.setOutput(_output.toString());
             }
             this._callback.on(_result);
         } else {
@@ -461,7 +469,7 @@ class CoreTaskContext implements TaskContext {
             current.eval(this);
         } catch (Exception e) {
             if (cursor == 0) {
-                end_task(e);
+                endTask(null, e);
             } else {
                 e.printStackTrace();
             }

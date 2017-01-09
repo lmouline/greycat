@@ -35,6 +35,18 @@ class CoreTaskResult<A> implements TaskResult<A> {
         return _output;
     }
 
+    @Override
+    public final TaskResult<A> setException(Exception e) {
+        _exception = e;
+        return this;
+    }
+
+    @Override
+    public final TaskResult<A> setOutput(String output) {
+        _output = output;
+        return this;
+    }
+
     CoreTaskResult(Object toWrap, boolean protect) {
         if (toWrap instanceof Object[]) {
             Object[] castedToWrap = (Object[]) toWrap;

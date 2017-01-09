@@ -28,4 +28,8 @@ public interface TaskResult<A> {
 
     String output();
 
+    TaskResult<A> setException(Exception e);
+
+    TaskResult<A> setOutput(String output);
+
 }

@@ -9737,7 +9737,7 @@ var org;
                             builder.append(org.mwg.core.task.ActionNames.ADD_TO_GLOBAL_INDEX);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                         org.mwg.core.task.TaskHelper.serializeStringParams(this._attributes, builder);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
@@ -9800,9 +9800,9 @@ var org;
                             builder.append(org.mwg.core.task.ActionNames.REMOVE_VAR_TO_RELATION);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeString(this._varFrom, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._varFrom, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                         org.mwg.core.task.TaskHelper.serializeStringParams(this._attributes, builder);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
@@ -9835,7 +9835,7 @@ var org;
                     ActionAddToVar.prototype.serialize = function (builder) {
                         builder.append(org.mwg.core.task.ActionNames.ADD_TO_VAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionAddToVar.prototype.toString = function () {
@@ -9941,7 +9941,7 @@ var org;
                         else {
                             builder.append(org.mwg.core.task.ActionNames.CREATE_TYPED_NODE);
                             builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                            org.mwg.core.task.TaskHelper.serializeString(this._typeNode, builder);
+                            org.mwg.core.task.TaskHelper.serializeString(this._typeNode, builder, true);
                             builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                         }
                     };
@@ -9978,7 +9978,7 @@ var org;
                             builder.append(org.mwg.core.task.ActionNames.DECLARE_VAR);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionDeclareVar.prototype.toString = function () {
@@ -10014,7 +10014,7 @@ var org;
                             builder.append(org.mwg.core.task.ActionNames.DEFINE_AS_VAR);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionDefineAsVar.prototype.toString = function () {
@@ -10054,7 +10054,7 @@ var org;
                     ActionExecuteExpression.prototype.serialize = function (builder) {
                         builder.append(org.mwg.core.task.ActionNames.EXECUTE_EXPRESSION);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._expression, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._expression, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionExecuteExpression.prototype.toString = function () {
@@ -10122,7 +10122,7 @@ var org;
                     ActionLookup.prototype.serialize = function (builder) {
                         builder.append(org.mwg.core.task.ActionNames.LOOKUP);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._id, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._id, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionLookup.prototype.toString = function () {
@@ -10156,7 +10156,7 @@ var org;
                     ActionLookupAll.prototype.serialize = function (builder) {
                         builder.append(org.mwg.core.task.ActionNames.LOOKUP_ALL);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._ids, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._ids, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionLookupAll.prototype.toString = function () {
@@ -10268,10 +10268,10 @@ var org;
                     }
                     ActionPrint.prototype.eval = function (ctx) {
                         if (this._withLineBreak) {
-                            console.log(ctx.template(this._name));
+                            ctx.append(ctx.template(this._name) + '\n');
                         }
                         else {
-                            console.log(ctx.template(this._name));
+                            ctx.append(ctx.template(this._name));
                         }
                         ctx.continueTask();
                     };
@@ -10283,7 +10283,7 @@ var org;
                             builder.append(org.mwg.core.task.ActionNames.PRINT);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionPrint.prototype.toString = function () {
@@ -10331,7 +10331,7 @@ var org;
                     ActionReadGlobalIndex.prototype.serialize = function (builder) {
                         builder.append(org.mwg.core.task.ActionNames.READ_GLOBAL_INDEX);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
                         if (this._params != null && this._params.length > 0) {
                             builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                             org.mwg.core.task.TaskHelper.serializeStringParams(this._params, builder);
@@ -10388,7 +10388,7 @@ var org;
                     ActionReadVar.prototype.serialize = function (builder) {
                         builder.append(org.mwg.core.task.ActionNames.READ_VAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._origin, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._origin, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionReadVar.prototype.toString = function () {
@@ -10420,7 +10420,7 @@ var org;
                     ActionRemove.prototype.serialize = function (builder) {
                         builder.append(org.mwg.core.task.ActionNames.REMOVE);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionRemove.prototype.toString = function () {
@@ -10465,7 +10465,7 @@ var org;
                     ActionScript.prototype.serialize = function (builder) {
                         builder.append(org.mwg.core.task.ActionNames.SCRIPT);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._script, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._script, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionScript.prototype.toString = function () {
@@ -10516,7 +10516,7 @@ var org;
                         }
                         builder.append(org.mwg.core.task.ActionNames.SELECT);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._script, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._script, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionSelect.prototype.toString = function () {
@@ -10654,11 +10654,11 @@ var org;
                             builder.append(org.mwg.core.task.ActionNames.SET_ATTRIBUTE);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                         org.mwg.core.task.TaskHelper.serializeType(this._propertyType, builder);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeString(this._variableNameToSet, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._variableNameToSet, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionSetAttribute.prototype.toString = function () {
@@ -11069,9 +11069,9 @@ var org;
                     ActionWith.prototype.serialize = function (builder) {
                         builder.append(org.mwg.core.task.ActionNames.WITH);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeString(this._patternTemplate, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._patternTemplate, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionWith.prototype.toString = function () {
@@ -11116,9 +11116,9 @@ var org;
                     ActionWithout.prototype.serialize = function (builder) {
                         builder.append(org.mwg.core.task.ActionNames.WITHOUT);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeString(this._patternTemplate, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._patternTemplate, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionWithout.prototype.toString = function () {
@@ -11444,7 +11444,16 @@ var org;
                             {
                                 var previous = coreTaskContext._result;
                                 coreTaskContext._result = res;
-                                if (_this._cond(ctx)) {
+                                var foundException = null;
+                                if (res != null) {
+                                    if (res.output() != null) {
+                                        ctx.append(res.output());
+                                    }
+                                    if (res.exception() != null) {
+                                        foundException = res.exception();
+                                    }
+                                }
+                                if (_this._cond(ctx) && foundException == null) {
                                     if (previous != null) {
                                         previous.free();
                                     }
@@ -11454,7 +11463,12 @@ var org;
                                     if (previous != null) {
                                         previous.free();
                                     }
-                                    ctx.continueWith(res);
+                                    if (foundException != null) {
+                                        ctx.endTask(res, foundException);
+                                    }
+                                    else {
+                                        ctx.continueWith(res);
+                                    }
                                 }
                             }
                         };
@@ -11480,7 +11494,7 @@ var org;
                             builder.append("" + dagIDS.get(castedActionHash));
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeString(this._conditionalScript, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._conditionalScript, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     return CF_ActionDoWhile;
@@ -11504,12 +11518,24 @@ var org;
                             var recursiveAction_1 = new Array(1);
                             recursiveAction_1[0] = function (res) {
                                 {
+                                    var foundException = null;
                                     if (res != null) {
+                                        if (res.output() != null) {
+                                            ctx.append(res.output());
+                                        }
+                                        if (res.exception() != null) {
+                                            foundException = res.exception();
+                                        }
                                         res.free();
                                     }
                                     var nextResult_1 = it_1.nextWithIndex();
-                                    if (nextResult_1 == null) {
-                                        ctx.continueTask();
+                                    if (nextResult_1 == null || foundException != null) {
+                                        if (foundException != null) {
+                                            ctx.endTask(null, foundException);
+                                        }
+                                        else {
+                                            ctx.continueTask();
+                                        }
                                     }
                                     else {
                                         selfPointer._subTask.executeFromUsing(ctx, ctx.wrap(nextResult_1.right()), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
@@ -11582,6 +11608,9 @@ var org;
                                     }, function (result) {
                                         {
                                             if (result != null) {
+                                                if (result.output() != null) {
+                                                    ctx.append(result.output());
+                                                }
                                                 result.free();
                                             }
                                             waiter.count();
@@ -11641,7 +11670,21 @@ var org;
                         if (this._condition(ctx)) {
                             this._action.executeFrom(ctx, ctx.result(), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (res) {
                                 {
-                                    ctx.continueWith(res);
+                                    var foundException = null;
+                                    if (res != null) {
+                                        if (res.output() != null) {
+                                            ctx.append(res.output());
+                                        }
+                                        if (res.exception() != null) {
+                                            foundException = res.exception();
+                                        }
+                                    }
+                                    if (foundException != null) {
+                                        ctx.endTask(res, foundException);
+                                    }
+                                    else {
+                                        ctx.continueWith(res);
+                                    }
                                 }
                             });
                         }
@@ -11660,7 +11703,7 @@ var org;
                         }
                         builder.append(org.mwg.core.task.ActionNames.IF_THEN);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._conditionalScript, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._conditionalScript, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                         var castedAction = this._action;
                         var castedActionHash = castedAction.hashCode();
@@ -11698,6 +11741,11 @@ var org;
                         if (this._condition(ctx)) {
                             this._thenSub.executeFrom(ctx, ctx.result(), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (res) {
                                 {
+                                    if (res != null) {
+                                        if (res.output() != null) {
+                                            ctx.append(res.output());
+                                        }
+                                    }
                                     ctx.continueWith(res);
                                 }
                             });
@@ -11705,6 +11753,11 @@ var org;
                         else {
                             this._elseSub.executeFrom(ctx, ctx.result(), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (res) {
                                 {
+                                    if (res != null) {
+                                        if (res.output() != null) {
+                                            ctx.append(res.output());
+                                        }
+                                    }
                                     ctx.continueWith(res);
                                 }
                             });
@@ -11722,7 +11775,7 @@ var org;
                         }
                         builder.append(org.mwg.core.task.ActionNames.IF_THEN_ELSE);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._conditionalScript, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._conditionalScript, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                         var castedSubThen = this._thenSub;
                         var castedSubThenHash = castedSubThen.hashCode();
@@ -11758,10 +11811,13 @@ var org;
                     }
                     CF_ActionIsolate.prototype.eval = function (ctx) {
                         var previous = ctx.result();
-                        this._subTask.executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (subTaskResult) {
+                        this._subTask.executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
                             {
-                                if (subTaskResult != null) {
-                                    subTaskResult.free();
+                                if (result != null) {
+                                    if (result.output() != null) {
+                                        ctx.append(result.output());
+                                    }
+                                    result.free();
                                 }
                                 ctx.continueWith(previous);
                             }
@@ -11811,6 +11867,9 @@ var org;
                                 {
                                     var current_1 = cursor.getAndIncrement();
                                     if (res != null) {
+                                        if (res.output() != null) {
+                                            ctx.append(res.output());
+                                        }
                                         res.free();
                                     }
                                     if (current_1 > upper) {
@@ -11843,9 +11902,9 @@ var org;
                     CF_ActionLoop.prototype.cf_serialize = function (builder, dagIDS) {
                         builder.append(org.mwg.core.task.ActionNames.LOOP);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._lower, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._lower, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeString(this._upper, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._upper, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
@@ -11875,7 +11934,6 @@ var org;
                         var lower = parseFloat(ctx.template(lowerString));
                         var upper = parseFloat(ctx.template(upperString));
                         var previous = ctx.result();
-                        var next = ctx.newResult();
                         if ((upper - lower) > 0) {
                             var waiter_1 = ctx.graph().newCounter((upper - lower) + 1);
                             var _loop_10 = function (i) {
@@ -11886,10 +11944,11 @@ var org;
                                     }
                                 }, function (result) {
                                     {
-                                        if (result != null && result.size() > 0) {
-                                            for (var i_2 = 0; i_2 < result.size(); i_2++) {
-                                                next.add(result.get(i_2));
+                                        if (result != null) {
+                                            if (result.output() != null) {
+                                                ctx.append(result.output());
                                             }
+                                            result.free();
                                         }
                                         waiter_1.count();
                                     }
@@ -11901,12 +11960,12 @@ var org;
                             }
                             waiter_1.then(function () {
                                 {
-                                    ctx.continueWith(next);
+                                    ctx.continueTask();
                                 }
                             });
                         }
                         else {
-                            ctx.continueWith(next);
+                            ctx.continueTask();
                         }
                     };
                     CF_ActionLoopPar.prototype.children = function () {
@@ -11917,9 +11976,9 @@ var org;
                     CF_ActionLoopPar.prototype.cf_serialize = function (builder, dagIDS) {
                         builder.append(org.mwg.core.task.ActionNames.LOOP_PAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._lower, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._lower, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeString(this._upper, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._upper, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
@@ -11965,6 +12024,9 @@ var org;
                                         }
                                         else {
                                             finalResult_1.add(res);
+                                        }
+                                        if (res.output() != null) {
+                                            ctx.append(res.output());
                                         }
                                     }
                                     loopRes_1[0].free();
@@ -12070,6 +12132,9 @@ var org;
                                                 else {
                                                     finalResult.add(result);
                                                 }
+                                                if (result.output() != null) {
+                                                    ctx.append(result.output());
+                                                }
                                             }
                                             waiter.count();
                                             dequeueJob[0]();
@@ -12148,6 +12213,9 @@ var org;
                                     else {
                                         next.add(result);
                                     }
+                                    if (result.output() != null) {
+                                        ctx.append(result.output());
+                                    }
                                 }
                                 if (current_2 < tasksSize) {
                                     _this._subTasks[current_2].executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, loopcb[0]);
@@ -12216,6 +12284,11 @@ var org;
                             var finalI = i;
                             this_6._subTasks[i].executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (subTaskResult) {
                                 {
+                                    if (subTaskResult != null) {
+                                        if (subTaskResult.output() != null) {
+                                            ctx.append(subTaskResult.output());
+                                        }
+                                    }
                                     next.set(finalI, subTaskResult);
                                     waiter.count();
                                 }
@@ -12312,6 +12385,11 @@ var org;
                             {
                                 var previous = coreTaskContext._result;
                                 coreTaskContext._result = res;
+                                if (res != null) {
+                                    if (res.output() != null) {
+                                        ctx.append(res.output());
+                                    }
+                                }
                                 if (_this._cond(ctx)) {
                                     if (previous != null) {
                                         previous.free();
@@ -12344,7 +12422,7 @@ var org;
                         }
                         builder.append(org.mwg.core.task.ActionNames.WHILE_DO);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._conditionalScript, builder);
+                        org.mwg.core.task.TaskHelper.serializeString(this._conditionalScript, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                         var castedAction = this._then;
                         var castedActionHash = castedAction.hashCode();
@@ -12651,7 +12729,7 @@ var org;
                                     break;
                                 case org.mwg.Constants.TASK_SEP:
                                     if (!isClosed) {
-                                        var getName = reader.extract(previous, cursor);
+                                        var getName = reader.extract(previous, cursor).trim();
                                         this.then(new org.mwg.core.task.ActionTraverseOrAttribute(false, true, getName));
                                     }
                                     actionName = null;
@@ -12806,7 +12884,7 @@ var org;
                                     }
                                 }
                                 else {
-                                    this.then(new org.mwg.core.task.ActionTraverseOrAttribute(false, true, getName));
+                                    this.then(new org.mwg.core.task.ActionTraverseOrAttribute(false, true, getName.trim()));
                                 }
                             }
                         }
@@ -13473,6 +13551,7 @@ var org;
                         this._localVariables = null;
                         this._nextVariables = null;
                         this.cursor = 0;
+                        this._output = null;
                         this._origin = origin;
                         this._hooks = p_hooks;
                         if (parentContext != null) {
@@ -13736,7 +13815,7 @@ var org;
                             nextAction = this._origin.actions[this.cursor];
                         }
                         if (nextAction == null) {
-                            this.end_task(null);
+                            this.endTask(null, null);
                         }
                         else {
                             if (this._hooks != null) {
@@ -13758,7 +13837,7 @@ var org;
                                     var e = $ex$;
                                     {
                                         if (this.cursor == previousCursot) {
-                                            this.end_task(e);
+                                            this.endTask(null, e);
                                         }
                                         else {
                                             console.error(e);
@@ -13771,7 +13850,13 @@ var org;
                             }
                         }
                     };
-                    CoreTaskContext.prototype.end_task = function (e) {
+                    CoreTaskContext.prototype.endTask = function (preFinalResult, e) {
+                        if (preFinalResult != null) {
+                            if (this._result != null) {
+                                this._result.free();
+                            }
+                            this._result = preFinalResult;
+                        }
                         var globalHooks = this._graph.taskHooks();
                         if (this._localVariables != null) {
                             var localValues = this._localVariables.keySet();
@@ -13819,13 +13904,22 @@ var org;
                                 if (this._result == null) {
                                     this._result = new org.mwg.core.task.CoreTaskResult(null, false);
                                 }
-                                this._result._exception = e;
+                                this._result.setException(e);
+                            }
+                            if (this._output != null) {
+                                if (this._result == null) {
+                                    this._result = new org.mwg.core.task.CoreTaskResult(null, false);
+                                }
+                                this._result.setOutput(this._output.toString());
                             }
                             this._callback(this._result);
                         }
                         else {
                             if (e != null) {
                                 console.error(e);
+                            }
+                            if (this._output != null) {
+                                console.log(this._output);
                             }
                             if (this._result != null) {
                                 this._result.free();
@@ -13865,7 +13959,7 @@ var org;
                                 var e = $ex$;
                                 {
                                     if (this.cursor == 0) {
-                                        this.end_task(e);
+                                        this.endTask(null, e);
                                     }
                                     else {
                                         console.error(e);
@@ -14016,6 +14110,12 @@ var org;
                         }
                         return result;
                     };
+                    CoreTaskContext.prototype.append = function (additionalOutput) {
+                        if (this._output == null) {
+                            this._output = new java.lang.StringBuilder();
+                        }
+                        this._output.append(additionalOutput);
+                    };
                     CoreTaskContext.prototype.toString = function () {
                         return "{result:" + this._result.toString() + "}";
                     };
@@ -14059,6 +14159,7 @@ var org;
                         this._capacity = 0;
                         this._size = 0;
                         this._exception = null;
+                        this._output = null;
                         if (Array.isArray(toWrap)) {
                             var castedToWrap = toWrap;
                             this._size = toWrap.length;
@@ -14169,6 +14270,17 @@ var org;
                     CoreTaskResult.prototype.exception = function () {
                         return this._exception;
                     };
+                    CoreTaskResult.prototype.output = function () {
+                        return this._output;
+                    };
+                    CoreTaskResult.prototype.setException = function (e) {
+                        this._exception = e;
+                        return this;
+                    };
+                    CoreTaskResult.prototype.setOutput = function (output) {
+                        this._output = output;
+                        return this;
+                    };
                     CoreTaskResult.prototype.iterator = function () {
                         return new org.mwg.core.task.CoreTaskResultIterator(this._backend);
                     };
@@ -14247,17 +14359,48 @@ var org;
                     };
                     CoreTaskResult.prototype.toJson = function (withContent) {
                         var builder = new java.lang.StringBuilder();
-                        builder.append("[");
-                        for (var i = 0; i < this._size; i++) {
-                            if (i != 0) {
+                        var isFirst = true;
+                        builder.append("{");
+                        if (this._exception != null) {
+                            isFirst = false;
+                            builder.append("\"error\":");
+                            org.mwg.core.task.TaskHelper.serializeString(this._exception.message, builder, false);
+                        }
+                        if (this._output != null) {
+                            if (!isFirst) {
                                 builder.append(",");
                             }
-                            var loop = this._backend[i];
-                            if (loop != null) {
-                                builder.append(loop.toString());
+                            else {
+                                isFirst = false;
                             }
+                            builder.append("\"output\":");
+                            org.mwg.core.task.TaskHelper.serializeString(this._output, builder, false);
                         }
-                        builder.append("]");
+                        if (this._size > 0) {
+                            if (!isFirst) {
+                                builder.append(",");
+                            }
+                            builder.append("\"result\":[");
+                            for (var i = 0; i < this._size; i++) {
+                                if (i != 0) {
+                                    builder.append(",");
+                                }
+                                var loop = this._backend[i];
+                                if (loop != null) {
+                                    var saved = loop.toString();
+                                    if (saved.length > 0) {
+                                        if (saved.charAt(0) == '{' || saved.charAt(0) == '[') {
+                                            builder.append(saved);
+                                        }
+                                        else {
+                                            org.mwg.core.task.TaskHelper.serializeString(saved, builder, false);
+                                        }
+                                    }
+                                }
+                            }
+                            builder.append("]");
+                        }
+                        builder.append("}");
                         return builder.toString();
                     };
                     return CoreTaskResult;
@@ -14338,13 +14481,24 @@ var org;
                     TaskHelper.parseInt = function (s) {
                         return parseInt(s);
                     };
-                    TaskHelper.serializeString = function (param, builder) {
-                        builder.append("\'");
+                    TaskHelper.serializeString = function (param, builder, singleQuote) {
+                        if (singleQuote) {
+                            builder.append("\'");
+                        }
+                        else {
+                            builder.append("\"");
+                        }
                         var escapteActivated = false;
                         var previousIsEscape = false;
                         for (var i = 0; i < param.length; i++) {
                             var current = param.charAt(i);
-                            if (current == '\'') {
+                            if (current == '\r' || current == '\n') {
+                                if (!escapteActivated) {
+                                    escapteActivated = true;
+                                    builder.append(param.substring(0, i));
+                                }
+                            }
+                            else if ((singleQuote && current == '\'') || (!singleQuote && current == '\"')) {
                                 if (!escapteActivated) {
                                     escapteActivated = true;
                                     builder.append(param.substring(0, i));
@@ -14364,7 +14518,12 @@ var org;
                         if (!escapteActivated) {
                             builder.append(param);
                         }
-                        builder.append("\'");
+                        if (singleQuote) {
+                            builder.append("\'");
+                        }
+                        else {
+                            builder.append("\"");
+                        }
                     };
                     TaskHelper.serializeType = function (type, builder) {
                         builder.append(org.mwg.Type.typeName(type));
@@ -14374,7 +14533,7 @@ var org;
                             if (i != 0) {
                                 builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                             }
-                            org.mwg.core.task.TaskHelper.serializeString(params[i], builder);
+                            org.mwg.core.task.TaskHelper.serializeString(params[i], builder, true);
                         }
                     };
                     TaskHelper.serializeNameAndStringParams = function (name, params, builder) {

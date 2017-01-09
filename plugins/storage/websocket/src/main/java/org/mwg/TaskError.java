@@ -83,4 +83,14 @@ public class TaskError implements TaskResult {
     public String output() {
         return null;
     }
+
+    @Override
+    public TaskResult setException(Exception e) {
+        return null;
+    }
+
+    @Override
+    public TaskResult setOutput(String output) {
+        return null;
+    }
 }

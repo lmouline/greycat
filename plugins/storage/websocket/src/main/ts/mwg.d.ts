@@ -1903,6 +1903,7 @@ declare module org {
                     private _origin;
                     private cursor;
                     _hooks: org.mwg.task.TaskHook[];
+                    private _output;
                     constructor(origin: org.mwg.core.task.CoreTask, p_hooks: org.mwg.task.TaskHook[], parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, p_graph: org.mwg.Graph, p_callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>);
                     graph(): org.mwg.Graph;
                     world(): number;
@@ -1932,10 +1933,11 @@ declare module org {
                     resultAsStrings(): org.mwg.task.TaskResult<string>;
                     continueWith(nextResult: org.mwg.task.TaskResult<any>): void;
                     continueTask(): void;
-                    private end_task(e);
+                    endTask(preFinalResult: org.mwg.task.TaskResult<any>, e: Error): void;
                     execute(): void;
                     template(input: string): string;
                     templates(inputs: string[]): string[];
+                    append(additionalOutput: string): void;
                     toString(): string;
                 }
                 class CoreTaskReader {
@@ -1955,8 +1957,12 @@ declare module org {
                     private _capacity;
                     private _size;
                     _exception: Error;
+                    _output: string;
                     asArray(): any[];
                     exception(): Error;
+                    output(): string;
+                    setException(e: Error): org.mwg.task.TaskResult<A>;
+                    setOutput(output: string): org.mwg.task.TaskResult<A>;
                     constructor(toWrap: any, protect: boolean);
                     iterator(): org.mwg.task.TaskResultIterator<any>;
                     get(index: number): A;
@@ -1982,7 +1988,7 @@ declare module org {
                 class TaskHelper {
                     static flatNodes(toFLat: any, strict: boolean): org.mwg.Node[];
                     static parseInt(s: string): number;
-                    static serializeString(param: string, builder: java.lang.StringBuilder): void;
+                    static serializeString(param: string, builder: java.lang.StringBuilder, singleQuote: boolean): void;
                     static serializeType(type: number, builder: java.lang.StringBuilder): void;
                     static serializeStringParams(params: string[], builder: java.lang.StringBuilder): void;
                     static serializeNameAndStringParams(name: string, params: string[], builder: java.lang.StringBuilder): void;
@@ -2454,8 +2460,10 @@ declare module org {
                 resultAsStrings(): org.mwg.task.TaskResult<string>;
                 continueTask(): void;
                 continueWith(nextResult: org.mwg.task.TaskResult<any>): void;
+                endTask(nextResult: org.mwg.task.TaskResult<any>, e: Error): void;
                 template(input: string): string;
                 templates(inputs: string[]): string[];
+                append(additionalOutput: string): void;
             }
             interface TaskFunctionSelect {
                 (node: org.mwg.Node, context: org.mwg.task.TaskContext): boolean;
@@ -2483,6 +2491,9 @@ declare module org {
                 size(): number;
                 asArray(): any[];
                 exception(): Error;
+                output(): string;
+                setException(e: Error): org.mwg.task.TaskResult<A>;
+                setOutput(output: string): org.mwg.task.TaskResult<A>;
             }
             interface TaskResultIterator<A> {
                 next(): A;

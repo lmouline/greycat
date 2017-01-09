@@ -50,6 +50,8 @@ public interface TaskContext {
 
     void continueWith(TaskResult nextResult);
 
+    void endTask(TaskResult nextResult, Exception e);
+
     String template(String input);
 
     String[] templates(String[] inputs);

@@ -32,12 +32,20 @@ class CF_ActionIfThen extends CF_Action {
             _action.executeFrom(ctx, ctx.result(), SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult res) {
-                    if(res != null){
+                    Exception foundException = null;
+                    if (res != null) {
                         if (res.output() != null) {
                             ctx.append(res.output());
                         }
+                        if (res.exception() != null) {
+                            foundException = res.exception();
+                        }
                     }
-                    ctx.continueWith(res);
+                    if (foundException != null) {
+                        ctx.endTask(res, foundException);
+                    } else {
+                        ctx.continueWith(res);
+                    }
                 }
             });
         } else {
@@ -59,7 +67,7 @@ class CF_ActionIfThen extends CF_Action {
         }
         builder.append(ActionNames.IF_THEN);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_conditionalScript, builder,true);
+        TaskHelper.serializeString(_conditionalScript, builder, true);
         builder.append(Constants.TASK_PARAM_SEP);
         final CoreTask castedAction = (CoreTask) _action;
         final int castedActionHash = castedAction.hashCode();

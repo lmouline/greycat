@@ -124,4 +124,14 @@ public class IterableLines implements TaskResult<String> {
         return null;
     }
 
+    @Override
+    public TaskResult<String> setException(Exception e) {
+        return null;
+    }
+
+    @Override
+    public TaskResult<String> setOutput(String output) {
+        return null;
+    }
+
 }
