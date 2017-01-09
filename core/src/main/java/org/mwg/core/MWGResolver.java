@@ -111,100 +111,96 @@ final class MWGResolver implements Resolver {
     @Override
     public final <A extends org.mwg.Node> void lookup(final long world, final long time, final long id, final Callback<A> callback) {
         final MWGResolver selfPointer = this;
-        try {
-            selfPointer._space.getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id, new Callback<Chunk>() {
-                @Override
-                public void on(final Chunk theNodeWorldOrder) {
-                    if (theNodeWorldOrder == null) {
-                        callback.on(null);
-                    } else {
-                        final long closestWorld = selfPointer.resolve_world(globalWorldOrderChunk, (WorldOrderChunk) theNodeWorldOrder, time, world);
-                        selfPointer._space.getOrLoadAndMark(ChunkType.TIME_TREE_CHUNK, closestWorld, Constants.NULL_LONG, id, new Callback<Chunk>() {
-                            @Override
-                            public void on(final Chunk theNodeSuperTimeTree) {
-                                if (theNodeSuperTimeTree == null) {
+        selfPointer._space.getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id, new Callback<Chunk>() {
+            @Override
+            public void on(final Chunk theNodeWorldOrder) {
+                if (theNodeWorldOrder == null) {
+                    callback.on(null);
+                } else {
+                    final long closestWorld = selfPointer.resolve_world(globalWorldOrderChunk, (WorldOrderChunk) theNodeWorldOrder, time, world);
+                    selfPointer._space.getOrLoadAndMark(ChunkType.TIME_TREE_CHUNK, closestWorld, Constants.NULL_LONG, id, new Callback<Chunk>() {
+                        @Override
+                        public void on(final Chunk theNodeSuperTimeTree) {
+                            if (theNodeSuperTimeTree == null) {
+                                selfPointer._space.unmark(theNodeWorldOrder.index());
+                                callback.on(null);
+                            } else {
+                                final long closestSuperTime = ((TimeTreeChunk) theNodeSuperTimeTree).previousOrEqual(time);
+                                if (closestSuperTime == Constants.NULL_LONG) {
+                                    selfPointer._space.unmark(theNodeSuperTimeTree.index());
                                     selfPointer._space.unmark(theNodeWorldOrder.index());
                                     callback.on(null);
-                                } else {
-                                    final long closestSuperTime = ((TimeTreeChunk) theNodeSuperTimeTree).previousOrEqual(time);
-                                    if (closestSuperTime == Constants.NULL_LONG) {
-                                        selfPointer._space.unmark(theNodeSuperTimeTree.index());
-                                        selfPointer._space.unmark(theNodeWorldOrder.index());
-                                        callback.on(null);
-                                        return;
-                                    }
-                                    selfPointer._space.getOrLoadAndMark(ChunkType.TIME_TREE_CHUNK, closestWorld, closestSuperTime, id, new Callback<Chunk>() {
-                                        @Override
-                                        public void on(final Chunk theNodeTimeTree) {
-                                            if (theNodeTimeTree == null) {
+                                    return;
+                                }
+                                selfPointer._space.getOrLoadAndMark(ChunkType.TIME_TREE_CHUNK, closestWorld, closestSuperTime, id, new Callback<Chunk>() {
+                                    @Override
+                                    public void on(final Chunk theNodeTimeTree) {
+                                        if (theNodeTimeTree == null) {
+                                            selfPointer._space.unmark(theNodeSuperTimeTree.index());
+                                            selfPointer._space.unmark(theNodeWorldOrder.index());
+                                            callback.on(null);
+                                        } else {
+                                            final long closestTime = ((TimeTreeChunk) theNodeTimeTree).previousOrEqual(time);
+                                            if (closestTime == Constants.NULL_LONG) {
+                                                selfPointer._space.unmark(theNodeTimeTree.index());
                                                 selfPointer._space.unmark(theNodeSuperTimeTree.index());
                                                 selfPointer._space.unmark(theNodeWorldOrder.index());
                                                 callback.on(null);
-                                            } else {
-                                                final long closestTime = ((TimeTreeChunk) theNodeTimeTree).previousOrEqual(time);
-                                                if (closestTime == Constants.NULL_LONG) {
-                                                    selfPointer._space.unmark(theNodeTimeTree.index());
-                                                    selfPointer._space.unmark(theNodeSuperTimeTree.index());
-                                                    selfPointer._space.unmark(theNodeWorldOrder.index());
-                                                    callback.on(null);
-                                                    return;
-                                                }
-                                                selfPointer._space.getOrLoadAndMark(STATE_CHUNK, closestWorld, closestTime, id, new Callback<Chunk>() {
-                                                    @Override
-                                                    public void on(Chunk theObjectChunk) {
-                                                        if (theObjectChunk == null) {
-                                                            selfPointer._space.unmark(theNodeTimeTree.index());
-                                                            selfPointer._space.unmark(theNodeSuperTimeTree.index());
-                                                            selfPointer._space.unmark(theNodeWorldOrder.index());
-                                                            callback.on(null);
+                                                return;
+                                            }
+                                            selfPointer._space.getOrLoadAndMark(STATE_CHUNK, closestWorld, closestTime, id, new Callback<Chunk>() {
+                                                @Override
+                                                public void on(Chunk theObjectChunk) {
+                                                    if (theObjectChunk == null) {
+                                                        selfPointer._space.unmark(theNodeTimeTree.index());
+                                                        selfPointer._space.unmark(theNodeSuperTimeTree.index());
+                                                        selfPointer._space.unmark(theNodeWorldOrder.index());
+                                                        callback.on(null);
+                                                    } else {
+                                                        WorldOrderChunk castedNodeWorldOrder = (WorldOrderChunk) theNodeWorldOrder;
+                                                        long extraCode = castedNodeWorldOrder.extra();
+                                                        NodeFactory resolvedFactory = null;
+                                                        if (extraCode != Constants.NULL_LONG) {
+                                                            resolvedFactory = ((CoreGraph) selfPointer._graph).factoryByCode(extraCode);
+                                                        }
+                                                        BaseNode resolvedNode;
+                                                        if (resolvedFactory == null) {
+                                                            resolvedNode = new BaseNode(world, time, id, selfPointer._graph);
                                                         } else {
-                                                            WorldOrderChunk castedNodeWorldOrder = (WorldOrderChunk) theNodeWorldOrder;
-                                                            long extraCode = castedNodeWorldOrder.extra();
-                                                            NodeFactory resolvedFactory = null;
-                                                            if (extraCode != Constants.NULL_LONG) {
-                                                                resolvedFactory = ((CoreGraph) selfPointer._graph).factoryByCode(extraCode);
-                                                            }
-                                                            BaseNode resolvedNode;
-                                                            if (resolvedFactory == null) {
-                                                                resolvedNode = new BaseNode(world, time, id, selfPointer._graph);
-                                                            } else {
-                                                                resolvedNode = (BaseNode) resolvedFactory.create(world, time, id, selfPointer._graph);
-                                                            }
-                                                            resolvedNode._dead = false;
-                                                            resolvedNode._index_stateChunk = theObjectChunk.index();
-                                                            resolvedNode._index_superTimeTree = theNodeSuperTimeTree.index();
-                                                            resolvedNode._index_timeTree = theNodeTimeTree.index();
-                                                            resolvedNode._index_worldOrder = theNodeWorldOrder.index();
+                                                            resolvedNode = (BaseNode) resolvedFactory.create(world, time, id, selfPointer._graph);
+                                                        }
+                                                        resolvedNode._dead = false;
+                                                        resolvedNode._index_stateChunk = theObjectChunk.index();
+                                                        resolvedNode._index_superTimeTree = theNodeSuperTimeTree.index();
+                                                        resolvedNode._index_timeTree = theNodeTimeTree.index();
+                                                        resolvedNode._index_worldOrder = theNodeWorldOrder.index();
 
-                                                            if (closestWorld == world && closestTime == time) {
-                                                                resolvedNode._world_magic = -1;
-                                                                resolvedNode._super_time_magic = -1;
-                                                                resolvedNode._time_magic = -1;
-                                                            } else {
-                                                                resolvedNode._world_magic = ((WorldOrderChunk) theNodeWorldOrder).magic();
-                                                                resolvedNode._super_time_magic = ((TimeTreeChunk) theNodeSuperTimeTree).magic();
-                                                                resolvedNode._time_magic = ((TimeTreeChunk) theNodeTimeTree).magic();
-                                                            }
-                                                            //selfPointer._tracker.monitor(resolvedNode);
-                                                            if (callback != null) {
-                                                                final Node casted = resolvedNode;
-                                                                callback.on((A) casted);
-                                                            }
+                                                        if (closestWorld == world && closestTime == time) {
+                                                            resolvedNode._world_magic = -1;
+                                                            resolvedNode._super_time_magic = -1;
+                                                            resolvedNode._time_magic = -1;
+                                                        } else {
+                                                            resolvedNode._world_magic = ((WorldOrderChunk) theNodeWorldOrder).magic();
+                                                            resolvedNode._super_time_magic = ((TimeTreeChunk) theNodeSuperTimeTree).magic();
+                                                            resolvedNode._time_magic = ((TimeTreeChunk) theNodeTimeTree).magic();
+                                                        }
+                                                        //selfPointer._tracker.monitor(resolvedNode);
+                                                        if (callback != null) {
+                                                            final Node casted = resolvedNode;
+                                                            callback.on((A) casted);
                                                         }
                                                     }
-                                                });
-                                            }
+                                                }
+                                            });
                                         }
-                                    });
-                                }
+                                    }
+                                });
                             }
-                        });
-                    }
+                        }
+                    });
                 }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            }
+        });
     }
 
     @Override
