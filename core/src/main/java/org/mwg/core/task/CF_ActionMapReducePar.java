@@ -30,14 +30,19 @@ class CF_ActionMapReducePar extends CF_Action {
         final int subTasksSize = _subTasks.length;
         next.allocate(subTasksSize);
         final DeferCounter waiter = ctx.graph().newCounter(subTasksSize);
+        final Exception[] exceptionDuringTask = new Exception[1];
+        exceptionDuringTask[0] = null;
         for (int i = 0; i < subTasksSize; i++) {
             int finalI = i;
             _subTasks[i].executeFrom(ctx, previous, SchedulerAffinity.ANY_LOCAL_THREAD, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult subTaskResult) {
-                    if(subTaskResult != null){
+                    if (subTaskResult != null) {
                         if (subTaskResult.output() != null) {
                             ctx.append(subTaskResult.output());
+                        }
+                        if (subTaskResult.exception() != null) {
+                            exceptionDuringTask[0] = subTaskResult.exception();
                         }
                     }
                     next.set(finalI, subTaskResult);
@@ -63,7 +68,11 @@ class CF_ActionMapReducePar extends CF_Action {
         waiter.then(new Job() {
             @Override
             public void run() {
-                ctx.continueWith(next);
+                if (exceptionDuringTask[0] != null) {
+                    ctx.endTask(next, exceptionDuringTask[0]);
+                } else {
+                    ctx.continueWith(next);
+                }
             }
         });
     }

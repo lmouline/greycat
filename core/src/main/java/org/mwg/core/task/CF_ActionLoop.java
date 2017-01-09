@@ -39,14 +39,22 @@ class CF_ActionLoop extends CF_Action {
                 @Override
                 public void on(final TaskResult res) {
                     final int current = cursor.getAndIncrement();
+                    Exception exceptionDuringTask = null;
                     if (res != null) {
-                        if(res.output() != null){
+                        if (res.output() != null) {
                             ctx.append(res.output());
+                        }
+                        if (res.exception() != null) {
+                            exceptionDuringTask = res.exception();
                         }
                         res.free();
                     }
-                    if (current > upper) {
-                        ctx.continueTask();
+                    if (current > upper || exceptionDuringTask != null) {
+                        if (exceptionDuringTask != null) {
+                            ctx.endTask(null, exceptionDuringTask);
+                        } else {
+                            ctx.continueTask();
+                        }
                     } else {
                         //recursive call
                         selfPointer._subTask.executeFromUsing(ctx, previous, SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
@@ -80,9 +88,9 @@ class CF_ActionLoop extends CF_Action {
     public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
         builder.append(ActionNames.LOOP);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_lower, builder,true);
+        TaskHelper.serializeString(_lower, builder, true);
         builder.append(Constants.TASK_PARAM_SEP);
-        TaskHelper.serializeString(_upper, builder,true);
+        TaskHelper.serializeString(_upper, builder, true);
         builder.append(Constants.TASK_PARAM_SEP);
         final CoreTask castedAction = (CoreTask) _subTask;
         final int castedActionHash = castedAction.hashCode();

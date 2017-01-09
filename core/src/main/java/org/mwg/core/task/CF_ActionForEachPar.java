@@ -29,6 +29,8 @@ class CF_ActionForEachPar extends CF_Action {
         }
         final DeferCounter waiter = ctx.graph().newCounter(previousSize);
         final Job[] dequeueJob = new Job[1];
+        final Exception[] exceptionDuringTask = new Exception[1];
+        exceptionDuringTask[0] = null;
         dequeueJob[0] = new Job() {
             @Override
             public void run() {
@@ -46,6 +48,9 @@ class CF_ActionForEachPar extends CF_Action {
                                 if (result.output() != null) {
                                     ctx.append(result.output());
                                 }
+                                if (result.exception() != null) {
+                                    exceptionDuringTask[0] = result.exception();
+                                }
                                 result.free();
                             }
                             waiter.count();
@@ -55,6 +60,7 @@ class CF_ActionForEachPar extends CF_Action {
                 }
             }
         };
+        //create max // worker for this forEach
         final int nbThread = ctx.graph().scheduler().workers();
         for (int i = 0; i < nbThread; i++) {
             dequeueJob[0].run();
@@ -62,7 +68,12 @@ class CF_ActionForEachPar extends CF_Action {
         waiter.then(new Job() {
             @Override
             public void run() {
-                ctx.continueTask();
+                if (exceptionDuringTask[0] != null) {
+                    ctx.endTask(null, exceptionDuringTask[0]);
+                } else {
+                    ctx.continueTask();
+                }
+
             }
         });
     }

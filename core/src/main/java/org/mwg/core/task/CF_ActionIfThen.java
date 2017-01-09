@@ -32,17 +32,17 @@ class CF_ActionIfThen extends CF_Action {
             _action.executeFrom(ctx, ctx.result(), SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult res) {
-                    Exception foundException = null;
+                    Exception exceptionDuringTask = null;
                     if (res != null) {
                         if (res.output() != null) {
                             ctx.append(res.output());
                         }
                         if (res.exception() != null) {
-                            foundException = res.exception();
+                            exceptionDuringTask = res.exception();
                         }
                     }
-                    if (foundException != null) {
-                        ctx.endTask(res, foundException);
+                    if (exceptionDuringTask != null) {
+                        ctx.endTask(res, exceptionDuringTask);
                     } else {
                         ctx.continueWith(res);
                     }

@@ -35,6 +35,7 @@ class CF_ActionMap extends CF_Action {
             recursiveAction[0] = new Callback<TaskResult>() {
                 @Override
                 public void on(final TaskResult res) {
+                    Exception exceptionDuringTask = null;
                     if (res != null) {
                         if (_flat) {
                             for (int i = 0; i < res.size(); i++) {
@@ -46,6 +47,9 @@ class CF_ActionMap extends CF_Action {
                         if (res.output() != null) {
                             ctx.append(res.output());
                         }
+                        if (res.exception() != null) {
+                            exceptionDuringTask = res.exception();
+                        }
                     }
                     loopRes[0].free();
                     final Tuple<Integer, Object> nextResult = it.nextWithIndex();
@@ -54,8 +58,12 @@ class CF_ActionMap extends CF_Action {
                     } else {
                         loopRes[0] = null;
                     }
-                    if (nextResult == null) {
-                        ctx.continueWith(finalResult);
+                    if (nextResult == null || exceptionDuringTask != null) {
+                        if (exceptionDuringTask != null) {
+                            ctx.endTask(finalResult, exceptionDuringTask);
+                        } else {
+                            ctx.continueWith(finalResult);
+                        }
                     } else {
                         selfPointer._subTask.executeFromUsing(ctx, loopRes[0], SchedulerAffinity.SAME_THREAD, new Callback<TaskContext>() {
                             @Override

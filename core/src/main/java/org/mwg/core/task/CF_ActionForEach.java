@@ -30,20 +30,20 @@ class CF_ActionForEach extends CF_Action {
                 @Override
                 public void on(final TaskResult res) {
                     //we don't keep result
-                    Exception foundException = null;
+                    Exception exceptionDuringTask = null;
                     if (res != null) {
                         if (res.output() != null) {
                             ctx.append(res.output());
                         }
                         if (res.exception() != null) {
-                            foundException = res.exception();
+                            exceptionDuringTask = res.exception();
                         }
                         res.free();
                     }
                     final Tuple<Integer, Object> nextResult = it.nextWithIndex();
-                    if (nextResult == null || foundException != null) {
-                        if (foundException != null) {
-                            ctx.endTask(null, foundException);
+                    if (nextResult == null || exceptionDuringTask != null) {
+                        if (exceptionDuringTask != null) {
+                            ctx.endTask(null, exceptionDuringTask);
                         } else {
                             ctx.continueTask();
                         }

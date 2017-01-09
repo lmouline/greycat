@@ -28,18 +28,18 @@ class CF_ActionIsolate extends CF_Action {
         _subTask.executeFrom(ctx, previous, SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
             @Override
             public void on(TaskResult result) {
-                Exception foundException = null;
+                Exception exceptionDuringTask = null;
                 if (result != null) {
                     if (result.output() != null) {
                         ctx.append(result.output());
                     }
                     if (result.exception() != null) {
-                        foundException = result.exception();
+                        exceptionDuringTask = result.exception();
                     }
                     result.free();
                 }
-                if (foundException != null) {
-                    ctx.endTask(previous, foundException);
+                if (exceptionDuringTask != null) {
+                    ctx.endTask(previous, exceptionDuringTask);
                 } else {
                     ctx.continueWith(previous);
                 }

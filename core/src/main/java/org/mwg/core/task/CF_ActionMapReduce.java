@@ -32,6 +32,7 @@ class CF_ActionMapReduce extends CF_Action {
         loopcb[0] = new Callback<TaskResult>() {
             @Override
             public void on(final TaskResult result) {
+                Exception exceptionDuringTask = null;
                 final int current = cursor.getAndIncrement();
                 if (result != null) {
                     if (_flat) {
@@ -47,12 +48,19 @@ class CF_ActionMapReduce extends CF_Action {
                     if (result.output() != null) {
                         ctx.append(result.output());
                     }
+                    if (result.exception() != null) {
+                        exceptionDuringTask = result.exception();
+                    }
                 }
-                if (current < tasksSize) {
+                if (current < tasksSize && exceptionDuringTask == null) {
                     _subTasks[current].executeFrom(ctx, previous, SchedulerAffinity.SAME_THREAD, loopcb[0]);
                 } else {
                     //end
-                    ctx.continueWith(next);
+                    if (exceptionDuringTask != null) {
+                        ctx.endTask(next, exceptionDuringTask);
+                    } else {
+                        ctx.continueWith(next);
+                    }
                 }
             }
         };

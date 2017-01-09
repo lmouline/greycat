@@ -33,6 +33,8 @@ class CF_ActionMapPar extends CF_Action {
         finalResult.allocate(previousSize);
         final DeferCounter waiter = ctx.graph().newCounter(previousSize);
         final Job[] dequeueJob = new Job[1];
+        final Exception[] exceptionDuringTask = new Exception[1];
+        exceptionDuringTask[0] = null;
         dequeueJob[0] = new Job() {
             @Override
             public void run() {
@@ -57,6 +59,9 @@ class CF_ActionMapPar extends CF_Action {
                                 if (result.output() != null) {
                                     ctx.append(result.output());
                                 }
+                                if (result.exception() != null) {
+                                    exceptionDuringTask[0] = result.exception();
+                                }
                             }
                             waiter.count();
                             dequeueJob[0].run();
@@ -72,7 +77,11 @@ class CF_ActionMapPar extends CF_Action {
         waiter.then(new Job() {
             @Override
             public void run() {
-                ctx.continueWith(finalResult);
+                if (exceptionDuringTask[0] != null) {
+                    ctx.endTask(finalResult, exceptionDuringTask[0]);
+                } else {
+                    ctx.continueWith(finalResult);
+                }
             }
         });
     }

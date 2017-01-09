@@ -11466,16 +11466,16 @@ var org;
                             {
                                 var previous = coreTaskContext._result;
                                 coreTaskContext._result = res;
-                                var foundException = null;
+                                var exceptionDuringTask = null;
                                 if (res != null) {
                                     if (res.output() != null) {
                                         ctx.append(res.output());
                                     }
                                     if (res.exception() != null) {
-                                        foundException = res.exception();
+                                        exceptionDuringTask = res.exception();
                                     }
                                 }
-                                if (_this._cond(ctx) && foundException == null) {
+                                if (_this._cond(ctx) && exceptionDuringTask == null) {
                                     if (previous != null) {
                                         previous.free();
                                     }
@@ -11485,8 +11485,8 @@ var org;
                                     if (previous != null) {
                                         previous.free();
                                     }
-                                    if (foundException != null) {
-                                        ctx.endTask(res, foundException);
+                                    if (exceptionDuringTask != null) {
+                                        ctx.endTask(res, exceptionDuringTask);
                                     }
                                     else {
                                         ctx.continueWith(res);
@@ -11540,20 +11540,20 @@ var org;
                             var recursiveAction_1 = new Array(1);
                             recursiveAction_1[0] = function (res) {
                                 {
-                                    var foundException = null;
+                                    var exceptionDuringTask = null;
                                     if (res != null) {
                                         if (res.output() != null) {
                                             ctx.append(res.output());
                                         }
                                         if (res.exception() != null) {
-                                            foundException = res.exception();
+                                            exceptionDuringTask = res.exception();
                                         }
                                         res.free();
                                     }
                                     var nextResult_1 = it_1.nextWithIndex();
-                                    if (nextResult_1 == null || foundException != null) {
-                                        if (foundException != null) {
-                                            ctx.endTask(null, foundException);
+                                    if (nextResult_1 == null || exceptionDuringTask != null) {
+                                        if (exceptionDuringTask != null) {
+                                            ctx.endTask(null, exceptionDuringTask);
                                         }
                                         else {
                                             ctx.continueTask();
@@ -11619,6 +11619,8 @@ var org;
                         }
                         var waiter = ctx.graph().newCounter(previousSize);
                         var dequeueJob = new Array(1);
+                        var exceptionDuringTask = new Array(1);
+                        exceptionDuringTask[0] = null;
                         dequeueJob[0] = function () {
                             {
                                 var loop_1 = it.nextWithIndex();
@@ -11632,6 +11634,9 @@ var org;
                                             if (result != null) {
                                                 if (result.output() != null) {
                                                     ctx.append(result.output());
+                                                }
+                                                if (result.exception() != null) {
+                                                    exceptionDuringTask[0] = result.exception();
                                                 }
                                                 result.free();
                                             }
@@ -11648,7 +11653,12 @@ var org;
                         }
                         waiter.then(function () {
                             {
-                                ctx.continueTask();
+                                if (exceptionDuringTask[0] != null) {
+                                    ctx.endTask(null, exceptionDuringTask[0]);
+                                }
+                                else {
+                                    ctx.continueTask();
+                                }
                             }
                         });
                     };
@@ -11692,17 +11702,17 @@ var org;
                         if (this._condition(ctx)) {
                             this._action.executeFrom(ctx, ctx.result(), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (res) {
                                 {
-                                    var foundException = null;
+                                    var exceptionDuringTask = null;
                                     if (res != null) {
                                         if (res.output() != null) {
                                             ctx.append(res.output());
                                         }
                                         if (res.exception() != null) {
-                                            foundException = res.exception();
+                                            exceptionDuringTask = res.exception();
                                         }
                                     }
-                                    if (foundException != null) {
-                                        ctx.endTask(res, foundException);
+                                    if (exceptionDuringTask != null) {
+                                        ctx.endTask(res, exceptionDuringTask);
                                     }
                                     else {
                                         ctx.continueWith(res);
@@ -11769,17 +11779,17 @@ var org;
                         }
                         selectedNextTask.executeFrom(ctx, ctx.result(), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (res) {
                             {
-                                var foundException = null;
+                                var exceptionDuringTask = null;
                                 if (res != null) {
                                     if (res.output() != null) {
                                         ctx.append(res.output());
                                     }
                                     if (res.exception() != null) {
-                                        foundException = res.exception();
+                                        exceptionDuringTask = res.exception();
                                     }
                                 }
-                                if (foundException != null) {
-                                    ctx.endTask(res, foundException);
+                                if (exceptionDuringTask != null) {
+                                    ctx.endTask(res, exceptionDuringTask);
                                 }
                                 else {
                                     ctx.continueWith(res);
@@ -11837,18 +11847,18 @@ var org;
                         var previous = ctx.result();
                         this._subTask.executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
                             {
-                                var foundException = null;
+                                var exceptionDuringTask = null;
                                 if (result != null) {
                                     if (result.output() != null) {
                                         ctx.append(result.output());
                                     }
                                     if (result.exception() != null) {
-                                        foundException = result.exception();
+                                        exceptionDuringTask = result.exception();
                                     }
                                     result.free();
                                 }
-                                if (foundException != null) {
-                                    ctx.endTask(previous, foundException);
+                                if (exceptionDuringTask != null) {
+                                    ctx.endTask(previous, exceptionDuringTask);
                                 }
                                 else {
                                     ctx.continueWith(previous);
@@ -11899,14 +11909,23 @@ var org;
                             recursiveAction_2[0] = function (res) {
                                 {
                                     var current_1 = cursor.getAndIncrement();
+                                    var exceptionDuringTask = null;
                                     if (res != null) {
                                         if (res.output() != null) {
                                             ctx.append(res.output());
                                         }
+                                        if (res.exception() != null) {
+                                            exceptionDuringTask = res.exception();
+                                        }
                                         res.free();
                                     }
-                                    if (current_1 > upper) {
-                                        ctx.continueTask();
+                                    if (current_1 > upper || exceptionDuringTask != null) {
+                                        if (exceptionDuringTask != null) {
+                                            ctx.endTask(null, exceptionDuringTask);
+                                        }
+                                        else {
+                                            ctx.continueTask();
+                                        }
                                     }
                                     else {
                                         selfPointer._subTask.executeFromUsing(ctx, previous, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
@@ -11967,6 +11986,8 @@ var org;
                         var lower = parseFloat(ctx.template(lowerString));
                         var upper = parseFloat(ctx.template(upperString));
                         var previous = ctx.result();
+                        var exceptionDuringTask = new Array(1);
+                        exceptionDuringTask[0] = null;
                         if ((upper - lower) > 0) {
                             var waiter_1 = ctx.graph().newCounter((upper - lower) + 1);
                             var _loop_10 = function (i) {
@@ -11981,6 +12002,9 @@ var org;
                                             if (result.output() != null) {
                                                 ctx.append(result.output());
                                             }
+                                            if (result.exception() != null) {
+                                                exceptionDuringTask[0] = result.exception();
+                                            }
                                             result.free();
                                         }
                                         waiter_1.count();
@@ -11993,7 +12017,12 @@ var org;
                             }
                             waiter_1.then(function () {
                                 {
-                                    ctx.continueTask();
+                                    if (exceptionDuringTask[0] != null) {
+                                        ctx.endTask(null, exceptionDuringTask[0]);
+                                    }
+                                    else {
+                                        ctx.continueTask();
+                                    }
                                 }
                             });
                         }
@@ -12049,6 +12078,7 @@ var org;
                             var loopRes_1 = new Array(1);
                             recursiveAction_3[0] = function (res) {
                                 {
+                                    var exceptionDuringTask = null;
                                     if (res != null) {
                                         if (_this._flat) {
                                             for (var i = 0; i < res.size(); i++) {
@@ -12061,6 +12091,9 @@ var org;
                                         if (res.output() != null) {
                                             ctx.append(res.output());
                                         }
+                                        if (res.exception() != null) {
+                                            exceptionDuringTask = res.exception();
+                                        }
                                     }
                                     loopRes_1[0].free();
                                     var nextResult_2 = it_2.nextWithIndex();
@@ -12070,8 +12103,13 @@ var org;
                                     else {
                                         loopRes_1[0] = null;
                                     }
-                                    if (nextResult_2 == null) {
-                                        ctx.continueWith(finalResult_1);
+                                    if (nextResult_2 == null || exceptionDuringTask != null) {
+                                        if (exceptionDuringTask != null) {
+                                            ctx.endTask(finalResult_1, exceptionDuringTask);
+                                        }
+                                        else {
+                                            ctx.continueWith(finalResult_1);
+                                        }
                                     }
                                     else {
                                         selfPointer._subTask.executeFromUsing(ctx, loopRes_1[0], org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
@@ -12146,6 +12184,8 @@ var org;
                         finalResult.allocate(previousSize);
                         var waiter = ctx.graph().newCounter(previousSize);
                         var dequeueJob = new Array(1);
+                        var exceptionDuringTask = new Array(1);
+                        exceptionDuringTask[0] = null;
                         dequeueJob[0] = function () {
                             {
                                 var loop_2 = it.nextWithIndex();
@@ -12168,6 +12208,9 @@ var org;
                                                 if (result.output() != null) {
                                                     ctx.append(result.output());
                                                 }
+                                                if (result.exception() != null) {
+                                                    exceptionDuringTask[0] = result.exception();
+                                                }
                                             }
                                             waiter.count();
                                             dequeueJob[0]();
@@ -12182,7 +12225,12 @@ var org;
                         }
                         waiter.then(function () {
                             {
-                                ctx.continueWith(finalResult);
+                                if (exceptionDuringTask[0] != null) {
+                                    ctx.endTask(finalResult, exceptionDuringTask[0]);
+                                }
+                                else {
+                                    ctx.continueWith(finalResult);
+                                }
                             }
                         });
                     };
@@ -12233,6 +12281,7 @@ var org;
                         var loopcb = new Array(1);
                         loopcb[0] = function (result) {
                             {
+                                var exceptionDuringTask = null;
                                 var current_2 = cursor.getAndIncrement();
                                 if (result != null) {
                                     if (_this._flat) {
@@ -12249,12 +12298,20 @@ var org;
                                     if (result.output() != null) {
                                         ctx.append(result.output());
                                     }
+                                    if (result.exception() != null) {
+                                        exceptionDuringTask = result.exception();
+                                    }
                                 }
-                                if (current_2 < tasksSize) {
+                                if (current_2 < tasksSize && exceptionDuringTask == null) {
                                     _this._subTasks[current_2].executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, loopcb[0]);
                                 }
                                 else {
-                                    ctx.continueWith(next);
+                                    if (exceptionDuringTask != null) {
+                                        ctx.endTask(next, exceptionDuringTask);
+                                    }
+                                    else {
+                                        ctx.continueWith(next);
+                                    }
                                 }
                             }
                         };
@@ -12313,6 +12370,8 @@ var org;
                         var subTasksSize = this._subTasks.length;
                         next.allocate(subTasksSize);
                         var waiter = ctx.graph().newCounter(subTasksSize);
+                        var exceptionDuringTask = new Array(1);
+                        exceptionDuringTask[0] = null;
                         var _loop_11 = function (i) {
                             var finalI = i;
                             this_6._subTasks[i].executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (subTaskResult) {
@@ -12320,6 +12379,9 @@ var org;
                                     if (subTaskResult != null) {
                                         if (subTaskResult.output() != null) {
                                             ctx.append(subTaskResult.output());
+                                        }
+                                        if (subTaskResult.exception() != null) {
+                                            exceptionDuringTask[0] = subTaskResult.exception();
                                         }
                                     }
                                     next.set(finalI, subTaskResult);
@@ -12348,7 +12410,12 @@ var org;
                         }
                         waiter.then(function () {
                             {
-                                ctx.continueWith(next);
+                                if (exceptionDuringTask[0] != null) {
+                                    ctx.endTask(next, exceptionDuringTask[0]);
+                                }
+                                else {
+                                    ctx.continueWith(next);
+                                }
                             }
                         });
                     };

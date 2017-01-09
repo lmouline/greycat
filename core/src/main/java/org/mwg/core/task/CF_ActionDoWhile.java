@@ -30,16 +30,16 @@ class CF_ActionDoWhile extends CF_Action {
             public void on(final TaskResult res) {
                 final TaskResult previous = coreTaskContext._result;
                 coreTaskContext._result = res;
-                Exception foundException = null;
+                Exception exceptionDuringTask = null;
                 if (res != null) {
                     if (res.output() != null) {
                         ctx.append(res.output());
                     }
                     if (res.exception() != null) {
-                        foundException = res.exception();
+                        exceptionDuringTask = res.exception();
                     }
                 }
-                if (_cond.eval(ctx) && foundException == null) {
+                if (_cond.eval(ctx) && exceptionDuringTask == null) {
                     if (previous != null) {
                         previous.free();
                     }
@@ -48,8 +48,8 @@ class CF_ActionDoWhile extends CF_Action {
                     if (previous != null) {
                         previous.free();
                     }
-                    if (foundException != null) {
-                        ctx.endTask(res, foundException);
+                    if (exceptionDuringTask != null) {
+                        ctx.endTask(res, exceptionDuringTask);
                     } else {
                         ctx.continueWith(res);
                     }
