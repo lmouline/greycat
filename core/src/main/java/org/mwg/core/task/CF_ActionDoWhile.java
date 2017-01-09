@@ -43,7 +43,7 @@ class CF_ActionDoWhile extends CF_Action {
                     if (previous != null) {
                         previous.free();
                     }
-                    selfPointer._then.executeFrom(ctx, ((CoreTaskContext) ctx)._result, SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+                    selfPointer._then.executeFrom(ctx, coreTaskContext._result, SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
                 } else {
                     if (previous != null) {
                         previous.free();

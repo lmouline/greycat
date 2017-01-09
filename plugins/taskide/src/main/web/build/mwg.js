@@ -11738,30 +11738,32 @@ var org;
                         return _this;
                     }
                     CF_ActionIfThenElse.prototype.eval = function (ctx) {
+                        var selectedNextTask;
                         if (this._condition(ctx)) {
-                            this._thenSub.executeFrom(ctx, ctx.result(), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (res) {
-                                {
-                                    if (res != null) {
-                                        if (res.output() != null) {
-                                            ctx.append(res.output());
-                                        }
-                                    }
-                                    ctx.continueWith(res);
-                                }
-                            });
+                            selectedNextTask = this._thenSub;
                         }
                         else {
-                            this._elseSub.executeFrom(ctx, ctx.result(), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (res) {
-                                {
-                                    if (res != null) {
-                                        if (res.output() != null) {
-                                            ctx.append(res.output());
-                                        }
+                            selectedNextTask = this._elseSub;
+                        }
+                        selectedNextTask.executeFrom(ctx, ctx.result(), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (res) {
+                            {
+                                var foundException = null;
+                                if (res != null) {
+                                    if (res.output() != null) {
+                                        ctx.append(res.output());
                                     }
+                                    if (res.exception() != null) {
+                                        foundException = res.exception();
+                                    }
+                                }
+                                if (foundException != null) {
+                                    ctx.endTask(res, foundException);
+                                }
+                                else {
                                     ctx.continueWith(res);
                                 }
-                            });
-                        }
+                            }
+                        });
                     };
                     CF_ActionIfThenElse.prototype.children = function () {
                         var children_tasks = new Array(2);
@@ -11813,13 +11815,22 @@ var org;
                         var previous = ctx.result();
                         this._subTask.executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
                             {
+                                var foundException = null;
                                 if (result != null) {
                                     if (result.output() != null) {
                                         ctx.append(result.output());
                                     }
+                                    if (result.exception() != null) {
+                                        foundException = result.exception();
+                                    }
                                     result.free();
                                 }
-                                ctx.continueWith(previous);
+                                if (foundException != null) {
+                                    ctx.endTask(previous, foundException);
+                                }
+                                else {
+                                    ctx.continueWith(previous);
+                                }
                             }
                         });
                     };
@@ -12383,24 +12394,33 @@ var org;
                         var recursiveAction = new Array(1);
                         recursiveAction[0] = function (res) {
                             {
+                                var foundException = null;
                                 var previous = coreTaskContext._result;
                                 coreTaskContext._result = res;
                                 if (res != null) {
                                     if (res.output() != null) {
                                         ctx.append(res.output());
                                     }
+                                    if (res.exception() != null) {
+                                        foundException = res.exception();
+                                    }
                                 }
-                                if (_this._cond(ctx)) {
+                                if (_this._cond(ctx) && foundException == null) {
                                     if (previous != null) {
                                         previous.free();
                                     }
-                                    selfPointer._then.executeFrom(ctx, ctx._result, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+                                    selfPointer._then.executeFrom(ctx, ctx.result(), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
                                 }
                                 else {
                                     if (previous != null) {
                                         previous.free();
                                     }
-                                    ctx.continueWith(res);
+                                    if (foundException != null) {
+                                        ctx.endTask(res, foundException);
+                                    }
+                                    else {
+                                        ctx.continueWith(res);
+                                    }
                                 }
                             }
                         };
