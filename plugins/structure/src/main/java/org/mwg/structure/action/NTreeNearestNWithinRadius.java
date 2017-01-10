@@ -1,14 +1,10 @@
 package org.mwg.structure.action;
 
 import org.mwg.Callback;
-import org.mwg.Constants;
 import org.mwg.DeferCounter;
 import org.mwg.Node;
-import org.mwg.core.task.TaskHelper;
 import org.mwg.plugin.Job;
-import org.mwg.structure.NTree;
 import org.mwg.structure.tree.KDTree;
-import org.mwg.structure.tree.NDTree;
 import org.mwg.task.*;
 
 public class NTreeNearestNWithinRadius implements Action {
@@ -34,8 +30,8 @@ public class NTreeNearestNWithinRadius implements Action {
             final TaskResultIterator previousResultIt = previousResult.iterator();
             Object iter = previousResultIt.next();
             while (iter != null) {
-                if (iter instanceof KDTree || iter instanceof NDTree) {
-                    ((NTree) iter).nearestNWithinRadius(_key, _n, _radius, new Callback<Node[]>() {
+                if (iter instanceof KDTree ) {
+                    ((KDTree) iter).nearestNWithinRadius(_key, _n, _radius, new Callback<Node[]>() {
                         @Override
                         public void on(Node[] result) {
                             for (int i = 0; i < result.length; i++) {

@@ -10259,6 +10259,7 @@ var org;
                 ActionNames.REMOVE_FROM_GLOBAL_INDEX = "removeFromGlobalIndex";
                 ActionNames.SAVE = "save";
                 ActionNames.SCRIPT = "script";
+                ActionNames.ASYNC_SCRIPT = "asyncScript";
                 ActionNames.SELECT = "select";
                 ActionNames.SET_AS_VAR = "setAsVar";
                 ActionNames.FORCE_ATTRIBUTE = "forceAttribute";
@@ -10482,16 +10483,21 @@ var org;
                 }());
                 task_1.ActionSave = ActionSave;
                 var ActionScript = (function () {
-                    function ActionScript(script) {
+                    function ActionScript(script, async) {
                         this._script = script;
+                        this._async = async;
                     }
                     ActionScript.prototype.eval = function (ctx) {
-                        var print = function (v) { ctx.append(v); };
-                        var println = function (v) { ctx.append(v + "\n"); };
+                        var print = function (v) { ctx.append(v + '\n'); };
                         eval(this._script);
                     };
                     ActionScript.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.SCRIPT);
+                        if (this._async) {
+                            builder.append(org.mwg.core.task.ActionNames.ASYNC_SCRIPT);
+                        }
+                        else {
+                            builder.append(org.mwg.core.task.ActionNames.SCRIPT);
+                        }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         org.mwg.core.task.TaskHelper.serializeString(this._script, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
@@ -11322,7 +11328,10 @@ var org;
                         return new org.mwg.core.task.ActionSave();
                     };
                     Actions.script = function (script) {
-                        return new org.mwg.core.task.ActionScript(script);
+                        return new org.mwg.core.task.ActionScript(script, false);
+                    };
+                    Actions.asyncScript = function (script) {
+                        return new org.mwg.core.task.ActionScript(script, true);
                     };
                     Actions.lookup = function (nodeId) {
                         return new org.mwg.core.task.ActionLookup(nodeId);
@@ -13190,7 +13199,15 @@ var org;
                                 if (params.length != 1) {
                                     throw new Error(org.mwg.core.task.ActionNames.SCRIPT + " action needs one parameter. Received:" + params.length);
                                 }
-                                return new org.mwg.core.task.ActionScript(params[0]);
+                                return new org.mwg.core.task.ActionScript(params[0], false);
+                            }
+                        });
+                        registry.put(org.mwg.core.task.ActionNames.ASYNC_SCRIPT, function (params, contextTasks) {
+                            {
+                                if (params.length != 1) {
+                                    throw new Error(org.mwg.core.task.ActionNames.SCRIPT + " action needs one parameter. Received:" + params.length);
+                                }
+                                return new org.mwg.core.task.ActionScript(params[0], true);
                             }
                         });
                         registry.put(org.mwg.core.task.ActionNames.SELECT, function (params, contextTasks) {
@@ -13669,6 +13686,9 @@ var org;
                     CoreTask.prototype.script = function (script) {
                         return this.then(org.mwg.core.task.Actions.script(script));
                     };
+                    CoreTask.prototype.asyncScript = function (ascript) {
+                        return this.then(org.mwg.core.task.Actions.asyncScript(ascript));
+                    };
                     CoreTask.prototype.lookup = function (nodeId) {
                         return this.then(org.mwg.core.task.Actions.lookup(nodeId));
                     };
@@ -13740,7 +13760,6 @@ var org;
                         for (var i = 0; i < globalKeys.length; i++) {
                             collected.put(globalKeys[i], this._globalVariables.get(globalKeys[i]));
                         }
-                        this.recursive_collect(this, collected);
                         var collectedKeys = collected.keySet().toArray(new Array(collected.size()));
                         var result = new Array(collectedKeys.length);
                         for (var i = 0; i < collectedKeys.length; i++) {
@@ -13750,14 +13769,16 @@ var org;
                     };
                     CoreTaskContext.prototype.recursive_collect = function (ctx, collector) {
                         var localVariables = ctx.localVariables();
-                        var localKeys = localVariables.keySet().toArray(new Array(localVariables.size()));
-                        for (var i = 0; i < localKeys.length; i++) {
-                            if (!collector.containsKey(localKeys[i])) {
-                                collector.put(localKeys[i], localVariables.get(localKeys[i]));
+                        if (localVariables != null) {
+                            var localKeys = localVariables.keySet().toArray(new Array(localVariables.size()));
+                            for (var i = 0; i < localKeys.length; i++) {
+                                if (!collector.containsKey(localKeys[i])) {
+                                    collector.put(localKeys[i], localVariables.get(localKeys[i]));
+                                }
                             }
                         }
-                        if (this._parent != null) {
-                            this.recursive_collect(this._parent, collector);
+                        if (ctx._parent != null) {
+                            this.recursive_collect(ctx._parent, collector);
                         }
                     };
                     CoreTaskContext.prototype.variable = function (name) {

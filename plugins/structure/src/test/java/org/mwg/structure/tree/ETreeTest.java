@@ -37,11 +37,14 @@ public class ETreeTest {
                 Random random = new Random();
                 random.setSeed(125362l);
                 int ins = 100;
+                int test = 10;
                 int nsearch = 3;
 
 
                 Node[] nodes = new Node[ins];
                 double[][] keys = new double[ins][];
+                double[][] keysTest = new double[test][];
+
                 for (int i = 0; i < ins; i++) {
                     //temp.setProperty("value", Type.DOUBLE, random.nextDouble());
                     double[] key = new double[dim];
@@ -51,6 +54,15 @@ public class ETreeTest {
                     keys[i] = key;
                     nodes[i] = graph.newNode(0, 0);
                 }
+
+                for (int i = 0; i < test; i++) {
+                    double[] key = new double[dim];
+                    for (int j = 0; j < dim; j++) {
+                        key[j] = random.nextDouble();
+                    }
+                    keysTest[i] = key;
+                }
+
 
                 long ts = System.currentTimeMillis();
                 for (int i = 0; i < ins; i++) {
@@ -69,11 +81,9 @@ public class ETreeTest {
                 System.out.println("kdTree insert: " + te + " ms");
 
 
-                System.out.println(eTree.numberOfNodes());
-                Assert.assertEquals(eTree.size(),ins);
-                Assert.assertEquals(kdTree.size(),ins);
 
-                long[][] temp = new long[ins][nsearch];
+            /*    long[][] temp = new long[ins][nsearch];
+>>>>>>> Stashed changes
                 ts = System.currentTimeMillis();
                 for (int i = 0; i < ins; i++) {
                     TreeResult res = eTree.nearestN(keys[i], nsearch);
@@ -107,7 +117,44 @@ public class ETreeTest {
                             throw new RuntimeException("Error! "+temp[i][j]+"!="+tempkdtree[i][j]);
                         }
                     }
+                } */
+
+                long[][] temp = new long[test][nsearch];
+                ts = System.currentTimeMillis();
+                for (int i = 0; i < test; i++) {
+                    TreeResult res = eTree.nearestN(keysTest[i], nsearch);
+                    for (int j = 0; j < nsearch; j++) {
+                        temp[i][j] = res.value(j);
+                    }
+                    res.free();
                 }
+                te = System.currentTimeMillis() - ts;
+                System.out.println("eTree get all: " + te + " ms");
+
+                long[][] tempkdtree = new long[test][nsearch];
+                ts = System.currentTimeMillis();
+                for (int i = 0; i < test; i++) {
+                    int finalI = i;
+                    kdTree.nearestN(keysTest[i], nsearch, new Callback<Node[]>() {
+                        @Override
+                        public void on(Node[] result) {
+                            for (int j = 0; j < nsearch; j++) {
+                                tempkdtree[finalI][j] = result[j].id();
+                            }
+                        }
+                    });
+                }
+                te = System.currentTimeMillis() - ts;
+                System.out.println("kdTree get all: " + te + " ms");
+
+                for (int i = 0; i < test; i++) {
+                    for (int j = 0; j < nsearch; j++) {
+                        if (temp[i][j] != tempkdtree[i][j]) {
+                            throw new RuntimeException("Error!");
+                        }
+                    }
+                }
+
                 System.out.println("test pass!");
             }
         });

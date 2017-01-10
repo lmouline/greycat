@@ -571,13 +571,13 @@ public class ETree extends BaseNode implements Tree {
                             for (int j = 0; j < buffer.rows(); j++) {
                                 tempK[j] = bufferkeys.get(j, i) / t;
                             }
-                            checkAndInsert(tempK, t, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
+                            filter(tempK, t, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
                         }
                         return;
                     }
                     case IndexStrategy.INDEX: {
                         for (int i = 0; i < buffer.columns(); i++) {
-                            checkAndInsert(buffer.column(i), bufferValue.get(0, i), target, targetmin, targetmax, targetcenter, distance, radius, nnl);
+                            filter(buffer.column(i), bufferValue.get(0, i), target, targetmin, targetmax, targetcenter, distance, radius, nnl);
                         }
                         return;
 
@@ -597,13 +597,13 @@ public class ETree extends BaseNode implements Tree {
                         for (int i = 0; i < keyo.length; i++) {
                             key[i] = keyo[i] / value;
                         }
-                        checkAndInsert(key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
+                        filter(key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
                         return;
                     }
                     case IndexStrategy.INDEX: {
                         double[] key = (double[]) node.getAt(_PROFILE);
                         long value = (long) node.getAt(_VALUE);
-                        checkAndInsert(key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
+                        filter(key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
                         return;
                     }
                     default: {
@@ -684,7 +684,7 @@ public class ETree extends BaseNode implements Tree {
         return distance.measure(closest, target);
     }
 
-    private static void checkAndInsert(double[] key, long value, double[] target, double[] targetmin, double[] targetmax, double[] targetcenter, Distance distance, double radius, VolatileResult nnl) {
+    private static void filter(double[] key, long value, double[] target, double[] targetmin, double[] targetmax, double[] targetcenter, Distance distance, double radius, VolatileResult nnl) {
         if (targetmin != null) {
             if (checkInsideBounds(key, targetmin, targetmax)) {
                 nnl.insert(key, value, distance.measure(key, targetcenter));

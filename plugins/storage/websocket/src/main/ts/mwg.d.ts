@@ -1454,6 +1454,7 @@ declare module org {
                     static REMOVE_FROM_GLOBAL_INDEX: string;
                     static SAVE: string;
                     static SCRIPT: string;
+                    static ASYNC_SCRIPT: string;
                     static SELECT: string;
                     static SET_AS_VAR: string;
                     static FORCE_ATTRIBUTE: string;
@@ -1522,7 +1523,8 @@ declare module org {
                 }
                 class ActionScript implements org.mwg.task.Action {
                     private _script;
-                    constructor(script: string);
+                    private _async;
+                    constructor(script: string, async: boolean);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
@@ -1648,6 +1650,7 @@ declare module org {
                     static createTypedNode(type: string): org.mwg.task.Action;
                     static save(): org.mwg.task.Action;
                     static script(script: string): org.mwg.task.Action;
+                    static asyncScript(script: string): org.mwg.task.Action;
                     static lookup(nodeId: string): org.mwg.task.Action;
                     static lookupAll(nodeIds: string): org.mwg.task.Action;
                     static timepoints(from: string, to: string): org.mwg.task.Action;
@@ -1888,6 +1891,7 @@ declare module org {
                     createTypedNode(type: string): org.mwg.task.Task;
                     save(): org.mwg.task.Task;
                     script(script: string): org.mwg.task.Task;
+                    asyncScript(ascript: string): org.mwg.task.Task;
                     lookup(nodeId: string): org.mwg.task.Task;
                     lookupAll(nodeIds: string): org.mwg.task.Task;
                     clearResult(): org.mwg.task.Task;
@@ -2436,6 +2440,7 @@ declare module org {
                 createTypedNode(type: string): org.mwg.task.Task;
                 save(): org.mwg.task.Task;
                 script(script: string): org.mwg.task.Task;
+                asyncScript(ascript: string): org.mwg.task.Task;
                 lookup(nodeId: string): org.mwg.task.Task;
                 lookupAll(nodeIds: string): org.mwg.task.Task;
                 clearResult(): org.mwg.task.Task;
