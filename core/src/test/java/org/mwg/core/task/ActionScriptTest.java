@@ -52,7 +52,7 @@ public class ActionScriptTest extends AbstractActionTest {
 
                         System.out.println(result.output());
                         if (result.exception() != null) {
-                            result.exception().printStackTrace();
+                            //result.exception().printStackTrace();
                         }
                         //TODO
                         removeGraph();

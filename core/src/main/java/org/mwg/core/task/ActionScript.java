@@ -23,7 +23,7 @@ public class ActionScript implements Action {
     /**
      * @native ts
      * var print = function(v){ctx.append(v+'\n');};
-     * var variables = ctx.var
+     * var variables = ctx.variables();
      * eval(this._script);
      */
     @Override
