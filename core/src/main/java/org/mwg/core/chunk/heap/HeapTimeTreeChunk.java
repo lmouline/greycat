@@ -232,6 +232,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void reallocate(int newCapacity) {
+        if (_k != null && _k.length <= _size) {
+            return;
+        }
         long[] new_back_kv = new long[newCapacity];
         if (_k != null) {
             System.arraycopy(_k, 0, new_back_kv, 0, _size);
