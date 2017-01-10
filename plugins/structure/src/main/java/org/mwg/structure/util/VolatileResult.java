@@ -1,7 +1,9 @@
 package org.mwg.structure.util;
 
+import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.struct.DMatrix;
+import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
 import org.mwg.struct.LMatrix;
 import org.mwg.structure.TreeResult;
@@ -216,7 +218,11 @@ public class VolatileResult implements TreeResult {
 
     @Override
     public void free() {
+        EGraph g=node.graph();
         node.drop();
+        if(g.size()==0){
+            g.free();
+        }
     }
 
     @Override

@@ -26,6 +26,7 @@ public class ETree extends BaseNode implements Tree {
     public static long DISTANCE = 4;
     public static long DISTANCE_THRESHOLD = 5;
     private static long EGRAPH = 6;
+    private static long STRATEGY = 7;
 
     public static int BUFFER_SIZE_DEF = 20;
     public static int DISTANCE_DEF = Distances.DEFAULT;
@@ -87,6 +88,10 @@ public class ETree extends BaseNode implements Tree {
 
 
     private static void check(double[] values, double[] min, double[] max) {
+        if (min == null || max == null) {
+            throw new RuntimeException("Please set min and max boundary before inserting in the tree");
+        }
+
         if (values.length != min.length) {
             throw new RuntimeException("Values dimension mismatch");
         }
@@ -338,6 +343,7 @@ public class ETree extends BaseNode implements Tree {
         ENode root = graph.root();
         if (root == null) {
             root = graph.newNode();
+            state.set(STRATEGY, Type.INT, IndexStrategy.INDEX);
             graph.setRoot(root);
             root.setAt(_TOTAL, Type.LONG, 0);
             root.setAt(_SUBNODES, Type.INT, 0);
@@ -365,6 +371,7 @@ public class ETree extends BaseNode implements Tree {
         ENode root = graph.root();
         if (root == null) {
             root = graph.newNode();
+            state.set(STRATEGY, Type.INT, IndexStrategy.PROFILE);
             graph.setRoot(root);
             root.setAt(_TOTAL, Type.LONG, 0);
             root.setAt(_TOTAL_SUBNODES, Type.INT, 0);
@@ -378,23 +385,112 @@ public class ETree extends BaseNode implements Tree {
 
     @Override
     public TreeResult nearestN(double[] keys, int nbElem) {
-        return null;
+        NodeState state = unphasedState();
+
+        double[] min = (double[]) state.get(BOUND_MIN);
+        double[] max = (double[]) state.get(BOUND_MAX);
+        check(keys, min, max);
+
+        EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
+        Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
+        int strategyType = (int) state.get(STRATEGY);
+
+
+        ENode root = graph.root();
+        if (root == null) {
+            return null;
+        }
+
+        EGraph calcZone = graph().space().newVolatileGraph();
+        if (nbElem <= 0) {
+            throw new RuntimeException("nb elements can't be <=0");
+        }
+        VolatileResult nnl = new VolatileResult(calcZone.newNode(), nbElem);
+        reccursiveTraverse(root, calcZone, nnl, strategyType, distance, keys, null, null, null, -1);
+
+        return nnl;
     }
 
     @Override
     public TreeResult nearestWithinRadius(double[] keys, double radius) {
-        return null;
+
+        NodeState state = unphasedState();
+
+        double[] min = (double[]) state.get(BOUND_MIN);
+        double[] max = (double[]) state.get(BOUND_MAX);
+        check(keys, min, max);
+
+        EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
+        Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
+        int strategyType = (int) state.get(STRATEGY);
+
+
+        ENode root = graph.root();
+        if (root == null) {
+            return null;
+        }
+
+        EGraph calcZone = graph().space().newVolatileGraph();
+        VolatileResult nnl = new VolatileResult(calcZone.newNode(), -1);
+        reccursiveTraverse(root, calcZone, nnl, strategyType, distance, keys, null, null, null, radius);
+
+        return nnl;
     }
 
     @Override
     public TreeResult nearestNWithinRadius(double[] keys, int nbElem, double radius) {
-        return null;
+        NodeState state = unphasedState();
+
+        double[] min = (double[]) state.get(BOUND_MIN);
+        double[] max = (double[]) state.get(BOUND_MAX);
+        check(keys, min, max);
+
+        EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
+        Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
+        int strategyType = (int) state.get(STRATEGY);
+
+
+        ENode root = graph.root();
+        if (root == null) {
+            return null;
+        }
+
+        EGraph calcZone = graph().space().newVolatileGraph();
+        if (nbElem <= 0) {
+            throw new RuntimeException("nb elements can't be <=0");
+        }
+        VolatileResult nnl = new VolatileResult(calcZone.newNode(), nbElem);
+        reccursiveTraverse(root, calcZone, nnl, strategyType, distance, keys, null, null, null, radius);
+
+        return nnl;
+
     }
 
 
     @Override
     public TreeResult query(double[] min, double[] max) {
-        return null;
+        NodeState state = unphasedState();
+
+        EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
+        Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
+        int strategyType = (int) state.get(STRATEGY);
+
+        final double[] center = new double[max.length];
+
+        for(int i=0;i<center.length;i++){
+            center[i]=(min[i]+max[i])/2;
+        }
+
+        ENode root = graph.root();
+        if (root == null) {
+            return null;
+        }
+
+        EGraph calcZone = graph().space().newVolatileGraph();
+        VolatileResult nnl = new VolatileResult(calcZone.newNode(), -1);
+        reccursiveTraverse(root, calcZone, nnl, strategyType, distance, null, min, max, center, -1);
+
+        return nnl;
     }
 
 
@@ -445,7 +541,17 @@ public class ETree extends BaseNode implements Tree {
     }
 
 
-    private static void reccursiveTraverse(final ENode node, final EGraph calcZone, final VolatileResult nnl, final int strategyType, final Distance distance, final double[] target, final double[] targetmin, final double[] targetmax, final double radius, final int capacity) {
+    private static boolean checkInsideBounds(final double[] key, final double[] boundMin, final double[] boundMax) {
+        for (int i = 0; i < boundMax.length; i++) {
+            if (key[i] > boundMax[i] || key[i] < boundMin[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    private static void reccursiveTraverse(final ENode node, final EGraph calcZone, final VolatileResult nnl, final int strategyType, final Distance distance, final double[] target, final double[] targetmin, final double[] targetmax, final double[] targetcenter, final double radius) {
 
         if ((int) node.getAt(_SUBNODES) == 0) {
             //Leave node
@@ -464,13 +570,13 @@ public class ETree extends BaseNode implements Tree {
                             for (int j = 0; j < buffer.rows(); j++) {
                                 tempK[j] = bufferkeys.get(j, i) / t;
                             }
-                            checkandInsert(tempK, t, target, targetmin, targetmax, distance, radius, capacity, nnl);
+                            checkAndInsert(tempK, t, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
                         }
                         return;
                     }
                     case IndexStrategy.INDEX: {
                         for (int i = 0; i < buffer.columns(); i++) {
-                            checkandInsert(buffer.column(i), bufferValue.get(0, i), target, targetmin, targetmax, distance, radius, capacity, nnl);
+                            checkAndInsert(buffer.column(i), bufferValue.get(0, i), target, targetmin, targetmax, targetcenter, distance, radius, nnl);
                         }
                         return;
 
@@ -490,13 +596,13 @@ public class ETree extends BaseNode implements Tree {
                         for (int i = 0; i < keyo.length; i++) {
                             key[i] = keyo[i] / value;
                         }
-                        checkandInsert(key, value, target, targetmin, targetmax, distance, radius, capacity, nnl);
+                        checkAndInsert(key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
                         return;
                     }
                     case IndexStrategy.INDEX: {
                         double[] key = (double[]) node.getAt(_PROFILE);
                         long value = (long) node.getAt(_VALUE);
-                        checkandInsert(key, value, target, targetmin, targetmax, distance, radius, capacity, nnl);
+                        checkAndInsert(key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
                         return;
                     }
                     default: {
@@ -543,7 +649,7 @@ public class ETree extends BaseNode implements Tree {
                     childPriority.sort(true);
                     for (int i = 0; i < childPriority.size(); i++) {
                         ENode child = (ENode) node.getAt(childPriority.value(i));
-                        reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, radius, capacity);
+                        reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, targetcenter, radius);
                     }
                     childPriority.free();
                 }
@@ -554,7 +660,7 @@ public class ETree extends BaseNode implements Tree {
                         if (attributeKey >= _REL) {
                             ENode child = (ENode) node.getAt(attributeKey);
                             if (checkInside(targetmin, targetmax, (double[]) child.getAt(BOUND_MIN), (double[]) child.getAt(BOUND_MIN))) {
-                                reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, radius, capacity);
+                                reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, targetcenter, radius);
                             }
                         }
                     }
@@ -578,7 +684,21 @@ public class ETree extends BaseNode implements Tree {
         return distance.measure(closest, target);
     }
 
-    private static void checkandInsert(double[] key, long value, double[] target, double[] targetmin, double[] targetmax, Distance distance, double radius, int capacity, VolatileResult nnl) {
+    private static void checkAndInsert(double[] key, long value, double[] target, double[] targetmin, double[] targetmax, double[] targetcenter, Distance distance, double radius, VolatileResult nnl) {
+        if (targetmin != null) {
+            if (checkInsideBounds(key, targetmin, targetmax)) {
+                nnl.insert(key, value, distance.measure(key, targetcenter));
+            }
+        } else {
+            double dist = distance.measure(key, target);
+            if (radius > 0) {
+                if (dist < radius) {
+                    nnl.insert(key, value, dist);
+                }
+            } else {
+                nnl.insert(key, value, dist);
+            }
+        }
 
     }
 
