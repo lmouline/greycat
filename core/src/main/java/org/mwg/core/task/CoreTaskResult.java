@@ -47,6 +47,16 @@ class CoreTaskResult<A> implements TaskResult<A> {
         return this;
     }
 
+    @Override
+    public TaskResult<A> fillWith(TaskResult<A> source) {
+        if (source != null) {
+            _backend = source.asArray();
+            _capacity = _backend.length;
+            _size = _backend.length;
+        }
+        return this;
+    }
+
     CoreTaskResult(Object toWrap, boolean protect) {
         if (toWrap instanceof Object[]) {
             Object[] castedToWrap = (Object[]) toWrap;

@@ -91,6 +91,16 @@ public class Actions {
     }
 
     /**
+     * Flip the content of named variable with result. Current result will be stored in the variable and the previously stored variable content will be enqueue has current result
+     *
+     * @param name of the variable
+     * @return the action to chain
+     */
+    public static Action flipVar(String name) {
+        return new ActionFlipVar(name);
+    }
+
+    /**
      * Stores the current task result into a named variable without starting a new scope.
      *
      * @param name of the variable

@@ -23,6 +23,7 @@ public class ActionScript implements Action {
     /**
      * @native ts
      * var print = function(v){ctx.append(v+'\n');};
+     * var variables = ctx.var
      * eval(this._script);
      */
     @Override
@@ -50,13 +51,18 @@ public class ActionScript implements Action {
         });
         //protect scope if !async
         scriptCtx.setAttribute("ctx", ctx, ScriptContext.ENGINE_SCOPE);
+        scriptCtx.setAttribute("result", ctx.result(), ScriptContext.ENGINE_SCOPE);
         try {
-            TaskHelper.SCRIPT_ENGINE.eval(this._script, scriptCtx);
+            Object result = TaskHelper.SCRIPT_ENGINE.eval(this._script, scriptCtx);
+            if (!_async) {
+                if (result != null) {
+                    ctx.continueWith(ctx.wrap(result));
+                } else {
+                    ctx.continueTask();
+                }
+            }
         } catch (ScriptException e) {
             throw new RuntimeException(e);
-        }
-        if (!_async) {
-            ctx.continueTask();
         }
     }
 

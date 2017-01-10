@@ -32,4 +32,6 @@ public interface TaskResult<A> {
 
     TaskResult<A> setOutput(String output);
 
+    TaskResult<A> fillWith(TaskResult<A> source);
+
 }

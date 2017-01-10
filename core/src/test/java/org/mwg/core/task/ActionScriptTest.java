@@ -38,17 +38,18 @@ public class ActionScriptTest extends AbstractActionTest {
                 });
     }
 
-  //  @Test
-    /*
+    @Test
     public void testPrintScript() {
         initGraph();
         newTask()
-                .inject("hello")
+                .script("'hello'")
                 .defineAsGlobalVar("myVar")
-                .loop("0", "10", newTask().script("println(myVar.get(0))"))
+                .println("{{result}}")
+                .loop("0", "10", newTask().script("print(myVar.get(0))"))
                 .execute(graph, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
+
                         System.out.println(result.output());
                         if (result.exception() != null) {
                             result.exception().printStackTrace();
@@ -57,7 +58,6 @@ public class ActionScriptTest extends AbstractActionTest {
                         removeGraph();
                     }
                 });
-
     }
-*/
+
 }

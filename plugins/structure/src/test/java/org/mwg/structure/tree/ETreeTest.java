@@ -1,5 +1,6 @@
 package org.mwg.structure.tree;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
 import org.mwg.structure.StructurePlugin;
@@ -68,6 +69,10 @@ public class ETreeTest {
                 System.out.println("kdTree insert: " + te + " ms");
 
 
+                System.out.println(eTree.numberOfNodes());
+                Assert.assertEquals(eTree.size(),ins);
+                Assert.assertEquals(kdTree.size(),ins);
+
                 long[][] temp = new long[ins][nsearch];
                 ts = System.currentTimeMillis();
                 for (int i = 0; i < ins; i++) {
@@ -99,7 +104,7 @@ public class ETreeTest {
                 for (int i = 0; i < ins; i++) {
                     for (int j = 0; j < nsearch; j++) {
                         if (temp[i][j] != tempkdtree[i][j]) {
-                            throw new RuntimeException("Error!");
+                            throw new RuntimeException("Error! "+temp[i][j]+"!="+tempkdtree[i][j]);
                         }
                     }
                 }

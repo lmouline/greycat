@@ -388,4 +388,6 @@ public interface Task {
 
     Task action(String name, String... params);
 
+    Task flipVar(String name);
+
 }

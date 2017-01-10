@@ -1268,4 +1268,9 @@ public class CoreTask implements org.mwg.task.Task {
     public Task action(String name, String... params) {
         return then(Actions.action(name, params));
     }
+
+    @Override
+    public Task flipVar(String name) {
+        return then(Actions.flipVar(name));
+    }
 }
