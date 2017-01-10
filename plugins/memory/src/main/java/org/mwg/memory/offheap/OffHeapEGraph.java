@@ -37,7 +37,7 @@ public class OffHeapEGraph implements EGraph {
             }
             //pass #2: rebase all links
             for (int i = 0; i < nodesIndex; i++) {
-                OffHeapENode.rebase(getNodeAddrAt(i));
+                OffHeapENode.rebase(getNodeAddrAt(i), this);
             }
         } else {
             addr = OffHeapLongArray.allocate(NODES);
@@ -176,4 +176,24 @@ public class OffHeapEGraph implements EGraph {
         builder.append("]}");
         return builder.toString();
     }
+
+    final OffHeapENode nodeByIndex(final long index, final boolean createIfAbsent) {
+        long nodesCapacity = OffHeapLongArray.get(addr, NODES_CAPACITY);
+        long nodesIndex = OffHeapLongArray.get(addr, NODES_INDEX);
+
+        if (index < nodesCapacity) {
+            if (index > nodesIndex) {
+                OffHeapLongArray.set(addr, NODES_INDEX, index + 1);
+            }
+            long elemAddr = getNodeAddrAt(index);
+            if (elemAddr == OffHeapConstants.OFFHEAP_NULL_PTR && createIfAbsent) {
+                OffHeapENode elem = new OffHeapENode(parent, this, _graph, index, OffHeapConstants.OFFHEAP_NULL_PTR);
+                setNodeAddrAt(index, elem.getAddr());
+            }
+            return elem;
+        } else {
+            throw new RuntimeException("bad API usage");
+        }
+    }
+
 }
