@@ -28,6 +28,7 @@ public class VolatileResult implements TreeResult {
 
     public VolatileResult(ENode node, int capacity) {
         this.node = node;
+        this.count = 0;
         _keys = (DMatrix) node.getOrCreateAt(_KEYS, Type.DMATRIX);
         _values = (LMatrix) node.getOrCreateAt(_VALUES, Type.LMATRIX);
         _distances = (DMatrix) node.getOrCreateAt(_DISTANCES, Type.DMATRIX);
@@ -310,8 +311,8 @@ public class VolatileResult implements TreeResult {
 
     @Override
     public void sort(boolean ascending) {
-        if(count>1) {
-            quickSort(1, count , ascending);
+        if (count > 1) {
+            quickSort(1, count, ascending);
         }
     }
 
