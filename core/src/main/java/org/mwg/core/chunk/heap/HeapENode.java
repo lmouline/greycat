@@ -962,7 +962,9 @@ class HeapENode implements ENode {
                                         previous = cursor + 1;
                                     }
                                     cursor++;
-                                    current = buffer.read(cursor);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                    }
                                 }
                                 if (doubleArrayLoaded == null) {
                                     doubleArrayLoaded = new double[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
@@ -993,7 +995,9 @@ class HeapENode implements ENode {
                                         previous = cursor + 1;
                                     }
                                     cursor++;
-                                    current = buffer.read(cursor);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                    }
                                 }
                                 if (longArrayLoaded == null) {
                                     longArrayLoaded = new long[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
@@ -1024,7 +1028,9 @@ class HeapENode implements ENode {
                                         previous = cursor + 1;
                                     }
                                     cursor++;
-                                    current = buffer.read(cursor);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                    }
                                 }
                                 if (intArrayLoaded == null) {
                                     intArrayLoaded = new int[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
