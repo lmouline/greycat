@@ -8,7 +8,9 @@ import org.mwg.core.task.math.CoreMathExpressionEngine;
 import org.mwg.core.task.math.MathExpressionEngine;
 import org.mwg.base.BaseNode;
 import org.mwg.task.*;
+import org.mwg.utility.Tuple;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -78,6 +80,38 @@ class CoreTaskContext implements TaskContext {
     public final TaskContext setTime(long p_time) {
         this._time = p_time;
         return this;
+    }
+
+    @Override
+    public Tuple<String, TaskResult>[] variables() {
+        Map<String, TaskResult> collected = new HashMap<String, TaskResult>();
+        String[] globalKeys = _globalVariables.keySet().toArray(new String[_globalVariables.size()]);
+        for (int i = 0; i < globalKeys.length; i++) {
+            collected.put(globalKeys[i], _globalVariables.get(globalKeys[i]));
+        }
+        //recursive_collect(this, collected);
+        //flatResult
+        String[] collectedKeys = collected.keySet().toArray(new String[collected.size()]);
+        Tuple<String, TaskResult>[] result = new Tuple[collectedKeys.length];
+        for (int i = 0; i < collectedKeys.length; i++) {
+            result[i] = new Tuple<String, TaskResult>(collectedKeys[i], collected.get(collectedKeys[i]));
+        }
+        return result;
+    }
+
+    private void recursive_collect(TaskContext ctx, Map<String, TaskResult> collector) {
+        Map<String, TaskResult> localVariables = ((CoreTaskContext) ctx).localVariables();
+        if(localVariables != null){
+            String[] localKeys = localVariables.keySet().toArray(new String[localVariables.size()]);
+            for (int i = 0; i < localKeys.length; i++) {
+                if (!collector.containsKey(localKeys[i])) {
+                    collector.put(localKeys[i], localVariables.get(localKeys[i]));
+                }
+            }
+        }
+        if (((CoreTaskContext) ctx)._parent != null) {
+            recursive_collect(((CoreTaskContext) ctx)._parent, collector);
+        }
     }
 
     @Override
@@ -282,11 +316,7 @@ class CoreTaskContext implements TaskContext {
         return this._globalVariables;
     }
 
-    Map<String, TaskResult> nextVariables() {
-        return this._globalVariables;
-    }
-
-    Map<String, TaskResult> variables() {
+    Map<String, TaskResult> localVariables() {
         return this._localVariables;
     }
 

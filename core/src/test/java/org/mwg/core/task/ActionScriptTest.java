@@ -16,9 +16,9 @@ public class ActionScriptTest extends AbstractActionTest {
         initGraph();
         newTask()
                 .then(readGlobalIndex("nodes"))
-                .script("ctx.setVariable(\"val1\",55).continueTask();")
-                .script("ctx.setVariable(\"val2\",56).continueTask();")
-                .script("ctx.setVariable(\"val4\",70).setVariable(\"val8\",999).continueTask();")
+                .asyncScript("ctx.setVariable(\"val1\",55).continueTask();")
+                .asyncScript("ctx.setVariable(\"val2\",56).continueTask();")
+                .asyncScript("ctx.setVariable(\"val4\",70).setVariable(\"val8\",999).continueTask();")
                 .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext ctx) {
@@ -37,4 +37,27 @@ public class ActionScriptTest extends AbstractActionTest {
                     }
                 });
     }
+
+  //  @Test
+    /*
+    public void testPrintScript() {
+        initGraph();
+        newTask()
+                .inject("hello")
+                .defineAsGlobalVar("myVar")
+                .loop("0", "10", newTask().script("println(myVar.get(0))"))
+                .execute(graph, new Callback<TaskResult>() {
+                    @Override
+                    public void on(TaskResult result) {
+                        System.out.println(result.output());
+                        if (result.exception() != null) {
+                            result.exception().printStackTrace();
+                        }
+                        //TODO
+                        removeGraph();
+                    }
+                });
+
+    }
+*/
 }

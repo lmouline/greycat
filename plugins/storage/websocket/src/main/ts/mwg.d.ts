@@ -1913,6 +1913,8 @@ declare module org {
                     setWorld(p_world: number): org.mwg.task.TaskContext;
                     time(): number;
                     setTime(p_time: number): org.mwg.task.TaskContext;
+                    variables(): org.mwg.utility.Tuple<string, org.mwg.task.TaskResult<any>>[];
+                    private recursive_collect(ctx, collector);
                     variable(name: string): org.mwg.task.TaskResult<any>;
                     isGlobal(name: string): boolean;
                     private internal_deep_resolve(name);
@@ -1929,8 +1931,7 @@ declare module org {
                     addToGlobalVariable(name: string, value: any): org.mwg.task.TaskContext;
                     addToVariable(name: string, value: any): org.mwg.task.TaskContext;
                     globalVariables(): java.util.Map<string, org.mwg.task.TaskResult<any>>;
-                    nextVariables(): java.util.Map<string, org.mwg.task.TaskResult<any>>;
-                    variables(): java.util.Map<string, org.mwg.task.TaskResult<any>>;
+                    localVariables(): java.util.Map<string, org.mwg.task.TaskResult<any>>;
                     result(): org.mwg.task.TaskResult<any>;
                     resultAsNodes(): org.mwg.task.TaskResult<org.mwg.Node>;
                     resultAsStrings(): org.mwg.task.TaskResult<string>;
@@ -2449,6 +2450,7 @@ declare module org {
                 setWorld(world: number): org.mwg.task.TaskContext;
                 time(): number;
                 setTime(time: number): org.mwg.task.TaskContext;
+                variables(): org.mwg.utility.Tuple<string, org.mwg.task.TaskResult<any>>[];
                 variable(name: string): org.mwg.task.TaskResult<any>;
                 isGlobal(name: string): boolean;
                 wrap(input: any): org.mwg.task.TaskResult<any>;

@@ -2,6 +2,7 @@ package org.mwg.task;
 
 import org.mwg.Graph;
 import org.mwg.Node;
+import org.mwg.utility.Tuple;
 
 public interface TaskContext {
 
@@ -14,6 +15,8 @@ public interface TaskContext {
     long time();
 
     TaskContext setTime(long time);
+
+    Tuple<String, TaskResult>[] variables();
 
     TaskResult variable(String name);
 

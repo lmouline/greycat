@@ -171,8 +171,8 @@ public class Actions {
     /**
      * Adds nodes present in the named variable to the named relation in all nodes present in the current task result.
      *
-     * @param relName name of the relation
-     * @param varName the name of the variable containing the nodes to add. It can use templates "{{}}".
+     * @param relName    name of the relation
+     * @param varName    the name of the variable containing the nodes to add. It can use templates "{{}}".
      * @param attributes the attributes that should be used to index the nodes in the relation
      * @return the action to chain
      */
@@ -183,8 +183,8 @@ public class Actions {
     /**
      * Removes nodes present in the named variable from the named relation in all nodes present in the current result.
      *
-     * @param relName name of the relation.
-     * @param varFrom the name of the variable containing the nodes to remove. It can use templates "{{}}".
+     * @param relName    name of the relation.
+     * @param varFrom    the name of the variable containing the nodes to remove. It can use templates "{{}}".
      * @param attributes the attributes that should be used to find and remove the nodes from the relation
      * @return the action to chain
      */
@@ -233,12 +233,12 @@ public class Actions {
      * @return the action to chain
      */
     public static Action addToGlobalIndex(String name, String... attributes) {
-        return new ActionAddRemoveToGlobalIndex(false,false,name, attributes);
+        return new ActionAddRemoveToGlobalIndex(false, false, name, attributes);
     }
 
 
-    public static Action addToGlobalTimedIndex(String name, String... attributes){
-        return new ActionAddRemoveToGlobalIndex(false,true,name, attributes);
+    public static Action addToGlobalTimedIndex(String name, String... attributes) {
+        return new ActionAddRemoveToGlobalIndex(false, true, name, attributes);
     }
 
     /**
@@ -260,7 +260,7 @@ public class Actions {
      * @return the action to chain
      */
     public static Action removeFromGlobalTimedIndex(String name, String... attributes) {
-        return new ActionAddRemoveToGlobalIndex(true, true,name, attributes);
+        return new ActionAddRemoveToGlobalIndex(true, true, name, attributes);
     }
 
     /**
@@ -403,14 +403,26 @@ public class Actions {
 
     /**
      * Execute a JS script
-     * The task context is inject in the variable 'context'
+     * The task context is inject in the variable 'ctx'
      * <p>
      * Should only be used to serialize {@link Task#thenDo(ActionFunction)}.
      *
      * @return the action to chain
      */
     public static Action script(String script) {
-        return new ActionScript(script);
+        return new ActionScript(script, false);
+    }
+
+    /**
+     * Execute an async JS script
+     * The task context is inject in the variable 'ctx'
+     * <p>
+     * Should only be used to serialize {@link Task#thenDo(ActionFunction)}.
+     *
+     * @return the action to chain
+     */
+    public static Action asyncScript(String script) {
+        return new ActionScript(script, true);
     }
 
     /**

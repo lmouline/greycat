@@ -691,7 +691,16 @@ public class CoreTask implements org.mwg.task.Task {
                 if (params.length != 1) {
                     throw new RuntimeException(ActionNames.SCRIPT + " action needs one parameter. Received:" + params.length);
                 }
-                return new ActionScript(params[0]);
+                return new ActionScript(params[0], false);
+            }
+        });
+        registry.put(ActionNames.ASYNC_SCRIPT, new TaskActionFactory() {
+            @Override
+            public Action create(String[] params, Map<Integer, Task> contextTasks) {
+                if (params.length != 1) {
+                    throw new RuntimeException(ActionNames.SCRIPT + " action needs one parameter. Received:" + params.length);
+                }
+                return new ActionScript(params[0], true);
             }
         });
         registry.put(ActionNames.SELECT, new TaskActionFactory() {
@@ -1233,6 +1242,11 @@ public class CoreTask implements org.mwg.task.Task {
     @Override
     public Task script(String script) {
         return then(Actions.script(script));
+    }
+
+    @Override
+    public Task asyncScript(String ascript) {
+        return then(Actions.asyncScript(ascript));
     }
 
     @Override

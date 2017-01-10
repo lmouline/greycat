@@ -378,6 +378,8 @@ public interface Task {
 
     Task script(String script);
 
+    Task asyncScript(String ascript);
+
     Task lookup(String nodeId);
 
     Task lookupAll(String nodeIds);

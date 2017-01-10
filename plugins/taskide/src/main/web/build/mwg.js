@@ -4362,7 +4362,9 @@ var org;
                                     previous = cursor + 1;
                                 }
                                 cursor++;
-                                current = buffer.read(cursor);
+                                if (cursor < max) {
+                                    current = buffer.read(cursor);
+                                }
                             }
                             if (isFirst) {
                                 this.unsafe_init(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -5425,7 +5427,9 @@ var org;
                                                             previous = cursor + 1;
                                                         }
                                                         cursor++;
-                                                        current = buffer.read(cursor);
+                                                        if (cursor < payloadSize) {
+                                                            current = buffer.read(cursor);
+                                                        }
                                                     }
                                                     if (doubleArrayLoaded == null) {
                                                         doubleArrayLoaded = new Float64Array(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -5458,7 +5462,9 @@ var org;
                                                             previous = cursor + 1;
                                                         }
                                                         cursor++;
-                                                        current = buffer.read(cursor);
+                                                        if (cursor < payloadSize) {
+                                                            current = buffer.read(cursor);
+                                                        }
                                                     }
                                                     if (longArrayLoaded == null) {
                                                         longArrayLoaded = new Float64Array(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -5491,7 +5497,9 @@ var org;
                                                             previous = cursor + 1;
                                                         }
                                                         cursor++;
-                                                        current = buffer.read(cursor);
+                                                        if (cursor < payloadSize) {
+                                                            current = buffer.read(cursor);
+                                                        }
                                                     }
                                                     if (intArrayLoaded == null) {
                                                         intArrayLoaded = new Int32Array(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -6318,7 +6326,9 @@ var org;
                                     previous = cursor + 1;
                                 }
                                 cursor++;
-                                current = buffer.read(cursor);
+                                if (cursor < max) {
+                                    current = buffer.read(cursor);
+                                }
                             }
                             if (isFirst) {
                                 this.unsafe_init(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -7126,7 +7136,9 @@ var org;
                                     previous = cursor + 1;
                                 }
                                 cursor++;
-                                current = buffer.read(cursor);
+                                if (cursor < max) {
+                                    current = buffer.read(cursor);
+                                }
                             }
                             if (isFirst) {
                                 this.allocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -8178,7 +8190,9 @@ var org;
                                                                 previous = cursor + 1;
                                                             }
                                                             cursor++;
-                                                            current = buffer.read(cursor);
+                                                            if (cursor < payloadSize) {
+                                                                current = buffer.read(cursor);
+                                                            }
                                                         }
                                                         if (doubleArrayLoaded == null) {
                                                             doubleArrayLoaded = new Float64Array(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -8209,7 +8223,9 @@ var org;
                                                                 previous = cursor + 1;
                                                             }
                                                             cursor++;
-                                                            current = buffer.read(cursor);
+                                                            if (cursor < payloadSize) {
+                                                                current = buffer.read(cursor);
+                                                            }
                                                         }
                                                         if (longArrayLoaded == null) {
                                                             longArrayLoaded = new Float64Array(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -8240,7 +8256,9 @@ var org;
                                                                 previous = cursor + 1;
                                                             }
                                                             cursor++;
-                                                            current = buffer.read(cursor);
+                                                            if (cursor < payloadSize) {
+                                                                current = buffer.read(cursor);
+                                                            }
                                                         }
                                                         if (intArrayLoaded == null) {
                                                             intArrayLoaded = new Int32Array(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -10468,7 +10486,8 @@ var org;
                         this._script = script;
                     }
                     ActionScript.prototype.eval = function (ctx) {
-                        var print = console.log;
+                        var print = function (v) { ctx.append(v); };
+                        var println = function (v) { ctx.append(v + "\n"); };
                         eval(this._script);
                     };
                     ActionScript.prototype.serialize = function (builder) {
@@ -13715,6 +13734,32 @@ var org;
                         this._time = p_time;
                         return this;
                     };
+                    CoreTaskContext.prototype.variables = function () {
+                        var collected = new java.util.HashMap();
+                        var globalKeys = this._globalVariables.keySet().toArray(new Array(this._globalVariables.size()));
+                        for (var i = 0; i < globalKeys.length; i++) {
+                            collected.put(globalKeys[i], this._globalVariables.get(globalKeys[i]));
+                        }
+                        this.recursive_collect(this, collected);
+                        var collectedKeys = collected.keySet().toArray(new Array(collected.size()));
+                        var result = new Array(collectedKeys.length);
+                        for (var i = 0; i < collectedKeys.length; i++) {
+                            result[i] = new org.mwg.utility.Tuple(collectedKeys[i], collected.get(collectedKeys[i]));
+                        }
+                        return result;
+                    };
+                    CoreTaskContext.prototype.recursive_collect = function (ctx, collector) {
+                        var localVariables = ctx.localVariables();
+                        var localKeys = localVariables.keySet().toArray(new Array(localVariables.size()));
+                        for (var i = 0; i < localKeys.length; i++) {
+                            if (!collector.containsKey(localKeys[i])) {
+                                collector.put(localKeys[i], localVariables.get(localKeys[i]));
+                            }
+                        }
+                        if (this._parent != null) {
+                            this.recursive_collect(this._parent, collector);
+                        }
+                    };
                     CoreTaskContext.prototype.variable = function (name) {
                         var resolved = this._globalVariables.get(name);
                         if (resolved == null) {
@@ -13894,10 +13939,7 @@ var org;
                     CoreTaskContext.prototype.globalVariables = function () {
                         return this._globalVariables;
                     };
-                    CoreTaskContext.prototype.nextVariables = function () {
-                        return this._globalVariables;
-                    };
-                    CoreTaskContext.prototype.variables = function () {
+                    CoreTaskContext.prototype.localVariables = function () {
                         return this._localVariables;
                     };
                     CoreTaskContext.prototype.result = function () {

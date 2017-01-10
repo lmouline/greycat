@@ -9,15 +9,15 @@ import './index.css';
 
 global.context = {};
 
-let defaultURL = "ws://" + window.location.hostname + ":"+window.location.port+"/ws";
-//let defaultURL = "ws://" + window.location.hostname + ":"+4000+"/ws";
+//let defaultURL = "ws://" + window.location.hostname + ":"+window.location.port+"/ws";
+let defaultURL = "ws://" + window.location.hostname + ":" + 4000 + "/ws";
 
 global.context.ws = new global.org.mwg.plugin.WSClient(defaultURL);
 global.context.graph = global.org.mwg.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
 global.context.graph.connect(null);
 
 global.context.url = function (val) {
-    if(global.context.graph !== undefined){
+    if (global.context.graph !== undefined) {
         global.context.graph.disconnect(null);
     }
     global.context.ws = new global.org.mwg.plugin.WSClient(val);
@@ -127,13 +127,12 @@ ReactDOM.render(
             </p>
 
         </div>
-        <SplitPane split="vertical" defaultSize="40%" minSize={50} onChange={
-            size => global.context.layout()
-        }>
+        <SplitPane split="vertical" defaultSize="40%" minSize={50} onChange={size => global.context.layout()}>
             <Editor />
-            <div id="json_result">
-
-            </div>
+            <SplitPane split="horizontal" defaultSize="80%" allowResize={true}>
+                <div id="json_result"></div>
+                <div id="output_error_result"></div>
+            </SplitPane>
         </SplitPane>
     </SplitPane>,
     document.getElementById('root')

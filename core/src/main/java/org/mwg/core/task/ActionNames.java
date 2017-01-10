@@ -28,6 +28,7 @@ public class ActionNames {
     public static String REMOVE_FROM_GLOBAL_INDEX = "removeFromGlobalIndex";
     public static String SAVE = "save";
     public static String SCRIPT = "script";
+    public static String ASYNC_SCRIPT = "asyncScript";
     public static String SELECT = "select";
     public static String SET_AS_VAR = "setAsVar";
     public static String FORCE_ATTRIBUTE = "forceAttribute";
