@@ -27,8 +27,8 @@ public interface Tree extends Node {
     TreeResult query(final double[] min, final double[] max);
 
     //Tree properties
-    int size();
-    int numberOfNodes();
+    long size();
+    long numberOfNodes();
 
 
 }

@@ -118,14 +118,13 @@ public class ETree extends BaseNode implements Tree {
                 maxChild[i] = max[i];
             }
         }
-        node.setAt(_SUBNODES, Type.INT, 0);
+        node.setAt(_SUBNODES, Type.LONG, 0);
         node.setAt(_MIN, Type.DOUBLE_ARRAY, minChild);
         node.setAt(_MAX, Type.DOUBLE_ARRAY, maxChild);
         node.setAt(_TOTAL, Type.LONG, 0);
 
-
-        root.setAt(_TOTAL_SUBNODES, Type.INT, (int) root.getAt(_TOTAL_SUBNODES) + 1);
-        parent.setAt(_SUBNODES, Type.INT, (int) parent.getAt(_SUBNODES) + 1);
+        root.setAt(_TOTAL_SUBNODES, Type.LONG, (long) root.getAt(_TOTAL_SUBNODES) + 1);
+        parent.setAt(_SUBNODES, Type.LONG, (long) parent.getAt(_SUBNODES) + 1);
         parent.setAt(index, Type.ENODE, node);
 
         //todo create buffer here
@@ -151,11 +150,11 @@ public class ETree extends BaseNode implements Tree {
         if (res) {
             switch (strategyType) {
                 case IndexStrategy.PROFILE: {
-                    parent.setAt(_TOTAL, Type.LONG, (int) parent.getAt(_TOTAL) + (int) value);
+                    parent.setAt(_TOTAL, Type.LONG, (long) parent.getAt(_TOTAL) + (long) value);
                     break;
                 }
                 case IndexStrategy.INDEX: {
-                    parent.setAt(_TOTAL, Type.LONG, (int) parent.getAt(_TOTAL) + 1);
+                    parent.setAt(_TOTAL, Type.LONG, (long) parent.getAt(_TOTAL) + 1);
                     break;
                 }
                 default: {
@@ -167,7 +166,7 @@ public class ETree extends BaseNode implements Tree {
     }
 
     private static boolean internalInsert(final ENode node, final double[] key, final long value, final int strategyType, final double[] min, final double[] max, final double[] center, final double[] resolution, final int buffersize, final ENode root) {
-        if ((int) node.getAt(_SUBNODES) != 0) {
+        if ((long) node.getAt(_SUBNODES) != 0) {
             return subInsert(node, key, value, strategyType, min, max, center, resolution, buffersize, root, false);
         } else if (checkCreateLevels(min, max, resolution)) {
             DMatrix buffer = null;
@@ -208,7 +207,7 @@ public class ETree extends BaseNode implements Tree {
                             DMatrix bufferkeys = (DMatrix) node.getOrCreateAt(_PROFILE, Type.DMATRIX);
                             bufferkeys.appendColumn(key);
                             LMatrix bufferValue = (LMatrix) node.getOrCreateAt(_BUFFER_VALUES, Type.LMATRIX);
-                            bufferValue.appendColumn(new long[]{(int) value});
+                            bufferValue.appendColumn(new long[]{value});
                             node.setAt(_TOTAL, Type.LONG, (long) node.getAt(_TOTAL) + value);
                             return true; //to update parent total
                         }
@@ -231,7 +230,7 @@ public class ETree extends BaseNode implements Tree {
                         DMatrix bufferkeys = (DMatrix) node.getAt(_PROFILE);
                         LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
                         for (int i = 0; i < buffer.columns(); i++) {
-                            int t = (int) bufferValue.get(0, i);
+                            long t = bufferValue.get(0, i);
                             for (int j = 0; j < buffer.rows(); j++) {
                                 buffer.set(j, i, bufferkeys.get(j, i) / t);
                             }
@@ -279,7 +278,7 @@ public class ETree extends BaseNode implements Tree {
                     return true; //to update parent total
                 }
                 case IndexStrategy.INDEX: {
-                    if ((int) node.getAt(_TOTAL) == 0) {
+                    if ((long) node.getAt(_TOTAL) == 0) {
                         node.setAt(_PROFILE, Type.DOUBLE_ARRAY, key);
                         node.setAt(_VALUE, Type.LONG, value);
                         node.setAt(_TOTAL, Type.LONG, 1);
@@ -346,7 +345,8 @@ public class ETree extends BaseNode implements Tree {
             state.set(STRATEGY, Type.INT, IndexStrategy.INDEX);
             graph.setRoot(root);
             root.setAt(_TOTAL, Type.LONG, 0);
-            root.setAt(_SUBNODES, Type.INT, 0);
+            root.setAt(_TOTAL_SUBNODES, Type.LONG, 0);
+            root.setAt(_SUBNODES, Type.LONG, 0);
             root.setAt(_MIN, Type.DOUBLE_ARRAY, min);
             root.setAt(_MAX, Type.DOUBLE_ARRAY, max);
         }
@@ -374,8 +374,8 @@ public class ETree extends BaseNode implements Tree {
             state.set(STRATEGY, Type.INT, IndexStrategy.PROFILE);
             graph.setRoot(root);
             root.setAt(_TOTAL, Type.LONG, 0);
-            root.setAt(_TOTAL_SUBNODES, Type.INT, 0);
-            root.setAt(_SUBNODES, Type.INT, 0);
+            root.setAt(_TOTAL_SUBNODES, Type.LONG, 0);
+            root.setAt(_SUBNODES, Type.LONG, 0);
             root.setAt(_MIN, Type.DOUBLE_ARRAY, min);
             root.setAt(_MAX, Type.DOUBLE_ARRAY, max);
         }
@@ -407,7 +407,7 @@ public class ETree extends BaseNode implements Tree {
         }
         VolatileResult nnl = new VolatileResult(calcZone.newNode(), nbElem);
         reccursiveTraverse(root, calcZone, nnl, strategyType, distance, keys, null, null, null, -1);
-
+        nnl.sort(true);
         return nnl;
     }
 
@@ -433,7 +433,7 @@ public class ETree extends BaseNode implements Tree {
         EGraph calcZone = graph().space().newVolatileGraph();
         VolatileResult nnl = new VolatileResult(calcZone.newNode(), -1);
         reccursiveTraverse(root, calcZone, nnl, strategyType, distance, keys, null, null, null, radius);
-
+        nnl.sort(true);
         return nnl;
     }
 
@@ -461,7 +461,7 @@ public class ETree extends BaseNode implements Tree {
         }
         VolatileResult nnl = new VolatileResult(calcZone.newNode(), nbElem);
         reccursiveTraverse(root, calcZone, nnl, strategyType, distance, keys, null, null, null, radius);
-
+        nnl.sort(true);
         return nnl;
 
     }
@@ -490,31 +490,32 @@ public class ETree extends BaseNode implements Tree {
         VolatileResult nnl = new VolatileResult(calcZone.newNode(), -1);
         reccursiveTraverse(root, calcZone, nnl, strategyType, distance, null, min, max, center, -1);
 
+        nnl.sort(true);
         return nnl;
     }
 
 
     @Override
-    public int size() {
+    public long size() {
         NodeState state = unphasedState();
         EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
         ENode root = graph.root();
         if (root == null) {
             return 0;
         } else {
-            return (int) root.getAt(_TOTAL);
+            return (long) root.getAt(_TOTAL);
         }
     }
 
     @Override
-    public int numberOfNodes() {
+    public long numberOfNodes() {
         NodeState state = unphasedState();
         EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
         ENode root = graph.root();
         if (root == null) {
             return 0;
         } else {
-            return (int) root.getAt(_TOTAL_SUBNODES);
+            return (long) root.getAt(_TOTAL_SUBNODES);
         }
     }
 
@@ -553,7 +554,7 @@ public class ETree extends BaseNode implements Tree {
 
     private static void reccursiveTraverse(final ENode node, final EGraph calcZone, final VolatileResult nnl, final int strategyType, final Distance distance, final double[] target, final double[] targetmin, final double[] targetmax, final double[] targetcenter, final double radius) {
 
-        if ((int) node.getAt(_SUBNODES) == 0) {
+        if ((long) node.getAt(_SUBNODES) == 0) {
             //Leave node
             DMatrix buffer = (DMatrix) node.getAt(_BUFFER_KEYS);
             LMatrix bufferValue = (LMatrix) node.getAt(_BUFFER_VALUES);
@@ -613,8 +614,8 @@ public class ETree extends BaseNode implements Tree {
 
         } else {
             //Parent node
-            final double[] boundMax = (double[]) node.getAt(BOUND_MAX);
-            final double[] boundMin = (double[]) node.getAt(BOUND_MIN);
+            final double[] boundMax = (double[]) node.getAt(_MAX);
+            final double[] boundMin = (double[]) node.getAt(_MIN);
             final double worst = nnl.getWorstDistance();
 
             if (targetmin == null || targetmax == null) {
@@ -640,13 +641,12 @@ public class ETree extends BaseNode implements Tree {
                                         childMax[i] = boundMax[i];
                                     }
                                 }
-                                childPriority.insert(childMin, attributeKey, getclosestDistance(target, boundMin, boundMax, distance));
+                                childPriority.insert(childMin, attributeKey, getclosestDistance(target, childMin, childMax, distance));
                             }
                         }
-
-
                     });
                     childPriority.sort(true);
+
                     for (int i = 0; i < childPriority.size(); i++) {
                         ENode child = (ENode) node.getAt(childPriority.value(i));
                         reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, targetcenter, radius);
@@ -659,7 +659,7 @@ public class ETree extends BaseNode implements Tree {
                     public void on(long attributeKey, byte elemType, Object elem) {
                         if (attributeKey >= _REL) {
                             ENode child = (ENode) node.getAt(attributeKey);
-                            if (checkInside(targetmin, targetmax, (double[]) child.getAt(BOUND_MIN), (double[]) child.getAt(BOUND_MIN))) {
+                            if (checkInside(targetmin, targetmax, (double[]) child.getAt(_MIN), (double[]) child.getAt(_MAX))) {
                                 reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, targetcenter, radius);
                             }
                         }

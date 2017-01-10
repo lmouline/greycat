@@ -112,9 +112,6 @@ public class VolatileResult implements TreeResult {
     }
 
 
-
-
-
     //value -> _distances
     //data -> _values
 
@@ -218,9 +215,9 @@ public class VolatileResult implements TreeResult {
 
     @Override
     public void free() {
-        EGraph g=node.graph();
+        EGraph g = node.graph();
         node.drop();
-        if(g.size()==0){
+        if (g.size() == 0) {
             g.free();
         }
     }
@@ -313,7 +310,9 @@ public class VolatileResult implements TreeResult {
 
     @Override
     public void sort(boolean ascending) {
-        quickSort(1, count, ascending);
+        if(count>1) {
+            quickSort(1, count , ascending);
+        }
     }
 
 }
