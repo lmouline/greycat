@@ -16,7 +16,8 @@ public class ActionScript implements Action {
 
     /**
      * @native ts
-     * var print = console.log;
+     * var print = function(v){ctx.append(v);};
+     * var println = function(v){ctx.append(v+"\n");};
      * eval(this._script);
      */
     @Override

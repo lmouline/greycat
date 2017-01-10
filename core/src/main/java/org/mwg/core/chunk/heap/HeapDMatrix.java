@@ -420,7 +420,9 @@ class HeapDMatrix implements DMatrix {
                 previous = cursor + 1;
             }
             cursor++;
-            current = buffer.read(cursor);
+            if (cursor < max) {
+                current = buffer.read(cursor);
+            }
         }
         if (isFirst) {
             unsafe_init((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));

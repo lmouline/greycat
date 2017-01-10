@@ -249,7 +249,9 @@ class HeapRelation implements Relation {
                 previous = cursor + 1;
             }
             cursor++;
-            current = buffer.read(cursor);
+            if (cursor < max) {
+                current = buffer.read(cursor);
+            }
         }
         if (isFirst) {
             allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
