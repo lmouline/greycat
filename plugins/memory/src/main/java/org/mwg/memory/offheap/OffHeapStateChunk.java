@@ -7,17 +7,14 @@ import org.mwg.base.BaseExternalAttribute;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
 import org.mwg.core.CoreConstants;
-import org.mwg.memory.offheap.primary.OffHeapDoubleArray;
-import org.mwg.memory.offheap.primary.OffHeapIntArray;
-import org.mwg.memory.offheap.primary.OffHeapLongArray;
-import org.mwg.memory.offheap.primary.OffHeapString;
+import org.mwg.memory.offheap.primary.*;
 import org.mwg.plugin.ExternalAttributeFactory;
 import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.Buffer;
 import org.mwg.utility.Base64;
 import org.mwg.utility.HashHelper;
 
-class OffHeapStateChunk implements StateChunk {
+class OffHeapStateChunk implements StateChunk, OffHeapContainer {
 
     private final OffHeapChunkSpace space;
     private final long index;
@@ -54,19 +51,23 @@ class OffHeapStateChunk implements StateChunk {
         return space.graph();
     }
 
-    final void lock() {
+    @Override
+    public final void lock() {
         space.lockByIndex(index);
     }
 
-    final void unlock() {
+    @Override
+    public final void unlock() {
         space.unlockByIndex(index);
     }
 
-    final long addrByIndex(long elemIndex) {
+    @Override
+    public final long addrByIndex(long elemIndex) {
         return OffHeapLongArray.get(space.addrByIndex(index), OFFSET + (elemIndex * ELEM_SIZE) + 2);
     }
 
-    final void setAddrByIndex(long elemIndex, long newAddr) {
+    @Override
+    public void setAddrByIndex(long elemIndex, long newAddr) {
         OffHeapLongArray.set(space.addrByIndex(index), OFFSET + (elemIndex * ELEM_SIZE) + 2, newAddr);
     }
 
@@ -202,7 +203,7 @@ class OffHeapStateChunk implements StateChunk {
                 case Type.LONG_TO_LONG_ARRAY_MAP:
                     return new OffHeapLongLongArrayMap(this, index);
                 case Type.RELATION_INDEXED:
-                    return new OffHeapRelationIndexed(this, index);
+                    return new OffHeapRelationIndexed(this, index, space.graph());
                 case Type.EGRAPH:
                     return new OffHeapEGraph(this, rawValue, space.graph());
                 case OffHeapConstants.OFFHEAP_NULL_PTR:
@@ -357,7 +358,8 @@ class OffHeapStateChunk implements StateChunk {
         return getType(space.graph().resolver().stringToHash(key, false));
     }
 
-    final void declareDirty() {
+    @Override
+    public final void declareDirty() {
         final long addr = space.addrByIndex(index);
         if (OffHeapLongArray.get(addr, DIRTY) != 1) {
             OffHeapLongArray.set(addr, DIRTY, 1);
@@ -430,7 +432,7 @@ class OffHeapStateChunk implements StateChunk {
                             OffHeapLongLongArrayMap.save(rawValue, buffer);
                             break;
                         case Type.EGRAPH:
-                            //TODO waiting for thomad
+                            //TODO waiting for thomas
                             break;
                         default:
                             break;
@@ -586,7 +588,6 @@ class OffHeapStateChunk implements StateChunk {
                     case Type.RELATION_INDEXED:
                     case Type.LONG_TO_LONG_ARRAY_MAP:
                     case Type.EGRAPH:
-                        //throw new RuntimeException("mwDB usage error, set method called with type " + Type.typeName(p_type) + ", is getOrCreate method instead");
                         param_elem = OffHeapConstants.OFFHEAP_NULL_PTR; //empty initial ptr
                         break;
                     default:
@@ -969,7 +970,7 @@ class OffHeapStateChunk implements StateChunk {
                                         state = LOAD_WAITING_TYPE;
                                         break;
                                     case Type.RELATION_INDEXED:
-                                        OffHeapRelationIndexed relationIndexed = new OffHeapRelationIndexed(this, internal_set(read_key, read_type, null, true, initial));
+                                        OffHeapRelationIndexed relationIndexed = new OffHeapRelationIndexed(this, internal_set(read_key, read_type, null, true, initial), space.graph());
                                         cursor++;
                                         cursor = relationIndexed.load(buffer, cursor, payloadSize);
                                         cursor++;

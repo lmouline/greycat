@@ -170,6 +170,11 @@ public class OffHeapEGraph implements EGraph {
         }
     }
 
+    @Override
+    public Graph graph() {
+        return _graph;
+    }
+
     final void declareDirty() {
         long dirty = OffHeapLongArray.get(addr, DIRTY);
         if (dirty == 0) {
@@ -189,7 +194,10 @@ public class OffHeapEGraph implements EGraph {
             if (i != 0) {
                 builder.append(",");
             }
-            builder.append(OffHeapENode.toString(nodeAddrAt(addr ,i)));
+            long nodeAddr = nodeAddrAt(addr ,i);
+            long nodeId = OffHeapENode.getId(nodeAddr);
+            OffHeapENode enode = new OffHeapENode(parent, this, _graph, nodeId, nodeAddr);
+            builder.append(enode.toString());
         }
         builder.append("]}");
         return builder.toString();

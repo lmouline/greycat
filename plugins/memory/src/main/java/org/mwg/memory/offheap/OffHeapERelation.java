@@ -51,7 +51,7 @@ public class OffHeapERelation implements ERelation {
         int size = (int) OffHeapLongArray.get(addr, SIZE);
         ENode[] nodes = new ENode[size];
         for (int i = 0; i < size; i++) {
-            long nodeAddr = getNodeAddrAt(addr, i);
+            long nodeAddr = nodeAddrAt(addr, i);
             long nodeId = OffHeapENode.getId(nodeAddr);
             OffHeapENode eNode = new OffHeapENode(parent, eGraph, graph, nodeId, nodeAddr);
             nodes[i] = eNode;
@@ -61,7 +61,7 @@ public class OffHeapERelation implements ERelation {
 
     @Override
     public ENode node(int index) {
-        long nodeAddr = getNodeAddrAt(addr, index);
+        long nodeAddr = nodeAddrAt(addr, index);
         long nodeId = OffHeapENode.getId(nodeAddr);
         return new OffHeapENode(parent, eGraph, graph, nodeId, nodeAddr);
     }
@@ -122,7 +122,7 @@ public class OffHeapERelation implements ERelation {
         long size = OffHeapLongArray.get(addr, SIZE);
 
         for (int i = 0; i < size; i++) {
-            long previousNodeAddr = getNodeAddrAt(addr, i);
+            long previousNodeAddr = nodeAddrAt(addr, i);
             long previousNodeId = OffHeapENode.getId(previousNodeAddr);
 
             long newNodeAddr = OffHeapEGraph.nodeAddrAt(newEGraphAddr, previousNodeId);
@@ -138,7 +138,7 @@ public class OffHeapERelation implements ERelation {
         // TODO
     }
 
-    static long getNodeAddrAt(long addr, long index) {
+    static long nodeAddrAt(long addr, long index) {
         return OffHeapLongArray.get(addr, HEADER_SIZE + index);
     }
 
@@ -155,7 +155,7 @@ public class OffHeapERelation implements ERelation {
             if (i != 0) {
                 buffer.append(",");
             }
-            long nodeAddr = getNodeAddrAt(addr, i);
+            long nodeAddr = nodeAddrAt(addr, i);
             long nodeId = OffHeapENode.getId(nodeAddr);
             buffer.append(nodeId);
         }

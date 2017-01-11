@@ -15,19 +15,19 @@ class OffHeapRelation implements Relation {
     private static int SHIFT = 2;
 
     private final long index;
-    private final OffHeapStateChunk chunk;
+    private final OffHeapContainer container;
 
-    OffHeapRelation(final OffHeapStateChunk p_chunk, final long p_index) {
-        chunk = p_chunk;
+    OffHeapRelation(final OffHeapContainer p_container, final long p_index) {
+        container = p_container;
         index = p_index;
     }
 
     @Override
     public long[] all() {
         long[] ids;
-        chunk.lock();
+        container.lock();
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
                 ids = new long[0];
             } else {
@@ -38,34 +38,34 @@ class OffHeapRelation implements Relation {
                 }
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return ids;
     }
 
     public final void allocate(int newCapacity) {
-        chunk.lock();
+        container.lock();
         try {
             unsafe_allocate(newCapacity);
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
     }
 
     private void unsafe_allocate(int newCapacity){
-        final long addr = chunk.addrByIndex(index);
+        final long addr = container.addrByIndex(index);
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             //initial allocation
             final long newly = OffHeapLongArray.allocate(newCapacity + SHIFT);
             OffHeapLongArray.set(newly, SIZE, 0);
             OffHeapLongArray.set(newly, CAPACITY, newCapacity);
-            chunk.setAddrByIndex(index, newly);
+            container.setAddrByIndex(index, newly);
         } else {
             final long capacity = OffHeapLongArray.get(addr, CAPACITY);
             if (capacity < newCapacity) {
                 //extends
                 long exAddr = OffHeapLongArray.reallocate(addr, newCapacity + SHIFT);
-                chunk.setAddrByIndex(index, exAddr);
+                container.setAddrByIndex(index, exAddr);
                 OffHeapLongArray.set(exAddr, CAPACITY, newCapacity);
             }
         }
@@ -73,15 +73,15 @@ class OffHeapRelation implements Relation {
 
     @Override
     public final int size() {
-        chunk.lock();
+        container.lock();
         long size = 0;
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 size = OffHeapLongArray.get(addr, SIZE);
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return (int) size;
     }
@@ -89,9 +89,9 @@ class OffHeapRelation implements Relation {
     @Override
     public final long get(final int elemIndex) {
         long result = -1;
-        chunk.lock();
+        container.lock();
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 final long size = OffHeapLongArray.get(addr, SIZE);
                 if (elemIndex < size) {
@@ -101,16 +101,16 @@ class OffHeapRelation implements Relation {
                 }
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return result;
     }
 
     @Override
     public void set(int index, long value) {
-        chunk.lock();
+        container.lock();
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 final long size = OffHeapLongArray.get(addr, SIZE);
                 if (index < size) {
@@ -118,32 +118,32 @@ class OffHeapRelation implements Relation {
                 }
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
     }
 
     @Override
     public final Relation add(final long newValue) {
-        chunk.lock();
+        container.lock();
         try {
             internal_add(newValue);
-            chunk.declareDirty();
+            container.declareDirty();
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return this;
     }
 
     @Override
     public Relation addAll(long[] newValues) {
-        chunk.lock();
+        container.lock();
         try {
             for (int i = 0; i < newValues.length; i++) {
                 internal_add(newValues[i]);
             }
-            chunk.declareDirty();
+            container.declareDirty();
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return this;
     }
@@ -155,10 +155,10 @@ class OffHeapRelation implements Relation {
 
     @Override
     public Relation insert(int insertIndex, long newValue) {
-        chunk.lock();
+        container.lock();
         try {
             long size = 0;
-            long addr = chunk.addrByIndex(index);
+            long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 size = OffHeapLongArray.get(addr, SIZE);
             }
@@ -169,7 +169,7 @@ class OffHeapRelation implements Relation {
                 long capacity = Constants.MAP_INITIAL_CAPACITY;
                 addr = OffHeapLongArray.allocate(SHIFT + capacity);
                 OffHeapLongArray.set(addr, CAPACITY, capacity);
-                chunk.setAddrByIndex(index, addr);
+                container.setAddrByIndex(index, addr);
                 OffHeapLongArray.set(addr, SHIFT, newValue);
                 OffHeapLongArray.set(addr, SIZE, 1);
             } else {
@@ -178,27 +178,27 @@ class OffHeapRelation implements Relation {
                     //need to reallocate first
                     final long newCapacity = capacity * 2;
                     addr = OffHeapLongArray.reallocate(addr, newCapacity + SHIFT);
-                    chunk.setAddrByIndex(index, addr);
+                    container.setAddrByIndex(index, addr);
                     OffHeapLongArray.set(addr, CAPACITY, newCapacity);
                 }
                 OffHeapLongArray.insert(addr, SHIFT + insertIndex, newValue, size + SHIFT);
                 OffHeapLongArray.set(addr, SIZE, size + 1);
             }
-            chunk.declareDirty();
+            container.declareDirty();
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return this;
     }
 
     final void internal_add(final long newValue) {
-        long addr = chunk.addrByIndex(index);
+        long addr = container.addrByIndex(index);
         long size;
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             long capacity = Constants.MAP_INITIAL_CAPACITY;
             addr = OffHeapLongArray.allocate(SHIFT + capacity);
             OffHeapLongArray.set(addr, CAPACITY, capacity);
-            chunk.setAddrByIndex(index, addr);
+            container.setAddrByIndex(index, addr);
             size = 0;
         } else {
             size = OffHeapLongArray.get(addr, SIZE);
@@ -206,7 +206,7 @@ class OffHeapRelation implements Relation {
             if (size == capacity) {
                 final long newCapacity = capacity * 2;
                 addr = OffHeapLongArray.reallocate(addr, newCapacity + SHIFT);
-                chunk.setAddrByIndex(index, addr);
+                container.setAddrByIndex(index, addr);
                 OffHeapLongArray.set(addr, CAPACITY, newCapacity);
             }
         }
@@ -217,9 +217,9 @@ class OffHeapRelation implements Relation {
     @Override
     public final Relation remove(final long oldValue) {
         boolean leftShift = false;
-        chunk.lock();
+        container.lock();
         try {
-            long addr = chunk.addrByIndex(index);
+            long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 final long size = OffHeapLongArray.get(addr, SIZE);
                 for (int i = 0; i < size; i++) {
@@ -234,44 +234,44 @@ class OffHeapRelation implements Relation {
                 }
                 if (leftShift) {
                     OffHeapLongArray.set(addr, SIZE, size - 1);
-                    chunk.declareDirty();
+                    container.declareDirty();
                 }
             }
 
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return this;
     }
 
     @Override
     public Relation delete(int indexToDelete) {
-        chunk.lock();
+        container.lock();
         try {
-            long addr = chunk.addrByIndex(index);
+            long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 final long size = OffHeapLongArray.get(addr, SIZE);
                 OffHeapLongArray.delete(addr, indexToDelete, size);
                 OffHeapLongArray.set(addr, SIZE, size - 1);
-                chunk.declareDirty();
+                container.declareDirty();
             }
 
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return this;
     }
 
     @Override
     public final Relation clear() {
-        chunk.lock();
+        container.lock();
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 OffHeapLongArray.set(addr, SIZE, 0);
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return this;
     }
@@ -282,7 +282,7 @@ class OffHeapRelation implements Relation {
         StringBuilder buffer = new StringBuilder();
         //chunk.lock();
         // try {
-        final long addr = chunk.addrByIndex(index);
+        final long addr = container.addrByIndex(index);
         if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
             buffer.append("[");
             final long size = OffHeapLongArray.get(addr, SIZE);

@@ -1,18 +1,17 @@
 package org.mwg.memory.offheap;
 
-import org.mwg.Callback;
-import org.mwg.Constants;
-import org.mwg.Node;
-import org.mwg.Query;
+import org.mwg.*;
 import org.mwg.base.BaseNode;
 import org.mwg.plugin.NodeState;
 import org.mwg.struct.LongLongArrayMapCallBack;
 import org.mwg.struct.RelationIndexed;
 
 public class OffHeapRelationIndexed extends OffHeapLongLongArrayMap implements RelationIndexed {
+    private final Graph _graph;
 
-    OffHeapRelationIndexed(OffHeapStateChunk p_chunk, long p_index) {
+    OffHeapRelationIndexed(OffHeapStateChunk p_chunk, long p_index, Graph p_graph) {
         super(p_chunk, p_index);
+        _graph = p_graph;
     }
 
     @Override
@@ -54,7 +53,7 @@ public class OffHeapRelationIndexed extends OffHeapLongLongArrayMap implements R
 
     @Override
     public void find(Callback<Node[]> callback, final long world, final long time, String... params) {
-        Query queryObj = chunk.graph().newQuery().setWorld(world).setTime(time);
+        Query queryObj = _graph.newQuery().setWorld(world).setTime(time);
         String previous = null;
         for (int i = 0; i < params.length; i++) {
             if (previous != null) {
@@ -73,7 +72,7 @@ public class OffHeapRelationIndexed extends OffHeapLongLongArrayMap implements R
         if (foundIds == null) {
             callback.on(new BaseNode[0]);
         } else {
-            chunk.graph().resolver().lookupAll(chunk.world(), chunk.time(), foundIds, new Callback<Node[]>() {
+            _graph.resolver().lookupAll(query.world(), query.time(), foundIds, new Callback<Node[]>() {
                 @Override
                 public void on(Node[] resolved) {
                     //select
@@ -82,7 +81,7 @@ public class OffHeapRelationIndexed extends OffHeapLongLongArrayMap implements R
                     for (int i = 0; i < resultSet.length; i++) {
                         final org.mwg.Node resolvedNode = resolved[i];
                         if (resolvedNode != null) {
-                            final NodeState resolvedState = chunk.graph().resolver().resolveState(resolvedNode);
+                            final NodeState resolvedState = _graph.resolver().resolveState(resolvedNode);
                             boolean exact = true;
                             for (int j = 0; j < query.attributes().length; j++) {
                                 Object obj = resolvedState.get(query.attributes()[j]);

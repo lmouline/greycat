@@ -3,19 +3,22 @@ package org.mwg.memory.offheap;
 import org.mwg.Constants;
 import org.mwg.Graph;
 import org.mwg.Type;
+import org.mwg.base.BaseNode;
 import org.mwg.core.CoreConstants;
 import org.mwg.memory.offheap.primary.OffHeapDoubleArray;
 import org.mwg.memory.offheap.primary.OffHeapIntArray;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.memory.offheap.primary.OffHeapString;
 import org.mwg.plugin.NodeStateCallback;
-import org.mwg.struct.Buffer;
-import org.mwg.struct.EGraph;
-import org.mwg.struct.ENode;
+import org.mwg.plugin.Resolver;
+import org.mwg.struct.*;
 import org.mwg.utility.Base64;
 import org.mwg.utility.HashHelper;
 
-public class OffHeapENode implements ENode {
+import java.util.HashSet;
+import java.util.Set;
+
+public class OffHeapENode implements ENode, OffHeapContainer {
     private final OffHeapEGraph egraph;
     private final OffHeapStateChunk chunk;
     private final Graph _graph;
@@ -41,7 +44,7 @@ public class OffHeapENode implements ENode {
         egraph = p_egraph;
         _graph = p_graph;
 
-        long capacity = 0;
+        long capacity = Constants.MAP_INITIAL_CAPACITY;
         if (originAddr != OffHeapConstants.OFFHEAP_NULL_PTR) {
             capacity = OffHeapLongArray.get(originAddr, CAPACITY);
         }
@@ -86,7 +89,8 @@ public class OffHeapENode implements ENode {
         }
     }
 
-    private void declareDirty() {
+    @Override
+    public void declareDirty() {
         long dirty = OffHeapLongArray.get(addr, DIRTY);
         if (dirty == 0) {
             OffHeapLongArray.set(addr, DIRTY, 1);
@@ -330,9 +334,11 @@ public class OffHeapENode implements ENode {
                     case Type.INT_ARRAY:
                         param_elem = OffHeapIntArray.fromObject((int[]) p_unsafe_elem);
                         break;
+                    case Type.ENODE:
+                        param_elem = ((OffHeapENode) p_unsafe_elem).getAddr();
+                        break;
                     case Type.RELATION:
                     case Type.ERELATION:
-                    case Type.ENODE:
                     case Type.DMATRIX:
                     case Type.LMATRIX:
                     case Type.STRING_TO_LONG_MAP:
@@ -408,7 +414,7 @@ public class OffHeapENode implements ENode {
                 case Type.LONG_TO_LONG_ARRAY_MAP:
                     return new OffHeapLongLongArrayMap(chunk, index);
                 case Type.RELATION_INDEXED:
-                    return new OffHeapRelationIndexed(chunk, index);
+                    return new OffHeapRelationIndexed(chunk, index, _graph);
                 case OffHeapConstants.OFFHEAP_NULL_PTR:
                     return null;
                 default:
@@ -614,9 +620,237 @@ public class OffHeapENode implements ENode {
         }
     }
 
-    static String toString(long addr) {
-        // TODO
-        return "";
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        final boolean[] isFirst = {true};
+        boolean isFirstField = true;
+        long size = OffHeapLongArray.get(addr, SIZE);
+        builder.append("{");
+        for (int i = 0; i < size; i++) {
+            final long elem = value(addr, i);
+            final Resolver resolver = _graph.resolver();
+            final long attributeKey = key(addr, i);
+            final byte elemType = type(addr, i);
+            if (elem != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                if (isFirstField) {
+                    isFirstField = false;
+                } else {
+                    builder.append(",");
+                }
+                String resolveName = resolver.hashToString(attributeKey);
+                if (resolveName == null) {
+                    resolveName = attributeKey + "";
+                }
+                switch (elemType) {
+                    case Type.BOOL: {
+                        builder.append("\"");
+                        builder.append(resolveName);
+                        builder.append("\":");
+                        if (elem == 1) {
+                            builder.append("1");
+                        } else {
+                            builder.append("0");
+                        }
+                        break;
+                    }
+                    case Type.STRING: {
+                        builder.append("\"");
+                        builder.append(resolveName);
+                        builder.append("\":");
+                        builder.append("\"");
+                        builder.append(OffHeapString.asObject(elem));
+                        builder.append("\"");
+                        break;
+                    }
+                    case Type.LONG: {
+                        builder.append("\"");
+                        builder.append(resolveName);
+                        builder.append("\":");
+                        builder.append(elem);
+                        break;
+                    }
+                    case Type.INT: {
+                        builder.append("\"");
+                        builder.append(resolveName);
+                        builder.append("\":");
+                        builder.append(elem);
+                        break;
+                    }
+                    case Type.DOUBLE: {
+                        if (!BaseNode.isNaN((double) elem)) {
+                            builder.append("\"");
+                            builder.append(resolveName);
+                            builder.append("\":");
+                            builder.append(elem);
+                        }
+                        break;
+                    }
+                    case Type.DOUBLE_ARRAY: {
+                        builder.append("\"");
+                        builder.append(resolveName);
+                        builder.append("\":");
+                        builder.append("[");
+                        double[] castedArr = OffHeapDoubleArray.asObject(elem);
+                        for (int j = 0; j < castedArr.length; j++) {
+                            if (j != 0) {
+                                builder.append(",");
+                            }
+                            builder.append(castedArr[j]);
+                        }
+                        builder.append("]");
+                        break;
+                    }
+                    case Type.RELATION:
+                        builder.append("\"");
+                        builder.append(resolveName);
+                        builder.append("\":");
+                        builder.append("[");
+                        OffHeapRelation castedRelArr = new OffHeapRelation(this, i);
+                        for (int j = 0; j < castedRelArr.size(); j++) {
+                            if (j != 0) {
+                                builder.append(",");
+                            }
+                            builder.append(castedRelArr.get(j));
+                        }
+                        builder.append("]");
+                        break;
+                    case Type.ERELATION:
+                        builder.append("\"");
+                        builder.append(resolveName);
+                        builder.append("\":");
+                        builder.append("[");
+                        OffHeapERelation castedERelArr = new OffHeapERelation(chunk, egraph, _graph, elem);
+                        for (int j = 0; j < castedERelArr.size(); j++) {
+                            if (j != 0) {
+                                builder.append(",");
+                            }
+                            long nodeAddr = OffHeapERelation.nodeAddrAt(castedERelArr.getAddr(), j);
+                            builder.append(OffHeapENode.getId(nodeAddr));
+                        }
+                        builder.append("]");
+                        break;
+                    case Type.LONG_ARRAY: {
+                        builder.append("\"");
+                        builder.append(resolveName);
+                        builder.append("\":");
+                        builder.append("[");
+                        long[] castedArr2 = OffHeapLongArray.asObject(elem);
+                        for (int j = 0; j < castedArr2.length; j++) {
+                            if (j != 0) {
+                                builder.append(",");
+                            }
+                            builder.append(castedArr2[j]);
+                        }
+                        builder.append("]");
+                        break;
+                    }
+                    case Type.INT_ARRAY: {
+                        builder.append("\"");
+                        builder.append(resolveName);
+                        builder.append("\":");
+                        builder.append("[");
+                        int[] castedArr3 = OffHeapIntArray.asObject(elem);
+                        for (int j = 0; j < castedArr3.length; j++) {
+                            if (j != 0) {
+                                builder.append(",");
+                            }
+                            builder.append(castedArr3[j]);
+                        }
+                        builder.append("]");
+                        break;
+                    }
+                    case Type.LONG_TO_LONG_MAP: {
+                        builder.append("\"");
+                        builder.append(resolveName);
+                        builder.append("\":");
+                        builder.append("{");
+                        OffHeapLongLongMap castedMapL2L = new OffHeapLongLongMap(this, i);
+                        isFirst[0] = true;
+                        castedMapL2L.each(new LongLongMapCallBack() {
+                            @Override
+                            public void on(long key, long value) {
+                                if (!isFirst[0]) {
+                                    builder.append(",");
+                                } else {
+                                    isFirst[0] = false;
+                                }
+                                builder.append("\"");
+                                builder.append(key);
+                                builder.append("\":");
+                                builder.append(value);
+                            }
+                        });
+                        builder.append("}");
+                        break;
+                    }
+                    case Type.RELATION_INDEXED:
+                    case Type.LONG_TO_LONG_ARRAY_MAP: {
+                        builder.append("\"");
+                        builder.append(resolveName);
+                        builder.append("\":");
+                        builder.append("{");
+                        OffHeapLongLongArrayMap castedMapL2LA = new OffHeapLongLongArrayMap(this, i);
+                        isFirst[0] = true;
+                        Set<Long> keys = new HashSet<Long>();
+                        castedMapL2LA.each(new LongLongArrayMapCallBack() {
+                            @Override
+                            public void on(long key, long value) {
+                                keys.add(key);
+                            }
+                        });
+                        final Long[] flatKeys = keys.toArray(new Long[keys.size()]);
+                        for (int k = 0; k < flatKeys.length; k++) {
+                            long[] values = castedMapL2LA.get(flatKeys[k]);
+                            if (!isFirst[0]) {
+                                builder.append(",");
+                            } else {
+                                isFirst[0] = false;
+                            }
+                            builder.append("\"");
+                            builder.append(flatKeys[k]);
+                            builder.append("\":[");
+                            for (int j = 0; j < values.length; j++) {
+                                if (j != 0) {
+                                    builder.append(",");
+                                }
+                                builder.append(values[j]);
+                            }
+                            builder.append("]");
+                        }
+                        builder.append("}");
+                        break;
+                    }
+                    case Type.STRING_TO_LONG_MAP: {
+                        builder.append("\"");
+                        builder.append(resolveName);
+                        builder.append("\":");
+                        builder.append("{");
+                        OffHeapStringLongMap castedMapS2L = new OffHeapStringLongMap(this, i);
+                        isFirst[0] = true;
+                        castedMapS2L.each(new StringLongMapCallBack() {
+                            @Override
+                            public void on(String key, long value) {
+                                if (!isFirst[0]) {
+                                    builder.append(",");
+                                } else {
+                                    isFirst[0] = false;
+                                }
+                                builder.append("\"");
+                                builder.append(key);
+                                builder.append("\":");
+                                builder.append(value);
+                            }
+                        });
+                        builder.append("}");
+                        break;
+                    }
+
+                }
+            }
+        }
+        builder.append("}");
+        return builder.toString();
     }
 
     @SuppressWarnings("Duplicates")
@@ -882,7 +1116,7 @@ public class OffHeapENode implements ENode {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.RELATION_INDEXED:
-                                OffHeapRelationIndexed relationIndexed = new OffHeapRelationIndexed(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR);
+                                OffHeapRelationIndexed relationIndexed = new OffHeapRelationIndexed(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR, _graph);
                                 cursor++;
                                 cursor = relationIndexed.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -973,5 +1207,25 @@ public class OffHeapENode implements ENode {
                 internal_set(read_key, read_type, egraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true), true, initial);
                 break;
         }
+    }
+
+    @Override
+    public long addrByIndex(long elemIndex) {
+        return value(addr, elemIndex);
+    }
+
+    @Override
+    public void setAddrByIndex(long elemIndex, long newAddr) {
+        setValue(addr, elemIndex, newAddr);
+    }
+
+    @Override
+    public void lock() {
+        // no locking for OffHeapENode
+    }
+
+    @Override
+    public void unlock() {
+        // no locking for OffHeapENode
     }
 }
