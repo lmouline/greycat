@@ -19,11 +19,9 @@ import java.util.Set;
 class HeapENode implements ENode, HeapContainer {
 
     private final HeapEGraph egraph;
-    private final HeapContainer parent;
     int _id;
 
-    HeapENode(final HeapContainer p_parent, final HeapEGraph p_egraph, final int p_id, final HeapENode origin) {
-        parent = p_parent;
+    HeapENode(final HeapEGraph p_egraph, final int p_id, final HeapENode origin) {
         egraph = p_egraph;
         _id = p_id;
         if (origin != null) {
@@ -58,37 +56,37 @@ class HeapENode implements ENode, HeapContainer {
                     switch (origin._type[i]) {
                         case Type.LONG_TO_LONG_MAP:
                             if (origin._v[i] != null) {
-                                _v[i] = ((HeapLongLongMap) origin._v[i]).cloneFor(p_parent);
+                                _v[i] = ((HeapLongLongMap) origin._v[i]).cloneFor(this);
                             }
                             break;
                         case Type.RELATION_INDEXED:
                             if (origin._v[i] != null) {
-                                _v[i] = ((HeapRelationIndexed) origin._v[i]).cloneIRelFor(p_parent, egraph.graph());
+                                _v[i] = ((HeapRelationIndexed) origin._v[i]).cloneIRelFor(this, egraph.graph());
                             }
                             break;
                         case Type.LONG_TO_LONG_ARRAY_MAP:
                             if (origin._v[i] != null) {
-                                _v[i] = ((HeapLongLongArrayMap) origin._v[i]).cloneFor(p_parent);
+                                _v[i] = ((HeapLongLongArrayMap) origin._v[i]).cloneFor(this);
                             }
                             break;
                         case Type.STRING_TO_LONG_MAP:
                             if (origin._v[i] != null) {
-                                _v[i] = ((HeapStringLongMap) origin._v[i]).cloneFor(p_parent);
+                                _v[i] = ((HeapStringLongMap) origin._v[i]).cloneFor(this);
                             }
                             break;
                         case Type.RELATION:
                             if (origin._v[i] != null) {
-                                _v[i] = new HeapRelation(p_parent, (HeapRelation) origin._v[i]);
+                                _v[i] = new HeapRelation(this, (HeapRelation) origin._v[i]);
                             }
                             break;
                         case Type.DMATRIX:
                             if (origin._v[i] != null) {
-                                _v[i] = new HeapDMatrix(p_parent, (HeapDMatrix) origin._v[i]);
+                                _v[i] = new HeapDMatrix(this, (HeapDMatrix) origin._v[i]);
                             }
                             break;
                         case Type.LMATRIX:
                             if (origin._v[i] != null) {
-                                _v[i] = new HeapLMatrix(p_parent, (HeapLMatrix) origin._v[i]);
+                                _v[i] = new HeapLMatrix(this, (HeapLMatrix) origin._v[i]);
                             }
                             break;
                         case Type.EXTERNAL:
@@ -479,28 +477,28 @@ class HeapENode implements ENode, HeapContainer {
         Object toSet = null;
         switch (type) {
             case Type.ERELATION:
-                toSet = new HeapERelation(parent, null);
+                toSet = new HeapERelation(this, null);
                 break;
             case Type.RELATION:
-                toSet = new HeapRelation(parent, null);
+                toSet = new HeapRelation(this, null);
                 break;
             case Type.RELATION_INDEXED:
                 toSet = new HeapRelationIndexed(this, egraph.graph());
                 break;
             case Type.DMATRIX:
-                toSet = new HeapDMatrix(parent, null);
+                toSet = new HeapDMatrix(this, null);
                 break;
             case Type.LMATRIX:
-                toSet = new HeapLMatrix(parent, null);
+                toSet = new HeapLMatrix(this, null);
                 break;
             case Type.STRING_TO_LONG_MAP:
-                toSet = new HeapStringLongMap(parent);
+                toSet = new HeapStringLongMap(this);
                 break;
             case Type.LONG_TO_LONG_MAP:
-                toSet = new HeapLongLongMap(parent);
+                toSet = new HeapLongLongMap(this);
                 break;
             case Type.LONG_TO_LONG_ARRAY_MAP:
-                toSet = new HeapLongLongArrayMap(parent);
+                toSet = new HeapLongLongArrayMap(this);
                 break;
         }
         internal_set(key, type, toSet, true, false);
@@ -902,7 +900,7 @@ class HeapENode implements ENode, HeapContainer {
     private static final byte LOAD_WAITING_VALUE = 3;
 
     @SuppressWarnings("Duplicates")
-    public final long load(final Buffer buffer, final long currentCursor, final HeapContainer p_parent, final Graph graph) {
+    public final long load(final Buffer buffer, final long currentCursor, final HeapContainer nodeParent, final Graph graph) {
         final boolean initial = _k == null;
         final long payloadSize = buffer.length();
         long cursor = currentCursor;
@@ -1044,7 +1042,7 @@ class HeapENode implements ENode, HeapContainer {
                                 }
                                 break;
                             case Type.RELATION:
-                                HeapRelation relation = new HeapRelation(p_parent, null);
+                                HeapRelation relation = new HeapRelation(this, null);
                                 cursor++;
                                 cursor = relation.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -1053,7 +1051,7 @@ class HeapENode implements ENode, HeapContainer {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.DMATRIX:
-                                HeapDMatrix matrix = new HeapDMatrix(p_parent, null);
+                                HeapDMatrix matrix = new HeapDMatrix(this, null);
                                 cursor++;
                                 cursor = matrix.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -1062,7 +1060,7 @@ class HeapENode implements ENode, HeapContainer {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.LMATRIX:
-                                HeapLMatrix lmatrix = new HeapLMatrix(p_parent, null);
+                                HeapLMatrix lmatrix = new HeapLMatrix(this, null);
                                 cursor++;
                                 cursor = lmatrix.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -1071,7 +1069,7 @@ class HeapENode implements ENode, HeapContainer {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.LONG_TO_LONG_MAP:
-                                HeapLongLongMap l2lmap = new HeapLongLongMap(p_parent);
+                                HeapLongLongMap l2lmap = new HeapLongLongMap(this);
                                 cursor++;
                                 cursor = l2lmap.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -1080,7 +1078,7 @@ class HeapENode implements ENode, HeapContainer {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.LONG_TO_LONG_ARRAY_MAP:
-                                HeapLongLongArrayMap l2lrmap = new HeapLongLongArrayMap(p_parent);
+                                HeapLongLongArrayMap l2lrmap = new HeapLongLongArrayMap(this);
                                 cursor++;
                                 cursor = l2lrmap.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -1098,7 +1096,7 @@ class HeapENode implements ENode, HeapContainer {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.STRING_TO_LONG_MAP:
-                                HeapStringLongMap s2lmap = new HeapStringLongMap(p_parent);
+                                HeapStringLongMap s2lmap = new HeapStringLongMap(this);
                                 cursor++;
                                 cursor = s2lmap.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -1114,7 +1112,7 @@ class HeapENode implements ENode, HeapContainer {
                                 while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
                                     if (current == Constants.CHUNK_VAL_SEP) {
                                         if (eRelation == null) {
-                                            eRelation = new HeapERelation(p_parent, null);
+                                            eRelation = new HeapERelation(this, null);
                                             eRelation.allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                         } else {
                                             eRelation.add(egraph.nodeByIndex((int) Base64.decodeToLongWithBounds(buffer, previous, cursor), true));
@@ -1125,7 +1123,7 @@ class HeapENode implements ENode, HeapContainer {
                                     current = buffer.read(cursor);
                                 }
                                 if (eRelation == null) {
-                                    eRelation = new HeapERelation(p_parent, null);
+                                    eRelation = new HeapERelation(this, null);
                                     eRelation.allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
                                 } else {
                                     eRelation.add(egraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true));

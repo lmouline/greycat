@@ -30,7 +30,7 @@ class HeapEGraph implements EGraph {
             _nodes = new HeapENode[_nodes_capacity];
             //pass #1: copy nodes
             for (int i = 0; i < _nodes_index; i++) {
-                _nodes[i] = new HeapENode(parent, this, i, origin._nodes[i]);
+                _nodes[i] = new HeapENode(this, i, origin._nodes[i]);
             }
             //pass #2: rebase all links
             for (int i = 0; i < _nodes_index; i++) {
@@ -75,7 +75,7 @@ class HeapEGraph implements EGraph {
             }
             HeapENode elem = _nodes[index];
             if (elem == null && createIfAbsent) {
-                elem = new HeapENode(parent, this, index, null);
+                elem = new HeapENode(this, index, null);
                 _nodes[index] = elem;
             }
             return elem;
@@ -107,7 +107,7 @@ class HeapEGraph implements EGraph {
             _nodes_capacity = newCapacity;
             _nodes = newNodes;
         }
-        HeapENode newNode = new HeapENode(parent, this, _nodes_index, null);
+        HeapENode newNode = new HeapENode(this, _nodes_index, null);
         _nodes[_nodes_index] = newNode;
         _nodes_index++;
         return newNode;
@@ -120,7 +120,6 @@ class HeapEGraph implements EGraph {
         }
         return null;
     }
-
 
     @Override
     public final EGraph setRoot(ENode eNode) {
