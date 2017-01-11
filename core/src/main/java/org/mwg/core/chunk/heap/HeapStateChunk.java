@@ -16,7 +16,7 @@ import org.mwg.struct.*;
 
 import java.util.Arrays;
 
-class HeapStateChunk implements StateChunk {
+class HeapStateChunk implements StateChunk, HeapContainer {
 
     private final long _index;
     private final HeapChunkSpace _space;
@@ -233,7 +233,7 @@ class HeapStateChunk implements StateChunk {
                 toSet = new HeapRelation(this, null);
                 break;
             case Type.RELATION_INDEXED:
-                toSet = new HeapRelationIndexed(this);
+                toSet = new HeapRelationIndexed(this, _space.graph());
                 break;
             case Type.DMATRIX:
                 toSet = new HeapDMatrix(this, null);
@@ -286,7 +286,8 @@ class HeapStateChunk implements StateChunk {
         return getOrCreate(_space.graph().resolver().stringToHash(key, true), elemType);
     }
 
-    final void declareDirty() {
+    @Override
+    final public void declareDirty() {
         if (_space != null && !_dirty) {
             _dirty = true;
             _space.notifyUpdate(_index);
@@ -510,7 +511,7 @@ class HeapStateChunk implements StateChunk {
                         break;
                     case Type.RELATION_INDEXED:
                         if (casted._v[i] != null) {
-                            _v[i] = ((HeapRelationIndexed) casted._v[i]).cloneIRelFor(this);
+                            _v[i] = ((HeapRelationIndexed) casted._v[i]).cloneIRelFor(this, casted.graph());
                         }
                         break;
                     case Type.LONG_TO_LONG_ARRAY_MAP:
@@ -911,7 +912,7 @@ class HeapStateChunk implements StateChunk {
                                             previous = cursor + 1;
                                         }
                                         cursor++;
-                                        if(cursor < payloadSize){
+                                        if (cursor < payloadSize) {
                                             current = buffer.read(cursor);
                                         }
                                     }
@@ -1033,7 +1034,7 @@ class HeapStateChunk implements StateChunk {
                                     state = LOAD_WAITING_TYPE;
                                     break;
                                 case Type.RELATION_INDEXED:
-                                    HeapRelationIndexed relationIndexed = new HeapRelationIndexed(this);
+                                    HeapRelationIndexed relationIndexed = new HeapRelationIndexed(this, _space.graph());
                                     cursor++;
                                     cursor = relationIndexed.load(buffer, cursor, payloadSize);
                                     cursor++;

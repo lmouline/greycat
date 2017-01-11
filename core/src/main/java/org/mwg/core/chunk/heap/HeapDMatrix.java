@@ -15,11 +15,11 @@ class HeapDMatrix implements DMatrix {
     private static final int INDEX_MAX_COLUMN = 2;
     private static final int INDEX_OFFSET = 3;
 
-    private final HeapStateChunk parent;
+    private final HeapContainer parent;
     private double[] backend = null;
     private boolean aligned = true;
 
-    HeapDMatrix(final HeapStateChunk p_parent, final HeapDMatrix origin) {
+    HeapDMatrix(final HeapContainer p_parent, final HeapDMatrix origin) {
         parent = p_parent;
         if (origin != null) {
             aligned = false;

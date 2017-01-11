@@ -10,11 +10,11 @@ class HeapRelation implements Relation {
 
     private long[] _back;
     private volatile int _size;
-    private final HeapStateChunk parent;
+    private final HeapContainer parent;
     private boolean aligned = true;
 
-    HeapRelation(final HeapStateChunk p_listener, final HeapRelation origin) {
-        parent = p_listener;
+    HeapRelation(final HeapContainer p_parent, final HeapRelation origin) {
+        parent = p_parent;
         if (origin != null) {
             aligned = false;
             _back = origin._back;

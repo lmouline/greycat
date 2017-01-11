@@ -10,10 +10,10 @@ class HeapERelation implements ERelation {
     private ENode[] _back;
     private int _size;
     private int _capacity;
-    private final HeapStateChunk parent;
+    private final HeapContainer parent;
 
-    HeapERelation(final HeapStateChunk p_listener, final HeapERelation origin) {
-        parent = p_listener;
+    HeapERelation(final HeapContainer p_parent, final HeapERelation origin) {
+        parent = p_parent;
         if (origin != null) {
             _back = new ENode[origin._capacity];
             System.arraycopy(origin._back, 0, _back, 0, origin._capacity);
@@ -26,7 +26,7 @@ class HeapERelation implements ERelation {
         }
     }
 
-    void rebase(HeapEGraph newGraph) {
+    final void rebase(HeapEGraph newGraph) {
         for (int i = 0; i < _size; i++) {
             final HeapENode previous = (HeapENode) _back[i];
             _back[i] = newGraph._nodes[previous._id];

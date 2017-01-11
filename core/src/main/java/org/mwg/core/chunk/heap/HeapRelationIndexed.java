@@ -1,9 +1,6 @@
 package org.mwg.core.chunk.heap;
 
-import org.mwg.Callback;
-import org.mwg.Constants;
-import org.mwg.Node;
-import org.mwg.Query;
+import org.mwg.*;
 import org.mwg.base.BaseNode;
 import org.mwg.plugin.NodeState;
 import org.mwg.struct.Buffer;
@@ -13,8 +10,11 @@ import org.mwg.utility.Base64;
 
 class HeapRelationIndexed extends HeapLongLongArrayMap implements RelationIndexed {
 
-    HeapRelationIndexed(HeapStateChunk p_listener) {
+    private final Graph _graph;
+
+    HeapRelationIndexed(final HeapContainer p_listener, final Graph graph) {
         super(p_listener);
+        this._graph = graph;
     }
 
     @Override
@@ -56,7 +56,7 @@ class HeapRelationIndexed extends HeapLongLongArrayMap implements RelationIndexe
 
     @Override
     public void find(Callback<Node[]> callback, long world, long time, String... params) {
-        Query queryObj = parent.graph().newQuery();
+        Query queryObj = _graph.newQuery();
         queryObj.setWorld(world);
         queryObj.setTime(time);
         String previous = null;
@@ -77,7 +77,7 @@ class HeapRelationIndexed extends HeapLongLongArrayMap implements RelationIndexe
         if (foundIds == null) {
             callback.on(new BaseNode[0]);
         } else {
-            parent.graph().resolver().lookupAll(query.world(), query.time(), foundIds, new Callback<Node[]>() {
+            _graph.resolver().lookupAll(query.world(), query.time(), foundIds, new Callback<Node[]>() {
                 @Override
                 public void on(Node[] resolved) {
                     //select
@@ -86,7 +86,7 @@ class HeapRelationIndexed extends HeapLongLongArrayMap implements RelationIndexe
                     for (int i = 0; i < resultSet.length; i++) {
                         final org.mwg.Node resolvedNode = resolved[i];
                         if (resolvedNode != null) {
-                            final NodeState resolvedState = parent.graph().resolver().resolveState(resolvedNode);
+                            final NodeState resolvedState = _graph.resolver().resolveState(resolvedNode);
                             boolean exact = true;
                             for (int j = 0; j < query.attributes().length; j++) {
                                 Object obj = resolvedState.get(query.attributes()[j]);
@@ -151,8 +151,8 @@ class HeapRelationIndexed extends HeapLongLongArrayMap implements RelationIndexe
         return flat;
     }
 
-    HeapRelationIndexed cloneIRelFor(HeapStateChunk newParent) {
-        HeapRelationIndexed cloned = new HeapRelationIndexed(newParent);
+    HeapRelationIndexed cloneIRelFor(final HeapContainer newParent, final Graph graph) {
+        HeapRelationIndexed cloned = new HeapRelationIndexed(newParent, graph);
         cloned.mapSize = mapSize;
         cloned.capacity = capacity;
         if (keys != null) {

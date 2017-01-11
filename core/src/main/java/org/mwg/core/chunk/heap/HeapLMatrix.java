@@ -15,11 +15,11 @@ class HeapLMatrix implements LMatrix {
     private static final int INDEX_MAX_COLUMN = 2;
     private static final int INDEX_OFFSET = 3;
 
-    private final HeapStateChunk parent;
+    private final HeapContainer parent;
     private long[] backend = null;
     private boolean aligned = true;
 
-    HeapLMatrix(final HeapStateChunk p_parent, final HeapLMatrix origin) {
+    HeapLMatrix(final HeapContainer p_parent, final HeapLMatrix origin) {
         parent = p_parent;
         if (origin != null) {
             aligned = false;

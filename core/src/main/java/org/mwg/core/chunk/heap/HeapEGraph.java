@@ -14,14 +14,14 @@ import java.util.Set;
 class HeapEGraph implements EGraph {
 
     private final Graph _graph;
-    private final HeapStateChunk parent;
+    private final HeapContainer parent;
 
     boolean _dirty;
     HeapENode[] _nodes = null;
     private int _nodes_capacity = 0;
     private int _nodes_index = 0;
 
-    HeapEGraph(final HeapStateChunk p_parent, final HeapEGraph origin, final Graph p_graph) {
+    HeapEGraph(final HeapContainer p_parent, final HeapEGraph origin, final Graph p_graph) {
         parent = p_parent;
         _graph = p_graph;
         if (origin != null) {
@@ -49,6 +49,11 @@ class HeapEGraph implements EGraph {
         _nodes = null;
         _nodes_capacity = 0;
         _nodes_index = 0;
+    }
+
+    @Override
+    public final Graph graph() {
+        return _graph;
     }
 
     final void allocate(int newCapacity) {
@@ -174,7 +179,7 @@ class HeapEGraph implements EGraph {
                 }
                 cursor++;
                 HeapENode eNode = nodeByIndex(insertIndex, true);
-                cursor = eNode.load(buffer, cursor, parent);
+                cursor = eNode.load(buffer, cursor, parent, _graph);
                 insertIndex++;
             } else {
                 cursor++;

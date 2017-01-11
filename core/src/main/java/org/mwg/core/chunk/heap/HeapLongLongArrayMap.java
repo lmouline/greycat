@@ -12,7 +12,7 @@ import java.util.Arrays;
 
 class HeapLongLongArrayMap implements LongLongArrayMap {
 
-    final HeapStateChunk parent;
+    final HeapContainer parent;
 
     int mapSize = 0;
     int capacity = 0;
@@ -23,7 +23,7 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
     int[] nexts = null;
     int[] hashs = null;
 
-    HeapLongLongArrayMap(final HeapStateChunk p_listener) {
+    HeapLongLongArrayMap(final HeapContainer p_listener) {
         this.parent = p_listener;
     }
 
@@ -89,7 +89,7 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
         }
     }
 
-    HeapLongLongArrayMap cloneFor(HeapStateChunk newParent) {
+    HeapLongLongArrayMap cloneFor(HeapContainer newParent) {
         HeapLongLongArrayMap cloned = new HeapLongLongArrayMap(newParent);
         cloned.mapSize = mapSize;
         cloned.capacity = capacity;
@@ -327,7 +327,7 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
                 previous = cursor + 1;
             }
             cursor++;
-            if(cursor < max){
+            if (cursor < max) {
                 current = buffer.read(cursor);
             }
         }

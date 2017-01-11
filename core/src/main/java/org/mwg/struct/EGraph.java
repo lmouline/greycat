@@ -1,5 +1,7 @@
 package org.mwg.struct;
 
+import org.mwg.Graph;
+
 public interface EGraph {
 
     ENode root();
@@ -13,5 +15,7 @@ public interface EGraph {
     int size();
 
     void free();
+
+    Graph graph();
 
 }

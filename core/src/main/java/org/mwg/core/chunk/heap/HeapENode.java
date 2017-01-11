@@ -16,15 +16,15 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-class HeapENode implements ENode {
+class HeapENode implements ENode, HeapContainer {
 
     private final HeapEGraph egraph;
-    private final HeapStateChunk chunk;
+    private final HeapContainer parent;
     private final Graph _graph;
     int _id;
 
-    HeapENode(final HeapStateChunk p_chunk, final HeapEGraph p_egraph, final Graph p_graph, final int p_id, final HeapENode origin) {
-        chunk = p_chunk;
+    HeapENode(final HeapContainer p_parent, final HeapEGraph p_egraph, final Graph p_graph, final int p_id, final HeapENode origin) {
+        parent = p_parent;
         egraph = p_egraph;
         _graph = p_graph;
         _id = p_id;
@@ -60,37 +60,37 @@ class HeapENode implements ENode {
                     switch (origin._type[i]) {
                         case Type.LONG_TO_LONG_MAP:
                             if (origin._v[i] != null) {
-                                _v[i] = ((HeapLongLongMap) origin._v[i]).cloneFor(chunk);
+                                _v[i] = ((HeapLongLongMap) origin._v[i]).cloneFor(p_parent);
                             }
                             break;
                         case Type.RELATION_INDEXED:
                             if (origin._v[i] != null) {
-                                _v[i] = ((HeapRelationIndexed) origin._v[i]).cloneIRelFor(chunk);
+                                _v[i] = ((HeapRelationIndexed) origin._v[i]).cloneIRelFor(p_parent, egraph.graph());
                             }
                             break;
                         case Type.LONG_TO_LONG_ARRAY_MAP:
                             if (origin._v[i] != null) {
-                                _v[i] = ((HeapLongLongArrayMap) origin._v[i]).cloneFor(chunk);
+                                _v[i] = ((HeapLongLongArrayMap) origin._v[i]).cloneFor(p_parent);
                             }
                             break;
                         case Type.STRING_TO_LONG_MAP:
                             if (origin._v[i] != null) {
-                                _v[i] = ((HeapStringLongMap) origin._v[i]).cloneFor(chunk);
+                                _v[i] = ((HeapStringLongMap) origin._v[i]).cloneFor(p_parent);
                             }
                             break;
                         case Type.RELATION:
                             if (origin._v[i] != null) {
-                                _v[i] = new HeapRelation(chunk, (HeapRelation) origin._v[i]);
+                                _v[i] = new HeapRelation(p_parent, (HeapRelation) origin._v[i]);
                             }
                             break;
                         case Type.DMATRIX:
                             if (origin._v[i] != null) {
-                                _v[i] = new HeapDMatrix(chunk, (HeapDMatrix) origin._v[i]);
+                                _v[i] = new HeapDMatrix(p_parent, (HeapDMatrix) origin._v[i]);
                             }
                             break;
                         case Type.LMATRIX:
                             if (origin._v[i] != null) {
-                                _v[i] = new HeapLMatrix(chunk, (HeapLMatrix) origin._v[i]);
+                                _v[i] = new HeapLMatrix(p_parent, (HeapLMatrix) origin._v[i]);
                             }
                             break;
                         case Type.EXTERNAL:
@@ -120,7 +120,7 @@ class HeapENode implements ENode {
     private boolean _dirty;
 
     @Override
-    public ENode clear() {
+    public final ENode clear() {
         _capacity = 0;
         _size = 0;
         _k = null;
@@ -131,14 +131,15 @@ class HeapENode implements ENode {
         return this;
     }
 
-    private void declareDirty() {
+    @Override
+    public final void declareDirty() {
         if (!_dirty) {
             _dirty = true;
             egraph.declareDirty();
         }
     }
 
-    void rebase() {
+    final void rebase() {
         for (int i = 0; i < _size; i++) {
             switch (_type[i]) {
                 case Type.ERELATION:
@@ -480,28 +481,28 @@ class HeapENode implements ENode {
         Object toSet = null;
         switch (type) {
             case Type.ERELATION:
-                toSet = new HeapERelation(chunk, null);
+                toSet = new HeapERelation(parent, null);
                 break;
             case Type.RELATION:
-                toSet = new HeapRelation(chunk, null);
+                toSet = new HeapRelation(parent, null);
                 break;
             case Type.RELATION_INDEXED:
-                toSet = new HeapRelationIndexed(chunk);
+                toSet = new HeapRelationIndexed(this, egraph.graph());
                 break;
             case Type.DMATRIX:
-                toSet = new HeapDMatrix(chunk, null);
+                toSet = new HeapDMatrix(parent, null);
                 break;
             case Type.LMATRIX:
-                toSet = new HeapLMatrix(chunk, null);
+                toSet = new HeapLMatrix(parent, null);
                 break;
             case Type.STRING_TO_LONG_MAP:
-                toSet = new HeapStringLongMap(chunk);
+                toSet = new HeapStringLongMap(parent);
                 break;
             case Type.LONG_TO_LONG_MAP:
-                toSet = new HeapLongLongMap(chunk);
+                toSet = new HeapLongLongMap(parent);
                 break;
             case Type.LONG_TO_LONG_ARRAY_MAP:
-                toSet = new HeapLongLongArrayMap(chunk);
+                toSet = new HeapLongLongArrayMap(parent);
                 break;
         }
         internal_set(key, type, toSet, true, false);
@@ -903,7 +904,7 @@ class HeapENode implements ENode {
     private static final byte LOAD_WAITING_VALUE = 3;
 
     @SuppressWarnings("Duplicates")
-    public final long load(final Buffer buffer, final long currentCursor, final HeapStateChunk p_parent) {
+    public final long load(final Buffer buffer, final long currentCursor, final HeapContainer p_parent, final Graph graph) {
         final boolean initial = _k == null;
         final long payloadSize = buffer.length();
         long cursor = currentCursor;
@@ -1090,7 +1091,7 @@ class HeapENode implements ENode {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.RELATION_INDEXED:
-                                HeapRelationIndexed relationIndexed = new HeapRelationIndexed(p_parent);
+                                HeapRelationIndexed relationIndexed = new HeapRelationIndexed(this, graph);
                                 cursor++;
                                 cursor = relationIndexed.load(buffer, cursor, payloadSize);
                                 cursor++;
