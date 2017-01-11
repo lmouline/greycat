@@ -337,8 +337,10 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                     case Type.ENODE:
                         param_elem = ((OffHeapENode) p_unsafe_elem).getAddr();
                         break;
-                    case Type.RELATION:
                     case Type.ERELATION:
+                        param_elem = ((OffHeapERelation) p_unsafe_elem).getAddr();
+                        break;
+                    case Type.RELATION:
                     case Type.DMATRIX:
                     case Type.LMATRIX:
                     case Type.STRING_TO_LONG_MAP:
@@ -459,12 +461,53 @@ public class OffHeapENode implements ENode, OffHeapContainer {
 
     @Override
     public Object getOrCreate(String key, byte type) {
-        return null;
+        Object previous = get(key);
+        if (previous != null) {
+            return previous;
+        } else {
+            return getOrCreateAt(egraph.graph().resolver().stringToHash(key, true), type);
+        }
     }
 
     @Override
     public Object getOrCreateAt(long key, byte type) {
-        return null;
+        long found = internal_find(key);
+        if (found != -1) {
+            Object elem = internal_get(key);
+            if (elem != null) {
+                return elem;
+            }
+        }
+
+        Object toSet = null;
+        switch (type) {
+            case Type.ERELATION:
+                toSet = new OffHeapERelation(chunk, egraph, _graph, OffHeapConstants.OFFHEAP_NULL_PTR);
+                break;
+            case Type.RELATION:
+                toSet = new OffHeapRelation(chunk, OffHeapConstants.OFFHEAP_NULL_PTR);
+                break;
+            case Type.RELATION_INDEXED:
+                toSet = new OffHeapRelationIndexed(chunk, OffHeapConstants.OFFHEAP_NULL_PTR, egraph.graph());
+                break;
+            case Type.DMATRIX:
+                toSet = new OffHeapDMatrix(chunk, OffHeapConstants.OFFHEAP_NULL_PTR);
+                break;
+            case Type.LMATRIX:
+                toSet = new OffHeapLMatrix(chunk, OffHeapConstants.OFFHEAP_NULL_PTR);
+                break;
+            case Type.STRING_TO_LONG_MAP:
+                toSet = new OffHeapStringLongMap(chunk, OffHeapConstants.OFFHEAP_NULL_PTR);
+                break;
+            case Type.LONG_TO_LONG_MAP:
+                toSet = new OffHeapLongLongMap(chunk, OffHeapConstants.OFFHEAP_NULL_PTR);
+                break;
+            case Type.LONG_TO_LONG_ARRAY_MAP:
+                toSet = new OffHeapLongLongArrayMap(chunk, OffHeapConstants.OFFHEAP_NULL_PTR);;
+                break;
+        }
+        internal_set(key, type, toSet, true, false);
+        return toSet;
     }
 
     @Override

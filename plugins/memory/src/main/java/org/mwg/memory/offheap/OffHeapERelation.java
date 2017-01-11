@@ -42,7 +42,7 @@ public class OffHeapERelation implements ERelation {
             // allocate memory
             addr = OffHeapLongArray.allocate(HEADER_SIZE + closePowerOfTwo);
             OffHeapLongArray.set(addr, SIZE, 0);
-            OffHeapLongArray.set(addr, CAPACITY, 0);
+            OffHeapLongArray.set(addr, CAPACITY, closePowerOfTwo);
         }
     }
 
