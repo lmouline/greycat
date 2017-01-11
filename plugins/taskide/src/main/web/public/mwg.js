@@ -8880,6 +8880,9 @@ var org;
                             this.internal_set_dirty();
                         };
                         HeapTimeTreeChunk.prototype.reallocate = function (newCapacity) {
+                            if (this._k != null && newCapacity <= this._k.length) {
+                                return;
+                            }
                             var new_back_kv = new Float64Array(newCapacity);
                             if (this._k != null) {
                                 java.lang.System.arraycopy(this._k, 0, new_back_kv, 0, this._size);
@@ -10092,6 +10095,33 @@ var org;
                     return ActionExecuteExpression;
                 }());
                 task_1.ActionExecuteExpression = ActionExecuteExpression;
+                var ActionFlipVar = (function () {
+                    function ActionFlipVar(name) {
+                        if (name == null) {
+                            throw new Error("name should not be null");
+                        }
+                        this._name = name;
+                    }
+                    ActionFlipVar.prototype.eval = function (ctx) {
+                        var previousGlobalVar = ctx.variable(this._name);
+                        var nextResult = previousGlobalVar.clone();
+                        previousGlobalVar.fillWith(ctx.result());
+                        ctx.continueWith(nextResult);
+                    };
+                    ActionFlipVar.prototype.serialize = function (builder) {
+                        builder.append(org.mwg.core.task.ActionNames.FLIP_VAR);
+                        builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
+                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
+                        builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
+                    };
+                    ActionFlipVar.prototype.toString = function () {
+                        var res = new java.lang.StringBuilder();
+                        this.serialize(res);
+                        return res.toString();
+                    };
+                    return ActionFlipVar;
+                }());
+                task_1.ActionFlipVar = ActionFlipVar;
                 var ActionIndexNames = (function () {
                     function ActionIndexNames() {
                     }
@@ -10245,6 +10275,7 @@ var org;
                 ActionNames.CREATE_TYPED_NODE = "createTypedNode";
                 ActionNames.DECLARE_GLOBAL_VAR = "declareGlobalVar";
                 ActionNames.DECLARE_VAR = "declareVar";
+                ActionNames.FLIP_VAR = "flipVar";
                 ActionNames.DEFINE_AS_GLOBAL_VAR = "defineAsGlobalVar";
                 ActionNames.DEFINE_AS_VAR = "defineAsVar";
                 ActionNames.EXECUTE_EXPRESSION = "executeExpression";
@@ -10488,8 +10519,24 @@ var org;
                         this._async = async;
                     }
                     ActionScript.prototype.eval = function (ctx) {
-                        var print = function (v) { ctx.append(v + '\n'); };
-                        eval(this._script);
+                        var isolation = function (script) {
+                            var variables = ctx.variables();
+                            for (var i = 0; i < variables.length; i++) {
+                                this[variables[i].left()] = variables[i].right();
+                            }
+                            this['print'] = function (v) { ctx.append(v + '\n'); };
+                            this['result'] = ctx.result();
+                            return eval(script);
+                        };
+                        var scriptResult = isolation(this._script);
+                        if (!this._async) {
+                            if (scriptResult != null && scriptResult != undefined) {
+                                ctx.continueWith(ctx.wrap(scriptResult));
+                            }
+                            else {
+                                ctx.continueTask();
+                            }
+                        }
                     };
                     ActionScript.prototype.serialize = function (builder) {
                         if (this._async) {
@@ -11189,6 +11236,9 @@ var org;
                     };
                     Actions.readVar = function (name) {
                         return new org.mwg.core.task.ActionReadVar(name);
+                    };
+                    Actions.flipVar = function (name) {
+                        return new org.mwg.core.task.ActionFlipVar(name);
                     };
                     Actions.setAsVar = function (name) {
                         return new org.mwg.core.task.ActionSetAsVar(name);
@@ -13706,6 +13756,9 @@ var org;
                         return this.then((_a = org.mwg.core.task.Actions).action.apply(_a, [name].concat(params)));
                         var _a;
                     };
+                    CoreTask.prototype.flipVar = function (name) {
+                        return this.then(org.mwg.core.task.Actions.flipVar(name));
+                    };
                     return CoreTask;
                 }());
                 task_1.CoreTask = CoreTask;
@@ -14466,6 +14519,14 @@ var org;
                     };
                     CoreTaskResult.prototype.setOutput = function (output) {
                         this._output = output;
+                        return this;
+                    };
+                    CoreTaskResult.prototype.fillWith = function (source) {
+                        if (source != null) {
+                            this._backend = source.asArray();
+                            this._capacity = this._backend.length;
+                            this._size = this._backend.length;
+                        }
                         return this;
                     };
                     CoreTaskResult.prototype.iterator = function () {
