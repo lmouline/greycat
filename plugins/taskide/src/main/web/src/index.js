@@ -9,8 +9,8 @@ import './index.css';
 
 global.context = {};
 
-//let defaultURL = "ws://" + window.location.hostname + ":"+window.location.port+"/ws";
-let defaultURL = "ws://" + window.location.hostname + ":" + 4000 + "/ws";
+let defaultURL = "ws://" + window.location.hostname + ":"+window.location.port+"/ws";
+//let defaultURL = "ws://" + window.location.hostname + ":" + 4000 + "/ws";
 
 global.context.ws = new global.org.mwg.plugin.WSClient(defaultURL);
 global.context.graph = global.org.mwg.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
