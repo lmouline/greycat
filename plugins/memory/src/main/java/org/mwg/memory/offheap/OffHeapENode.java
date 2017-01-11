@@ -131,7 +131,7 @@ public class OffHeapENode implements ENode {
         return (byte) OffHeapLongArray.get(addr, OFFSET + (index * ELEM_SIZE) + 1);
     }
 
-    private static void setType(final long addr, final long index, final byte insertType) {
+    private static void setType(final long addr, final long index, final long insertType) {
         OffHeapLongArray.set(addr, OFFSET + (index * ELEM_SIZE) + 1, insertType);
     }
 
@@ -473,12 +473,40 @@ public class OffHeapENode implements ENode {
 
     @Override
     public void each(NodeStateCallback callBack) {
+        long size = OffHeapLongArray.get(addr, SIZE);
+        for (long i = 0; i < size; i++) {
+            if (value(addr, i) != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                long key = key(addr, i);
+                byte type = type(addr, i);
+                Object elem = internal_get(key);
 
+                callBack.on(key, type, elem);
+            }
+        }
     }
 
     @Override
     public ENode clear() {
-        return null;
+        long subhash = OffHeapLongArray.get(addr, SUBHASH);
+        long size = OffHeapLongArray.get(addr, SIZE);
+
+        OffHeapLongArray.set(addr, CAPACITY, 0);
+        OffHeapLongArray.set(addr, SIZE, 0);
+        OffHeapLongArray.set(addr, SUBHASH, OffHeapConstants.OFFHEAP_NULL_PTR);
+
+        for (long i = 0; i < size; i++) {
+            freeElement(value(addr, i), type(addr, i));
+            setKey(addr, i, OffHeapConstants.OFFHEAP_NULL_PTR);
+            setValue(addr, i, OffHeapConstants.OFFHEAP_NULL_PTR);
+            setType(addr, i, OffHeapConstants.OFFHEAP_NULL_PTR);
+        }
+        if (subhash != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            OffHeapLongArray.free(subhash);
+            OffHeapLongArray.set(addr, SUBHASH, OffHeapConstants.OFFHEAP_NULL_PTR);
+        }
+        OffHeapLongArray.free(addr);
+
+        return this;
     }
 
 
