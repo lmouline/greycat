@@ -42,19 +42,35 @@ public class ActionScriptTest extends AbstractActionTest {
     public void testPrintScript() {
         initGraph();
         newTask()
-                .script("'hello'")
+                .script("'hello'") //will put result in the result
                 .defineAsGlobalVar("myVar")
                 .println("{{result}}")
-                .loop("0", "10", newTask().script("print(myVar.get(0))"))
+                .loop("0", "2", newTask().script("print(myVar.get(0))"))
                 .execute(graph, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
+                        Assert.assertNull(result.exception());
+                        Assert.assertEquals("hello\nhello\nhello\nhello\n", result.output());
+                        removeGraph();
+                    }
+                });
+    }
 
-                        System.out.println(result.output());
-                        if (result.exception() != null) {
-                            //result.exception().printStackTrace();
-                        }
-                        //TODO
+
+    @Test
+    public void testVarScript() {
+        initGraph();
+        newTask()
+                .script("'time='+new Date(1484123443411).getTime()") //will put result in the result
+                .defineAsGlobalVar("myVar")
+                .script("print(myVar.get(0))")
+                .inject("3")
+                .println("{{result}}")
+                .execute(graph, new Callback<TaskResult>() {
+                    @Override
+                    public void on(TaskResult result) {
+                        Assert.assertNull(result.exception());
+                        Assert.assertEquals("time=1484123443411\n3\n", result.output());
                         removeGraph();
                     }
                 });

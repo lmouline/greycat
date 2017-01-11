@@ -134,4 +134,9 @@ public class IterableLines implements TaskResult<String> {
         return null;
     }
 
+    @Override
+    public TaskResult<String> fillWith(TaskResult<String> source) {
+        return null;
+    }
+
 }

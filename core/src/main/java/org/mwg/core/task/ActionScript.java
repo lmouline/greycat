@@ -21,10 +21,25 @@ public class ActionScript implements Action {
     }
 
     /**
-     * @native ts
-     * var print = function(v){ctx.append(v+'\n');};
-     * var variables = ctx.variables();
-     * eval(this._script);
+     * {@native ts
+     * var isolation = function(script){
+     *     var variables = ctx.variables();
+     *     for(var i=0;i<variables.length;i++){
+     *          this[variables[i].left()] = variables[i].right();
+     *     }
+     *     this['print'] = function(v){ctx.append(v+'\n');};
+     *     this['result'] = ctx.result();
+     *     return eval(script);
+     * }
+     * var scriptResult = isolation(this._script);
+     * if(!this._async){
+     *     if(scriptResult != null && scriptResult != undefined){
+     *         ctx.continueWith(ctx.wrap(scriptResult));
+     *     } else {
+     *         ctx.continueTask();
+     *     }
+     * }
+     * }
      */
     @Override
     public void eval(TaskContext ctx) {

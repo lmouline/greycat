@@ -1393,6 +1393,13 @@ declare module org {
                     serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
+                class ActionFlipVar implements org.mwg.task.Action {
+                    private _name;
+                    constructor(name: string);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
+                    toString(): string;
+                }
                 class ActionIndexNames implements org.mwg.task.Action {
                     eval(ctx: org.mwg.task.TaskContext): void;
                     serialize(builder: java.lang.StringBuilder): void;
@@ -1440,6 +1447,7 @@ declare module org {
                     static CREATE_TYPED_NODE: string;
                     static DECLARE_GLOBAL_VAR: string;
                     static DECLARE_VAR: string;
+                    static FLIP_VAR: string;
                     static DEFINE_AS_GLOBAL_VAR: string;
                     static DEFINE_AS_VAR: string;
                     static EXECUTE_EXPRESSION: string;
@@ -1620,6 +1628,7 @@ declare module org {
                     static declareGlobalVar(name: string): org.mwg.task.Action;
                     static declareVar(name: string): org.mwg.task.Action;
                     static readVar(name: string): org.mwg.task.Action;
+                    static flipVar(name: string): org.mwg.task.Action;
                     static setAsVar(name: string): org.mwg.task.Action;
                     static addToVar(name: string): org.mwg.task.Action;
                     static setAttribute(name: string, type: number, value: string): org.mwg.task.Action;
@@ -1896,6 +1905,7 @@ declare module org {
                     lookupAll(nodeIds: string): org.mwg.task.Task;
                     clearResult(): org.mwg.task.Task;
                     action(name: string, ...params: string[]): org.mwg.task.Task;
+                    flipVar(name: string): org.mwg.task.Task;
                 }
                 class CoreTaskContext implements org.mwg.task.TaskContext {
                     private _globalVariables;
@@ -1971,6 +1981,7 @@ declare module org {
                     output(): string;
                     setException(e: Error): org.mwg.task.TaskResult<A>;
                     setOutput(output: string): org.mwg.task.TaskResult<A>;
+                    fillWith(source: org.mwg.task.TaskResult<A>): org.mwg.task.TaskResult<A>;
                     constructor(toWrap: any, protect: boolean);
                     iterator(): org.mwg.task.TaskResultIterator<any>;
                     get(index: number): A;
@@ -2445,6 +2456,7 @@ declare module org {
                 lookupAll(nodeIds: string): org.mwg.task.Task;
                 clearResult(): org.mwg.task.Task;
                 action(name: string, ...params: string[]): org.mwg.task.Task;
+                flipVar(name: string): org.mwg.task.Task;
             }
             interface TaskActionFactory {
                 (params: string[], contextTasks: java.util.Map<number, org.mwg.task.Task>): org.mwg.task.Action;
@@ -2507,6 +2519,7 @@ declare module org {
                 output(): string;
                 setException(e: Error): org.mwg.task.TaskResult<A>;
                 setOutput(output: string): org.mwg.task.TaskResult<A>;
+                fillWith(source: org.mwg.task.TaskResult<A>): org.mwg.task.TaskResult<A>;
             }
             interface TaskResultIterator<A> {
                 next(): A;
