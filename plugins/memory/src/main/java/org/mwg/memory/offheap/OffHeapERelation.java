@@ -26,16 +26,21 @@ public class OffHeapERelation implements ERelation {
         allocate(originAddr, Constants.MAP_INITIAL_CAPACITY);
     }
 
-    // TODO take care of:
-    // - addr == originAddr (only reallocate)
-    // - use the same method for calculating the capacity than in the heap version
     final void allocate(long originAddr, long newCapacity) {
+        final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
+
         if (originAddr != OffHeapConstants.OFFHEAP_NULL_PTR) {
-            long originCapacity = OffHeapLongArray.get(originAddr, CAPACITY);
-            addr = OffHeapLongArray.cloneArray(originAddr, HEADER_SIZE + originCapacity);
+            if (originAddr == addr) {
+                addr = OffHeapLongArray.reallocate(addr, closePowerOfTwo);
+            } else {
+                long originCapacity = OffHeapLongArray.get(originAddr, CAPACITY);
+                addr = OffHeapLongArray.cloneArray(originAddr, HEADER_SIZE + originCapacity);
+                addr = OffHeapLongArray.reallocate(addr, closePowerOfTwo);
+            }
+
         } else {
             // allocate memory
-            addr = OffHeapLongArray.allocate(HEADER_SIZE + newCapacity);
+            addr = OffHeapLongArray.allocate(HEADER_SIZE + closePowerOfTwo);
             OffHeapLongArray.set(addr, SIZE, 0);
             OffHeapLongArray.set(addr, CAPACITY, 0);
         }
@@ -156,6 +161,10 @@ public class OffHeapERelation implements ERelation {
         }
         buffer.append("]");
         return buffer.toString();
+    }
+
+    public long getAddr() {
+        return addr;
     }
 
 

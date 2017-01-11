@@ -8,6 +8,7 @@ import org.mwg.memory.offheap.primary.OffHeapDoubleArray;
 import org.mwg.memory.offheap.primary.OffHeapIntArray;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.memory.offheap.primary.OffHeapString;
+import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
@@ -393,7 +394,7 @@ public class OffHeapENode implements ENode {
                 case Type.RELATION:
                     return new OffHeapRelation(chunk, index);
                 case Type.ERELATION:
-                    return new OffHeapERelation(chunk, rawValue);
+                    return new OffHeapERelation(chunk, egraph, _graph, rawValue);
                 case Type.ENODE:
                     return new OffHeapENode(chunk, egraph, _graph, OffHeapENode.getId(rawValue), rawValue);
                 case Type.DMATRIX:
@@ -470,6 +471,16 @@ public class OffHeapENode implements ENode {
         return egraph;
     }
 
+    @Override
+    public void each(NodeStateCallback callBack) {
+
+    }
+
+    @Override
+    public ENode clear() {
+        return null;
+    }
+
 
     public long getAddr() {
         return this.addr;
@@ -498,7 +509,7 @@ public class OffHeapENode implements ENode {
             switch (type) {
                 case Type.ERELATION:
                     final long previousERel_ptr = value(addr, i);
-                    OffHeapERelation.rebase(previousERel_ptr);
+                    OffHeapERelation.rebase(previousERel_ptr, egraph);
                     break;
                 case Type.ENODE:
                     final long previousENode_ptr = value(addr, i);
@@ -661,7 +672,9 @@ public class OffHeapENode implements ENode {
 
     @SuppressWarnings("Duplicates")
     public final long load(final Buffer buffer, final long currentCursor, final OffHeapStateChunk p_parent) {
-        final boolean initial = _k == null;
+//        final boolean initial = _k == null;
+        final boolean initial = addr == OffHeapConstants.OFFHEAP_NULL_PTR;
+
         final long payloadSize = buffer.length();
         long cursor = currentCursor;
         long previous = cursor;
@@ -796,7 +809,7 @@ public class OffHeapENode implements ENode {
                                 }
                                 break;
                             case Type.RELATION:
-                                OffHeapRelation relation = new OffHeapRelation(p_parent, null);
+                                OffHeapRelation relation = new OffHeapRelation(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR);
                                 cursor++;
                                 cursor = relation.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -805,7 +818,7 @@ public class OffHeapENode implements ENode {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.DMATRIX:
-                                OffHeapDMatrix matrix = new OffHeapDMatrix(p_parent, null);
+                                OffHeapDMatrix matrix = new OffHeapDMatrix(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR);
                                 cursor++;
                                 cursor = matrix.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -814,7 +827,7 @@ public class OffHeapENode implements ENode {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.LMATRIX:
-                                OffHeapLMatrix lmatrix = new OffHeapLMatrix(p_parent, null);
+                                OffHeapLMatrix lmatrix = new OffHeapLMatrix(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR);
                                 cursor++;
                                 cursor = lmatrix.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -823,7 +836,7 @@ public class OffHeapENode implements ENode {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.LONG_TO_LONG_MAP:
-                                OffHeapLongLongMap l2lmap = new OffHeapLongLongMap(p_parent);
+                                OffHeapLongLongMap l2lmap = new OffHeapLongLongMap(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR);
                                 cursor++;
                                 cursor = l2lmap.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -832,7 +845,7 @@ public class OffHeapENode implements ENode {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.LONG_TO_LONG_ARRAY_MAP:
-                                OffHeapLongLongArrayMap l2lrmap = new OffHeapLongLongArrayMap(p_parent);
+                                OffHeapLongLongArrayMap l2lrmap = new OffHeapLongLongArrayMap(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR);
                                 cursor++;
                                 cursor = l2lrmap.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -841,7 +854,7 @@ public class OffHeapENode implements ENode {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.RELATION_INDEXED:
-                                OffHeapRelationIndexed relationIndexed = new OffHeapRelationIndexed(p_parent);
+                                OffHeapRelationIndexed relationIndexed = new OffHeapRelationIndexed(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR);
                                 cursor++;
                                 cursor = relationIndexed.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -850,7 +863,7 @@ public class OffHeapENode implements ENode {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.STRING_TO_LONG_MAP:
-                                OffHeapStringLongMap s2lmap = new OffHeapStringLongMap(p_parent);
+                                OffHeapStringLongMap s2lmap = new OffHeapStringLongMap(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR);
                                 cursor++;
                                 cursor = s2lmap.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -866,8 +879,8 @@ public class OffHeapENode implements ENode {
                                 while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
                                     if (current == Constants.CHUNK_VAL_SEP) {
                                         if (eRelation == null) {
-                                            eRelation = new OffHeapERelation(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR);
-                                            eRelation.allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                            eRelation = new OffHeapERelation(p_parent, egraph, _graph, OffHeapConstants.OFFHEAP_NULL_PTR);
+                                            eRelation.allocate(eRelation.getAddr(), Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                         } else {
                                             eRelation.add(egraph.nodeByIndex((int) Base64.decodeToLongWithBounds(buffer, previous, cursor), true));
                                         }
@@ -877,8 +890,8 @@ public class OffHeapENode implements ENode {
                                     current = buffer.read(cursor);
                                 }
                                 if (eRelation == null) {
-                                    eRelation = new OffHeapERelation(p_parent, null);
-                                    eRelation.allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                    eRelation = new OffHeapERelation(p_parent, egraph, _graph, OffHeapConstants.OFFHEAP_NULL_PTR);
+                                    eRelation.allocate(eRelation.getAddr(), (int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
                                 } else {
                                     eRelation.add(egraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true));
                                 }

@@ -6,6 +6,7 @@ import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
+import org.mwg.utility.Base64;
 
 public class OffHeapEGraph implements EGraph {
     private final Graph _graph;
@@ -48,28 +49,36 @@ public class OffHeapEGraph implements EGraph {
     }
 
     public final long load(final Buffer buffer, final long offset, final long max) {
-        // TODO
-//        long cursor = offset;
-//        byte current = buffer.read(cursor);
-//        boolean isFirst = true;
-//        int insertIndex = 0;
-//        while (cursor < max && current != Constants.CHUNK_SEP) {
-//            if (current == Constants.CHUNK_ENODE_SEP) {
-//                if (isFirst) {
-//                    allocate(Base64.decodeToIntWithBounds(buffer, offset, cursor));
-//                    isFirst = false;
-//                }
-//                cursor++;
-//                OffHeapENode eNode = nodeByIndex(insertIndex, true);
-//                cursor = eNode.load(buffer, cursor, parent);
-//                insertIndex++;
-//            } else {
-//                cursor++;
-//            }
-//            current = buffer.read(cursor);
-//        }
-//        return cursor;
-        return 0;
+        long cursor = offset;
+        byte current = buffer.read(cursor);
+        boolean isFirst = true;
+        int insertIndex = 0;
+        while (cursor < max && current != Constants.CHUNK_SEP) {
+            if (current == Constants.CHUNK_ENODE_SEP) {
+                if (isFirst) {
+                    allocate(Base64.decodeToIntWithBounds(buffer, offset, cursor));
+                    isFirst = false;
+                }
+                cursor++;
+                OffHeapENode eNode = nodeByIndex(insertIndex, true);
+                cursor = eNode.load(buffer, cursor, parent);
+                insertIndex++;
+            } else {
+                cursor++;
+            }
+            current = buffer.read(cursor);
+        }
+        return cursor;
+    }
+
+    final void allocate(int newCapacity) {
+        final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
+        long nodesCapacity = OffHeapLongArray.get(addr, NODES_CAPACITY);
+
+        if (closePowerOfTwo > nodesCapacity) {
+            addr = OffHeapLongArray.reallocate(addr, closePowerOfTwo);
+            OffHeapLongArray.set(addr, NODES_CAPACITY, closePowerOfTwo);
+        }
     }
 
     long getAddr() {
@@ -152,6 +161,15 @@ public class OffHeapEGraph implements EGraph {
         return (int) OffHeapLongArray.get(addr, NODES_INDEX);
     }
 
+    @Override
+    public void free() {
+        // free all nodes
+        long nodesCapacity = OffHeapLongArray.get(addr, NODES_CAPACITY);
+        for (long i = 0; i < nodesCapacity; i++) {
+
+        }
+    }
+
     final void declareDirty() {
         long dirty = OffHeapLongArray.get(addr, DIRTY);
         if (dirty == 0) {
@@ -185,9 +203,13 @@ public class OffHeapEGraph implements EGraph {
             if (index > nodesIndex) {
                 OffHeapLongArray.set(addr, NODES_INDEX, index + 1);
             }
+            OffHeapENode elem = null;
             long elemAddr = getNodeAddrAt(index);
+            if (elemAddr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                elem = new OffHeapENode(parent, this, _graph, index, elemAddr);
+            }
             if (elemAddr == OffHeapConstants.OFFHEAP_NULL_PTR && createIfAbsent) {
-                OffHeapENode elem = new OffHeapENode(parent, this, _graph, index, OffHeapConstants.OFFHEAP_NULL_PTR);
+                elem = new OffHeapENode(parent, this, _graph, index, OffHeapConstants.OFFHEAP_NULL_PTR);
                 setNodeAddrAt(index, elem.getAddr());
             }
             return elem;
