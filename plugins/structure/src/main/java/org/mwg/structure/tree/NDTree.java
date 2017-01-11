@@ -63,10 +63,19 @@ public class NDTree extends BaseNode implements Tree {
     }
 
     private static boolean checkCreateLevels(double[] min, double[] max, double[] resolutions) {
-        for (int i = 0; i < min.length; i++) {
-            //todo optimize the 2* later
-            if ((max[i] - min[i]) > 2 * resolutions[i]) {
-                return true;
+
+        if(resolutions!=null) {
+            for (int i = 0; i < min.length; i++) {
+                if ((max[i] - min[i]) > 2 * resolutions[i]) {
+                    return true;
+                }
+            }
+        }
+        else {
+            for (int i = 0; i < min.length; i++) {
+                if ((max[i] > min[i]) ) {
+                    return true;
+                }
             }
         }
         return false;
@@ -291,11 +300,20 @@ public class NDTree extends BaseNode implements Tree {
 
     }
 
-    private static boolean compare(double[] key1, double[] key2, double[] precision) {
+    private static boolean compare(double[] key1, double[] key2, double[] resolution) {
         //todo compare with distance
-        for (int i = 0; i < key1.length; i++) {
-            if (Math.abs(key1[i] - key2[i]) > precision[i]) {
-                return false;
+        if(resolution!=null) {
+            for (int i = 0; i < key1.length; i++) {
+                if (Math.abs(key1[i] - key2[i]) > resolution[i]) {
+                    return false;
+                }
+            }
+        }
+        else {
+            for (int i = 0; i < key1.length; i++) {
+                if (Math.abs(key1[i] - key2[i]) > 0) {
+                    return false;
+                }
             }
         }
         return true;
