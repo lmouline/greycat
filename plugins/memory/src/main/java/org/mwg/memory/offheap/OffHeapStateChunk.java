@@ -7,7 +7,6 @@ import org.mwg.base.BaseExternalAttribute;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
 import org.mwg.core.CoreConstants;
-import org.mwg.core.chunk.heap.*;
 import org.mwg.memory.offheap.primary.OffHeapDoubleArray;
 import org.mwg.memory.offheap.primary.OffHeapIntArray;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
@@ -204,8 +203,8 @@ class OffHeapStateChunk implements StateChunk {
                     return new OffHeapLongLongArrayMap(this, index);
                 case Type.RELATION_INDEXED:
                     return new OffHeapRelationIndexed(this, index);
-                case Type.EXTERNAL:
-                    return space.heapAttribute(rawValue);
+                case Type.EGRAPH:
+                    return new OffHeapEGraph(this, rawValue, space.graph());
                 case OffHeapConstants.OFFHEAP_NULL_PTR:
                     return null;
                 default:
@@ -420,12 +419,6 @@ class OffHeapStateChunk implements StateChunk {
                         case Type.LMATRIX:
                             OffHeapLMatrix.save(rawValue, buffer);
                             break;
-                        case Type.EXTERNAL:
-                            BaseExternalAttribute externalAttribute = space.heapAttribute(rawValue);
-                            if (externalAttribute != null) {
-                                //externalAttribute.save(buffer);
-                            }
-                            break;
                         case Type.STRING_TO_LONG_MAP:
                             OffHeapStringLongMap.save(rawValue, buffer);
                             break;
@@ -592,6 +585,7 @@ class OffHeapStateChunk implements StateChunk {
                     case Type.LONG_TO_LONG_MAP:
                     case Type.RELATION_INDEXED:
                     case Type.LONG_TO_LONG_ARRAY_MAP:
+                    case Type.EGRAPH:
                         //throw new RuntimeException("mwDB usage error, set method called with type " + Type.typeName(p_type) + ", is getOrCreate method instead");
                         param_elem = OffHeapConstants.OFFHEAP_NULL_PTR; //empty initial ptr
                         break;
@@ -1435,9 +1429,6 @@ class OffHeapStateChunk implements StateChunk {
                 break;
             case Type.LMATRIX:
                 OffHeapLMatrix.free(addr);
-                break;
-            case Type.EXTERNAL:
-                space.umountHeapAttribute(addr);
                 break;
             case Type.LONG_ARRAY:
                 OffHeapLongArray.freeObject(addr);

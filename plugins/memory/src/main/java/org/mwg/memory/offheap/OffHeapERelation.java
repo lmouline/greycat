@@ -118,14 +118,14 @@ public class OffHeapERelation implements ERelation {
         return this;
     }
 
-    static void rebase(long addr, OffHeapEGraph newGraph) {
+    static void rebase(long addr, long newEGraphAddr) {
         long size = OffHeapLongArray.get(addr, SIZE);
 
         for (int i = 0; i < size; i++) {
             long previousNodeAddr = getNodeAddrAt(addr, i);
             long previousNodeId = OffHeapENode.getId(previousNodeAddr);
 
-            long newNodeAddr = newGraph.getNodeAddrAt(previousNodeId);
+            long newNodeAddr = OffHeapEGraph.nodeAddrAt(newEGraphAddr, previousNodeId);
             setNodeAddrAt(addr, i, newNodeAddr);
         }
     }

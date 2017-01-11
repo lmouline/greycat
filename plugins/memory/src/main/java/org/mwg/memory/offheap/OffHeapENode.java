@@ -530,19 +530,19 @@ public class OffHeapENode implements ENode {
         return (double) p_unsafe_elem;
     }
 
-    static void rebase(long addr, OffHeapEGraph egraph) {
+    static void rebase(long addr, long eGraphAddr) {
         long size = OffHeapLongArray.get(addr, SIZE);
         for (int i = 0; i < size; i++) {
             int type = type(addr, i);
             switch (type) {
                 case Type.ERELATION:
                     final long previousERel_ptr = value(addr, i);
-                    OffHeapERelation.rebase(previousERel_ptr, egraph);
+                    OffHeapERelation.rebase(previousERel_ptr, eGraphAddr);
                     break;
                 case Type.ENODE:
                     final long previousENode_ptr = value(addr, i);
                     final long previousENodeId = OffHeapENode.getId(previousENode_ptr);
-                    setValue(addr, i, egraph.getNodeAddrAt(previousENodeId));
+                    setValue(addr, i, OffHeapEGraph.nodeAddrAt(eGraphAddr, previousENodeId));
                     break;
             }
         }

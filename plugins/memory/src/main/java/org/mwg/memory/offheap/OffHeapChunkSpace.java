@@ -43,20 +43,6 @@ class OffHeapChunkSpace implements ChunkSpace {
     private final long marks;
     private final long addrs;
 
-    private final Map<Long, BaseExternalAttribute> heapAttributes = new HashMap<Long, BaseExternalAttribute>();
-
-    public final void mountHeapAttribute(long adr, BaseExternalAttribute obj) {
-        heapAttributes.put(adr, obj);
-    }
-
-    public final BaseExternalAttribute heapAttribute(long adr) {
-        return heapAttributes.get(adr);
-    }
-
-    public final void umountHeapAttribute(long adr) {
-        heapAttributes.remove(adr);
-    }
-
     @Override
     public final Graph graph() {
         return this._graph;
