@@ -20,13 +20,11 @@ class HeapENode implements ENode, HeapContainer {
 
     private final HeapEGraph egraph;
     private final HeapContainer parent;
-    private final Graph _graph;
     int _id;
 
-    HeapENode(final HeapContainer p_parent, final HeapEGraph p_egraph, final Graph p_graph, final int p_id, final HeapENode origin) {
+    HeapENode(final HeapContainer p_parent, final HeapEGraph p_egraph, final int p_id, final HeapENode origin) {
         parent = p_parent;
         egraph = p_egraph;
-        _graph = p_graph;
         _id = p_id;
         if (origin != null) {
             _capacity = origin._capacity;
@@ -430,7 +428,7 @@ class HeapENode implements ENode, HeapContainer {
 
     @Override
     public ENode set(String name, byte type, Object value) {
-        internal_set(_graph.resolver().stringToHash(name, true), type, value, true, false);
+        internal_set(egraph.graph().resolver().stringToHash(name, true), type, value, true, false);
         return this;
     }
 
@@ -442,7 +440,7 @@ class HeapENode implements ENode, HeapContainer {
 
     @Override
     public Object get(String name) {
-        return internal_get(_graph.resolver().stringToHash(name, false));
+        return internal_get(egraph.graph().resolver().stringToHash(name, false));
     }
 
     @Override
@@ -466,7 +464,7 @@ class HeapENode implements ENode, HeapContainer {
         if (previous != null) {
             return previous;
         } else {
-            return getOrCreateAt(_graph.resolver().stringToHash(key, true), type);
+            return getOrCreateAt(egraph.graph().resolver().stringToHash(key, true), type);
         }
     }
 
@@ -517,7 +515,7 @@ class HeapENode implements ENode, HeapContainer {
         builder.append("{");
         for (int i = 0; i < _size; i++) {
             final Object elem = _v[i];
-            final Resolver resolver = _graph.resolver();
+            final Resolver resolver = egraph.graph().resolver();
             final long attributeKey = _k[i];
             final byte elemType = _type[i];
             if (elem != null) {
@@ -795,7 +793,7 @@ class HeapENode implements ENode, HeapContainer {
                             break;
                         case Type.EXTERNAL:
                             BaseExternalAttribute externalAttribute = (BaseExternalAttribute) loopValue;
-                            final long encodedName = _graph.resolver().stringToHash(externalAttribute.name(), false);
+                            final long encodedName = egraph.graph().resolver().stringToHash(externalAttribute.name(), false);
                             Base64.encodeLongToBuffer(encodedName, buffer);
                             buffer.write(CoreConstants.CHUNK_VAL_SEP);
                             String saved = externalAttribute.save();

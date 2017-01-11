@@ -30,7 +30,7 @@ class HeapEGraph implements EGraph {
             _nodes = new HeapENode[_nodes_capacity];
             //pass #1: copy nodes
             for (int i = 0; i < _nodes_index; i++) {
-                _nodes[i] = new HeapENode(parent, this, _graph, i, origin._nodes[i]);
+                _nodes[i] = new HeapENode(parent, this, i, origin._nodes[i]);
             }
             //pass #2: rebase all links
             for (int i = 0; i < _nodes_index; i++) {
@@ -45,7 +45,7 @@ class HeapEGraph implements EGraph {
     }
 
     @Override
-    public void free() {
+    public final void free() {
         _nodes = null;
         _nodes_capacity = 0;
         _nodes_index = 0;
@@ -75,7 +75,7 @@ class HeapEGraph implements EGraph {
             }
             HeapENode elem = _nodes[index];
             if (elem == null && createIfAbsent) {
-                elem = new HeapENode(parent, this, _graph, index, null);
+                elem = new HeapENode(parent, this, index, null);
                 _nodes[index] = elem;
             }
             return elem;
@@ -107,14 +107,14 @@ class HeapEGraph implements EGraph {
             _nodes_capacity = newCapacity;
             _nodes = newNodes;
         }
-        HeapENode newNode = new HeapENode(parent, this, _graph, _nodes_index, null);
+        HeapENode newNode = new HeapENode(parent, this, _nodes_index, null);
         _nodes[_nodes_index] = newNode;
         _nodes_index++;
         return newNode;
     }
 
     @Override
-    public ENode root() {
+    public final ENode root() {
         if (_nodes_index > 0) {
             return _nodes[0];
         }
@@ -123,7 +123,7 @@ class HeapEGraph implements EGraph {
 
 
     @Override
-    public EGraph setRoot(ENode eNode) {
+    public final EGraph setRoot(ENode eNode) {
         HeapENode casted = (HeapENode) eNode;
         final int previousID = casted._id;
         if (previousID != 0) {
@@ -137,7 +137,7 @@ class HeapEGraph implements EGraph {
     }
 
     @Override
-    public EGraph drop(ENode eNode) {
+    public final EGraph drop(ENode eNode) {
         HeapENode casted = (HeapENode) eNode;
         int previousId = casted._id;
         if (previousId == _nodes_index - 1) {
@@ -153,7 +153,7 @@ class HeapEGraph implements EGraph {
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("{\"nodes\":[");
         for (int i = 0; i < _nodes_index; i++) {
