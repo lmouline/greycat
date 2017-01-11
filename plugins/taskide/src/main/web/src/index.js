@@ -37,6 +37,36 @@ class Editor extends React.Component {
         global.context.code = this.state.code;
     }
 
+    editorWillMount(monaco) {
+        monaco.languages.register({id: 'mwgTask'});
+        monaco.languages.registerCompletionItemProvider('mwgTask', {
+            provideCompletionItems: function (model, position) {
+                let textUntilPosition = model.getValueInRange({
+                    startLineNumber: 1,
+                    startColumn: 1,
+                    endLineNumber: position.lineNumber,
+                    endColumn: position.column
+                }).trim();
+                if (textUntilPosition.endsWith(".")) {
+                    var names = global.org.mwg.core.task.ActionNames;
+                    var result = [];
+                    for (let name in names) {
+                        if (names.hasOwnProperty(name)) {
+                            result.push({
+                                label: names[name],
+                                kind: monaco.languages.CompletionItemKind.Function,
+                                insertText: names[name] + '()'
+                            });
+                        }
+                    }
+                    return result;
+                } else {
+                    return [];
+                }
+            }
+        });
+    }
+
     editorDidMount(editor, monaco) {
         editor.focus();
         editor.layout();
@@ -61,11 +91,13 @@ class Editor extends React.Component {
             <MonacoEditor
                 width="100%"
                 height="100%"
-                language="javascript"
+                language="mwgTask"
                 value={code}
                 options={options}
                 onChange={this.onChange}
                 editorDidMount={this.editorDidMount}
+                editorWillMount={this.editorWillMount}
+                theme="vs"
             />
         );
     }
@@ -92,13 +124,11 @@ const LoadingButton = React.createClass({
         let task = global.org.mwg.core.task.Actions.newTask();
         try {
             task.parse(global.context.code, window.context.graph);
-            console.log(task.toString());
             global.context.ws.executeTasks(function (results) {
                 let targetDomElem = document.getElementById("json_result");
                 while (targetDomElem.firstChild) {
                     targetDomElem.removeChild(targetDomElem.firstChild);
                 }
-                //console.log(results[0]);
                 targetDomElem.appendChild(
                     renderjson(JSON.parse(results[0]))
                 );
@@ -134,7 +164,8 @@ ReactDOM.render(
                 <div id="output_error_result"></div>
             </SplitPane>
         </SplitPane>
-    </SplitPane>,
-    document.getElementById('root')
+    </SplitPane>
+    ,
+    document.getElementById("root")
 );
 
