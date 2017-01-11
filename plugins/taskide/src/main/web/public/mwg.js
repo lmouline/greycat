@@ -4393,7 +4393,7 @@ var org;
                                 this._nodes_capacity = origin._nodes_capacity;
                                 this._nodes = new Array(this._nodes_capacity);
                                 for (var i = 0; i < this._nodes_index; i++) {
-                                    this._nodes[i] = new org.mwg.core.chunk.heap.HeapENode(this.parent, this, i, origin._nodes[i]);
+                                    this._nodes[i] = new org.mwg.core.chunk.heap.HeapENode(this, i, origin._nodes[i]);
                                 }
                                 for (var i = 0; i < this._nodes_index; i++) {
                                     this._nodes[i].rebase();
@@ -4429,7 +4429,7 @@ var org;
                                 }
                                 var elem = this._nodes[index];
                                 if (elem == null && createIfAbsent) {
-                                    elem = new org.mwg.core.chunk.heap.HeapENode(this.parent, this, index, null);
+                                    elem = new org.mwg.core.chunk.heap.HeapENode(this, index, null);
                                     this._nodes[index] = elem;
                                 }
                                 return elem;
@@ -4459,7 +4459,7 @@ var org;
                                 this._nodes_capacity = newCapacity;
                                 this._nodes = newNodes;
                             }
-                            var newNode = new org.mwg.core.chunk.heap.HeapENode(this.parent, this, this._nodes_index, null);
+                            var newNode = new org.mwg.core.chunk.heap.HeapENode(this, this._nodes_index, null);
                             this._nodes[this._nodes_index] = newNode;
                             this._nodes_index++;
                             return newNode;
@@ -4535,8 +4535,7 @@ var org;
                     }());
                     heap.HeapEGraph = HeapEGraph;
                     var HeapENode = (function () {
-                        function HeapENode(p_parent, p_egraph, p_id, origin) {
-                            this.parent = p_parent;
+                        function HeapENode(p_egraph, p_id, origin) {
                             this.egraph = p_egraph;
                             this._id = p_id;
                             if (origin != null) {
@@ -4568,37 +4567,37 @@ var org;
                                         switch (origin._type[i]) {
                                             case org.mwg.Type.LONG_TO_LONG_MAP:
                                                 if (origin._v[i] != null) {
-                                                    this._v[i] = origin._v[i].cloneFor(p_parent);
+                                                    this._v[i] = origin._v[i].cloneFor(this);
                                                 }
                                                 break;
                                             case org.mwg.Type.RELATION_INDEXED:
                                                 if (origin._v[i] != null) {
-                                                    this._v[i] = origin._v[i].cloneIRelFor(p_parent, this.egraph.graph());
+                                                    this._v[i] = origin._v[i].cloneIRelFor(this, this.egraph.graph());
                                                 }
                                                 break;
                                             case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
                                                 if (origin._v[i] != null) {
-                                                    this._v[i] = origin._v[i].cloneFor(p_parent);
+                                                    this._v[i] = origin._v[i].cloneFor(this);
                                                 }
                                                 break;
                                             case org.mwg.Type.STRING_TO_LONG_MAP:
                                                 if (origin._v[i] != null) {
-                                                    this._v[i] = origin._v[i].cloneFor(p_parent);
+                                                    this._v[i] = origin._v[i].cloneFor(this);
                                                 }
                                                 break;
                                             case org.mwg.Type.RELATION:
                                                 if (origin._v[i] != null) {
-                                                    this._v[i] = new org.mwg.core.chunk.heap.HeapRelation(p_parent, origin._v[i]);
+                                                    this._v[i] = new org.mwg.core.chunk.heap.HeapRelation(this, origin._v[i]);
                                                 }
                                                 break;
                                             case org.mwg.Type.DMATRIX:
                                                 if (origin._v[i] != null) {
-                                                    this._v[i] = new org.mwg.core.chunk.heap.HeapDMatrix(p_parent, origin._v[i]);
+                                                    this._v[i] = new org.mwg.core.chunk.heap.HeapDMatrix(this, origin._v[i]);
                                                 }
                                                 break;
                                             case org.mwg.Type.LMATRIX:
                                                 if (origin._v[i] != null) {
-                                                    this._v[i] = new org.mwg.core.chunk.heap.HeapLMatrix(p_parent, origin._v[i]);
+                                                    this._v[i] = new org.mwg.core.chunk.heap.HeapLMatrix(this, origin._v[i]);
                                                 }
                                                 break;
                                             case org.mwg.Type.EXTERNAL:
@@ -4958,28 +4957,28 @@ var org;
                             var toSet = null;
                             switch (type) {
                                 case org.mwg.Type.ERELATION:
-                                    toSet = new org.mwg.core.chunk.heap.HeapERelation(this.parent, null);
+                                    toSet = new org.mwg.core.chunk.heap.HeapERelation(this, null);
                                     break;
                                 case org.mwg.Type.RELATION:
-                                    toSet = new org.mwg.core.chunk.heap.HeapRelation(this.parent, null);
+                                    toSet = new org.mwg.core.chunk.heap.HeapRelation(this, null);
                                     break;
                                 case org.mwg.Type.RELATION_INDEXED:
                                     toSet = new org.mwg.core.chunk.heap.HeapRelationIndexed(this, this.egraph.graph());
                                     break;
                                 case org.mwg.Type.DMATRIX:
-                                    toSet = new org.mwg.core.chunk.heap.HeapDMatrix(this.parent, null);
+                                    toSet = new org.mwg.core.chunk.heap.HeapDMatrix(this, null);
                                     break;
                                 case org.mwg.Type.LMATRIX:
-                                    toSet = new org.mwg.core.chunk.heap.HeapLMatrix(this.parent, null);
+                                    toSet = new org.mwg.core.chunk.heap.HeapLMatrix(this, null);
                                     break;
                                 case org.mwg.Type.STRING_TO_LONG_MAP:
-                                    toSet = new org.mwg.core.chunk.heap.HeapStringLongMap(this.parent);
+                                    toSet = new org.mwg.core.chunk.heap.HeapStringLongMap(this);
                                     break;
                                 case org.mwg.Type.LONG_TO_LONG_MAP:
-                                    toSet = new org.mwg.core.chunk.heap.HeapLongLongMap(this.parent);
+                                    toSet = new org.mwg.core.chunk.heap.HeapLongLongMap(this);
                                     break;
                                 case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
-                                    toSet = new org.mwg.core.chunk.heap.HeapLongLongArrayMap(this.parent);
+                                    toSet = new org.mwg.core.chunk.heap.HeapLongLongArrayMap(this);
                                     break;
                             }
                             this.internal_set(key, type, toSet, true, false);
@@ -5371,7 +5370,7 @@ var org;
                             }
                             this._dirty = false;
                         };
-                        HeapENode.prototype.load = function (buffer, currentCursor, p_parent, graph) {
+                        HeapENode.prototype.load = function (buffer, currentCursor, nodeParent, graph) {
                             var initial = this._k == null;
                             var payloadSize = buffer.length();
                             var cursor = currentCursor;
@@ -5517,7 +5516,7 @@ var org;
                                                     }
                                                     break;
                                                 case org.mwg.Type.RELATION:
-                                                    var relation = new org.mwg.core.chunk.heap.HeapRelation(p_parent, null);
+                                                    var relation = new org.mwg.core.chunk.heap.HeapRelation(this, null);
                                                     cursor++;
                                                     cursor = relation.load(buffer, cursor, payloadSize);
                                                     cursor++;
@@ -5526,7 +5525,7 @@ var org;
                                                     state = HeapENode.LOAD_WAITING_TYPE;
                                                     break;
                                                 case org.mwg.Type.DMATRIX:
-                                                    var matrix = new org.mwg.core.chunk.heap.HeapDMatrix(p_parent, null);
+                                                    var matrix = new org.mwg.core.chunk.heap.HeapDMatrix(this, null);
                                                     cursor++;
                                                     cursor = matrix.load(buffer, cursor, payloadSize);
                                                     cursor++;
@@ -5535,7 +5534,7 @@ var org;
                                                     state = HeapENode.LOAD_WAITING_TYPE;
                                                     break;
                                                 case org.mwg.Type.LMATRIX:
-                                                    var lmatrix = new org.mwg.core.chunk.heap.HeapLMatrix(p_parent, null);
+                                                    var lmatrix = new org.mwg.core.chunk.heap.HeapLMatrix(this, null);
                                                     cursor++;
                                                     cursor = lmatrix.load(buffer, cursor, payloadSize);
                                                     cursor++;
@@ -5544,7 +5543,7 @@ var org;
                                                     state = HeapENode.LOAD_WAITING_TYPE;
                                                     break;
                                                 case org.mwg.Type.LONG_TO_LONG_MAP:
-                                                    var l2lmap = new org.mwg.core.chunk.heap.HeapLongLongMap(p_parent);
+                                                    var l2lmap = new org.mwg.core.chunk.heap.HeapLongLongMap(this);
                                                     cursor++;
                                                     cursor = l2lmap.load(buffer, cursor, payloadSize);
                                                     cursor++;
@@ -5553,7 +5552,7 @@ var org;
                                                     state = HeapENode.LOAD_WAITING_TYPE;
                                                     break;
                                                 case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
-                                                    var l2lrmap = new org.mwg.core.chunk.heap.HeapLongLongArrayMap(p_parent);
+                                                    var l2lrmap = new org.mwg.core.chunk.heap.HeapLongLongArrayMap(this);
                                                     cursor++;
                                                     cursor = l2lrmap.load(buffer, cursor, payloadSize);
                                                     cursor++;
@@ -5571,7 +5570,7 @@ var org;
                                                     state = HeapENode.LOAD_WAITING_TYPE;
                                                     break;
                                                 case org.mwg.Type.STRING_TO_LONG_MAP:
-                                                    var s2lmap = new org.mwg.core.chunk.heap.HeapStringLongMap(p_parent);
+                                                    var s2lmap = new org.mwg.core.chunk.heap.HeapStringLongMap(this);
                                                     cursor++;
                                                     cursor = s2lmap.load(buffer, cursor, payloadSize);
                                                     cursor++;
@@ -5587,7 +5586,7 @@ var org;
                                                     while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP) {
                                                         if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                                             if (eRelation == null) {
-                                                                eRelation = new org.mwg.core.chunk.heap.HeapERelation(p_parent, null);
+                                                                eRelation = new org.mwg.core.chunk.heap.HeapERelation(this, null);
                                                                 eRelation.allocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                                             }
                                                             else {
@@ -5599,7 +5598,7 @@ var org;
                                                         current = buffer.read(cursor);
                                                     }
                                                     if (eRelation == null) {
-                                                        eRelation = new org.mwg.core.chunk.heap.HeapERelation(p_parent, null);
+                                                        eRelation = new org.mwg.core.chunk.heap.HeapERelation(this, null);
                                                         eRelation.allocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
                                                     }
                                                     else {

@@ -1,6 +1,5 @@
 package org.mwg.structure.tree;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
 import org.mwg.structure.StructurePlugin;
@@ -8,7 +7,7 @@ import org.mwg.structure.TreeResult;
 
 import java.util.Random;
 
-public class ETreeTest {
+public class NDTreeTest {
     @Test
     public void NDTest() {
         final Graph graph = new GraphBuilder()
@@ -20,7 +19,7 @@ public class ETreeTest {
             public void on(Boolean result) {
 
                 KDTree kdTree = (KDTree) graph.newTypedNode(0, 0, KDTree.NAME);
-                ETree eTree = (ETree) graph.newTypedNode(0, 0, ETree.NAME);
+                NDTree ndTree = (NDTree) graph.newTypedNode(0, 0, NDTree.NAME);
 
                 int dim = 5;
                 double[] precisions = new double[dim];
@@ -31,9 +30,9 @@ public class ETreeTest {
                     boundMin[i] = 0;
                     boundMax[i] = 1;
                 }
-                eTree.setAt(ETree.BOUND_MIN, Type.DOUBLE_ARRAY, boundMin);
-                eTree.setAt(ETree.BOUND_MAX, Type.DOUBLE_ARRAY, boundMax);
-                eTree.setAt(ETree.RESOLUTION, Type.DOUBLE_ARRAY, precisions);
+                ndTree.set(NDTree.BOUND_MIN, Type.DOUBLE_ARRAY, boundMin);
+                ndTree.set(NDTree.BOUND_MAX, Type.DOUBLE_ARRAY, boundMax);
+                ndTree.set(NDTree.RESOLUTION, Type.DOUBLE_ARRAY, precisions);
                 Random random = new Random();
                 random.setSeed(125362l);
                 int ins = 100;
@@ -66,11 +65,11 @@ public class ETreeTest {
 
                 long ts = System.currentTimeMillis();
                 for (int i = 0; i < ins; i++) {
-                    eTree.insert(keys[i], nodes[i].id());
+                    ndTree.insert(keys[i], nodes[i].id());
                 }
                 long te = System.currentTimeMillis() - ts;
 
-                System.out.println("ETree insert: " + te + " ms");
+                System.out.println("NDTree insert: " + te + " ms");
 
                 ts = System.currentTimeMillis();
                 for (int i = 0; i < ins; i++) {
@@ -86,14 +85,14 @@ public class ETreeTest {
 >>>>>>> Stashed changes
                 ts = System.currentTimeMillis();
                 for (int i = 0; i < ins; i++) {
-                    TreeResult res = eTree.nearestN(keys[i], nsearch);
+                    TreeResult res = NDTree.nearestN(keys[i], nsearch);
                     for (int j = 0; j < nsearch; j++) {
                         temp[i][j] = res.value(j);
                     }
                     res.free();
                 }
                 te = System.currentTimeMillis() - ts;
-                System.out.println("eTree get all: " + te + " ms");
+                System.out.println("NDTree get all: " + te + " ms");
 
                 long[][] tempkdtree = new long[ins][nsearch];
                 ts = System.currentTimeMillis();
@@ -122,14 +121,14 @@ public class ETreeTest {
                 long[][] temp = new long[test][nsearch];
                 ts = System.currentTimeMillis();
                 for (int i = 0; i < test; i++) {
-                    TreeResult res = eTree.nearestN(keysTest[i], nsearch);
+                    TreeResult res = ndTree.nearestN(keysTest[i], nsearch);
                     for (int j = 0; j < nsearch; j++) {
                         temp[i][j] = res.value(j);
                     }
                     res.free();
                 }
                 te = System.currentTimeMillis() - ts;
-                System.out.println("eTree get all: " + te + " ms");
+                System.out.println("NDTree get all: " + te + " ms");
 
                 long[][] tempkdtree = new long[test][nsearch];
                 ts = System.currentTimeMillis();
