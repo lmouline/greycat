@@ -45,7 +45,7 @@ public abstract class AbstractEGraphTest {
         ERelation eRelation = (ERelation) eNode.getOrCreate("testRel", Type.ERELATION);
         for (int i = 0; i < 3; i++) {
             ENode loopNode = egraph.newNode();
-            secondENode.set("name", Type.STRING, "node_" + i);
+            loopNode.set("name", Type.STRING, "node_" + i);
             eRelation.add(loopNode);
         }
         ERelation resolvedERelation = (ERelation) eNode.get("testRel");
