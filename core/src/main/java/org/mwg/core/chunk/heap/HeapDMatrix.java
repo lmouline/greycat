@@ -29,14 +29,10 @@ class HeapDMatrix implements DMatrix {
 
     @Override
     public final DMatrix init(final int rows, final int columns) {
-        if (parent != null) {
-            synchronized (parent) {
-                internal_init(rows, columns);
-            }
-            parent.declareDirty();
-        } else {
+        synchronized (parent) {
             internal_init(rows, columns);
         }
+        parent.declareDirty();
         return this;
     }
 
@@ -51,13 +47,9 @@ class HeapDMatrix implements DMatrix {
 
     @Override
     public final DMatrix appendColumn(double[] newColumn) {
-        if (parent != null) {
-            synchronized (parent) {
-                internal_appendColumn(newColumn);
-                parent.declareDirty();
-            }
-        } else {
+        synchronized (parent) {
             internal_appendColumn(newColumn);
+            parent.declareDirty();
         }
         return this;
     }
@@ -103,11 +95,7 @@ class HeapDMatrix implements DMatrix {
 
     @Override
     public final DMatrix fill(double value) {
-        if (parent != null) {
-            synchronized (parent) {
-                internal_fill(value);
-            }
-        } else {
+        synchronized (parent) {
             internal_fill(value);
         }
         return this;
@@ -123,19 +111,13 @@ class HeapDMatrix implements DMatrix {
             }
             Arrays.fill(backend, INDEX_OFFSET, backend.length - INDEX_OFFSET, value);
             backend[INDEX_MAX_COLUMN] = backend[INDEX_COLUMNS];
-            if (parent != null) {
-                parent.declareDirty();
-            }
+            parent.declareDirty();
         }
     }
 
     @Override
     public DMatrix fillWith(double[] values) {
-        if (parent != null) {
-            synchronized (parent) {
-                internal_fillWith(values);
-            }
-        } else {
+        synchronized (parent) {
             internal_fillWith(values);
         }
         return this;
@@ -151,19 +133,13 @@ class HeapDMatrix implements DMatrix {
             }
             //reInit ?
             System.arraycopy(values, 0, backend, INDEX_OFFSET, values.length);
-            if (parent != null) {
-                parent.declareDirty();
-            }
+            parent.declareDirty();
         }
     }
 
     @Override
     public DMatrix fillWithRandom(double min, double max, long seed) {
-        if (parent != null) {
-            synchronized (parent) {
-                internal_fillWithRandom(min, max, seed);
-            }
-        } else {
+        synchronized (parent) {
             internal_fillWithRandom(min, max, seed);
         }
         return this;
@@ -182,9 +158,7 @@ class HeapDMatrix implements DMatrix {
             for (int i = 0; i < backend[INDEX_ROWS] * backend[INDEX_COLUMNS]; i++) {
                 backend[i + INDEX_OFFSET] = rand.nextInt() * (max - min) + min;
             }
-            if (parent != null) {
-                parent.declareDirty();
-            }
+            parent.declareDirty();
         }
     }
 
@@ -192,13 +166,7 @@ class HeapDMatrix implements DMatrix {
     @Override
     public final int rows() {
         int result = 0;
-        if (parent != null) {
-            synchronized (parent) {
-                if (backend != null) {
-                    result = (int) backend[INDEX_ROWS];
-                }
-            }
-        } else {
+        synchronized (parent) {
             if (backend != null) {
                 result = (int) backend[INDEX_ROWS];
             }
@@ -210,13 +178,7 @@ class HeapDMatrix implements DMatrix {
     @Override
     public final int columns() {
         int result = 0;
-        if (parent != null) {
-            synchronized (parent) {
-                if (backend != null) {
-                    result = (int) backend[INDEX_MAX_COLUMN];
-                }
-            }
-        } else {
+        synchronized (parent) {
             if (backend != null) {
                 result = (int) backend[INDEX_MAX_COLUMN];
             }
@@ -227,13 +189,7 @@ class HeapDMatrix implements DMatrix {
     @Override
     public final double[] column(int index) {
         double[] result;
-        if (parent != null) {
-            synchronized (parent) {
-                final int nbRows = (int) backend[INDEX_ROWS];
-                result = new double[nbRows];
-                System.arraycopy(backend, INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
-            }
-        } else {
+        synchronized (parent) {
             final int nbRows = (int) backend[INDEX_ROWS];
             result = new double[nbRows];
             System.arraycopy(backend, INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
@@ -244,14 +200,7 @@ class HeapDMatrix implements DMatrix {
     @Override
     public final double get(int rowIndex, int columnIndex) {
         double result = 0;
-        if (parent != null) {
-            synchronized (parent) {
-                if (backend != null) {
-                    final int nbRows = (int) backend[INDEX_ROWS];
-                    result = backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows];
-                }
-            }
-        } else {
+        synchronized (parent) {
             if (backend != null) {
                 final int nbRows = (int) backend[INDEX_ROWS];
                 result = backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows];
@@ -262,11 +211,7 @@ class HeapDMatrix implements DMatrix {
 
     @Override
     public final DMatrix set(int rowIndex, int columnIndex, double value) {
-        if (parent != null) {
-            synchronized (parent) {
-                internal_set(rowIndex, columnIndex, value);
-            }
-        } else {
+        synchronized (parent) {
             internal_set(rowIndex, columnIndex, value);
         }
         return this;
@@ -282,19 +227,13 @@ class HeapDMatrix implements DMatrix {
             }
             final int nbRows = (int) backend[INDEX_ROWS];
             backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
-            if (parent != null) {
-                parent.declareDirty();
-            }
+            parent.declareDirty();
         }
     }
 
     @Override
     public DMatrix add(int rowIndex, int columnIndex, double value) {
-        if (parent != null) {
-            synchronized (parent) {
-                internal_add(rowIndex, columnIndex, value);
-            }
-        } else {
+        synchronized (parent) {
             internal_add(rowIndex, columnIndex, value);
         }
         return this;
@@ -310,23 +249,14 @@ class HeapDMatrix implements DMatrix {
             }
             final int nbRows = (int) backend[INDEX_ROWS];
             backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + backend[INDEX_OFFSET + rowIndex + columnIndex * nbRows];
-            if (parent != null) {
-                parent.declareDirty();
-            }
+            parent.declareDirty();
         }
     }
 
     @Override
     public final double[] data() {
         double[] copy = null;
-        if (parent != null) {
-            synchronized (parent) {
-                if (backend != null) {
-                    copy = new double[backend.length - INDEX_OFFSET];
-                    System.arraycopy(backend, INDEX_OFFSET, copy, 0, backend.length - INDEX_OFFSET);
-                }
-            }
-        } else {
+        synchronized (parent) {
             if (backend != null) {
                 copy = new double[backend.length - INDEX_OFFSET];
                 System.arraycopy(backend, INDEX_OFFSET, copy, 0, backend.length - INDEX_OFFSET);
@@ -346,13 +276,7 @@ class HeapDMatrix implements DMatrix {
     @Override
     public double unsafeGet(int index) {
         double result = 0;
-        if (parent != null) {
-            synchronized (parent) {
-                if (backend != null) {
-                    result = backend[INDEX_OFFSET + index];
-                }
-            }
-        } else {
+        synchronized (parent) {
             if (backend != null) {
                 result = backend[INDEX_OFFSET + index];
             }
@@ -362,11 +286,7 @@ class HeapDMatrix implements DMatrix {
 
     @Override
     public DMatrix unsafeSet(int index, double value) {
-        if (parent != null) {
-            synchronized (parent) {
-                internal_unsafeSet(index, value);
-            }
-        } else {
+        synchronized (parent) {
             internal_unsafeSet(index, value);
         }
         return this;
@@ -381,9 +301,7 @@ class HeapDMatrix implements DMatrix {
                 aligned = true;
             }
             backend[INDEX_OFFSET + index] = value;
-            if (parent != null) {
-                parent.declareDirty();
-            }
+            parent.declareDirty();
         }
     }
 
@@ -391,14 +309,14 @@ class HeapDMatrix implements DMatrix {
         return backend;
     }
 
-    final void unsafe_init(int size) {
+    private void unsafe_init(int size) {
         backend = new double[size];
         backend[INDEX_ROWS] = 0;
         backend[INDEX_COLUMNS] = 0;
         aligned = true;
     }
 
-    final void unsafe_set(long index, double value) {
+    private void unsafe_set(long index, double value) {
         backend[(int) index] = value;
     }
 
