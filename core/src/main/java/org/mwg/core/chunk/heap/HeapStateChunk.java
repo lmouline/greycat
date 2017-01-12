@@ -948,73 +948,113 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                     HeapRelation relation = new HeapRelation(this, null);
                                     cursor++;
                                     cursor = relation.load(buffer, cursor, payloadSize);
-                                    cursor++;
                                     internal_set(read_key, read_type, relation, true, initial);
-                                    previous = cursor;
-                                    state = LOAD_WAITING_TYPE;
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
                                     break;
                                 case Type.DMATRIX:
                                     HeapDMatrix matrix = new HeapDMatrix(this, null);
                                     cursor++;
                                     cursor = matrix.load(buffer, cursor, payloadSize);
-                                    cursor++;
                                     internal_set(read_key, read_type, matrix, true, initial);
-                                    previous = cursor;
-                                    state = LOAD_WAITING_TYPE;
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
                                     break;
                                 case Type.LMATRIX:
                                     HeapLMatrix lmatrix = new HeapLMatrix(this, null);
                                     cursor++;
                                     cursor = lmatrix.load(buffer, cursor, payloadSize);
-                                    cursor++;
                                     internal_set(read_key, read_type, lmatrix, true, initial);
-                                    previous = cursor;
-                                    state = LOAD_WAITING_TYPE;
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
                                     break;
                                 case Type.LONG_TO_LONG_MAP:
                                     HeapLongLongMap l2lmap = new HeapLongLongMap(this);
                                     cursor++;
                                     cursor = l2lmap.load(buffer, cursor, payloadSize);
-                                    cursor++;
                                     internal_set(read_key, read_type, l2lmap, true, initial);
-                                    previous = cursor;
-                                    state = LOAD_WAITING_TYPE;
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
                                     break;
                                 case Type.LONG_TO_LONG_ARRAY_MAP:
                                     HeapLongLongArrayMap l2lrmap = new HeapLongLongArrayMap(this);
                                     cursor++;
                                     cursor = l2lrmap.load(buffer, cursor, payloadSize);
-                                    cursor++;
                                     internal_set(read_key, read_type, l2lrmap, true, initial);
-                                    previous = cursor;
-                                    state = LOAD_WAITING_TYPE;
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
                                     break;
                                 case Type.RELATION_INDEXED:
                                     HeapRelationIndexed relationIndexed = new HeapRelationIndexed(this, _space.graph());
                                     cursor++;
                                     cursor = relationIndexed.load(buffer, cursor, payloadSize);
-                                    cursor++;
                                     internal_set(read_key, read_type, relationIndexed, true, initial);
-                                    previous = cursor;
-                                    state = LOAD_WAITING_TYPE;
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
                                     break;
                                 case Type.STRING_TO_INT_MAP:
                                     HeapStringIntMap s2lmap = new HeapStringIntMap(this);
                                     cursor++;
                                     cursor = s2lmap.load(buffer, cursor, payloadSize);
-                                    cursor++;
                                     internal_set(read_key, read_type, s2lmap, true, initial);
-                                    previous = cursor;
-                                    state = LOAD_WAITING_TYPE;
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
                                     break;
                                 case Type.EGRAPH:
                                     HeapEGraph eGraph = new HeapEGraph(this, null, this.graph());
                                     cursor++;
                                     cursor = eGraph.load(buffer, cursor, payloadSize);
-                                    cursor++;
                                     internal_set(read_key, read_type, eGraph, true, initial);
-                                    previous = cursor;
-                                    state = LOAD_WAITING_TYPE;
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
                                     break;
                                 default:
                                     throw new RuntimeException("Not implemented yet!!!");
