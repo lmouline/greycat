@@ -7,7 +7,10 @@ import org.mwg.base.BaseExternalAttribute;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
 import org.mwg.core.CoreConstants;
-import org.mwg.memory.offheap.primary.*;
+import org.mwg.memory.offheap.primary.OffHeapDoubleArray;
+import org.mwg.memory.offheap.primary.OffHeapIntArray;
+import org.mwg.memory.offheap.primary.OffHeapLongArray;
+import org.mwg.memory.offheap.primary.OffHeapString;
 import org.mwg.plugin.ExternalAttributeFactory;
 import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.Buffer;
@@ -432,7 +435,16 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                             OffHeapLongLongArrayMap.save(rawValue, buffer);
                             break;
                         case Type.EGRAPH:
-                            //TODO waiting for thomas
+                            OffHeapEGraph castedEGraph = new OffHeapEGraph(this, rawValue, space.graph());
+                            int eGSize = castedEGraph.size();
+                            Base64.encodeIntToBuffer(eGSize, buffer);
+                            for (int j = 0; j < eGSize; j++) {
+                                OffHeapENode eNode = new OffHeapENode(this, castedEGraph, space.graph(), j, OffHeapEGraph.nodeAddrAt(rawValue, j));
+                                buffer.write(CoreConstants.CHUNK_ENODE_SEP);
+                                eNode.save(buffer);
+                            }
+                            castedEGraph.declareDirty();
+                            ;
                             break;
                         default:
                             break;
@@ -517,7 +529,9 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                             case Type.STRING_TO_LONG_MAP:
                                 setValue(addr, i, OffHeapStringLongMap.clone(value(castedAddr, i)));
                                 break;
-                            //TODO add EGRAPH MANAGEMENT
+                            case Type.EGRAPH:
+                                setValue(addr, i, OffHeapEGraph.clone(value(castedAddr, i)));
+                                break;
                         }
                     }
                     space.setAddrByIndex(index, addr);
@@ -579,6 +593,9 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                         break;
                     case Type.INT_ARRAY:
                         param_elem = OffHeapIntArray.fromObject((int[]) p_unsafe_elem);
+                        break;
+                    case Type.ENODE:
+                        param_elem = ((OffHeapENode) p_unsafe_elem).getAddr();
                         break;
                     case Type.RELATION:
                     case Type.DMATRIX:
@@ -992,16 +1009,13 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                                         state = LOAD_WAITING_TYPE;
                                         break;
                                     case Type.EGRAPH:
-                                        /*
-                                        HeapEGraph eGraph = new HeapEGraph(this, null, this.graph());
+                                        OffHeapEGraph eGraph = new OffHeapEGraph(this, OffHeapConstants.OFFHEAP_NULL_PTR, this.graph());
                                         cursor++;
                                         cursor = eGraph.load(buffer, cursor, payloadSize);
                                         cursor++;
                                         internal_set(read_key, read_type, eGraph, true, initial);
                                         previous = cursor;
                                         state = LOAD_WAITING_TYPE;
-                                        */
-                                        //TODO
                                         break;
                                     default:
                                         throw new RuntimeException("Not implemented yet!!!");

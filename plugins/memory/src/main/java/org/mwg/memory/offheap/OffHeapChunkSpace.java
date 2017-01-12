@@ -4,7 +4,6 @@ package org.mwg.memory.offheap;
 import org.mwg.Callback;
 import org.mwg.Constants;
 import org.mwg.Graph;
-import org.mwg.base.BaseExternalAttribute;
 import org.mwg.chunk.Chunk;
 import org.mwg.chunk.ChunkSpace;
 import org.mwg.chunk.ChunkType;
@@ -16,9 +15,6 @@ import org.mwg.struct.BufferIterator;
 import org.mwg.struct.EGraph;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.KeyHelper;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.mwg.Constants.BUFFER_SEP;
 
@@ -441,7 +437,7 @@ class OffHeapChunkSpace implements ChunkSpace {
 
     @Override
     public EGraph newVolatileGraph() {
-        throw new RuntimeException("Not implemented yet!");
+        return new OffHeapEGraph(null, OffHeapConstants.OFFHEAP_NULL_PTR, _graph);
     }
 
 }

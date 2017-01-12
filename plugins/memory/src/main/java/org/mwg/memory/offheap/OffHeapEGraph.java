@@ -194,7 +194,7 @@ public class OffHeapEGraph implements EGraph {
             if (i != 0) {
                 builder.append(",");
             }
-            long nodeAddr = nodeAddrAt(addr ,i);
+            long nodeAddr = nodeAddrAt(addr, i);
             long nodeId = OffHeapENode.getId(nodeAddr);
             OffHeapENode enode = new OffHeapENode(parent, this, _graph, nodeId, nodeAddr);
             builder.append(enode.toString());
@@ -226,4 +226,11 @@ public class OffHeapEGraph implements EGraph {
         }
     }
 
+    public static long clone(long addr) {
+        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            return OffHeapConstants.OFFHEAP_NULL_PTR;
+        }
+
+        return 0;
+    }
 }
