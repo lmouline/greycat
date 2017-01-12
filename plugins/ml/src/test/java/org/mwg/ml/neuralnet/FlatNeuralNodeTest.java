@@ -8,9 +8,6 @@ import org.mwg.ml.MLPlugin;
 
 import java.util.Random;
 
-/**
- * Created by assaad on 28/10/2016.
- */
 public class FlatNeuralNodeTest {
 
     public static void main(String[] arg) {
@@ -19,24 +16,14 @@ public class FlatNeuralNodeTest {
             @Override
             public void on(Boolean result) {
                 Node root = g.newNode(0, 0);
-
                 FlatNeuralNode nn = (FlatNeuralNode) g.newTypedNode(0, 0, FlatNeuralNode.NAME);
-                nn.configure(4,2,2,3,0.01);
-
-                double[] inputs= {0.01,0.003,-0.5,0.3};
+                nn.configure(4, 2, 2, 3, 0.01);
+                double[] inputs = {0.01, 0.003, -0.5, 0.3};
                 double[] outputs = nn.predict(inputs);
-
-
-                nn.learn(inputs,outputs);
-
-
-                for(int i=0;i<outputs.length;i++){
+                nn.learn(inputs, outputs);
+                for (int i = 0; i < outputs.length; i++) {
                     System.out.println(outputs[i]);
                 }
-
-
-
-
             }
         });
     }

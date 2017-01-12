@@ -1373,8 +1373,8 @@ var org;
                         return "LONG_TO_LONG_MAP";
                     case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
                         return "LONG_TO_LONG_ARRAY_MAP";
-                    case org.mwg.Type.STRING_TO_LONG_MAP:
-                        return "STRING_TO_LONG_MAP";
+                    case org.mwg.Type.STRING_TO_INT_MAP:
+                        return "STRING_TO_INT_MAP";
                     case org.mwg.Type.RELATION:
                         return "RELATION";
                     case org.mwg.Type.RELATION_INDEXED:
@@ -1415,8 +1415,8 @@ var org;
                         return org.mwg.Type.LONG_TO_LONG_MAP;
                     case "LONG_TO_LONG_ARRAY_MAP":
                         return org.mwg.Type.LONG_TO_LONG_ARRAY_MAP;
-                    case "STRING_TO_LONG_MAP":
-                        return org.mwg.Type.STRING_TO_LONG_MAP;
+                    case "STRING_TO_INT_MAP":
+                        return org.mwg.Type.STRING_TO_INT_MAP;
                     case "RELATION":
                         return org.mwg.Type.RELATION;
                     case "RELATION_INDEXED":
@@ -1447,7 +1447,7 @@ var org;
         Type.INT_ARRAY = 8;
         Type.LONG_TO_LONG_MAP = 9;
         Type.LONG_TO_LONG_ARRAY_MAP = 10;
-        Type.STRING_TO_LONG_MAP = 11;
+        Type.STRING_TO_INT_MAP = 11;
         Type.RELATION = 12;
         Type.RELATION_INDEXED = 13;
         Type.DMATRIX = 15;
@@ -1615,7 +1615,7 @@ var org;
                             return true;
                         case org.mwg.Type.RELATION:
                         case org.mwg.Type.RELATION_INDEXED:
-                        case org.mwg.Type.STRING_TO_LONG_MAP:
+                        case org.mwg.Type.STRING_TO_INT_MAP:
                         case org.mwg.Type.LONG_TO_LONG_MAP:
                         case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP: throw new Error("Bad API usage: set can't be used with complex type, please use getOrCreate instead.");
                         default:
@@ -1992,7 +1992,7 @@ var org;
                                             builder.append("}");
                                             break;
                                         }
-                                        case org.mwg.Type.STRING_TO_LONG_MAP: {
+                                        case org.mwg.Type.STRING_TO_INT_MAP: {
                                             builder.append(",\"");
                                             builder.append(resolveName);
                                             builder.append("\":");
@@ -3722,7 +3722,7 @@ var org;
                     if (insertIfNotExists) {
                         var dictionaryIndex = this.dictionary.get(0);
                         if (dictionaryIndex == null) {
-                            dictionaryIndex = this.dictionary.getOrCreate(0, org.mwg.Type.STRING_TO_LONG_MAP);
+                            dictionaryIndex = this.dictionary.getOrCreate(0, org.mwg.Type.STRING_TO_INT_MAP);
                         }
                         if (!dictionaryIndex.containsHash(hash)) {
                             dictionaryIndex.put(name, hash);
@@ -4708,7 +4708,7 @@ var org;
                                                     this._v[i] = origin._v[i].cloneFor(this);
                                                 }
                                                 break;
-                                            case org.mwg.Type.STRING_TO_LONG_MAP:
+                                            case org.mwg.Type.STRING_TO_INT_MAP:
                                                 if (origin._v[i] != null) {
                                                     this._v[i] = origin._v[i].cloneFor(this);
                                                 }
@@ -4885,7 +4885,7 @@ var org;
                                             java.lang.System.arraycopy(castedParamInt, 0, clonedIntArray, 0, castedParamInt.length);
                                             param_elem = clonedIntArray;
                                             break;
-                                        case org.mwg.Type.STRING_TO_LONG_MAP:
+                                        case org.mwg.Type.STRING_TO_INT_MAP:
                                             param_elem = p_unsafe_elem;
                                             break;
                                         case org.mwg.Type.LONG_TO_LONG_MAP:
@@ -5091,8 +5091,8 @@ var org;
                                 case org.mwg.Type.LMATRIX:
                                     toSet = new org.mwg.core.chunk.heap.HeapLMatrix(this, null);
                                     break;
-                                case org.mwg.Type.STRING_TO_LONG_MAP:
-                                    toSet = new org.mwg.core.chunk.heap.HeapStringLongMap(this);
+                                case org.mwg.Type.STRING_TO_INT_MAP:
+                                    toSet = new org.mwg.core.chunk.heap.HeapStringIntMap(this);
                                     break;
                                 case org.mwg.Type.LONG_TO_LONG_MAP:
                                     toSet = new org.mwg.core.chunk.heap.HeapLongLongMap(this);
@@ -5304,7 +5304,7 @@ var org;
                                             builder.append("}");
                                             break;
                                         }
-                                        case org.mwg.Type.STRING_TO_LONG_MAP: {
+                                        case org.mwg.Type.STRING_TO_INT_MAP: {
                                             builder.append("\"");
                                             builder.append(resolveName);
                                             builder.append("\":");
@@ -5435,7 +5435,7 @@ var org;
                                                     }
                                                 }
                                                 break;
-                                            case org.mwg.Type.STRING_TO_LONG_MAP:
+                                            case org.mwg.Type.STRING_TO_INT_MAP:
                                                 var castedStringLongMap = loopValue;
                                                 org.mwg.utility.Base64.encodeIntToBuffer(castedStringLongMap.size(), buffer);
                                                 castedStringLongMap.unsafe_each(function (key, value) {
@@ -5679,8 +5679,8 @@ var org;
                                                     previous = cursor;
                                                     state = HeapENode.LOAD_WAITING_TYPE;
                                                     break;
-                                                case org.mwg.Type.STRING_TO_LONG_MAP:
-                                                    var s2lmap = new org.mwg.core.chunk.heap.HeapStringLongMap(this);
+                                                case org.mwg.Type.STRING_TO_INT_MAP:
+                                                    var s2lmap = new org.mwg.core.chunk.heap.HeapStringIntMap(this);
                                                     cursor++;
                                                     cursor = s2lmap.load(buffer, cursor, payloadSize);
                                                     cursor++;
@@ -7563,7 +7563,7 @@ var org;
                                         throw new Error("mwDB usage error, set method called with type " + org.mwg.Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
                                     }
                                 }
-                                if (p_elemType == org.mwg.Type.STRING_TO_LONG_MAP) {
+                                if (p_elemType == org.mwg.Type.STRING_TO_INT_MAP) {
                                     if (!(typeof p_unsafe_elem === 'object')) {
                                         throw new Error("mwDB usage error, set method called with type " + org.mwg.Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
                                     }
@@ -7657,8 +7657,8 @@ var org;
                                 case org.mwg.Type.EGRAPH:
                                     toSet = new org.mwg.core.chunk.heap.HeapEGraph(this, null, this._space.graph());
                                     break;
-                                case org.mwg.Type.STRING_TO_LONG_MAP:
-                                    toSet = new org.mwg.core.chunk.heap.HeapStringLongMap(this);
+                                case org.mwg.Type.STRING_TO_INT_MAP:
+                                    toSet = new org.mwg.core.chunk.heap.HeapStringIntMap(this);
                                     break;
                                 case org.mwg.Type.LONG_TO_LONG_MAP:
                                     toSet = new org.mwg.core.chunk.heap.HeapLongLongMap(this);
@@ -7764,7 +7764,7 @@ var org;
                                                 }
                                             }
                                             break;
-                                        case org.mwg.Type.STRING_TO_LONG_MAP:
+                                        case org.mwg.Type.STRING_TO_INT_MAP:
                                             var castedStringLongMap = loopValue;
                                             org.mwg.utility.Base64.encodeIntToBuffer(castedStringLongMap.size(), buffer);
                                             castedStringLongMap.unsafe_each(function (key, value) {
@@ -7873,7 +7873,7 @@ var org;
                                                 this._v[i] = casted._v[i].cloneFor(this);
                                             }
                                             break;
-                                        case org.mwg.Type.STRING_TO_LONG_MAP:
+                                        case org.mwg.Type.STRING_TO_INT_MAP:
                                             if (casted._v[i] != null) {
                                                 this._v[i] = casted._v[i].cloneFor(this);
                                             }
@@ -8015,7 +8015,7 @@ var org;
                                             java.lang.System.arraycopy(castedParamInt, 0, clonedIntArray, 0, castedParamInt.length);
                                             param_elem = clonedIntArray;
                                             break;
-                                        case org.mwg.Type.STRING_TO_LONG_MAP:
+                                        case org.mwg.Type.STRING_TO_INT_MAP:
                                             param_elem = p_unsafe_elem;
                                             break;
                                         case org.mwg.Type.LONG_TO_LONG_MAP:
@@ -8399,8 +8399,8 @@ var org;
                                                         previous = cursor;
                                                         state = HeapStateChunk.LOAD_WAITING_TYPE;
                                                         break;
-                                                    case org.mwg.Type.STRING_TO_LONG_MAP:
-                                                        var s2lmap = new org.mwg.core.chunk.heap.HeapStringLongMap(this);
+                                                    case org.mwg.Type.STRING_TO_INT_MAP:
+                                                        var s2lmap = new org.mwg.core.chunk.heap.HeapStringIntMap(this);
                                                         cursor++;
                                                         cursor = s2lmap.load(buffer, cursor, payloadSize);
                                                         cursor++;
@@ -8465,8 +8465,8 @@ var org;
                     HeapStateChunk.LOAD_WAITING_KEY = 2;
                     HeapStateChunk.LOAD_WAITING_VALUE = 3;
                     heap.HeapStateChunk = HeapStateChunk;
-                    var HeapStringLongMap = (function () {
-                        function HeapStringLongMap(p_parent) {
+                    var HeapStringIntMap = (function () {
+                        function HeapStringIntMap(p_parent) {
                             this.mapSize = 0;
                             this.capacity = 0;
                             this.keys = null;
@@ -8476,37 +8476,37 @@ var org;
                             this.hashs = null;
                             this.parent = p_parent;
                         }
-                        HeapStringLongMap.prototype.key = function (i) {
+                        HeapStringIntMap.prototype.key = function (i) {
                             return this.keys[i];
                         };
-                        HeapStringLongMap.prototype.setKey = function (i, newValue) {
+                        HeapStringIntMap.prototype.setKey = function (i, newValue) {
                             this.keys[i] = newValue;
                         };
-                        HeapStringLongMap.prototype.keyH = function (i) {
+                        HeapStringIntMap.prototype.keyH = function (i) {
                             return this.keysH[i];
                         };
-                        HeapStringLongMap.prototype.setKeyH = function (i, newValue) {
+                        HeapStringIntMap.prototype.setKeyH = function (i, newValue) {
                             this.keysH[i] = newValue;
                         };
-                        HeapStringLongMap.prototype.value = function (i) {
+                        HeapStringIntMap.prototype.value = function (i) {
                             return this.values[i];
                         };
-                        HeapStringLongMap.prototype.setValue = function (i, newValue) {
+                        HeapStringIntMap.prototype.setValue = function (i, newValue) {
                             this.values[i] = newValue;
                         };
-                        HeapStringLongMap.prototype.next = function (i) {
+                        HeapStringIntMap.prototype.next = function (i) {
                             return this.nexts[i];
                         };
-                        HeapStringLongMap.prototype.setNext = function (i, newValue) {
+                        HeapStringIntMap.prototype.setNext = function (i, newValue) {
                             this.nexts[i] = newValue;
                         };
-                        HeapStringLongMap.prototype.hash = function (i) {
+                        HeapStringIntMap.prototype.hash = function (i) {
                             return this.hashs[i];
                         };
-                        HeapStringLongMap.prototype.setHash = function (i, newValue) {
+                        HeapStringIntMap.prototype.setHash = function (i, newValue) {
                             this.hashs[i] = newValue;
                         };
-                        HeapStringLongMap.prototype.reallocate = function (newCapacity) {
+                        HeapStringIntMap.prototype.reallocate = function (newCapacity) {
                             if (newCapacity > this.capacity) {
                                 var new_keys = new Array(newCapacity);
                                 if (this.keys != null) {
@@ -8537,8 +8537,8 @@ var org;
                                 this.capacity = newCapacity;
                             }
                         };
-                        HeapStringLongMap.prototype.cloneFor = function (newContainer) {
-                            var cloned = new org.mwg.core.chunk.heap.HeapStringLongMap(newContainer);
+                        HeapStringIntMap.prototype.cloneFor = function (newContainer) {
+                            var cloned = new org.mwg.core.chunk.heap.HeapStringIntMap(newContainer);
                             cloned.mapSize = this.mapSize;
                             cloned.capacity = this.capacity;
                             if (this.keys != null) {
@@ -8568,7 +8568,7 @@ var org;
                             }
                             return cloned;
                         };
-                        HeapStringLongMap.prototype.getValue = function (requestString) {
+                        HeapStringIntMap.prototype.getValue = function (requestString) {
                             var result = -1;
                             {
                                 if (this.keys != null) {
@@ -8586,7 +8586,7 @@ var org;
                             }
                             return result;
                         };
-                        HeapStringLongMap.prototype.getByHash = function (keyHash) {
+                        HeapStringIntMap.prototype.getByHash = function (keyHash) {
                             var result = null;
                             {
                                 if (this.keys != null) {
@@ -8603,7 +8603,7 @@ var org;
                             }
                             return result;
                         };
-                        HeapStringLongMap.prototype.containsHash = function (keyHash) {
+                        HeapStringIntMap.prototype.containsHash = function (keyHash) {
                             var result = false;
                             {
                                 if (this.keys != null) {
@@ -8620,24 +8620,24 @@ var org;
                             }
                             return result;
                         };
-                        HeapStringLongMap.prototype.each = function (callback) {
+                        HeapStringIntMap.prototype.each = function (callback) {
                             {
                                 this.unsafe_each(callback);
                             }
                         };
-                        HeapStringLongMap.prototype.unsafe_each = function (callback) {
+                        HeapStringIntMap.prototype.unsafe_each = function (callback) {
                             for (var i = 0; i < this.mapSize; i++) {
                                 callback(this.key(i), this.value(i));
                             }
                         };
-                        HeapStringLongMap.prototype.size = function () {
+                        HeapStringIntMap.prototype.size = function () {
                             var result;
                             {
                                 result = this.mapSize;
                             }
                             return result;
                         };
-                        HeapStringLongMap.prototype.remove = function (requestKey) {
+                        HeapStringIntMap.prototype.remove = function (requestKey) {
                             {
                                 if (this.keys != null && this.mapSize != 0) {
                                     var keyHash = org.mwg.utility.HashHelper.hash(requestKey);
@@ -8701,7 +8701,7 @@ var org;
                                 }
                             }
                         };
-                        HeapStringLongMap.prototype.put = function (insertKey, insertValue) {
+                        HeapStringIntMap.prototype.put = function (insertKey, insertValue) {
                             {
                                 var keyHash = org.mwg.utility.HashHelper.hash(insertKey);
                                 if (this.keys == null) {
@@ -8748,7 +8748,7 @@ var org;
                                 }
                             }
                         };
-                        HeapStringLongMap.prototype.load = function (buffer, offset, max) {
+                        HeapStringIntMap.prototype.load = function (buffer, offset, max) {
                             var cursor = offset;
                             var current = buffer.read(cursor);
                             var isFirst = true;
@@ -8786,9 +8786,9 @@ var org;
                             }
                             return cursor;
                         };
-                        return HeapStringLongMap;
+                        return HeapStringIntMap;
                     }());
-                    heap.HeapStringLongMap = HeapStringLongMap;
+                    heap.HeapStringIntMap = HeapStringIntMap;
                     var HeapTimeTreeChunk = (function () {
                         function HeapTimeTreeChunk(p_space, p_index) {
                             this._root = -1;

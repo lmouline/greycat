@@ -460,7 +460,7 @@ declare module org {
             static INT_ARRAY: number;
             static LONG_TO_LONG_MAP: number;
             static LONG_TO_LONG_ARRAY_MAP: number;
-            static STRING_TO_LONG_MAP: number;
+            static STRING_TO_INT_MAP: number;
             static RELATION: number;
             static RELATION_INDEXED: number;
             static DMATRIX: number;
@@ -1126,7 +1126,7 @@ declare module org {
                         private load_primitive(read_key, read_type, buffer, previous, cursor, initial);
                         loadDiff(buffer: org.mwg.struct.Buffer): void;
                     }
-                    class HeapStringLongMap implements org.mwg.struct.StringLongMap {
+                    class HeapStringIntMap implements org.mwg.struct.StringIntMap {
                         private parent;
                         private mapSize;
                         private capacity;
@@ -1147,7 +1147,7 @@ declare module org {
                         private hash(i);
                         private setHash(i, newValue);
                         reallocate(newCapacity: number): void;
-                        cloneFor(newContainer: org.mwg.core.chunk.heap.HeapContainer): org.mwg.core.chunk.heap.HeapStringLongMap;
+                        cloneFor(newContainer: org.mwg.core.chunk.heap.HeapContainer): org.mwg.core.chunk.heap.HeapStringIntMap;
                         getValue(requestString: string): number;
                         getByHash(keyHash: number): string;
                         containsHash(keyHash: number): boolean;
@@ -2337,7 +2337,7 @@ declare module org {
                 find(callback: org.mwg.Callback<org.mwg.Node[]>, world: number, time: number, ...params: string[]): void;
                 findByQuery(query: org.mwg.Query, callback: org.mwg.Callback<org.mwg.Node[]>): void;
             }
-            interface StringLongMap extends org.mwg.struct.Map {
+            interface StringIntMap extends org.mwg.struct.Map {
                 getValue(key: string): number;
                 getByHash(index: number): string;
                 containsHash(index: number): boolean;
