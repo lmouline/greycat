@@ -825,7 +825,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                 if (current == Constants.CHUNK_SEP) {
                     switch (state) {
                         case LOAD_WAITING_ALLOC:
-                            allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                            allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                             state = LOAD_WAITING_TYPE;
                             cursor++;
                             previous = cursor;

@@ -132,10 +132,14 @@ public abstract class AbstractEGraphTest {
 
         g.connect(null);
         StateChunk chunk = (StateChunk) g.space().createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
-        EGraph egraph = (EGraph) chunk.getOrCreate(0, Type.EGRAPH);
-        chunk.set(1, Type.STRING, "AdditionalString");
+        chunk.set(0, Type.STRING, "AdditionalString");
+        EGraph egraph = (EGraph) chunk.getOrCreate(1, Type.EGRAPH);
+        chunk.set(2, Type.STRING, "AdditionalStringAfter");
         ENode eNode = egraph.newNode();
         eNode.set("name", Type.STRING, "myEnode");
+
+
+
         g.save(null);
 
         g.disconnect(null);
@@ -148,7 +152,9 @@ public abstract class AbstractEGraphTest {
         //final long before2 = System.currentTimeMillis();
         g.space().getOrLoadAndMark(ChunkType.STATE_CHUNK, 0, 0, 0, res -> {
             StateChunk loaded = (StateChunk) res;
-            Assert.assertEquals(loaded.get(1),chunk.get(1));
+            Assert.assertEquals(loaded.get(0),chunk.get(0));
+            Assert.assertEquals(loaded.get(2),chunk.get(2));
+
             //System.out.println(loaded);
 
             /*

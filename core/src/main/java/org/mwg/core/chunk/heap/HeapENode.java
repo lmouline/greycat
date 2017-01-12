@@ -896,7 +896,8 @@ class HeapENode implements ENode, HeapContainer {
             } else if (current == Constants.CHUNK_ESEP) {
                 switch (state) {
                     case LOAD_WAITING_ALLOC:
-                        allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                        final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(Base64.decodeToIntWithBounds(buffer, previous, cursor)) / Math.log(2)));
+                        allocate(closePowerOfTwo);
                         state = LOAD_WAITING_TYPE;
                         cursor++;
                         previous = cursor;
@@ -1026,19 +1027,29 @@ class HeapENode implements ENode, HeapContainer {
                                 HeapRelation relation = new HeapRelation(this, null);
                                 cursor++;
                                 cursor = relation.load(buffer, cursor, payloadSize);
-                                cursor++;
                                 internal_set(read_key, read_type, relation, true, initial);
-                                previous = cursor;
-                                state = LOAD_WAITING_TYPE;
+                                if (cursor < payloadSize) {
+                                    current = buffer.read(cursor);
+                                    if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                    }
+                                }
                                 break;
                             case Type.DMATRIX:
                                 HeapDMatrix matrix = new HeapDMatrix(this, null);
                                 cursor++;
                                 cursor = matrix.load(buffer, cursor, payloadSize);
-                                cursor++;
                                 internal_set(read_key, read_type, matrix, true, initial);
-                                previous = cursor;
-                                state = LOAD_WAITING_TYPE;
+                                if (cursor < payloadSize) {
+                                    current = buffer.read(cursor);
+                                    if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                    }
+                                }
                                 break;
                             case Type.LMATRIX:
                                 HeapLMatrix lmatrix = new HeapLMatrix(this, null);
