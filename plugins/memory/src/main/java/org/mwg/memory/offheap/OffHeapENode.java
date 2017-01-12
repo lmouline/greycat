@@ -503,7 +503,8 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                 toSet = new OffHeapLongLongMap(chunk, OffHeapConstants.OFFHEAP_NULL_PTR);
                 break;
             case Type.LONG_TO_LONG_ARRAY_MAP:
-                toSet = new OffHeapLongLongArrayMap(chunk, OffHeapConstants.OFFHEAP_NULL_PTR);;
+                toSet = new OffHeapLongLongArrayMap(chunk, OffHeapConstants.OFFHEAP_NULL_PTR);
+                ;
                 break;
         }
         internal_set(key, type, toSet, true, false);
@@ -1037,7 +1038,9 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                         previous = cursor + 1;
                                     }
                                     cursor++;
-                                    current = buffer.read(cursor);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                    }
                                 }
                                 if (doubleArrayLoaded == null) {
                                     doubleArrayLoaded = new double[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
@@ -1068,7 +1071,9 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                         previous = cursor + 1;
                                     }
                                     cursor++;
-                                    current = buffer.read(cursor);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                    }
                                 }
                                 if (longArrayLoaded == null) {
                                     longArrayLoaded = new long[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
@@ -1099,7 +1104,9 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                         previous = cursor + 1;
                                     }
                                     cursor++;
-                                    current = buffer.read(cursor);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                    }
                                 }
                                 if (intArrayLoaded == null) {
                                     intArrayLoaded = new int[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
@@ -1192,7 +1199,9 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                         previous = cursor + 1;
                                     }
                                     cursor++;
-                                    current = buffer.read(cursor);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                    }
                                 }
                                 if (eRelation == null) {
                                     eRelation = new OffHeapERelation(p_parent, egraph, _graph, OffHeapConstants.OFFHEAP_NULL_PTR);
