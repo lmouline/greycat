@@ -127,7 +127,9 @@
         <!--
         <module>plugins/storage/voldemort</module>
         -->
+        <!--
         <module>plugins/storage/hbase</module>
+        -->
 
         <!--
         <module>plugins/hazelcast</module>
