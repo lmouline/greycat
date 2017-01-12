@@ -15,7 +15,7 @@ public class FlatNeuralNodeTest {
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                Node root = g.newNode(0, 0);
+                //Node root = g.newNode(0, 0);
                 FlatNeuralNode nn = (FlatNeuralNode) g.newTypedNode(0, 0, FlatNeuralNode.NAME);
                 nn.configure(4, 2, 2, 3, 0.01);
                 double[] inputs = {0.01, 0.003, -0.5, 0.3};
