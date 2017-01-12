@@ -52,7 +52,7 @@ class OffHeapRelation implements Relation {
         }
     }
 
-    private void unsafe_allocate(int newCapacity){
+    private void unsafe_allocate(int newCapacity) {
         final long addr = container.addrByIndex(index);
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             //initial allocation
@@ -340,7 +340,9 @@ class OffHeapRelation implements Relation {
                 previous = cursor + 1;
             }
             cursor++;
-            current = buffer.read(cursor);
+            if (cursor < max) {
+                current = buffer.read(cursor);
+            }
         }
         if (!isFirst) {
             internal_add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
