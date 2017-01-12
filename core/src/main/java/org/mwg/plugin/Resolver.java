@@ -63,6 +63,8 @@ public interface Resolver {
      */
     <A extends Node> void lookup(long world, long time, long id, Callback<A> callback);
 
+    void lookupBatch(long worlds[], long times[], long[] ids, Callback<Node[]> callback);
+
     void lookupTimes(long world, long from, long to, long id, Callback<Node[]> callback);
 
     void lookupAll(long world, long time, long ids[], Callback<Node[]> callback);

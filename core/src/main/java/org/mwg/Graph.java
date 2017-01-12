@@ -52,6 +52,17 @@ public interface Graph {
     <A extends Node> void lookup(long world, long time, long id, Callback<A> callback);
 
     /**
+     * Asynchronous lookup of a nodes with different worlds and times.<br>
+     * Based on the tuple &lt;World, Time, Node_ID&gt; this method seeks a {@link Node} in the Graph and returns it to the callback.
+     *
+     * @param worlds   The worlds at which Nodes must be resolved.
+     * @param times    The times at which Nodes must be resolved.
+     * @param ids      The unique identifier of {@link Node} array ({@link Node#id()}) researched.
+     * @param callback The task to be called when the {@link Node} is retrieved.
+     */
+    void lookupBatch(long worlds[], long times[], long[] ids, Callback<Node[]> callback);
+
+    /**
      * Asynchronous lookup of a nodes.<br>
      * Based on the tuple &lt;World, Time, Node_ID&gt; this method seeks a {@link Node} in the Graph and returns it to the callback.
      *
@@ -123,10 +134,10 @@ public interface Graph {
      * Retrieve a named global index, at a precise world and time.<br>
      * Creates the index if it does not exist.
      *
-     * @param world     The world id in which the index has to be looked for
-     * @param time      The time at which the index has to be looked for
-     * @param name      The name of the index
-     * @param callback  The callback to be called when the index lookup is complete.
+     * @param world    The world id in which the index has to be looked for
+     * @param time     The time at which the index has to be looked for
+     * @param name     The name of the index
+     * @param callback The callback to be called when the index lookup is complete.
      */
     void index(long world, long time, String name, Callback<NodeIndex> callback);
 
@@ -134,10 +145,10 @@ public interface Graph {
      * Retrieve a named global index, at a precise world and time.<br>
      * Returns null to the callback if it does not exist.
      *
-     * @param world     The world id in which the index has to be looked for
-     * @param time      The time at which the index has to be looked for
-     * @param name      The name of the index
-     * @param callback  The callback to be called when the index lookup is complete.
+     * @param world    The world id in which the index has to be looked for
+     * @param time     The time at which the index has to be looked for
+     * @param name     The name of the index
+     * @param callback The callback to be called when the index lookup is complete.
      */
     void indexIfExists(long world, long time, String name, Callback<NodeIndex> callback);
 

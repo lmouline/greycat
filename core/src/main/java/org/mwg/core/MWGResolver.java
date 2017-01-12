@@ -203,6 +203,154 @@ final class MWGResolver implements Resolver {
         });
     }
 
+    @SuppressWarnings("Duplicates")
+    @Override
+    public void lookupBatch(long[] worlds, long[] times, long[] ids, Callback<Node[]> callback) {
+        final int idsSize = ids.length;
+        if (!(worlds.length == times.length && times.length == idsSize)) {
+            throw new RuntimeException("Bad API usage");
+        }
+        final MWGResolver selfPointer = this;
+        final Node[] finalResult = new Node[idsSize];
+        //init as null for JS compatibility
+        for (int i = 0; i < idsSize; i++) {
+            finalResult[i] = null;
+        }
+        final boolean[] isEmpty = {true};
+        final long[] keys = new long[idsSize * Constants.KEY_SIZE];
+        for (int i = 0; i < idsSize; i++) {
+            isEmpty[0] = false;
+            keys[i * Constants.KEY_SIZE] = ChunkType.WORLD_ORDER_CHUNK;
+            keys[(i * Constants.KEY_SIZE) + 1] = 0;
+            keys[(i * Constants.KEY_SIZE) + 2] = 0;
+            keys[(i * Constants.KEY_SIZE) + 3] = ids[i];
+        }
+        if (isEmpty[0]) {
+            lookupAll_end(finalResult, callback, idsSize, null, null, null, null);
+        } else {
+            selfPointer._space.getOrLoadAndMarkAll(keys, new Callback<Chunk[]>() {
+                @Override
+                public void on(final Chunk[] theNodeWorldOrders) {
+                    if (theNodeWorldOrders == null) {
+                        lookupAll_end(finalResult, callback, idsSize, null, null, null, null);
+                    } else {
+                        isEmpty[0] = true;
+                        for (int i = 0; i < idsSize; i++) {
+                            if (theNodeWorldOrders[i] != null) {
+                                isEmpty[0] = false;
+                                keys[i * Constants.KEY_SIZE] = ChunkType.TIME_TREE_CHUNK;
+                                keys[(i * Constants.KEY_SIZE) + 1] = selfPointer.resolve_world(globalWorldOrderChunk, (WorldOrderChunk) theNodeWorldOrders[i], times[i], worlds[i]);
+                                keys[(i * Constants.KEY_SIZE) + 2] = Constants.NULL_LONG;
+                            } else {
+                                keys[i * Constants.KEY_SIZE] = -1;
+                            }
+                        }
+                        if (isEmpty[0]) {
+                            lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, null, null, null);
+                        } else {
+                            selfPointer._space.getOrLoadAndMarkAll(keys, new Callback<Chunk[]>() {
+                                @Override
+                                public void on(final Chunk[] theNodeSuperTimeTrees) {
+                                    if (theNodeSuperTimeTrees == null) {
+                                        lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, null, null, null);
+                                    } else {
+                                        isEmpty[0] = true;
+                                        for (int i = 0; i < idsSize; i++) {
+                                            if (theNodeSuperTimeTrees[i] != null) {
+                                                final long closestSuperTime = ((TimeTreeChunk) theNodeSuperTimeTrees[i]).previousOrEqual(times[i]);
+                                                if (closestSuperTime == Constants.NULL_LONG) {
+                                                    keys[i * Constants.KEY_SIZE] = -1; //skip
+                                                } else {
+                                                    isEmpty[0] = false;
+                                                    keys[(i * Constants.KEY_SIZE) + 2] = closestSuperTime;
+                                                }
+                                            } else {
+                                                keys[i * Constants.KEY_SIZE] = -1; //skip
+                                            }
+                                        }
+                                        if (isEmpty[0]) {
+                                            lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, null, null);
+                                        } else {
+                                            selfPointer._space.getOrLoadAndMarkAll(keys, new Callback<Chunk[]>() {
+                                                @Override
+                                                public void on(final Chunk[] theNodeTimeTrees) {
+                                                    if (theNodeTimeTrees == null) {
+                                                        lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, null, null);
+                                                    } else {
+                                                        isEmpty[0] = true;
+                                                        for (int i = 0; i < idsSize; i++) {
+                                                            if (theNodeTimeTrees[i] != null) {
+                                                                final long closestTime = ((TimeTreeChunk) theNodeTimeTrees[i]).previousOrEqual(times[i]);
+                                                                if (closestTime == Constants.NULL_LONG) {
+                                                                    keys[i * Constants.KEY_SIZE] = -1; //skip
+                                                                } else {
+                                                                    isEmpty[0] = false;
+                                                                    keys[(i * Constants.KEY_SIZE)] = ChunkType.STATE_CHUNK;
+                                                                    keys[(i * Constants.KEY_SIZE) + 2] = closestTime;
+                                                                }
+                                                            } else {
+                                                                keys[i * Constants.KEY_SIZE] = -1; //skip
+                                                            }
+                                                        }
+                                                        if (isEmpty[0]) {
+                                                            lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, theNodeTimeTrees, null);
+                                                        } else {
+                                                            selfPointer._space.getOrLoadAndMarkAll(keys, new Callback<Chunk[]>() {
+                                                                @Override
+                                                                public void on(Chunk[] theObjectChunks) {
+                                                                    if (theObjectChunks == null) {
+                                                                        lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, theNodeTimeTrees, null);
+                                                                    } else {
+                                                                        for (int i = 0; i < idsSize; i++) {
+                                                                            if (theObjectChunks[i] != null) {
+                                                                                WorldOrderChunk castedNodeWorldOrder = (WorldOrderChunk) theNodeWorldOrders[i];
+                                                                                long extraCode = castedNodeWorldOrder.extra();
+                                                                                NodeFactory resolvedFactory = null;
+                                                                                if (extraCode != Constants.NULL_LONG) {
+                                                                                    resolvedFactory = ((CoreGraph) selfPointer._graph).factoryByCode(extraCode);
+                                                                                }
+                                                                                BaseNode resolvedNode;
+                                                                                if (resolvedFactory == null) {
+                                                                                    resolvedNode = new BaseNode(worlds[i], times[i], ids[i], selfPointer._graph);
+                                                                                } else {
+                                                                                    resolvedNode = (BaseNode) resolvedFactory.create(worlds[i], times[i], ids[i], selfPointer._graph);
+                                                                                }
+                                                                                resolvedNode._dead = false;
+                                                                                resolvedNode._index_stateChunk = theObjectChunks[i].index();
+                                                                                resolvedNode._index_superTimeTree = theNodeSuperTimeTrees[i].index();
+                                                                                resolvedNode._index_timeTree = theNodeTimeTrees[i].index();
+                                                                                resolvedNode._index_worldOrder = theNodeWorldOrders[i].index();
+                                                                                if (theObjectChunks[i].world() == worlds[i] && theObjectChunks[i].time() == times[i]) {
+                                                                                    resolvedNode._world_magic = -1;
+                                                                                    resolvedNode._super_time_magic = -1;
+                                                                                    resolvedNode._time_magic = -1;
+                                                                                } else {
+                                                                                    resolvedNode._world_magic = ((WorldOrderChunk) theNodeWorldOrders[i]).magic();
+                                                                                    resolvedNode._super_time_magic = ((TimeTreeChunk) theNodeSuperTimeTrees[i]).magic();
+                                                                                    resolvedNode._time_magic = ((TimeTreeChunk) theNodeTimeTrees[i]).magic();
+                                                                                }
+                                                                                finalResult[i] = resolvedNode;
+                                                                            }
+                                                                        }
+                                                                        lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, theNodeTimeTrees, theObjectChunks);
+                                                                    }
+                                                                }
+                                                            });
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+        }
+    }
+
     @Override
     public void lookupTimes(long world, long from, long to, long id, Callback<Node[]> callback) {
         final MWGResolver selfPointer = this;

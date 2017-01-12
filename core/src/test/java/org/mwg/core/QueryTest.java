@@ -93,6 +93,11 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
+    public void lookupBatch(long[] worlds, long[] times, long[] ids, Callback<Node[]> callback) {
+
+    }
+
+    @Override
     public void lookupTimes(long world, long from, long to, long id, Callback<Node[]> callback) {
 
     }
