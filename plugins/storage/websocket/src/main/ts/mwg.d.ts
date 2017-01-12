@@ -615,11 +615,6 @@ declare module org {
             interface StateChunk extends org.mwg.chunk.Chunk, org.mwg.plugin.NodeState {
                 loadFrom(origin: org.mwg.chunk.StateChunk): void;
             }
-            interface StateChunkAttribute {
-                load(target: org.mwg.struct.Buffer): number;
-                save(target: org.mwg.struct.Buffer): void;
-                clone(): org.mwg.chunk.StateChunkAttribute;
-            }
             interface TimeTreeChunk extends org.mwg.chunk.Chunk {
                 insert(key: number): void;
                 unsafe_insert(key: number): void;
@@ -824,6 +819,9 @@ declare module org {
                         newVolatileGraph(): org.mwg.struct.EGraph;
                         printMarked(): void;
                     }
+                    interface HeapContainer {
+                        declareDirty(): void;
+                    }
                     class HeapDMatrix implements org.mwg.struct.DMatrix {
                         private static INDEX_ROWS;
                         private static INDEX_COLUMNS;
@@ -832,7 +830,7 @@ declare module org {
                         private parent;
                         private backend;
                         private aligned;
-                        constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapDMatrix);
+                        constructor(p_parent: org.mwg.core.chunk.heap.HeapContainer, origin: org.mwg.core.chunk.heap.HeapDMatrix);
                         init(rows: number, columns: number): org.mwg.struct.DMatrix;
                         private internal_init(rows, columns);
                         appendColumn(newColumn: Float64Array): org.mwg.struct.DMatrix;
@@ -868,9 +866,10 @@ declare module org {
                         _nodes: org.mwg.core.chunk.heap.HeapENode[];
                         private _nodes_capacity;
                         private _nodes_index;
-                        constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapEGraph, p_graph: org.mwg.Graph);
+                        constructor(p_parent: org.mwg.core.chunk.heap.HeapContainer, origin: org.mwg.core.chunk.heap.HeapEGraph, p_graph: org.mwg.Graph);
                         size(): number;
                         free(): void;
+                        graph(): org.mwg.Graph;
                         allocate(newCapacity: number): void;
                         nodeByIndex(index: number, createIfAbsent: boolean): org.mwg.core.chunk.heap.HeapENode;
                         declareDirty(): void;
@@ -881,10 +880,8 @@ declare module org {
                         toString(): string;
                         load(buffer: org.mwg.struct.Buffer, offset: number, max: number): number;
                     }
-                    class HeapENode implements org.mwg.struct.ENode {
+                    class HeapENode implements org.mwg.struct.ENode, org.mwg.core.chunk.heap.HeapContainer {
                         private egraph;
-                        private chunk;
-                        private _graph;
                         _id: number;
                         private _capacity;
                         private _size;
@@ -898,9 +895,9 @@ declare module org {
                         private static LOAD_WAITING_TYPE;
                         private static LOAD_WAITING_KEY;
                         private static LOAD_WAITING_VALUE;
-                        constructor(p_chunk: org.mwg.core.chunk.heap.HeapStateChunk, p_egraph: org.mwg.core.chunk.heap.HeapEGraph, p_graph: org.mwg.Graph, p_id: number, origin: org.mwg.core.chunk.heap.HeapENode);
+                        constructor(p_egraph: org.mwg.core.chunk.heap.HeapEGraph, p_id: number, origin: org.mwg.core.chunk.heap.HeapENode);
                         clear(): org.mwg.struct.ENode;
-                        private declareDirty();
+                        declareDirty(): void;
                         rebase(): void;
                         private allocate(newCapacity);
                         private internal_find(p_key);
@@ -916,7 +913,7 @@ declare module org {
                         getOrCreateAt(key: number, type: number): any;
                         toString(): string;
                         save(buffer: org.mwg.struct.Buffer): void;
-                        load(buffer: org.mwg.struct.Buffer, currentCursor: number, p_parent: org.mwg.core.chunk.heap.HeapStateChunk): number;
+                        load(buffer: org.mwg.struct.Buffer, currentCursor: number, nodeParent: org.mwg.core.chunk.heap.HeapContainer, graph: org.mwg.Graph): number;
                         private load_primitive(read_key, read_type, buffer, previous, cursor, initial);
                         each(callBack: org.mwg.plugin.NodeStateCallback): void;
                     }
@@ -925,7 +922,7 @@ declare module org {
                         private _size;
                         private _capacity;
                         private parent;
-                        constructor(p_listener: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapERelation);
+                        constructor(p_parent: org.mwg.core.chunk.heap.HeapContainer, origin: org.mwg.core.chunk.heap.HeapERelation);
                         rebase(newGraph: org.mwg.core.chunk.heap.HeapEGraph): void;
                         size(): number;
                         nodes(): org.mwg.struct.ENode[];
@@ -977,7 +974,7 @@ declare module org {
                         private parent;
                         private backend;
                         private aligned;
-                        constructor(p_parent: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapLMatrix);
+                        constructor(p_parent: org.mwg.core.chunk.heap.HeapContainer, origin: org.mwg.core.chunk.heap.HeapLMatrix);
                         init(rows: number, columns: number): org.mwg.struct.LMatrix;
                         private internal_init(rows, columns);
                         appendColumn(newColumn: Float64Array): org.mwg.struct.LMatrix;
@@ -1007,14 +1004,14 @@ declare module org {
                         load(buffer: org.mwg.struct.Buffer, offset: number, max: number): number;
                     }
                     class HeapLongLongArrayMap implements org.mwg.struct.LongLongArrayMap {
-                        parent: org.mwg.core.chunk.heap.HeapStateChunk;
+                        parent: org.mwg.core.chunk.heap.HeapContainer;
                         mapSize: number;
                         capacity: number;
                         keys: Float64Array;
                         values: Float64Array;
                         nexts: Int32Array;
                         hashs: Int32Array;
-                        constructor(p_listener: org.mwg.core.chunk.heap.HeapStateChunk);
+                        constructor(p_listener: org.mwg.core.chunk.heap.HeapContainer);
                         private key(i);
                         private setKey(i, newValue);
                         private value(i);
@@ -1024,7 +1021,7 @@ declare module org {
                         private hash(i);
                         private setHash(i, newValue);
                         reallocate(newCapacity: number): void;
-                        cloneFor(newParent: org.mwg.core.chunk.heap.HeapStateChunk): org.mwg.core.chunk.heap.HeapLongLongArrayMap;
+                        cloneFor(newParent: org.mwg.core.chunk.heap.HeapContainer): org.mwg.core.chunk.heap.HeapLongLongArrayMap;
                         get(requestKey: number): Float64Array;
                         contains(requestKey: number, requestValue: number): boolean;
                         each(callback: org.mwg.struct.LongLongArrayMapCallBack): void;
@@ -1042,7 +1039,7 @@ declare module org {
                         private values;
                         private nexts;
                         private hashs;
-                        constructor(p_listener: org.mwg.core.chunk.heap.HeapStateChunk);
+                        constructor(p_listener: org.mwg.core.chunk.heap.HeapContainer);
                         private key(i);
                         private setKey(i, newValue);
                         private value(i);
@@ -1052,7 +1049,7 @@ declare module org {
                         private hash(i);
                         private setHash(i, newValue);
                         reallocate(newCapacity: number): void;
-                        cloneFor(newParent: org.mwg.core.chunk.heap.HeapStateChunk): org.mwg.core.chunk.heap.HeapLongLongMap;
+                        cloneFor(newParent: org.mwg.core.chunk.heap.HeapContainer): org.mwg.core.chunk.heap.HeapLongLongMap;
                         get(requestKey: number): number;
                         each(callback: org.mwg.struct.LongLongMapCallBack): void;
                         unsafe_each(callback: org.mwg.struct.LongLongMapCallBack): void;
@@ -1066,7 +1063,7 @@ declare module org {
                         private _size;
                         private parent;
                         private aligned;
-                        constructor(p_listener: org.mwg.core.chunk.heap.HeapStateChunk, origin: org.mwg.core.chunk.heap.HeapRelation);
+                        constructor(p_parent: org.mwg.core.chunk.heap.HeapContainer, origin: org.mwg.core.chunk.heap.HeapRelation);
                         allocate(_capacity: number): void;
                         all(): Float64Array;
                         size(): number;
@@ -1084,7 +1081,8 @@ declare module org {
                         load(buffer: org.mwg.struct.Buffer, offset: number, max: number): number;
                     }
                     class HeapRelationIndexed extends org.mwg.core.chunk.heap.HeapLongLongArrayMap implements org.mwg.struct.RelationIndexed {
-                        constructor(p_listener: org.mwg.core.chunk.heap.HeapStateChunk);
+                        private _graph;
+                        constructor(p_listener: org.mwg.core.chunk.heap.HeapContainer, graph: org.mwg.Graph);
                         add(node: org.mwg.Node, ...attributeNames: string[]): org.mwg.struct.RelationIndexed;
                         remove(node: org.mwg.Node, ...attributeNames: string[]): org.mwg.struct.RelationIndexed;
                         private internal_add_remove(isIndex, node, ...attributeNames);
@@ -1092,9 +1090,9 @@ declare module org {
                         find(callback: org.mwg.Callback<org.mwg.Node[]>, world: number, time: number, ...params: string[]): void;
                         findByQuery(query: org.mwg.Query, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                         all(): Float64Array;
-                        cloneIRelFor(newParent: org.mwg.core.chunk.heap.HeapStateChunk): org.mwg.core.chunk.heap.HeapRelationIndexed;
+                        cloneIRelFor(newParent: org.mwg.core.chunk.heap.HeapContainer, graph: org.mwg.Graph): org.mwg.core.chunk.heap.HeapRelationIndexed;
                     }
-                    class HeapStateChunk implements org.mwg.chunk.StateChunk {
+                    class HeapStateChunk implements org.mwg.chunk.StateChunk, org.mwg.core.chunk.heap.HeapContainer {
                         private _index;
                         private _space;
                         private _capacity;
@@ -1149,7 +1147,7 @@ declare module org {
                         private values;
                         private nexts;
                         private hashs;
-                        constructor(p_listener: org.mwg.core.chunk.heap.HeapStateChunk);
+                        constructor(p_parent: org.mwg.core.chunk.heap.HeapContainer);
                         private key(i);
                         private setKey(i, newValue);
                         private keyH(i);
@@ -1161,7 +1159,7 @@ declare module org {
                         private hash(i);
                         private setHash(i, newValue);
                         reallocate(newCapacity: number): void;
-                        cloneFor(newParent: org.mwg.core.chunk.heap.HeapStateChunk): org.mwg.core.chunk.heap.HeapStringLongMap;
+                        cloneFor(newContainer: org.mwg.core.chunk.heap.HeapContainer): org.mwg.core.chunk.heap.HeapStringLongMap;
                         getValue(requestString: string): number;
                         getByHash(keyHash: number): string;
                         containsHash(keyHash: number): boolean;
@@ -2273,6 +2271,7 @@ declare module org {
                 drop(eNode: org.mwg.struct.ENode): org.mwg.struct.EGraph;
                 size(): number;
                 free(): void;
+                graph(): org.mwg.Graph;
             }
             interface ENode {
                 set(name: string, type: number, value: any): org.mwg.struct.ENode;

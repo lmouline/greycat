@@ -580,7 +580,7 @@ var java;
         var LinkedList = (function (_super) {
             __extends(LinkedList, _super);
             function LinkedList() {
-                return _super.apply(this, arguments) || this;
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             return LinkedList;
         }(AbstractList));
@@ -588,7 +588,7 @@ var java;
         var ArrayList = (function (_super) {
             __extends(ArrayList, _super);
             function ArrayList() {
-                return _super.apply(this, arguments) || this;
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             return ArrayList;
         }(AbstractList));
@@ -665,7 +665,7 @@ var java;
         var ConcurrentHashMap = (function (_super) {
             __extends(ConcurrentHashMap, _super);
             function ConcurrentHashMap() {
-                return _super.apply(this, arguments) || this;
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             return ConcurrentHashMap;
         }(HashMap));
@@ -2173,7 +2173,7 @@ var org;
             var CoreConstants = (function (_super) {
                 __extends(CoreConstants, _super);
                 function CoreConstants() {
-                    return _super.apply(this, arguments) || this;
+                    return _super !== null && _super.apply(this, arguments) || this;
                 }
                 CoreConstants.fillBooleanArray = function (target, elem) {
                     for (var i = 0; i < target.length; i++) {
