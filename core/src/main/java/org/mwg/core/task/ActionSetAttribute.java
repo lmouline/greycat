@@ -11,13 +11,13 @@ import org.mwg.task.TaskResult;
 class ActionSetAttribute implements Action {
 
     private final String _name;
-    private final String _variableNameToSet;
+    private final String _value;
     private final byte _propertyType;
     private final boolean _force;
 
-    ActionSetAttribute(final String name, final byte propertyType, final String variableNameToSet, final boolean force) {
+    ActionSetAttribute(final String name, final byte propertyType, final String value, final boolean force) {
         this._name = name;
-        this._variableNameToSet = variableNameToSet;
+        this._value = value;
         this._propertyType = propertyType;
         this._force = force;
     }
@@ -28,27 +28,39 @@ class ActionSetAttribute implements Action {
         final String flatRelationName = ctx.template(_name);
         if (previousResult != null) {
             Object toSet;
-            Object templateBased = ctx.template(this._variableNameToSet);
+            String valueAfterTemplate = ctx.template(this._value);
             switch (_propertyType) {
                 case Type.BOOL:
-                    toSet = parseBoolean(templateBased.toString());
+                    toSet = parseBoolean(valueAfterTemplate);
                     break;
                 case Type.INT:
-                    toSet = TaskHelper.parseInt(templateBased.toString());
+                    toSet = TaskHelper.parseInt(valueAfterTemplate);
                     break;
                 case Type.DOUBLE:
-                    toSet = Double.parseDouble(templateBased.toString());
+                    toSet = Double.parseDouble(valueAfterTemplate);
                     break;
                 case Type.LONG:
-                    toSet = Long.parseLong(templateBased.toString());
+                    toSet = Long.parseLong(valueAfterTemplate);
                     break;
+                case Type.DOUBLE_ARRAY:
+                case Type.LONG_ARRAY:
+                case Type.INT_ARRAY: {
+                    try {
+                        toSet = loadArray(valueAfterTemplate, _propertyType);
+                    } catch (NumberFormatException e) {
+                        toSet = null;
+                        ctx.endTask(null, new Exception("Error while parsing array from string:\"" + valueAfterTemplate + "\"\n" + e.toString()));
+                    }
+                }
+                break;
                 default:
-                    toSet = templateBased;
+                    toSet = valueAfterTemplate;
             }
             for (int i = 0; i < previousResult.size(); i++) {
                 Object loopObj = previousResult.get(i);
                 if (loopObj instanceof BaseNode) {
                     Node loopNode = (Node) loopObj;
+
                     if (_force) {
                         loopNode.forceSet(flatRelationName, _propertyType, toSet);
                     } else {
@@ -58,6 +70,43 @@ class ActionSetAttribute implements Action {
             }
         }
         ctx.continueTask();
+    }
+
+    private Object loadArray(String valueAfterTemplate, byte type) throws NumberFormatException {
+        String arrayInString = valueAfterTemplate;
+        if (arrayInString.charAt(0) == '[') {
+            arrayInString = arrayInString.substring(1);
+        }
+        if (arrayInString.charAt(arrayInString.length() - 1) == ']') {
+            arrayInString = arrayInString.substring(0, arrayInString.length() - 1);
+        }
+        String[] valuesToParse = arrayInString.split(",");
+
+        switch (type) {
+            case Type.DOUBLE_ARRAY: {
+                double[] finalValues = new double[valuesToParse.length];
+                for (int i = 0; i < valuesToParse.length; i++) {
+                    finalValues[i] = Double.parseDouble(valuesToParse[i]);
+                }
+                return finalValues;
+            }
+            case Type.LONG_ARRAY: {
+                long[] finalValues = new long[valuesToParse.length];
+                for (int i = 0; i < valuesToParse.length; i++) {
+                    finalValues[i] = Long.parseLong(valuesToParse[i]);
+                }
+                return finalValues;
+            }
+            case Type.INT_ARRAY: {
+                int[] finalValues = new int[valuesToParse.length];
+                for (int i = 0; i < valuesToParse.length; i++) {
+                    finalValues[i] = Integer.parseInt(valuesToParse[i]);
+                }
+                return finalValues;
+            }
+        }
+        return null;
+
     }
 
     private boolean parseBoolean(String booleanValue) {
@@ -73,11 +122,11 @@ class ActionSetAttribute implements Action {
             builder.append(ActionNames.SET_ATTRIBUTE);
         }
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_name, builder,true);
+        TaskHelper.serializeString(_name, builder, true);
         builder.append(Constants.TASK_PARAM_SEP);
         TaskHelper.serializeType(_propertyType, builder);
         builder.append(Constants.TASK_PARAM_SEP);
-        TaskHelper.serializeString(_variableNameToSet, builder,true);
+        TaskHelper.serializeString(_value, builder, true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 
@@ -90,3 +139,4 @@ class ActionSetAttribute implements Action {
 
 
 }
+
