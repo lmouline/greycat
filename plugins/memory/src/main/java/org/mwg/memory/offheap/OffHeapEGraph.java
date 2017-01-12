@@ -164,10 +164,11 @@ public class OffHeapEGraph implements EGraph {
     @Override
     public void free() {
         // free all nodes
-        long nodesCapacity = OffHeapLongArray.get(addr, NODES_CAPACITY);
-        for (long i = 0; i < nodesCapacity; i++) {
-
+        long nodesIndex = OffHeapLongArray.get(addr, NODES_INDEX);
+        for (long i = 0; i < nodesIndex; i++) {
+            OffHeapENode.free(nodeAddrAt(addr, i));
         }
+        OffHeapLongArray.free(addr);
     }
 
     @Override
@@ -230,7 +231,8 @@ public class OffHeapEGraph implements EGraph {
         if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
             return OffHeapConstants.OFFHEAP_NULL_PTR;
         }
+        long capacity = OffHeapLongArray.get(addr, NODES_CAPACITY);
 
-        return 0;
+        return OffHeapLongArray.cloneArray(addr, NODES + capacity);
     }
 }
