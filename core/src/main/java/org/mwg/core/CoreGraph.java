@@ -25,9 +25,7 @@ public class CoreGraph implements org.mwg.Graph {
     private final Scheduler _scheduler;
     private final Resolver _resolver;
 
-    private final java.util.Map<Long, NodeFactory> _nodeTypes;
-    private final java.util.Map<Long, ExternalAttributeFactory> _externalAttributes;
-
+    private final java.util.Map<Integer, NodeFactory> _nodeTypes;
     private final java.util.Map<String, TaskActionFactory> _taskActions;
     private final AtomicBoolean _isConnected;
     private final AtomicBoolean _lock;
@@ -85,27 +83,21 @@ public class CoreGraph implements org.mwg.Graph {
         _scheduler = p_scheduler;
         //Third round, initialize all taskActions and nodeTypes
         _taskActions = new HashMap<String, TaskActionFactory>();
-        _externalAttributes = new HashMap<Long, ExternalAttributeFactory>();
         CoreTask.fillDefault(this._taskActions);
-        this._nodeTypes = new HashMap<Long, NodeFactory>();
+        this._nodeTypes = new HashMap<Integer, NodeFactory>();
         if (p_plugins != null) {
             for (int i = 0; i < p_plugins.length; i++) {
                 final Plugin loopPlugin = p_plugins[i];
                 final String[] plugin_names = loopPlugin.nodeTypes();
                 for (int j = 0; j < plugin_names.length; j++) {
                     final String plugin_name = plugin_names[j];
-                    this._nodeTypes.put(_resolver.stringToHash(plugin_name, false), loopPlugin.nodeType(plugin_name));
+                    final int hashPlugin = _resolver.stringToHash(plugin_name, false);
+                    this._nodeTypes.put(hashPlugin, loopPlugin.nodeType(plugin_name));
                 }
                 final String[] task_names = loopPlugin.taskActionTypes();
                 for (int j = 0; j < task_names.length; j++) {
                     final String task_name = task_names[j];
                     _taskActions.put(task_name, loopPlugin.taskActionType(task_name));
-                }
-
-                final String[] external_attribute_names = loopPlugin.externalAttributes();
-                for (int j = 0; j < external_attribute_names.length; j++) {
-                    final String ext_name = external_attribute_names[j];
-                    _externalAttributes.put(_resolver.stringToHash(ext_name, false), loopPlugin.externalAttribute(ext_name));
                 }
             }
         }
@@ -147,7 +139,7 @@ public class CoreGraph implements org.mwg.Graph {
         if (!_isConnected.get()) {
             throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
         }
-        final long extraCode = _resolver.stringToHash(nodeType, false);
+        final int extraCode = _resolver.stringToHash(nodeType, false);
         final NodeFactory resolvedFactory = factoryByCode(extraCode);
         BaseNode newNode;
         if (resolvedFactory == null) {
@@ -181,7 +173,7 @@ public class CoreGraph implements org.mwg.Graph {
             this._space.mark(casted._index_worldOrder);
             //Create the cloned node
             final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.get(casted._index_worldOrder);
-            final NodeFactory resolvedFactory = factoryByCode(worldOrderChunk.extra());
+            final NodeFactory resolvedFactory = factoryByCode((int)worldOrderChunk.extra());
             BaseNode newNode;
             if (resolvedFactory == null) {
                 newNode = new BaseNode(origin.world(), origin.time(), origin.id(), this);
@@ -201,8 +193,8 @@ public class CoreGraph implements org.mwg.Graph {
         }
     }
 
-    public NodeFactory factoryByCode(long code) {
-        if (_nodeTypes != null && code != Constants.NULL_LONG) {
+    public NodeFactory factoryByCode(int code) {
+        if (_nodeTypes != null && code != -1) {
             return _nodeTypes.get(code);
         } else {
             return null;
@@ -216,11 +208,6 @@ public class CoreGraph implements org.mwg.Graph {
         } else {
             return null;
         }
-    }
-
-    @Override
-    public ExternalAttributeFactory externalAttribute(String name) {
-        return _externalAttributes.get(_resolver.stringToHash(name, false));
     }
 
     @Override
@@ -458,7 +445,7 @@ public class CoreGraph implements org.mwg.Graph {
         this._resolver.lookup(world, time, CoreConstants.END_OF_TIME, new Callback<org.mwg.Node>() {
             @Override
             public void on(org.mwg.Node globalIndexNodeUnsafe) {
-                if(ifExists && globalIndexNodeUnsafe == null){
+                if (ifExists && globalIndexNodeUnsafe == null) {
                     callback.on(null);
                 } else {
                     LongLongMap globalIndexContent;
@@ -509,7 +496,7 @@ public class CoreGraph implements org.mwg.Graph {
                         globalIndexContent.each(new LongLongMapCallBack() {
                             @Override
                             public void on(long key, long value) {
-                                result[resultIndex[0]] = selfPointer._resolver.hashToString(key);
+                                result[resultIndex[0]] = selfPointer._resolver.hashToString((int) key);
                                 resultIndex[0]++;
                             }
                         });

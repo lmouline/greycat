@@ -87,7 +87,6 @@ class HeapStringLongMap implements StringLongMap {
                 System.arraycopy(values, 0, new_values, 0, capacity);
             }
             values = new_values;
-
             int[] new_nexts = new int[newCapacity];
             int[] new_hashes = new int[newCapacity * 2];
             Arrays.fill(new_nexts, 0, newCapacity, -1);
@@ -201,15 +200,15 @@ class HeapStringLongMap implements StringLongMap {
         }
     }
 
-    void unsafe_each(StringLongMapCallBack callback) {
+    final void unsafe_each(StringLongMapCallBack callback) {
         for (int i = 0; i < mapSize; i++) {
             callback.on(key(i), value(i));
         }
     }
 
     @Override
-    public long size() {
-        long result;
+    public final int size() {
+        int result;
         synchronized (parent) {
             result = mapSize;
         }
@@ -340,7 +339,7 @@ class HeapStringLongMap implements StringLongMap {
         while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
-                    reallocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    reallocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                     isFirst = false;
                 } else {
                     if (previousKey == null) {
@@ -358,7 +357,7 @@ class HeapStringLongMap implements StringLongMap {
             }
         }
         if (isFirst) {
-            reallocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+            reallocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
         } else {
             if (previousKey != null) {
                 put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor));

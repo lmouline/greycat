@@ -50,7 +50,7 @@ public interface Resolver {
      * @param node The node to extract the type from
      * @return long encoded type
      */
-    long typeCode(Node node);
+    int typeCode(Node node);
 
     /**
      * Creates and schedules a lookup task.
@@ -106,13 +106,13 @@ public interface Resolver {
     void resolveTimepoints(Node node, long beginningOfSearch, long endOfSearch, Callback<long[]> callback);
 
     /**
-     * Maps a String to a unique long. Can be reversed using {@link #hashToString(long)}.
+     * Maps a String to a unique long. Can be reversed using {@link #hashToString(int)}.
      *
      * @param name              The string value to be mapped.
      * @param insertIfNotExists indicate if the string has to be inserted if not existing in the global dictionary
      * @return The unique long identifier for the string.
      */
-    long stringToHash(String name, boolean insertIfNotExists);
+    int stringToHash(String name, boolean insertIfNotExists);
 
     /**
      * Returns the String associated to a hash.
@@ -120,6 +120,6 @@ public interface Resolver {
      * @param key The long key.
      * @return The string value associated to the long key.
      */
-    String hashToString(long key);
+    String hashToString(int key);
 
 }

@@ -26,7 +26,7 @@ public interface NodeState {
      * @param elemType type of the element (based on Type definition)
      * @param elem     element to be set
      */
-    void set(long index, byte elemType, Object elem);
+    void set(int index, byte elemType, Object elem);
 
     /**
      * Set the named state element
@@ -43,7 +43,7 @@ public interface NodeState {
      * @param index unique key of element
      * @return stored element
      */
-    Object get(long index);
+    Object get(int index);
 
     /**
      * Get the named state element
@@ -71,7 +71,7 @@ public interface NodeState {
      * @param <A>          The type of the value
      * @return stored element
      */
-    <A> A getWithDefault(long key, A defaultValue);
+    <A> A getWithDefault(int key, A defaultValue);
 
     /**
      * Atomically get or create an element according to the elemType parameter.
@@ -81,16 +81,7 @@ public interface NodeState {
      * @param elemType type of the element (according to Type definition)
      * @return new or previously stored element
      */
-    Object getOrCreate(long index, byte elemType);
-
-    /**
-     * Atomically get or create an external element according to the externalTypeName parameter.
-     *
-     * @param index            unique key of element
-     * @param externalTypeName type of the element (according to Type definition)
-     * @return new or previously stored element
-     */
-    Object getOrCreateExternal(long index, String externalTypeName);
+    Object getOrCreate(int index, byte elemType);
 
     /**
      * Atomically get or create an element according to the elemType parameter.
@@ -108,7 +99,7 @@ public interface NodeState {
      * @param index unique key of element
      * @return type currently stored, encoded as a int according the Type defintion
      */
-    byte getType(long index);
+    byte getType(int index);
 
     /**
      * Get the type of the stored element, -1 if not found
@@ -125,6 +116,5 @@ public interface NodeState {
      * @param callBack the method to be called for each state.
      */
     void each(NodeStateCallback callBack);
-
 
 }

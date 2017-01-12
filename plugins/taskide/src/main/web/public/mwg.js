@@ -1389,8 +1389,6 @@ var org;
                         return "ENODE";
                     case org.mwg.Type.ERELATION:
                         return "ERELATION";
-                    case org.mwg.Type.EXTERNAL:
-                        return "EXTERNAL";
                     default:
                         return "unknown";
                 }
@@ -1427,8 +1425,6 @@ var org;
                         return org.mwg.Type.DMATRIX;
                     case "LMATRIX":
                         return org.mwg.Type.LMATRIX;
-                    case "EXTERNAL":
-                        return org.mwg.Type.EXTERNAL;
                     case "EGRAPH":
                         return org.mwg.Type.EGRAPH;
                     case "ENODE":
@@ -1459,16 +1455,9 @@ var org;
         Type.EGRAPH = 17;
         Type.ENODE = 18;
         Type.ERELATION = 19;
-        Type.EXTERNAL = 20;
         mwg.Type = Type;
         var base;
         (function (base) {
-            var BaseExternalAttribute = (function () {
-                function BaseExternalAttribute() {
-                }
-                return BaseExternalAttribute;
-            }());
-            base.BaseExternalAttribute = BaseExternalAttribute;
             var BaseHook = (function () {
                 function BaseHook() {
                 }
@@ -1647,12 +1636,7 @@ var org;
                     }
                     var preciseState = this._resolver.alignState(this);
                     if (preciseState != null) {
-                        if (type == org.mwg.Type.EXTERNAL) {
-                            return preciseState.getOrCreateExternal(index, params[0]);
-                        }
-                        else {
-                            return preciseState.getOrCreate(index, type);
-                        }
+                        return preciseState.getOrCreate(index, type);
                     }
                     else {
                         throw new Error(org.mwg.Constants.CACHE_MISS_ERROR);
@@ -2047,7 +2031,6 @@ var org;
                 function BasePlugin() {
                     this._nodeTypes = new java.util.HashMap();
                     this._taskActions = new java.util.HashMap();
-                    this._externalAttributes = new java.util.HashMap();
                     this._taskHooks = new Array(0);
                 }
                 BasePlugin.prototype.declareNodeType = function (name, factory) {
@@ -2056,10 +2039,6 @@ var org;
                 };
                 BasePlugin.prototype.declareTaskAction = function (name, factory) {
                     this._taskActions.put(name, factory);
-                    return this;
-                };
-                BasePlugin.prototype.declareExternalAttribute = function (name, factory) {
-                    this._externalAttributes.put(name, factory);
                     return this;
                 };
                 BasePlugin.prototype.declareMemoryFactory = function (factory) {
@@ -2091,12 +2070,6 @@ var org;
                 };
                 BasePlugin.prototype.taskActionType = function (taskTypeName) {
                     return this._taskActions.get(taskTypeName);
-                };
-                BasePlugin.prototype.externalAttributes = function () {
-                    return this._externalAttributes.keySet().toArray(new Array(this._externalAttributes.size()));
-                };
-                BasePlugin.prototype.externalAttribute = function (externalAttribute) {
-                    return this._externalAttributes.get(externalAttribute);
                 };
                 BasePlugin.prototype.memoryFactory = function () {
                     return this._memoryFactory;
@@ -2244,7 +2217,6 @@ var org;
                     this._resolver = resolverFactory.newResolver(this._storage, this._space);
                     this._scheduler = p_scheduler;
                     this._taskActions = new java.util.HashMap();
-                    this._externalAttributes = new java.util.HashMap();
                     org.mwg.core.task.CoreTask.fillDefault(this._taskActions);
                     this._nodeTypes = new java.util.HashMap();
                     if (p_plugins != null) {
@@ -2253,17 +2225,13 @@ var org;
                             var plugin_names = loopPlugin.nodeTypes();
                             for (var j = 0; j < plugin_names.length; j++) {
                                 var plugin_name = plugin_names[j];
-                                this._nodeTypes.put(this._resolver.stringToHash(plugin_name, false), loopPlugin.nodeType(plugin_name));
+                                var hashPlugin = this._resolver.stringToHash(plugin_name, false);
+                                this._nodeTypes.put(hashPlugin, loopPlugin.nodeType(plugin_name));
                             }
                             var task_names = loopPlugin.taskActionTypes();
                             for (var j = 0; j < task_names.length; j++) {
                                 var task_name = task_names[j];
                                 this._taskActions.put(task_name, loopPlugin.taskActionType(task_name));
-                            }
-                            var external_attribute_names = loopPlugin.externalAttributes();
-                            for (var j = 0; j < external_attribute_names.length; j++) {
-                                var ext_name = external_attribute_names[j];
-                                this._externalAttributes.put(this._resolver.stringToHash(ext_name, false), loopPlugin.externalAttribute(ext_name));
                             }
                         }
                     }
@@ -2348,7 +2316,7 @@ var org;
                     }
                 };
                 CoreGraph.prototype.factoryByCode = function (code) {
-                    if (this._nodeTypes != null && code != org.mwg.Constants.NULL_LONG) {
+                    if (this._nodeTypes != null && code != -1) {
                         return this._nodeTypes.get(code);
                     }
                     else {
@@ -2362,9 +2330,6 @@ var org;
                     else {
                         return null;
                     }
-                };
-                CoreGraph.prototype.externalAttribute = function (name) {
-                    return this._externalAttributes.get(this._resolver.stringToHash(name, false));
                 };
                 CoreGraph.prototype.taskHooks = function () {
                     return this._taskHooks;
@@ -2721,7 +2686,7 @@ var org;
             var CoreQuery = (function () {
                 function CoreQuery(graph, p_resolver) {
                     this.capacity = 1;
-                    this._attributes = new Float64Array(this.capacity);
+                    this._attributes = new Int32Array(this.capacity);
                     this._values = new Array(this.capacity);
                     this.size = 0;
                     this._world = org.mwg.Constants.NULL_LONG;
@@ -2763,7 +2728,7 @@ var org;
                 CoreQuery.prototype.internal_add = function (att, val) {
                     if (this.size == this.capacity) {
                         var temp_capacity = this.capacity * 2;
-                        var temp_attributes = new Float64Array(temp_capacity);
+                        var temp_attributes = new Int32Array(temp_capacity);
                         var temp_values = new Array(temp_capacity);
                         java.lang.System.arraycopy(this._attributes, 0, temp_attributes, 0, this.capacity);
                         java.lang.System.arraycopy(this._values, 0, temp_values, 0, this.capacity);
@@ -2819,7 +2784,7 @@ var org;
                     var casted = node;
                     var worldOrderChunk = this._space.get(casted._index_worldOrder);
                     if (worldOrderChunk == null) {
-                        return org.mwg.Constants.NULL_LONG;
+                        return -1;
                     }
                     return worldOrderChunk.extra();
                 };
@@ -2912,7 +2877,7 @@ var org;
                                                                     var castedNodeWorldOrder = theNodeWorldOrder;
                                                                     var extraCode = castedNodeWorldOrder.extra();
                                                                     var resolvedFactory = null;
-                                                                    if (extraCode != org.mwg.Constants.NULL_LONG) {
+                                                                    if (extraCode != -1) {
                                                                         resolvedFactory = selfPointer._graph.factoryByCode(extraCode);
                                                                     }
                                                                     var resolvedNode = void 0;
@@ -3064,7 +3029,7 @@ var org;
                                                                                             var castedNodeWorldOrder = theNodeWorldOrders[i];
                                                                                             var extraCode = castedNodeWorldOrder.extra();
                                                                                             var resolvedFactory = null;
-                                                                                            if (extraCode != org.mwg.Constants.NULL_LONG) {
+                                                                                            if (extraCode != -1) {
                                                                                                 resolvedFactory = selfPointer._graph.factoryByCode(extraCode);
                                                                                             }
                                                                                             var resolvedNode = void 0;
@@ -3263,7 +3228,7 @@ var org;
                                                                                             var castedNodeWorldOrder = theNodeWorldOrders[i];
                                                                                             var extraCode = castedNodeWorldOrder.extra();
                                                                                             var resolvedFactory = null;
-                                                                                            if (extraCode != org.mwg.Constants.NULL_LONG) {
+                                                                                            if (extraCode != -1) {
                                                                                                 resolvedFactory = selfPointer._graph.factoryByCode(extraCode);
                                                                                             }
                                                                                             var resolvedNode = void 0;
@@ -4515,7 +4480,7 @@ var org;
                             while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                 if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                     if (isFirst) {
-                                        this.unsafe_init(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                        this.unsafe_init(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                         isFirst = false;
                                     }
                                     else {
@@ -4530,7 +4495,7 @@ var org;
                                 }
                             }
                             if (isFirst) {
-                                this.unsafe_init(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                this.unsafe_init(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                             }
                             else {
                                 this.unsafe_set(elemIndex, org.mwg.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor));
@@ -4705,7 +4670,7 @@ var org;
                                 this._capacity = origin._capacity;
                                 this._size = origin._size;
                                 if (origin._k != null) {
-                                    var cloned_k = new Float64Array(this._capacity);
+                                    var cloned_k = new Int32Array(this._capacity);
                                     java.lang.System.arraycopy(origin._k, 0, cloned_k, 0, this._capacity);
                                     this._k = cloned_k;
                                 }
@@ -4763,11 +4728,6 @@ var org;
                                                     this._v[i] = new org.mwg.core.chunk.heap.HeapLMatrix(this, origin._v[i]);
                                                 }
                                                 break;
-                                            case org.mwg.Type.EXTERNAL:
-                                                if (origin._v[i] != null) {
-                                                    this._v[i] = origin._v[i].copy();
-                                                }
-                                                break;
                                             default:
                                                 this._v[i] = origin._v[i];
                                                 break;
@@ -4814,7 +4774,7 @@ var org;
                             if (newCapacity <= this._capacity) {
                                 return;
                             }
-                            var ex_k = new Float64Array(newCapacity);
+                            var ex_k = new Int32Array(newCapacity);
                             if (this._k != null) {
                                 java.lang.System.arraycopy(this._k, 0, ex_k, 0, this._capacity);
                             }
@@ -4907,9 +4867,6 @@ var org;
                                         case org.mwg.Type.ENODE:
                                             param_elem = p_unsafe_elem;
                                             break;
-                                        case org.mwg.Type.EXTERNAL:
-                                            param_elem = p_unsafe_elem;
-                                            break;
                                         case org.mwg.Type.DOUBLE_ARRAY:
                                             var castedParamDouble = p_unsafe_elem;
                                             var clonedDoubleArray = new Float64Array(castedParamDouble.length);
@@ -4961,7 +4918,7 @@ var org;
                                     return;
                                 }
                                 this._capacity = org.mwg.Constants.MAP_INITIAL_CAPACITY;
-                                this._k = new Float64Array(this._capacity);
+                                this._k = new Int32Array(this._capacity);
                                 this._v = new Array(this._capacity);
                                 this._type = new Int8Array(this._capacity);
                                 this._next = new Int32Array(this._capacity);
@@ -5053,7 +5010,7 @@ var org;
                                 return;
                             }
                             var newCapacity = this._capacity * 2;
-                            var ex_k = new Float64Array(newCapacity);
+                            var ex_k = new Int32Array(newCapacity);
                             java.lang.System.arraycopy(this._k, 0, ex_k, 0, this._capacity);
                             this._k = ex_k;
                             var ex_v = new Array(newCapacity);
@@ -5390,7 +5347,7 @@ var org;
                                         buffer.write(org.mwg.core.CoreConstants.CHUNK_ESEP);
                                         org.mwg.utility.Base64.encodeIntToBuffer(this._type[i], buffer);
                                         buffer.write(org.mwg.core.CoreConstants.CHUNK_ESEP);
-                                        org.mwg.utility.Base64.encodeLongToBuffer(this._k[i], buffer);
+                                        org.mwg.utility.Base64.encodeIntToBuffer(this._k[i], buffer);
                                         buffer.write(org.mwg.core.CoreConstants.CHUNK_ESEP);
                                         switch (this._type[i]) {
                                             case org.mwg.Type.ENODE:
@@ -5430,16 +5387,6 @@ var org;
                                                 for (var j = 0; j < castedDoubleArr.length; j++) {
                                                     buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
                                                     org.mwg.utility.Base64.encodeDoubleToBuffer(castedDoubleArr[j], buffer);
-                                                }
-                                                break;
-                                            case org.mwg.Type.EXTERNAL:
-                                                var externalAttribute = loopValue;
-                                                var encodedName = this.egraph.graph().resolver().stringToHash(externalAttribute.name(), false);
-                                                org.mwg.utility.Base64.encodeLongToBuffer(encodedName, buffer);
-                                                buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
-                                                var saved = externalAttribute.save();
-                                                if (saved != null) {
-                                                    org.mwg.utility.Base64.encodeStringToBuffer(saved, buffer);
                                                 }
                                                 break;
                                             case org.mwg.Type.RELATION:
@@ -5490,7 +5437,7 @@ var org;
                                                 break;
                                             case org.mwg.Type.STRING_TO_LONG_MAP:
                                                 var castedStringLongMap = loopValue;
-                                                org.mwg.utility.Base64.encodeLongToBuffer(castedStringLongMap.size(), buffer);
+                                                org.mwg.utility.Base64.encodeIntToBuffer(castedStringLongMap.size(), buffer);
                                                 castedStringLongMap.unsafe_each(function (key, value) {
                                                     {
                                                         buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
@@ -5502,7 +5449,7 @@ var org;
                                                 break;
                                             case org.mwg.Type.LONG_TO_LONG_MAP:
                                                 var castedLongLongMap = loopValue;
-                                                org.mwg.utility.Base64.encodeLongToBuffer(castedLongLongMap.size(), buffer);
+                                                org.mwg.utility.Base64.encodeIntToBuffer(castedLongLongMap.size(), buffer);
                                                 castedLongLongMap.unsafe_each(function (key, value) {
                                                     {
                                                         buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
@@ -5515,7 +5462,7 @@ var org;
                                             case org.mwg.Type.RELATION_INDEXED:
                                             case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
                                                 var castedLongLongArrayMap = loopValue;
-                                                org.mwg.utility.Base64.encodeLongToBuffer(castedLongLongArrayMap.size(), buffer);
+                                                org.mwg.utility.Base64.encodeIntToBuffer(castedLongLongArrayMap.size(), buffer);
                                                 castedLongLongArrayMap.unsafe_each(function (key, value) {
                                                     {
                                                         buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
@@ -5561,7 +5508,7 @@ var org;
                                             previous = cursor;
                                             break;
                                         case HeapENode.LOAD_WAITING_KEY:
-                                            read_key = org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                            read_key = org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
                                             switch (read_type) {
                                                 case org.mwg.Type.BOOL:
                                                 case org.mwg.Type.INT:
@@ -6480,7 +6427,7 @@ var org;
                             while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                 if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                     if (isFirst) {
-                                        this.unsafe_init(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                        this.unsafe_init(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                         isFirst = false;
                                     }
                                     else {
@@ -6495,7 +6442,7 @@ var org;
                                 }
                             }
                             if (isFirst) {
-                                this.unsafe_init(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                this.unsafe_init(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                             }
                             else {
                                 this.unsafe_set(elemIndex, org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -6778,7 +6725,7 @@ var org;
                             while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                 if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                     if (isFirst) {
-                                        this.reallocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                        this.reallocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                         isFirst = false;
                                     }
                                     else {
@@ -6799,7 +6746,7 @@ var org;
                                 }
                             }
                             if (isFirst) {
-                                this.reallocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                this.reallocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                             }
                             else {
                                 if (waitingVal) {
@@ -7049,7 +6996,7 @@ var org;
                             while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                 if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                     if (isFirst) {
-                                        this.reallocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                        this.reallocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                         isFirst = false;
                                     }
                                     else {
@@ -7070,7 +7017,7 @@ var org;
                                 }
                             }
                             if (isFirst) {
-                                this.reallocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                this.reallocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                             }
                             else {
                                 if (waitingVal) {
@@ -7291,7 +7238,7 @@ var org;
                             while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                 if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                     if (isFirst) {
-                                        this.allocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                        this.allocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                         isFirst = false;
                                     }
                                     else {
@@ -7305,7 +7252,7 @@ var org;
                                 }
                             }
                             if (isFirst) {
-                                this.allocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                this.allocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                             }
                             else {
                                 this.add(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -7723,27 +7670,6 @@ var org;
                             this.internal_set(p_key, p_type, toSet, true, false);
                             return toSet;
                         };
-                        HeapStateChunk.prototype.getOrCreateExternal = function (p_key, externalTypeName) {
-                            var _this = this;
-                            var found = this.internal_find(p_key);
-                            if (found != -1) {
-                                if (this._type[found] == org.mwg.Type.EXTERNAL) {
-                                    return this._v[found];
-                                }
-                            }
-                            var toSet = null;
-                            var factory = this._space.graph().externalAttribute(externalTypeName);
-                            if (factory != null) {
-                                toSet = factory.create();
-                            }
-                            this.internal_set(p_key, org.mwg.Type.EXTERNAL, toSet, true, false);
-                            toSet.notifyDirty(function () {
-                                {
-                                    _this.declareDirty();
-                                }
-                            });
-                            return toSet;
-                        };
                         HeapStateChunk.prototype.getOrCreateFromKey = function (key, elemType) {
                             return this.getOrCreate(this._space.graph().resolver().stringToHash(key, true), elemType);
                         };
@@ -7761,7 +7687,7 @@ var org;
                                     buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
                                     org.mwg.utility.Base64.encodeIntToBuffer(this._type[i], buffer);
                                     buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
-                                    org.mwg.utility.Base64.encodeLongToBuffer(this._k[i], buffer);
+                                    org.mwg.utility.Base64.encodeIntToBuffer(this._k[i], buffer);
                                     buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
                                     switch (this._type[i]) {
                                         case org.mwg.Type.STRING:
@@ -7808,16 +7734,6 @@ var org;
                                                 org.mwg.utility.Base64.encodeIntToBuffer(castedIntArr[j], buffer);
                                             }
                                             break;
-                                        case org.mwg.Type.EXTERNAL:
-                                            var externalAttribute = loopValue;
-                                            var encodedName = this._space.graph().resolver().stringToHash(externalAttribute.name(), false);
-                                            org.mwg.utility.Base64.encodeLongToBuffer(encodedName, buffer);
-                                            buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
-                                            var saved = externalAttribute.save();
-                                            if (saved != null) {
-                                                org.mwg.utility.Base64.encodeStringToBuffer(saved, buffer);
-                                            }
-                                            break;
                                         case org.mwg.Type.RELATION:
                                             var castedLongArrRel = loopValue;
                                             org.mwg.utility.Base64.encodeIntToBuffer(castedLongArrRel.size(), buffer);
@@ -7850,7 +7766,7 @@ var org;
                                             break;
                                         case org.mwg.Type.STRING_TO_LONG_MAP:
                                             var castedStringLongMap = loopValue;
-                                            org.mwg.utility.Base64.encodeLongToBuffer(castedStringLongMap.size(), buffer);
+                                            org.mwg.utility.Base64.encodeIntToBuffer(castedStringLongMap.size(), buffer);
                                             castedStringLongMap.unsafe_each(function (key, value) {
                                                 {
                                                     buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
@@ -7862,7 +7778,7 @@ var org;
                                             break;
                                         case org.mwg.Type.LONG_TO_LONG_MAP:
                                             var castedLongLongMap = loopValue;
-                                            org.mwg.utility.Base64.encodeLongToBuffer(castedLongLongMap.size(), buffer);
+                                            org.mwg.utility.Base64.encodeIntToBuffer(castedLongLongMap.size(), buffer);
                                             castedLongLongMap.unsafe_each(function (key, value) {
                                                 {
                                                     buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
@@ -7875,7 +7791,7 @@ var org;
                                         case org.mwg.Type.RELATION_INDEXED:
                                         case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
                                             var castedLongLongArrayMap = loopValue;
-                                            org.mwg.utility.Base64.encodeLongToBuffer(castedLongLongArrayMap.size(), buffer);
+                                            org.mwg.utility.Base64.encodeIntToBuffer(castedLongLongArrayMap.size(), buffer);
                                             castedLongLongArrayMap.unsafe_each(function (key, value) {
                                                 {
                                                     buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
@@ -7919,7 +7835,7 @@ var org;
                             this._capacity = casted._capacity;
                             this._size = casted._size;
                             if (casted._k != null) {
-                                var cloned_k = new Float64Array(this._capacity);
+                                var cloned_k = new Int32Array(this._capacity);
                                 java.lang.System.arraycopy(casted._k, 0, cloned_k, 0, this._capacity);
                                 this._k = cloned_k;
                             }
@@ -7980,11 +7896,6 @@ var org;
                                         case org.mwg.Type.EGRAPH:
                                             if (casted._v[i] != null) {
                                                 this._v[i] = new org.mwg.core.chunk.heap.HeapEGraph(this, casted._v[i], this._space.graph());
-                                            }
-                                            break;
-                                        case org.mwg.Type.EXTERNAL:
-                                            if (casted._v[i] != null) {
-                                                this._v[i] = casted._v[i].copy();
                                             }
                                             break;
                                         default:
@@ -8086,9 +7997,6 @@ var org;
                                         case org.mwg.Type.RELATION:
                                             param_elem = p_unsafe_elem;
                                             break;
-                                        case org.mwg.Type.EXTERNAL:
-                                            param_elem = p_unsafe_elem;
-                                            break;
                                         case org.mwg.Type.DOUBLE_ARRAY:
                                             var castedParamDouble = p_unsafe_elem;
                                             var clonedDoubleArray = new Float64Array(castedParamDouble.length);
@@ -8143,7 +8051,7 @@ var org;
                                     return;
                                 }
                                 this._capacity = org.mwg.Constants.MAP_INITIAL_CAPACITY;
-                                this._k = new Float64Array(this._capacity);
+                                this._k = new Int32Array(this._capacity);
                                 this._v = new Array(this._capacity);
                                 this._type = new Int8Array(this._capacity);
                                 this._k[0] = p_key;
@@ -8244,7 +8152,7 @@ var org;
                                 return;
                             }
                             var newCapacity = this._capacity * 2;
-                            var ex_k = new Float64Array(newCapacity);
+                            var ex_k = new Int32Array(newCapacity);
                             java.lang.System.arraycopy(this._k, 0, ex_k, 0, this._capacity);
                             this._k = ex_k;
                             var ex_v = new Array(newCapacity);
@@ -8275,7 +8183,7 @@ var org;
                             if (newCapacity <= this._capacity) {
                                 return;
                             }
-                            var ex_k = new Float64Array(newCapacity);
+                            var ex_k = new Int32Array(newCapacity);
                             if (this._k != null) {
                                 java.lang.System.arraycopy(this._k, 0, ex_k, 0, this._capacity);
                             }
@@ -8327,7 +8235,7 @@ var org;
                                                 previous = cursor;
                                                 break;
                                             case HeapStateChunk.LOAD_WAITING_KEY:
-                                                read_key = org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                                read_key = org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
                                                 switch (read_type) {
                                                     case org.mwg.Type.BOOL:
                                                     case org.mwg.Type.INT:
@@ -8849,7 +8757,7 @@ var org;
                             while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                 if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                     if (isFirst) {
-                                        this.reallocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                        this.reallocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                         isFirst = false;
                                     }
                                     else {
@@ -8869,7 +8777,7 @@ var org;
                                 }
                             }
                             if (isFirst) {
-                                this.reallocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                this.reallocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                             }
                             else {
                                 if (previousKey != null) {
@@ -8912,7 +8820,7 @@ var org;
                             }
                         };
                         HeapTimeTreeChunk.prototype.save = function (buffer) {
-                            org.mwg.utility.Base64.encodeLongToBuffer(this._size, buffer);
+                            org.mwg.utility.Base64.encodeIntToBuffer(this._size, buffer);
                             for (var i = 0; i < this._size; i++) {
                                 buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
                                 org.mwg.utility.Base64.encodeLongToBuffer(this._k[i], buffer);
@@ -8924,7 +8832,7 @@ var org;
                         };
                         HeapTimeTreeChunk.prototype.saveDiff = function (buffer) {
                             if (this._dirty) {
-                                org.mwg.utility.Base64.encodeLongToBuffer(this._size, buffer);
+                                org.mwg.utility.Base64.encodeIntToBuffer(this._size, buffer);
                                 for (var i = 0; i < this._size; i++) {
                                     if (this._diff[i]) {
                                         buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
@@ -8959,7 +8867,7 @@ var org;
                                 var current = buffer.read(cursor);
                                 if (current == org.mwg.Constants.CHUNK_SEP) {
                                     if (isFirst) {
-                                        this.reallocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                        this.reallocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                         previous = cursor + 1;
                                         isFirst = false;
                                     }
@@ -9627,7 +9535,7 @@ var org;
                                             break;
                                         case org.mwg.Constants.CHUNK_VAL_SEP:
                                             if (!initDone) {
-                                                this.resize(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                                                this.resize(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
                                                 initDone = true;
                                             }
                                             else if (loopKey == org.mwg.core.CoreConstants.NULL_LONG) {
@@ -9671,7 +9579,7 @@ var org;
                                 org.mwg.utility.Base64.encodeLongToBuffer(this._extra, buffer);
                                 buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
                             }
-                            org.mwg.utility.Base64.encodeLongToBuffer(this._size, buffer);
+                            org.mwg.utility.Base64.encodeIntToBuffer(this._size, buffer);
                             for (var i = 0; i < this._size; i++) {
                                 buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
                                 org.mwg.utility.Base64.encodeLongToBuffer(this._kv[i * 2], buffer);
@@ -9686,7 +9594,7 @@ var org;
                                     org.mwg.utility.Base64.encodeLongToBuffer(this._extra, buffer);
                                     buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
                                 }
-                                org.mwg.utility.Base64.encodeLongToBuffer(this._size, buffer);
+                                org.mwg.utility.Base64.encodeIntToBuffer(this._size, buffer);
                                 for (var i = 0; i < this._size; i++) {
                                     if (this._diff[i]) {
                                         buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);

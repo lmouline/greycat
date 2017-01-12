@@ -13,7 +13,7 @@ public class CoreQuery implements Query {
     private final Resolver _resolver;
     private final Graph _graph;
     private int capacity = 1;
-    private long[] _attributes = new long[capacity];
+    private int[] _attributes = new int[capacity];
     private String[] _values = new String[capacity];
     private int size = 0;
     private Long _hash;
@@ -91,7 +91,7 @@ public class CoreQuery implements Query {
     }
 
     @Override
-    public long[] attributes() {
+    public int[] attributes() {
         return this._attributes;
     }
 
@@ -100,11 +100,11 @@ public class CoreQuery implements Query {
         return this._values;
     }
 
-    private void internal_add(long att, String val) {
+    private void internal_add(int att, String val) {
         if (size == capacity) {
             //init
             int temp_capacity = capacity * 2;
-            long[] temp_attributes = new long[temp_capacity];
+            int[] temp_attributes = new int[temp_capacity];
             String[] temp_values = new String[temp_capacity];
             //copy
             System.arraycopy(_attributes, 0, temp_attributes, 0, capacity);
@@ -125,7 +125,7 @@ public class CoreQuery implements Query {
         for (int i = (size - 1); i >= 0; i--) {
             for (int j = 1; j <= i; j++) {
                 if (_attributes[j - 1] > _attributes[j]) {
-                    long tempK = _attributes[j - 1];
+                    int tempK = _attributes[j - 1];
                     String tempV = _values[j - 1];
                     _attributes[j - 1] = _attributes[j];
                     _values[j - 1] = _values[j];

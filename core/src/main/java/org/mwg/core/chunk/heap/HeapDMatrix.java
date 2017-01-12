@@ -391,8 +391,8 @@ class HeapDMatrix implements DMatrix {
         return backend;
     }
 
-    final void unsafe_init(long size) {
-        backend = new double[(int) size];
+    final void unsafe_init(int size) {
+        backend = new double[size];
         backend[INDEX_ROWS] = 0;
         backend[INDEX_COLUMNS] = 0;
         aligned = true;
@@ -411,7 +411,7 @@ class HeapDMatrix implements DMatrix {
         while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
-                    unsafe_init(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    unsafe_init(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                     isFirst = false;
                 } else {
                     unsafe_set(elemIndex, Base64.decodeToDoubleWithBounds(buffer, previous, cursor));
@@ -425,7 +425,7 @@ class HeapDMatrix implements DMatrix {
             }
         }
         if (isFirst) {
-            unsafe_init((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+            unsafe_init(Base64.decodeToIntWithBounds(buffer, previous, cursor));
         } else {
             unsafe_set(elemIndex, Base64.decodeToDoubleWithBounds(buffer, previous, cursor));
         }

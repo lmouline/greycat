@@ -241,7 +241,7 @@ class HeapRelation implements Relation {
         while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
-                    allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                     isFirst = false;
                 } else {
                     add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -254,7 +254,7 @@ class HeapRelation implements Relation {
             }
         }
         if (isFirst) {
-            allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+            allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
         } else {
             add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
         }

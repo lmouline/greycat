@@ -26,23 +26,22 @@ public class NDTree extends BaseNode implements Tree {
     public static String DISTANCE = "distance";
     public static String DISTANCE_THRESHOLD = "distance_threshold";
 
-    private static long EGRAPH = 6;
-    private static long STRATEGY = 7;
+    private static int EGRAPH = 6;
+    private static int STRATEGY = 7;
 
     public static int BUFFER_SIZE_DEF = 20;
-
     public static int DISTANCE_DEF = Distances.DEFAULT;
     //public static double DISTANCE_THRESHOLD_DEF = 1e-20;
 
-    private static long E_TOTAL = 0;
-    private static long E_SUBNODES = 1;
-    private static long E_TOTAL_SUBNODES = 2;
-    private static long E_MIN = 3;
-    private static long E_MAX = 4;
-    private static long E_BUFFER_KEYS = 5;
-    private static long E_BUFFER_VALUES = 6;
-    private static long E_VALUE = 7;
-    private static long E_PROFILE = 8;
+    private static int E_TOTAL = 0;
+    private static int E_SUBNODES = 1;
+    private static int E_TOTAL_SUBNODES = 2;
+    private static int E_MIN = 3;
+    private static int E_MAX = 4;
+    private static int E_BUFFER_KEYS = 5;
+    private static int E_BUFFER_VALUES = 6;
+    private static int E_VALUE = 7;
+    private static int E_PROFILE = 8;
     private static int E_OFFSET_REL = 16;
 
     public NDTree(final long p_world, final long p_time, final long p_id, final Graph p_graph) {
@@ -626,7 +625,7 @@ public class NDTree extends BaseNode implements Tree {
 
                     node.each(new NodeStateCallback() {
                         @Override
-                        public void on(long attributeKey, byte elemType, Object elem) {
+                        public void on(int attributeKey, byte elemType, Object elem) {
                             if (attributeKey >= E_OFFSET_REL) {
                                 boolean[] binaries = binaryFromLong(attributeKey, dim);
                                 for (int i = 0; i < dim; i++) {
@@ -646,7 +645,7 @@ public class NDTree extends BaseNode implements Tree {
                     childPriority.sort(true);
 
                     for (int i = 0; i < childPriority.size(); i++) {
-                        ENode child = (ENode) node.getAt(childPriority.value(i));
+                        ENode child = (ENode) node.getAt((int) childPriority.value(i));
                         reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, targetcenter, radius);
                     }
                     childPriority.free();
@@ -654,7 +653,7 @@ public class NDTree extends BaseNode implements Tree {
             } else {
                 node.each(new NodeStateCallback() {
                     @Override
-                    public void on(long attributeKey, byte elemType, Object elem) {
+                    public void on(int attributeKey, byte elemType, Object elem) {
                         if (attributeKey >= E_OFFSET_REL) {
                             ENode child = (ENode) node.getAt(attributeKey);
                             if (checkInside(targetmin, targetmax, (double[]) child.getAt(E_MIN), (double[]) child.getAt(E_MAX))) {

@@ -45,7 +45,7 @@ public interface Node {
      * The type of the returned object (i.e. of the attribute) is given by {@link #type(String)}
      * (typed by one of the Type)
      */
-    Object getAt(long index);
+    Object getAt(int index);
 
     /**
      * Returns the type of an attribute. The returned value is one of {@link Type}.
@@ -55,7 +55,7 @@ public interface Node {
      */
     byte type(String name);
 
-    byte typeAt(long index);
+    byte typeAt(int index);
 
     /**
      * Returns the type name of the current node (case of typed node).
@@ -82,7 +82,7 @@ public interface Node {
      * @param value Must be consistent with the propertyType.
      * @return The node for fluent API.
      */
-    Node setAt(long index, byte type, Object value);
+    Node setAt(int index, byte type, Object value);
 
     /**
      * Sets the value of an attribute of this node for its current world and time.<br>
@@ -102,7 +102,7 @@ public interface Node {
      * @param value Must be consistent with the propertyType.
      * @return The node for fluent API.
      */
-    Node forceSetAt(long index, byte type, Object value);
+    Node forceSetAt(int index, byte type, Object value);
 
     /**
      * Removes an attribute from the node.
@@ -112,7 +112,7 @@ public interface Node {
      */
     Node remove(String name);
 
-    Node removeAt(long index);
+    Node removeAt(int index);
 
     /**
      * Gets or creates atomically a complex mutable attribute (e.g. Maps).<br>
@@ -130,7 +130,7 @@ public interface Node {
      * @param type  The type of the attribute. Must be one of {@link Type} int value.
      * @return An instance that can be altered at the current world and time.
      */
-    Object getOrCreateAt(long index, byte type, String... params);
+    Object getOrCreateAt(int index, byte type, String... params);
 
     /**
      * Retrieves the named relation.
@@ -146,7 +146,7 @@ public interface Node {
      * @param relationIndex index of the relation
      * @param callback      callback to be notified when the relation has been resolved
      */
-    void relationAt(long relationIndex, Callback<Node[]> callback);
+    void relationAt(int relationIndex, Callback<Node[]> callback);
 
     /**
      * Adds a node to a relation.<br>
@@ -168,7 +168,7 @@ public interface Node {
      * @param indexedAttributes The attributes' names to be used for indexing the relatedNode. The relation is not indexed if this parameter is null.
      * @return The node for fluent API.
      */
-    Node addToRelationAt(long relationIndex, Node relatedNode, String... indexedAttributes);
+    Node addToRelationAt(int relationIndex, Node relatedNode, String... indexedAttributes);
 
     /**
      * Removes a node from a relation.
@@ -188,7 +188,7 @@ public interface Node {
      * @param indexedAttributes The attributes' names to be used for finding and removing the relatedNode from the index. This is mandatory if the relation is indexed.
      * @return The node for fluent API.
      */
-    Node removeFromRelationAt(long relationIndex, Node relatedNode, String... indexedAttributes);
+    Node removeFromRelationAt(int relationIndex, Node relatedNode, String... indexedAttributes);
 
     /**
      * Computes the time dephasing of this node, i.e. the difference between last modification and the timepoint of the current node.

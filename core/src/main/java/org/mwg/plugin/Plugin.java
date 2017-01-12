@@ -9,8 +9,6 @@ public interface Plugin {
 
     Plugin declareTaskAction(String name, TaskActionFactory factory);
 
-    Plugin declareExternalAttribute(String name, ExternalAttributeFactory factory);
-
     Plugin declareMemoryFactory(MemoryFactory factory);
 
     Plugin declareTaskHook(TaskHook hook);
@@ -24,10 +22,6 @@ public interface Plugin {
     String[] taskActionTypes();
 
     TaskActionFactory taskActionType(String taskTypeName);
-
-    String[] externalAttributes();
-
-    ExternalAttributeFactory externalAttribute(String externalAttribute);
 
     TaskHook[] taskHooks();
 

@@ -3,7 +3,6 @@ package org.mwg.core.chunk.heap;
 import org.mwg.Constants;
 import org.mwg.Graph;
 import org.mwg.Type;
-import org.mwg.base.BaseExternalAttribute;
 import org.mwg.base.BaseNode;
 import org.mwg.core.CoreConstants;
 import org.mwg.plugin.NodeStateCallback;
@@ -29,7 +28,7 @@ class HeapENode implements ENode, HeapContainer {
             _size = origin._size;
             //copy keys
             if (origin._k != null) {
-                long[] cloned_k = new long[_capacity];
+                int[] cloned_k = new int[_capacity];
                 System.arraycopy(origin._k, 0, cloned_k, 0, _capacity);
                 _k = cloned_k;
             }
@@ -89,11 +88,6 @@ class HeapENode implements ENode, HeapContainer {
                                 _v[i] = new HeapLMatrix(this, (HeapLMatrix) origin._v[i]);
                             }
                             break;
-                        case Type.EXTERNAL:
-                            if (origin._v[i] != null) {
-                                _v[i] = ((BaseExternalAttribute) origin._v[i]).copy();
-                            }
-                            break;
                         default:
                             _v[i] = origin._v[i];
                             break;
@@ -108,7 +102,7 @@ class HeapENode implements ENode, HeapContainer {
 
     private int _capacity;
     private volatile int _size;
-    private long[] _k;
+    private int[] _k;
     private Object[] _v;
     private int[] _next;
     private int[] _hash;
@@ -155,7 +149,7 @@ class HeapENode implements ENode, HeapContainer {
         if (newCapacity <= _capacity) {
             return;
         }
-        long[] ex_k = new long[newCapacity];
+        int[] ex_k = new int[newCapacity];
         if (_k != null) {
             System.arraycopy(_k, 0, ex_k, 0, _capacity);
         }
@@ -182,7 +176,7 @@ class HeapENode implements ENode, HeapContainer {
         }
     }
 
-    private int internal_find(final long p_key) {
+    private int internal_find(final int p_key) {
         if (_size == 0) {
             return -1;
         }
@@ -198,7 +192,7 @@ class HeapENode implements ENode, HeapContainer {
         return -1;
     }
 
-    private Object internal_get(final long p_key) {
+    private Object internal_get(final int p_key) {
         //empty chunk, we return immediately
         if (_size == 0) {
             return null;
@@ -210,7 +204,7 @@ class HeapENode implements ENode, HeapContainer {
         return null;
     }
 
-    private void internal_set(final long p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
+    private void internal_set(final int p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
         Object param_elem = null;
         //check the param type
         if (p_unsafe_elem != null) {
@@ -250,9 +244,6 @@ class HeapENode implements ENode, HeapContainer {
                         break;
                     case Type.ENODE:
                         param_elem = (ENode) p_unsafe_elem;
-                        break;
-                    case Type.EXTERNAL:
-                        param_elem = p_unsafe_elem;
                         break;
                     case Type.DOUBLE_ARRAY:
                         double[] castedParamDouble = (double[]) p_unsafe_elem;
@@ -298,7 +289,7 @@ class HeapENode implements ENode, HeapContainer {
                 return;
             }
             _capacity = Constants.MAP_INITIAL_CAPACITY;
-            _k = new long[_capacity];
+            _k = new int[_capacity];
             _v = new Object[_capacity];
             _type = new byte[_capacity];
             _next = new int[_capacity];
@@ -393,7 +384,7 @@ class HeapENode implements ENode, HeapContainer {
         }
         //extend capacity
         int newCapacity = _capacity * 2;
-        long[] ex_k = new long[newCapacity];
+        int[] ex_k = new int[newCapacity];
         System.arraycopy(_k, 0, ex_k, 0, _capacity);
         _k = ex_k;
         Object[] ex_v = new Object[newCapacity];
@@ -413,7 +404,7 @@ class HeapENode implements ENode, HeapContainer {
         Arrays.fill(_hash, 0, _capacity * 2, -1);
         _next = new int[_capacity];
         Arrays.fill(_next, 0, _capacity, -1);
-        final long hashCapacity = _capacity * 2;
+        final int hashCapacity = _capacity * 2;
         for (int i = 0; i < _size; i++) {
             int keyHash = (int) HashHelper.longHash(_k[i], hashCapacity);
             _next[i] = _hash[keyHash];
@@ -431,7 +422,7 @@ class HeapENode implements ENode, HeapContainer {
     }
 
     @Override
-    public ENode setAt(long key, byte type, Object value) {
+    public ENode setAt(int key, byte type, Object value) {
         internal_set(key, type, value, true, false);
         return this;
     }
@@ -442,7 +433,7 @@ class HeapENode implements ENode, HeapContainer {
     }
 
     @Override
-    public Object getAt(long key) {
+    public Object getAt(int key) {
         return internal_get(key);
     }
 
@@ -467,7 +458,7 @@ class HeapENode implements ENode, HeapContainer {
     }
 
     @Override
-    public final Object getOrCreateAt(final long key, final byte type) {
+    public final Object getOrCreateAt(final int key, final byte type) {
         final int found = internal_find(key);
         if (found != -1) {
             if (_type[found] == type) {
@@ -514,7 +505,7 @@ class HeapENode implements ENode, HeapContainer {
         for (int i = 0; i < _size; i++) {
             final Object elem = _v[i];
             final Resolver resolver = egraph.graph().resolver();
-            final long attributeKey = _k[i];
+            final int attributeKey = _k[i];
             final byte elemType = _type[i];
             if (elem != null) {
                 if (isFirstField) {
@@ -746,7 +737,7 @@ class HeapENode implements ENode, HeapContainer {
                     buffer.write(CoreConstants.CHUNK_ESEP);
                     Base64.encodeIntToBuffer(_type[i], buffer);
                     buffer.write(CoreConstants.CHUNK_ESEP);
-                    Base64.encodeLongToBuffer(_k[i], buffer);
+                    Base64.encodeIntToBuffer(_k[i], buffer);
                     buffer.write(CoreConstants.CHUNK_ESEP);
                     switch (_type[i]) {
                         //additional types for embedded
@@ -787,16 +778,6 @@ class HeapENode implements ENode, HeapContainer {
                             for (int j = 0; j < castedDoubleArr.length; j++) {
                                 buffer.write(CoreConstants.CHUNK_VAL_SEP);
                                 Base64.encodeDoubleToBuffer(castedDoubleArr[j], buffer);
-                            }
-                            break;
-                        case Type.EXTERNAL:
-                            BaseExternalAttribute externalAttribute = (BaseExternalAttribute) loopValue;
-                            final long encodedName = egraph.graph().resolver().stringToHash(externalAttribute.name(), false);
-                            Base64.encodeLongToBuffer(encodedName, buffer);
-                            buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                            String saved = externalAttribute.save();
-                            if (saved != null) {
-                                Base64.encodeStringToBuffer(saved, buffer);
                             }
                             break;
                         case Type.RELATION:
@@ -847,7 +828,7 @@ class HeapENode implements ENode, HeapContainer {
                             break;
                         case Type.STRING_TO_LONG_MAP:
                             HeapStringLongMap castedStringLongMap = (HeapStringLongMap) loopValue;
-                            Base64.encodeLongToBuffer(castedStringLongMap.size(), buffer);
+                            Base64.encodeIntToBuffer(castedStringLongMap.size(), buffer);
                             castedStringLongMap.unsafe_each(new StringLongMapCallBack() {
                                 @Override
                                 public void on(final String key, final long value) {
@@ -860,7 +841,7 @@ class HeapENode implements ENode, HeapContainer {
                             break;
                         case Type.LONG_TO_LONG_MAP:
                             HeapLongLongMap castedLongLongMap = (HeapLongLongMap) loopValue;
-                            Base64.encodeLongToBuffer(castedLongLongMap.size(), buffer);
+                            Base64.encodeIntToBuffer(castedLongLongMap.size(), buffer);
                             castedLongLongMap.unsafe_each(new LongLongMapCallBack() {
                                 @Override
                                 public void on(final long key, final long value) {
@@ -874,7 +855,7 @@ class HeapENode implements ENode, HeapContainer {
                         case Type.RELATION_INDEXED:
                         case Type.LONG_TO_LONG_ARRAY_MAP:
                             HeapLongLongArrayMap castedLongLongArrayMap = (HeapLongLongArrayMap) loopValue;
-                            Base64.encodeLongToBuffer(castedLongLongArrayMap.size(), buffer);
+                            Base64.encodeIntToBuffer(castedLongLongArrayMap.size(), buffer);
                             castedLongLongArrayMap.unsafe_each(new LongLongArrayMapCallBack() {
                                 @Override
                                 public void on(final long key, final long value) {
@@ -907,7 +888,7 @@ class HeapENode implements ENode, HeapContainer {
         long previous = cursor;
         byte state = LOAD_WAITING_ALLOC;
         byte read_type = -1;
-        long read_key = -1;
+        int read_key = -1;
         while (cursor < payloadSize) {
             byte current = buffer.read(cursor);
             if (current == Constants.CHUNK_ENODE_SEP || current == Constants.CHUNK_SEP) {
@@ -927,7 +908,7 @@ class HeapENode implements ENode, HeapContainer {
                         previous = cursor;
                         break;
                     case LOAD_WAITING_KEY:
-                        read_key = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                        read_key = Base64.decodeToIntWithBounds(buffer, previous, cursor);
                         //primitive default loader
                         switch (read_type) {
                             //primitive types
@@ -1156,7 +1137,7 @@ class HeapENode implements ENode, HeapContainer {
         return cursor;
     }
 
-    private void load_primitive(final long read_key, final byte read_type, final Buffer buffer, final long previous, final long cursor, final boolean initial) {
+    private void load_primitive(final int read_key, final byte read_type, final Buffer buffer, final long previous, final long cursor, final boolean initial) {
         switch (read_type) {
             case Type.BOOL:
                 internal_set(read_key, read_type, (((byte) Base64.decodeToIntWithBounds(buffer, previous, cursor)) == CoreConstants.BOOL_TRUE), true, initial);

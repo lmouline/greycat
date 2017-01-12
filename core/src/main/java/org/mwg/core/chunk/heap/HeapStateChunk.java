@@ -6,9 +6,6 @@ import org.mwg.Type;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
 import org.mwg.core.CoreConstants;
-import org.mwg.base.BaseExternalAttribute;
-import org.mwg.plugin.ExternalAttributeFactory;
-import org.mwg.plugin.Job;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.Base64;
 import org.mwg.plugin.NodeStateCallback;
@@ -23,7 +20,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
 
     private int _capacity;
     private volatile int _size;
-    private long[] _k;
+    private int[] _k;
     private Object[] _v;
 
     private int[] _next;
@@ -75,7 +72,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public synchronized final Object get(final long p_key) {
+    public synchronized final Object get(final int p_key) {
         return internal_get(p_key);
     }
 
@@ -154,7 +151,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
      * }
      */
     @Override
-    public synchronized final void set(final long p_elementIndex, final byte p_elemType, final Object p_unsafe_elem) {
+    public synchronized final void set(final int p_elementIndex, final byte p_elemType, final Object p_unsafe_elem) {
         internal_set(p_elementIndex, p_elemType, p_unsafe_elem, true, false);
     }
 
@@ -180,7 +177,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public final <A> A getWithDefault(final long key, final A defaultValue) {
+    public final <A> A getWithDefault(final int key, final A defaultValue) {
         final Object result = get(key);
         if (result == null) {
             return defaultValue;
@@ -190,7 +187,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public synchronized final byte getType(final long p_key) {
+    public synchronized final byte getType(final int p_key) {
         if (_size == 0) {
             return -1;
         }
@@ -220,7 +217,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public synchronized final Object getOrCreate(final long p_key, final byte p_type) {
+    public synchronized final Object getOrCreate(final int p_key, final byte p_type) {
         final int found = internal_find(p_key);
         if (found != -1) {
             if (_type[found] == p_type) {
@@ -259,29 +256,6 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public synchronized Object getOrCreateExternal(long p_key, String externalTypeName) {
-        final int found = internal_find(p_key);
-        if (found != -1) {
-            if (_type[found] == Type.EXTERNAL) {
-                return _v[found];
-            }
-        }
-        BaseExternalAttribute toSet = null;
-        final ExternalAttributeFactory factory = _space.graph().externalAttribute(externalTypeName);
-        if (factory != null) {
-            toSet = factory.create();
-        }
-        internal_set(p_key, Type.EXTERNAL, toSet, true, false);
-        toSet.notifyDirty(new Job() {
-            @Override
-            public void run() {
-                HeapStateChunk.this.declareDirty();
-            }
-        });
-        return toSet;
-    }
-
-    @Override
     public final Object getOrCreateFromKey(final String key, final byte elemType) {
         return getOrCreate(_space.graph().resolver().stringToHash(key, true), elemType);
     }
@@ -304,7 +278,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                 buffer.write(CoreConstants.CHUNK_SEP);
                 Base64.encodeIntToBuffer((int) _type[i], buffer);
                 buffer.write(CoreConstants.CHUNK_SEP);
-                Base64.encodeLongToBuffer(_k[i], buffer);
+                Base64.encodeIntToBuffer(_k[i], buffer);
                 buffer.write(CoreConstants.CHUNK_SEP);
                 switch (_type[i]) {
                     case Type.STRING:
@@ -350,16 +324,6 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             Base64.encodeIntToBuffer(castedIntArr[j], buffer);
                         }
                         break;
-                    case Type.EXTERNAL:
-                        BaseExternalAttribute externalAttribute = (BaseExternalAttribute) loopValue;
-                        final long encodedName = _space.graph().resolver().stringToHash(externalAttribute.name(), false);
-                        Base64.encodeLongToBuffer(encodedName, buffer);
-                        buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                        String saved = externalAttribute.save();
-                        if (saved != null) {
-                            Base64.encodeStringToBuffer(saved, buffer);
-                        }
-                        break;
                     case Type.RELATION:
                         HeapRelation castedLongArrRel = (HeapRelation) loopValue;
                         Base64.encodeIntToBuffer(castedLongArrRel.size(), buffer);
@@ -392,7 +356,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         break;
                     case Type.STRING_TO_LONG_MAP:
                         HeapStringLongMap castedStringLongMap = (HeapStringLongMap) loopValue;
-                        Base64.encodeLongToBuffer(castedStringLongMap.size(), buffer);
+                        Base64.encodeIntToBuffer(castedStringLongMap.size(), buffer);
                         castedStringLongMap.unsafe_each(new StringLongMapCallBack() {
                             @Override
                             public void on(final String key, final long value) {
@@ -405,7 +369,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         break;
                     case Type.LONG_TO_LONG_MAP:
                         HeapLongLongMap castedLongLongMap = (HeapLongLongMap) loopValue;
-                        Base64.encodeLongToBuffer(castedLongLongMap.size(), buffer);
+                        Base64.encodeIntToBuffer(castedLongLongMap.size(), buffer);
                         castedLongLongMap.unsafe_each(new LongLongMapCallBack() {
                             @Override
                             public void on(final long key, final long value) {
@@ -419,7 +383,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                     case Type.RELATION_INDEXED:
                     case Type.LONG_TO_LONG_ARRAY_MAP:
                         HeapLongLongArrayMap castedLongLongArrayMap = (HeapLongLongArrayMap) loopValue;
-                        Base64.encodeLongToBuffer(castedLongLongArrayMap.size(), buffer);
+                        Base64.encodeIntToBuffer(castedLongLongArrayMap.size(), buffer);
                         castedLongLongArrayMap.unsafe_each(new LongLongArrayMapCallBack() {
                             @Override
                             public void on(final long key, final long value) {
@@ -473,7 +437,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         _size = casted._size;
         //copy keys
         if (casted._k != null) {
-            long[] cloned_k = new long[_capacity];
+            int[] cloned_k = new int[_capacity];
             System.arraycopy(casted._k, 0, cloned_k, 0, _capacity);
             _k = cloned_k;
         }
@@ -544,11 +508,6 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             _v[i] = new HeapEGraph(this, (HeapEGraph) casted._v[i], _space.graph());
                         }
                         break;
-                    case Type.EXTERNAL:
-                        if (casted._v[i] != null) {
-                            _v[i] = ((BaseExternalAttribute) casted._v[i]).copy();
-                        }
-                        break;
                     default:
                         _v[i] = casted._v[i];
                         break;
@@ -557,7 +516,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         }
     }
 
-    private void internal_set(final long p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
+    private void internal_set(final int p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
         Object param_elem = null;
         //check the param type
         if (p_unsafe_elem != null) {
@@ -635,9 +594,6 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                     case Type.RELATION:
                         param_elem = (Relation) p_unsafe_elem;
                         break;
-                    case Type.EXTERNAL:
-                        param_elem = p_unsafe_elem;
-                        break;
                     case Type.DOUBLE_ARRAY:
                         double[] castedParamDouble = (double[]) p_unsafe_elem;
                         double[] clonedDoubleArray = new double[castedParamDouble.length];
@@ -685,7 +641,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                 return;
             }
             _capacity = Constants.MAP_INITIAL_CAPACITY;
-            _k = new long[_capacity];
+            _k = new int[_capacity];
             _v = new Object[_capacity];
             _type = new byte[_capacity];
             _k[0] = p_key;
@@ -788,7 +744,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         }
         //extend capacity
         int newCapacity = _capacity * 2;
-        long[] ex_k = new long[newCapacity];
+        int[] ex_k = new int[newCapacity];
         System.arraycopy(_k, 0, ex_k, 0, _capacity);
         _k = ex_k;
         Object[] ex_v = new Object[newCapacity];
@@ -822,7 +778,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         if (newCapacity <= _capacity) {
             return;
         }
-        long[] ex_k = new long[newCapacity];
+        int[] ex_k = new int[newCapacity];
         if (_k != null) {
             System.arraycopy(_k, 0, ex_k, 0, _capacity);
         }
@@ -863,7 +819,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             long cursor = 0;
             byte state = LOAD_WAITING_ALLOC;
             byte read_type = -1;
-            long read_key = -1;
+            int read_key = -1;
             while (cursor < payloadSize) {
                 byte current = buffer.read(cursor);
                 if (current == Constants.CHUNK_SEP) {
@@ -881,7 +837,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             previous = cursor;
                             break;
                         case LOAD_WAITING_KEY:
-                            read_key = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            read_key = Base64.decodeToIntWithBounds(buffer, previous, cursor);
                             //primitive default loader
                             switch (read_type) {
                                 //primitive types
@@ -1081,7 +1037,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         }
     }
 
-    private void load_primitive(final long read_key, final byte read_type, final Buffer buffer, final long previous, final long cursor, final boolean initial) {
+    private void load_primitive(final int read_key, final byte read_type, final Buffer buffer, final long previous, final long cursor, final boolean initial) {
         switch (read_type) {
             case Type.BOOL:
                 internal_set(read_key, read_type, (((byte) Base64.decodeToIntWithBounds(buffer, previous, cursor)) == CoreConstants.BOOL_TRUE), true, initial);

@@ -138,7 +138,7 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public Object getAt(long propIndex) {
+    public Object getAt(int propIndex) {
         return _resolver.resolveState(this).get(propIndex);
     }
 
@@ -148,7 +148,7 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public Node forceSetAt(long index, byte type, Object value) {
+    public Node forceSetAt(int index, byte type, Object value) {
         final NodeState preciseState = this._resolver.alignState(this);
         if (preciseState != null) {
             preciseState.set(index, type, value);
@@ -159,7 +159,7 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public Node setAt(long index, byte type, Object value) {
+    public Node setAt(int index, byte type, Object value) {
         final NodeState unPhasedState = this._resolver.resolveState(this);
         boolean isDiff = (type != unPhasedState.getType(index));
         if (!isDiff) {
@@ -179,7 +179,7 @@ public class BaseNode implements Node {
     @Override
     public Node set(String name, byte type, Object value) {
         //hash the property a single time
-        final long hashed = this._resolver.stringToHash(name, true);
+        final int hashed = this._resolver.stringToHash(name, true);
         return setAt(hashed, type, value);
     }
 
@@ -251,15 +251,10 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public Object getOrCreateAt(long index, byte type, String... params) {
+    public Object getOrCreateAt(int index, byte type, String... params) {
         final NodeState preciseState = this._resolver.alignState(this);
         if (preciseState != null) {
-            if (type == Type.EXTERNAL) {
-                return preciseState.getOrCreateExternal(index, params[0]);
-            } else {
-                return preciseState.getOrCreate(index, type);
-            }
-
+            return preciseState.getOrCreate(index, type);
         } else {
             throw new RuntimeException(Constants.CACHE_MISS_ERROR);
         }
@@ -275,7 +270,7 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public byte typeAt(final long index) {
+    public byte typeAt(final int index) {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
             return resolved.getType(index);
@@ -289,7 +284,7 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public final Node removeAt(final long index) {
+    public final Node removeAt(final int index) {
         return setAt(index, Type.INT, null);
     }
 
@@ -299,7 +294,7 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public void relationAt(long relationIndex, Callback<Node[]> callback) {
+    public void relationAt(int relationIndex, Callback<Node[]> callback) {
         if (callback == null) {
             return;
         }
@@ -352,7 +347,7 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public Node addToRelationAt(long relationIndex, Node relatedNode, String... attributes) {
+    public Node addToRelationAt(int relationIndex, Node relatedNode, String... attributes) {
         if (relatedNode != null) {
             NodeState preciseState = this._resolver.alignState(this);
             if (preciseState != null) {
@@ -377,7 +372,7 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public Node removeFromRelationAt(long relationIndex, Node relatedNode, String... attributes) {
+    public Node removeFromRelationAt(int relationIndex, Node relatedNode, String... attributes) {
         if (relatedNode != null) {
             final NodeState preciseState = this._resolver.alignState(this);
             if (preciseState != null) {
@@ -443,6 +438,7 @@ public class BaseNode implements Node {
      */
     /**
      * Tests if an element is Not A Number
+     *
      * @param toTest the element to test
      * @return false if the element is a number
      */
@@ -464,7 +460,7 @@ public class BaseNode implements Node {
         if (state != null) {
             state.each(new NodeStateCallback() {
                 @Override
-                public void on(long attributeKey, byte elemType, Object elem) {
+                public void on(int attributeKey, byte elemType, Object elem) {
                     if (elem != null) {
                         String resolveName = _resolver.hashToString(attributeKey);
                         if (resolveName == null) {

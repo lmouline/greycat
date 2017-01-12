@@ -14,10 +14,10 @@ public interface TimeTreeChunk extends Chunk {
 
     long magic();
 
-    long size();
-
     long previous(long key);
 
     long next(long key);
+
+    int size();
 
 }

@@ -32,5 +32,4 @@ public interface DMatrix {
 
     DMatrix unsafeSet(int index, double value);
 
-
 }

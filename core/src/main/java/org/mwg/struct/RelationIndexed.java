@@ -6,7 +6,7 @@ import org.mwg.Query;
 
 public interface RelationIndexed {
 
-    long size();
+    int size();
 
     long[] all();
 

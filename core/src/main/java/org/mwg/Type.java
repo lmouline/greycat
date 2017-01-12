@@ -32,8 +32,6 @@ public class Type {
     public static final byte ENODE = 18;
     public static final byte ERELATION = 19;
 
-    public static final byte EXTERNAL = 20;
-
     /**
      * Convert a type that represent a byte to a readable String representation
      *
@@ -81,8 +79,6 @@ public class Type {
                 return "ENODE";
             case Type.ERELATION:
                 return "ERELATION";
-            case Type.EXTERNAL:
-                return "EXTERNAL";
             default:
                 return "unknown";
         }
@@ -120,8 +116,6 @@ public class Type {
                 return Type.DMATRIX;
             case "LMATRIX":
                 return Type.LMATRIX;
-            case "EXTERNAL":
-                return Type.EXTERNAL;
             case "EGRAPH":
                 return Type.EGRAPH;
             case "ENODE":

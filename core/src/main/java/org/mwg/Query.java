@@ -38,7 +38,7 @@ public interface Query {
      * Returns the attributes used in this query
      * @return the array of attributes used in this query
      */
-    long[] attributes();
+    int[] attributes();
 
     /**
      * Returns the values of attributes used in this query to filter nodes

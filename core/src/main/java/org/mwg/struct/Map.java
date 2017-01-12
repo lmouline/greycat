@@ -7,6 +7,6 @@ public interface Map {
      *
      * @return the size of the getOrCreateMap
      */
-    long size();
+    int size();
 
 }

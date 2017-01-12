@@ -45,13 +45,13 @@ final class MWGResolver implements Resolver {
     }
 
     @Override
-    public final long typeCode(Node node) {
+    public final int typeCode(Node node) {
         final BaseNode casted = (BaseNode) node;
         final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.get(casted._index_worldOrder);
         if (worldOrderChunk == null) {
-            return Constants.NULL_LONG;
+            return -1;
         }
-        return worldOrderChunk.extra();
+        return (int) worldOrderChunk.extra();
     }
 
     @Override
@@ -158,9 +158,9 @@ final class MWGResolver implements Resolver {
                                                         callback.on(null);
                                                     } else {
                                                         WorldOrderChunk castedNodeWorldOrder = (WorldOrderChunk) theNodeWorldOrder;
-                                                        long extraCode = castedNodeWorldOrder.extra();
+                                                        int extraCode = (int) castedNodeWorldOrder.extra();
                                                         NodeFactory resolvedFactory = null;
-                                                        if (extraCode != Constants.NULL_LONG) {
+                                                        if (extraCode != -1) {
                                                             resolvedFactory = ((CoreGraph) selfPointer._graph).factoryByCode(extraCode);
                                                         }
                                                         BaseNode resolvedNode;
@@ -304,9 +304,9 @@ final class MWGResolver implements Resolver {
                                                                         for (int i = 0; i < idsSize; i++) {
                                                                             if (theObjectChunks[i] != null) {
                                                                                 WorldOrderChunk castedNodeWorldOrder = (WorldOrderChunk) theNodeWorldOrders[i];
-                                                                                long extraCode = castedNodeWorldOrder.extra();
+                                                                                int extraCode = (int) castedNodeWorldOrder.extra();
                                                                                 NodeFactory resolvedFactory = null;
-                                                                                if (extraCode != Constants.NULL_LONG) {
+                                                                                if (extraCode != -1) {
                                                                                     resolvedFactory = ((CoreGraph) selfPointer._graph).factoryByCode(extraCode);
                                                                                 }
                                                                                 BaseNode resolvedNode;
@@ -573,9 +573,9 @@ final class MWGResolver implements Resolver {
                                                                         for (int i = 0; i < idsSize; i++) {
                                                                             if (theObjectChunks[i] != null) {
                                                                                 WorldOrderChunk castedNodeWorldOrder = (WorldOrderChunk) theNodeWorldOrders[i];
-                                                                                long extraCode = castedNodeWorldOrder.extra();
+                                                                                int extraCode = (int) castedNodeWorldOrder.extra();
                                                                                 NodeFactory resolvedFactory = null;
-                                                                                if (extraCode != Constants.NULL_LONG) {
+                                                                                if (extraCode != -1) {
                                                                                     resolvedFactory = ((CoreGraph) selfPointer._graph).factoryByCode(extraCode);
                                                                                 }
                                                                                 BaseNode resolvedNode;
@@ -1370,8 +1370,8 @@ final class MWGResolver implements Resolver {
     }
 
     @Override
-    public long stringToHash(String name, boolean insertIfNotExists) {
-        long hash = HashHelper.hash(name);
+    public int stringToHash(String name, boolean insertIfNotExists) {
+        int hash = HashHelper.hash(name);
         if (insertIfNotExists) {
             StringLongMap dictionaryIndex = (StringLongMap) this.dictionary.get(0);
             if (dictionaryIndex == null) {
@@ -1385,7 +1385,7 @@ final class MWGResolver implements Resolver {
     }
 
     @Override
-    public String hashToString(long key) {
+    public String hashToString(int key) {
         final StringLongMap dictionaryIndex = (StringLongMap) this.dictionary.get(0);
         if (dictionaryIndex != null) {
             return dictionaryIndex.getByHash(key);

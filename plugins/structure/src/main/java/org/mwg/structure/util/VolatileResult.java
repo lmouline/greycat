@@ -1,6 +1,5 @@
 package org.mwg.structure.util;
 
-import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.struct.DMatrix;
 import org.mwg.struct.EGraph;
@@ -8,13 +7,12 @@ import org.mwg.struct.ENode;
 import org.mwg.struct.LMatrix;
 import org.mwg.structure.TreeResult;
 
-
 public class VolatileResult implements TreeResult {
 
     private static double maxPriority = Double.MAX_VALUE;
-    private static long _KEYS = 1;
-    private static long _VALUES = 2;
-    private static long _DISTANCES = 3;
+    private static int _KEYS = 1;
+    private static int _VALUES = 2;
+    private static int _DISTANCES = 3;
 
     private ENode node;
     private int capacity;

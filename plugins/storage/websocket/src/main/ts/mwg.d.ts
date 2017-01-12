@@ -383,7 +383,6 @@ declare module org {
             newQuery(): org.mwg.Query;
             freeNodes(nodes: org.mwg.Node[]): void;
             taskAction(name: string): org.mwg.task.TaskActionFactory;
-            externalAttribute(name: string): org.mwg.plugin.ExternalAttributeFactory;
             taskHooks(): org.mwg.task.TaskHook[];
         }
         class GraphBuilder {
@@ -447,7 +446,7 @@ declare module org {
             setTime(time: number): org.mwg.Query;
             add(attributeName: string, value: string): org.mwg.Query;
             hash(): number;
-            attributes(): Float64Array;
+            attributes(): Int32Array;
             values(): any[];
         }
         class Type {
@@ -469,18 +468,10 @@ declare module org {
             static EGRAPH: number;
             static ENODE: number;
             static ERELATION: number;
-            static EXTERNAL: number;
             static typeName(p_type: number): string;
             static typeFromName(name: string): number;
         }
         module base {
-            abstract class BaseExternalAttribute {
-                abstract name(): string;
-                abstract save(): string;
-                abstract load(buffer: string): void;
-                abstract copy(): org.mwg.base.BaseExternalAttribute;
-                abstract notifyDirty(dirtyNotifier: org.mwg.plugin.Job): void;
-            }
             class BaseHook implements org.mwg.task.TaskHook {
                 start(initialContext: org.mwg.task.TaskContext): void;
                 beforeAction(action: org.mwg.task.Action, context: org.mwg.task.TaskContext): void;
@@ -547,13 +538,11 @@ declare module org {
             class BasePlugin implements org.mwg.plugin.Plugin {
                 private _nodeTypes;
                 private _taskActions;
-                private _externalAttributes;
                 private _memoryFactory;
                 private _resolverFactory;
                 private _taskHooks;
                 declareNodeType(name: string, factory: org.mwg.plugin.NodeFactory): org.mwg.plugin.Plugin;
                 declareTaskAction(name: string, factory: org.mwg.task.TaskActionFactory): org.mwg.plugin.Plugin;
-                declareExternalAttribute(name: string, factory: org.mwg.plugin.ExternalAttributeFactory): org.mwg.plugin.Plugin;
                 declareMemoryFactory(factory: org.mwg.plugin.MemoryFactory): org.mwg.plugin.Plugin;
                 declareResolverFactory(factory: org.mwg.plugin.ResolverFactory): org.mwg.plugin.Plugin;
                 taskHooks(): org.mwg.task.TaskHook[];
@@ -562,8 +551,6 @@ declare module org {
                 nodeType(nodeTypeName: string): org.mwg.plugin.NodeFactory;
                 taskActionTypes(): string[];
                 taskActionType(taskTypeName: string): org.mwg.task.TaskActionFactory;
-                externalAttributes(): string[];
-                externalAttribute(externalAttribute: string): org.mwg.plugin.ExternalAttributeFactory;
                 memoryFactory(): org.mwg.plugin.MemoryFactory;
                 resolverFactory(): org.mwg.plugin.ResolverFactory;
                 stop(): void;
@@ -624,9 +611,9 @@ declare module org {
                 clearAt(max: number): void;
                 range(startKey: number, endKey: number, maxElements: number, walker: org.mwg.chunk.TreeWalker): void;
                 magic(): number;
-                size(): number;
                 previous(key: number): number;
                 next(key: number): number;
+                size(): number;
             }
             interface TreeWalker {
                 (t: number): void;
@@ -672,7 +659,6 @@ declare module org {
                 private _scheduler;
                 private _resolver;
                 private _nodeTypes;
-                private _externalAttributes;
                 private _taskActions;
                 private _isConnected;
                 private _lock;
@@ -689,7 +675,6 @@ declare module org {
                 cloneNode(origin: org.mwg.Node): org.mwg.Node;
                 factoryByCode(code: number): org.mwg.plugin.NodeFactory;
                 taskAction(taskActionName: string): org.mwg.task.TaskActionFactory;
-                externalAttribute(name: string): org.mwg.plugin.ExternalAttributeFactory;
                 taskHooks(): org.mwg.task.TaskHook[];
                 lookup<A extends org.mwg.Node>(world: number, time: number, id: number, callback: org.mwg.Callback<A>): void;
                 lookupBatch(worlds: Float64Array, times: Float64Array, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
@@ -742,7 +727,7 @@ declare module org {
                 setTime(p_time: number): org.mwg.Query;
                 add(attributeName: string, value: string): org.mwg.Query;
                 hash(): number;
-                attributes(): Float64Array;
+                attributes(): Int32Array;
                 values(): any[];
                 private internal_add(att, val);
                 private compute();
@@ -1129,7 +1114,6 @@ declare module org {
                         getType(p_key: number): number;
                         getTypeFromKey(key: string): number;
                         getOrCreate(p_key: number, p_type: number): any;
-                        getOrCreateExternal(p_key: number, externalTypeName: string): any;
                         getOrCreateFromKey(key: string, elemType: number): any;
                         declareDirty(): void;
                         save(buffer: org.mwg.struct.Buffer): void;
@@ -2140,9 +2124,6 @@ declare module org {
             }
         }
         module plugin {
-            interface ExternalAttributeFactory {
-                create(): org.mwg.base.BaseExternalAttribute;
-            }
             interface Job {
                 (): void;
             }
@@ -2163,7 +2144,6 @@ declare module org {
                 getFromKeyWithDefault<A>(key: string, defaultValue: A): A;
                 getWithDefault<A>(key: number, defaultValue: A): A;
                 getOrCreate(index: number, elemType: number): any;
-                getOrCreateExternal(index: number, externalTypeName: string): any;
                 getOrCreateFromKey(key: string, elemType: number): any;
                 getType(index: number): number;
                 getTypeFromKey(key: string): number;
@@ -2175,7 +2155,6 @@ declare module org {
             interface Plugin {
                 declareNodeType(name: string, factory: org.mwg.plugin.NodeFactory): org.mwg.plugin.Plugin;
                 declareTaskAction(name: string, factory: org.mwg.task.TaskActionFactory): org.mwg.plugin.Plugin;
-                declareExternalAttribute(name: string, factory: org.mwg.plugin.ExternalAttributeFactory): org.mwg.plugin.Plugin;
                 declareMemoryFactory(factory: org.mwg.plugin.MemoryFactory): org.mwg.plugin.Plugin;
                 declareTaskHook(hook: org.mwg.task.TaskHook): org.mwg.plugin.Plugin;
                 declareResolverFactory(factory: org.mwg.plugin.ResolverFactory): org.mwg.plugin.Plugin;
@@ -2183,8 +2162,6 @@ declare module org {
                 nodeType(nodeTypeName: string): org.mwg.plugin.NodeFactory;
                 taskActionTypes(): string[];
                 taskActionType(taskTypeName: string): org.mwg.task.TaskActionFactory;
-                externalAttributes(): string[];
-                externalAttribute(externalAttribute: string): org.mwg.plugin.ExternalAttributeFactory;
                 taskHooks(): org.mwg.task.TaskHook[];
                 memoryFactory(): org.mwg.plugin.MemoryFactory;
                 resolverFactory(): org.mwg.plugin.ResolverFactory;

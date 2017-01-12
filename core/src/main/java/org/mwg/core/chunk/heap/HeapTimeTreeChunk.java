@@ -50,7 +50,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @Override
-    public final long size() {
+    public final int size() {
         return _size;
     }
 
@@ -68,7 +68,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public synchronized final void save(Buffer buffer) {
-        Base64.encodeLongToBuffer(_size, buffer);
+        Base64.encodeIntToBuffer(_size, buffer);
         for (int i = 0; i < _size; i++) {
             buffer.write(CoreConstants.CHUNK_SEP);
             Base64.encodeLongToBuffer(this._k[i], buffer);
@@ -80,9 +80,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @Override
-    public synchronized void saveDiff(Buffer buffer) {
+    public synchronized final void saveDiff(Buffer buffer) {
         if (_dirty) {
-            Base64.encodeLongToBuffer(_size, buffer);
+            Base64.encodeIntToBuffer(_size, buffer);
             for (int i = 0; i < _size; i++) {
                 if (_diff[i]) {
                     buffer.write(CoreConstants.CHUNK_SEP);
@@ -123,7 +123,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             final byte current = buffer.read(cursor);
             if (current == Constants.CHUNK_SEP) {
                 if (isFirst) {
-                    reallocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    reallocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                     previous = cursor + 1;
                     isFirst = false;
                 } else {

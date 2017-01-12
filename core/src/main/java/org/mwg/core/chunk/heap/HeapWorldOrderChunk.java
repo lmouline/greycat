@@ -279,7 +279,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
                         break;
                     case Constants.CHUNK_VAL_SEP:
                         if (!initDone) {
-                            resize((int) Base64.decodeToLongWithBounds(buffer, previousStart, cursor));
+                            resize(Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
                             initDone = true;
                         } else if (loopKey == CoreConstants.NULL_LONG) {
                             loopKey = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
@@ -311,12 +311,12 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     }
 
     @Override
-    public synchronized final void remove(long key) {
+    public final synchronized void remove(long key) {
         throw new RuntimeException("Not implemented yet!!!");
     }
 
     @Override
-    public final long size() {
+    public final int size() {
         return _size;
     }
 
@@ -326,12 +326,12 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     }
 
     @Override
-    public synchronized final void save(final Buffer buffer) {
+    public final synchronized void save(final Buffer buffer) {
         if (_extra != CoreConstants.NULL_LONG) {
             Base64.encodeLongToBuffer(_extra, buffer);
             buffer.write(CoreConstants.CHUNK_SEP);
         }
-        Base64.encodeLongToBuffer(_size, buffer);
+        Base64.encodeIntToBuffer(_size, buffer);
         for (int i = 0; i < _size; i++) {
             buffer.write(CoreConstants.CHUNK_VAL_SEP);
             Base64.encodeLongToBuffer(_kv[i * 2], buffer);
@@ -342,13 +342,13 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     }
 
     @Override
-    public synchronized void saveDiff(Buffer buffer) {
+    public final synchronized void saveDiff(Buffer buffer) {
         if (_dirty) {
             if (_extra != CoreConstants.NULL_LONG) {
                 Base64.encodeLongToBuffer(_extra, buffer);
                 buffer.write(CoreConstants.CHUNK_SEP);
             }
-            Base64.encodeLongToBuffer(_size, buffer);
+            Base64.encodeIntToBuffer(_size, buffer);
             for (int i = 0; i < _size; i++) {
                 if (_diff[i]) {
                     buffer.write(CoreConstants.CHUNK_VAL_SEP);

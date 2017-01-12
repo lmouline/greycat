@@ -68,7 +68,7 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
-    public long typeCode(Node node) {
+    public int typeCode(Node node) {
         return 0;
     }
 
@@ -201,11 +201,6 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
-    public ExternalAttributeFactory externalAttribute(String name) {
-        return null;
-    }
-
-    @Override
     public TaskHook[] taskHooks() {
         return new TaskHook[0];
     }
@@ -231,12 +226,12 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
-    public long stringToHash(String name, boolean insertIfNotExists) {
+    public int stringToHash(String name, boolean insertIfNotExists) {
         return HashHelper.hash(name);
     }
 
     @Override
-    public String hashToString(long key) {
+    public String hashToString(int key) {
         return null;
     }
 }

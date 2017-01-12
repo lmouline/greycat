@@ -131,7 +131,7 @@ class HeapLMatrix implements LMatrix {
 
     @Override
     public LMatrix fillWith(long[] values) {
-        if(parent != null){
+        if (parent != null) {
             synchronized (parent) {
                 internal_fillWith(values);
             }
@@ -141,7 +141,7 @@ class HeapLMatrix implements LMatrix {
         return this;
     }
 
-    private void internal_fillWith(long[] values){
+    private void internal_fillWith(long[] values) {
         if (backend != null) {
             if (!aligned) {
                 long[] next_backend = new long[backend.length];
@@ -151,7 +151,7 @@ class HeapLMatrix implements LMatrix {
             }
             //reInit ?
             System.arraycopy(values, 0, backend, INDEX_OFFSET, values.length);
-            if(parent != null){
+            if (parent != null) {
                 parent.declareDirty();
             }
         }
@@ -169,7 +169,7 @@ class HeapLMatrix implements LMatrix {
         return this;
     }
 
-    private void internal_fillWithRandom(long min, long max, long seed){
+    private void internal_fillWithRandom(long min, long max, long seed) {
         Random rand = new Random();
         rand.setSeed(seed);
         if (backend != null) {
@@ -182,7 +182,7 @@ class HeapLMatrix implements LMatrix {
             for (int i = 0; i < backend[INDEX_ROWS] * backend[INDEX_COLUMNS]; i++) {
                 backend[i + INDEX_OFFSET] = rand.nextInt() * (max - min) + min;
             }
-            if(parent != null){
+            if (parent != null) {
                 parent.declareDirty();
             }
         }
@@ -391,8 +391,8 @@ class HeapLMatrix implements LMatrix {
         return backend;
     }
 
-    void unsafe_init(long size) {
-        backend = new long[(int) size];
+    void unsafe_init(int size) {
+        backend = new long[size];
         backend[INDEX_ROWS] = 0;
         backend[INDEX_COLUMNS] = 0;
         aligned = true;
@@ -411,7 +411,7 @@ class HeapLMatrix implements LMatrix {
         while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
-                    unsafe_init(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    unsafe_init(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                     isFirst = false;
                 } else {
                     unsafe_set(elemIndex, Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -420,12 +420,12 @@ class HeapLMatrix implements LMatrix {
                 previous = cursor + 1;
             }
             cursor++;
-            if(cursor < max){
+            if (cursor < max) {
                 current = buffer.read(cursor);
             }
         }
         if (isFirst) {
-            unsafe_init((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+            unsafe_init(Base64.decodeToIntWithBounds(buffer, previous, cursor));
         } else {
             unsafe_set(elemIndex, Base64.decodeToLongWithBounds(buffer, previous, cursor));
         }

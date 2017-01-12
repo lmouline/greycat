@@ -187,8 +187,8 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
     }
 
     @Override
-    public long size() {
-        long result;
+    public int size() {
+        int result;
         synchronized (parent) {
             result = mapSize;
         }
@@ -313,7 +313,7 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
         while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
-                    reallocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    reallocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                     isFirst = false;
                 } else {
                     if (!waitingVal) {
@@ -332,7 +332,7 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
             }
         }
         if (isFirst) {
-            reallocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+            reallocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
         } else {
             if (waitingVal) {
                 put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor));

@@ -13,13 +13,13 @@ public class FlatNeuralNode extends BaseNode {
     //Inputs are organized in one row
 
     public static String NAME = "FlatNeuralNode";
-    private static final long NB_INPUTS = 1;
-    private static final long NB_OUTPUTS = 2;
-    private static final long NB_LAYERS = 3;
-    private static final long NB_PER_LAYER = 4;
-    private static final long LEARNING_RATE = 5;
+    private static final int NB_INPUTS = 1;
+    private static final int NB_OUTPUTS = 2;
+    private static final int NB_LAYERS = 3;
+    private static final int NB_PER_LAYER = 4;
+    private static final int LEARNING_RATE = 5;
 
-    private static final long MATRICES_OFFSET = 10; // matrix offset
+    private static final int MATRICES_OFFSET = 10; // matrix offset
 
 
     private static DMatrix layerWeights(NodeState state, int layer) {
