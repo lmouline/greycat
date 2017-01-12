@@ -68,9 +68,9 @@ class HeapENode implements ENode, HeapContainer {
                                 _v[i] = ((HeapLongLongArrayMap) origin._v[i]).cloneFor(this);
                             }
                             break;
-                        case Type.STRING_TO_LONG_MAP:
+                        case Type.STRING_TO_INT_MAP:
                             if (origin._v[i] != null) {
-                                _v[i] = ((HeapStringLongMap) origin._v[i]).cloneFor(this);
+                                _v[i] = ((HeapStringIntMap) origin._v[i]).cloneFor(this);
                             }
                             break;
                         case Type.RELATION:
@@ -263,8 +263,8 @@ class HeapENode implements ENode, HeapContainer {
                         System.arraycopy(castedParamInt, 0, clonedIntArray, 0, castedParamInt.length);
                         param_elem = clonedIntArray;
                         break;
-                    case Type.STRING_TO_LONG_MAP:
-                        param_elem = (StringLongMap) p_unsafe_elem;
+                    case Type.STRING_TO_INT_MAP:
+                        param_elem = (StringIntMap) p_unsafe_elem;
                         break;
                     case Type.LONG_TO_LONG_MAP:
                         param_elem = (LongLongMap) p_unsafe_elem;
@@ -482,8 +482,8 @@ class HeapENode implements ENode, HeapContainer {
             case Type.LMATRIX:
                 toSet = new HeapLMatrix(this, null);
                 break;
-            case Type.STRING_TO_LONG_MAP:
-                toSet = new HeapStringLongMap(this);
+            case Type.STRING_TO_INT_MAP:
+                toSet = new HeapStringIntMap(this);
                 break;
             case Type.LONG_TO_LONG_MAP:
                 toSet = new HeapLongLongMap(this);
@@ -695,12 +695,12 @@ class HeapENode implements ENode, HeapContainer {
                         builder.append("}");
                         break;
                     }
-                    case Type.STRING_TO_LONG_MAP: {
+                    case Type.STRING_TO_INT_MAP: {
                         builder.append("\"");
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("{");
-                        StringLongMap castedMapS2L = (StringLongMap) elem;
+                        StringIntMap castedMapS2L = (StringIntMap) elem;
                         isFirst[0] = true;
                         castedMapS2L.each(new StringLongMapCallBack() {
                             @Override
@@ -826,8 +826,8 @@ class HeapENode implements ENode, HeapContainer {
                                 }
                             }
                             break;
-                        case Type.STRING_TO_LONG_MAP:
-                            HeapStringLongMap castedStringLongMap = (HeapStringLongMap) loopValue;
+                        case Type.STRING_TO_INT_MAP:
+                            HeapStringIntMap castedStringLongMap = (HeapStringIntMap) loopValue;
                             Base64.encodeIntToBuffer(castedStringLongMap.size(), buffer);
                             castedStringLongMap.unsafe_each(new StringLongMapCallBack() {
                                 @Override
@@ -1076,8 +1076,8 @@ class HeapENode implements ENode, HeapContainer {
                                 previous = cursor;
                                 state = LOAD_WAITING_TYPE;
                                 break;
-                            case Type.STRING_TO_LONG_MAP:
-                                HeapStringLongMap s2lmap = new HeapStringLongMap(this);
+                            case Type.STRING_TO_INT_MAP:
+                                HeapStringIntMap s2lmap = new HeapStringIntMap(this);
                                 cursor++;
                                 cursor = s2lmap.load(buffer, cursor, payloadSize);
                                 cursor++;

@@ -1,12 +1,12 @@
 package org.mwg.struct;
 
-public interface StringLongMap extends Map {
+public interface StringIntMap extends Map {
 
-    long getValue(String key);
+    int getValue(String key);
 
-    String getByHash(long index);
+    String getByHash(int index);
 
-    boolean containsHash(long index);
+    boolean containsHash(int index);
 
     /**
      * Add the tuple key/value to the getOrCreateMap.
@@ -15,7 +15,7 @@ public interface StringLongMap extends Map {
      * @param key   to insert key
      * @param value to insert value
      */
-    void put(String key, long value);
+    void put(String key, int value);
 
     /**
      * Remove the corresponding key from the getOrCreateMap

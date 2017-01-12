@@ -143,7 +143,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
      * if(p_elemType == org.mwg.Type.DOUBLE_ARRAY){ if(!(p_unsafe_elem instanceof Float64Array)){ throw new Error("mwDB usage error, set method called with type " + org.mwg.Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
      * if(p_elemType == org.mwg.Type.LONG_ARRAY){ if(!(p_unsafe_elem instanceof Float64Array)){ throw new Error("mwDB usage error, set method called with type " + org.mwg.Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
      * if(p_elemType == org.mwg.Type.INT_ARRAY){ if(!(p_unsafe_elem instanceof Int32Array)){ throw new Error("mwDB usage error, set method called with type " + org.mwg.Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
-     * if(p_elemType == org.mwg.Type.STRING_TO_LONG_MAP){ if(!(typeof p_unsafe_elem === 'object')){ throw new Error("mwDB usage error, set method called with type " + org.mwg.Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
+     * if(p_elemType == org.mwg.Type.STRING_TO_INT_MAP){ if(!(typeof p_unsafe_elem === 'object')){ throw new Error("mwDB usage error, set method called with type " + org.mwg.Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
      * if(p_elemType == org.mwg.Type.LONG_TO_LONG_MAP){ if(!(typeof p_unsafe_elem === 'boolean')){ throw new Error("mwDB usage error, set method called with type " + org.mwg.Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
      * if(p_elemType == org.mwg.Type.LONG_TO_LONG_ARRAY_MAP){ if(!(typeof p_unsafe_elem === 'boolean')){ throw new Error("mwDB usage error, set method called with type " + org.mwg.Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
      * }
@@ -241,8 +241,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             case Type.EGRAPH:
                 toSet = new HeapEGraph(this, null, _space.graph());
                 break;
-            case Type.STRING_TO_LONG_MAP:
-                toSet = new HeapStringLongMap(this);
+            case Type.STRING_TO_INT_MAP:
+                toSet = new HeapStringIntMap(this);
                 break;
             case Type.LONG_TO_LONG_MAP:
                 toSet = new HeapLongLongMap(this);
@@ -354,8 +354,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             }
                         }
                         break;
-                    case Type.STRING_TO_LONG_MAP:
-                        HeapStringLongMap castedStringLongMap = (HeapStringLongMap) loopValue;
+                    case Type.STRING_TO_INT_MAP:
+                        HeapStringIntMap castedStringLongMap = (HeapStringIntMap) loopValue;
                         Base64.encodeIntToBuffer(castedStringLongMap.size(), buffer);
                         castedStringLongMap.unsafe_each(new StringLongMapCallBack() {
                             @Override
@@ -483,9 +483,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             _v[i] = ((HeapLongLongArrayMap) casted._v[i]).cloneFor(this);
                         }
                         break;
-                    case Type.STRING_TO_LONG_MAP:
+                    case Type.STRING_TO_INT_MAP:
                         if (casted._v[i] != null) {
-                            _v[i] = ((HeapStringLongMap) casted._v[i]).cloneFor(this);
+                            _v[i] = ((HeapStringIntMap) casted._v[i]).cloneFor(this);
                         }
                         break;
                     case Type.RELATION:
@@ -612,8 +612,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         System.arraycopy(castedParamInt, 0, clonedIntArray, 0, castedParamInt.length);
                         param_elem = clonedIntArray;
                         break;
-                    case Type.STRING_TO_LONG_MAP:
-                        param_elem = (StringLongMap) p_unsafe_elem;
+                    case Type.STRING_TO_INT_MAP:
+                        param_elem = (StringIntMap) p_unsafe_elem;
                         break;
                     case Type.LONG_TO_LONG_MAP:
                         param_elem = (LongLongMap) p_unsafe_elem;
@@ -998,8 +998,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                     previous = cursor;
                                     state = LOAD_WAITING_TYPE;
                                     break;
-                                case Type.STRING_TO_LONG_MAP:
-                                    HeapStringLongMap s2lmap = new HeapStringLongMap(this);
+                                case Type.STRING_TO_INT_MAP:
+                                    HeapStringIntMap s2lmap = new HeapStringIntMap(this);
                                     cursor++;
                                     cursor = s2lmap.load(buffer, cursor, payloadSize);
                                     cursor++;

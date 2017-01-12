@@ -2,13 +2,12 @@ package org.mwg.core.chunk;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mwg.Constants;
 import org.mwg.Type;
 import org.mwg.chunk.ChunkSpace;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
 import org.mwg.plugin.MemoryFactory;
-import org.mwg.struct.StringLongMap;
+import org.mwg.struct.StringIntMap;
 import org.mwg.utility.HashHelper;
 
 public abstract class AbstractStringLongMapTest {
@@ -24,7 +23,7 @@ public abstract class AbstractStringLongMapTest {
 
         ChunkSpace space = factory.newSpace(100, null);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
-        StringLongMap map = (StringLongMap) chunk.getOrCreate(0, Type.STRING_TO_LONG_MAP);
+        StringIntMap map = (StringIntMap) chunk.getOrCreate(0, Type.STRING_TO_INT_MAP);
         map.put("Hello", 0);
         Assert.assertTrue(0 == map.getValue("Hello"));
 
@@ -39,9 +38,9 @@ public abstract class AbstractStringLongMapTest {
         Assert.assertTrue(1 == map.getValue("Hello"));
         Assert.assertTrue(2 == map.getValue("Hello1"));
 
-        map.put("DictionaryUsage", Constants.NULL_LONG);
-        Assert.assertTrue(Constants.NULL_LONG == map.getValue("DictionaryUsage"));
-        
+        map.put("DictionaryUsage", 10);
+        Assert.assertTrue(10 == map.getValue("DictionaryUsage"));
+
         Assert.assertEquals(1, map.getValue("Hello"));
         Assert.assertTrue(HashHelper.equals("Hello", map.getByHash(HashHelper.hash("Hello"))));
 

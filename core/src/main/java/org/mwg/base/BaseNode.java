@@ -236,7 +236,7 @@ public class BaseNode implements Node {
                 return true;
             case Type.RELATION:
             case Type.RELATION_INDEXED:
-            case Type.STRING_TO_LONG_MAP:
+            case Type.STRING_TO_INT_MAP:
             case Type.LONG_TO_LONG_MAP:
             case Type.LONG_TO_LONG_ARRAY_MAP:
                 throw new RuntimeException("Bad API usage: set can't be used with complex type, please use getOrCreate instead.");
@@ -630,12 +630,12 @@ public class BaseNode implements Node {
                                 builder.append("}");
                                 break;
                             }
-                            case Type.STRING_TO_LONG_MAP: {
+                            case Type.STRING_TO_INT_MAP: {
                                 builder.append(",\"");
                                 builder.append(resolveName);
                                 builder.append("\":");
                                 builder.append("{");
-                                StringLongMap castedMapS2L = (StringLongMap) elem;
+                                StringIntMap castedMapS2L = (StringIntMap) elem;
                                 isFirst[0] = true;
                                 castedMapS2L.each(new StringLongMapCallBack() {
                                     @Override

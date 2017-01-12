@@ -8513,12 +8513,12 @@ var org;
                                     java.lang.System.arraycopy(this.keys, 0, new_keys, 0, this.capacity);
                                 }
                                 this.keys = new_keys;
-                                var new_keysH = new Float64Array(newCapacity);
+                                var new_keysH = new Int32Array(newCapacity);
                                 if (this.keysH != null) {
                                     java.lang.System.arraycopy(this.keysH, 0, new_keysH, 0, this.capacity);
                                 }
                                 this.keysH = new_keysH;
-                                var new_values = new Float64Array(newCapacity);
+                                var new_values = new Int32Array(newCapacity);
                                 if (this.values != null) {
                                     java.lang.System.arraycopy(this.values, 0, new_values, 0, this.capacity);
                                 }
@@ -8547,12 +8547,12 @@ var org;
                                 cloned.keys = cloned_keys;
                             }
                             if (this.keysH != null) {
-                                var cloned_keysH = new Float64Array(this.capacity);
+                                var cloned_keysH = new Int32Array(this.capacity);
                                 java.lang.System.arraycopy(this.keysH, 0, cloned_keysH, 0, this.capacity);
                                 cloned.keysH = cloned_keysH;
                             }
                             if (this.values != null) {
-                                var cloned_values = new Float64Array(this.capacity);
+                                var cloned_values = new Int32Array(this.capacity);
                                 java.lang.System.arraycopy(this.values, 0, cloned_values, 0, this.capacity);
                                 cloned.values = cloned_values;
                             }
@@ -8569,7 +8569,7 @@ var org;
                             return cloned;
                         };
                         HeapStringLongMap.prototype.getValue = function (requestString) {
-                            var result = org.mwg.Constants.NULL_LONG;
+                            var result = -1;
                             {
                                 if (this.keys != null) {
                                     var keyHash = org.mwg.utility.HashHelper.hash(requestString);
@@ -8646,7 +8646,7 @@ var org;
                                     var m = this.hash(hashIndex);
                                     var found = -1;
                                     while (m >= 0) {
-                                        if (requestKey == this.key(m)) {
+                                        if (requestKey === this.key(m)) {
                                             found = m;
                                             break;
                                         }
@@ -8765,7 +8765,7 @@ var org;
                                             previousKey = org.mwg.utility.Base64.decodeToStringWithBounds(buffer, previous, cursor);
                                         }
                                         else {
-                                            this.put(previousKey, org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                            this.put(previousKey, org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                             previousKey = null;
                                         }
                                     }
@@ -8781,7 +8781,7 @@ var org;
                             }
                             else {
                                 if (previousKey != null) {
-                                    this.put(previousKey, org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                    this.put(previousKey, org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                 }
                             }
                             return cursor;

@@ -324,10 +324,10 @@ public abstract class AbstractStateChunkTest {
         long2longMap.put(Constants.END_OF_TIME, Constants.END_OF_TIME);
         long2longMap.put(Constants.BEGINNING_OF_TIME, Constants.BEGINNING_OF_TIME);
 
-        StringLongMap string2longMap = (StringLongMap) chunk.getOrCreate(9, Type.STRING_TO_LONG_MAP);
+        StringIntMap string2longMap = (StringIntMap) chunk.getOrCreate(9, Type.STRING_TO_INT_MAP);
         string2longMap.put("1", 1);
-        string2longMap.put(Constants.END_OF_TIME + "", Constants.END_OF_TIME);
-        string2longMap.put(Constants.BEGINNING_OF_TIME + "", Constants.BEGINNING_OF_TIME);
+        string2longMap.put(Constants.END_OF_TIME + "", 1000000);
+        string2longMap.put(Constants.BEGINNING_OF_TIME + "", -1000000);
 
         LongLongArrayMap long2longArrayMap = (LongLongArrayMap) chunk.getOrCreate(10, Type.LONG_TO_LONG_ARRAY_MAP);
         long2longArrayMap.put(1, 1);
@@ -347,7 +347,7 @@ public abstract class AbstractStateChunkTest {
         chunk2.save(buffer2);
 
         Assert.assertEquals(((LongLongMap) chunk2.get(8)).size(), 3);
-        Assert.assertEquals(((StringLongMap) chunk2.get(9)).size(), 3);
+        Assert.assertEquals(((StringIntMap) chunk2.get(9)).size(), 3);
         Assert.assertEquals(((LongLongArrayMap) chunk2.get(10)).size(), 4);
 
         Assert.assertTrue(compareBuffers(buffer, buffer2));
@@ -413,7 +413,7 @@ public abstract class AbstractStateChunkTest {
         //init maps
         ((LongLongMap) chunk.getOrCreate(8, Type.LONG_TO_LONG_MAP)).put(100, 100);
         ((LongLongArrayMap) chunk.getOrCreate(9, Type.LONG_TO_LONG_ARRAY_MAP)).put(100, 100);
-        ((StringLongMap) chunk.getOrCreate(10, Type.STRING_TO_LONG_MAP)).put("100", 100);
+        ((StringIntMap) chunk.getOrCreate(10, Type.STRING_TO_INT_MAP)).put("100", 100);
 
         //clone the chunk
         StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
@@ -447,7 +447,7 @@ public abstract class AbstractStateChunkTest {
         //test maps
         Assert.assertEquals(((LongLongMap) chunk2.get(8)).get(100), 100);
         Assert.assertEquals(((LongLongArrayMap) chunk2.get(9)).get(100)[0], 100);
-        Assert.assertEquals(((StringLongMap) chunk2.get(10)).getValue("100"), 100);
+        Assert.assertEquals(((StringIntMap) chunk2.get(10)).getValue("100"), 100);
 
         //now we test the co-evolution of clone
 
@@ -485,9 +485,9 @@ public abstract class AbstractStateChunkTest {
         Assert.assertTrue(((LongLongArrayMap) chunk2.get(9)).get(100)[1] == 100);
         Assert.assertTrue(((LongLongArrayMap) chunk.get(9)).get(100)[0] == 100);
 
-        ((StringLongMap) chunk2.get(10)).put("100", 200);
-        Assert.assertTrue(((StringLongMap) chunk2.get(10)).getValue("100") == 200);
-        Assert.assertTrue(((StringLongMap) chunk.get(10)).getValue("100") == 100);
+        ((StringIntMap) chunk2.get(10)).put("100", 200);
+        Assert.assertTrue(((StringIntMap) chunk2.get(10)).getValue("100") == 200);
+        Assert.assertTrue(((StringIntMap) chunk.get(10)).getValue("100") == 100);
 
         // add something new instead of replacing something -> triggers the shallow copy of the clone
         chunk2.set(11, Type.STRING, "newString");
@@ -538,7 +538,7 @@ public abstract class AbstractStateChunkTest {
         protectionMethod(chunk, Type.INT_ARRAY, "hello", true);
 
         //maps
-        protectionMethod(chunk, Type.STRING_TO_LONG_MAP, "hello", true);
+        protectionMethod(chunk, Type.STRING_TO_INT_MAP, "hello", true);
         protectionMethod(chunk, Type.LONG_TO_LONG_MAP, "hello", true);
         protectionMethod(chunk, Type.LONG_TO_LONG_ARRAY_MAP, "hello", true);
 
@@ -566,7 +566,7 @@ public abstract class AbstractStateChunkTest {
         //init maps
         ((LongLongMap) chunk.getOrCreate(8, Type.LONG_TO_LONG_MAP)).put(100, 100);
         ((LongLongArrayMap) chunk.getOrCreate(9, Type.LONG_TO_LONG_ARRAY_MAP)).put(100, 100);
-        ((StringLongMap) chunk.getOrCreate(10, Type.STRING_TO_LONG_MAP)).put("100", 100);
+        ((StringIntMap) chunk.getOrCreate(10, Type.STRING_TO_INT_MAP)).put("100", 100);
 
         //ok now switch all types
 
@@ -609,7 +609,7 @@ public abstract class AbstractStateChunkTest {
         //switch maps
         ((LongLongMap) chunk.getOrCreate(7, Type.LONG_TO_LONG_MAP)).put(100, 100);
         ((LongLongArrayMap) chunk.getOrCreate(8, Type.LONG_TO_LONG_ARRAY_MAP)).put(100, 100);
-        ((StringLongMap) chunk.getOrCreate(9, Type.STRING_TO_LONG_MAP)).put("100", 100);
+        ((StringIntMap) chunk.getOrCreate(9, Type.STRING_TO_INT_MAP)).put("100", 100);
 
         space.free(chunk);
         space.freeAll();

@@ -3,14 +3,14 @@ package org.mwg.core.chunk.heap;
 
 import org.mwg.Constants;
 import org.mwg.struct.Buffer;
-import org.mwg.struct.StringLongMap;
+import org.mwg.struct.StringIntMap;
 import org.mwg.struct.StringLongMapCallBack;
 import org.mwg.utility.Base64;
 import org.mwg.utility.HashHelper;
 
 import java.util.Arrays;
 
-class HeapStringLongMap implements StringLongMap {
+class HeapStringIntMap implements StringIntMap {
 
     private final HeapContainer parent;
 
@@ -18,12 +18,12 @@ class HeapStringLongMap implements StringLongMap {
     private int capacity = 0;
 
     private String[] keys = null;
-    private long[] keysH = null;
-    private long[] values = null;
+    private int[] keysH = null;
+    private int[] values = null;
     private int[] nexts = null;
     private int[] hashs = null;
 
-    HeapStringLongMap(final HeapContainer p_parent) {
+    HeapStringIntMap(final HeapContainer p_parent) {
         this.parent = p_parent;
     }
 
@@ -35,19 +35,19 @@ class HeapStringLongMap implements StringLongMap {
         keys[i] = newValue;
     }
 
-    private long keyH(int i) {
+    private int keyH(int i) {
         return keysH[i];
     }
 
-    private void setKeyH(int i, long newValue) {
+    private void setKeyH(int i, int newValue) {
         keysH[i] = newValue;
     }
 
-    private long value(int i) {
+    private int value(int i) {
         return values[i];
     }
 
-    private void setValue(int i, long newValue) {
+    private void setValue(int i, int newValue) {
         values[i] = newValue;
     }
 
@@ -76,13 +76,13 @@ class HeapStringLongMap implements StringLongMap {
             }
             keys = new_keys;
             //extend keysH
-            long[] new_keysH = new long[newCapacity];
+            int[] new_keysH = new int[newCapacity];
             if (keysH != null) {
                 System.arraycopy(keysH, 0, new_keysH, 0, capacity);
             }
             keysH = new_keysH;
             //extend values
-            long[] new_values = new long[newCapacity];
+            int[] new_values = new int[newCapacity];
             if (values != null) {
                 System.arraycopy(values, 0, new_values, 0, capacity);
             }
@@ -102,8 +102,8 @@ class HeapStringLongMap implements StringLongMap {
         }
     }
 
-    HeapStringLongMap cloneFor(HeapContainer newContainer) {
-        HeapStringLongMap cloned = new HeapStringLongMap(newContainer);
+    HeapStringIntMap cloneFor(HeapContainer newContainer) {
+        HeapStringIntMap cloned = new HeapStringIntMap(newContainer);
         cloned.mapSize = mapSize;
         cloned.capacity = capacity;
         if (keys != null) {
@@ -112,12 +112,12 @@ class HeapStringLongMap implements StringLongMap {
             cloned.keys = cloned_keys;
         }
         if (keysH != null) {
-            long[] cloned_keysH = new long[capacity];
+            int[] cloned_keysH = new int[capacity];
             System.arraycopy(keysH, 0, cloned_keysH, 0, capacity);
             cloned.keysH = cloned_keysH;
         }
         if (values != null) {
-            long[] cloned_values = new long[capacity];
+            int[] cloned_values = new int[capacity];
             System.arraycopy(values, 0, cloned_values, 0, capacity);
             cloned.values = cloned_values;
         }
@@ -135,11 +135,11 @@ class HeapStringLongMap implements StringLongMap {
     }
 
     @Override
-    public final long getValue(final String requestString) {
-        long result = Constants.NULL_LONG;
+    public final int getValue(final String requestString) {
+        int result = -1;
         synchronized (parent) {
             if (keys != null) {
-                final long keyHash = HashHelper.hash(requestString);
+                final int keyHash = HashHelper.hash(requestString);
                 final int hashIndex = (int) HashHelper.longHash(keyHash, capacity * 2);
                 int m = hash(hashIndex);
                 while (m >= 0) {
@@ -156,7 +156,7 @@ class HeapStringLongMap implements StringLongMap {
 
 
     @Override
-    public String getByHash(final long keyHash) {
+    public String getByHash(final int keyHash) {
         String result = null;
         synchronized (parent) {
             if (keys != null) {
@@ -175,7 +175,7 @@ class HeapStringLongMap implements StringLongMap {
     }
 
     @Override
-    public boolean containsHash(long keyHash) {
+    public boolean containsHash(int keyHash) {
         boolean result = false;
         synchronized (parent) {
             if (keys != null) {
@@ -219,13 +219,13 @@ class HeapStringLongMap implements StringLongMap {
     public final void remove(final String requestKey) {
         synchronized (parent) {
             if (keys != null && mapSize != 0) {
-                final long keyHash = HashHelper.hash(requestKey);
-                long hashCapacity = capacity * 2;
+                final int keyHash = HashHelper.hash(requestKey);
+                int hashCapacity = capacity * 2;
                 int hashIndex = (int) HashHelper.longHash(keyHash, hashCapacity);
                 int m = hash(hashIndex);
                 int found = -1;
                 while (m >= 0) {
-                    if (requestKey == key(m)) {
+                    if (requestKey.equals(key(m))) {
                         found = m;
                         break;
                     }
@@ -254,7 +254,7 @@ class HeapStringLongMap implements StringLongMap {
                     } else {
                         //less cool, we have to unchain the last value of the map
                         final String lastKey = key(lastIndex);
-                        final long lastKeyH = keyH(lastIndex);
+                        final int lastKeyH = keyH(lastIndex);
                         setKey(found, lastKey);
                         setKeyH(found, lastKeyH);
                         setValue(found, value(lastIndex));
@@ -284,9 +284,9 @@ class HeapStringLongMap implements StringLongMap {
     }
 
     @Override
-    public final void put(final String insertKey, final long insertValue) {
+    public final void put(final String insertKey, final int insertValue) {
         synchronized (parent) {
-            final long keyHash = HashHelper.hash(insertKey);
+            final int keyHash = HashHelper.hash(insertKey);
             if (keys == null) {
                 reallocate(Constants.MAP_INITIAL_CAPACITY);
                 setKey(0, insertKey);
@@ -296,7 +296,7 @@ class HeapStringLongMap implements StringLongMap {
                 setNext(0, -1);
                 mapSize++;
             } else {
-                long hashCapacity = capacity * 2;
+                int hashCapacity = capacity * 2;
                 int insertKeyHash = (int) HashHelper.longHash(keyHash, hashCapacity);
                 int currentHash = hash(insertKeyHash);
                 int m = currentHash;
@@ -345,7 +345,7 @@ class HeapStringLongMap implements StringLongMap {
                     if (previousKey == null) {
                         previousKey = Base64.decodeToStringWithBounds(buffer, previous, cursor);
                     } else {
-                        put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                        put(previousKey, Base64.decodeToIntWithBounds(buffer, previous, cursor));
                         previousKey = null;
                     }
                 }
@@ -360,7 +360,7 @@ class HeapStringLongMap implements StringLongMap {
             reallocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
         } else {
             if (previousKey != null) {
-                put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                put(previousKey, Base64.decodeToIntWithBounds(buffer, previous, cursor));
             }
         }
         return cursor;

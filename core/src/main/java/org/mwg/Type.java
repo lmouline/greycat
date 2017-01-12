@@ -20,7 +20,7 @@ public class Type {
 
     public static final byte LONG_TO_LONG_MAP = 9;
     public static final byte LONG_TO_LONG_ARRAY_MAP = 10;
-    public static final byte STRING_TO_LONG_MAP = 11;
+    public static final byte STRING_TO_INT_MAP = 11;
 
     public static final byte RELATION = 12;
     public static final byte RELATION_INDEXED = 13;
@@ -63,8 +63,8 @@ public class Type {
                 return "LONG_TO_LONG_MAP";
             case Type.LONG_TO_LONG_ARRAY_MAP:
                 return "LONG_TO_LONG_ARRAY_MAP";
-            case Type.STRING_TO_LONG_MAP:
-                return "STRING_TO_LONG_MAP";
+            case Type.STRING_TO_INT_MAP:
+                return "STRING_TO_INT_MAP";
             case Type.RELATION:
                 return "RELATION";
             case Type.RELATION_INDEXED:
@@ -106,8 +106,8 @@ public class Type {
                 return Type.LONG_TO_LONG_MAP;
             case "LONG_TO_LONG_ARRAY_MAP":
                 return Type.LONG_TO_LONG_ARRAY_MAP;
-            case "STRING_TO_LONG_MAP":
-                return Type.STRING_TO_LONG_MAP;
+            case "STRING_TO_INT_MAP":
+                return Type.STRING_TO_INT_MAP;
             case "RELATION":
                 return Type.RELATION;
             case "RELATION_INDEXED":

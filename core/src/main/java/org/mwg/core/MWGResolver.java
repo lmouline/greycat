@@ -7,7 +7,7 @@ import org.mwg.plugin.*;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
 import org.mwg.struct.LongLongMap;
-import org.mwg.struct.StringLongMap;
+import org.mwg.struct.StringIntMap;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.KeyHelper;
 
@@ -1373,9 +1373,9 @@ final class MWGResolver implements Resolver {
     public int stringToHash(String name, boolean insertIfNotExists) {
         int hash = HashHelper.hash(name);
         if (insertIfNotExists) {
-            StringLongMap dictionaryIndex = (StringLongMap) this.dictionary.get(0);
+            StringIntMap dictionaryIndex = (StringIntMap) this.dictionary.get(0);
             if (dictionaryIndex == null) {
-                dictionaryIndex = (StringLongMap) this.dictionary.getOrCreate(0, Type.STRING_TO_LONG_MAP);
+                dictionaryIndex = (StringIntMap) this.dictionary.getOrCreate(0, Type.STRING_TO_INT_MAP);
             }
             if (!dictionaryIndex.containsHash(hash)) {
                 dictionaryIndex.put(name, hash);
@@ -1386,7 +1386,7 @@ final class MWGResolver implements Resolver {
 
     @Override
     public String hashToString(int key) {
-        final StringLongMap dictionaryIndex = (StringLongMap) this.dictionary.get(0);
+        final StringIntMap dictionaryIndex = (StringIntMap) this.dictionary.get(0);
         if (dictionaryIndex != null) {
             return dictionaryIndex.getByHash(key);
         }
