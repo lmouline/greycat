@@ -743,11 +743,11 @@ class HeapENode implements ENode, HeapContainer {
             if (_v[i] != null) { //there is a real value
                 final Object loopValue = _v[i];
                 if (loopValue != null) {
-                    buffer.write(CoreConstants.CHUNK_SEP);
+                    buffer.write(CoreConstants.CHUNK_ESEP);
                     Base64.encodeIntToBuffer(_type[i], buffer);
-                    buffer.write(CoreConstants.CHUNK_SEP);
+                    buffer.write(CoreConstants.CHUNK_ESEP);
                     Base64.encodeLongToBuffer(_k[i], buffer);
-                    buffer.write(CoreConstants.CHUNK_SEP);
+                    buffer.write(CoreConstants.CHUNK_ESEP);
                     switch (_type[i]) {
                         //additional types for embedded
                         case Type.ENODE:
@@ -910,9 +910,9 @@ class HeapENode implements ENode, HeapContainer {
         long read_key = -1;
         while (cursor < payloadSize) {
             byte current = buffer.read(cursor);
-            if (current == Constants.CHUNK_ENODE_SEP) {
+            if (current == Constants.CHUNK_ENODE_SEP || current == Constants.CHUNK_SEP) {
                 break;
-            } else if (current == Constants.CHUNK_SEP) {
+            } else if (current == Constants.CHUNK_ESEP) {
                 switch (state) {
                     case LOAD_WAITING_ALLOC:
                         allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -948,7 +948,7 @@ class HeapENode implements ENode, HeapContainer {
                                 cursor++;
                                 previous = cursor;
                                 current = buffer.read(cursor);
-                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
                                     if (current == Constants.CHUNK_VAL_SEP) {
                                         if (doubleArrayLoaded == null) {
                                             doubleArrayLoaded = new double[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
@@ -969,7 +969,7 @@ class HeapENode implements ENode, HeapContainer {
                                     doubleArrayLoaded[doubleArrayIndex] = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
                                 }
                                 internal_set(read_key, read_type, doubleArrayLoaded, true, initial);
-                                if (current != Constants.CHUNK_ENODE_SEP) {
+                                if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
                                     state = LOAD_WAITING_TYPE;
                                     cursor++;
                                     previous = cursor;
@@ -981,7 +981,7 @@ class HeapENode implements ENode, HeapContainer {
                                 cursor++;
                                 previous = cursor;
                                 current = buffer.read(cursor);
-                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
                                     if (current == Constants.CHUNK_VAL_SEP) {
                                         if (longArrayLoaded == null) {
                                             longArrayLoaded = new long[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
@@ -1002,7 +1002,7 @@ class HeapENode implements ENode, HeapContainer {
                                     longArrayLoaded[longArrayIndex] = Base64.decodeToLongWithBounds(buffer, previous, cursor);
                                 }
                                 internal_set(read_key, read_type, longArrayLoaded, true, initial);
-                                if (current != Constants.CHUNK_ENODE_SEP) {
+                                if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
                                     state = LOAD_WAITING_TYPE;
                                     cursor++;
                                     previous = cursor;
@@ -1014,7 +1014,7 @@ class HeapENode implements ENode, HeapContainer {
                                 cursor++;
                                 previous = cursor;
                                 current = buffer.read(cursor);
-                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
                                     if (current == Constants.CHUNK_VAL_SEP) {
                                         if (intArrayLoaded == null) {
                                             intArrayLoaded = new int[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
@@ -1035,7 +1035,7 @@ class HeapENode implements ENode, HeapContainer {
                                     intArrayLoaded[intArrayIndex] = Base64.decodeToIntWithBounds(buffer, previous, cursor);
                                 }
                                 internal_set(read_key, read_type, intArrayLoaded, true, initial);
-                                if (current != Constants.CHUNK_ENODE_SEP) {
+                                if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
                                     state = LOAD_WAITING_TYPE;
                                     cursor++;
                                     previous = cursor;
@@ -1109,7 +1109,7 @@ class HeapENode implements ENode, HeapContainer {
                                 cursor++;
                                 previous = cursor;
                                 current = buffer.read(cursor);
-                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
                                     if (current == Constants.CHUNK_VAL_SEP) {
                                         if (eRelation == null) {
                                             eRelation = new HeapERelation(this, null);
@@ -1129,7 +1129,7 @@ class HeapENode implements ENode, HeapContainer {
                                     eRelation.add(egraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true));
                                 }
                                 internal_set(read_key, read_type, eRelation, true, initial);
-                                if (current != Constants.CHUNK_ENODE_SEP) {
+                                if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
                                     state = LOAD_WAITING_TYPE;
                                     cursor++;
                                     previous = cursor;

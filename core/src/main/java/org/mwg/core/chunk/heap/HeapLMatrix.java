@@ -408,7 +408,7 @@ class HeapLMatrix implements LMatrix {
         boolean isFirst = true;
         long previous = offset;
         long elemIndex = 0;
-        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
                     unsafe_init(Base64.decodeToLongWithBounds(buffer, previous, cursor));

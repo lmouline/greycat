@@ -337,6 +337,7 @@ declare module org {
             static SUB_TASK_DECLR: string;
             static CHUNK_SEP: number;
             static CHUNK_ENODE_SEP: number;
+            static CHUNK_ESEP: number;
             static CHUNK_VAL_SEP: number;
             static BUFFER_SEP: number;
             static KEY_SEP: number;
@@ -361,6 +362,7 @@ declare module org {
             newTypedNode(world: number, time: number, nodeType: string): org.mwg.Node;
             cloneNode(origin: org.mwg.Node): org.mwg.Node;
             lookup<A extends org.mwg.Node>(world: number, time: number, id: number, callback: org.mwg.Callback<A>): void;
+            lookupBatch(worlds: Float64Array, times: Float64Array, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
             lookupAll(world: number, time: number, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
             lookupTimes(world: number, from: number, to: number, id: number, callback: org.mwg.Callback<org.mwg.Node[]>): void;
             lookupAllTimes(world: number, from: number, to: number, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
@@ -690,6 +692,7 @@ declare module org {
                 externalAttribute(name: string): org.mwg.plugin.ExternalAttributeFactory;
                 taskHooks(): org.mwg.task.TaskHook[];
                 lookup<A extends org.mwg.Node>(world: number, time: number, id: number, callback: org.mwg.Callback<A>): void;
+                lookupBatch(worlds: Float64Array, times: Float64Array, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 lookupAll(world: number, time: number, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 lookupTimes(world: number, from: number, to: number, id: number, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 lookupAllTimes(world: number, from: number, to: number, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
@@ -759,6 +762,7 @@ declare module org {
                 initWorld(parentWorld: number, childWorld: number): void;
                 freeNode(node: org.mwg.Node): void;
                 lookup<A extends org.mwg.Node>(world: number, time: number, id: number, callback: org.mwg.Callback<A>): void;
+                lookupBatch(worlds: Float64Array, times: Float64Array, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 lookupTimes(world: number, from: number, to: number, id: number, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 private lookupAll_end(finalResult, callback, sizeIds, worldOrders, superTimes, times, chunks);
                 lookupAll(world: number, time: number, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
@@ -1560,11 +1564,12 @@ declare module org {
                 }
                 class ActionSetAttribute implements org.mwg.task.Action {
                     private _name;
-                    private _variableNameToSet;
+                    private _value;
                     private _propertyType;
                     private _force;
-                    constructor(name: string, propertyType: number, variableNameToSet: string, force: boolean);
+                    constructor(name: string, propertyType: number, value: string, force: boolean);
                     eval(ctx: org.mwg.task.TaskContext): void;
+                    private loadArray(valueAfterTemplate, type);
                     private parseBoolean(booleanValue);
                     serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
@@ -2193,6 +2198,7 @@ declare module org {
                 typeName(node: org.mwg.Node): string;
                 typeCode(node: org.mwg.Node): number;
                 lookup<A extends org.mwg.Node>(world: number, time: number, id: number, callback: org.mwg.Callback<A>): void;
+                lookupBatch(worlds: Float64Array, times: Float64Array, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 lookupTimes(world: number, from: number, to: number, id: number, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 lookupAll(world: number, time: number, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 lookupAllTimes(world: number, from: number, to: number, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;

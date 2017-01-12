@@ -238,7 +238,7 @@ class HeapRelation implements Relation {
         byte current = buffer.read(cursor);
         boolean isFirst = true;
         long previous = offset;
-        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
                     allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));

@@ -1281,6 +1281,7 @@ var org;
         Constants.SUB_TASK_DECLR = '#';
         Constants.CHUNK_SEP = "|".charCodeAt(0);
         Constants.CHUNK_ENODE_SEP = "$".charCodeAt(0);
+        Constants.CHUNK_ESEP = "%".charCodeAt(0);
         Constants.CHUNK_VAL_SEP = ":".charCodeAt(0);
         Constants.BUFFER_SEP = "#".charCodeAt(0);
         Constants.KEY_SEP = ";".charCodeAt(0);
@@ -2374,6 +2375,12 @@ var org;
                     }
                     this._resolver.lookup(world, time, id, callback);
                 };
+                CoreGraph.prototype.lookupBatch = function (worlds, times, ids, callback) {
+                    if (!this._isConnected.get()) {
+                        throw new Error(org.mwg.core.CoreConstants.DISCONNECTED_ERROR);
+                    }
+                    this._resolver.lookupBatch(worlds, times, ids, callback);
+                };
                 CoreGraph.prototype.lookupAll = function (world, time, ids, callback) {
                     if (!this._isConnected.get()) {
                         throw new Error(org.mwg.core.CoreConstants.DISCONNECTED_ERROR);
@@ -2946,6 +2953,162 @@ var org;
                             }
                         }
                     });
+                };
+                MWGResolver.prototype.lookupBatch = function (worlds, times, ids, callback) {
+                    var _this = this;
+                    var idsSize = ids.length;
+                    if (!(worlds.length == times.length && times.length == idsSize)) {
+                        throw new Error("Bad API usage");
+                    }
+                    var selfPointer = this;
+                    var finalResult = new Array(idsSize);
+                    for (var i = 0; i < idsSize; i++) {
+                        finalResult[i] = null;
+                    }
+                    var isEmpty = [true];
+                    var keys = new Float64Array(idsSize * org.mwg.Constants.KEY_SIZE);
+                    for (var i = 0; i < idsSize; i++) {
+                        isEmpty[0] = false;
+                        keys[i * org.mwg.Constants.KEY_SIZE] = org.mwg.chunk.ChunkType.WORLD_ORDER_CHUNK;
+                        keys[(i * org.mwg.Constants.KEY_SIZE) + 1] = 0;
+                        keys[(i * org.mwg.Constants.KEY_SIZE) + 2] = 0;
+                        keys[(i * org.mwg.Constants.KEY_SIZE) + 3] = ids[i];
+                    }
+                    if (isEmpty[0]) {
+                        this.lookupAll_end(finalResult, callback, idsSize, null, null, null, null);
+                    }
+                    else {
+                        selfPointer._space.getOrLoadAndMarkAll(keys, function (theNodeWorldOrders) {
+                            {
+                                if (theNodeWorldOrders == null) {
+                                    _this.lookupAll_end(finalResult, callback, idsSize, null, null, null, null);
+                                }
+                                else {
+                                    isEmpty[0] = true;
+                                    for (var i = 0; i < idsSize; i++) {
+                                        if (theNodeWorldOrders[i] != null) {
+                                            isEmpty[0] = false;
+                                            keys[i * org.mwg.Constants.KEY_SIZE] = org.mwg.chunk.ChunkType.TIME_TREE_CHUNK;
+                                            keys[(i * org.mwg.Constants.KEY_SIZE) + 1] = selfPointer.resolve_world(_this.globalWorldOrderChunk, theNodeWorldOrders[i], times[i], worlds[i]);
+                                            keys[(i * org.mwg.Constants.KEY_SIZE) + 2] = org.mwg.Constants.NULL_LONG;
+                                        }
+                                        else {
+                                            keys[i * org.mwg.Constants.KEY_SIZE] = -1;
+                                        }
+                                    }
+                                    if (isEmpty[0]) {
+                                        _this.lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, null, null, null);
+                                    }
+                                    else {
+                                        selfPointer._space.getOrLoadAndMarkAll(keys, function (theNodeSuperTimeTrees) {
+                                            {
+                                                if (theNodeSuperTimeTrees == null) {
+                                                    _this.lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, null, null, null);
+                                                }
+                                                else {
+                                                    isEmpty[0] = true;
+                                                    for (var i = 0; i < idsSize; i++) {
+                                                        if (theNodeSuperTimeTrees[i] != null) {
+                                                            var closestSuperTime = theNodeSuperTimeTrees[i].previousOrEqual(times[i]);
+                                                            if (closestSuperTime == org.mwg.Constants.NULL_LONG) {
+                                                                keys[i * org.mwg.Constants.KEY_SIZE] = -1;
+                                                            }
+                                                            else {
+                                                                isEmpty[0] = false;
+                                                                keys[(i * org.mwg.Constants.KEY_SIZE) + 2] = closestSuperTime;
+                                                            }
+                                                        }
+                                                        else {
+                                                            keys[i * org.mwg.Constants.KEY_SIZE] = -1;
+                                                        }
+                                                    }
+                                                    if (isEmpty[0]) {
+                                                        _this.lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, null, null);
+                                                    }
+                                                    else {
+                                                        selfPointer._space.getOrLoadAndMarkAll(keys, function (theNodeTimeTrees) {
+                                                            {
+                                                                if (theNodeTimeTrees == null) {
+                                                                    _this.lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, null, null);
+                                                                }
+                                                                else {
+                                                                    isEmpty[0] = true;
+                                                                    for (var i = 0; i < idsSize; i++) {
+                                                                        if (theNodeTimeTrees[i] != null) {
+                                                                            var closestTime = theNodeTimeTrees[i].previousOrEqual(times[i]);
+                                                                            if (closestTime == org.mwg.Constants.NULL_LONG) {
+                                                                                keys[i * org.mwg.Constants.KEY_SIZE] = -1;
+                                                                            }
+                                                                            else {
+                                                                                isEmpty[0] = false;
+                                                                                keys[(i * org.mwg.Constants.KEY_SIZE)] = org.mwg.chunk.ChunkType.STATE_CHUNK;
+                                                                                keys[(i * org.mwg.Constants.KEY_SIZE) + 2] = closestTime;
+                                                                            }
+                                                                        }
+                                                                        else {
+                                                                            keys[i * org.mwg.Constants.KEY_SIZE] = -1;
+                                                                        }
+                                                                    }
+                                                                    if (isEmpty[0]) {
+                                                                        _this.lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, theNodeTimeTrees, null);
+                                                                    }
+                                                                    else {
+                                                                        selfPointer._space.getOrLoadAndMarkAll(keys, function (theObjectChunks) {
+                                                                            {
+                                                                                if (theObjectChunks == null) {
+                                                                                    _this.lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, theNodeTimeTrees, null);
+                                                                                }
+                                                                                else {
+                                                                                    for (var i = 0; i < idsSize; i++) {
+                                                                                        if (theObjectChunks[i] != null) {
+                                                                                            var castedNodeWorldOrder = theNodeWorldOrders[i];
+                                                                                            var extraCode = castedNodeWorldOrder.extra();
+                                                                                            var resolvedFactory = null;
+                                                                                            if (extraCode != org.mwg.Constants.NULL_LONG) {
+                                                                                                resolvedFactory = selfPointer._graph.factoryByCode(extraCode);
+                                                                                            }
+                                                                                            var resolvedNode = void 0;
+                                                                                            if (resolvedFactory == null) {
+                                                                                                resolvedNode = new org.mwg.base.BaseNode(worlds[i], times[i], ids[i], selfPointer._graph);
+                                                                                            }
+                                                                                            else {
+                                                                                                resolvedNode = resolvedFactory(worlds[i], times[i], ids[i], selfPointer._graph);
+                                                                                            }
+                                                                                            resolvedNode._dead = false;
+                                                                                            resolvedNode._index_stateChunk = theObjectChunks[i].index();
+                                                                                            resolvedNode._index_superTimeTree = theNodeSuperTimeTrees[i].index();
+                                                                                            resolvedNode._index_timeTree = theNodeTimeTrees[i].index();
+                                                                                            resolvedNode._index_worldOrder = theNodeWorldOrders[i].index();
+                                                                                            if (theObjectChunks[i].world() == worlds[i] && theObjectChunks[i].time() == times[i]) {
+                                                                                                resolvedNode._world_magic = -1;
+                                                                                                resolvedNode._super_time_magic = -1;
+                                                                                                resolvedNode._time_magic = -1;
+                                                                                            }
+                                                                                            else {
+                                                                                                resolvedNode._world_magic = theNodeWorldOrders[i].magic();
+                                                                                                resolvedNode._super_time_magic = theNodeSuperTimeTrees[i].magic();
+                                                                                                resolvedNode._time_magic = theNodeTimeTrees[i].magic();
+                                                                                            }
+                                                                                            finalResult[i] = resolvedNode;
+                                                                                        }
+                                                                                    }
+                                                                                    _this.lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, theNodeTimeTrees, theObjectChunks);
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                    }
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        });
+                    }
                 };
                 MWGResolver.prototype.lookupTimes = function (world, from, to, id, callback) {
                     var selfPointer = this;
@@ -4349,7 +4512,7 @@ var org;
                             var isFirst = true;
                             var previous = offset;
                             var elemIndex = 0;
-                            while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                            while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                 if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                     if (isFirst) {
                                         this.unsafe_init(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -5224,11 +5387,11 @@ var org;
                                 if (this._v[i] != null) {
                                     var loopValue = this._v[i];
                                     if (loopValue != null) {
-                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_ESEP);
                                         org.mwg.utility.Base64.encodeIntToBuffer(this._type[i], buffer);
-                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_ESEP);
                                         org.mwg.utility.Base64.encodeLongToBuffer(this._k[i], buffer);
-                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_ESEP);
                                         switch (this._type[i]) {
                                             case org.mwg.Type.ENODE:
                                                 org.mwg.utility.Base64.encodeIntToBuffer(loopValue._id, buffer);
@@ -5380,10 +5543,10 @@ var org;
                             var read_key = -1;
                             while (cursor < payloadSize) {
                                 var current = buffer.read(cursor);
-                                if (current == org.mwg.Constants.CHUNK_ENODE_SEP) {
+                                if (current == org.mwg.Constants.CHUNK_ENODE_SEP || current == org.mwg.Constants.CHUNK_SEP) {
                                     break;
                                 }
-                                else if (current == org.mwg.Constants.CHUNK_SEP) {
+                                else if (current == org.mwg.Constants.CHUNK_ESEP) {
                                     switch (state) {
                                         case HeapENode.LOAD_WAITING_ALLOC:
                                             this.allocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -5416,7 +5579,7 @@ var org;
                                                     cursor++;
                                                     previous = cursor;
                                                     current = buffer.read(cursor);
-                                                    while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                                                    while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                                         if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                                             if (doubleArrayLoaded == null) {
                                                                 doubleArrayLoaded = new Float64Array(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -5439,7 +5602,7 @@ var org;
                                                         doubleArrayLoaded[doubleArrayIndex] = org.mwg.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
                                                     }
                                                     this.internal_set(read_key, read_type, doubleArrayLoaded, true, initial);
-                                                    if (current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                                                    if (current == org.mwg.Constants.CHUNK_ESEP && cursor < payloadSize) {
                                                         state = HeapENode.LOAD_WAITING_TYPE;
                                                         cursor++;
                                                         previous = cursor;
@@ -5451,7 +5614,7 @@ var org;
                                                     cursor++;
                                                     previous = cursor;
                                                     current = buffer.read(cursor);
-                                                    while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                                                    while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                                         if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                                             if (longArrayLoaded == null) {
                                                                 longArrayLoaded = new Float64Array(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -5474,7 +5637,7 @@ var org;
                                                         longArrayLoaded[longArrayIndex] = org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
                                                     }
                                                     this.internal_set(read_key, read_type, longArrayLoaded, true, initial);
-                                                    if (current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                                                    if (current == org.mwg.Constants.CHUNK_ESEP && cursor < payloadSize) {
                                                         state = HeapENode.LOAD_WAITING_TYPE;
                                                         cursor++;
                                                         previous = cursor;
@@ -5486,7 +5649,7 @@ var org;
                                                     cursor++;
                                                     previous = cursor;
                                                     current = buffer.read(cursor);
-                                                    while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                                                    while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                                         if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                                             if (intArrayLoaded == null) {
                                                                 intArrayLoaded = new Int32Array(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -5509,7 +5672,7 @@ var org;
                                                         intArrayLoaded[intArrayIndex] = org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
                                                     }
                                                     this.internal_set(read_key, read_type, intArrayLoaded, true, initial);
-                                                    if (current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                                                    if (current == org.mwg.Constants.CHUNK_ESEP && cursor < payloadSize) {
                                                         state = HeapENode.LOAD_WAITING_TYPE;
                                                         cursor++;
                                                         previous = cursor;
@@ -5583,7 +5746,7 @@ var org;
                                                     cursor++;
                                                     previous = cursor;
                                                     current = buffer.read(cursor);
-                                                    while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                                                    while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                                         if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                                             if (eRelation == null) {
                                                                 eRelation = new org.mwg.core.chunk.heap.HeapERelation(this, null);
@@ -5605,7 +5768,7 @@ var org;
                                                         eRelation.add(this.egraph.nodeByIndex(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor), true));
                                                     }
                                                     this.internal_set(read_key, read_type, eRelation, true, initial);
-                                                    if (current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                                                    if (current == org.mwg.Constants.CHUNK_ESEP && cursor < payloadSize) {
                                                         state = HeapENode.LOAD_WAITING_TYPE;
                                                         cursor++;
                                                         previous = cursor;
@@ -6314,7 +6477,7 @@ var org;
                             var isFirst = true;
                             var previous = offset;
                             var elemIndex = 0;
-                            while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                            while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                 if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                     if (isFirst) {
                                         this.unsafe_init(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -6612,7 +6775,7 @@ var org;
                             var previous = offset;
                             var previousKey = -1;
                             var waitingVal = false;
-                            while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                            while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                 if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                     if (isFirst) {
                                         this.reallocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -6883,7 +7046,7 @@ var org;
                             var previous = offset;
                             var previousKey = -1;
                             var waitingVal = false;
-                            while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                            while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                 if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                     if (isFirst) {
                                         this.reallocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -7125,7 +7288,7 @@ var org;
                             var current = buffer.read(cursor);
                             var isFirst = true;
                             var previous = offset;
-                            while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                            while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                 if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                     if (isFirst) {
                                         this.allocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -8683,7 +8846,7 @@ var org;
                             var isFirst = true;
                             var previous = offset;
                             var previousKey = null;
-                            while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP) {
+                            while (cursor < max && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                 if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                     if (isFirst) {
                                         this.reallocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -10683,9 +10846,9 @@ var org;
                 }());
                 task_1.ActionSetAsVar = ActionSetAsVar;
                 var ActionSetAttribute = (function () {
-                    function ActionSetAttribute(name, propertyType, variableNameToSet, force) {
+                    function ActionSetAttribute(name, propertyType, value, force) {
                         this._name = name;
-                        this._variableNameToSet = variableNameToSet;
+                        this._value = value;
                         this._propertyType = propertyType;
                         this._force = force;
                     }
@@ -10694,22 +10857,43 @@ var org;
                         var flatRelationName = ctx.template(this._name);
                         if (previousResult != null) {
                             var toSet = void 0;
-                            var templateBased = ctx.template(this._variableNameToSet);
+                            var valueAfterTemplate = ctx.template(this._value);
                             switch (this._propertyType) {
                                 case org.mwg.Type.BOOL:
-                                    toSet = this.parseBoolean(templateBased.toString());
+                                    toSet = this.parseBoolean(valueAfterTemplate);
                                     break;
                                 case org.mwg.Type.INT:
-                                    toSet = org.mwg.core.task.TaskHelper.parseInt(templateBased.toString());
+                                    toSet = org.mwg.core.task.TaskHelper.parseInt(valueAfterTemplate);
                                     break;
                                 case org.mwg.Type.DOUBLE:
-                                    toSet = parseFloat(templateBased.toString());
+                                    toSet = parseFloat(valueAfterTemplate);
                                     break;
                                 case org.mwg.Type.LONG:
-                                    toSet = java.lang.Long.parseLong(templateBased.toString());
+                                    toSet = java.lang.Long.parseLong(valueAfterTemplate);
+                                    break;
+                                case org.mwg.Type.DOUBLE_ARRAY:
+                                case org.mwg.Type.LONG_ARRAY:
+                                case org.mwg.Type.INT_ARRAY:
+                                    {
+                                        try {
+                                            toSet = this.loadArray(valueAfterTemplate, this._propertyType);
+                                        }
+                                        catch ($ex$) {
+                                            if ($ex$ instanceof Error) {
+                                                var e = $ex$;
+                                                {
+                                                    toSet = null;
+                                                    ctx.endTask(null, new Error("Error while parsing array from string:\"" + valueAfterTemplate + "\"\n" + e.toString()));
+                                                }
+                                            }
+                                            else {
+                                                throw $ex$;
+                                            }
+                                        }
+                                    }
                                     break;
                                 default:
-                                    toSet = templateBased;
+                                    toSet = valueAfterTemplate;
                             }
                             for (var i = 0; i < previousResult.size(); i++) {
                                 var loopObj = previousResult.get(i);
@@ -10725,6 +10909,40 @@ var org;
                             }
                         }
                         ctx.continueTask();
+                    };
+                    ActionSetAttribute.prototype.loadArray = function (valueAfterTemplate, type) {
+                        var arrayInString = valueAfterTemplate;
+                        if (arrayInString.charAt(0) == '[') {
+                            arrayInString = arrayInString.substring(1);
+                        }
+                        if (arrayInString.charAt(arrayInString.length - 1) == ']') {
+                            arrayInString = arrayInString.substring(0, arrayInString.length - 1);
+                        }
+                        var valuesToParse = arrayInString.split(",");
+                        switch (type) {
+                            case org.mwg.Type.DOUBLE_ARRAY: {
+                                var finalValues = new Float64Array(valuesToParse.length);
+                                for (var i = 0; i < valuesToParse.length; i++) {
+                                    finalValues[i] = parseFloat(valuesToParse[i]);
+                                }
+                                return finalValues;
+                            }
+                            case org.mwg.Type.LONG_ARRAY: {
+                                var finalValues = new Float64Array(valuesToParse.length);
+                                for (var i = 0; i < valuesToParse.length; i++) {
+                                    finalValues[i] = java.lang.Long.parseLong(valuesToParse[i]);
+                                }
+                                return finalValues;
+                            }
+                            case org.mwg.Type.INT_ARRAY: {
+                                var finalValues = new Int32Array(valuesToParse.length);
+                                for (var i = 0; i < valuesToParse.length; i++) {
+                                    finalValues[i] = java.lang.Integer.parseInt(valuesToParse[i]);
+                                }
+                                return finalValues;
+                            }
+                        }
+                        return null;
                     };
                     ActionSetAttribute.prototype.parseBoolean = function (booleanValue) {
                         var lower = booleanValue.toLowerCase();
@@ -10742,7 +10960,7 @@ var org;
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                         org.mwg.core.task.TaskHelper.serializeType(this._propertyType, builder);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeString(this._variableNameToSet, builder, true);
+                        org.mwg.core.task.TaskHelper.serializeString(this._value, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionSetAttribute.prototype.toString = function () {

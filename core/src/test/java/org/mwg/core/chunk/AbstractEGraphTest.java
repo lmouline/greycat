@@ -122,6 +122,50 @@ public abstract class AbstractEGraphTest {
     }
 
     @Test
+    public void mixedLoadSaveTest() {
+        Storage mock = new MockStorage();
+
+        Graph g = GraphBuilder.newBuilder()
+                .withScheduler(new NoopScheduler())
+                .withStorage(mock)
+                .build();
+
+        g.connect(null);
+        StateChunk chunk = (StateChunk) g.space().createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+        EGraph egraph = (EGraph) chunk.getOrCreate(0, Type.EGRAPH);
+        chunk.set(1, Type.STRING, "AdditionalString");
+        ENode eNode = egraph.newNode();
+        eNode.set("name", Type.STRING, "myEnode");
+        g.save(null);
+
+        g.disconnect(null);
+
+        g = GraphBuilder.newBuilder()
+                .withScheduler(new NoopScheduler())
+                .withStorage(mock)
+                .build();
+        g.connect(null);
+        //final long before2 = System.currentTimeMillis();
+        g.space().getOrLoadAndMark(ChunkType.STATE_CHUNK, 0, 0, 0, res -> {
+            StateChunk loaded = (StateChunk) res;
+            Assert.assertEquals(loaded.get(1),chunk.get(1));
+            //System.out.println(loaded);
+
+            /*
+            EGraph egraphLoaded = (EGraph) loaded.get(0);
+            //long after2 = System.currentTimeMillis();
+            //System.out.println("loading time:" + (after2 - before2));
+            Assert.assertEquals(egraph.toString(), egraphLoaded.toString());
+            ENode rootLoaded = egraphLoaded.root();
+            Assert.assertTrue(rootLoaded != null);
+            Assert.assertEquals(rootLoaded.toString(), rootLoaded.get("self").toString());
+            */
+        });
+
+
+    }
+
+    @Test
     public void volatildeTest() {
         Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
         g.connect(null);

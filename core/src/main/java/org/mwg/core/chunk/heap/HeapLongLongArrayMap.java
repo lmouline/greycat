@@ -310,7 +310,7 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
         long previous = offset;
         long previousKey = -1;
         boolean waitingVal = false;
-        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
                     reallocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
