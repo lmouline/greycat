@@ -86,7 +86,7 @@ public class FlagTest {
             }, traverse);
 
 
-            Task mainTask = newTask().then(travelInTime("13")).then(travelInWorld("0")).then(inject(n1)).mapReduce(traverse);
+            Task mainTask = newTask().then(travelInTime("13")).then(travelInWorld("0")).then(inject(n1)).pipe(traverse);
             mainTask.execute(graph, new Callback<TaskResult>() {
                 @Override
                 public void on(TaskResult result) {

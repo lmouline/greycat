@@ -234,4 +234,14 @@ public class QueryTest implements Resolver, Graph {
     public String hashToString(int key) {
         return null;
     }
+
+    @Override
+    public void externalLock(Node node) {
+
+    }
+
+    @Override
+    public void externalUnlock(Node node) {
+
+    }
 }

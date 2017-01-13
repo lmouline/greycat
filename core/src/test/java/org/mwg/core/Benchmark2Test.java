@@ -36,9 +36,7 @@ public class Benchmark2Test {
         OffHeapDoubleArray.alloc_counter = 0;
         OffHeapLongArray.alloc_counter = 0;
         OffHeapStringArray.alloc_counter = 0;
-
         final Graph graph = new GraphBuilder().withScheduler(new NoopScheduler()).withOffHeapMemory().withMemorySize(100).saveEvery(20).build();
-
         test(graph, new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {

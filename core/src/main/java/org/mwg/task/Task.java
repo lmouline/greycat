@@ -175,17 +175,17 @@ public interface Task {
      * @param subTasks that needs to be executed
      * @return this task to chain
      */
-    Task mapReduce(Task... subTasks);
+    Task pipe(Task... subTasks);
 
     /**
-     * Parallel version of {@link #mapReduce(Task...)}.
+     * Parallel version of {@link #pipe(Task...)}.
      * Executes and waits a number of given sub tasks.
      * The result of these sub tasks is immediately enqueued and available in the next sub task in a array of array manner.
      *
      * @param subTasks that have to be executed
      * @return this task to chain
      */
-    Task mapReducePar(Task... subTasks);
+    Task pipePar(Task... subTasks);
 
     /**
      * Executes and waits for a number of given sub tasks.
@@ -194,17 +194,17 @@ public interface Task {
      * @param subTasks that needs to be executed
      * @return this task to chain
      */
-    Task flatMapReduce(Task... subTasks);
+    Task flatPipe(Task... subTasks);
 
     /**
-     * Parallel version of {@link #flatMapReduce(Task...)}.
+     * Parallel version of {@link #flatPipe(Task...)}.
      * Executes and waits a number of given sub tasks.
      * The result of these sub tasks is immediately enqueued and available in the next sub task as a flat array.
      *
      * @param subTasks that have to be executed
      * @return this task to chain
      */
-    Task flatMapReducePar(Task... subTasks);
+    Task flatPipePar(Task... subTasks);
 
     /**
      * Executes a given sub task in an isolated environment.
@@ -389,5 +389,7 @@ public interface Task {
     Task action(String name, String... params);
 
     Task flipVar(String name);
+
+    Task atomic(Task protectedTask, String... variablesToLock);
 
 }

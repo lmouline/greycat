@@ -5,19 +5,18 @@ import org.mwg.Constants;
 import org.mwg.DeferCounter;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.SchedulerAffinity;
-import org.mwg.task.Action;
 import org.mwg.task.Task;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
 import java.util.Map;
 
-class CF_ActionMapReducePar extends CF_Action {
+class CF_ActionPipePar extends CF_Action {
 
     private final Task[] _subTasks;
     private final boolean _flat;
 
-    CF_ActionMapReducePar(final boolean flat, final Task... p_subTasks) {
+    CF_ActionPipePar(final boolean flat, final Task... p_subTasks) {
         super();
         _subTasks = p_subTasks;
         _flat = flat;
@@ -85,9 +84,9 @@ class CF_ActionMapReducePar extends CF_Action {
     @Override
     public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
         if (_flat) {
-            builder.append(ActionNames.FLAT_MAP_REDUCE_PAR);
+            builder.append(ActionNames.FLAT_PIPE_PAR);
         } else {
-            builder.append(ActionNames.MAP_REDUCE_PAR);
+            builder.append(ActionNames.PIPE_PAR);
         }
         builder.append(Constants.TASK_PARAM_OPEN);
         for (int i = 0; i < _subTasks.length; i++) {

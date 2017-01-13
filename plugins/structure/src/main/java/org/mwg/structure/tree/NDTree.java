@@ -62,17 +62,15 @@ public class NDTree extends BaseNode implements Tree {
     }
 
     private static boolean checkCreateLevels(double[] min, double[] max, double[] resolutions) {
-
-        if(resolutions!=null) {
+        if (resolutions != null) {
             for (int i = 0; i < min.length; i++) {
                 if ((max[i] - min[i]) > 2 * resolutions[i]) {
                     return true;
                 }
             }
-        }
-        else {
+        } else {
             for (int i = 0; i < min.length; i++) {
-                if ((max[i] > min[i]) ) {
+                if ((max[i] > min[i])) {
                     return true;
                 }
             }
@@ -301,14 +299,13 @@ public class NDTree extends BaseNode implements Tree {
 
     private static boolean compare(double[] key1, double[] key2, double[] resolution) {
         //todo compare with distance
-        if(resolution!=null) {
+        if (resolution != null) {
             for (int i = 0; i < key1.length; i++) {
                 if (Math.abs(key1[i] - key2[i]) > resolution[i]) {
                     return false;
                 }
             }
-        }
-        else {
+        } else {
             for (int i = 0; i < key1.length; i++) {
                 if (Math.abs(key1[i] - key2[i]) > 0) {
                     return false;
@@ -335,7 +332,7 @@ public class NDTree extends BaseNode implements Tree {
 
     @Override
     public void insert(final double[] keys, final long value) {
-        NodeState state = unphasedState();
+        final NodeState state = unphasedState();
         double[] min = (double[]) state.getFromKey(BOUND_MIN);
         double[] max = (double[]) state.getFromKey(BOUND_MAX);
         check(keys, min, max);
@@ -343,18 +340,20 @@ public class NDTree extends BaseNode implements Tree {
         EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
         int buffersize = state.getFromKeyWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
         //Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
-        ENode root = graph.root();
-        if (root == null) {
-            root = graph.newNode();
-            state.set(STRATEGY, Type.INT, IndexStrategy.INDEX);
-            graph.setRoot(root);
-            root.setAt(E_TOTAL, Type.LONG, 0);
-            root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
-            root.setAt(E_SUBNODES, Type.LONG, 0);
-            root.setAt(E_MIN, Type.DOUBLE_ARRAY, min);
-            root.setAt(E_MAX, Type.DOUBLE_ARRAY, max);
+        synchronized (state) { // assumption that NodeState == StateChunk
+            ENode root = graph.root();
+            if (root == null) {
+                root = graph.newNode();
+                state.set(STRATEGY, Type.INT, IndexStrategy.INDEX);
+                graph.setRoot(root);
+                root.setAt(E_TOTAL, Type.LONG, 0);
+                root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
+                root.setAt(E_SUBNODES, Type.LONG, 0);
+                root.setAt(E_MIN, Type.DOUBLE_ARRAY, min);
+                root.setAt(E_MAX, Type.DOUBLE_ARRAY, max);
+            }
+            internalInsert(root, keys, value, IndexStrategy.INDEX, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
         }
-        internalInsert(root, keys, value, IndexStrategy.INDEX, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
     }
 
     @Override
@@ -367,45 +366,47 @@ public class NDTree extends BaseNode implements Tree {
         EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
         int buffersize = state.getFromKeyWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
         //Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
-        ENode root = graph.root();
-        if (root == null) {
-            root = graph.newNode();
-            state.set(STRATEGY, Type.INT, IndexStrategy.PROFILE);
-            graph.setRoot(root);
-            root.setAt(E_TOTAL, Type.LONG, 0);
-            root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
-            root.setAt(E_SUBNODES, Type.LONG, 0);
-            root.setAt(E_MIN, Type.DOUBLE_ARRAY, min);
-            root.setAt(E_MAX, Type.DOUBLE_ARRAY, max);
+        synchronized (state) {
+            ENode root = graph.root();
+            if (root == null) {
+                root = graph.newNode();
+                state.set(STRATEGY, Type.INT, IndexStrategy.PROFILE);
+                graph.setRoot(root);
+                root.setAt(E_TOTAL, Type.LONG, 0);
+                root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
+                root.setAt(E_SUBNODES, Type.LONG, 0);
+                root.setAt(E_MIN, Type.DOUBLE_ARRAY, min);
+                root.setAt(E_MAX, Type.DOUBLE_ARRAY, max);
+            }
+            internalInsert(root, keys, occurrence, IndexStrategy.PROFILE, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
         }
-        internalInsert(root, keys, occurrence, IndexStrategy.PROFILE, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
     }
 
     @Override
     public TreeResult nearestN(double[] keys, int nbElem) {
-        NodeState state = unphasedState();
-        double[] min = (double[]) state.getFromKey(BOUND_MIN);
-        double[] max = (double[]) state.getFromKey(BOUND_MAX);
+        final NodeState state = unphasedState();
+        final double[] min = (double[]) state.getFromKey(BOUND_MIN);
+        final double[] max = (double[]) state.getFromKey(BOUND_MAX);
         check(keys, min, max);
+        final EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
+        final Distance distance = Distances.getDistance(state.getFromKeyWithDefault(DISTANCE, DISTANCE_DEF));
+        final int strategyType = (int) state.get(STRATEGY);
+        synchronized (state) {
+            ENode root = graph.root();
+            if (root == null) {
+                return null;
+            }
 
-        EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
-        Distance distance = Distances.getDistance(state.getFromKeyWithDefault(DISTANCE, DISTANCE_DEF));
-        int strategyType = (int) state.get(STRATEGY);
-
-
-        ENode root = graph.root();
-        if (root == null) {
-            return null;
+            EGraph calcZone = graph().space().newVolatileGraph();
+            if (nbElem <= 0) {
+                throw new RuntimeException("nb elements can't be <=0");
+            }
+            VolatileResult nnl = new VolatileResult(calcZone.newNode(), nbElem);
+            reccursiveTraverse(root, calcZone, nnl, strategyType, distance, keys, null, null, null, -1);
+            nnl.sort(true);
+            return nnl;
         }
 
-        EGraph calcZone = graph().space().newVolatileGraph();
-        if (nbElem <= 0) {
-            throw new RuntimeException("nb elements can't be <=0");
-        }
-        VolatileResult nnl = new VolatileResult(calcZone.newNode(), nbElem);
-        reccursiveTraverse(root, calcZone, nnl, strategyType, distance, keys, null, null, null, -1);
-        nnl.sort(true);
-        return nnl;
     }
 
     @Override

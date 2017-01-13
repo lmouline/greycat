@@ -2825,6 +2825,16 @@ var org;
                     }
                     casted.cacheUnlock();
                 };
+                MWGResolver.prototype.externalLock = function (node) {
+                    var casted = node;
+                    var worldOrderChunk = this._space.get(casted._index_worldOrder);
+                    worldOrderChunk.externalLock();
+                };
+                MWGResolver.prototype.externalUnlock = function (node) {
+                    var casted = node;
+                    var worldOrderChunk = this._space.get(casted._index_worldOrder);
+                    worldOrderChunk.externalUnlock();
+                };
                 MWGResolver.prototype.lookup = function (world, time, id, callback) {
                     var _this = this;
                     var selfPointer = this;
@@ -4128,15 +4138,10 @@ var org;
                             }
                         }
                         HeapDMatrix.prototype.init = function (rows, columns) {
-                            if (this.parent != null) {
-                                {
-                                    this.internal_init(rows, columns);
-                                }
-                                this.parent.declareDirty();
-                            }
-                            else {
+                            {
                                 this.internal_init(rows, columns);
                             }
+                            this.parent.declareDirty();
                             return this;
                         };
                         HeapDMatrix.prototype.internal_init = function (rows, columns) {
@@ -4147,14 +4152,9 @@ var org;
                             this.aligned = true;
                         };
                         HeapDMatrix.prototype.appendColumn = function (newColumn) {
-                            if (this.parent != null) {
-                                {
-                                    this.internal_appendColumn(newColumn);
-                                    this.parent.declareDirty();
-                                }
-                            }
-                            else {
+                            {
                                 this.internal_appendColumn(newColumn);
+                                this.parent.declareDirty();
                             }
                             return this;
                         };
@@ -4197,12 +4197,7 @@ var org;
                             this.backend[HeapDMatrix.INDEX_MAX_COLUMN] = nbMaxColumn + 1;
                         };
                         HeapDMatrix.prototype.fill = function (value) {
-                            if (this.parent != null) {
-                                {
-                                    this.internal_fill(value);
-                                }
-                            }
-                            else {
+                            {
                                 this.internal_fill(value);
                             }
                             return this;
@@ -4217,18 +4212,11 @@ var org;
                                 }
                                 java.util.Arrays.fill(this.backend, HeapDMatrix.INDEX_OFFSET, this.backend.length - HeapDMatrix.INDEX_OFFSET, value);
                                 this.backend[HeapDMatrix.INDEX_MAX_COLUMN] = this.backend[HeapDMatrix.INDEX_COLUMNS];
-                                if (this.parent != null) {
-                                    this.parent.declareDirty();
-                                }
+                                this.parent.declareDirty();
                             }
                         };
                         HeapDMatrix.prototype.fillWith = function (values) {
-                            if (this.parent != null) {
-                                {
-                                    this.internal_fillWith(values);
-                                }
-                            }
-                            else {
+                            {
                                 this.internal_fillWith(values);
                             }
                             return this;
@@ -4242,18 +4230,11 @@ var org;
                                     this.aligned = true;
                                 }
                                 java.lang.System.arraycopy(values, 0, this.backend, HeapDMatrix.INDEX_OFFSET, values.length);
-                                if (this.parent != null) {
-                                    this.parent.declareDirty();
-                                }
+                                this.parent.declareDirty();
                             }
                         };
                         HeapDMatrix.prototype.fillWithRandom = function (min, max, seed) {
-                            if (this.parent != null) {
-                                {
-                                    this.internal_fillWithRandom(min, max, seed);
-                                }
-                            }
-                            else {
+                            {
                                 this.internal_fillWithRandom(min, max, seed);
                             }
                             return this;
@@ -4271,21 +4252,12 @@ var org;
                                 for (var i = 0; i < this.backend[HeapDMatrix.INDEX_ROWS] * this.backend[HeapDMatrix.INDEX_COLUMNS]; i++) {
                                     this.backend[i + HeapDMatrix.INDEX_OFFSET] = rand.nextInt() * (max - min) + min;
                                 }
-                                if (this.parent != null) {
-                                    this.parent.declareDirty();
-                                }
+                                this.parent.declareDirty();
                             }
                         };
                         HeapDMatrix.prototype.rows = function () {
                             var result = 0;
-                            if (this.parent != null) {
-                                {
-                                    if (this.backend != null) {
-                                        result = this.backend[HeapDMatrix.INDEX_ROWS];
-                                    }
-                                }
-                            }
-                            else {
+                            {
                                 if (this.backend != null) {
                                     result = this.backend[HeapDMatrix.INDEX_ROWS];
                                 }
@@ -4294,14 +4266,7 @@ var org;
                         };
                         HeapDMatrix.prototype.columns = function () {
                             var result = 0;
-                            if (this.parent != null) {
-                                {
-                                    if (this.backend != null) {
-                                        result = this.backend[HeapDMatrix.INDEX_MAX_COLUMN];
-                                    }
-                                }
-                            }
-                            else {
+                            {
                                 if (this.backend != null) {
                                     result = this.backend[HeapDMatrix.INDEX_MAX_COLUMN];
                                 }
@@ -4310,14 +4275,7 @@ var org;
                         };
                         HeapDMatrix.prototype.column = function (index) {
                             var result;
-                            if (this.parent != null) {
-                                {
-                                    var nbRows = this.backend[HeapDMatrix.INDEX_ROWS];
-                                    result = new Float64Array(nbRows);
-                                    java.lang.System.arraycopy(this.backend, HeapDMatrix.INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
-                                }
-                            }
-                            else {
+                            {
                                 var nbRows = this.backend[HeapDMatrix.INDEX_ROWS];
                                 result = new Float64Array(nbRows);
                                 java.lang.System.arraycopy(this.backend, HeapDMatrix.INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
@@ -4326,15 +4284,7 @@ var org;
                         };
                         HeapDMatrix.prototype.get = function (rowIndex, columnIndex) {
                             var result = 0;
-                            if (this.parent != null) {
-                                {
-                                    if (this.backend != null) {
-                                        var nbRows = this.backend[HeapDMatrix.INDEX_ROWS];
-                                        result = this.backend[HeapDMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
-                                    }
-                                }
-                            }
-                            else {
+                            {
                                 if (this.backend != null) {
                                     var nbRows = this.backend[HeapDMatrix.INDEX_ROWS];
                                     result = this.backend[HeapDMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
@@ -4343,12 +4293,7 @@ var org;
                             return result;
                         };
                         HeapDMatrix.prototype.set = function (rowIndex, columnIndex, value) {
-                            if (this.parent != null) {
-                                {
-                                    this.internal_set(rowIndex, columnIndex, value);
-                                }
-                            }
-                            else {
+                            {
                                 this.internal_set(rowIndex, columnIndex, value);
                             }
                             return this;
@@ -4363,18 +4308,11 @@ var org;
                                 }
                                 var nbRows = this.backend[HeapDMatrix.INDEX_ROWS];
                                 this.backend[HeapDMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
-                                if (this.parent != null) {
-                                    this.parent.declareDirty();
-                                }
+                                this.parent.declareDirty();
                             }
                         };
                         HeapDMatrix.prototype.add = function (rowIndex, columnIndex, value) {
-                            if (this.parent != null) {
-                                {
-                                    this.internal_add(rowIndex, columnIndex, value);
-                                }
-                            }
-                            else {
+                            {
                                 this.internal_add(rowIndex, columnIndex, value);
                             }
                             return this;
@@ -4389,22 +4327,12 @@ var org;
                                 }
                                 var nbRows = this.backend[HeapDMatrix.INDEX_ROWS];
                                 this.backend[HeapDMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + this.backend[HeapDMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
-                                if (this.parent != null) {
-                                    this.parent.declareDirty();
-                                }
+                                this.parent.declareDirty();
                             }
                         };
                         HeapDMatrix.prototype.data = function () {
                             var copy = null;
-                            if (this.parent != null) {
-                                {
-                                    if (this.backend != null) {
-                                        copy = new Float64Array(this.backend.length - HeapDMatrix.INDEX_OFFSET);
-                                        java.lang.System.arraycopy(this.backend, HeapDMatrix.INDEX_OFFSET, copy, 0, this.backend.length - HeapDMatrix.INDEX_OFFSET);
-                                    }
-                                }
-                            }
-                            else {
+                            {
                                 if (this.backend != null) {
                                     copy = new Float64Array(this.backend.length - HeapDMatrix.INDEX_OFFSET);
                                     java.lang.System.arraycopy(this.backend, HeapDMatrix.INDEX_OFFSET, copy, 0, this.backend.length - HeapDMatrix.INDEX_OFFSET);
@@ -4420,14 +4348,7 @@ var org;
                         };
                         HeapDMatrix.prototype.unsafeGet = function (index) {
                             var result = 0;
-                            if (this.parent != null) {
-                                {
-                                    if (this.backend != null) {
-                                        result = this.backend[HeapDMatrix.INDEX_OFFSET + index];
-                                    }
-                                }
-                            }
-                            else {
+                            {
                                 if (this.backend != null) {
                                     result = this.backend[HeapDMatrix.INDEX_OFFSET + index];
                                 }
@@ -4435,12 +4356,7 @@ var org;
                             return result;
                         };
                         HeapDMatrix.prototype.unsafeSet = function (index, value) {
-                            if (this.parent != null) {
-                                {
-                                    this.internal_unsafeSet(index, value);
-                                }
-                            }
-                            else {
+                            {
                                 this.internal_unsafeSet(index, value);
                             }
                             return this;
@@ -4454,9 +4370,7 @@ var org;
                                     this.aligned = true;
                                 }
                                 this.backend[HeapDMatrix.INDEX_OFFSET + index] = value;
-                                if (this.parent != null) {
-                                    this.parent.declareDirty();
-                                }
+                                this.parent.declareDirty();
                             }
                         };
                         HeapDMatrix.prototype.unsafe_data = function () {
@@ -5496,7 +5410,8 @@ var org;
                                 else if (current == org.mwg.Constants.CHUNK_ESEP) {
                                     switch (state) {
                                         case HeapENode.LOAD_WAITING_ALLOC:
-                                            this.allocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                            var closePowerOfTwo = Math.pow(2, Math.ceil(Math.log(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor)) / Math.log(2)));
+                                            this.allocate(closePowerOfTwo);
                                             state = HeapENode.LOAD_WAITING_TYPE;
                                             cursor++;
                                             previous = cursor;
@@ -5629,64 +5544,99 @@ var org;
                                                     var relation = new org.mwg.core.chunk.heap.HeapRelation(this, null);
                                                     cursor++;
                                                     cursor = relation.load(buffer, cursor, payloadSize);
-                                                    cursor++;
                                                     this.internal_set(read_key, read_type, relation, true, initial);
-                                                    previous = cursor;
-                                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                                    if (cursor < payloadSize) {
+                                                        current = buffer.read(cursor);
+                                                        if (current == org.mwg.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                            state = HeapENode.LOAD_WAITING_TYPE;
+                                                            cursor++;
+                                                            previous = cursor;
+                                                        }
+                                                    }
                                                     break;
                                                 case org.mwg.Type.DMATRIX:
                                                     var matrix = new org.mwg.core.chunk.heap.HeapDMatrix(this, null);
                                                     cursor++;
                                                     cursor = matrix.load(buffer, cursor, payloadSize);
-                                                    cursor++;
                                                     this.internal_set(read_key, read_type, matrix, true, initial);
-                                                    previous = cursor;
-                                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                                    if (cursor < payloadSize) {
+                                                        current = buffer.read(cursor);
+                                                        if (current == org.mwg.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                            state = HeapENode.LOAD_WAITING_TYPE;
+                                                            cursor++;
+                                                            previous = cursor;
+                                                        }
+                                                    }
                                                     break;
                                                 case org.mwg.Type.LMATRIX:
                                                     var lmatrix = new org.mwg.core.chunk.heap.HeapLMatrix(this, null);
                                                     cursor++;
                                                     cursor = lmatrix.load(buffer, cursor, payloadSize);
-                                                    cursor++;
                                                     this.internal_set(read_key, read_type, lmatrix, true, initial);
-                                                    previous = cursor;
-                                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                                    if (cursor < payloadSize) {
+                                                        current = buffer.read(cursor);
+                                                        if (current == org.mwg.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                            state = HeapENode.LOAD_WAITING_TYPE;
+                                                            cursor++;
+                                                            previous = cursor;
+                                                        }
+                                                    }
                                                     break;
                                                 case org.mwg.Type.LONG_TO_LONG_MAP:
                                                     var l2lmap = new org.mwg.core.chunk.heap.HeapLongLongMap(this);
                                                     cursor++;
                                                     cursor = l2lmap.load(buffer, cursor, payloadSize);
-                                                    cursor++;
                                                     this.internal_set(read_key, read_type, l2lmap, true, initial);
-                                                    previous = cursor;
-                                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                                    if (cursor < payloadSize) {
+                                                        current = buffer.read(cursor);
+                                                        if (current == org.mwg.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                            state = HeapENode.LOAD_WAITING_TYPE;
+                                                            cursor++;
+                                                            previous = cursor;
+                                                        }
+                                                    }
                                                     break;
                                                 case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
                                                     var l2lrmap = new org.mwg.core.chunk.heap.HeapLongLongArrayMap(this);
                                                     cursor++;
                                                     cursor = l2lrmap.load(buffer, cursor, payloadSize);
-                                                    cursor++;
                                                     this.internal_set(read_key, read_type, l2lrmap, true, initial);
-                                                    previous = cursor;
-                                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                                    if (cursor < payloadSize) {
+                                                        current = buffer.read(cursor);
+                                                        if (current == org.mwg.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                            state = HeapENode.LOAD_WAITING_TYPE;
+                                                            cursor++;
+                                                            previous = cursor;
+                                                        }
+                                                    }
                                                     break;
                                                 case org.mwg.Type.RELATION_INDEXED:
                                                     var relationIndexed = new org.mwg.core.chunk.heap.HeapRelationIndexed(this, graph);
                                                     cursor++;
                                                     cursor = relationIndexed.load(buffer, cursor, payloadSize);
-                                                    cursor++;
                                                     this.internal_set(read_key, read_type, relationIndexed, true, initial);
-                                                    previous = cursor;
-                                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                                    if (cursor < payloadSize) {
+                                                        current = buffer.read(cursor);
+                                                        if (current == org.mwg.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                            state = HeapENode.LOAD_WAITING_TYPE;
+                                                            cursor++;
+                                                            previous = cursor;
+                                                        }
+                                                    }
                                                     break;
                                                 case org.mwg.Type.STRING_TO_INT_MAP:
                                                     var s2lmap = new org.mwg.core.chunk.heap.HeapStringIntMap(this);
                                                     cursor++;
                                                     cursor = s2lmap.load(buffer, cursor, payloadSize);
-                                                    cursor++;
                                                     this.internal_set(read_key, read_type, s2lmap, true, initial);
-                                                    previous = cursor;
-                                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                                    if (cursor < payloadSize) {
+                                                        current = buffer.read(cursor);
+                                                        if (current == org.mwg.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                            state = HeapENode.LOAD_WAITING_TYPE;
+                                                            cursor++;
+                                                            previous = cursor;
+                                                        }
+                                                    }
                                                     break;
                                                 case org.mwg.Type.ERELATION:
                                                     var eRelation = null;
@@ -6075,15 +6025,10 @@ var org;
                             }
                         }
                         HeapLMatrix.prototype.init = function (rows, columns) {
-                            if (this.parent != null) {
-                                {
-                                    this.internal_init(rows, columns);
-                                }
-                                this.parent.declareDirty();
-                            }
-                            else {
+                            {
                                 this.internal_init(rows, columns);
                             }
+                            this.parent.declareDirty();
                             return this;
                         };
                         HeapLMatrix.prototype.internal_init = function (rows, columns) {
@@ -6094,14 +6039,9 @@ var org;
                             this.aligned = true;
                         };
                         HeapLMatrix.prototype.appendColumn = function (newColumn) {
-                            if (this.parent != null) {
-                                {
-                                    this.internal_appendColumn(newColumn);
-                                    this.parent.declareDirty();
-                                }
-                            }
-                            else {
+                            {
                                 this.internal_appendColumn(newColumn);
+                                this.parent.declareDirty();
                             }
                             return this;
                         };
@@ -6144,12 +6084,7 @@ var org;
                             this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = nbMaxColumn + 1;
                         };
                         HeapLMatrix.prototype.fill = function (value) {
-                            if (this.parent != null) {
-                                {
-                                    this.internal_fill(value);
-                                }
-                            }
-                            else {
+                            {
                                 this.internal_fill(value);
                             }
                             return this;
@@ -6164,18 +6099,11 @@ var org;
                                 }
                                 java.util.Arrays.fill(this.backend, HeapLMatrix.INDEX_OFFSET, this.backend.length - HeapLMatrix.INDEX_OFFSET, value);
                                 this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = this.backend[HeapLMatrix.INDEX_COLUMNS];
-                                if (this.parent != null) {
-                                    this.parent.declareDirty();
-                                }
+                                this.parent.declareDirty();
                             }
                         };
                         HeapLMatrix.prototype.fillWith = function (values) {
-                            if (this.parent != null) {
-                                {
-                                    this.internal_fillWith(values);
-                                }
-                            }
-                            else {
+                            {
                                 this.internal_fillWith(values);
                             }
                             return this;
@@ -6189,18 +6117,11 @@ var org;
                                     this.aligned = true;
                                 }
                                 java.lang.System.arraycopy(values, 0, this.backend, HeapLMatrix.INDEX_OFFSET, values.length);
-                                if (this.parent != null) {
-                                    this.parent.declareDirty();
-                                }
+                                this.parent.declareDirty();
                             }
                         };
                         HeapLMatrix.prototype.fillWithRandom = function (min, max, seed) {
-                            if (this.parent != null) {
-                                {
-                                    this.internal_fillWithRandom(min, max, seed);
-                                }
-                            }
-                            else {
+                            {
                                 this.internal_fillWithRandom(min, max, seed);
                             }
                             return this;
@@ -6218,21 +6139,12 @@ var org;
                                 for (var i = 0; i < this.backend[HeapLMatrix.INDEX_ROWS] * this.backend[HeapLMatrix.INDEX_COLUMNS]; i++) {
                                     this.backend[i + HeapLMatrix.INDEX_OFFSET] = rand.nextInt() * (max - min) + min;
                                 }
-                                if (this.parent != null) {
-                                    this.parent.declareDirty();
-                                }
+                                this.parent.declareDirty();
                             }
                         };
                         HeapLMatrix.prototype.rows = function () {
                             var result = 0;
-                            if (this.parent != null) {
-                                {
-                                    if (this.backend != null) {
-                                        result = this.backend[HeapLMatrix.INDEX_ROWS];
-                                    }
-                                }
-                            }
-                            else {
+                            {
                                 if (this.backend != null) {
                                     result = this.backend[HeapLMatrix.INDEX_ROWS];
                                 }
@@ -6241,14 +6153,7 @@ var org;
                         };
                         HeapLMatrix.prototype.columns = function () {
                             var result = 0;
-                            if (this.parent != null) {
-                                {
-                                    if (this.backend != null) {
-                                        result = this.backend[HeapLMatrix.INDEX_MAX_COLUMN];
-                                    }
-                                }
-                            }
-                            else {
+                            {
                                 if (this.backend != null) {
                                     result = this.backend[HeapLMatrix.INDEX_MAX_COLUMN];
                                 }
@@ -6257,14 +6162,7 @@ var org;
                         };
                         HeapLMatrix.prototype.column = function (index) {
                             var result;
-                            if (this.parent != null) {
-                                {
-                                    var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
-                                    result = new Float64Array(nbRows);
-                                    java.lang.System.arraycopy(this.backend, HeapLMatrix.INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
-                                }
-                            }
-                            else {
+                            {
                                 var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
                                 result = new Float64Array(nbRows);
                                 java.lang.System.arraycopy(this.backend, HeapLMatrix.INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
@@ -6273,15 +6171,7 @@ var org;
                         };
                         HeapLMatrix.prototype.get = function (rowIndex, columnIndex) {
                             var result = 0;
-                            if (this.parent != null) {
-                                {
-                                    if (this.backend != null) {
-                                        var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
-                                        result = this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
-                                    }
-                                }
-                            }
-                            else {
+                            {
                                 if (this.backend != null) {
                                     var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
                                     result = this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
@@ -6290,12 +6180,7 @@ var org;
                             return result;
                         };
                         HeapLMatrix.prototype.set = function (rowIndex, columnIndex, value) {
-                            if (this.parent != null) {
-                                {
-                                    this.internal_set(rowIndex, columnIndex, value);
-                                }
-                            }
-                            else {
+                            {
                                 this.internal_set(rowIndex, columnIndex, value);
                             }
                             return this;
@@ -6310,18 +6195,11 @@ var org;
                                 }
                                 var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
                                 this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
-                                if (this.parent != null) {
-                                    this.parent.declareDirty();
-                                }
+                                this.parent.declareDirty();
                             }
                         };
                         HeapLMatrix.prototype.add = function (rowIndex, columnIndex, value) {
-                            if (this.parent != null) {
-                                {
-                                    this.internal_add(rowIndex, columnIndex, value);
-                                }
-                            }
-                            else {
+                            {
                                 this.internal_add(rowIndex, columnIndex, value);
                             }
                             return this;
@@ -6336,22 +6214,12 @@ var org;
                                 }
                                 var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
                                 this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
-                                if (this.parent != null) {
-                                    this.parent.declareDirty();
-                                }
+                                this.parent.declareDirty();
                             }
                         };
                         HeapLMatrix.prototype.data = function () {
                             var copy = null;
-                            if (this.parent != null) {
-                                {
-                                    if (this.backend != null) {
-                                        copy = new Float64Array(this.backend.length - HeapLMatrix.INDEX_OFFSET);
-                                        java.lang.System.arraycopy(this.backend, HeapLMatrix.INDEX_OFFSET, copy, 0, this.backend.length - HeapLMatrix.INDEX_OFFSET);
-                                    }
-                                }
-                            }
-                            else {
+                            {
                                 if (this.backend != null) {
                                     copy = new Float64Array(this.backend.length - HeapLMatrix.INDEX_OFFSET);
                                     java.lang.System.arraycopy(this.backend, HeapLMatrix.INDEX_OFFSET, copy, 0, this.backend.length - HeapLMatrix.INDEX_OFFSET);
@@ -6367,14 +6235,7 @@ var org;
                         };
                         HeapLMatrix.prototype.unsafeGet = function (index) {
                             var result = 0;
-                            if (this.parent != null) {
-                                {
-                                    if (this.backend != null) {
-                                        result = this.backend[HeapLMatrix.INDEX_OFFSET + index];
-                                    }
-                                }
-                            }
-                            else {
+                            {
                                 if (this.backend != null) {
                                     result = this.backend[HeapLMatrix.INDEX_OFFSET + index];
                                 }
@@ -6382,12 +6243,7 @@ var org;
                             return result;
                         };
                         HeapLMatrix.prototype.unsafeSet = function (index, value) {
-                            if (this.parent != null) {
-                                {
-                                    this.internal_unsafeSet(index, value);
-                                }
-                            }
-                            else {
+                            {
                                 this.internal_unsafeSet(index, value);
                             }
                             return this;
@@ -6401,9 +6257,7 @@ var org;
                                     this.aligned = true;
                                 }
                                 this.backend[HeapLMatrix.INDEX_OFFSET + index] = value;
-                                if (this.parent != null) {
-                                    this.parent.declareDirty();
-                                }
+                                this.parent.declareDirty();
                             }
                         };
                         HeapLMatrix.prototype.unsafe_data = function () {
@@ -8223,7 +8077,7 @@ var org;
                                     if (current == org.mwg.Constants.CHUNK_SEP) {
                                         switch (state) {
                                             case HeapStateChunk.LOAD_WAITING_ALLOC:
-                                                this.allocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                                this.allocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                                 state = HeapStateChunk.LOAD_WAITING_TYPE;
                                                 cursor++;
                                                 previous = cursor;
@@ -8349,73 +8203,113 @@ var org;
                                                         var relation = new org.mwg.core.chunk.heap.HeapRelation(this, null);
                                                         cursor++;
                                                         cursor = relation.load(buffer, cursor, payloadSize);
-                                                        cursor++;
                                                         this.internal_set(read_key, read_type, relation, true, initial);
-                                                        previous = cursor;
-                                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                        if (cursor < payloadSize) {
+                                                            current = buffer.read(cursor);
+                                                            if (current == org.mwg.Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                                state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                                cursor++;
+                                                                previous = cursor;
+                                                            }
+                                                        }
                                                         break;
                                                     case org.mwg.Type.DMATRIX:
                                                         var matrix = new org.mwg.core.chunk.heap.HeapDMatrix(this, null);
                                                         cursor++;
                                                         cursor = matrix.load(buffer, cursor, payloadSize);
-                                                        cursor++;
                                                         this.internal_set(read_key, read_type, matrix, true, initial);
-                                                        previous = cursor;
-                                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                        if (cursor < payloadSize) {
+                                                            current = buffer.read(cursor);
+                                                            if (current == org.mwg.Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                                state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                                cursor++;
+                                                                previous = cursor;
+                                                            }
+                                                        }
                                                         break;
                                                     case org.mwg.Type.LMATRIX:
                                                         var lmatrix = new org.mwg.core.chunk.heap.HeapLMatrix(this, null);
                                                         cursor++;
                                                         cursor = lmatrix.load(buffer, cursor, payloadSize);
-                                                        cursor++;
                                                         this.internal_set(read_key, read_type, lmatrix, true, initial);
-                                                        previous = cursor;
-                                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                        if (cursor < payloadSize) {
+                                                            current = buffer.read(cursor);
+                                                            if (current == org.mwg.Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                                state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                                cursor++;
+                                                                previous = cursor;
+                                                            }
+                                                        }
                                                         break;
                                                     case org.mwg.Type.LONG_TO_LONG_MAP:
                                                         var l2lmap = new org.mwg.core.chunk.heap.HeapLongLongMap(this);
                                                         cursor++;
                                                         cursor = l2lmap.load(buffer, cursor, payloadSize);
-                                                        cursor++;
                                                         this.internal_set(read_key, read_type, l2lmap, true, initial);
-                                                        previous = cursor;
-                                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                        if (cursor < payloadSize) {
+                                                            current = buffer.read(cursor);
+                                                            if (current == org.mwg.Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                                state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                                cursor++;
+                                                                previous = cursor;
+                                                            }
+                                                        }
                                                         break;
                                                     case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
                                                         var l2lrmap = new org.mwg.core.chunk.heap.HeapLongLongArrayMap(this);
                                                         cursor++;
                                                         cursor = l2lrmap.load(buffer, cursor, payloadSize);
-                                                        cursor++;
                                                         this.internal_set(read_key, read_type, l2lrmap, true, initial);
-                                                        previous = cursor;
-                                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                        if (cursor < payloadSize) {
+                                                            current = buffer.read(cursor);
+                                                            if (current == org.mwg.Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                                state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                                cursor++;
+                                                                previous = cursor;
+                                                            }
+                                                        }
                                                         break;
                                                     case org.mwg.Type.RELATION_INDEXED:
                                                         var relationIndexed = new org.mwg.core.chunk.heap.HeapRelationIndexed(this, this._space.graph());
                                                         cursor++;
                                                         cursor = relationIndexed.load(buffer, cursor, payloadSize);
-                                                        cursor++;
                                                         this.internal_set(read_key, read_type, relationIndexed, true, initial);
-                                                        previous = cursor;
-                                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                        if (cursor < payloadSize) {
+                                                            current = buffer.read(cursor);
+                                                            if (current == org.mwg.Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                                state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                                cursor++;
+                                                                previous = cursor;
+                                                            }
+                                                        }
                                                         break;
                                                     case org.mwg.Type.STRING_TO_INT_MAP:
                                                         var s2lmap = new org.mwg.core.chunk.heap.HeapStringIntMap(this);
                                                         cursor++;
                                                         cursor = s2lmap.load(buffer, cursor, payloadSize);
-                                                        cursor++;
                                                         this.internal_set(read_key, read_type, s2lmap, true, initial);
-                                                        previous = cursor;
-                                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                        if (cursor < payloadSize) {
+                                                            current = buffer.read(cursor);
+                                                            if (current == org.mwg.Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                                state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                                cursor++;
+                                                                previous = cursor;
+                                                            }
+                                                        }
                                                         break;
                                                     case org.mwg.Type.EGRAPH:
                                                         var eGraph = new org.mwg.core.chunk.heap.HeapEGraph(this, null, this.graph());
                                                         cursor++;
                                                         cursor = eGraph.load(buffer, cursor, payloadSize);
-                                                        cursor++;
                                                         this.internal_set(read_key, read_type, eGraph, true, initial);
-                                                        previous = cursor;
-                                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                        if (cursor < payloadSize) {
+                                                            current = buffer.read(cursor);
+                                                            if (current == org.mwg.Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                                state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                                cursor++;
+                                                                previous = cursor;
+                                                            }
+                                                        }
                                                         break;
                                                     default:
                                                         throw new Error("Not implemented yet!!!");
@@ -9373,6 +9267,10 @@ var org;
                         HeapWorldOrderChunk.prototype.lock = function () {
                         };
                         HeapWorldOrderChunk.prototype.unlock = function () {
+                        };
+                        HeapWorldOrderChunk.prototype.externalLock = function () {
+                        };
+                        HeapWorldOrderChunk.prototype.externalUnlock = function () {
                         };
                         HeapWorldOrderChunk.prototype.magic = function () {
                             return this._magic;
@@ -10384,15 +10282,16 @@ var org;
                 ActionNames.MAP_PAR = "mapPar";
                 ActionNames.FLAT_MAP = "flatMap";
                 ActionNames.FLAT_MAP_PAR = "flatMapPar";
-                ActionNames.MAP_REDUCE = "mapReduce";
-                ActionNames.MAP_REDUCE_PAR = "mapPar";
-                ActionNames.FLAT_MAP_REDUCE = "flatMapReduce";
-                ActionNames.FLAT_MAP_REDUCE_PAR = "flatMapPar";
+                ActionNames.PIPE = "pipe";
+                ActionNames.PIPE_PAR = "pipePar";
+                ActionNames.FLAT_PIPE = "flatPipe";
+                ActionNames.FLAT_PIPE_PAR = "flatPipePar";
                 ActionNames.DO_WHILE = "doWhile";
                 ActionNames.WHILE_DO = "whileDo";
                 ActionNames.ISOLATE = "isolate";
                 ActionNames.IF_THEN = "ifThen";
                 ActionNames.IF_THEN_ELSE = "ifThenElse";
+                ActionNames.ATOMIC = "atomic";
                 task_1.ActionNames = ActionNames;
                 var ActionPrint = (function () {
                     function ActionPrint(p_name, withLineBreak) {
@@ -11587,40 +11486,48 @@ var org;
                     Actions.whileDoScript = function (condScript, task) {
                         return org.mwg.core.task.Actions.newTask().whileDoScript(condScript, task);
                     };
-                    Actions.mapReduce = function () {
+                    Actions.pipe = function () {
                         var subTasks = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             subTasks[_i] = arguments[_i];
                         }
-                        return (_a = org.mwg.core.task.Actions.newTask()).mapReduce.apply(_a, subTasks);
+                        return (_a = org.mwg.core.task.Actions.newTask()).pipe.apply(_a, subTasks);
                         var _a;
                     };
-                    Actions.mapReducePar = function () {
+                    Actions.pipePar = function () {
                         var subTasks = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             subTasks[_i] = arguments[_i];
                         }
-                        return (_a = org.mwg.core.task.Actions.newTask()).mapReducePar.apply(_a, subTasks);
+                        return (_a = org.mwg.core.task.Actions.newTask()).pipePar.apply(_a, subTasks);
                         var _a;
                     };
-                    Actions.flatMapReduce = function () {
+                    Actions.flatPipe = function () {
                         var subTasks = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             subTasks[_i] = arguments[_i];
                         }
-                        return (_a = org.mwg.core.task.Actions.newTask()).flatMapReduce.apply(_a, subTasks);
+                        return (_a = org.mwg.core.task.Actions.newTask()).flatPipe.apply(_a, subTasks);
                         var _a;
                     };
-                    Actions.flatMapReducePar = function () {
+                    Actions.flatPipePar = function () {
                         var subTasks = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             subTasks[_i] = arguments[_i];
                         }
-                        return (_a = org.mwg.core.task.Actions.newTask()).flatMapReducePar.apply(_a, subTasks);
+                        return (_a = org.mwg.core.task.Actions.newTask()).flatPipePar.apply(_a, subTasks);
                         var _a;
                     };
                     Actions.isolate = function (subTask) {
                         return org.mwg.core.task.Actions.newTask().isolate(subTask);
+                    };
+                    Actions.atomic = function (protectedTask) {
+                        var variablesToLock = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            variablesToLock[_i - 1] = arguments[_i];
+                        }
+                        return (_a = org.mwg.core.task.Actions.newTask()).atomic.apply(_a, [protectedTask].concat(variablesToLock));
+                        var _a;
                     };
                     Actions.parse = function (flat, graph) {
                         return org.mwg.core.task.Actions.newTask().parse(flat, graph);
@@ -11642,6 +11549,101 @@ var org;
                     return CF_Action;
                 }());
                 task_1.CF_Action = CF_Action;
+                var CF_ActionAtomic = (function (_super) {
+                    __extends(CF_ActionAtomic, _super);
+                    function CF_ActionAtomic(p_subTask) {
+                        var variables = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            variables[_i - 1] = arguments[_i];
+                        }
+                        var _this = _super.call(this) || this;
+                        _this._subTask = p_subTask;
+                        _this._variables = variables;
+                        return _this;
+                    }
+                    CF_ActionAtomic.prototype.eval = function (ctx) {
+                        var collected = new java.util.ArrayList();
+                        for (var i = 0; i < this._variables.length; i++) {
+                            var varName = this._variables[i];
+                            var resolved = void 0;
+                            if (varName === "result") {
+                                resolved = ctx.result();
+                            }
+                            else {
+                                resolved = ctx.variable(varName);
+                            }
+                            if (resolved != null) {
+                                collected.add(resolved);
+                            }
+                        }
+                        var resolver = ctx.graph().resolver();
+                        for (var i = 0; i < collected.size(); i++) {
+                            var toLock = collected.get(i);
+                            for (var j = 0; j < toLock.size(); j++) {
+                                var o = toLock.get(j);
+                                if (o instanceof org.mwg.base.BaseNode) {
+                                    resolver.externalLock(o);
+                                }
+                            }
+                        }
+                        var previous = ctx.result();
+                        this._subTask.executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
+                            {
+                                var exceptionDuringTask = null;
+                                if (result != null) {
+                                    if (result.output() != null) {
+                                        ctx.append(result.output());
+                                    }
+                                    if (result.exception() != null) {
+                                        exceptionDuringTask = result.exception();
+                                    }
+                                    result.free();
+                                }
+                                for (var i = 0; i < collected.size(); i++) {
+                                    var toLock = collected.get(i);
+                                    for (var j = 0; j < toLock.size(); j++) {
+                                        var o = toLock.get(j);
+                                        if (o instanceof org.mwg.base.BaseNode) {
+                                            resolver.externalUnlock(o);
+                                        }
+                                    }
+                                }
+                                if (exceptionDuringTask != null) {
+                                    ctx.endTask(previous, exceptionDuringTask);
+                                }
+                                else {
+                                    ctx.continueWith(previous);
+                                }
+                            }
+                        });
+                    };
+                    CF_ActionAtomic.prototype.children = function () {
+                        var children_tasks = new Array(1);
+                        children_tasks[0] = this._subTask;
+                        return children_tasks;
+                    };
+                    CF_ActionAtomic.prototype.cf_serialize = function (builder, dagIDS) {
+                        builder.append(org.mwg.core.task.ActionNames.LOOP);
+                        builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
+                        var castedAction = this._subTask;
+                        var castedActionHash = castedAction.hashCode();
+                        if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                            builder.append(org.mwg.Constants.SUB_TASK_OPEN);
+                            castedAction.serialize(builder, dagIDS);
+                            builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
+                        }
+                        else {
+                            builder.append("" + dagIDS.get(castedActionHash));
+                        }
+                        for (var i = 0; i < this._variables.length; i++) {
+                            builder.append(org.mwg.Constants.TASK_PARAM_SEP);
+                            org.mwg.core.task.TaskHelper.serializeString(this._variables[i], builder, true);
+                        }
+                        builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
+                    };
+                    return CF_ActionAtomic;
+                }(org.mwg.core.task.CF_Action));
+                task_1.CF_ActionAtomic = CF_ActionAtomic;
                 var CF_ActionDoWhile = (function (_super) {
                     __extends(CF_ActionDoWhile, _super);
                     function CF_ActionDoWhile(p_then, p_cond, conditionalScript) {
@@ -12476,9 +12478,9 @@ var org;
                     return CF_ActionMapPar;
                 }(org.mwg.core.task.CF_Action));
                 task_1.CF_ActionMapPar = CF_ActionMapPar;
-                var CF_ActionMapReduce = (function (_super) {
-                    __extends(CF_ActionMapReduce, _super);
-                    function CF_ActionMapReduce(flat) {
+                var CF_ActionPipe = (function (_super) {
+                    __extends(CF_ActionPipe, _super);
+                    function CF_ActionPipe(flat) {
                         var p_subTasks = [];
                         for (var _i = 1; _i < arguments.length; _i++) {
                             p_subTasks[_i - 1] = arguments[_i];
@@ -12488,7 +12490,7 @@ var org;
                         _this._subTasks = p_subTasks;
                         return _this;
                     }
-                    CF_ActionMapReduce.prototype.eval = function (ctx) {
+                    CF_ActionPipe.prototype.eval = function (ctx) {
                         var _this = this;
                         var previous = ctx.result();
                         var cursor = new java.util.concurrent.atomic.AtomicInteger(0);
@@ -12539,15 +12541,15 @@ var org;
                             ctx.continueWith(next);
                         }
                     };
-                    CF_ActionMapReduce.prototype.children = function () {
+                    CF_ActionPipe.prototype.children = function () {
                         return this._subTasks;
                     };
-                    CF_ActionMapReduce.prototype.cf_serialize = function (builder, dagIDS) {
+                    CF_ActionPipe.prototype.cf_serialize = function (builder, dagIDS) {
                         if (this._flat) {
-                            builder.append(org.mwg.core.task.ActionNames.FLAT_MAP_REDUCE);
+                            builder.append(org.mwg.core.task.ActionNames.FLAT_PIPE);
                         }
                         else {
-                            builder.append(org.mwg.core.task.ActionNames.MAP_REDUCE);
+                            builder.append(org.mwg.core.task.ActionNames.PIPE);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         for (var i = 0; i < this._subTasks.length; i++) {
@@ -12567,12 +12569,12 @@ var org;
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
-                    return CF_ActionMapReduce;
+                    return CF_ActionPipe;
                 }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionMapReduce = CF_ActionMapReduce;
-                var CF_ActionMapReducePar = (function (_super) {
-                    __extends(CF_ActionMapReducePar, _super);
-                    function CF_ActionMapReducePar(flat) {
+                task_1.CF_ActionPipe = CF_ActionPipe;
+                var CF_ActionPipePar = (function (_super) {
+                    __extends(CF_ActionPipePar, _super);
+                    function CF_ActionPipePar(flat) {
                         var p_subTasks = [];
                         for (var _i = 1; _i < arguments.length; _i++) {
                             p_subTasks[_i - 1] = arguments[_i];
@@ -12582,7 +12584,7 @@ var org;
                         _this._flat = flat;
                         return _this;
                     }
-                    CF_ActionMapReducePar.prototype.eval = function (ctx) {
+                    CF_ActionPipePar.prototype.eval = function (ctx) {
                         var previous = ctx.result();
                         var next = ctx.newResult();
                         var subTasksSize = this._subTasks.length;
@@ -12637,15 +12639,15 @@ var org;
                             }
                         });
                     };
-                    CF_ActionMapReducePar.prototype.children = function () {
+                    CF_ActionPipePar.prototype.children = function () {
                         return this._subTasks;
                     };
-                    CF_ActionMapReducePar.prototype.cf_serialize = function (builder, dagIDS) {
+                    CF_ActionPipePar.prototype.cf_serialize = function (builder, dagIDS) {
                         if (this._flat) {
-                            builder.append(org.mwg.core.task.ActionNames.FLAT_MAP_REDUCE_PAR);
+                            builder.append(org.mwg.core.task.ActionNames.FLAT_PIPE_PAR);
                         }
                         else {
-                            builder.append(org.mwg.core.task.ActionNames.MAP_REDUCE_PAR);
+                            builder.append(org.mwg.core.task.ActionNames.PIPE_PAR);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         for (var i = 0; i < this._subTasks.length; i++) {
@@ -12665,9 +12667,9 @@ var org;
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
-                    return CF_ActionMapReducePar;
+                    return CF_ActionPipePar;
                 }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionMapReducePar = CF_ActionMapReducePar;
+                task_1.CF_ActionPipePar = CF_ActionPipePar;
                 var CF_ActionThenDo = (function () {
                     function CF_ActionThenDo(p_wrapped) {
                         if (p_wrapped == null) {
@@ -12850,45 +12852,48 @@ var org;
                     CoreTask.prototype.whileDoScript = function (condScript, task) {
                         return this.then(new org.mwg.core.task.CF_ActionWhileDo(org.mwg.core.task.CoreTask.condFromScript(condScript), task, condScript));
                     };
-                    CoreTask.prototype.mapReduce = function () {
+                    CoreTask.prototype.pipe = function () {
                         var subTasks = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             subTasks[_i] = arguments[_i];
                         }
-                        this.then(new ((_a = org.mwg.core.task.CF_ActionMapReduce).bind.apply(_a, [void 0, false].concat(subTasks)))());
-                        return this;
+                        return this.then(new ((_a = org.mwg.core.task.CF_ActionPipe).bind.apply(_a, [void 0, false].concat(subTasks)))());
                         var _a;
                     };
-                    CoreTask.prototype.mapReducePar = function () {
+                    CoreTask.prototype.pipePar = function () {
                         var subTasks = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             subTasks[_i] = arguments[_i];
                         }
-                        this.then(new ((_a = org.mwg.core.task.CF_ActionMapReducePar).bind.apply(_a, [void 0, false].concat(subTasks)))());
-                        return this;
+                        return this.then(new ((_a = org.mwg.core.task.CF_ActionPipePar).bind.apply(_a, [void 0, false].concat(subTasks)))());
                         var _a;
                     };
-                    CoreTask.prototype.flatMapReduce = function () {
+                    CoreTask.prototype.flatPipe = function () {
                         var subTasks = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             subTasks[_i] = arguments[_i];
                         }
-                        this.then(new ((_a = org.mwg.core.task.CF_ActionMapReduce).bind.apply(_a, [void 0, true].concat(subTasks)))());
-                        return this;
+                        return this.then(new ((_a = org.mwg.core.task.CF_ActionPipe).bind.apply(_a, [void 0, true].concat(subTasks)))());
                         var _a;
                     };
-                    CoreTask.prototype.flatMapReducePar = function () {
+                    CoreTask.prototype.flatPipePar = function () {
                         var subTasks = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             subTasks[_i] = arguments[_i];
                         }
-                        this.then(new ((_a = org.mwg.core.task.CF_ActionMapReducePar).bind.apply(_a, [void 0, true].concat(subTasks)))());
-                        return this;
+                        return this.then(new ((_a = org.mwg.core.task.CF_ActionPipePar).bind.apply(_a, [void 0, true].concat(subTasks)))());
                         var _a;
                     };
                     CoreTask.prototype.isolate = function (subTask) {
-                        this.then(new org.mwg.core.task.CF_ActionIsolate(subTask));
-                        return this;
+                        return this.then(new org.mwg.core.task.CF_ActionIsolate(subTask));
+                    };
+                    CoreTask.prototype.atomic = function (protectedTask) {
+                        var variablesToLock = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            variablesToLock[_i - 1] = arguments[_i];
+                        }
+                        return this.then(new ((_a = org.mwg.core.task.CF_ActionAtomic).bind.apply(_a, [void 0, protectedTask].concat(variablesToLock)))());
+                        var _a;
                     };
                     CoreTask.prototype.execute = function (graph, callback) {
                         this.executeWith(graph, null, callback);
@@ -13538,43 +13543,43 @@ var org;
                                 return new org.mwg.core.task.CF_ActionMapPar(subTask, false);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.MAP_REDUCE, function (params, contextTasks) {
+                        registry.put(org.mwg.core.task.ActionNames.PIPE, function (params, contextTasks) {
                             {
                                 var subTasks = new Array(params.length);
                                 for (var i = 0; i < params.length; i++) {
                                     subTasks[i] = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[i]);
                                 }
-                                return new ((_a = org.mwg.core.task.CF_ActionMapReduce).bind.apply(_a, [void 0, false].concat(subTasks)))();
+                                return new ((_a = org.mwg.core.task.CF_ActionPipe).bind.apply(_a, [void 0, false].concat(subTasks)))();
                             }
                             var _a;
                         });
-                        registry.put(org.mwg.core.task.ActionNames.MAP_REDUCE_PAR, function (params, contextTasks) {
+                        registry.put(org.mwg.core.task.ActionNames.PIPE_PAR, function (params, contextTasks) {
                             {
                                 var subTasks = new Array(params.length);
                                 for (var i = 0; i < params.length; i++) {
                                     subTasks[i] = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[i]);
                                 }
-                                return new ((_a = org.mwg.core.task.CF_ActionMapReducePar).bind.apply(_a, [void 0, false].concat(subTasks)))();
+                                return new ((_a = org.mwg.core.task.CF_ActionPipePar).bind.apply(_a, [void 0, false].concat(subTasks)))();
                             }
                             var _a;
                         });
-                        registry.put(org.mwg.core.task.ActionNames.FLAT_MAP_REDUCE, function (params, contextTasks) {
+                        registry.put(org.mwg.core.task.ActionNames.FLAT_PIPE, function (params, contextTasks) {
                             {
                                 var subTasks = new Array(params.length);
                                 for (var i = 0; i < params.length; i++) {
                                     subTasks[i] = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[i]);
                                 }
-                                return new ((_a = org.mwg.core.task.CF_ActionMapReduce).bind.apply(_a, [void 0, true].concat(subTasks)))();
+                                return new ((_a = org.mwg.core.task.CF_ActionPipe).bind.apply(_a, [void 0, true].concat(subTasks)))();
                             }
                             var _a;
                         });
-                        registry.put(org.mwg.core.task.ActionNames.FLAT_MAP_REDUCE_PAR, function (params, contextTasks) {
+                        registry.put(org.mwg.core.task.ActionNames.FLAT_PIPE_PAR, function (params, contextTasks) {
                             {
                                 var subTasks = new Array(params.length);
                                 for (var i = 0; i < params.length; i++) {
                                     subTasks[i] = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[i]);
                                 }
-                                return new ((_a = org.mwg.core.task.CF_ActionMapReducePar).bind.apply(_a, [void 0, true].concat(subTasks)))();
+                                return new ((_a = org.mwg.core.task.CF_ActionPipePar).bind.apply(_a, [void 0, true].concat(subTasks)))();
                             }
                             var _a;
                         });
@@ -13606,6 +13611,18 @@ var org;
                                 var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
                                 return new org.mwg.core.task.CF_ActionIsolate(subTask);
                             }
+                        });
+                        registry.put(org.mwg.core.task.ActionNames.ATOMIC, function (params, contextTasks) {
+                            {
+                                if (params.length < 1) {
+                                    throw new Error(org.mwg.core.task.ActionNames.ATOMIC + " action needs at least one parameters. Received:" + params.length);
+                                }
+                                var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
+                                var variables = new Array(params.length - 1);
+                                java.lang.System.arraycopy(params, 1, variables, 0, params.length - 1);
+                                return new ((_a = org.mwg.core.task.CF_ActionAtomic).bind.apply(_a, [void 0, subTask].concat(variables)))();
+                            }
+                            var _a;
                         });
                         registry.put(org.mwg.core.task.ActionNames.IF_THEN, function (params, contextTasks) {
                             {

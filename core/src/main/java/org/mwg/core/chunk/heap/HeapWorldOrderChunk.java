@@ -24,6 +24,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     private final long _index;
 
     private volatile int _lock;
+    private volatile int _externalLock;
+
     private volatile long _magic;
     private volatile long _extra;
 
@@ -40,11 +42,16 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
      * @ignore ts
      */
     private static final long _lockOffset;
+    /**
+     * @ignore ts
+     */
+    private static final long _externalLockOffset;
 
     /** @ignore ts */
     static {
         try {
             _lockOffset = unsafe.objectFieldOffset(HeapWorldOrderChunk.class.getDeclaredField("_lock"));
+            _externalLockOffset = unsafe.objectFieldOffset(HeapWorldOrderChunk.class.getDeclaredField("_externalLock"));
         } catch (Exception ex) {
             throw new Error(ex);
         }
@@ -107,6 +114,25 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
             throw new RuntimeException("CAS Error !!!");
         }
     }
+
+    /**
+     * @native ts
+     */
+    @Override
+    public final void externalLock() {
+        while (!unsafe.compareAndSwapInt(this, _externalLockOffset, 0, 1)) ;
+    }
+
+    /**
+     * @native ts
+     */
+    @Override
+    public final void externalUnlock() {
+        if (!unsafe.compareAndSwapInt(this, _externalLockOffset, 1, 0)) {
+            throw new RuntimeException("CAS Error !!!");
+        }
+    }
+
 
     @Override
     public final long magic() {

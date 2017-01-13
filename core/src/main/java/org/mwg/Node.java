@@ -152,8 +152,8 @@ public interface Node {
      * Adds a node to a relation.<br>
      * If the relation doesn't exist, it is created on the fly.<br>
      *
-     * @param relationName The name of the relation in which the node is added.
-     * @param relatedNode  The node to insert in the relation.
+     * @param relationName      The name of the relation in which the node is added.
+     * @param relatedNode       The node to insert in the relation.
      * @param indexedAttributes The attributes' names to be used for indexing the relatedNode. The relation is not indexed if this parameter is null.
      * @return The node for fluent API.
      */
@@ -163,8 +163,8 @@ public interface Node {
      * Adds a node to a relation using the relation index.<br>
      * If the relation doesn't exist, it is created on the fly.<br>
      *
-     * @param relationIndex The index number of the relation in the current node, in which the relatedNode is added.
-     * @param relatedNode   The node to insert in the relation.
+     * @param relationIndex     The index number of the relation in the current node, in which the relatedNode is added.
+     * @param relatedNode       The node to insert in the relation.
      * @param indexedAttributes The attributes' names to be used for indexing the relatedNode. The relation is not indexed if this parameter is null.
      * @return The node for fluent API.
      */
@@ -173,8 +173,8 @@ public interface Node {
     /**
      * Removes a node from a relation.
      *
-     * @param relationName The name of the relation.
-     * @param relatedNode  The node to remove.
+     * @param relationName      The name of the relation.
+     * @param relatedNode       The node to remove.
      * @param indexedAttributes The attributes' names to be used for finding and removing the relatedNode from the index. This is mandatory if the relation is indexed.
      * @return The node for fluent API.
      */
@@ -183,8 +183,8 @@ public interface Node {
     /**
      * Removes a node from a relation.
      *
-     * @param relationIndex The name of the relation.
-     * @param relatedNode   The node to remove.
+     * @param relationIndex     The name of the relation.
+     * @param relatedNode       The node to remove.
      * @param indexedAttributes The attributes' names to be used for finding and removing the relatedNode from the index. This is mandatory if the relation is indexed.
      * @return The node for fluent API.
      */
@@ -208,6 +208,7 @@ public interface Node {
      * Forces the creation of a new timepoint of a node for its time.<br>
      * Clones the previous state to the exact time of this node.<br>
      * This cancels the dephasing between the current timepoint of the node and the last record timepoint.
+     *
      * @return The node for fluent API.
      */
     Node rephase();
@@ -256,4 +257,9 @@ public interface Node {
 
     long nextTime();
 */
+
+    /*
+    <A extends Node> A setTimeSensitivy(long deltaTime);
+    <A extends Node> A setTimeSensitivyOffset(long deltaTimeOffset);
+    */
 }

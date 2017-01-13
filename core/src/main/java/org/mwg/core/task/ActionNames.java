@@ -41,23 +41,31 @@ public class ActionNames {
     public static String WITHOUT = "without";
     public static String TRAVERSE = "traverse";
     public static String ATTRIBUTE = "attribute";
+
     public static String LOOP = "loop";
     public static String LOOP_PAR = "loopPar";
+
     public static String FOR_EACH = "forEach";
     public static String FOR_EACH_PAR = "forEachPar";
+
     public static String MAP = "map";
     public static String MAP_PAR = "mapPar";
+
     public static String FLAT_MAP = "flatMap";
     public static String FLAT_MAP_PAR = "flatMapPar";
-    public static String MAP_REDUCE = "mapReduce";
-    public static String MAP_REDUCE_PAR = "mapPar";
-    public static String FLAT_MAP_REDUCE = "flatMapReduce";
-    public static String FLAT_MAP_REDUCE_PAR = "flatMapPar";
+
+    public static String PIPE = "pipe";
+    public static String PIPE_PAR = "pipePar";
+
+    public static String FLAT_PIPE = "flatPipe";
+    public static String FLAT_PIPE_PAR = "flatPipePar";
+
     public static String DO_WHILE = "doWhile";
     public static String WHILE_DO = "whileDo";
     public static String ISOLATE = "isolate";
     public static String IF_THEN = "ifThen";
     public static String IF_THEN_ELSE = "ifThenElse";
+    public static String ATOMIC = "atomic";
 
 }
 

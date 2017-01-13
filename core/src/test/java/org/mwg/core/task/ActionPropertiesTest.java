@@ -69,7 +69,7 @@ public class ActionPropertiesTest {
         initGraph();
         newTask()
                 .then(readGlobalIndex("root"))
-                .flatMapReduce(
+                .flatPipe(
                         newTask().then(attributesWithTypes(Type.RELATION)),
                         newTask().then(attributesWithTypes(Type.RELATION_INDEXED))
                 )

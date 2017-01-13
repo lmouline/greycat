@@ -10,6 +10,10 @@ public interface WorldOrderChunk extends Chunk, LongLongMap {
 
     void unlock();
 
+    void externalLock();
+
+    void externalUnlock();
+
     long extra();
 
     void setExtra(long extraValue);

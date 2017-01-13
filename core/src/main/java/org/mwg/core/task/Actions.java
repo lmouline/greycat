@@ -569,28 +569,33 @@ public class Actions {
         return newTask().whileDoScript(condScript, task);
     }
 
-    public static Task mapReduce(Task... subTasks) {
-        return newTask().mapReduce(subTasks);
+    public static Task pipe(Task... subTasks) {
+        return newTask().pipe(subTasks);
     }
 
-    public static Task mapReducePar(Task... subTasks) {
-        return newTask().mapReducePar(subTasks);
+    public static Task pipePar(Task... subTasks) {
+        return newTask().pipePar(subTasks);
     }
 
-    public static Task flatMapReduce(Task... subTasks) {
-        return newTask().flatMapReduce(subTasks);
+    public static Task flatPipe(Task... subTasks) {
+        return newTask().flatPipe(subTasks);
     }
 
-    public static Task flatMapReducePar(Task... subTasks) {
-        return newTask().flatMapReducePar(subTasks);
+    public static Task flatPipePar(Task... subTasks) {
+        return newTask().flatPipePar(subTasks);
     }
 
     public static Task isolate(Task subTask) {
         return newTask().isolate(subTask);
     }
 
+    public static Task atomic(Task protectedTask, String... variablesToLock) {
+        return newTask().atomic(protectedTask, variablesToLock);
+    }
+
     public static Task parse(String flat, Graph graph) {
         return newTask().parse(flat, graph);
     }
+
 
 }

@@ -109,6 +109,20 @@ final class MWGResolver implements Resolver {
     }
 
     @Override
+    public final void externalLock(org.mwg.Node node) {
+        final BaseNode casted = (BaseNode) node;
+        final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.get(casted._index_worldOrder);
+        worldOrderChunk.externalLock();
+    }
+
+    @Override
+    public final void externalUnlock(org.mwg.Node node) {
+        final BaseNode casted = (BaseNode) node;
+        final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.get(casted._index_worldOrder);
+        worldOrderChunk.externalUnlock();
+    }
+
+    @Override
     public final <A extends org.mwg.Node> void lookup(final long world, final long time, final long id, final Callback<A> callback) {
         final MWGResolver selfPointer = this;
         selfPointer._space.getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id, new Callback<Chunk>() {

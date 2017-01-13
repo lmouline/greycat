@@ -214,7 +214,7 @@ public class RobustnessTests {
     public void robustnessMap() {
         boolean exceptionCaught = false;
         try {
-            new CoreTask().mapReduce(null).execute(_graph, null);
+            new CoreTask().pipe(null).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {
@@ -267,7 +267,7 @@ public class RobustnessTests {
     public void robustnessWait() {
         boolean exceptionCaught = false;
         try {
-            newTask().mapReduce(null).execute(_graph, null);
+            newTask().pipe(null).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {

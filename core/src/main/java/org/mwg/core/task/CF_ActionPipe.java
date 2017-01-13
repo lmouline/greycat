@@ -3,7 +3,6 @@ package org.mwg.core.task;
 import org.mwg.Callback;
 import org.mwg.Constants;
 import org.mwg.plugin.SchedulerAffinity;
-import org.mwg.task.Action;
 import org.mwg.task.Task;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
@@ -11,12 +10,12 @@ import org.mwg.task.TaskResult;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class CF_ActionMapReduce extends CF_Action {
+class CF_ActionPipe extends CF_Action {
 
     private final Task[] _subTasks;
     private final boolean _flat;
 
-    CF_ActionMapReduce(final boolean flat, final Task... p_subTasks) {
+    CF_ActionPipe(final boolean flat, final Task... p_subTasks) {
         super();
         _flat = flat;
         _subTasks = p_subTasks;
@@ -80,9 +79,9 @@ class CF_ActionMapReduce extends CF_Action {
     @Override
     public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
         if (_flat) {
-            builder.append(ActionNames.FLAT_MAP_REDUCE);
+            builder.append(ActionNames.FLAT_PIPE);
         } else {
-            builder.append(ActionNames.MAP_REDUCE);
+            builder.append(ActionNames.PIPE);
         }
         builder.append(Constants.TASK_PARAM_OPEN);
         for (int i = 0; i < _subTasks.length; i++) {

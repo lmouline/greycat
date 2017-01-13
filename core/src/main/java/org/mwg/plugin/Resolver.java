@@ -122,4 +122,8 @@ public interface Resolver {
      */
     String hashToString(int key);
 
+    void externalLock(org.mwg.Node node);
+
+    void externalUnlock(org.mwg.Node node);
+
 }
