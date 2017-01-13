@@ -9,8 +9,8 @@ import org.mwg.struct.RelationIndexed;
 public class OffHeapRelationIndexed extends OffHeapLongLongArrayMap implements RelationIndexed {
     private final Graph _graph;
 
-    OffHeapRelationIndexed(OffHeapStateChunk p_chunk, long p_index, Graph p_graph) {
-        super(p_chunk, p_index);
+    OffHeapRelationIndexed(OffHeapContainer p_container, long p_index, Graph p_graph) {
+        super(p_container, p_index);
         _graph = p_graph;
     }
 

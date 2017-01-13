@@ -208,7 +208,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                 case Type.RELATION_INDEXED:
                     return new OffHeapRelationIndexed(this, index, space.graph());
                 case Type.EGRAPH:
-                    return new OffHeapEGraph(this, rawValue, space.graph());
+                    return new OffHeapEGraph(this, index, space.graph());
                 case OffHeapConstants.OFFHEAP_NULL_PTR:
                     return null;
                 default:

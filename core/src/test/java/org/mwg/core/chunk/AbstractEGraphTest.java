@@ -194,8 +194,6 @@ public abstract class AbstractEGraphTest {
 
         ERelation eRel = (ERelation) eNode.getOrCreate("erel", Type.ERELATION);
         eRel.add(eNode);
-
-
     }
 
 

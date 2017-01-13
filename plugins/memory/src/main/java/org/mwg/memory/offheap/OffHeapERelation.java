@@ -3,14 +3,13 @@ package org.mwg.memory.offheap;
 import org.mwg.Constants;
 import org.mwg.Graph;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
-import org.mwg.struct.Buffer;
 import org.mwg.struct.ENode;
 import org.mwg.struct.ERelation;
 
 public class OffHeapERelation implements ERelation {
-    private final OffHeapStateChunk parent;
     private final OffHeapEGraph eGraph;
     private final Graph graph;
+    private final OffHeapContainer container;
 
     private static final int SIZE = 0;
     private static final int CAPACITY = 1;
@@ -18,10 +17,10 @@ public class OffHeapERelation implements ERelation {
 
     private long addr = OffHeapConstants.OFFHEAP_NULL_PTR;
 
-    public OffHeapERelation(OffHeapStateChunk parent, OffHeapEGraph eGraph, Graph graph, long originAddr) {
-        this.parent = parent;
+    public OffHeapERelation(OffHeapContainer container, OffHeapEGraph eGraph, Graph graph, long originAddr) {
         this.eGraph = eGraph;
         this.graph = graph;
+        this.container = container;
 
         allocate(originAddr, Constants.MAP_INITIAL_CAPACITY);
     }
@@ -53,7 +52,7 @@ public class OffHeapERelation implements ERelation {
         for (int i = 0; i < size; i++) {
             long nodeAddr = nodeAddrAt(addr, i);
             long nodeId = OffHeapENode.getId(nodeAddr);
-            OffHeapENode eNode = new OffHeapENode(parent, eGraph, graph, nodeId, nodeAddr);
+            OffHeapENode eNode = new OffHeapENode(container, eGraph, graph, nodeId, nodeAddr);
             nodes[i] = eNode;
         }
         return nodes;
@@ -63,7 +62,7 @@ public class OffHeapERelation implements ERelation {
     public ENode node(int index) {
         long nodeAddr = nodeAddrAt(addr, index);
         long nodeId = OffHeapENode.getId(nodeAddr);
-        return new OffHeapENode(parent, eGraph, graph, nodeId, nodeAddr);
+        return new OffHeapENode(container, eGraph, graph, nodeId, nodeAddr);
     }
 
     @Override
@@ -85,9 +84,7 @@ public class OffHeapERelation implements ERelation {
         }
         setNodeAddrAt(addr, size, ((OffHeapENode) eNode).getAddr());
         OffHeapLongArray.set(addr, SIZE, size + 1);
-        if (parent != null) {
-            parent.declareDirty();
-        }
+        eGraph.declareDirty();
         return this;
     }
 
@@ -99,9 +96,7 @@ public class OffHeapERelation implements ERelation {
             OffHeapENode eNode = (OffHeapENode) eNodes[i];
             setNodeAddrAt(addr, size + i, eNode.getAddr());
         }
-        if (parent != null) {
-            parent.declareDirty();
-        }
+        eGraph.declareDirty();
         return this;
     }
 
@@ -112,9 +107,7 @@ public class OffHeapERelation implements ERelation {
         for (long i = 0; i < size; i++) {
             setNodeAddrAt(addr, i, OffHeapConstants.OFFHEAP_NULL_PTR);
         }
-        if (parent != null) {
-            parent.declareDirty();
-        }
+        eGraph.declareDirty();
         return this;
     }
 
@@ -132,10 +125,6 @@ public class OffHeapERelation implements ERelation {
 
     static void free(long addr) {
         OffHeapLongArray.free(addr);
-    }
-
-    static void save(long addr, Buffer buffer) {
-        // TODO
     }
 
     static long nodeAddrAt(long addr, long index) {

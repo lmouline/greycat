@@ -437,7 +437,7 @@ class OffHeapChunkSpace implements ChunkSpace {
 
     @Override
     public EGraph newVolatileGraph() {
-        return new OffHeapEGraph(null, OffHeapConstants.OFFHEAP_NULL_PTR, _graph);
+        return new OffHeapEGraph(new OffHeapVolatileContainer(), OffHeapConstants.OFFHEAP_NULL_PTR, _graph);
     }
 
 }

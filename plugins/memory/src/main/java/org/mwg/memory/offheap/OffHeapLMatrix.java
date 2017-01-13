@@ -15,18 +15,18 @@ class OffHeapLMatrix implements LMatrix {
     private static final int INDEX_MAX_COLUMN = 2;
     private static final int INDEX_OFFSET = 3;
     private final long index;
-    private final OffHeapStateChunk chunk;
+    private final OffHeapContainer container;
 
-    OffHeapLMatrix(final OffHeapStateChunk p_chunk, final long p_index) {
-        chunk = p_chunk;
+    OffHeapLMatrix(final OffHeapContainer p_container, final long p_index) {
+        container = p_container;
         index = p_index;
     }
 
     @Override
     public final LMatrix init(int rows, int columns) {
-        chunk.lock();
+        container.lock();
         try {
-            long addr = chunk.addrByIndex(index);
+            long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 OffHeapLongArray.free(addr);
             }
@@ -34,23 +34,27 @@ class OffHeapLMatrix implements LMatrix {
             OffHeapLongArray.set(addr, INDEX_ROWS, rows);
             OffHeapLongArray.set(addr, INDEX_COLUMNS, columns);
             OffHeapLongArray.set(addr, INDEX_MAX_COLUMN, columns);
-            chunk.setAddrByIndex(index, addr);
-            chunk.declareDirty();
+            container.setAddrByIndex(index, addr);
+            container.declareDirty();
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return this;
     }
 
     @Override
     public LMatrix appendColumn(long[] newColumn) {
-        chunk.lock();
+        container.lock();
         try {
             long nbRows;
             long nbColumns;
             long nbMaxColumn;
-            long addr = chunk.addrByIndex(index);
-            if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            long addr = container.addrByIndex(index);
+            long indexAddr = OffHeapConstants.OFFHEAP_NULL_PTR;
+            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                indexAddr = OffHeapLongArray.get(addr, INDEX_COLUMNS);
+            }
+            if (addr == OffHeapConstants.OFFHEAP_NULL_PTR || indexAddr == OffHeapConstants.OFFHEAP_NULL_PTR) {
                 nbRows = newColumn.length;
                 nbColumns = Constants.MAP_INITIAL_CAPACITY;
                 nbMaxColumn = 0;
@@ -58,8 +62,8 @@ class OffHeapLMatrix implements LMatrix {
                 OffHeapLongArray.set(addr, INDEX_ROWS, nbRows);
                 OffHeapLongArray.set(addr, INDEX_COLUMNS, nbColumns);
                 OffHeapLongArray.set(addr, INDEX_MAX_COLUMN, nbMaxColumn);
-                chunk.setAddrByIndex(index, addr);
-                chunk.declareDirty();
+                container.setAddrByIndex(index, addr);
+                container.declareDirty();
             } else {
                 nbRows = (int) OffHeapLongArray.get(addr, INDEX_ROWS);
                 nbColumns = (int) OffHeapLongArray.get(addr, INDEX_COLUMNS);
@@ -69,8 +73,8 @@ class OffHeapLMatrix implements LMatrix {
                 nbColumns = nbColumns * 2;
                 final long newLength = nbColumns * nbRows + INDEX_OFFSET;
                 addr = OffHeapLongArray.reallocate(addr, newLength);
-                chunk.setAddrByIndex(index, addr);
-                chunk.declareDirty();
+                container.setAddrByIndex(index, addr);
+                container.declareDirty();
             }
             for (int i = 0; i < newColumn.length; i++) {
                 long base = nbMaxColumn * nbRows + INDEX_OFFSET;
@@ -78,24 +82,24 @@ class OffHeapLMatrix implements LMatrix {
             }
             OffHeapLongArray.set(addr, INDEX_MAX_COLUMN, nbMaxColumn + 1);
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return this;
     }
 
     void unsafe_init(int size) {
-        long addr = chunk.addrByIndex(index);
+        long addr = container.addrByIndex(index);
         if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
             OffHeapLongArray.free(addr);
         }
         addr = OffHeapLongArray.allocate(size);
         OffHeapLongArray.set(addr, INDEX_ROWS, 0);
         OffHeapLongArray.set(addr, INDEX_COLUMNS, 0);
-        chunk.setAddrByIndex(index, addr);
+        container.setAddrByIndex(index, addr);
     }
 
     void unsafe_set(long setIndex, long value) {
-        final long addr = chunk.addrByIndex(index);
+        final long addr = container.addrByIndex(index);
         if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
             OffHeapLongArray.set(addr, setIndex, value);
         }
@@ -103,43 +107,43 @@ class OffHeapLMatrix implements LMatrix {
 
     @Override
     public final LMatrix fill(long value) {
-        chunk.lock();
+        container.lock();
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 long nbRows = OffHeapLongArray.get(addr, INDEX_ROWS);
                 long nbColumns = OffHeapLongArray.get(addr, INDEX_COLUMNS);
                 OffHeapLongArray.fill(addr, INDEX_OFFSET, (nbRows * nbColumns), value);
-                chunk.declareDirty();
+                container.declareDirty();
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return this;
     }
 
     @Override
     public LMatrix fillWith(long[] values) {
-        chunk.lock();
+        container.lock();
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 for (int i = 0; i < values.length; i++) {
                     OffHeapLongArray.set(addr, INDEX_OFFSET + i, values[i]);
                 }
-                chunk.declareDirty();
+                container.declareDirty();
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return this;
     }
 
     @Override
     public LMatrix fillWithRandom(long min, long max, long seed) {
-        chunk.lock();
+        container.lock();
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 final long nbRows = OffHeapLongArray.get(addr, INDEX_ROWS);
                 final long nbColumns = OffHeapLongArray.get(addr, INDEX_COLUMNS);
@@ -148,40 +152,40 @@ class OffHeapLMatrix implements LMatrix {
                 for (int i = 0; i < nbColumns * nbRows; i++) {
                     OffHeapLongArray.set(addr, INDEX_OFFSET + i, rand.nextLong() * (max - min) + min);
                 }
-                chunk.declareDirty();
+                container.declareDirty();
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return this;
     }
 
     @Override
     public final int rows() {
-        chunk.lock();
+        container.lock();
         int result = 0;
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 result = (int) OffHeapLongArray.get(addr, INDEX_ROWS);
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return result;
     }
 
     @Override
     public final int columns() {
-        chunk.lock();
+        container.lock();
         int result = 0;
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 result = (int) OffHeapLongArray.get(addr, INDEX_MAX_COLUMN);
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return result;
     }
@@ -189,9 +193,9 @@ class OffHeapLMatrix implements LMatrix {
     @Override
     public long[] column(int columnIndex) {
         long[] result = null;
-        chunk.lock();
+        container.lock();
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 long nbRows = OffHeapLongArray.get(addr, INDEX_ROWS);
                 result = new long[(int) nbRows];
@@ -201,47 +205,47 @@ class OffHeapLMatrix implements LMatrix {
                 }
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return result;
     }
 
     @Override
     public final long get(int rowIndex, int columnIndex) {
-        chunk.lock();
+        container.lock();
         long result = 0;
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 final long nbRows = (int) OffHeapLongArray.get(addr, INDEX_ROWS);
                 result = OffHeapLongArray.get(addr, INDEX_OFFSET + rowIndex + columnIndex * nbRows);
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return result;
     }
 
     @Override
     public final LMatrix set(int rowIndex, int columnIndex, long value) {
-        chunk.lock();
+        container.lock();
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 final long nbRows = OffHeapLongArray.get(addr, INDEX_ROWS);
                 OffHeapLongArray.set(addr, INDEX_OFFSET + rowIndex + columnIndex * nbRows, value);
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return this;
     }
 
     @Override
     public LMatrix add(int rowIndex, int columnIndex, long value) {
-        chunk.lock();
+        container.lock();
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 final long nbRows = OffHeapLongArray.get(addr, INDEX_ROWS);
                 final long raw_index = INDEX_OFFSET + rowIndex + columnIndex * nbRows;
@@ -249,17 +253,17 @@ class OffHeapLMatrix implements LMatrix {
                 OffHeapLongArray.set(addr, raw_index, value + previous);
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return this;
     }
 
     @Override
     public long[] data() {
-        chunk.lock();
+        container.lock();
         long[] flat;
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 final int nbRows = (int) OffHeapLongArray.get(addr, INDEX_ROWS);
                 final int nbColumns = (int) OffHeapLongArray.get(addr, INDEX_COLUMNS);
@@ -272,53 +276,53 @@ class OffHeapLMatrix implements LMatrix {
                 flat = new long[0];
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return flat;
     }
 
     @Override
     public int leadingDimension() {
-        chunk.lock();
+        container.lock();
         int result = 0;
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 final int nbRows = (int) OffHeapLongArray.get(addr, INDEX_ROWS);
                 final int nbColumns = (int) OffHeapLongArray.get(addr, INDEX_COLUMNS);
                 result = Math.max(nbRows, nbColumns);
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return result;
     }
 
     @Override
     public long unsafeGet(int indexValue) {
-        chunk.lock();
+        container.lock();
         long result = 0;
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 result = OffHeapLongArray.get(addr, INDEX_OFFSET + indexValue);
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return result;
     }
 
     @Override
     public LMatrix unsafeSet(int indexValue, long value) {
-        chunk.lock();
+        container.lock();
         try {
-            final long addr = chunk.addrByIndex(index);
+            final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
                 OffHeapLongArray.set(addr, INDEX_OFFSET + indexValue, value);
             }
         } finally {
-            chunk.unlock();
+            container.unlock();
         }
         return this;
     }
