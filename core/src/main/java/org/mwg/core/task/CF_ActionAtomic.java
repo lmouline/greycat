@@ -51,8 +51,7 @@ public class CF_ActionAtomic extends CF_Action {
                 }
             }
         }
-        final TaskResult previous = ctx.result();
-        _subTask.executeFrom(ctx, previous, SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
+        _subTask.executeFrom(ctx, ctx.result(), SchedulerAffinity.SAME_THREAD, new Callback<TaskResult>() {
             @Override
             public void on(TaskResult result) {
                 Exception exceptionDuringTask = null;
@@ -63,7 +62,6 @@ public class CF_ActionAtomic extends CF_Action {
                     if (result.exception() != null) {
                         exceptionDuringTask = result.exception();
                     }
-                    result.free();
                 }
                 for (int i = 0; i < collected.size(); i++) {
                     TaskResult toLock = collected.get(i);
@@ -75,9 +73,9 @@ public class CF_ActionAtomic extends CF_Action {
                     }
                 }
                 if (exceptionDuringTask != null) {
-                    ctx.endTask(previous, exceptionDuringTask);
+                    ctx.endTask(result, exceptionDuringTask);
                 } else {
-                    ctx.continueWith(previous);
+                    ctx.continueWith(result);
                 }
             }
         });
