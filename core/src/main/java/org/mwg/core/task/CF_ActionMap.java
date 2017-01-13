@@ -12,11 +12,9 @@ import java.util.Map;
 class CF_ActionMap extends CF_Action {
 
     private final Task _subTask;
-    private final boolean _flat;
 
-    CF_ActionMap(final Task p_subTask, final boolean flat) {
+    CF_ActionMap(final Task p_subTask) {
         super();
-        _flat = flat;
         _subTask = p_subTask;
     }
 
@@ -37,13 +35,7 @@ class CF_ActionMap extends CF_Action {
                 public void on(final TaskResult res) {
                     Exception exceptionDuringTask = null;
                     if (res != null) {
-                        if (_flat) {
-                            for (int i = 0; i < res.size(); i++) {
-                                finalResult.add(res.get(i));
-                            }
-                        } else {
-                            finalResult.add(res);
-                        }
+                        finalResult.add(res);
                         if (res.output() != null) {
                             ctx.append(res.output());
                         }
@@ -103,11 +95,7 @@ class CF_ActionMap extends CF_Action {
 
     @Override
     public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
-        if (_flat) {
-            builder.append(ActionNames.FLAT_MAP);
-        } else {
-            builder.append(ActionNames.MAP);
-        }
+        builder.append(ActionNames.MAP);
         builder.append(Constants.TASK_PARAM_OPEN);
         final CoreTask castedAction = (CoreTask) _subTask;
         final int castedActionHash = castedAction.hashCode();

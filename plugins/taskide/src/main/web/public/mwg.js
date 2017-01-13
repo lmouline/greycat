@@ -10067,6 +10067,49 @@ var org;
                     return ActionExecuteExpression;
                 }());
                 task_1.ActionExecuteExpression = ActionExecuteExpression;
+                var ActionFlat = (function () {
+                    function ActionFlat() {
+                    }
+                    ActionFlat.prototype.eval = function (ctx) {
+                        var result = ctx.result();
+                        if (result == null) {
+                            ctx.continueTask();
+                        }
+                        else {
+                            var next = ctx.newResult();
+                            for (var i = 0; i < result.size(); i++) {
+                                var loop = result.get(i);
+                                if (loop instanceof org.mwg.core.task.CoreTaskResult) {
+                                    var casted = loop;
+                                    for (var j = 0; j < casted.size(); j++) {
+                                        var resultLoop = casted.get(j);
+                                        if (resultLoop != null) {
+                                            next.add(resultLoop);
+                                        }
+                                    }
+                                }
+                                else {
+                                    if (loop != null) {
+                                        next.add(loop);
+                                    }
+                                }
+                            }
+                            ctx.continueWith(next);
+                        }
+                    };
+                    ActionFlat.prototype.serialize = function (builder) {
+                        builder.append(org.mwg.core.task.ActionNames.FLAT);
+                        builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
+                        builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
+                    };
+                    ActionFlat.prototype.toString = function () {
+                        var res = new java.lang.StringBuilder();
+                        this.serialize(res);
+                        return res.toString();
+                    };
+                    return ActionFlat;
+                }());
+                task_1.ActionFlat = ActionFlat;
                 var ActionFlipVar = (function () {
                     function ActionFlipVar(name) {
                         if (name == null) {
@@ -10280,18 +10323,15 @@ var org;
                 ActionNames.FOR_EACH_PAR = "forEachPar";
                 ActionNames.MAP = "map";
                 ActionNames.MAP_PAR = "mapPar";
-                ActionNames.FLAT_MAP = "flatMap";
-                ActionNames.FLAT_MAP_PAR = "flatMapPar";
                 ActionNames.PIPE = "pipe";
                 ActionNames.PIPE_PAR = "pipePar";
-                ActionNames.FLAT_PIPE = "flatPipe";
-                ActionNames.FLAT_PIPE_PAR = "flatPipePar";
                 ActionNames.DO_WHILE = "doWhile";
                 ActionNames.WHILE_DO = "whileDo";
                 ActionNames.ISOLATE = "isolate";
                 ActionNames.IF_THEN = "ifThen";
                 ActionNames.IF_THEN_ELSE = "ifThenElse";
                 ActionNames.ATOMIC = "atomic";
+                ActionNames.FLAT = "flat";
                 task_1.ActionNames = ActionNames;
                 var ActionPrint = (function () {
                     function ActionPrint(p_name, withLineBreak) {
@@ -11241,6 +11281,9 @@ var org;
                 var Actions = (function () {
                     function Actions() {
                     }
+                    Actions.flat = function () {
+                        return new org.mwg.core.task.ActionFlat();
+                    };
                     Actions.travelInWorld = function (world) {
                         return new org.mwg.core.task.ActionTravelInWorld(world);
                     };
@@ -11450,12 +11493,6 @@ var org;
                     Actions.forEachPar = function (subTask) {
                         return org.mwg.core.task.Actions.newTask().forEachPar(subTask);
                     };
-                    Actions.flatMap = function (subTask) {
-                        return org.mwg.core.task.Actions.newTask().flatMap(subTask);
-                    };
-                    Actions.flatMapPar = function (subTask) {
-                        return org.mwg.core.task.Actions.newTask().flatMapPar(subTask);
-                    };
                     Actions.map = function (subTask) {
                         return org.mwg.core.task.Actions.newTask().map(subTask);
                     };
@@ -11500,22 +11537,6 @@ var org;
                             subTasks[_i] = arguments[_i];
                         }
                         return (_a = org.mwg.core.task.Actions.newTask()).pipePar.apply(_a, subTasks);
-                        var _a;
-                    };
-                    Actions.flatPipe = function () {
-                        var subTasks = [];
-                        for (var _i = 0; _i < arguments.length; _i++) {
-                            subTasks[_i] = arguments[_i];
-                        }
-                        return (_a = org.mwg.core.task.Actions.newTask()).flatPipe.apply(_a, subTasks);
-                        var _a;
-                    };
-                    Actions.flatPipePar = function () {
-                        var subTasks = [];
-                        for (var _i = 0; _i < arguments.length; _i++) {
-                            subTasks[_i] = arguments[_i];
-                        }
-                        return (_a = org.mwg.core.task.Actions.newTask()).flatPipePar.apply(_a, subTasks);
                         var _a;
                     };
                     Actions.isolate = function (subTask) {
@@ -11586,8 +11607,7 @@ var org;
                                 }
                             }
                         }
-                        var previous = ctx.result();
-                        this._subTask.executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
+                        this._subTask.executeFrom(ctx, ctx.result(), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
                             {
                                 var exceptionDuringTask = null;
                                 if (result != null) {
@@ -11597,7 +11617,6 @@ var org;
                                     if (result.exception() != null) {
                                         exceptionDuringTask = result.exception();
                                     }
-                                    result.free();
                                 }
                                 for (var i = 0; i < collected.size(); i++) {
                                     var toLock = collected.get(i);
@@ -11609,10 +11628,10 @@ var org;
                                     }
                                 }
                                 if (exceptionDuringTask != null) {
-                                    ctx.endTask(previous, exceptionDuringTask);
+                                    ctx.endTask(result, exceptionDuringTask);
                                 }
                                 else {
-                                    ctx.continueWith(previous);
+                                    ctx.continueWith(result);
                                 }
                             }
                         });
@@ -12271,9 +12290,8 @@ var org;
                 task_1.CF_ActionLoopPar = CF_ActionLoopPar;
                 var CF_ActionMap = (function (_super) {
                     __extends(CF_ActionMap, _super);
-                    function CF_ActionMap(p_subTask, flat) {
+                    function CF_ActionMap(p_subTask) {
                         var _this = _super.call(this) || this;
-                        _this._flat = flat;
                         _this._subTask = p_subTask;
                         return _this;
                     }
@@ -12294,14 +12312,7 @@ var org;
                                 {
                                     var exceptionDuringTask = null;
                                     if (res != null) {
-                                        if (_this._flat) {
-                                            for (var i = 0; i < res.size(); i++) {
-                                                finalResult_1.add(res.get(i));
-                                            }
-                                        }
-                                        else {
-                                            finalResult_1.add(res);
-                                        }
+                                        finalResult_1.add(res);
                                         if (res.output() != null) {
                                             ctx.append(res.output());
                                         }
@@ -12358,12 +12369,7 @@ var org;
                         return children_tasks;
                     };
                     CF_ActionMap.prototype.cf_serialize = function (builder, dagIDS) {
-                        if (this._flat) {
-                            builder.append(org.mwg.core.task.ActionNames.FLAT_MAP);
-                        }
-                        else {
-                            builder.append(org.mwg.core.task.ActionNames.MAP);
-                        }
+                        builder.append(org.mwg.core.task.ActionNames.MAP);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
@@ -12382,9 +12388,8 @@ var org;
                 task_1.CF_ActionMap = CF_ActionMap;
                 var CF_ActionMapPar = (function (_super) {
                     __extends(CF_ActionMapPar, _super);
-                    function CF_ActionMapPar(p_subTask, flat) {
+                    function CF_ActionMapPar(p_subTask) {
                         var _this = _super.call(this) || this;
-                        _this._flat = flat;
                         _this._subTask = p_subTask;
                         return _this;
                     }
@@ -12413,14 +12418,7 @@ var org;
                                     }, function (result) {
                                         {
                                             if (result != null) {
-                                                if (_this._flat) {
-                                                    for (var i = 0; i < result.size(); i++) {
-                                                        finalResult.add(result.get(i));
-                                                    }
-                                                }
-                                                else {
-                                                    finalResult.add(result);
-                                                }
+                                                finalResult.add(result);
                                                 if (result.output() != null) {
                                                     ctx.append(result.output());
                                                 }
@@ -12456,12 +12454,7 @@ var org;
                         return children_tasks;
                     };
                     CF_ActionMapPar.prototype.cf_serialize = function (builder, dagIDS) {
-                        if (this._flat) {
-                            builder.append(org.mwg.core.task.ActionNames.FLAT_MAP_PAR);
-                        }
-                        else {
-                            builder.append(org.mwg.core.task.ActionNames.MAP_PAR);
-                        }
+                        builder.append(org.mwg.core.task.ActionNames.MAP_PAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
@@ -12480,13 +12473,12 @@ var org;
                 task_1.CF_ActionMapPar = CF_ActionMapPar;
                 var CF_ActionPipe = (function (_super) {
                     __extends(CF_ActionPipe, _super);
-                    function CF_ActionPipe(flat) {
+                    function CF_ActionPipe() {
                         var p_subTasks = [];
-                        for (var _i = 1; _i < arguments.length; _i++) {
-                            p_subTasks[_i - 1] = arguments[_i];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            p_subTasks[_i] = arguments[_i];
                         }
                         var _this = _super.call(this) || this;
-                        _this._flat = flat;
                         _this._subTasks = p_subTasks;
                         return _this;
                     }
@@ -12495,22 +12487,21 @@ var org;
                         var previous = ctx.result();
                         var cursor = new java.util.concurrent.atomic.AtomicInteger(0);
                         var tasksSize = this._subTasks.length;
-                        var next = ctx.newResult();
+                        var next;
+                        if (tasksSize > 1) {
+                            next = ctx.newResult();
+                            next.allocate(tasksSize);
+                        }
+                        else {
+                            next = null;
+                        }
                         var loopcb = new Array(1);
                         loopcb[0] = function (result) {
                             {
                                 var exceptionDuringTask = null;
                                 var current_2 = cursor.getAndIncrement();
                                 if (result != null) {
-                                    if (_this._flat) {
-                                        for (var i = 0; i < result.size(); i++) {
-                                            var loop = result.get(i);
-                                            if (loop != null) {
-                                                next.add(loop);
-                                            }
-                                        }
-                                    }
-                                    else {
+                                    if (tasksSize > 1) {
                                         next.add(result);
                                     }
                                     if (result.output() != null) {
@@ -12524,11 +12515,18 @@ var org;
                                     _this._subTasks[current_2].executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, loopcb[0]);
                                 }
                                 else {
-                                    if (exceptionDuringTask != null) {
-                                        ctx.endTask(next, exceptionDuringTask);
+                                    var nextResult = void 0;
+                                    if (tasksSize > 1) {
+                                        nextResult = next;
                                     }
                                     else {
-                                        ctx.continueWith(next);
+                                        nextResult = result;
+                                    }
+                                    if (exceptionDuringTask != null) {
+                                        ctx.endTask(nextResult, exceptionDuringTask);
+                                    }
+                                    else {
+                                        ctx.continueWith(nextResult);
                                     }
                                 }
                             }
@@ -12545,12 +12543,7 @@ var org;
                         return this._subTasks;
                     };
                     CF_ActionPipe.prototype.cf_serialize = function (builder, dagIDS) {
-                        if (this._flat) {
-                            builder.append(org.mwg.core.task.ActionNames.FLAT_PIPE);
-                        }
-                        else {
-                            builder.append(org.mwg.core.task.ActionNames.PIPE);
-                        }
+                        builder.append(org.mwg.core.task.ActionNames.PIPE);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         for (var i = 0; i < this._subTasks.length; i++) {
                             if (i != 0) {
@@ -12574,20 +12567,19 @@ var org;
                 task_1.CF_ActionPipe = CF_ActionPipe;
                 var CF_ActionPipePar = (function (_super) {
                     __extends(CF_ActionPipePar, _super);
-                    function CF_ActionPipePar(flat) {
+                    function CF_ActionPipePar() {
                         var p_subTasks = [];
-                        for (var _i = 1; _i < arguments.length; _i++) {
-                            p_subTasks[_i - 1] = arguments[_i];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            p_subTasks[_i] = arguments[_i];
                         }
                         var _this = _super.call(this) || this;
                         _this._subTasks = p_subTasks;
-                        _this._flat = flat;
                         return _this;
                     }
                     CF_ActionPipePar.prototype.eval = function (ctx) {
                         var previous = ctx.result();
-                        var next = ctx.newResult();
                         var subTasksSize = this._subTasks.length;
+                        var next = ctx.newResult();
                         next.allocate(subTasksSize);
                         var waiter = ctx.graph().newCounter(subTasksSize);
                         var exceptionDuringTask = new Array(1);
@@ -12613,28 +12605,17 @@ var org;
                         for (var i = 0; i < subTasksSize; i++) {
                             _loop_11(i);
                         }
-                        if (this._flat) {
-                            var nextFlat = ctx.newResult();
-                            for (var i = 0; i < next.size(); i++) {
-                                var loop = nextFlat.get(i);
-                                if (loop instanceof org.mwg.core.task.CoreTaskResult) {
-                                    var casted = loop;
-                                    for (var j = 0; j < casted.size(); j++) {
-                                        var loop2 = casted.get(i);
-                                        if (loop2 != null) {
-                                            next.add(loop2);
-                                        }
-                                    }
-                                }
-                            }
-                        }
                         waiter.then(function () {
                             {
+                                var endResult = next;
+                                if (subTasksSize == 1) {
+                                    endResult = next.get(0);
+                                }
                                 if (exceptionDuringTask[0] != null) {
-                                    ctx.endTask(next, exceptionDuringTask[0]);
+                                    ctx.endTask(endResult, exceptionDuringTask[0]);
                                 }
                                 else {
-                                    ctx.continueWith(next);
+                                    ctx.continueWith(endResult);
                                 }
                             }
                         });
@@ -12643,12 +12624,7 @@ var org;
                         return this._subTasks;
                     };
                     CF_ActionPipePar.prototype.cf_serialize = function (builder, dagIDS) {
-                        if (this._flat) {
-                            builder.append(org.mwg.core.task.ActionNames.FLAT_PIPE_PAR);
-                        }
-                        else {
-                            builder.append(org.mwg.core.task.ActionNames.PIPE_PAR);
-                        }
+                        builder.append(org.mwg.core.task.ActionNames.PIPE_PAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         for (var i = 0; i < this._subTasks.length; i++) {
                             if (i != 0) {
@@ -12822,17 +12798,11 @@ var org;
                     CoreTask.prototype.forEachPar = function (subTask) {
                         return this.then(new org.mwg.core.task.CF_ActionForEachPar(subTask));
                     };
-                    CoreTask.prototype.flatMap = function (subTask) {
-                        return this.then(new org.mwg.core.task.CF_ActionMap(subTask, true));
-                    };
                     CoreTask.prototype.map = function (subTask) {
-                        return this.then(new org.mwg.core.task.CF_ActionMap(subTask, false));
-                    };
-                    CoreTask.prototype.flatMapPar = function (subTask) {
-                        return this.then(new org.mwg.core.task.CF_ActionMapPar(subTask, true));
+                        return this.then(new org.mwg.core.task.CF_ActionMap(subTask));
                     };
                     CoreTask.prototype.mapPar = function (subTask) {
-                        return this.then(new org.mwg.core.task.CF_ActionMapPar(subTask, false));
+                        return this.then(new org.mwg.core.task.CF_ActionMapPar(subTask));
                     };
                     CoreTask.prototype.ifThen = function (cond, then) {
                         return this.then(new org.mwg.core.task.CF_ActionIfThen(cond, then, null));
@@ -12857,7 +12827,7 @@ var org;
                         for (var _i = 0; _i < arguments.length; _i++) {
                             subTasks[_i] = arguments[_i];
                         }
-                        return this.then(new ((_a = org.mwg.core.task.CF_ActionPipe).bind.apply(_a, [void 0, false].concat(subTasks)))());
+                        return this.then(new ((_a = org.mwg.core.task.CF_ActionPipe).bind.apply(_a, [void 0].concat(subTasks)))());
                         var _a;
                     };
                     CoreTask.prototype.pipePar = function () {
@@ -12865,23 +12835,7 @@ var org;
                         for (var _i = 0; _i < arguments.length; _i++) {
                             subTasks[_i] = arguments[_i];
                         }
-                        return this.then(new ((_a = org.mwg.core.task.CF_ActionPipePar).bind.apply(_a, [void 0, false].concat(subTasks)))());
-                        var _a;
-                    };
-                    CoreTask.prototype.flatPipe = function () {
-                        var subTasks = [];
-                        for (var _i = 0; _i < arguments.length; _i++) {
-                            subTasks[_i] = arguments[_i];
-                        }
-                        return this.then(new ((_a = org.mwg.core.task.CF_ActionPipe).bind.apply(_a, [void 0, true].concat(subTasks)))());
-                        var _a;
-                    };
-                    CoreTask.prototype.flatPipePar = function () {
-                        var subTasks = [];
-                        for (var _i = 0; _i < arguments.length; _i++) {
-                            subTasks[_i] = arguments[_i];
-                        }
-                        return this.then(new ((_a = org.mwg.core.task.CF_ActionPipePar).bind.apply(_a, [void 0, true].concat(subTasks)))());
+                        return this.then(new ((_a = org.mwg.core.task.CF_ActionPipePar).bind.apply(_a, [void 0].concat(subTasks)))());
                         var _a;
                     };
                     CoreTask.prototype.isolate = function (subTask) {
@@ -13507,22 +13461,12 @@ var org;
                                 return new org.mwg.core.task.CF_ActionForEachPar(subTask);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.FLAT_MAP, function (params, contextTasks) {
+                        registry.put(org.mwg.core.task.ActionNames.FLAT, function (params, contextTasks) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.FLAT_MAP + " action needs one parameters. Received:" + params.length);
+                                if (params.length != 0) {
+                                    throw new Error(org.mwg.core.task.ActionNames.FLAT + " action needs one parameters. Received:" + params.length);
                                 }
-                                var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.core.task.CF_ActionMap(subTask, true);
-                            }
-                        });
-                        registry.put(org.mwg.core.task.ActionNames.FLAT_MAP_PAR, function (params, contextTasks) {
-                            {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.FLAT_MAP_PAR + " action needs one parameters. Received:" + params.length);
-                                }
-                                var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.core.task.CF_ActionMapPar(subTask, true);
+                                return new org.mwg.core.task.ActionFlat();
                             }
                         });
                         registry.put(org.mwg.core.task.ActionNames.MAP, function (params, contextTasks) {
@@ -13531,7 +13475,7 @@ var org;
                                     throw new Error(org.mwg.core.task.ActionNames.MAP + " action needs one parameters. Received:" + params.length);
                                 }
                                 var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.core.task.CF_ActionMap(subTask, false);
+                                return new org.mwg.core.task.CF_ActionMap(subTask);
                             }
                         });
                         registry.put(org.mwg.core.task.ActionNames.MAP_PAR, function (params, contextTasks) {
@@ -13540,7 +13484,7 @@ var org;
                                     throw new Error(org.mwg.core.task.ActionNames.MAP_PAR + " action needs one parameters. Received:" + params.length);
                                 }
                                 var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.core.task.CF_ActionMapPar(subTask, false);
+                                return new org.mwg.core.task.CF_ActionMapPar(subTask);
                             }
                         });
                         registry.put(org.mwg.core.task.ActionNames.PIPE, function (params, contextTasks) {
@@ -13549,7 +13493,7 @@ var org;
                                 for (var i = 0; i < params.length; i++) {
                                     subTasks[i] = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[i]);
                                 }
-                                return new ((_a = org.mwg.core.task.CF_ActionPipe).bind.apply(_a, [void 0, false].concat(subTasks)))();
+                                return new ((_a = org.mwg.core.task.CF_ActionPipe).bind.apply(_a, [void 0].concat(subTasks)))();
                             }
                             var _a;
                         });
@@ -13559,27 +13503,7 @@ var org;
                                 for (var i = 0; i < params.length; i++) {
                                     subTasks[i] = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[i]);
                                 }
-                                return new ((_a = org.mwg.core.task.CF_ActionPipePar).bind.apply(_a, [void 0, false].concat(subTasks)))();
-                            }
-                            var _a;
-                        });
-                        registry.put(org.mwg.core.task.ActionNames.FLAT_PIPE, function (params, contextTasks) {
-                            {
-                                var subTasks = new Array(params.length);
-                                for (var i = 0; i < params.length; i++) {
-                                    subTasks[i] = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[i]);
-                                }
-                                return new ((_a = org.mwg.core.task.CF_ActionPipe).bind.apply(_a, [void 0, true].concat(subTasks)))();
-                            }
-                            var _a;
-                        });
-                        registry.put(org.mwg.core.task.ActionNames.FLAT_PIPE_PAR, function (params, contextTasks) {
-                            {
-                                var subTasks = new Array(params.length);
-                                for (var i = 0; i < params.length; i++) {
-                                    subTasks[i] = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[i]);
-                                }
-                                return new ((_a = org.mwg.core.task.CF_ActionPipePar).bind.apply(_a, [void 0, true].concat(subTasks)))();
+                                return new ((_a = org.mwg.core.task.CF_ActionPipePar).bind.apply(_a, [void 0].concat(subTasks)))();
                             }
                             var _a;
                         });
@@ -13904,6 +13828,9 @@ var org;
                     };
                     CoreTask.prototype.flipVar = function (name) {
                         return this.then(org.mwg.core.task.Actions.flipVar(name));
+                    };
+                    CoreTask.prototype.flat = function () {
+                        return this.then(org.mwg.core.task.Actions.flat());
                     };
                     return CoreTask;
                 }());

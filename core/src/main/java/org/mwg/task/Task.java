@@ -79,21 +79,11 @@ public interface Task {
     Task forEachPar(Task subTask);
 
     /**
-     * Iterates through a collection and calls the sub task for each element and then aggregates all results in a flat resultSet.
+     * Flat a TaskResult containing TaskResult to a flat TaskResult
      *
-     * @param subTask sub task to call for each element
      * @return this task to chain
      */
-    Task flatMap(Task subTask);
-
-    /**
-     * Parallel version of {@link #flatMap(Task)}.
-     * Iterates through a collection and calls the sub task for each element in parallel and then aggregates all results in a flat resultSet.
-     *
-     * @param subTask sub task to call for each element
-     * @return this task to chain
-     */
-    Task flatMapPar(Task subTask);
+    Task flat();
 
     /**
      * Iterates through a collection and calls the sub task for each element and then aggregates all results in an array of array manner.
@@ -104,7 +94,7 @@ public interface Task {
     Task map(Task subTask);
 
     /**
-     * Parallel version of {@link #flatMap(Task)}.
+     * Parallel version of {@link #map(Task)}.
      * Iterates through a collection and calls the sub task for each element in parallel and then aggregates all results in an array of array manner.
      *
      * @param subTask sub task to call for each element
@@ -188,25 +178,6 @@ public interface Task {
     Task pipePar(Task... subTasks);
 
     /**
-     * Executes and waits for a number of given sub tasks.
-     * The result of these sub tasks is immediately enqueued and available in the next sub task as a flat array.
-     *
-     * @param subTasks that needs to be executed
-     * @return this task to chain
-     */
-    Task flatPipe(Task... subTasks);
-
-    /**
-     * Parallel version of {@link #flatPipe(Task...)}.
-     * Executes and waits a number of given sub tasks.
-     * The result of these sub tasks is immediately enqueued and available in the next sub task as a flat array.
-     *
-     * @param subTasks that have to be executed
-     * @return this task to chain
-     */
-    Task flatPipePar(Task... subTasks);
-
-    /**
      * Executes a given sub task in an isolated environment.
      *
      * @param subTask to execute
@@ -220,10 +191,10 @@ public interface Task {
      * In case actionName() is empty, the default task is get(name).
      * This results in the following: children.name should be read as get(children).get(name)
      *
-     * @param flat string definition of the task
+     * @param input string definition of the task
      * @return this task to chain
      */
-    Task parse(final String flat, final Graph graph);
+    Task parse(final String input, final Graph graph);
 
     Task loadFromBuffer(final Buffer buffer, final Graph graph);
 

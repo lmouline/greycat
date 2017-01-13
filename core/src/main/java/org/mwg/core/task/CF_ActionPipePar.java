@@ -14,19 +14,17 @@ import java.util.Map;
 class CF_ActionPipePar extends CF_Action {
 
     private final Task[] _subTasks;
-    private final boolean _flat;
 
-    CF_ActionPipePar(final boolean flat, final Task... p_subTasks) {
+    CF_ActionPipePar(final Task... p_subTasks) {
         super();
         _subTasks = p_subTasks;
-        _flat = flat;
     }
 
     @Override
     public void eval(final TaskContext ctx) {
         final TaskResult previous = ctx.result();
-        final TaskResult next = ctx.newResult();
         final int subTasksSize = _subTasks.length;
+        final TaskResult next = ctx.newResult();
         next.allocate(subTasksSize);
         final DeferCounter waiter = ctx.graph().newCounter(subTasksSize);
         final Exception[] exceptionDuringTask = new Exception[1];
@@ -49,28 +47,17 @@ class CF_ActionPipePar extends CF_Action {
                 }
             });
         }
-        if (_flat) {
-            final TaskResult nextFlat = ctx.newResult();
-            for (int i = 0; i < next.size(); i++) {
-                Object loop = nextFlat.get(i);
-                if (loop instanceof CoreTaskResult) {
-                    CoreTaskResult casted = (CoreTaskResult) loop;
-                    for (int j = 0; j < casted.size(); j++) {
-                        final Object loop2 = casted.get(i);
-                        if (loop2 != null) {
-                            next.add(loop2);
-                        }
-                    }
-                }
-            }
-        }
         waiter.then(new Job() {
             @Override
             public void run() {
+                TaskResult endResult = next;
+                if (subTasksSize == 1) {
+                    endResult = (TaskResult) next.get(0);
+                }
                 if (exceptionDuringTask[0] != null) {
-                    ctx.endTask(next, exceptionDuringTask[0]);
+                    ctx.endTask(endResult, exceptionDuringTask[0]);
                 } else {
-                    ctx.continueWith(next);
+                    ctx.continueWith(endResult);
                 }
             }
         });
@@ -83,11 +70,7 @@ class CF_ActionPipePar extends CF_Action {
 
     @Override
     public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
-        if (_flat) {
-            builder.append(ActionNames.FLAT_PIPE_PAR);
-        } else {
-            builder.append(ActionNames.PIPE_PAR);
-        }
+        builder.append(ActionNames.PIPE_PAR);
         builder.append(Constants.TASK_PARAM_OPEN);
         for (int i = 0; i < _subTasks.length; i++) {
             if (i != 0) {

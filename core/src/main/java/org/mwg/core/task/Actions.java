@@ -9,6 +9,10 @@ public class Actions {
 
     //Context manipulation zone
 
+    public static Action flat() {
+        return new ActionFlat();
+    }
+
     /**
      * Sets the task context to a particular world.
      *
@@ -521,14 +525,6 @@ public class Actions {
         return newTask().forEachPar(subTask);
     }
 
-    public static Task flatMap(Task subTask) {
-        return newTask().flatMap(subTask);
-    }
-
-    public static Task flatMapPar(Task subTask) {
-        return newTask().flatMapPar(subTask);
-    }
-
     public static Task map(Task subTask) {
         return newTask().map(subTask);
     }
@@ -575,14 +571,6 @@ public class Actions {
 
     public static Task pipePar(Task... subTasks) {
         return newTask().pipePar(subTasks);
-    }
-
-    public static Task flatPipe(Task... subTasks) {
-        return newTask().flatPipe(subTasks);
-    }
-
-    public static Task flatPipePar(Task... subTasks) {
-        return newTask().flatPipePar(subTasks);
     }
 
     public static Task isolate(Task subTask) {

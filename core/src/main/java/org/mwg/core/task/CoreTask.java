@@ -85,23 +85,13 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public Task flatMap(Task subTask) {
-        return then(new CF_ActionMap(subTask, true));
-    }
-
-    @Override
     public Task map(Task subTask) {
-        return then(new CF_ActionMap(subTask, false));
-    }
-
-    @Override
-    public Task flatMapPar(Task subTask) {
-        return then(new CF_ActionMapPar(subTask, true));
+        return then(new CF_ActionMap(subTask));
     }
 
     @Override
     public Task mapPar(Task subTask) {
-        return then(new CF_ActionMapPar(subTask, false));
+        return then(new CF_ActionMapPar(subTask));
     }
 
     @Override
@@ -136,22 +126,12 @@ public class CoreTask implements org.mwg.task.Task {
 
     @Override
     public Task pipe(Task... subTasks) {
-        return then(new CF_ActionPipe(false, subTasks));
+        return then(new CF_ActionPipe(subTasks));
     }
 
     @Override
     public Task pipePar(Task... subTasks) {
-        return then(new CF_ActionPipePar(false, subTasks));
-    }
-
-    @Override
-    public Task flatPipe(Task... subTasks) {
-        return then(new CF_ActionPipe(true, subTasks));
-    }
-
-    @Override
-    public Task flatPipePar(Task... subTasks) {
-        return then(new CF_ActionPipePar(true, subTasks));
+        return then(new CF_ActionPipePar(subTasks));
     }
 
     @Override
@@ -828,24 +808,13 @@ public class CoreTask implements org.mwg.task.Task {
                 return new CF_ActionForEachPar(subTask);
             }
         });
-        registry.put(ActionNames.FLAT_MAP, new TaskActionFactory() {
+        registry.put(ActionNames.FLAT, new TaskActionFactory() {
             @Override
             public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(ActionNames.FLAT_MAP + " action needs one parameters. Received:" + params.length);
+                if (params.length != 0) {
+                    throw new RuntimeException(ActionNames.FLAT + " action needs one parameters. Received:" + params.length);
                 }
-                final Task subTask = getOrCreate(contextTasks, params[0]);
-                return new CF_ActionMap(subTask, true);
-            }
-        });
-        registry.put(ActionNames.FLAT_MAP_PAR, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(ActionNames.FLAT_MAP_PAR + " action needs one parameters. Received:" + params.length);
-                }
-                final Task subTask = getOrCreate(contextTasks, params[0]);
-                return new CF_ActionMapPar(subTask, true);
+                return new ActionFlat();
             }
         });
         registry.put(ActionNames.MAP, new TaskActionFactory() {
@@ -855,7 +824,7 @@ public class CoreTask implements org.mwg.task.Task {
                     throw new RuntimeException(ActionNames.MAP + " action needs one parameters. Received:" + params.length);
                 }
                 final Task subTask = getOrCreate(contextTasks, params[0]);
-                return new CF_ActionMap(subTask, false);
+                return new CF_ActionMap(subTask);
             }
         });
         registry.put(ActionNames.MAP_PAR, new TaskActionFactory() {
@@ -865,7 +834,7 @@ public class CoreTask implements org.mwg.task.Task {
                     throw new RuntimeException(ActionNames.MAP_PAR + " action needs one parameters. Received:" + params.length);
                 }
                 final Task subTask = getOrCreate(contextTasks, params[0]);
-                return new CF_ActionMapPar(subTask, false);
+                return new CF_ActionMapPar(subTask);
             }
         });
         registry.put(ActionNames.PIPE, new TaskActionFactory() {
@@ -875,7 +844,7 @@ public class CoreTask implements org.mwg.task.Task {
                 for (int i = 0; i < params.length; i++) {
                     subTasks[i] = getOrCreate(contextTasks, params[i]);
                 }
-                return new CF_ActionPipe(false, subTasks);
+                return new CF_ActionPipe(subTasks);
             }
         });
         registry.put(ActionNames.PIPE_PAR, new TaskActionFactory() {
@@ -885,27 +854,7 @@ public class CoreTask implements org.mwg.task.Task {
                 for (int i = 0; i < params.length; i++) {
                     subTasks[i] = getOrCreate(contextTasks, params[i]);
                 }
-                return new CF_ActionPipePar(false, subTasks);
-            }
-        });
-        registry.put(ActionNames.FLAT_PIPE, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                final Task[] subTasks = new Task[params.length];
-                for (int i = 0; i < params.length; i++) {
-                    subTasks[i] = getOrCreate(contextTasks, params[i]);
-                }
-                return new CF_ActionPipe(true, subTasks);
-            }
-        });
-        registry.put(ActionNames.FLAT_PIPE_PAR, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                final Task[] subTasks = new Task[params.length];
-                for (int i = 0; i < params.length; i++) {
-                    subTasks[i] = getOrCreate(contextTasks, params[i]);
-                }
-                return new CF_ActionPipePar(true, subTasks);
+                return new CF_ActionPipePar(subTasks);
             }
         });
         registry.put(ActionNames.DO_WHILE, new TaskActionFactory() {
@@ -1284,6 +1233,11 @@ public class CoreTask implements org.mwg.task.Task {
     @Override
     public Task flipVar(String name) {
         return then(Actions.flipVar(name));
+    }
+
+    @Override
+    public Task flat() {
+        return then(Actions.flat());
     }
 
 }

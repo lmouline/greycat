@@ -23,7 +23,7 @@ public class ActionWhileDoTest extends AbstractActionTest {
                 Task whiletask = newTask()
                         .then(inject(root))
                         .whileDo(context -> context.result().size() != 0,
-                                newTask().flatMap(
+                                newTask().map(
                                         newTask().ifThenElse(context -> context.resultAsNodes().get(0).get("child") != null,
                                                 newTask().then(traverse("child")),
                                                 newTask().thenDo(context -> {
@@ -32,7 +32,13 @@ public class ActionWhileDoTest extends AbstractActionTest {
                                                     context.continueWith(null);
                                                 })
                                         )
-                                )
+                                ).flat().thenDo(new ActionFunction() {
+                                    @Override
+                                    public void eval(TaskContext ctx) {
+                                       // System.out.println(ctx);
+                                        ctx.continueTask();
+                                    }
+                                })
                         ).then(readVar("leaves"));
 
                 whiletask.execute(graph, new Callback<TaskResult>() {
@@ -64,7 +70,7 @@ public class ActionWhileDoTest extends AbstractActionTest {
 
                 final long cache1 = graph.space().available();
                 Task whiletask = newTask().then(inject(root)).doWhile(
-                        newTask().flatMap(newTask().ifThenElse(new ConditionalFunction() {
+                        newTask().map(newTask().ifThenElse(new ConditionalFunction() {
                             @Override
                             public boolean eval(TaskContext ctx) {
                                 return ctx.resultAsNodes().get(0).get("child") != null;
@@ -76,7 +82,7 @@ public class ActionWhileDoTest extends AbstractActionTest {
                                 ctx.addToGlobalVariable("leaves", ctx.wrap(ctx.resultAsNodes().get(0).id()));
                                 ctx.continueWith(null);
                             }
-                        }))),
+                        }))).flat(),
                         new ConditionalFunction() {
                             @Override
                             public boolean eval(TaskContext ctx) {

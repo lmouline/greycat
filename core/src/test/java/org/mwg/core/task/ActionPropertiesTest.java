@@ -69,10 +69,10 @@ public class ActionPropertiesTest {
         initGraph();
         newTask()
                 .then(readGlobalIndex("root"))
-                .flatPipe(
+                .pipe(
                         newTask().then(attributesWithTypes(Type.RELATION)),
                         newTask().then(attributesWithTypes(Type.RELATION_INDEXED))
-                )
+                ).flat()
                 .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext ctx) {

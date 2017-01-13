@@ -1386,6 +1386,12 @@ declare module org {
                     serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
+                class ActionFlat implements org.mwg.task.Action {
+                    constructor();
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
+                    toString(): string;
+                }
                 class ActionFlipVar implements org.mwg.task.Action {
                     private _name;
                     constructor(name: string);
@@ -1473,18 +1479,15 @@ declare module org {
                     static FOR_EACH_PAR: string;
                     static MAP: string;
                     static MAP_PAR: string;
-                    static FLAT_MAP: string;
-                    static FLAT_MAP_PAR: string;
                     static PIPE: string;
                     static PIPE_PAR: string;
-                    static FLAT_PIPE: string;
-                    static FLAT_PIPE_PAR: string;
                     static DO_WHILE: string;
                     static WHILE_DO: string;
                     static ISOLATE: string;
                     static IF_THEN: string;
                     static IF_THEN_ELSE: string;
                     static ATOMIC: string;
+                    static FLAT: string;
                 }
                 class ActionPrint implements org.mwg.task.Action {
                     private _name;
@@ -1615,6 +1618,7 @@ declare module org {
                     toString(): string;
                 }
                 class Actions {
+                    static flat(): org.mwg.task.Action;
                     static travelInWorld(world: string): org.mwg.task.Action;
                     static travelInTime(time: string): org.mwg.task.Action;
                     static inject(input: any): org.mwg.task.Action;
@@ -1668,8 +1672,6 @@ declare module org {
                     static loopPar(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                     static forEach(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     static forEachPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                    static flatMap(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                    static flatMapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     static map(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     static mapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     static ifThen(cond: org.mwg.task.ConditionalFunction, then: org.mwg.task.Task): org.mwg.task.Task;
@@ -1682,8 +1684,6 @@ declare module org {
                     static whileDoScript(condScript: string, task: org.mwg.task.Task): org.mwg.task.Task;
                     static pipe(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                     static pipePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
-                    static flatPipe(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
-                    static flatPipePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                     static isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     static atomic(protectedTask: org.mwg.task.Task, ...variablesToLock: string[]): org.mwg.task.Task;
                     static parse(flat: string, graph: org.mwg.Graph): org.mwg.task.Task;
@@ -1772,32 +1772,28 @@ declare module org {
                 }
                 class CF_ActionMap extends org.mwg.core.task.CF_Action {
                     private _subTask;
-                    private _flat;
-                    constructor(p_subTask: org.mwg.task.Task, flat: boolean);
+                    constructor(p_subTask: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
                 class CF_ActionMapPar extends org.mwg.core.task.CF_Action {
                     private _subTask;
-                    private _flat;
-                    constructor(p_subTask: org.mwg.task.Task, flat: boolean);
+                    constructor(p_subTask: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
                 class CF_ActionPipe extends org.mwg.core.task.CF_Action {
                     private _subTasks;
-                    private _flat;
-                    constructor(flat: boolean, ...p_subTasks: org.mwg.task.Task[]);
+                    constructor(...p_subTasks: org.mwg.task.Task[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
                 class CF_ActionPipePar extends org.mwg.core.task.CF_Action {
                     private _subTasks;
-                    private _flat;
-                    constructor(flat: boolean, ...p_subTasks: org.mwg.task.Task[]);
+                    constructor(...p_subTasks: org.mwg.task.Task[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
@@ -1832,9 +1828,7 @@ declare module org {
                     loopPar(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                     forEach(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     forEachPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                    flatMap(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     map(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                    flatMapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     mapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     ifThen(cond: org.mwg.task.ConditionalFunction, then: org.mwg.task.Task): org.mwg.task.Task;
                     ifThenScript(condScript: string, then: org.mwg.task.Task): org.mwg.task.Task;
@@ -1844,8 +1838,6 @@ declare module org {
                     whileDoScript(condScript: string, task: org.mwg.task.Task): org.mwg.task.Task;
                     pipe(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                     pipePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
-                    flatPipe(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
-                    flatPipePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                     isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     atomic(protectedTask: org.mwg.task.Task, ...variablesToLock: string[]): org.mwg.task.Task;
                     execute(graph: org.mwg.Graph, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
@@ -1911,6 +1903,7 @@ declare module org {
                     clearResult(): org.mwg.task.Task;
                     action(name: string, ...params: string[]): org.mwg.task.Task;
                     flipVar(name: string): org.mwg.task.Task;
+                    flat(): org.mwg.task.Task;
                 }
                 class CoreTaskContext implements org.mwg.task.TaskContext {
                     private _globalVariables;
@@ -2389,8 +2382,7 @@ declare module org {
                 loopPar(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
                 forEach(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 forEachPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                flatMap(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                flatMapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                flat(): org.mwg.task.Task;
                 map(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 mapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
                 ifThen(cond: org.mwg.task.ConditionalFunction, then: org.mwg.task.Task): org.mwg.task.Task;
@@ -2401,10 +2393,8 @@ declare module org {
                 whileDoScript(condScript: string, task: org.mwg.task.Task): org.mwg.task.Task;
                 pipe(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                 pipePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
-                flatPipe(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
-                flatPipePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                 isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                parse(flat: string, graph: org.mwg.Graph): org.mwg.task.Task;
+                parse(input: string, graph: org.mwg.Graph): org.mwg.task.Task;
                 loadFromBuffer(buffer: org.mwg.struct.Buffer, graph: org.mwg.Graph): org.mwg.task.Task;
                 saveToBuffer(buffer: org.mwg.struct.Buffer): org.mwg.task.Task;
                 addHook(hook: org.mwg.task.TaskHook): org.mwg.task.Task;

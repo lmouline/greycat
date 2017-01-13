@@ -13,11 +13,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 class CF_ActionPipe extends CF_Action {
 
     private final Task[] _subTasks;
-    private final boolean _flat;
 
-    CF_ActionPipe(final boolean flat, final Task... p_subTasks) {
+    CF_ActionPipe(final Task... p_subTasks) {
         super();
-        _flat = flat;
         _subTasks = p_subTasks;
     }
 
@@ -26,7 +24,13 @@ class CF_ActionPipe extends CF_Action {
         final TaskResult previous = ctx.result();
         final AtomicInteger cursor = new AtomicInteger(0);
         final int tasksSize = _subTasks.length;
-        final TaskResult next = ctx.newResult();
+        final TaskResult next;
+        if (tasksSize > 1) {
+            next = ctx.newResult();
+            next.allocate(tasksSize);
+        } else {
+            next = null;
+        }
         final Callback<TaskResult>[] loopcb = new Callback[1];
         loopcb[0] = new Callback<TaskResult>() {
             @Override
@@ -34,14 +38,7 @@ class CF_ActionPipe extends CF_Action {
                 Exception exceptionDuringTask = null;
                 final int current = cursor.getAndIncrement();
                 if (result != null) {
-                    if (_flat) {
-                        for (int i = 0; i < result.size(); i++) {
-                            final Object loop = result.get(i);
-                            if (loop != null) {
-                                next.add(loop);
-                            }
-                        }
-                    } else {
+                    if (tasksSize > 1) {
                         next.add(result);
                     }
                     if (result.output() != null) {
@@ -55,10 +52,16 @@ class CF_ActionPipe extends CF_Action {
                     _subTasks[current].executeFrom(ctx, previous, SchedulerAffinity.SAME_THREAD, loopcb[0]);
                 } else {
                     //end
-                    if (exceptionDuringTask != null) {
-                        ctx.endTask(next, exceptionDuringTask);
+                    TaskResult nextResult;
+                    if (tasksSize > 1) {
+                        nextResult = next;
                     } else {
-                        ctx.continueWith(next);
+                        nextResult = result;
+                    }
+                    if (exceptionDuringTask != null) {
+                        ctx.endTask(nextResult, exceptionDuringTask);
+                    } else {
+                        ctx.continueWith(nextResult);
                     }
                 }
             }
@@ -78,11 +81,7 @@ class CF_ActionPipe extends CF_Action {
 
     @Override
     public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
-        if (_flat) {
-            builder.append(ActionNames.FLAT_PIPE);
-        } else {
-            builder.append(ActionNames.PIPE);
-        }
+        builder.append(ActionNames.PIPE);
         builder.append(Constants.TASK_PARAM_OPEN);
         for (int i = 0; i < _subTasks.length; i++) {
             if (i != 0) {
