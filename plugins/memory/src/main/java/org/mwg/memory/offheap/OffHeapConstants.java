@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class OffHeapConstants {
 
-    public static final int OFFHEAP_NULL_PTR = -1;
+    public static final int NULL_PTR = -1;
 
     //TODO remove this before release
     public static boolean DEBUG_MODE = true;

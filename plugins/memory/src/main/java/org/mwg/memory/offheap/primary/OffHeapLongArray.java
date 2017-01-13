@@ -21,13 +21,13 @@ public class OffHeapLongArray {
             OffHeapConstants.SEGMENTS.put(newMemorySegment, capacity * 8);
         }
         //init the memory
-        unsafe.setMemory(newMemorySegment, capacity * 8, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
+        unsafe.setMemory(newMemorySegment, capacity * 8, (byte) OffHeapConstants.NULL_PTR);
         //return the newly created segment
         return newMemorySegment;
     }
 
     public static void reset(final long addr, final long capacity) {
-        unsafe.setMemory(addr, capacity * 8, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
+        unsafe.setMemory(addr, capacity * 8, (byte) OffHeapConstants.NULL_PTR);
     }
 
     public static long reallocate(final long addr, final long nextCapacity) {
@@ -92,7 +92,7 @@ public class OffHeapLongArray {
     }
 
     public static long cloneArray(final long srcAddr, final long length) {
-        if (srcAddr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (srcAddr == OffHeapConstants.NULL_PTR) {
             return srcAddr;
         }
         long newAddr = unsafe.allocateMemory(length * 8);
@@ -104,7 +104,7 @@ public class OffHeapLongArray {
     }
 
     public static void save(final long addr, final Buffer buffer) {
-        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr == OffHeapConstants.NULL_PTR) {
             return;
         }
         final long rawSize = OffHeapLongArray.get(addr, SIZE_INDEX);
@@ -116,7 +116,7 @@ public class OffHeapLongArray {
     }
 
     public static long[] asObject(final long addr) {
-        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr == OffHeapConstants.NULL_PTR) {
             return null;
         }
         int longArrayLength = (int) get(addr, SIZE_INDEX); // can be safely casted

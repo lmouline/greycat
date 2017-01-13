@@ -14,7 +14,7 @@ public class OffHeapString {
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
 
     public static void save(final long addr, final Buffer buffer) {
-        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr == OffHeapConstants.NULL_PTR) {
             return;
         }
         Base64.encodeStringToBuffer(asObject(addr), buffer);
@@ -36,7 +36,7 @@ public class OffHeapString {
     }
 
     public static String asObject(final long addr) {
-        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr == OffHeapConstants.NULL_PTR) {
             return null;
         }
         int length = unsafe.getInt(addr + SIZE);

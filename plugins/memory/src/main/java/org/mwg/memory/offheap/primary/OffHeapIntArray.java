@@ -23,7 +23,7 @@ public class OffHeapIntArray {
             OffHeapConstants.SEGMENTS.put(newMemorySegment, capacity * 4);
         }
         //init the memory
-        unsafe.setMemory(newMemorySegment, capacity * 4, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
+        unsafe.setMemory(newMemorySegment, capacity * 4, (byte) OffHeapConstants.NULL_PTR);
         //return the newly created segment
         return newMemorySegment;
     }
@@ -69,7 +69,7 @@ public class OffHeapIntArray {
     }
 
     public static void save(final long addr, final Buffer buffer) {
-        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr == OffHeapConstants.NULL_PTR) {
             return;
         }
         final long rawSize = OffHeapIntArray.get(addr, SIZE_INDEX);
@@ -81,7 +81,7 @@ public class OffHeapIntArray {
     }
 
     public static int[] asObject(final long addr) {
-        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr == OffHeapConstants.NULL_PTR) {
             return null;
         }
         int longArrayLength = get(addr, SIZE_INDEX); // can be safely casted

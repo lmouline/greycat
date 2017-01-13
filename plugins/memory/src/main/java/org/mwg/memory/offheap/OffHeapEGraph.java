@@ -28,7 +28,7 @@ public class OffHeapEGraph implements EGraph {
 
     private void preAllocate() {
         long originAddr = parent.addrByIndex(index);
-        if (originAddr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (originAddr != OffHeapConstants.NULL_PTR) {
 
             long nodesCapacity = OffHeapLongArray.get(originAddr, NODES_CAPACITY);
             long nodesIndex = OffHeapLongArray.get(originAddr, NODES_INDEX);
@@ -126,7 +126,7 @@ public class OffHeapEGraph implements EGraph {
             OffHeapLongArray.set(addr, NODES_CAPACITY, newCapacity);
         }
 
-        OffHeapENode newNode = new OffHeapENode(parent, this, _graph, nodesIndex, OffHeapConstants.OFFHEAP_NULL_PTR);
+        OffHeapENode newNode = new OffHeapENode(parent, this, _graph, nodesIndex, OffHeapConstants.NULL_PTR);
         setNodeAddrAt(addr, nodesIndex, newNode.getAddr());
         OffHeapLongArray.set(addr, NODES_INDEX, nodesIndex + 1);
 
@@ -157,7 +157,7 @@ public class OffHeapEGraph implements EGraph {
         if (previousId == nodesIndex - 1) {
             //free
             OffHeapENode.free(casted.getAddr());
-            setNodeAddrAt(addr, previousId, OffHeapConstants.OFFHEAP_NULL_PTR);
+            setNodeAddrAt(addr, previousId, OffHeapConstants.NULL_PTR);
             OffHeapLongArray.set(addr, NODES_INDEX, nodesIndex - 1);
         } else {
             setNodeAddrAt(addr, previousId, nodeAddrAt(addr, nodesIndex - 1));
@@ -230,11 +230,11 @@ public class OffHeapEGraph implements EGraph {
             }
             OffHeapENode elem = null;
             long elemAddr = nodeAddrAt(addr, index);
-            if (elemAddr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (elemAddr != OffHeapConstants.NULL_PTR) {
                 elem = new OffHeapENode(parent, this, _graph, index, elemAddr);
             }
-            if (elemAddr == OffHeapConstants.OFFHEAP_NULL_PTR && createIfAbsent) {
-                elem = new OffHeapENode(parent, this, _graph, index, OffHeapConstants.OFFHEAP_NULL_PTR);
+            if (elemAddr == OffHeapConstants.NULL_PTR && createIfAbsent) {
+                elem = new OffHeapENode(parent, this, _graph, index, OffHeapConstants.NULL_PTR);
                 setNodeAddrAt(addr, index, elem.getAddr());
             }
             return elem;
@@ -244,8 +244,8 @@ public class OffHeapEGraph implements EGraph {
     }
 
     public static long clone(long addr) {
-        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-            return OffHeapConstants.OFFHEAP_NULL_PTR;
+        if (addr == OffHeapConstants.NULL_PTR) {
+            return OffHeapConstants.NULL_PTR;
         }
         long capacity = OffHeapLongArray.get(addr, NODES_CAPACITY);
 

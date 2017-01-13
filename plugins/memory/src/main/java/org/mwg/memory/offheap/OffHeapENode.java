@@ -28,7 +28,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     private static final byte LOAD_WAITING_KEY = 2;
     private static final byte LOAD_WAITING_VALUE = 3;
 
-    private long addr = OffHeapConstants.OFFHEAP_NULL_PTR;
+    private long addr = OffHeapConstants.NULL_PTR;
 
     private static final int ID = 0;
     private static final int DIRTY = 1;
@@ -45,7 +45,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
         //container = p_container;
 
         long capacity = Constants.MAP_INITIAL_CAPACITY;
-        if (originAddr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (originAddr != OffHeapConstants.NULL_PTR) {
             capacity = OffHeapLongArray.get(originAddr, CAPACITY);
         }
         addr = allocate(originAddr, capacity);
@@ -53,7 +53,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     }
 
     private long allocate(final long addr, final long newCapacity) {
-        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr == OffHeapConstants.NULL_PTR) {
             //nothing before, initial allocation...
             final long new_addr = OffHeapLongArray.allocate(OFFSET + (newCapacity * ELEM_SIZE));
             OffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
@@ -62,7 +62,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             if (newCapacity > Constants.MAP_INITIAL_CAPACITY) {
                 OffHeapLongArray.set(new_addr, SUBHASH, OffHeapLongArray.allocate(newCapacity * 3));
             } else {
-                OffHeapLongArray.set(new_addr, SUBHASH, OffHeapConstants.OFFHEAP_NULL_PTR);
+                OffHeapLongArray.set(new_addr, SUBHASH, OffHeapConstants.NULL_PTR);
             }
             return new_addr;
         } else {
@@ -70,7 +70,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             final long new_addr = OffHeapLongArray.reallocate(addr, OFFSET + (newCapacity * ELEM_SIZE));
             OffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
             long subHash_ptr = OffHeapLongArray.get(new_addr, SUBHASH);
-            if (subHash_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (subHash_ptr == OffHeapConstants.NULL_PTR) {
                 subHash_ptr = OffHeapLongArray.allocate(newCapacity * 3);
             } else {
                 subHash_ptr = OffHeapLongArray.reallocate(subHash_ptr, newCapacity * 3);
@@ -155,7 +155,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
 
     @SuppressWarnings("Duplicates")
     private void internal_set(final long p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
-        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr == OffHeapConstants.NULL_PTR) {
             addr = allocate(addr, Constants.MAP_INITIAL_CAPACITY);
         }
         long entry = -1;
@@ -164,7 +164,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
         long size = OffHeapLongArray.get(addr, SIZE);
         long capacity = OffHeapLongArray.get(addr, CAPACITY);
         long subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
-        if (subhash_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (subhash_ptr == OffHeapConstants.NULL_PTR) {
             for (int i = 0; i < size; i++) {
                 if (key(addr, i) == p_key) {
                     entry = i;
@@ -192,7 +192,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                     //freeThePreviousValue
                     freeElement(value(addr, entry), found_type);
                     //then clean the acces chain
-                    if (subhash_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                    if (subhash_ptr != OffHeapConstants.NULL_PTR) {
                         //unHash previous
                         if (prev_entry != -1) {
                             setNext(subhash_ptr, prev_entry, next(subhash_ptr, entry));
@@ -203,9 +203,9 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                     long indexVictim = size - 1;
                     //just pop the last value
                     if (entry == indexVictim) {
-                        setKey(addr, entry, OffHeapConstants.OFFHEAP_NULL_PTR);
-                        setValue(addr, entry, OffHeapConstants.OFFHEAP_NULL_PTR);
-                        setType(addr, entry, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
+                        setKey(addr, entry, OffHeapConstants.NULL_PTR);
+                        setValue(addr, entry, OffHeapConstants.NULL_PTR);
+                        setType(addr, entry, (byte) OffHeapConstants.NULL_PTR);
                     } else {
                         //we need to reHash the new last element at our place
                         setKey(addr, entry, key(addr, indexVictim));
@@ -217,7 +217,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                             setValue(addr, entry, value(addr, indexVictim));
                         }
                         setType(addr, entry, typeOfVictim);
-                        if (subhash_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                        if (subhash_ptr != OffHeapConstants.NULL_PTR) {
                             setNext(addr, entry, next(subhash_ptr, indexVictim));
                             long victimHash = HashHelper.longHash(key(addr, entry), capacity * 2);
                             long m = hash(subhash_ptr, capacity, victimHash);
@@ -271,7 +271,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             setValue(addr, insert_index, toAddr(p_type, p_unsafe_elem));
         }
         setType(addr, insert_index, p_type);
-        if (subhash_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (subhash_ptr != OffHeapConstants.NULL_PTR) {
             setNext(subhash_ptr, insert_index, hash(subhash_ptr, capacity, hashIndex));
             setHash(subhash_ptr, capacity, hashIndex, insert_index);
         }
@@ -343,12 +343,12 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                     case Type.RELATION:
                     case Type.DMATRIX:
                     case Type.LMATRIX:
-                    case Type.STRING_TO_LONG_MAP:
+                    case Type.STRING_TO_INT_MAP:
                     case Type.LONG_TO_LONG_MAP:
                     case Type.RELATION_INDEXED:
                     case Type.LONG_TO_LONG_ARRAY_MAP:
                         //throw new RuntimeException("mwDB usage error, set method called with type " + Type.typeName(p_type) + ", is getOrCreate method instead");
-                        param_elem = OffHeapConstants.OFFHEAP_NULL_PTR; //empty initial ptr
+                        param_elem = OffHeapConstants.NULL_PTR; //empty initial ptr
                         break;
                     default:
                         throw new RuntimeException("Internal Exception, unknown type");
@@ -361,7 +361,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     }
 
     @Override
-    public ENode setAt(long key, byte type, Object value) {
+    public ENode setAt(int key, byte type, Object value) {
         internal_set(key, type, value, true, false);
         return this;
     }
@@ -409,7 +409,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                     return new OffHeapDMatrix(this, index);
                 case Type.LMATRIX:
                     return new OffHeapLMatrix(this, index);
-                case Type.STRING_TO_LONG_MAP:
+                case Type.STRING_TO_INT_MAP:
                     return new OffHeapStringLongMap(this, index);
                 case Type.LONG_TO_LONG_MAP:
                     return new OffHeapLongLongMap(this, index);
@@ -417,7 +417,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                     return new OffHeapLongLongArrayMap(this, index);
                 case Type.RELATION_INDEXED:
                     return new OffHeapRelationIndexed(this, index, _graph);
-                case OffHeapConstants.OFFHEAP_NULL_PTR:
+                case OffHeapConstants.NULL_PTR:
                     return null;
                 default:
                     throw new RuntimeException("Should never happen " + type);
@@ -432,7 +432,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
         final long subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
         if (size == 0) {
             return -1;
-        } else if (subhash_ptr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        } else if (subhash_ptr == OffHeapConstants.NULL_PTR) {
             for (int i = 0; i < size; i++) {
                 if (key(addr, i) == p_key) {
                     return i;
@@ -455,7 +455,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     }
 
     @Override
-    public Object getAt(long key) {
+    public Object getAt(int key) {
         return internal_get(key);
     }
 
@@ -470,7 +470,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     }
 
     @Override
-    public Object getOrCreateAt(long key, byte type) {
+    public Object getOrCreateAt(int key, byte type) {
         long found = internal_find(key);
         if (found != -1) {
             Object elem = internal_get(key);
@@ -482,28 +482,28 @@ public class OffHeapENode implements ENode, OffHeapContainer {
         Object toSet = null;
         switch (type) {
             case Type.ERELATION:
-                toSet = new OffHeapERelation(this, egraph, _graph, OffHeapConstants.OFFHEAP_NULL_PTR); // TODO: take care and pass the index instead of addr
+                toSet = new OffHeapERelation(this, egraph, _graph, OffHeapConstants.NULL_PTR); // TODO: take care and pass the index instead of addr
                 break;
             case Type.RELATION:
-                toSet = new OffHeapRelation(this, OffHeapConstants.OFFHEAP_NULL_PTR);
+                toSet = new OffHeapRelation(this, OffHeapConstants.NULL_PTR);
                 break;
             case Type.RELATION_INDEXED:
-                toSet = new OffHeapRelationIndexed(this, OffHeapConstants.OFFHEAP_NULL_PTR, egraph.graph());
+                toSet = new OffHeapRelationIndexed(this, OffHeapConstants.NULL_PTR, egraph.graph());
                 break;
             case Type.DMATRIX:
-                toSet = new OffHeapDMatrix(this, OffHeapConstants.OFFHEAP_NULL_PTR);
+                toSet = new OffHeapDMatrix(this, OffHeapConstants.NULL_PTR);
                 break;
             case Type.LMATRIX:
-                toSet = new OffHeapLMatrix(this, OffHeapConstants.OFFHEAP_NULL_PTR);
+                toSet = new OffHeapLMatrix(this, OffHeapConstants.NULL_PTR);
                 break;
-            case Type.STRING_TO_LONG_MAP:
-                toSet = new OffHeapStringLongMap(this, OffHeapConstants.OFFHEAP_NULL_PTR);
+            case Type.STRING_TO_INT_MAP:
+                toSet = new OffHeapStringLongMap(this, OffHeapConstants.NULL_PTR);
                 break;
             case Type.LONG_TO_LONG_MAP:
-                toSet = new OffHeapLongLongMap(this, OffHeapConstants.OFFHEAP_NULL_PTR);
+                toSet = new OffHeapLongLongMap(this, OffHeapConstants.NULL_PTR);
                 break;
             case Type.LONG_TO_LONG_ARRAY_MAP:
-                toSet = new OffHeapLongLongArrayMap(this, OffHeapConstants.OFFHEAP_NULL_PTR);
+                toSet = new OffHeapLongLongArrayMap(this, OffHeapConstants.NULL_PTR);
                 ;
                 break;
         }
@@ -525,12 +525,12 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     public void each(NodeStateCallback callBack) {
         long size = OffHeapLongArray.get(addr, SIZE);
         for (long i = 0; i < size; i++) {
-            if (value(addr, i) != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (value(addr, i) != OffHeapConstants.NULL_PTR) {
                 long key = key(addr, i);
                 byte type = type(addr, i);
                 Object elem = internal_get(key);
 
-                callBack.on(key, type, elem);
+                callBack.on((int) key, type, elem);
             }
         }
     }
@@ -542,17 +542,17 @@ public class OffHeapENode implements ENode, OffHeapContainer {
 
         OffHeapLongArray.set(addr, CAPACITY, 0);
         OffHeapLongArray.set(addr, SIZE, 0);
-        OffHeapLongArray.set(addr, SUBHASH, OffHeapConstants.OFFHEAP_NULL_PTR);
+        OffHeapLongArray.set(addr, SUBHASH, OffHeapConstants.NULL_PTR);
 
         for (long i = 0; i < size; i++) {
             freeElement(value(addr, i), type(addr, i));
-            setKey(addr, i, OffHeapConstants.OFFHEAP_NULL_PTR);
-            setValue(addr, i, OffHeapConstants.OFFHEAP_NULL_PTR);
-            setType(addr, i, OffHeapConstants.OFFHEAP_NULL_PTR);
+            setKey(addr, i, OffHeapConstants.NULL_PTR);
+            setValue(addr, i, OffHeapConstants.NULL_PTR);
+            setType(addr, i, OffHeapConstants.NULL_PTR);
         }
-        if (subhash != OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (subhash != OffHeapConstants.NULL_PTR) {
             OffHeapLongArray.free(subhash);
-            OffHeapLongArray.set(addr, SUBHASH, OffHeapConstants.OFFHEAP_NULL_PTR);
+            OffHeapLongArray.set(addr, SUBHASH, OffHeapConstants.NULL_PTR);
         }
         OffHeapLongArray.free(addr);
 
@@ -608,13 +608,13 @@ public class OffHeapENode implements ENode, OffHeapContainer {
 
     @SuppressWarnings("Duplicates")
     static void free(long addr) {
-        if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr != OffHeapConstants.NULL_PTR) {
             final long subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
             final long size = OffHeapLongArray.get(addr, SIZE);
             for (long i = 0; i < size; i++) {
                 freeElement(value(addr, i), type(addr, i));
             }
-            if (subhash_ptr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (subhash_ptr != OffHeapConstants.NULL_PTR) {
                 OffHeapLongArray.free(subhash_ptr);
             }
             OffHeapLongArray.free(addr);
@@ -651,7 +651,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             case Type.INT_ARRAY:
                 OffHeapIntArray.freeObject(addr);
                 break;
-            case Type.STRING_TO_LONG_MAP:
+            case Type.STRING_TO_INT_MAP:
                 OffHeapStringLongMap.free(addr);
                 break;
             case Type.LONG_TO_LONG_MAP:
@@ -676,13 +676,13 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             final Resolver resolver = _graph.resolver();
             final long attributeKey = key(addr, i);
             final byte elemType = type(addr, i);
-            if (elem != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (elem != OffHeapConstants.NULL_PTR) {
                 if (isFirstField) {
                     isFirstField = false;
                 } else {
                     builder.append(",");
                 }
-                String resolveName = resolver.hashToString(attributeKey);
+                String resolveName = resolver.hashToString((int) attributeKey);
                 if (resolveName == null) {
                     resolveName = attributeKey + "";
                 }
@@ -865,7 +865,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                         builder.append("}");
                         break;
                     }
-                    case Type.STRING_TO_LONG_MAP: {
+                    case Type.STRING_TO_INT_MAP: {
                         builder.append("\"");
                         builder.append(resolveName);
                         builder.append("\":");
@@ -902,9 +902,9 @@ public class OffHeapENode implements ENode, OffHeapContainer {
         int size = (int) OffHeapLongArray.get(addr, SIZE);
         Base64.encodeIntToBuffer(size, buffer);
         for (int i = 0; i < size; i++) {
-            if (value(addr, i) != OffHeapConstants.OFFHEAP_NULL_PTR) { //there is a real value
+            if (value(addr, i) != OffHeapConstants.NULL_PTR) { //there is a real value
                 final long loopValue = value(addr, i);
-                if (loopValue != OffHeapConstants.OFFHEAP_NULL_PTR) {
+                if (loopValue != OffHeapConstants.NULL_PTR) {
                     buffer.write(CoreConstants.CHUNK_SEP);
                     Base64.encodeIntToBuffer(type(addr, i), buffer);
                     buffer.write(CoreConstants.CHUNK_SEP);
@@ -963,7 +963,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                         case Type.LMATRIX:
                             OffHeapLMatrix.save(loopValue, buffer);
                             break;
-                        case Type.STRING_TO_LONG_MAP:
+                        case Type.STRING_TO_INT_MAP:
                             OffHeapStringLongMap.save(loopValue, buffer);
                             break;
                         case Type.LONG_TO_LONG_MAP:
@@ -986,7 +986,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     @SuppressWarnings("Duplicates")
     public final long load(final Buffer buffer, final long currentCursor, final OffHeapContainer p_parent) {
 //        final boolean initial = _k == null;
-        final boolean initial = addr == OffHeapConstants.OFFHEAP_NULL_PTR;
+        final boolean initial = addr == OffHeapConstants.NULL_PTR;
 
         final long payloadSize = buffer.length();
         long cursor = currentCursor;
@@ -1001,7 +1001,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             } else if (current == Constants.CHUNK_SEP) {
                 switch (state) {
                     case LOAD_WAITING_ALLOC:
-                        allocate(OffHeapConstants.OFFHEAP_NULL_PTR, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                        allocate(OffHeapConstants.NULL_PTR, Base64.decodeToLongWithBounds(buffer, previous, cursor));
                         state = LOAD_WAITING_TYPE;
                         cursor++;
                         previous = cursor;
@@ -1128,7 +1128,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 }
                                 break;
                             case Type.RELATION:
-                                OffHeapRelation relation = new OffHeapRelation(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR);
+                                OffHeapRelation relation = new OffHeapRelation(p_parent, OffHeapConstants.NULL_PTR);
                                 cursor++;
                                 cursor = relation.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -1137,7 +1137,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.DMATRIX:
-                                OffHeapDMatrix matrix = new OffHeapDMatrix(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR);
+                                OffHeapDMatrix matrix = new OffHeapDMatrix(p_parent, OffHeapConstants.NULL_PTR);
                                 cursor++;
                                 cursor = matrix.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -1146,7 +1146,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.LMATRIX:
-                                OffHeapLMatrix lmatrix = new OffHeapLMatrix(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR);
+                                OffHeapLMatrix lmatrix = new OffHeapLMatrix(p_parent, OffHeapConstants.NULL_PTR);
                                 cursor++;
                                 cursor = lmatrix.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -1155,7 +1155,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.LONG_TO_LONG_MAP:
-                                OffHeapLongLongMap l2lmap = new OffHeapLongLongMap(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR);
+                                OffHeapLongLongMap l2lmap = new OffHeapLongLongMap(p_parent, OffHeapConstants.NULL_PTR);
                                 cursor++;
                                 cursor = l2lmap.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -1164,7 +1164,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.LONG_TO_LONG_ARRAY_MAP:
-                                OffHeapLongLongArrayMap l2lrmap = new OffHeapLongLongArrayMap(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR);
+                                OffHeapLongLongArrayMap l2lrmap = new OffHeapLongLongArrayMap(p_parent, OffHeapConstants.NULL_PTR);
                                 cursor++;
                                 cursor = l2lrmap.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -1173,7 +1173,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 state = LOAD_WAITING_TYPE;
                                 break;
                             case Type.RELATION_INDEXED:
-                                OffHeapRelationIndexed relationIndexed = new OffHeapRelationIndexed(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR, _graph);
+                                OffHeapRelationIndexed relationIndexed = new OffHeapRelationIndexed(p_parent, OffHeapConstants.NULL_PTR, _graph);
                                 cursor++;
                                 cursor = relationIndexed.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -1181,8 +1181,8 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 previous = cursor;
                                 state = LOAD_WAITING_TYPE;
                                 break;
-                            case Type.STRING_TO_LONG_MAP:
-                                OffHeapStringLongMap s2lmap = new OffHeapStringLongMap(p_parent, OffHeapConstants.OFFHEAP_NULL_PTR);
+                            case Type.STRING_TO_INT_MAP:
+                                OffHeapStringLongMap s2lmap = new OffHeapStringLongMap(p_parent, OffHeapConstants.NULL_PTR);
                                 cursor++;
                                 cursor = s2lmap.load(buffer, cursor, payloadSize);
                                 cursor++;
@@ -1198,7 +1198,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
                                     if (current == Constants.CHUNK_VAL_SEP) {
                                         if (eRelation == null) {
-                                            eRelation = new OffHeapERelation(this, egraph, _graph, OffHeapConstants.OFFHEAP_NULL_PTR);
+                                            eRelation = new OffHeapERelation(this, egraph, _graph, OffHeapConstants.NULL_PTR);
                                             eRelation.allocate(eRelation.getAddr(), Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                         } else {
                                             eRelation.add(egraph.nodeByIndex((int) Base64.decodeToLongWithBounds(buffer, previous, cursor), true));
@@ -1211,7 +1211,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                     }
                                 }
                                 if (eRelation == null) {
-                                    eRelation = new OffHeapERelation(this, egraph, _graph, OffHeapConstants.OFFHEAP_NULL_PTR);
+                                    eRelation = new OffHeapERelation(this, egraph, _graph, OffHeapConstants.NULL_PTR);
                                     eRelation.allocate(eRelation.getAddr(), (int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
                                 } else {
                                     eRelation.add(egraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true));

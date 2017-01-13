@@ -28,7 +28,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         space.lockByIndex(index);
         try {
             long temp_addr = space.addrByIndex(index);
-            if (temp_addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (temp_addr == OffHeapConstants.NULL_PTR) {
                 long initialCapacity = Constants.MAP_INITIAL_CAPACITY;
                 temp_addr = OffHeapLongArray.allocate(OFFSET + (initialCapacity * ELEM_SIZE));
                 space.setAddrByIndex(index, temp_addr);
@@ -45,7 +45,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     public static void free(final long addr) {
-        if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr != OffHeapConstants.NULL_PTR) {
             OffHeapLongArray.free(addr);
         }
     }
@@ -66,7 +66,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @Override
-    public final long size() {
+    public final int size() {
         long result;
         space.lockByIndex(index);
         try {
@@ -74,7 +74,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         } finally {
             space.unlockByIndex(index);
         }
-        return result;
+        return (int) result;
     }
 
     @Override

@@ -293,7 +293,7 @@ class OffHeapChunkSpace implements ChunkSpace {
                 OffHeapGenChunk.free(rawValue);
                 break;
         }
-        OffHeapLongArray.set(addrs, index, OffHeapConstants.OFFHEAP_NULL_PTR);
+        OffHeapLongArray.set(addrs, index, OffHeapConstants.NULL_PTR);
     }
 
     @Override
@@ -338,7 +338,7 @@ class OffHeapChunkSpace implements ChunkSpace {
         if (currentVictimIndex == -1) {
             throw new RuntimeException("mwDB crashed, cache is full, please avoid to much retention of nodes or augment cache capacity! available:" + available());
         }
-        if (OffHeapLongArray.get(addrs, currentVictimIndex) != OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (OffHeapLongArray.get(addrs, currentVictimIndex) != OffHeapConstants.NULL_PTR) {
             final long victimWorld = OffHeapLongArray.get(worlds, currentVictimIndex);
             final long victimTime = OffHeapLongArray.get(times, currentVictimIndex);
             final long victimObj = OffHeapLongArray.get(ids, currentVictimIndex);
@@ -437,7 +437,7 @@ class OffHeapChunkSpace implements ChunkSpace {
 
     @Override
     public EGraph newVolatileGraph() {
-        return new OffHeapEGraph(new OffHeapVolatileContainer(), OffHeapConstants.OFFHEAP_NULL_PTR, _graph);
+        return new OffHeapEGraph(new OffHeapVolatileContainer(), OffHeapConstants.NULL_PTR, _graph);
     }
 
 }

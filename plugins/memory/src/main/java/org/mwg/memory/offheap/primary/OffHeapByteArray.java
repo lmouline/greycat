@@ -14,7 +14,7 @@ public class OffHeapByteArray {
             OffHeapConstants.SEGMENTS.put(newMemorySegment, capacity);
         }
         //init the memory
-        unsafe.setMemory(newMemorySegment, capacity, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
+        unsafe.setMemory(newMemorySegment, capacity, (byte) OffHeapConstants.NULL_PTR);
         //return the newly created segment
         return newMemorySegment;
     }

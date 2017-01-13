@@ -16,7 +16,7 @@ public class OffHeapStringArray {
 
     public static void set(final long addr, final long index, final String valueToInsert) {
         long stringPtr = OffHeapLongArray.get(addr, index);
-        if (stringPtr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (stringPtr != OffHeapConstants.NULL_PTR) {
             OffHeapString.free(stringPtr);
         }
         stringPtr = OffHeapString.fromObject(valueToInsert);
@@ -25,7 +25,7 @@ public class OffHeapStringArray {
 
     public static String get(final long addr, final long index) {
         long stringPtr = OffHeapLongArray.get(addr, index);
-        if (stringPtr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (stringPtr == OffHeapConstants.NULL_PTR) {
             return null;
         } else {
             return OffHeapString.asObject(stringPtr);
@@ -35,7 +35,7 @@ public class OffHeapStringArray {
     public static void free(final long addr, final long capacity) {
         for (long i = 0; i < capacity; i++) {
             long stringPtr = OffHeapLongArray.get(addr, i);
-            if (stringPtr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (stringPtr != OffHeapConstants.NULL_PTR) {
                 if (OffHeapConstants.DEBUG_MODE) {
                     if (!OffHeapConstants.SEGMENTS.containsKey(stringPtr)) {
                         throw new RuntimeException("Bad ADDR!");

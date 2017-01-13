@@ -8,7 +8,7 @@ import org.mwg.utility.DefaultBufferIterator;
 
 class OffHeapBuffer implements Buffer {
 
-    private long bufferPtr = OffHeapConstants.OFFHEAP_NULL_PTR;
+    private long bufferPtr = OffHeapConstants.NULL_PTR;
     private long writeCursor = 0;
     private long capacity = 0;
 
@@ -24,7 +24,7 @@ class OffHeapBuffer implements Buffer {
 
     @Override
     public void write(byte b) {
-        if (bufferPtr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (bufferPtr == OffHeapConstants.NULL_PTR) {
             capacity = Constants.MAP_INITIAL_CAPACITY;
             bufferPtr = OffHeapByteArray.allocate(capacity);
             OffHeapByteArray.set(bufferPtr, writeCursor, b);
@@ -43,7 +43,7 @@ class OffHeapBuffer implements Buffer {
 
     @Override
     public void writeAll(byte[] bytes) {
-        if (bufferPtr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (bufferPtr == OffHeapConstants.NULL_PTR) {
             capacity = getNewSize(Constants.MAP_INITIAL_CAPACITY, bytes.length);
             bufferPtr = OffHeapByteArray.allocate(capacity);
             OffHeapByteArray.copyArray(bytes, bufferPtr, writeCursor, bytes.length);
@@ -62,7 +62,7 @@ class OffHeapBuffer implements Buffer {
 
     @Override
     public byte read(long position) {
-        if (bufferPtr != OffHeapConstants.OFFHEAP_NULL_PTR && position < capacity) {
+        if (bufferPtr != OffHeapConstants.NULL_PTR && position < capacity) {
             return OffHeapByteArray.get(bufferPtr, position);
         }
         return -1;
@@ -84,9 +84,9 @@ class OffHeapBuffer implements Buffer {
 
     @Override
     public void free() {
-        if (bufferPtr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (bufferPtr != OffHeapConstants.NULL_PTR) {
             OffHeapByteArray.free(bufferPtr);
-            bufferPtr = OffHeapConstants.OFFHEAP_NULL_PTR;
+            bufferPtr = OffHeapConstants.NULL_PTR;
             capacity = 0;
             writeCursor = 0;
         }

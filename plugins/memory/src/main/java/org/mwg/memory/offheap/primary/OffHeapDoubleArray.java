@@ -21,7 +21,7 @@ public class OffHeapDoubleArray {
             OffHeapConstants.SEGMENTS.put(newMemorySegment, capacity * 8);
         }
         //init the memory
-        unsafe.setMemory(newMemorySegment, capacity * 8, (byte) OffHeapConstants.OFFHEAP_NULL_PTR);
+        unsafe.setMemory(newMemorySegment, capacity * 8, (byte) OffHeapConstants.NULL_PTR);
         //return the newly created segment
         return newMemorySegment;
     }
@@ -84,7 +84,7 @@ public class OffHeapDoubleArray {
     }
 
     public static long cloneArray(final long srcAddr, final long length) {
-        if (srcAddr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (srcAddr == OffHeapConstants.NULL_PTR) {
             return srcAddr;
         }
         long newAddr = unsafe.allocateMemory(length * 8);
@@ -96,7 +96,7 @@ public class OffHeapDoubleArray {
     }
 
     public static void save(final long addr, final Buffer buffer) {
-        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr == OffHeapConstants.NULL_PTR) {
             return;
         }
         int rawSize = (int) OffHeapLongArray.get(addr, SIZE_INDEX);
@@ -108,7 +108,7 @@ public class OffHeapDoubleArray {
     }
 
     public static double[] asObject(final long addr) {
-        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr == OffHeapConstants.NULL_PTR) {
             return null;
         }
         int doubleArrayLength = (int) OffHeapLongArray.get(addr, SIZE_INDEX);

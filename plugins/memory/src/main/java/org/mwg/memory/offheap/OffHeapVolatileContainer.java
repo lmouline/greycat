@@ -4,7 +4,7 @@ public class OffHeapVolatileContainer implements OffHeapContainer {
     private long indexedAddr;
 
     public OffHeapVolatileContainer() {
-        indexedAddr = OffHeapConstants.OFFHEAP_NULL_PTR;
+        indexedAddr = OffHeapConstants.NULL_PTR;
     }
 
     @Override

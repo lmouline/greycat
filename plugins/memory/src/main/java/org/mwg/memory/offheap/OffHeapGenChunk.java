@@ -27,7 +27,7 @@ final class OffHeapGenChunk implements GenChunk {
         space.lockByIndex(index);
         try {
             long temp_addr = space.addrByIndex(index);
-            if (temp_addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (temp_addr == OffHeapConstants.NULL_PTR) {
                 temp_addr = OffHeapLongArray.allocate(CHUNK_SIZE);
                 space.setAddrByIndex(index, temp_addr);
                 OffHeapLongArray.set(temp_addr, SEED, -1);
@@ -40,7 +40,7 @@ final class OffHeapGenChunk implements GenChunk {
     }
 
     static void free(final long addr) {
-        if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr != OffHeapConstants.NULL_PTR) {
             OffHeapLongArray.free(addr);
         }
     }

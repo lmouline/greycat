@@ -28,7 +28,7 @@ class OffHeapDMatrix implements DMatrix {
         container.lock();
         try {
             long addr = container.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (addr != OffHeapConstants.NULL_PTR) {
                 OffHeapDoubleArray.free(addr);
             }
             addr = OffHeapDoubleArray.allocate(rows * columns + INDEX_OFFSET);
@@ -51,11 +51,11 @@ class OffHeapDMatrix implements DMatrix {
             int nbColumns;
             int nbMaxColumn;
             long addr = container.addrByIndex(index);
-            long indexAddr = OffHeapConstants.OFFHEAP_NULL_PTR;
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            long indexAddr = OffHeapConstants.NULL_PTR;
+            if (addr != OffHeapConstants.NULL_PTR) {
                 indexAddr = OffHeapLongArray.get(addr, INDEX_COLUMNS);
             }
-            if (addr == OffHeapConstants.OFFHEAP_NULL_PTR || indexAddr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (addr == OffHeapConstants.NULL_PTR || indexAddr == OffHeapConstants.NULL_PTR) {
                 nbRows = newColumn.length;
                 nbColumns = Constants.MAP_INITIAL_CAPACITY;
                 nbMaxColumn = 0;
@@ -90,7 +90,7 @@ class OffHeapDMatrix implements DMatrix {
 
     void unsafe_init(int size) {
         long addr = container.addrByIndex(index);
-        if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr != OffHeapConstants.NULL_PTR) {
             OffHeapDoubleArray.free(addr);
         }
         addr = OffHeapDoubleArray.allocate(size);
@@ -101,7 +101,7 @@ class OffHeapDMatrix implements DMatrix {
 
     void unsafe_set(long setIndex, double value) {
         final long addr = container.addrByIndex(index);
-        if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr != OffHeapConstants.NULL_PTR) {
             OffHeapDoubleArray.set(addr, setIndex, value);
         }
     }
@@ -111,7 +111,7 @@ class OffHeapDMatrix implements DMatrix {
         container.lock();
         try {
             final long addr = container.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (addr != OffHeapConstants.NULL_PTR) {
                 int nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
                 int nbColumns = (int) OffHeapDoubleArray.get(addr, INDEX_COLUMNS);
                 OffHeapDoubleArray.fill(addr, INDEX_OFFSET, (nbRows * nbColumns), value);
@@ -128,7 +128,7 @@ class OffHeapDMatrix implements DMatrix {
         container.lock();
         try {
             final long addr = container.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (addr != OffHeapConstants.NULL_PTR) {
                 for (int i = 0; i < values.length; i++) {
                     OffHeapDoubleArray.set(addr, INDEX_OFFSET + i, values[i]);
                 }
@@ -145,7 +145,7 @@ class OffHeapDMatrix implements DMatrix {
         container.lock();
         try {
             final long addr = container.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (addr != OffHeapConstants.NULL_PTR) {
                 final int nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
                 final int nbColumns = (int) OffHeapDoubleArray.get(addr, INDEX_COLUMNS);
                 final Random rand = new Random();
@@ -167,7 +167,7 @@ class OffHeapDMatrix implements DMatrix {
         int result = 0;
         try {
             final long addr = container.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (addr != OffHeapConstants.NULL_PTR) {
                 result = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
             }
         } finally {
@@ -182,7 +182,7 @@ class OffHeapDMatrix implements DMatrix {
         int result = 0;
         try {
             final long addr = container.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (addr != OffHeapConstants.NULL_PTR) {
                 result = (int) OffHeapDoubleArray.get(addr, INDEX_MAX_COLUMN);
             }
         } finally {
@@ -197,7 +197,7 @@ class OffHeapDMatrix implements DMatrix {
         container.lock();
         try {
             final long addr = container.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (addr != OffHeapConstants.NULL_PTR) {
                 long nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
                 result = new double[(int) nbRows];
                 long base = INDEX_OFFSET + (columnIndex * nbRows);
@@ -217,7 +217,7 @@ class OffHeapDMatrix implements DMatrix {
         double result = 0;
         try {
             final long addr = container.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (addr != OffHeapConstants.NULL_PTR) {
                 final int nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
                 result = OffHeapDoubleArray.get(addr, INDEX_OFFSET + rowIndex + columnIndex * nbRows);
             }
@@ -232,7 +232,7 @@ class OffHeapDMatrix implements DMatrix {
         container.lock();
         try {
             final long addr = container.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (addr != OffHeapConstants.NULL_PTR) {
                 final int nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
                 OffHeapDoubleArray.set(addr, INDEX_OFFSET + rowIndex + columnIndex * nbRows, value);
             }
@@ -247,7 +247,7 @@ class OffHeapDMatrix implements DMatrix {
         container.lock();
         try {
             final long addr = container.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (addr != OffHeapConstants.NULL_PTR) {
                 final int nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
                 final int raw_index = INDEX_OFFSET + rowIndex + columnIndex * nbRows;
                 final double previous = OffHeapDoubleArray.get(addr, raw_index);
@@ -265,7 +265,7 @@ class OffHeapDMatrix implements DMatrix {
         double[] flat;
         try {
             final long addr = container.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (addr != OffHeapConstants.NULL_PTR) {
                 final int nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
                 final int nbColumns = (int) OffHeapDoubleArray.get(addr, INDEX_COLUMNS);
                 final int flatSize = nbRows * nbColumns;
@@ -288,7 +288,7 @@ class OffHeapDMatrix implements DMatrix {
         int result = 0;
         try {
             final long addr = container.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (addr != OffHeapConstants.NULL_PTR) {
                 final int nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
                 final int nbColumns = (int) OffHeapDoubleArray.get(addr, INDEX_COLUMNS);
                 result = Math.max(nbRows, nbColumns);
@@ -305,7 +305,7 @@ class OffHeapDMatrix implements DMatrix {
         double result = 0;
         try {
             final long addr = container.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (addr != OffHeapConstants.NULL_PTR) {
                 result = OffHeapDoubleArray.get(addr, INDEX_OFFSET + indexValue);
             }
         } finally {
@@ -319,7 +319,7 @@ class OffHeapDMatrix implements DMatrix {
         container.lock();
         try {
             final long addr = container.addrByIndex(index);
-            if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+            if (addr != OffHeapConstants.NULL_PTR) {
                 OffHeapDoubleArray.set(addr, INDEX_OFFSET + indexValue, value);
             }
         } finally {
@@ -335,7 +335,7 @@ class OffHeapDMatrix implements DMatrix {
         //chunk.lock();
         // try {
         final long addr = chunk.addrByIndex(index);
-        if (addr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr != OffHeapConstants.NULL_PTR) {
             buffer.append("[");
             final long size = OffHeapLongArray.get(addr, SIZE);
             for (int i = 0; i < size; i++) {
@@ -353,7 +353,7 @@ class OffHeapDMatrix implements DMatrix {
     }*/
 
     static void save(final long addr, final Buffer buffer) {
-        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (addr == OffHeapConstants.NULL_PTR) {
             return;
         }
         final int nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
@@ -368,8 +368,8 @@ class OffHeapDMatrix implements DMatrix {
     }
 
     static long clone(final long addr) {
-        if (addr == OffHeapConstants.OFFHEAP_NULL_PTR) {
-            return OffHeapConstants.OFFHEAP_NULL_PTR;
+        if (addr == OffHeapConstants.NULL_PTR) {
+            return OffHeapConstants.NULL_PTR;
         }
         final int nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
         final int nbColumns = (int) OffHeapDoubleArray.get(addr, INDEX_COLUMNS);

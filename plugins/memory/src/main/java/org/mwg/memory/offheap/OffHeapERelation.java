@@ -15,7 +15,7 @@ public class OffHeapERelation implements ERelation {
     private static final int CAPACITY = 1;
     private static final int HEADER_SIZE = 2;
 
-    private long addr = OffHeapConstants.OFFHEAP_NULL_PTR;
+    private long addr = OffHeapConstants.NULL_PTR;
 
     public OffHeapERelation(OffHeapContainer container, OffHeapEGraph eGraph, Graph graph, long originAddr) {
         this.eGraph = eGraph;
@@ -28,7 +28,7 @@ public class OffHeapERelation implements ERelation {
     final void allocate(long originAddr, long newCapacity) {
         final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
 
-        if (originAddr != OffHeapConstants.OFFHEAP_NULL_PTR) {
+        if (originAddr != OffHeapConstants.NULL_PTR) {
             if (originAddr == addr) {
                 addr = OffHeapLongArray.reallocate(addr, closePowerOfTwo);
             } else {
@@ -105,7 +105,7 @@ public class OffHeapERelation implements ERelation {
         long size = OffHeapLongArray.get(addr, SIZE);
         OffHeapLongArray.set(addr, SIZE, 0);
         for (long i = 0; i < size; i++) {
-            setNodeAddrAt(addr, i, OffHeapConstants.OFFHEAP_NULL_PTR);
+            setNodeAddrAt(addr, i, OffHeapConstants.NULL_PTR);
         }
         eGraph.declareDirty();
         return this;
