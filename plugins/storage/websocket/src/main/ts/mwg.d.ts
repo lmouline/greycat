@@ -429,6 +429,8 @@ declare module org {
             free(): void;
             graph(): org.mwg.Graph;
             travelInTime<A extends org.mwg.Node>(targetTime: number, callback: org.mwg.Callback<A>): void;
+            setTimeSensitivity(deltaTime: number, offset: number): org.mwg.Node;
+            timeSensitivity(): Float64Array;
         }
         interface NodeIndex extends org.mwg.Node {
             size(): number;
@@ -532,6 +534,8 @@ declare module org {
                 rephase(): org.mwg.Node;
                 timepoints(beginningOfSearch: number, endOfSearch: number, callback: org.mwg.Callback<Float64Array>): void;
                 travelInTime<A extends org.mwg.Node>(targetTime: number, callback: org.mwg.Callback<A>): void;
+                setTimeSensitivity(deltaTime: number, offset: number): org.mwg.Node;
+                timeSensitivity(): Float64Array;
                 static isNaN(toTest: number): boolean;
                 toString(): string;
             }
@@ -614,6 +618,10 @@ declare module org {
                 previous(key: number): number;
                 next(key: number): number;
                 size(): number;
+                extra(): number;
+                setExtra(extraValue: number): void;
+                extra2(): number;
+                setExtra2(extraValue: number): void;
             }
             interface TreeWalker {
                 (t: number): void;
@@ -750,6 +758,8 @@ declare module org {
                 freeNode(node: org.mwg.Node): void;
                 externalLock(node: org.mwg.Node): void;
                 externalUnlock(node: org.mwg.Node): void;
+                setTimeSensitivity(node: org.mwg.Node, deltaTime: number, offset: number): void;
+                getTimeSensitivity(node: org.mwg.Node): Float64Array;
                 lookup<A extends org.mwg.Node>(world: number, time: number, id: number, callback: org.mwg.Callback<A>): void;
                 lookupBatch(worlds: Float64Array, times: Float64Array, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 lookupTimes(world: number, from: number, to: number, id: number, callback: org.mwg.Callback<org.mwg.Node[]>): void;
@@ -1174,7 +1184,13 @@ declare module org {
                         private _magic;
                         private _size;
                         private _dirty;
+                        private _extra;
+                        private _extra2;
                         constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_index: number);
+                        extra(): number;
+                        setExtra(extraValue: number): void;
+                        extra2(): number;
+                        setExtra2(extraValue: number): void;
                         world(): number;
                         time(): number;
                         id(): number;
@@ -2198,6 +2214,8 @@ declare module org {
                 hashToString(key: number): string;
                 externalLock(node: org.mwg.Node): void;
                 externalUnlock(node: org.mwg.Node): void;
+                setTimeSensitivity(node: org.mwg.Node, deltaTime: number, delta: number): void;
+                getTimeSensitivity(node: org.mwg.Node): Float64Array;
             }
             interface ResolverFactory {
                 newResolver(storage: org.mwg.plugin.Storage, space: org.mwg.chunk.ChunkSpace): org.mwg.plugin.Resolver;

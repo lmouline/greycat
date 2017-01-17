@@ -1805,6 +1805,13 @@ var org;
                 BaseNode.prototype.travelInTime = function (targetTime, callback) {
                     this._resolver.lookup(this._world, targetTime, this._id, callback);
                 };
+                BaseNode.prototype.setTimeSensitivity = function (deltaTime, offset) {
+                    this._resolver.setTimeSensitivity(this, deltaTime, offset);
+                    return this;
+                };
+                BaseNode.prototype.timeSensitivity = function () {
+                    return this._resolver.getTimeSensitivity(this);
+                };
                 BaseNode.isNaN = function (toTest) {
                     return java.lang.Double.NaN == toTest;
                 };
@@ -2835,6 +2842,20 @@ var org;
                     var worldOrderChunk = this._space.get(casted._index_worldOrder);
                     worldOrderChunk.externalUnlock();
                 };
+                MWGResolver.prototype.setTimeSensitivity = function (node, deltaTime, offset) {
+                    var casted = node;
+                    var superTimeTree = this._space.get(casted._index_superTimeTree);
+                    superTimeTree.setExtra(deltaTime);
+                    superTimeTree.setExtra2(offset);
+                };
+                MWGResolver.prototype.getTimeSensitivity = function (node) {
+                    var casted = node;
+                    var result = new Float64Array(2);
+                    var superTimeTree = this._space.get(casted._index_superTimeTree);
+                    result[0] = superTimeTree.extra();
+                    result[1] = superTimeTree.extra2();
+                    return result;
+                };
                 MWGResolver.prototype.lookup = function (world, time, id, callback) {
                     var _this = this;
                     var selfPointer = this;
@@ -3466,14 +3487,23 @@ var org;
                         return null;
                     }
                     nodeWorldOrder.lock();
-                    var nodeWorld = node.world();
-                    var nodeTime = node.time();
-                    var nodeId = node.id();
                     var previouStateChunk = this.internal_resolveState(node, false);
                     if (castedNode._world_magic == -1 && castedNode._time_magic == -1 && castedNode._super_time_magic == -1) {
                         nodeWorldOrder.unlock();
                         castedNode.cacheUnlock();
                         return previouStateChunk;
+                    }
+                    var nodeWorld = node.world();
+                    var nodeTime = node.time();
+                    var nodeId = node.id();
+                    var superTimeTree = this._space.get(castedNode._index_superTimeTree);
+                    var timeSensitivity = superTimeTree.extra();
+                    if (timeSensitivity != 0 && timeSensitivity != org.mwg.Constants.NULL_LONG) {
+                        var timeSensitivityOffset = superTimeTree.extra2();
+                        if (timeSensitivityOffset == org.mwg.Constants.NULL_LONG) {
+                            timeSensitivityOffset = 0;
+                        }
+                        nodeTime = nodeTime - (nodeTime % timeSensitivity) + timeSensitivityOffset;
                     }
                     var clonedState = this._space.createAndMark(org.mwg.chunk.ChunkType.STATE_CHUNK, nodeWorld, nodeTime, nodeId);
                     clonedState.loadFrom(previouStateChunk);
@@ -3483,7 +3513,6 @@ var org;
                     castedNode._index_stateChunk = clonedState.index();
                     this._space.unmark(previouStateChunk.index());
                     if (previouStateChunk.world() == nodeWorld || nodeWorldOrder.get(nodeWorld) != org.mwg.core.CoreConstants.NULL_LONG) {
-                        var superTimeTree = this._space.get(castedNode._index_superTimeTree);
                         var timeTree = this._space.get(castedNode._index_timeTree);
                         var superTreeSize = superTimeTree.size();
                         var threshold = org.mwg.core.CoreConstants.SCALE_1 * 2;
@@ -8691,7 +8720,21 @@ var org;
                             this._index = p_index;
                             this._magic = 0;
                             this._dirty = false;
+                            this._extra = 0;
+                            this._extra2 = 0;
                         }
+                        HeapTimeTreeChunk.prototype.extra = function () {
+                            return this._extra;
+                        };
+                        HeapTimeTreeChunk.prototype.setExtra = function (extraValue) {
+                            this._extra = extraValue;
+                        };
+                        HeapTimeTreeChunk.prototype.extra2 = function () {
+                            return this._extra2;
+                        };
+                        HeapTimeTreeChunk.prototype.setExtra2 = function (extraValue) {
+                            this._extra2 = extraValue;
+                        };
                         HeapTimeTreeChunk.prototype.world = function () {
                             return this._space.worldByIndex(this._index);
                         };
@@ -8714,9 +8757,17 @@ var org;
                             }
                         };
                         HeapTimeTreeChunk.prototype.save = function (buffer) {
+                            if (this._extra != org.mwg.core.CoreConstants.NULL_LONG && this._extra != 0) {
+                                org.mwg.utility.Base64.encodeLongToBuffer(this._extra, buffer);
+                                buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                            }
+                            if (this._extra2 != org.mwg.core.CoreConstants.NULL_LONG && this._extra2 != 0) {
+                                org.mwg.utility.Base64.encodeLongToBuffer(this._extra2, buffer);
+                                buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                            }
                             org.mwg.utility.Base64.encodeIntToBuffer(this._size, buffer);
                             for (var i = 0; i < this._size; i++) {
-                                buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
                                 org.mwg.utility.Base64.encodeLongToBuffer(this._k[i], buffer);
                             }
                             this._dirty = false;
@@ -8726,10 +8777,18 @@ var org;
                         };
                         HeapTimeTreeChunk.prototype.saveDiff = function (buffer) {
                             if (this._dirty) {
+                                if (this._extra != org.mwg.core.CoreConstants.NULL_LONG && this._extra != 0) {
+                                    org.mwg.utility.Base64.encodeLongToBuffer(this._extra, buffer);
+                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                }
+                                if (this._extra2 != org.mwg.core.CoreConstants.NULL_LONG && this._extra2 != 0) {
+                                    org.mwg.utility.Base64.encodeLongToBuffer(this._extra2, buffer);
+                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                }
                                 org.mwg.utility.Base64.encodeIntToBuffer(this._size, buffer);
                                 for (var i = 0; i < this._size; i++) {
                                     if (this._diff[i]) {
-                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
                                         org.mwg.utility.Base64.encodeLongToBuffer(this._k[i], buffer);
                                     }
                                 }
@@ -8757,19 +8816,33 @@ var org;
                             var previous = 0;
                             var payloadSize = buffer.length();
                             var isFirst = true;
+                            var isFirstExtra = true;
                             while (cursor < payloadSize) {
                                 var current = buffer.read(cursor);
-                                if (current == org.mwg.Constants.CHUNK_SEP) {
-                                    if (isFirst) {
-                                        this.reallocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                                        previous = cursor + 1;
-                                        isFirst = false;
-                                    }
-                                    else {
-                                        var insertResult_1 = this.internal_insert(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
-                                        isDirty = isDirty || insertResult_1;
-                                        previous = cursor + 1;
-                                    }
+                                switch (current) {
+                                    case org.mwg.Constants.CHUNK_SEP:
+                                        if (isFirstExtra) {
+                                            this._extra = org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                            previous = cursor + 1;
+                                            isFirstExtra = false;
+                                        }
+                                        else {
+                                            this._extra2 = org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                            previous = cursor + 1;
+                                        }
+                                        break;
+                                    case org.mwg.Constants.CHUNK_VAL_SEP:
+                                        if (isFirst) {
+                                            this.reallocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                            previous = cursor + 1;
+                                            isFirst = false;
+                                        }
+                                        else {
+                                            var insertResult_1 = this.internal_insert(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
+                                            isDirty = isDirty || insertResult_1;
+                                            previous = cursor + 1;
+                                        }
+                                        break;
                                 }
                                 cursor++;
                             }
