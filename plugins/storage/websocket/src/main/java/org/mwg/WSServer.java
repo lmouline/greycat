@@ -214,15 +214,17 @@ public class WSServer implements WebSocketConnectionCallback {
                     process_put(collectedKeys, flatValues.toArray(new Buffer[flatValues.size()]), new Job() {
                         @Override
                         public void run() {
+                            graph.save(null);//TODO transaction management
+
                             Buffer concat = graph.newBuffer();
                             concat.write(WSConstants.RESP_UNLOCK);
                             concat.write(Constants.BUFFER_SEP);
                             concat.writeAll(callbackCodeView.data());
                             payload.free();
                             WSServer.this.send_resp(concat, channel);
+
                             //for all other channel
                             WebSocketChannel[] others = WSServer.this.peers.toArray(new WebSocketChannel[WSServer.this.peers.size()]);
-
                             Buffer notificationBuffer = graph.newBuffer();
                             notificationBuffer.write(WSConstants.REQ_UPDATE);
                             for (int i = 0; i < collectedKeys.length; i++) {
