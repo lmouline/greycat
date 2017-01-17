@@ -3,10 +3,8 @@ package org.mwg.benchmark;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import org.mwg.*;
-import org.mwg.core.scheduler.NoopScheduler;
+import org.mwg.internal.scheduler.NoopScheduler;
 import org.mwg.memory.offheap.OffHeapMemoryPlugin;
-import org.mwg.plugin.Job;
-import org.mwg.plugin.SchedulerAffinity;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

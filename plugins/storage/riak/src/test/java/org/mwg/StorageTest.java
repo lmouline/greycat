@@ -1,14 +1,11 @@
 package org.mwg;
 
-import org.junit.Test;
-import org.mwg.core.scheduler.NoopScheduler;
-import org.mwg.plugin.Job;
 import org.mwg.task.Task;
 
 import java.io.File;
 import java.io.IOException;
 
-import static org.mwg.core.task.Actions.*;
+import static org.mwg.internal.task.CoreActions.*;
 
 public class StorageTest {
 

@@ -4,11 +4,11 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Type;
-import org.mwg.core.scheduler.HybridScheduler;
+import org.mwg.internal.scheduler.HybridScheduler;
 import org.mwg.task.TaskResult;
 
-import static org.mwg.core.task.Actions.*;
-import static org.mwg.core.task.Actions.save;
+import static org.mwg.internal.task.Actions.*;
+import static org.mwg.internal.task.Actions.save;
 
 @SuppressWarnings("Duplicates")
 public class BenchmarkParTask {

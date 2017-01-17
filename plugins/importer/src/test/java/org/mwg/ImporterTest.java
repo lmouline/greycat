@@ -15,7 +15,7 @@ import java.net.URLDecoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import static org.mwg.core.task.Actions.*;
+import static org.mwg.internal.task.CoreActions.*;
 import static org.mwg.importer.ImporterActions.readFiles;
 import static org.mwg.importer.ImporterActions.readLines;
 

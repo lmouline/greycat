@@ -2,7 +2,7 @@ package ml.classifier;
 
 import org.junit.Test;
 import org.mwg.*;
-import org.mwg.core.scheduler.NoopScheduler;
+import org.mwg.internal.scheduler.NoopScheduler;
 import org.mwg.ml.AbstractMLNode;
 import org.mwg.mlx.MLXPlugin;
 import org.mwg.mlx.algorithm.AbstractAnySlidingWindowManagingNode;

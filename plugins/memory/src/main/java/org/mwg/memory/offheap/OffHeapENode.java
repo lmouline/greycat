@@ -4,7 +4,7 @@ import org.mwg.Constants;
 import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.base.BaseNode;
-import org.mwg.core.CoreConstants;
+import org.mwg.internal.CoreConstants;
 import org.mwg.memory.offheap.primary.OffHeapDoubleArray;
 import org.mwg.memory.offheap.primary.OffHeapIntArray;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;

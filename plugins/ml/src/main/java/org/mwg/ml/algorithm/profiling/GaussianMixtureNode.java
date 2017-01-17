@@ -16,7 +16,7 @@ import org.mwg.struct.Relation;
 import org.mwg.task.*;
 import org.mwg.utility.Enforcer;
 
-import static org.mwg.core.task.Actions.*;
+import static org.mwg.internal.task.CoreActions.*;
 
 public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
 

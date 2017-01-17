@@ -3,11 +3,11 @@ package org.mwg.benchmark;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import org.mwg.*;
-import org.mwg.core.scheduler.TrampolineScheduler;
+import org.mwg.internal.scheduler.TrampolineScheduler;
 import org.mwg.memory.offheap.OffHeapMemoryPlugin;
 import org.mwg.task.Task;
 
-import static org.mwg.core.task.Actions.newTask;
+import static org.mwg.internal.task.CoreActions.newTask;
 
 public class TrampolineTask {
 

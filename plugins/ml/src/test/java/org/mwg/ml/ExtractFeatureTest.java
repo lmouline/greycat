@@ -4,7 +4,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
 import org.mwg.base.BasePlugin;
-import org.mwg.core.task.Actions;
 import org.mwg.plugin.NodeFactory;
 
 public class ExtractFeatureTest {

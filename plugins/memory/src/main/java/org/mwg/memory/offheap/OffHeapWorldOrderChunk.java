@@ -4,7 +4,7 @@ package org.mwg.memory.offheap;
 import org.mwg.Constants;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.WorldOrderChunk;
-import org.mwg.core.CoreConstants;
+import org.mwg.internal.CoreConstants;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.LongLongMapCallBack;

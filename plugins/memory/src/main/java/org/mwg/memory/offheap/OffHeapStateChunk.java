@@ -5,7 +5,7 @@ import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.StateChunk;
-import org.mwg.core.CoreConstants;
+import org.mwg.internal.CoreConstants;
 import org.mwg.memory.offheap.primary.OffHeapDoubleArray;
 import org.mwg.memory.offheap.primary.OffHeapIntArray;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;

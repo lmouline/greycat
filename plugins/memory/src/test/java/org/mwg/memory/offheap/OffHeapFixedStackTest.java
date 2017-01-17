@@ -3,7 +3,7 @@ package org.mwg.memory.offheap;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.chunk.Stack;
-import org.mwg.core.chunk.AbstractFixedStackTest;
+import org.mwg.internal.chunk.AbstractFixedStackTest;
 
 public class OffHeapFixedStackTest extends AbstractFixedStackTest {
 

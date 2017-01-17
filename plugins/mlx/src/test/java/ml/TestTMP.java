@@ -4,8 +4,8 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Node;
-import org.mwg.core.scheduler.NoopScheduler;
-import org.mwg.core.task.CoreTask;
+import org.mwg.internal.scheduler.NoopScheduler;
+import org.mwg.internal.task.CoreTask;
 import org.mwg.task.*;
 
 import static org.mwg.task.Actions.inject;

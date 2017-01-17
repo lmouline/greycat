@@ -1,11 +1,6 @@
 package org.mwg;
 
-import org.mwg.plugin.TaskExecutor;
-import org.mwg.task.TaskResult;
-
-import java.util.Arrays;
-
-import static org.mwg.core.task.Actions.newTask;
+import static org.mwg.internal.task.CoreActions.newTask;
 
 public class TaskServerTest {
 

@@ -3,7 +3,7 @@ package org.mwg.benchmark;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import org.mwg.*;
-import org.mwg.core.scheduler.TrampolineScheduler;
+import org.mwg.internal.scheduler.TrampolineScheduler;
 import org.mwg.memory.offheap.OffHeapMemoryPlugin;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.SchedulerAffinity;

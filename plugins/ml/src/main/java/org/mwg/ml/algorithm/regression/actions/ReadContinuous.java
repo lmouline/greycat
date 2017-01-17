@@ -2,14 +2,14 @@ package org.mwg.ml.algorithm.regression.actions;
 
 import org.mwg.Callback;
 import org.mwg.Constants;
-import org.mwg.core.task.TaskHelper;
+import org.mwg.internal.task.TaskHelper;
 import org.mwg.ml.algorithm.regression.PolynomialNode;
 import org.mwg.task.Action;
 import org.mwg.task.Task;
 import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
-import static org.mwg.core.task.Actions.*;
+import static org.mwg.internal.task.CoreActions.*;
 
 /**
  * Created by assaad on 07/12/2016.

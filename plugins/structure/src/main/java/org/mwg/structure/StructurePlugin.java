@@ -14,7 +14,7 @@ import org.mwg.task.TaskActionFactory;
 //import org.mwg.task.Action;
 //import org.mwg.task.TaskActionFactory;
 //
-//import static org.mwg.core.task.Actions.newTask;
+//import static org.mwg.core.task.CoreActions.newTask;
 
 public class StructurePlugin extends BasePlugin {
 

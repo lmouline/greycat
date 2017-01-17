@@ -1,7 +1,7 @@
 package org.mwg.memory.offheap;
 
-import org.mwg.core.chunk.AbstractEGraphTest;
-import org.mwg.core.memory.HeapMemoryFactory;
+import org.mwg.internal.chunk.AbstractEGraphTest;
+import org.mwg.internal.memory.HeapMemoryFactory;
 
 public class OffHeapEGraphTest extends AbstractEGraphTest {
 

@@ -48,8 +48,8 @@ class Editor extends React.Component {
                     endColumn: position.column
                 }).trim();
                 if (textUntilPosition.endsWith(".")) {
-                    var names = global.org.mwg.core.task.ActionNames;
-                    var result = [];
+                    let names = global.org.mwg.internal.task.CoreActionNames;
+                    let result = [];
                     for (let name in names) {
                         if (names.hasOwnProperty(name)) {
                             result.push({
@@ -213,7 +213,7 @@ const LoadingButton = React.createClass({
     handleClick() {
         let self = this;
         self.setState({isLoading: true});
-        let task = global.org.mwg.core.task.Actions.newTask();
+        let task = global.org.mwg.internal.task.CoreActions.newTask();
         try {
             task.parse(global.context.code, window.context.graph);
             global.context.ws.executeTasks(function (results) {

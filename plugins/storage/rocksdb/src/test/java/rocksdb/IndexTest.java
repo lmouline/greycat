@@ -2,7 +2,7 @@ package rocksdb;
 
 import org.junit.Test;
 import org.mwg.*;
-import org.mwg.core.scheduler.NoopScheduler;
+import org.mwg.internal.scheduler.NoopScheduler;
 
 import java.io.IOException;
 import java.nio.file.*;

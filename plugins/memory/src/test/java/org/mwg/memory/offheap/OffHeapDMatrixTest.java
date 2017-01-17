@@ -2,7 +2,7 @@ package org.mwg.memory.offheap;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.mwg.core.chunk.AbstractMatrixTest;
+import org.mwg.internal.chunk.AbstractMatrixTest;
 
 public class OffHeapDMatrixTest extends AbstractMatrixTest {
 

@@ -1,7 +1,7 @@
 package org.mwg.importer;
 
 import org.mwg.Constants;
-import org.mwg.core.task.TaskHelper;
+import org.mwg.internal.task.TaskHelper;
 import org.mwg.importer.util.IterableLines;
 import org.mwg.task.Action;
 import org.mwg.task.TaskContext;

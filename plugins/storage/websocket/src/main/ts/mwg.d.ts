@@ -559,6 +559,40 @@ declare module org {
                 resolverFactory(): org.mwg.plugin.ResolverFactory;
                 stop(): void;
             }
+            class BaseTaskResult<A> implements org.mwg.task.TaskResult<A> {
+                private _backend;
+                private _capacity;
+                private _size;
+                _exception: Error;
+                _output: string;
+                asArray(): any[];
+                exception(): Error;
+                output(): string;
+                setException(e: Error): org.mwg.task.TaskResult<A>;
+                setOutput(output: string): org.mwg.task.TaskResult<A>;
+                fillWith(source: org.mwg.task.TaskResult<A>): org.mwg.task.TaskResult<A>;
+                constructor(toWrap: any, protect: boolean);
+                iterator(): org.mwg.task.TaskResultIterator<any>;
+                get(index: number): A;
+                set(index: number, input: A): org.mwg.task.TaskResult<A>;
+                allocate(index: number): org.mwg.task.TaskResult<A>;
+                add(input: A): org.mwg.task.TaskResult<A>;
+                clear(): org.mwg.task.TaskResult<A>;
+                clone(): org.mwg.task.TaskResult<A>;
+                free(): void;
+                size(): number;
+                private extendTil(index);
+                toString(): string;
+                private toJson(withContent);
+            }
+            class BaseTaskResultIterator<A> implements org.mwg.task.TaskResultIterator<A> {
+                private _backend;
+                private _size;
+                private _current;
+                constructor(p_backend: any[]);
+                next(): A;
+                nextWithIndex(): org.mwg.utility.Tuple<number, A>;
+            }
         }
         module chunk {
             interface Chunk {
@@ -636,7 +670,7 @@ declare module org {
                 setExtra(extraValue: number): void;
             }
         }
-        module core {
+        module internal {
             class BlackHoleStorage implements org.mwg.plugin.Storage {
                 private _graph;
                 private prefix;
@@ -833,7 +867,7 @@ declare module org {
                         private parent;
                         private backend;
                         private aligned;
-                        constructor(p_parent: org.mwg.core.chunk.heap.HeapContainer, origin: org.mwg.core.chunk.heap.HeapDMatrix);
+                        constructor(p_parent: org.mwg.internal.chunk.heap.HeapContainer, origin: org.mwg.internal.chunk.heap.HeapDMatrix);
                         init(rows: number, columns: number): org.mwg.struct.DMatrix;
                         private internal_init(rows, columns);
                         appendColumn(newColumn: Float64Array): org.mwg.struct.DMatrix;
@@ -866,15 +900,15 @@ declare module org {
                         private _graph;
                         private parent;
                         _dirty: boolean;
-                        _nodes: org.mwg.core.chunk.heap.HeapENode[];
+                        _nodes: org.mwg.internal.chunk.heap.HeapENode[];
                         private _nodes_capacity;
                         private _nodes_index;
-                        constructor(p_parent: org.mwg.core.chunk.heap.HeapContainer, origin: org.mwg.core.chunk.heap.HeapEGraph, p_graph: org.mwg.Graph);
+                        constructor(p_parent: org.mwg.internal.chunk.heap.HeapContainer, origin: org.mwg.internal.chunk.heap.HeapEGraph, p_graph: org.mwg.Graph);
                         size(): number;
                         free(): void;
                         graph(): org.mwg.Graph;
                         allocate(newCapacity: number): void;
-                        nodeByIndex(index: number, createIfAbsent: boolean): org.mwg.core.chunk.heap.HeapENode;
+                        nodeByIndex(index: number, createIfAbsent: boolean): org.mwg.internal.chunk.heap.HeapENode;
                         declareDirty(): void;
                         newNode(): org.mwg.struct.ENode;
                         root(): org.mwg.struct.ENode;
@@ -883,7 +917,7 @@ declare module org {
                         toString(): string;
                         load(buffer: org.mwg.struct.Buffer, offset: number, max: number): number;
                     }
-                    class HeapENode implements org.mwg.struct.ENode, org.mwg.core.chunk.heap.HeapContainer {
+                    class HeapENode implements org.mwg.struct.ENode, org.mwg.internal.chunk.heap.HeapContainer {
                         private egraph;
                         _id: number;
                         private _capacity;
@@ -898,7 +932,7 @@ declare module org {
                         private static LOAD_WAITING_TYPE;
                         private static LOAD_WAITING_KEY;
                         private static LOAD_WAITING_VALUE;
-                        constructor(p_egraph: org.mwg.core.chunk.heap.HeapEGraph, p_id: number, origin: org.mwg.core.chunk.heap.HeapENode);
+                        constructor(p_egraph: org.mwg.internal.chunk.heap.HeapEGraph, p_id: number, origin: org.mwg.internal.chunk.heap.HeapENode);
                         clear(): org.mwg.struct.ENode;
                         declareDirty(): void;
                         rebase(): void;
@@ -916,7 +950,7 @@ declare module org {
                         getOrCreateAt(key: number, type: number): any;
                         toString(): string;
                         save(buffer: org.mwg.struct.Buffer): void;
-                        load(buffer: org.mwg.struct.Buffer, currentCursor: number, nodeParent: org.mwg.core.chunk.heap.HeapContainer, graph: org.mwg.Graph): number;
+                        load(buffer: org.mwg.struct.Buffer, currentCursor: number, nodeParent: org.mwg.internal.chunk.heap.HeapContainer, graph: org.mwg.Graph): number;
                         private load_primitive(read_key, read_type, buffer, previous, cursor, initial);
                         each(callBack: org.mwg.plugin.NodeStateCallback): void;
                     }
@@ -925,8 +959,8 @@ declare module org {
                         private _size;
                         private _capacity;
                         private parent;
-                        constructor(p_parent: org.mwg.core.chunk.heap.HeapContainer, origin: org.mwg.core.chunk.heap.HeapERelation);
-                        rebase(newGraph: org.mwg.core.chunk.heap.HeapEGraph): void;
+                        constructor(p_parent: org.mwg.internal.chunk.heap.HeapContainer, origin: org.mwg.internal.chunk.heap.HeapERelation);
+                        rebase(newGraph: org.mwg.internal.chunk.heap.HeapEGraph): void;
                         size(): number;
                         nodes(): org.mwg.struct.ENode[];
                         node(index: number): org.mwg.struct.ENode;
@@ -956,7 +990,7 @@ declare module org {
                         private _prefix;
                         private _seed;
                         private _dirty;
-                        constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_id: number, p_index: number);
+                        constructor(p_space: org.mwg.internal.chunk.heap.HeapChunkSpace, p_id: number, p_index: number);
                         save(buffer: org.mwg.struct.Buffer): void;
                         saveDiff(buffer: org.mwg.struct.Buffer): void;
                         load(buffer: org.mwg.struct.Buffer): void;
@@ -977,7 +1011,7 @@ declare module org {
                         private parent;
                         private backend;
                         private aligned;
-                        constructor(p_parent: org.mwg.core.chunk.heap.HeapContainer, origin: org.mwg.core.chunk.heap.HeapLMatrix);
+                        constructor(p_parent: org.mwg.internal.chunk.heap.HeapContainer, origin: org.mwg.internal.chunk.heap.HeapLMatrix);
                         init(rows: number, columns: number): org.mwg.struct.LMatrix;
                         private internal_init(rows, columns);
                         appendColumn(newColumn: Float64Array): org.mwg.struct.LMatrix;
@@ -1007,14 +1041,14 @@ declare module org {
                         load(buffer: org.mwg.struct.Buffer, offset: number, max: number): number;
                     }
                     class HeapLongLongArrayMap implements org.mwg.struct.LongLongArrayMap {
-                        parent: org.mwg.core.chunk.heap.HeapContainer;
+                        parent: org.mwg.internal.chunk.heap.HeapContainer;
                         mapSize: number;
                         capacity: number;
                         keys: Float64Array;
                         values: Float64Array;
                         nexts: Int32Array;
                         hashs: Int32Array;
-                        constructor(p_listener: org.mwg.core.chunk.heap.HeapContainer);
+                        constructor(p_listener: org.mwg.internal.chunk.heap.HeapContainer);
                         private key(i);
                         private setKey(i, newValue);
                         private value(i);
@@ -1024,7 +1058,7 @@ declare module org {
                         private hash(i);
                         private setHash(i, newValue);
                         reallocate(newCapacity: number): void;
-                        cloneFor(newParent: org.mwg.core.chunk.heap.HeapContainer): org.mwg.core.chunk.heap.HeapLongLongArrayMap;
+                        cloneFor(newParent: org.mwg.internal.chunk.heap.HeapContainer): org.mwg.internal.chunk.heap.HeapLongLongArrayMap;
                         get(requestKey: number): Float64Array;
                         contains(requestKey: number, requestValue: number): boolean;
                         each(callback: org.mwg.struct.LongLongArrayMapCallBack): void;
@@ -1042,7 +1076,7 @@ declare module org {
                         private values;
                         private nexts;
                         private hashs;
-                        constructor(p_listener: org.mwg.core.chunk.heap.HeapContainer);
+                        constructor(p_listener: org.mwg.internal.chunk.heap.HeapContainer);
                         private key(i);
                         private setKey(i, newValue);
                         private value(i);
@@ -1052,7 +1086,7 @@ declare module org {
                         private hash(i);
                         private setHash(i, newValue);
                         reallocate(newCapacity: number): void;
-                        cloneFor(newParent: org.mwg.core.chunk.heap.HeapContainer): org.mwg.core.chunk.heap.HeapLongLongMap;
+                        cloneFor(newParent: org.mwg.internal.chunk.heap.HeapContainer): org.mwg.internal.chunk.heap.HeapLongLongMap;
                         get(requestKey: number): number;
                         each(callback: org.mwg.struct.LongLongMapCallBack): void;
                         unsafe_each(callback: org.mwg.struct.LongLongMapCallBack): void;
@@ -1066,7 +1100,7 @@ declare module org {
                         private _size;
                         private parent;
                         private aligned;
-                        constructor(p_parent: org.mwg.core.chunk.heap.HeapContainer, origin: org.mwg.core.chunk.heap.HeapRelation);
+                        constructor(p_parent: org.mwg.internal.chunk.heap.HeapContainer, origin: org.mwg.internal.chunk.heap.HeapRelation);
                         allocate(_capacity: number): void;
                         all(): Float64Array;
                         size(): number;
@@ -1083,9 +1117,9 @@ declare module org {
                         toString(): string;
                         load(buffer: org.mwg.struct.Buffer, offset: number, max: number): number;
                     }
-                    class HeapRelationIndexed extends org.mwg.core.chunk.heap.HeapLongLongArrayMap implements org.mwg.struct.RelationIndexed {
+                    class HeapRelationIndexed extends org.mwg.internal.chunk.heap.HeapLongLongArrayMap implements org.mwg.struct.RelationIndexed {
                         private _graph;
-                        constructor(p_listener: org.mwg.core.chunk.heap.HeapContainer, graph: org.mwg.Graph);
+                        constructor(p_listener: org.mwg.internal.chunk.heap.HeapContainer, graph: org.mwg.Graph);
                         add(node: org.mwg.Node, ...attributeNames: string[]): org.mwg.struct.RelationIndexed;
                         remove(node: org.mwg.Node, ...attributeNames: string[]): org.mwg.struct.RelationIndexed;
                         private internal_add_remove(isIndex, node, ...attributeNames);
@@ -1093,9 +1127,9 @@ declare module org {
                         find(callback: org.mwg.Callback<org.mwg.Node[]>, world: number, time: number, ...params: string[]): void;
                         findByQuery(query: org.mwg.Query, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                         all(): Float64Array;
-                        cloneIRelFor(newParent: org.mwg.core.chunk.heap.HeapContainer, graph: org.mwg.Graph): org.mwg.core.chunk.heap.HeapRelationIndexed;
+                        cloneIRelFor(newParent: org.mwg.internal.chunk.heap.HeapContainer, graph: org.mwg.Graph): org.mwg.internal.chunk.heap.HeapRelationIndexed;
                     }
-                    class HeapStateChunk implements org.mwg.chunk.StateChunk, org.mwg.core.chunk.heap.HeapContainer {
+                    class HeapStateChunk implements org.mwg.chunk.StateChunk, org.mwg.internal.chunk.heap.HeapContainer {
                         private _index;
                         private _space;
                         private _capacity;
@@ -1111,7 +1145,7 @@ declare module org {
                         private static LOAD_WAITING_KEY;
                         private static LOAD_WAITING_VALUE;
                         graph(): org.mwg.Graph;
-                        constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_index: number);
+                        constructor(p_space: org.mwg.internal.chunk.heap.HeapChunkSpace, p_index: number);
                         world(): number;
                         time(): number;
                         id(): number;
@@ -1149,7 +1183,7 @@ declare module org {
                         private values;
                         private nexts;
                         private hashs;
-                        constructor(p_parent: org.mwg.core.chunk.heap.HeapContainer);
+                        constructor(p_parent: org.mwg.internal.chunk.heap.HeapContainer);
                         private key(i);
                         private setKey(i, newValue);
                         private keyH(i);
@@ -1161,7 +1195,7 @@ declare module org {
                         private hash(i);
                         private setHash(i, newValue);
                         reallocate(newCapacity: number): void;
-                        cloneFor(newContainer: org.mwg.core.chunk.heap.HeapContainer): org.mwg.core.chunk.heap.HeapStringIntMap;
+                        cloneFor(newContainer: org.mwg.internal.chunk.heap.HeapContainer): org.mwg.internal.chunk.heap.HeapStringIntMap;
                         getValue(requestString: string): number;
                         getByHash(keyHash: number): string;
                         containsHash(keyHash: number): boolean;
@@ -1186,7 +1220,7 @@ declare module org {
                         private _dirty;
                         private _extra;
                         private _extra2;
-                        constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_index: number);
+                        constructor(p_space: org.mwg.internal.chunk.heap.HeapChunkSpace, p_index: number);
                         extra(): number;
                         setExtra(extraValue: number): void;
                         extra2(): number;
@@ -1253,7 +1287,7 @@ declare module org {
                         private _diff;
                         private _hash;
                         private _dirty;
-                        constructor(p_space: org.mwg.core.chunk.heap.HeapChunkSpace, p_index: number);
+                        constructor(p_space: org.mwg.internal.chunk.heap.HeapChunkSpace, p_index: number);
                         world(): number;
                         time(): number;
                         id(): number;
@@ -1312,8 +1346,8 @@ declare module org {
                 module JobQueue {
                     class JobQueueElem {
                         _ptr: org.mwg.plugin.Job;
-                        _next: org.mwg.core.scheduler.JobQueue.JobQueueElem;
-                        constructor(ptr: org.mwg.plugin.Job, next: org.mwg.core.scheduler.JobQueue.JobQueueElem);
+                        _next: org.mwg.internal.scheduler.JobQueue.JobQueueElem;
+                        constructor(ptr: org.mwg.plugin.Job, next: org.mwg.internal.scheduler.JobQueue.JobQueueElem);
                     }
                 }
                 class NoopScheduler implements org.mwg.plugin.Scheduler {
@@ -1448,63 +1482,6 @@ declare module org {
                     eval(ctx: org.mwg.task.TaskContext): void;
                     serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
-                }
-                class ActionNames {
-                    static ADD_VAR_TO_RELATION: string;
-                    static REMOVE_VAR_TO_RELATION: string;
-                    static ADD_TO_GLOBAL_INDEX: string;
-                    static ADD_TO_GLOBAL_TIMED_INDEX: string;
-                    static ADD_TO_VAR: string;
-                    static ATTRIBUTES: string;
-                    static ATTRIBUTES_WITH_TYPE: string;
-                    static CLEAR_RESULT: string;
-                    static CREATE_NODE: string;
-                    static CREATE_TYPED_NODE: string;
-                    static DECLARE_GLOBAL_VAR: string;
-                    static DECLARE_VAR: string;
-                    static FLIP_VAR: string;
-                    static DEFINE_AS_GLOBAL_VAR: string;
-                    static DEFINE_AS_VAR: string;
-                    static EXECUTE_EXPRESSION: string;
-                    static INDEX_NAMES: string;
-                    static LOOKUP: string;
-                    static LOOKUP_ALL: string;
-                    static PRINT: string;
-                    static PRINTLN: string;
-                    static READ_GLOBAL_INDEX: string;
-                    static READ_VAR: string;
-                    static REMOVE: string;
-                    static REMOVE_FROM_GLOBAL_INDEX: string;
-                    static SAVE: string;
-                    static SCRIPT: string;
-                    static ASYNC_SCRIPT: string;
-                    static SELECT: string;
-                    static SET_AS_VAR: string;
-                    static FORCE_ATTRIBUTE: string;
-                    static SET_ATTRIBUTE: string;
-                    static TIME_SENSITIVITY: string;
-                    static TIMEPOINTS: string;
-                    static TRAVEL_IN_TIME: string;
-                    static TRAVEL_IN_WORLD: string;
-                    static WITH: string;
-                    static WITHOUT: string;
-                    static TRAVERSE: string;
-                    static ATTRIBUTE: string;
-                    static LOOP: string;
-                    static LOOP_PAR: string;
-                    static FOR_EACH: string;
-                    static FOR_EACH_PAR: string;
-                    static MAP: string;
-                    static MAP_PAR: string;
-                    static PIPE: string;
-                    static PIPE_PAR: string;
-                    static DO_WHILE: string;
-                    static WHILE_DO: string;
-                    static ISOLATE: string;
-                    static IF_THEN: string;
-                    static IF_THEN_ELSE: string;
-                    static ATOMIC: string;
-                    static FLAT: string;
                 }
                 class ActionPrint implements org.mwg.task.Action {
                     private _name;
@@ -1642,7 +1619,190 @@ declare module org {
                     serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
-                class Actions {
+                abstract class CF_Action implements org.mwg.task.Action {
+                    abstract children(): org.mwg.task.Task[];
+                    abstract cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                    abstract eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
+                    toString(): string;
+                }
+                class CF_Atomic extends org.mwg.internal.task.CF_Action {
+                    private _variables;
+                    private _subTask;
+                    constructor(p_subTask: org.mwg.task.Task, ...variables: string[]);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
+                class CF_DoWhile extends org.mwg.internal.task.CF_Action {
+                    private _cond;
+                    private _then;
+                    private _conditionalScript;
+                    constructor(p_then: org.mwg.task.Task, p_cond: org.mwg.task.ConditionalFunction, conditionalScript: string);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
+                class CF_ForEach extends org.mwg.internal.task.CF_Action {
+                    private _subTask;
+                    constructor(p_subTask: org.mwg.task.Task);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
+                class CF_ForEachPar extends org.mwg.internal.task.CF_Action {
+                    private _subTask;
+                    constructor(p_subTask: org.mwg.task.Task);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
+                class CF_IfThen extends org.mwg.internal.task.CF_Action {
+                    private _condition;
+                    private _action;
+                    private _conditionalScript;
+                    constructor(cond: org.mwg.task.ConditionalFunction, action: org.mwg.task.Task, conditionalScript: string);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
+                class CF_IfThenElse extends org.mwg.internal.task.CF_Action {
+                    private _condition;
+                    private _thenSub;
+                    private _elseSub;
+                    private _conditionalScript;
+                    constructor(cond: org.mwg.task.ConditionalFunction, p_thenSub: org.mwg.task.Task, p_elseSub: org.mwg.task.Task, conditionalScript: string);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
+                class CF_Isolate extends org.mwg.internal.task.CF_Action {
+                    private _subTask;
+                    constructor(p_subTask: org.mwg.task.Task);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
+                class CF_Loop extends org.mwg.internal.task.CF_Action {
+                    private _lower;
+                    private _upper;
+                    private _subTask;
+                    constructor(p_lower: string, p_upper: string, p_subTask: org.mwg.task.Task);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
+                class CF_LoopPar extends org.mwg.internal.task.CF_Action {
+                    private _subTask;
+                    private _lower;
+                    private _upper;
+                    constructor(p_lower: string, p_upper: string, p_subTask: org.mwg.task.Task);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
+                class CF_Map extends org.mwg.internal.task.CF_Action {
+                    private _subTask;
+                    constructor(p_subTask: org.mwg.task.Task);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
+                class CF_MapPar extends org.mwg.internal.task.CF_Action {
+                    private _subTask;
+                    constructor(p_subTask: org.mwg.task.Task);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
+                class CF_Pipe extends org.mwg.internal.task.CF_Action {
+                    private _subTasks;
+                    constructor(...p_subTasks: org.mwg.task.Task[]);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
+                class CF_PipePar extends org.mwg.internal.task.CF_Action {
+                    private _subTasks;
+                    constructor(...p_subTasks: org.mwg.task.Task[]);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
+                class CF_ThenDo implements org.mwg.task.Action {
+                    private _wrapped;
+                    constructor(p_wrapped: org.mwg.task.ActionFunction);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    toString(): string;
+                    serialize(builder: java.lang.StringBuilder): void;
+                }
+                class CF_WhileDo extends org.mwg.internal.task.CF_Action {
+                    private _cond;
+                    private _then;
+                    private _conditionalScript;
+                    constructor(p_cond: org.mwg.task.ConditionalFunction, p_then: org.mwg.task.Task, conditionalScript: string);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
+                class CoreActionNames {
+                    static ADD_VAR_TO_RELATION: string;
+                    static REMOVE_VAR_TO_RELATION: string;
+                    static ADD_TO_GLOBAL_INDEX: string;
+                    static ADD_TO_GLOBAL_TIMED_INDEX: string;
+                    static ADD_TO_VAR: string;
+                    static ATTRIBUTES: string;
+                    static ATTRIBUTES_WITH_TYPE: string;
+                    static CLEAR_RESULT: string;
+                    static CREATE_NODE: string;
+                    static CREATE_TYPED_NODE: string;
+                    static DECLARE_GLOBAL_VAR: string;
+                    static DECLARE_VAR: string;
+                    static FLIP_VAR: string;
+                    static DEFINE_AS_GLOBAL_VAR: string;
+                    static DEFINE_AS_VAR: string;
+                    static EXECUTE_EXPRESSION: string;
+                    static INDEX_NAMES: string;
+                    static LOOKUP: string;
+                    static LOOKUP_ALL: string;
+                    static PRINT: string;
+                    static PRINTLN: string;
+                    static READ_GLOBAL_INDEX: string;
+                    static READ_VAR: string;
+                    static REMOVE: string;
+                    static REMOVE_FROM_GLOBAL_INDEX: string;
+                    static SAVE: string;
+                    static SCRIPT: string;
+                    static ASYNC_SCRIPT: string;
+                    static SELECT: string;
+                    static SET_AS_VAR: string;
+                    static FORCE_ATTRIBUTE: string;
+                    static SET_ATTRIBUTE: string;
+                    static TIME_SENSITIVITY: string;
+                    static TIMEPOINTS: string;
+                    static TRAVEL_IN_TIME: string;
+                    static TRAVEL_IN_WORLD: string;
+                    static WITH: string;
+                    static WITHOUT: string;
+                    static TRAVERSE: string;
+                    static ATTRIBUTE: string;
+                    static LOOP: string;
+                    static LOOP_PAR: string;
+                    static FOR_EACH: string;
+                    static FOR_EACH_PAR: string;
+                    static MAP: string;
+                    static MAP_PAR: string;
+                    static PIPE: string;
+                    static PIPE_PAR: string;
+                    static DO_WHILE: string;
+                    static WHILE_DO: string;
+                    static ISOLATE: string;
+                    static IF_THEN: string;
+                    static IF_THEN_ELSE: string;
+                    static ATOMIC: string;
+                    static FLAT: string;
+                }
+                class CoreActions {
                     static flat(): org.mwg.task.Action;
                     static travelInWorld(world: string): org.mwg.task.Action;
                     static travelInTime(time: string): org.mwg.task.Action;
@@ -1713,132 +1873,6 @@ declare module org {
                     static isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
                     static atomic(protectedTask: org.mwg.task.Task, ...variablesToLock: string[]): org.mwg.task.Task;
                     static parse(flat: string, graph: org.mwg.Graph): org.mwg.task.Task;
-                }
-                abstract class CF_Action implements org.mwg.task.Action {
-                    abstract children(): org.mwg.task.Task[];
-                    abstract cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                    abstract eval(ctx: org.mwg.task.TaskContext): void;
-                    serialize(builder: java.lang.StringBuilder): void;
-                    toString(): string;
-                }
-                class CF_Atomic extends org.mwg.core.task.CF_Action {
-                    private _variables;
-                    private _subTask;
-                    constructor(p_subTask: org.mwg.task.Task, ...variables: string[]);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                }
-                class CF_DoWhile extends org.mwg.core.task.CF_Action {
-                    private _cond;
-                    private _then;
-                    private _conditionalScript;
-                    constructor(p_then: org.mwg.task.Task, p_cond: org.mwg.task.ConditionalFunction, conditionalScript: string);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                }
-                class CF_ForEach extends org.mwg.core.task.CF_Action {
-                    private _subTask;
-                    constructor(p_subTask: org.mwg.task.Task);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                }
-                class CF_ForEachPar extends org.mwg.core.task.CF_Action {
-                    private _subTask;
-                    constructor(p_subTask: org.mwg.task.Task);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                }
-                class CF_IfThen extends org.mwg.core.task.CF_Action {
-                    private _condition;
-                    private _action;
-                    private _conditionalScript;
-                    constructor(cond: org.mwg.task.ConditionalFunction, action: org.mwg.task.Task, conditionalScript: string);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                }
-                class CF_IfThenElse extends org.mwg.core.task.CF_Action {
-                    private _condition;
-                    private _thenSub;
-                    private _elseSub;
-                    private _conditionalScript;
-                    constructor(cond: org.mwg.task.ConditionalFunction, p_thenSub: org.mwg.task.Task, p_elseSub: org.mwg.task.Task, conditionalScript: string);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                }
-                class CF_Isolate extends org.mwg.core.task.CF_Action {
-                    private _subTask;
-                    constructor(p_subTask: org.mwg.task.Task);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                }
-                class CF_Loop extends org.mwg.core.task.CF_Action {
-                    private _lower;
-                    private _upper;
-                    private _subTask;
-                    constructor(p_lower: string, p_upper: string, p_subTask: org.mwg.task.Task);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                }
-                class CF_LoopPar extends org.mwg.core.task.CF_Action {
-                    private _subTask;
-                    private _lower;
-                    private _upper;
-                    constructor(p_lower: string, p_upper: string, p_subTask: org.mwg.task.Task);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                }
-                class CF_Map extends org.mwg.core.task.CF_Action {
-                    private _subTask;
-                    constructor(p_subTask: org.mwg.task.Task);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                }
-                class CF_MapPar extends org.mwg.core.task.CF_Action {
-                    private _subTask;
-                    constructor(p_subTask: org.mwg.task.Task);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                }
-                class CF_Pipe extends org.mwg.core.task.CF_Action {
-                    private _subTasks;
-                    constructor(...p_subTasks: org.mwg.task.Task[]);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                }
-                class CF_PipePar extends org.mwg.core.task.CF_Action {
-                    private _subTasks;
-                    constructor(...p_subTasks: org.mwg.task.Task[]);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                }
-                class CF_ThenDo implements org.mwg.task.Action {
-                    private _wrapped;
-                    constructor(p_wrapped: org.mwg.task.ActionFunction);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    toString(): string;
-                    serialize(builder: java.lang.StringBuilder): void;
-                }
-                class CF_WhileDo extends org.mwg.core.task.CF_Action {
-                    private _cond;
-                    private _then;
-                    private _conditionalScript;
-                    constructor(p_cond: org.mwg.task.ConditionalFunction, p_then: org.mwg.task.Task, conditionalScript: string);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
                 class CoreTask implements org.mwg.task.Task {
                     private insertCapacity;
@@ -1946,7 +1980,7 @@ declare module org {
                     private cursor;
                     _hooks: org.mwg.task.TaskHook[];
                     private _output;
-                    constructor(origin: org.mwg.core.task.CoreTask, p_hooks: org.mwg.task.TaskHook[], parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, p_graph: org.mwg.Graph, p_callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>);
+                    constructor(origin: org.mwg.internal.task.CoreTask, p_hooks: org.mwg.task.TaskHook[], parentContext: org.mwg.task.TaskContext, initial: org.mwg.task.TaskResult<any>, p_graph: org.mwg.Graph, p_callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>);
                     graph(): org.mwg.Graph;
                     world(): number;
                     setWorld(p_world: number): org.mwg.task.TaskContext;
@@ -1993,33 +2027,7 @@ declare module org {
                     extract(begin: number, end: number): string;
                     markend(p_end: number): void;
                     end(): number;
-                    slice(cursor: number): org.mwg.core.task.CoreTaskReader;
-                }
-                class CoreTaskResult<A> implements org.mwg.task.TaskResult<A> {
-                    private _backend;
-                    private _capacity;
-                    private _size;
-                    _exception: Error;
-                    _output: string;
-                    asArray(): any[];
-                    exception(): Error;
-                    output(): string;
-                    setException(e: Error): org.mwg.task.TaskResult<A>;
-                    setOutput(output: string): org.mwg.task.TaskResult<A>;
-                    fillWith(source: org.mwg.task.TaskResult<A>): org.mwg.task.TaskResult<A>;
-                    constructor(toWrap: any, protect: boolean);
-                    iterator(): org.mwg.task.TaskResultIterator<any>;
-                    get(index: number): A;
-                    set(index: number, input: A): org.mwg.task.TaskResult<A>;
-                    allocate(index: number): org.mwg.task.TaskResult<A>;
-                    add(input: A): org.mwg.task.TaskResult<A>;
-                    clear(): org.mwg.task.TaskResult<A>;
-                    clone(): org.mwg.task.TaskResult<A>;
-                    free(): void;
-                    size(): number;
-                    private extendTil(index);
-                    toString(): string;
-                    private toJson(withContent);
+                    slice(cursor: number): org.mwg.internal.task.CoreTaskReader;
                 }
                 class CoreTaskResultIterator<A> implements org.mwg.task.TaskResultIterator<A> {
                     private _backend;
@@ -2038,12 +2046,12 @@ declare module org {
                     static serializeNameAndStringParams(name: string, params: string[], builder: java.lang.StringBuilder): void;
                 }
                 module math {
-                    class CoreMathExpressionEngine implements org.mwg.core.task.math.MathExpressionEngine {
+                    class CoreMathExpressionEngine implements org.mwg.internal.task.math.MathExpressionEngine {
                         static decimalSeparator: string;
                         static minusSign: string;
                         private _cacheAST;
                         constructor(expression: string);
-                        static parse(p_expression: string): org.mwg.core.task.math.MathExpressionEngine;
+                        static parse(p_expression: string): org.mwg.internal.task.math.MathExpressionEngine;
                         static isNumber(st: string): boolean;
                         static isDigit(c: string): boolean;
                         static isLetter(c: string): boolean;
@@ -2061,7 +2069,7 @@ declare module org {
                         conditional(): org.mwg.task.ConditionalFunction;
                         toString(): string;
                     }
-                    class MathDoubleToken implements org.mwg.core.task.math.MathToken {
+                    class MathDoubleToken implements org.mwg.internal.task.math.MathToken {
                         private _content;
                         constructor(_content: number);
                         type(): number;
@@ -2069,9 +2077,9 @@ declare module org {
                     }
                     class MathEntities {
                         private static INSTANCE;
-                        operators: java.util.HashMap<string, org.mwg.core.task.math.MathOperation>;
-                        functions: java.util.HashMap<string, org.mwg.core.task.math.MathFunction>;
-                        static getINSTANCE(): org.mwg.core.task.math.MathEntities;
+                        operators: java.util.HashMap<string, org.mwg.internal.task.math.MathOperation>;
+                        functions: java.util.HashMap<string, org.mwg.internal.task.math.MathFunction>;
+                        static getINSTANCE(): org.mwg.internal.task.math.MathEntities;
                         constructor();
                     }
                     interface MathExpressionEngine {
@@ -2087,13 +2095,13 @@ declare module org {
                         next(): string;
                         getPos(): number;
                     }
-                    class MathFreeToken implements org.mwg.core.task.math.MathToken {
+                    class MathFreeToken implements org.mwg.internal.task.math.MathToken {
                         private _content;
                         constructor(content: string);
                         content(): string;
                         type(): number;
                     }
-                    class MathFunction implements org.mwg.core.task.math.MathToken {
+                    class MathFunction implements org.mwg.internal.task.math.MathToken {
                         private name;
                         private numParams;
                         constructor(name: string, numParams: number);
@@ -2109,7 +2117,7 @@ declare module org {
                         private date_to_dayofweek(value);
                         type(): number;
                     }
-                    class MathOperation implements org.mwg.core.task.math.MathToken {
+                    class MathOperation implements org.mwg.internal.task.math.MathToken {
                         private oper;
                         private precedence;
                         private leftAssoc;

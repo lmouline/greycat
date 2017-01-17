@@ -2,7 +2,7 @@ package org.mwg.memory.offheap;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.mwg.core.chunk.AbstractStringLongMapTest;
+import org.mwg.internal.chunk.AbstractStringLongMapTest;
 
 public class OffHeapStringLongMapTest extends AbstractStringLongMapTest {
 

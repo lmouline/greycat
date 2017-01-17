@@ -4,7 +4,7 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.base.BaseNode;
-import org.mwg.core.task.Actions;
+import org.mwg.internal.task.CoreActions;
 import org.mwg.plugin.NodeState;
 import org.mwg.struct.LongLongMap;
 import org.mwg.struct.Relation;
@@ -13,8 +13,8 @@ import org.mwg.task.*;
 import java.util.ArrayList;
 import java.util.Random;
 
-import static org.mwg.core.task.Actions.setAsVar;
-import static org.mwg.core.task.Actions.newTask;
+import static org.mwg.internal.task.CoreActions.setAsVar;
+import static org.mwg.internal.task.CoreActions.newTask;
 
 public class NeuralNodeEmpty extends BaseNode {
     public static String NAME = "NeuralNodeEmpty";
@@ -170,7 +170,7 @@ public class NeuralNodeEmpty extends BaseNode {
 
     private static Task createPredictTask() {
         Task t = newTask();
-        t.then(setAsVar("parent")).then(Actions.traverse(OUTPUTS))
+        t.then(setAsVar("parent")).then(CoreActions.traverse(OUTPUTS))
                 .forEach(
                         newTask().thenDo(new ActionFunction() {
                             @Override

@@ -1332,18 +1332,18 @@ var org;
             };
             GraphBuilder.prototype.build = function () {
                 if (this._storage == null) {
-                    this._storage = new org.mwg.core.BlackHoleStorage();
+                    this._storage = new org.mwg.internal.BlackHoleStorage();
                 }
                 if (this._readOnly) {
-                    this._storage = new org.mwg.core.utility.ReadOnlyStorage(this._storage);
+                    this._storage = new org.mwg.internal.utility.ReadOnlyStorage(this._storage);
                 }
                 if (this._scheduler == null) {
-                    this._scheduler = new org.mwg.core.scheduler.TrampolineScheduler();
+                    this._scheduler = new org.mwg.internal.scheduler.TrampolineScheduler();
                 }
                 if (this._memorySize == -1) {
                     this._memorySize = 100000;
                 }
-                return new org.mwg.core.CoreGraph(this._storage, this._memorySize, this._scheduler, this._plugins);
+                return new org.mwg.internal.CoreGraph(this._storage, this._memorySize, this._scheduler, this._plugins);
             };
             return GraphBuilder;
         }());
@@ -2088,6 +2088,303 @@ var org;
                 return BasePlugin;
             }());
             base.BasePlugin = BasePlugin;
+            var BaseTaskResult = (function () {
+                function BaseTaskResult(toWrap, protect) {
+                    this._capacity = 0;
+                    this._size = 0;
+                    this._exception = null;
+                    this._output = null;
+                    if (Array.isArray(toWrap)) {
+                        var castedToWrap = toWrap;
+                        this._size = toWrap.length;
+                        this._capacity = this._size;
+                        this._backend = new Array(this._size);
+                        if (protect) {
+                            for (var i = 0; i < this._size; i++) {
+                                var loopObj = castedToWrap[i];
+                                if (loopObj instanceof org.mwg.base.BaseNode) {
+                                    var loopNode = loopObj;
+                                    this._backend[i] = loopNode.graph().cloneNode(loopNode);
+                                }
+                                else {
+                                    this._backend[i] = loopObj;
+                                }
+                            }
+                        }
+                        else {
+                            java.lang.System.arraycopy(castedToWrap, 0, this._backend, 0, this._size);
+                        }
+                    }
+                    else if (toWrap instanceof Float64Array) {
+                        var castedOther = toWrap;
+                        this._backend = new Array(castedOther.length);
+                        for (var i = 0; i < castedOther.length; i++) {
+                            this._backend[i] = castedOther[i];
+                        }
+                        this._capacity = this._backend.length;
+                        this._size = this._capacity;
+                    }
+                    else if (toWrap instanceof Int32Array) {
+                        var castedOther = toWrap;
+                        this._backend = new Array(castedOther.length);
+                        for (var i = 0; i < castedOther.length; i++) {
+                            this._backend[i] = castedOther[i];
+                        }
+                        this._capacity = this._backend.length;
+                        this._size = this._capacity;
+                    }
+                    else if (toWrap instanceof Float64Array) {
+                        var castedOther = toWrap;
+                        this._backend = new Array(castedOther.length);
+                        for (var i = 0; i < castedOther.length; i++) {
+                            this._backend[i] = castedOther[i];
+                        }
+                        this._capacity = this._backend.length;
+                        this._size = this._capacity;
+                    }
+                    else if (toWrap instanceof java.util.ArrayList) {
+                        var castedOtherList = toWrap;
+                        this._backend = new Array(castedOtherList.size());
+                        for (var i = 0; i < castedOtherList.size(); i++) {
+                            this._backend[i] = castedOtherList.get(i);
+                        }
+                        this._capacity = this._backend.length;
+                        this._size = this._capacity;
+                    }
+                    else if (toWrap instanceof org.mwg.base.BaseTaskResult) {
+                        var other = toWrap;
+                        this._size = other._size;
+                        this._capacity = other._capacity;
+                        if (other._backend != null) {
+                            this._backend = new Array(other._backend.length);
+                            if (protect) {
+                                for (var i = 0; i < this._size; i++) {
+                                    var loopObj = other._backend[i];
+                                    if (loopObj instanceof org.mwg.base.BaseNode) {
+                                        var loopNode = loopObj;
+                                        this._backend[i] = loopNode.graph().cloneNode(loopNode);
+                                    }
+                                    else {
+                                        this._backend[i] = loopObj;
+                                    }
+                                }
+                            }
+                            else {
+                                java.lang.System.arraycopy(other._backend, 0, this._backend, 0, this._size);
+                            }
+                        }
+                    }
+                    else {
+                        if (toWrap != null) {
+                            this._backend = new Array(1);
+                            this._capacity = 1;
+                            this._size = 1;
+                            if (toWrap instanceof org.mwg.base.BaseNode) {
+                                var toWrapNode = toWrap;
+                                if (protect) {
+                                    this._backend[0] = toWrapNode.graph().cloneNode(toWrapNode);
+                                }
+                                else {
+                                    this._backend[0] = toWrapNode;
+                                }
+                            }
+                            else {
+                                this._backend[0] = toWrap;
+                            }
+                        }
+                    }
+                }
+                BaseTaskResult.prototype.asArray = function () {
+                    var flat = new Array(this._size);
+                    if (this._backend != null) {
+                        java.lang.System.arraycopy(this._backend, 0, flat, 0, this._size);
+                    }
+                    return flat;
+                };
+                BaseTaskResult.prototype.exception = function () {
+                    return this._exception;
+                };
+                BaseTaskResult.prototype.output = function () {
+                    return this._output;
+                };
+                BaseTaskResult.prototype.setException = function (e) {
+                    this._exception = e;
+                    return this;
+                };
+                BaseTaskResult.prototype.setOutput = function (output) {
+                    this._output = output;
+                    return this;
+                };
+                BaseTaskResult.prototype.fillWith = function (source) {
+                    if (source != null) {
+                        this._backend = source.asArray();
+                        this._capacity = this._backend.length;
+                        this._size = this._backend.length;
+                    }
+                    return this;
+                };
+                BaseTaskResult.prototype.iterator = function () {
+                    return new org.mwg.base.BaseTaskResultIterator(this._backend);
+                };
+                BaseTaskResult.prototype.get = function (index) {
+                    if (index < this._size) {
+                        return this._backend[index];
+                    }
+                    else {
+                        return null;
+                    }
+                };
+                BaseTaskResult.prototype.set = function (index, input) {
+                    if (index >= this._capacity) {
+                        this.extendTil(index);
+                    }
+                    this._backend[index] = input;
+                    if (index >= this._size) {
+                        this._size++;
+                    }
+                    return this;
+                };
+                BaseTaskResult.prototype.allocate = function (index) {
+                    if (index >= this._capacity) {
+                        if (this._backend == null) {
+                            this._backend = new Array(index);
+                            this._capacity = index;
+                        }
+                        else {
+                            throw new Error("Not implemented yet!!!");
+                        }
+                    }
+                    return this;
+                };
+                BaseTaskResult.prototype.add = function (input) {
+                    if (this._size >= this._capacity) {
+                        this.extendTil(this._size);
+                    }
+                    this.set(this._size, input);
+                    return this;
+                };
+                BaseTaskResult.prototype.clear = function () {
+                    this._backend = null;
+                    this._capacity = 0;
+                    this._size = 0;
+                    return this;
+                };
+                BaseTaskResult.prototype.clone = function () {
+                    return new org.mwg.base.BaseTaskResult(this, true);
+                };
+                BaseTaskResult.prototype.free = function () {
+                    for (var i = 0; i < this._capacity; i++) {
+                        if (this._backend[i] instanceof org.mwg.base.BaseNode) {
+                            this._backend[i].free();
+                        }
+                    }
+                };
+                BaseTaskResult.prototype.size = function () {
+                    return this._size;
+                };
+                BaseTaskResult.prototype.extendTil = function (index) {
+                    if (this._capacity <= index) {
+                        var newCapacity = this._capacity * 2;
+                        if (newCapacity <= index) {
+                            newCapacity = index + 1;
+                        }
+                        var extendedBackend = new Array(newCapacity);
+                        if (this._backend != null) {
+                            java.lang.System.arraycopy(this._backend, 0, extendedBackend, 0, this._size);
+                        }
+                        this._backend = extendedBackend;
+                        this._capacity = newCapacity;
+                    }
+                };
+                BaseTaskResult.prototype.toString = function () {
+                    return this.toJson(true);
+                };
+                BaseTaskResult.prototype.toJson = function (withContent) {
+                    var builder = new java.lang.StringBuilder();
+                    var isFirst = true;
+                    builder.append("{");
+                    if (this._exception != null) {
+                        isFirst = false;
+                        builder.append("\"error\":");
+                        org.mwg.internal.task.TaskHelper.serializeString(this._exception.message, builder, false);
+                    }
+                    if (this._output != null) {
+                        if (!isFirst) {
+                            builder.append(",");
+                        }
+                        else {
+                            isFirst = false;
+                        }
+                        builder.append("\"output\":");
+                        org.mwg.internal.task.TaskHelper.serializeString(this._output, builder, false);
+                    }
+                    if (this._size > 0) {
+                        if (!isFirst) {
+                            builder.append(",");
+                        }
+                        builder.append("\"result\":[");
+                        for (var i = 0; i < this._size; i++) {
+                            if (i != 0) {
+                                builder.append(",");
+                            }
+                            var loop = this._backend[i];
+                            if (loop != null) {
+                                var saved = loop.toString();
+                                if (saved.length > 0) {
+                                    if (saved.charAt(0) == '{' || saved.charAt(0) == '[') {
+                                        builder.append(saved);
+                                    }
+                                    else {
+                                        org.mwg.internal.task.TaskHelper.serializeString(saved, builder, false);
+                                    }
+                                }
+                            }
+                        }
+                        builder.append("]");
+                    }
+                    builder.append("}");
+                    return builder.toString();
+                };
+                return BaseTaskResult;
+            }());
+            base.BaseTaskResult = BaseTaskResult;
+            var BaseTaskResultIterator = (function () {
+                function BaseTaskResultIterator(p_backend) {
+                    this._current = new java.util.concurrent.atomic.AtomicInteger(0);
+                    if (p_backend != null) {
+                        this._backend = p_backend;
+                    }
+                    else {
+                        this._backend = new Array(0);
+                    }
+                    this._size = this._backend.length;
+                }
+                BaseTaskResultIterator.prototype.next = function () {
+                    var cursor = this._current.getAndIncrement();
+                    if (cursor < this._size) {
+                        return this._backend[cursor];
+                    }
+                    else {
+                        return null;
+                    }
+                };
+                BaseTaskResultIterator.prototype.nextWithIndex = function () {
+                    var cursor = this._current.getAndIncrement();
+                    if (cursor < this._size) {
+                        if (this._backend[cursor] != null) {
+                            return new org.mwg.utility.Tuple(cursor, this._backend[cursor]);
+                        }
+                        else {
+                            return null;
+                        }
+                    }
+                    else {
+                        return null;
+                    }
+                };
+                return BaseTaskResultIterator;
+            }());
+            base.BaseTaskResultIterator = BaseTaskResultIterator;
         })(base = mwg.base || (mwg.base = {}));
         var chunk;
         (function (chunk_1) {
@@ -2102,8 +2399,8 @@ var org;
             ChunkType.GEN_CHUNK = 3;
             chunk_1.ChunkType = ChunkType;
         })(chunk = mwg.chunk || (mwg.chunk = {}));
-        var core;
-        (function (core) {
+        var internal;
+        (function (internal) {
             var BlackHoleStorage = (function () {
                 function BlackHoleStorage() {
                     this.prefix = 0;
@@ -2118,7 +2415,7 @@ var org;
                             isFirst = false;
                         }
                         else {
-                            result.write(org.mwg.core.CoreConstants.BUFFER_SEP);
+                            result.write(org.mwg.internal.CoreConstants.BUFFER_SEP);
                         }
                     }
                     callback(result);
@@ -2150,7 +2447,7 @@ var org;
                 };
                 return BlackHoleStorage;
             }());
-            core.BlackHoleStorage = BlackHoleStorage;
+            internal.BlackHoleStorage = BlackHoleStorage;
             var CoreConstants = (function (_super) {
                 __extends(CoreConstants, _super);
                 function CoreConstants() {
@@ -2175,7 +2472,7 @@ var org;
             CoreConstants.SCALE_3 = 100000;
             CoreConstants.SCALE_4 = 1000000;
             CoreConstants.DEAD_NODE_ERROR = "This Node has been tagged destroyed, please don't use it anymore!";
-            core.CoreConstants = CoreConstants;
+            internal.CoreConstants = CoreConstants;
             var CoreGraph = (function () {
                 function CoreGraph(p_storage, memorySize, p_scheduler, p_plugins) {
                     this._prefix = null;
@@ -2206,13 +2503,13 @@ var org;
                         }
                     }
                     if (memoryFactory == null) {
-                        memoryFactory = new org.mwg.core.memory.HeapMemoryFactory();
+                        memoryFactory = new org.mwg.internal.memory.HeapMemoryFactory();
                     }
                     if (resolverFactory == null) {
                         resolverFactory = {
                             newResolver: function (storage, space) {
                                 {
-                                    return new org.mwg.core.MWGResolver(storage, space, selfPointer);
+                                    return new org.mwg.internal.MWGResolver(storage, space, selfPointer);
                                 }
                             }
                         };
@@ -2224,7 +2521,7 @@ var org;
                     this._resolver = resolverFactory.newResolver(this._storage, this._space);
                     this._scheduler = p_scheduler;
                     this._taskActions = new java.util.HashMap();
-                    org.mwg.core.task.CoreTask.fillDefault(this._taskActions);
+                    org.mwg.internal.task.CoreTask.fillDefault(this._taskActions);
                     this._nodeTypes = new java.util.HashMap();
                     if (p_plugins != null) {
                         for (var i = 0; i < p_plugins.length; i++) {
@@ -2242,9 +2539,9 @@ var org;
                             }
                         }
                     }
-                    this._nodeTypes.put(this._resolver.stringToHash(org.mwg.core.CoreNodeIndex.NAME, false), function (world, time, id, graph) {
+                    this._nodeTypes.put(this._resolver.stringToHash(org.mwg.internal.CoreNodeIndex.NAME, false), function (world, time, id, graph) {
                         {
-                            return new org.mwg.core.CoreNodeIndex(world, time, id, graph);
+                            return new org.mwg.internal.CoreNodeIndex(world, time, id, graph);
                         }
                     });
                     this._isConnected = new java.util.concurrent.atomic.AtomicBoolean(false);
@@ -2258,7 +2555,7 @@ var org;
                 };
                 CoreGraph.prototype.newNode = function (world, time) {
                     if (!this._isConnected.get()) {
-                        throw new Error(org.mwg.core.CoreConstants.DISCONNECTED_ERROR);
+                        throw new Error(org.mwg.internal.CoreConstants.DISCONNECTED_ERROR);
                     }
                     var newNode = new org.mwg.base.BaseNode(world, time, this._nodeKeyCalculator.newKey(), this);
                     this._resolver.initNode(newNode, org.mwg.Constants.NULL_LONG);
@@ -2269,7 +2566,7 @@ var org;
                         throw new Error("nodeType should not be null");
                     }
                     if (!this._isConnected.get()) {
-                        throw new Error(org.mwg.core.CoreConstants.DISCONNECTED_ERROR);
+                        throw new Error(org.mwg.internal.CoreConstants.DISCONNECTED_ERROR);
                     }
                     var extraCode = this._resolver.stringToHash(nodeType, false);
                     var resolvedFactory = this.factoryByCode(extraCode);
@@ -2289,13 +2586,13 @@ var org;
                         throw new Error("origin node should not be null");
                     }
                     if (!this._isConnected.get()) {
-                        throw new Error(org.mwg.core.CoreConstants.DISCONNECTED_ERROR);
+                        throw new Error(org.mwg.internal.CoreConstants.DISCONNECTED_ERROR);
                     }
                     var casted = origin;
                     casted.cacheLock();
                     if (casted._dead) {
                         casted.cacheUnlock();
-                        throw new Error(org.mwg.core.CoreConstants.DEAD_NODE_ERROR + " node id: " + casted.id());
+                        throw new Error(org.mwg.internal.CoreConstants.DEAD_NODE_ERROR + " node id: " + casted.id());
                     }
                     else {
                         this._space.mark(casted._index_stateChunk);
@@ -2343,31 +2640,31 @@ var org;
                 };
                 CoreGraph.prototype.lookup = function (world, time, id, callback) {
                     if (!this._isConnected.get()) {
-                        throw new Error(org.mwg.core.CoreConstants.DISCONNECTED_ERROR);
+                        throw new Error(org.mwg.internal.CoreConstants.DISCONNECTED_ERROR);
                     }
                     this._resolver.lookup(world, time, id, callback);
                 };
                 CoreGraph.prototype.lookupBatch = function (worlds, times, ids, callback) {
                     if (!this._isConnected.get()) {
-                        throw new Error(org.mwg.core.CoreConstants.DISCONNECTED_ERROR);
+                        throw new Error(org.mwg.internal.CoreConstants.DISCONNECTED_ERROR);
                     }
                     this._resolver.lookupBatch(worlds, times, ids, callback);
                 };
                 CoreGraph.prototype.lookupAll = function (world, time, ids, callback) {
                     if (!this._isConnected.get()) {
-                        throw new Error(org.mwg.core.CoreConstants.DISCONNECTED_ERROR);
+                        throw new Error(org.mwg.internal.CoreConstants.DISCONNECTED_ERROR);
                     }
                     this._resolver.lookupAll(world, time, ids, callback);
                 };
                 CoreGraph.prototype.lookupTimes = function (world, from, to, id, callback) {
                     if (!this._isConnected.get()) {
-                        throw new Error(org.mwg.core.CoreConstants.DISCONNECTED_ERROR);
+                        throw new Error(org.mwg.internal.CoreConstants.DISCONNECTED_ERROR);
                     }
                     this._resolver.lookupTimes(world, from, to, id, callback);
                 };
                 CoreGraph.prototype.lookupAllTimes = function (world, from, to, ids, callback) {
                     if (!this._isConnected.get()) {
-                        throw new Error(org.mwg.core.CoreConstants.DISCONNECTED_ERROR);
+                        throw new Error(org.mwg.internal.CoreConstants.DISCONNECTED_ERROR);
                     }
                     this._resolver.lookupAllTimes(world, from, to, ids, callback);
                 };
@@ -2388,13 +2685,13 @@ var org;
                                             prefixBuf.free();
                                             var connectionKeys_1 = selfPointer.newBuffer();
                                             org.mwg.utility.KeyHelper.keyToBuffer(connectionKeys_1, org.mwg.chunk.ChunkType.GEN_CHUNK, org.mwg.Constants.BEGINNING_OF_TIME, org.mwg.Constants.NULL_LONG, _this._prefix);
-                                            connectionKeys_1.write(org.mwg.core.CoreConstants.BUFFER_SEP);
+                                            connectionKeys_1.write(org.mwg.internal.CoreConstants.BUFFER_SEP);
                                             org.mwg.utility.KeyHelper.keyToBuffer(connectionKeys_1, org.mwg.chunk.ChunkType.GEN_CHUNK, org.mwg.Constants.END_OF_TIME, org.mwg.Constants.NULL_LONG, _this._prefix);
-                                            connectionKeys_1.write(org.mwg.core.CoreConstants.BUFFER_SEP);
+                                            connectionKeys_1.write(org.mwg.internal.CoreConstants.BUFFER_SEP);
                                             org.mwg.utility.KeyHelper.keyToBuffer(connectionKeys_1, org.mwg.chunk.ChunkType.WORLD_ORDER_CHUNK, 0, 0, org.mwg.Constants.NULL_LONG);
-                                            connectionKeys_1.write(org.mwg.core.CoreConstants.BUFFER_SEP);
-                                            org.mwg.utility.KeyHelper.keyToBuffer(connectionKeys_1, org.mwg.chunk.ChunkType.STATE_CHUNK, org.mwg.core.CoreConstants.GLOBAL_DICTIONARY_KEY[0], org.mwg.core.CoreConstants.GLOBAL_DICTIONARY_KEY[1], org.mwg.core.CoreConstants.GLOBAL_DICTIONARY_KEY[2]);
-                                            connectionKeys_1.write(org.mwg.core.CoreConstants.BUFFER_SEP);
+                                            connectionKeys_1.write(org.mwg.internal.CoreConstants.BUFFER_SEP);
+                                            org.mwg.utility.KeyHelper.keyToBuffer(connectionKeys_1, org.mwg.chunk.ChunkType.STATE_CHUNK, org.mwg.internal.CoreConstants.GLOBAL_DICTIONARY_KEY[0], org.mwg.internal.CoreConstants.GLOBAL_DICTIONARY_KEY[1], org.mwg.internal.CoreConstants.GLOBAL_DICTIONARY_KEY[2]);
+                                            connectionKeys_1.write(org.mwg.internal.CoreConstants.BUFFER_SEP);
                                             selfPointer._storage.get(connectionKeys_1, function (payloads) {
                                                 {
                                                     connectionKeys_1.free();
@@ -2410,7 +2707,7 @@ var org;
                                                             if (view3.length() > 0) {
                                                                 globalWorldOrder.load(view3);
                                                             }
-                                                            var globalDictionaryChunk = selfPointer._space.createAndMark(org.mwg.chunk.ChunkType.STATE_CHUNK, org.mwg.core.CoreConstants.GLOBAL_DICTIONARY_KEY[0], org.mwg.core.CoreConstants.GLOBAL_DICTIONARY_KEY[1], org.mwg.core.CoreConstants.GLOBAL_DICTIONARY_KEY[2]);
+                                                            var globalDictionaryChunk = selfPointer._space.createAndMark(org.mwg.chunk.ChunkType.STATE_CHUNK, org.mwg.internal.CoreConstants.GLOBAL_DICTIONARY_KEY[0], org.mwg.internal.CoreConstants.GLOBAL_DICTIONARY_KEY[1], org.mwg.internal.CoreConstants.GLOBAL_DICTIONARY_KEY[2]);
                                                             if (view4.length() > 0) {
                                                                 globalDictionaryChunk.load(view4);
                                                             }
@@ -2528,7 +2825,7 @@ var org;
                     return this._memoryFactory.newBuffer();
                 };
                 CoreGraph.prototype.newQuery = function () {
-                    return new org.mwg.core.CoreQuery(this, this._resolver);
+                    return new org.mwg.internal.CoreQuery(this, this._resolver);
                 };
                 CoreGraph.prototype.index = function (world, time, name, callback) {
                     this.internal_index(world, time, name, false, callback);
@@ -2539,7 +2836,7 @@ var org;
                 CoreGraph.prototype.internal_index = function (world, time, name, ifExists, callback) {
                     var selfPointer = this;
                     var indexNameCoded = this._resolver.stringToHash(name, true);
-                    this._resolver.lookup(world, time, org.mwg.core.CoreConstants.END_OF_TIME, function (globalIndexNodeUnsafe) {
+                    this._resolver.lookup(world, time, org.mwg.internal.CoreConstants.END_OF_TIME, function (globalIndexNodeUnsafe) {
                         {
                             if (ifExists && globalIndexNodeUnsafe == null) {
                                 callback(null);
@@ -2547,21 +2844,21 @@ var org;
                             else {
                                 var globalIndexContent = void 0;
                                 if (globalIndexNodeUnsafe == null) {
-                                    globalIndexNodeUnsafe = new org.mwg.base.BaseNode(world, time, org.mwg.core.CoreConstants.END_OF_TIME, selfPointer);
-                                    selfPointer._resolver.initNode(globalIndexNodeUnsafe, org.mwg.core.CoreConstants.NULL_LONG);
-                                    globalIndexContent = globalIndexNodeUnsafe.getOrCreate(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE, org.mwg.Type.LONG_TO_LONG_MAP);
+                                    globalIndexNodeUnsafe = new org.mwg.base.BaseNode(world, time, org.mwg.internal.CoreConstants.END_OF_TIME, selfPointer);
+                                    selfPointer._resolver.initNode(globalIndexNodeUnsafe, org.mwg.internal.CoreConstants.NULL_LONG);
+                                    globalIndexContent = globalIndexNodeUnsafe.getOrCreate(org.mwg.internal.CoreConstants.INDEX_ATTRIBUTE, org.mwg.Type.LONG_TO_LONG_MAP);
                                 }
                                 else {
-                                    globalIndexContent = globalIndexNodeUnsafe.get(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE);
+                                    globalIndexContent = globalIndexNodeUnsafe.get(org.mwg.internal.CoreConstants.INDEX_ATTRIBUTE);
                                 }
                                 var indexId = globalIndexContent.get(indexNameCoded);
                                 globalIndexNodeUnsafe.free();
-                                if (indexId == org.mwg.core.CoreConstants.NULL_LONG) {
+                                if (indexId == org.mwg.internal.CoreConstants.NULL_LONG) {
                                     if (ifExists) {
                                         callback(null);
                                     }
                                     else {
-                                        var newIndexNode = selfPointer.newTypedNode(world, time, org.mwg.core.CoreNodeIndex.NAME);
+                                        var newIndexNode = selfPointer.newTypedNode(world, time, org.mwg.internal.CoreNodeIndex.NAME);
                                         indexId = newIndexNode.id();
                                         globalIndexContent.put(indexNameCoded, indexId);
                                         callback(newIndexNode);
@@ -2576,13 +2873,13 @@ var org;
                 };
                 CoreGraph.prototype.indexNames = function (world, time, callback) {
                     var selfPointer = this;
-                    this._resolver.lookup(world, time, org.mwg.core.CoreConstants.END_OF_TIME, function (globalIndexNodeUnsafe) {
+                    this._resolver.lookup(world, time, org.mwg.internal.CoreConstants.END_OF_TIME, function (globalIndexNodeUnsafe) {
                         {
                             if (globalIndexNodeUnsafe == null) {
                                 callback(new Array(0));
                             }
                             else {
-                                var globalIndexContent = globalIndexNodeUnsafe.get(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE);
+                                var globalIndexContent = globalIndexNodeUnsafe.get(org.mwg.internal.CoreConstants.INDEX_ATTRIBUTE);
                                 if (globalIndexContent == null) {
                                     globalIndexNodeUnsafe.free();
                                     callback(new Array(0));
@@ -2604,10 +2901,10 @@ var org;
                     });
                 };
                 CoreGraph.prototype.newCounter = function (expectedCountCalls) {
-                    return new org.mwg.core.utility.CoreDeferCounter(expectedCountCalls);
+                    return new org.mwg.internal.utility.CoreDeferCounter(expectedCountCalls);
                 };
                 CoreGraph.prototype.newSyncCounter = function (expectedCountCalls) {
-                    return new org.mwg.core.utility.CoreDeferCounterSync(expectedCountCalls);
+                    return new org.mwg.internal.utility.CoreDeferCounterSync(expectedCountCalls);
                 };
                 CoreGraph.prototype.resolver = function () {
                     return this._resolver;
@@ -2632,27 +2929,27 @@ var org;
                 };
                 return CoreGraph;
             }());
-            core.CoreGraph = CoreGraph;
+            internal.CoreGraph = CoreGraph;
             var CoreNodeIndex = (function (_super) {
                 __extends(CoreNodeIndex, _super);
                 function CoreNodeIndex(p_world, p_time, p_id, p_graph) {
                     return _super.call(this, p_world, p_time, p_id, p_graph) || this;
                 }
                 CoreNodeIndex.prototype.init = function () {
-                    this.getOrCreate(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE, org.mwg.Type.RELATION_INDEXED);
+                    this.getOrCreate(org.mwg.internal.CoreConstants.INDEX_ATTRIBUTE, org.mwg.Type.RELATION_INDEXED);
                 };
                 CoreNodeIndex.prototype.size = function () {
-                    return this.get(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE).size();
+                    return this.get(org.mwg.internal.CoreConstants.INDEX_ATTRIBUTE).size();
                 };
                 CoreNodeIndex.prototype.all = function () {
-                    return this.get(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE).all();
+                    return this.get(org.mwg.internal.CoreConstants.INDEX_ATTRIBUTE).all();
                 };
                 CoreNodeIndex.prototype.addToIndex = function (node) {
                     var attributeNames = [];
                     for (var _i = 1; _i < arguments.length; _i++) {
                         attributeNames[_i - 1] = arguments[_i];
                     }
-                    (_a = this.get(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE)).add.apply(_a, [node].concat(attributeNames));
+                    (_a = this.get(org.mwg.internal.CoreConstants.INDEX_ATTRIBUTE)).add.apply(_a, [node].concat(attributeNames));
                     return this;
                     var _a;
                 };
@@ -2661,12 +2958,12 @@ var org;
                     for (var _i = 1; _i < arguments.length; _i++) {
                         attributeNames[_i - 1] = arguments[_i];
                     }
-                    (_a = this.get(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE)).remove.apply(_a, [node].concat(attributeNames));
+                    (_a = this.get(org.mwg.internal.CoreConstants.INDEX_ATTRIBUTE)).remove.apply(_a, [node].concat(attributeNames));
                     return this;
                     var _a;
                 };
                 CoreNodeIndex.prototype.clear = function () {
-                    this.get(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE).clear();
+                    this.get(org.mwg.internal.CoreConstants.INDEX_ATTRIBUTE).clear();
                     return this;
                 };
                 CoreNodeIndex.prototype.find = function (callback) {
@@ -2675,21 +2972,21 @@ var org;
                         query[_i - 1] = arguments[_i];
                     }
                     if (query == null || query.length == 0) {
-                        var flat = this.get(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE).all();
+                        var flat = this.get(org.mwg.internal.CoreConstants.INDEX_ATTRIBUTE).all();
                         this.graph().lookupAll(this.world(), this.time(), flat, callback);
                     }
                     else {
-                        (_a = this.get(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE)).find.apply(_a, [callback, this.world(), this.time()].concat(query));
+                        (_a = this.get(org.mwg.internal.CoreConstants.INDEX_ATTRIBUTE)).find.apply(_a, [callback, this.world(), this.time()].concat(query));
                     }
                     var _a;
                 };
                 CoreNodeIndex.prototype.findByQuery = function (query, callback) {
-                    this.get(org.mwg.core.CoreConstants.INDEX_ATTRIBUTE).findByQuery(query, callback);
+                    this.get(org.mwg.internal.CoreConstants.INDEX_ATTRIBUTE).findByQuery(query, callback);
                 };
                 return CoreNodeIndex;
             }(org.mwg.base.BaseNode));
             CoreNodeIndex.NAME = "NodeIndex";
-            core.CoreNodeIndex = CoreNodeIndex;
+            internal.CoreNodeIndex = CoreNodeIndex;
             var CoreQuery = (function () {
                 function CoreQuery(graph, p_resolver) {
                     this.capacity = 1;
@@ -2773,7 +3070,7 @@ var org;
                 };
                 return CoreQuery;
             }());
-            core.CoreQuery = CoreQuery;
+            internal.CoreQuery = CoreQuery;
             var MWGResolver = (function () {
                 function MWGResolver(p_storage, p_space, p_graph) {
                     this._space = p_space;
@@ -2781,7 +3078,7 @@ var org;
                     this._graph = p_graph;
                 }
                 MWGResolver.prototype.init = function () {
-                    this.dictionary = this._space.getAndMark(org.mwg.chunk.ChunkType.STATE_CHUNK, org.mwg.core.CoreConstants.GLOBAL_DICTIONARY_KEY[0], org.mwg.core.CoreConstants.GLOBAL_DICTIONARY_KEY[1], org.mwg.core.CoreConstants.GLOBAL_DICTIONARY_KEY[2]);
+                    this.dictionary = this._space.getAndMark(org.mwg.chunk.ChunkType.STATE_CHUNK, org.mwg.internal.CoreConstants.GLOBAL_DICTIONARY_KEY[0], org.mwg.internal.CoreConstants.GLOBAL_DICTIONARY_KEY[1], org.mwg.internal.CoreConstants.GLOBAL_DICTIONARY_KEY[2]);
                     this.globalWorldOrderChunk = this._space.getAndMark(org.mwg.chunk.ChunkType.WORLD_ORDER_CHUNK, 0, 0, org.mwg.Constants.NULL_LONG);
                 };
                 MWGResolver.prototype.typeName = function (node) {
@@ -3329,7 +3626,7 @@ var org;
                     var nbElem = 0;
                     var result = new Array(nbKeys);
                     for (var i = 0; i < nbKeys; i++) {
-                        if (keys[i * MWGResolver.KEY_SIZE] == org.mwg.core.CoreConstants.NULL_KEY[0] && keys[i * MWGResolver.KEY_SIZE + 1] == org.mwg.core.CoreConstants.NULL_KEY[1] && keys[i * MWGResolver.KEY_SIZE + 2] == org.mwg.core.CoreConstants.NULL_KEY[2]) {
+                        if (keys[i * MWGResolver.KEY_SIZE] == org.mwg.internal.CoreConstants.NULL_KEY[0] && keys[i * MWGResolver.KEY_SIZE + 1] == org.mwg.internal.CoreConstants.NULL_KEY[1] && keys[i * MWGResolver.KEY_SIZE + 2] == org.mwg.internal.CoreConstants.NULL_KEY[2]) {
                             toLoadIndexes[i] = false;
                             result[i] = null;
                         }
@@ -3355,7 +3652,7 @@ var org;
                             if (toLoadIndexes[i]) {
                                 reverseIndex_1[lastInsertedIndex] = i;
                                 if (lastInsertedIndex != 0) {
-                                    keysToLoad_1.write(org.mwg.core.CoreConstants.BUFFER_SEP);
+                                    keysToLoad_1.write(org.mwg.internal.CoreConstants.BUFFER_SEP);
                                 }
                                 org.mwg.utility.KeyHelper.keyToBuffer(keysToLoad_1, types[i], keys[i * MWGResolver.KEY_SIZE], keys[i * MWGResolver.KEY_SIZE + 1], keys[i * MWGResolver.KEY_SIZE + 2]);
                                 lastInsertedIndex = lastInsertedIndex + 1;
@@ -3371,7 +3668,7 @@ var org;
                                     var reversedIndex = reverseIndex_1[i];
                                     var view = it.next();
                                     if (view.length() > 0) {
-                                        result[reversedIndex] = selfPointer_2._space.createAndMark(types[reversedIndex], keys[reversedIndex * org.mwg.core.MWGResolver.KEY_SIZE], keys[reversedIndex * org.mwg.core.MWGResolver.KEY_SIZE + 1], keys[reversedIndex * org.mwg.core.MWGResolver.KEY_SIZE + 2]);
+                                        result[reversedIndex] = selfPointer_2._space.createAndMark(types[reversedIndex], keys[reversedIndex * org.mwg.internal.MWGResolver.KEY_SIZE], keys[reversedIndex * org.mwg.internal.MWGResolver.KEY_SIZE + 1], keys[reversedIndex * org.mwg.internal.MWGResolver.KEY_SIZE + 2]);
                                         result[reversedIndex].load(view);
                                     }
                                     else {
@@ -3398,7 +3695,7 @@ var org;
                         if (safe) {
                             castedNode.cacheUnlock();
                         }
-                        throw new Error(org.mwg.core.CoreConstants.DEAD_NODE_ERROR + " node id: " + node.id());
+                        throw new Error(org.mwg.internal.CoreConstants.DEAD_NODE_ERROR + " node id: " + node.id());
                     }
                     if (castedNode._world_magic == -1 && castedNode._time_magic == -1 && castedNode._super_time_magic == -1) {
                         stateResult = this._space.get(castedNode._index_stateChunk);
@@ -3420,7 +3717,7 @@ var org;
                                 var nodeWorld = castedNode.world();
                                 var resolvedWorld = this.resolve_world(this.globalWorldOrderChunk, nodeWorldOrder, nodeTime, nodeWorld);
                                 if (resolvedWorld != nodeSuperTimeTree.world()) {
-                                    var tempNodeSuperTimeTree = this._space.getAndMark(org.mwg.chunk.ChunkType.TIME_TREE_CHUNK, resolvedWorld, org.mwg.core.CoreConstants.NULL_LONG, nodeId);
+                                    var tempNodeSuperTimeTree = this._space.getAndMark(org.mwg.chunk.ChunkType.TIME_TREE_CHUNK, resolvedWorld, org.mwg.internal.CoreConstants.NULL_LONG, nodeId);
                                     if (tempNodeSuperTimeTree != null) {
                                         this._space.unmark(nodeSuperTimeTree.index());
                                         nodeSuperTimeTree = tempNodeSuperTimeTree;
@@ -3472,7 +3769,7 @@ var org;
                     castedNode.cacheLock();
                     if (castedNode._dead) {
                         castedNode.cacheUnlock();
-                        throw new Error(org.mwg.core.CoreConstants.DEAD_NODE_ERROR + " node id: " + node.id());
+                        throw new Error(org.mwg.internal.CoreConstants.DEAD_NODE_ERROR + " node id: " + node.id());
                     }
                     if (castedNode._world_magic == -1 && castedNode._time_magic == -1 && castedNode._super_time_magic == -1) {
                         var currentEntry = this._space.get(castedNode._index_stateChunk);
@@ -3512,30 +3809,30 @@ var org;
                     castedNode._time_magic = -1;
                     castedNode._index_stateChunk = clonedState.index();
                     this._space.unmark(previouStateChunk.index());
-                    if (previouStateChunk.world() == nodeWorld || nodeWorldOrder.get(nodeWorld) != org.mwg.core.CoreConstants.NULL_LONG) {
+                    if (previouStateChunk.world() == nodeWorld || nodeWorldOrder.get(nodeWorld) != org.mwg.internal.CoreConstants.NULL_LONG) {
                         var timeTree = this._space.get(castedNode._index_timeTree);
                         var superTreeSize = superTimeTree.size();
-                        var threshold = org.mwg.core.CoreConstants.SCALE_1 * 2;
+                        var threshold = org.mwg.internal.CoreConstants.SCALE_1 * 2;
                         if (superTreeSize > threshold) {
-                            threshold = org.mwg.core.CoreConstants.SCALE_2 * 2;
+                            threshold = org.mwg.internal.CoreConstants.SCALE_2 * 2;
                         }
                         if (superTreeSize > threshold) {
-                            threshold = org.mwg.core.CoreConstants.SCALE_3 * 2;
+                            threshold = org.mwg.internal.CoreConstants.SCALE_3 * 2;
                         }
                         if (superTreeSize > threshold) {
-                            threshold = org.mwg.core.CoreConstants.SCALE_4 * 2;
+                            threshold = org.mwg.internal.CoreConstants.SCALE_4 * 2;
                         }
                         timeTree.insert(nodeTime);
                         if (timeTree.size() == threshold) {
                             var medianPoint_1 = new Float64Array([-1]);
-                            timeTree.range(org.mwg.core.CoreConstants.BEGINNING_OF_TIME, org.mwg.core.CoreConstants.END_OF_TIME, timeTree.size() / 2, function (t) {
+                            timeTree.range(org.mwg.internal.CoreConstants.BEGINNING_OF_TIME, org.mwg.internal.CoreConstants.END_OF_TIME, timeTree.size() / 2, function (t) {
                                 {
                                     medianPoint_1[0] = t;
                                 }
                             });
                             var rightTree = this._space.createAndMark(org.mwg.chunk.ChunkType.TIME_TREE_CHUNK, nodeWorld, medianPoint_1[0], nodeId);
                             var finalRightTree_1 = rightTree;
-                            timeTree.range(org.mwg.core.CoreConstants.BEGINNING_OF_TIME, org.mwg.core.CoreConstants.END_OF_TIME, timeTree.size() / 2, function (t) {
+                            timeTree.range(org.mwg.internal.CoreConstants.BEGINNING_OF_TIME, org.mwg.internal.CoreConstants.END_OF_TIME, timeTree.size() / 2, function (t) {
                                 {
                                     finalRightTree_1.unsafe_insert(t);
                                 }
@@ -3553,7 +3850,7 @@ var org;
                         }
                     }
                     else {
-                        var newSuperTimeTree = this._space.createAndMark(org.mwg.chunk.ChunkType.TIME_TREE_CHUNK, nodeWorld, org.mwg.core.CoreConstants.NULL_LONG, nodeId);
+                        var newSuperTimeTree = this._space.createAndMark(org.mwg.chunk.ChunkType.TIME_TREE_CHUNK, nodeWorld, org.mwg.internal.CoreConstants.NULL_LONG, nodeId);
                         newSuperTimeTree.insert(nodeTime);
                         var newTimeTree = this._space.createAndMark(org.mwg.chunk.ChunkType.TIME_TREE_CHUNK, nodeWorld, nodeTime, nodeId);
                         newTimeTree.insert(nodeTime);
@@ -3599,13 +3896,13 @@ var org;
                                 return;
                             }
                             var objectWorldOrder = resolved;
-                            var collectionSize = new Int32Array([org.mwg.core.CoreConstants.MAP_INITIAL_CAPACITY]);
+                            var collectionSize = new Int32Array([org.mwg.internal.CoreConstants.MAP_INITIAL_CAPACITY]);
                             var collectedWorlds = [new Float64Array(collectionSize[0])];
                             var collectedIndex = 0;
                             var currentWorld = node.world();
-                            while (currentWorld != org.mwg.core.CoreConstants.NULL_LONG) {
+                            while (currentWorld != org.mwg.internal.CoreConstants.NULL_LONG) {
                                 var divergenceTimepoint = objectWorldOrder.get(currentWorld);
-                                if (divergenceTimepoint != org.mwg.core.CoreConstants.NULL_LONG) {
+                                if (divergenceTimepoint != org.mwg.internal.CoreConstants.NULL_LONG) {
                                     if (divergenceTimepoint <= beginningOfSearch) {
                                         collectedWorlds[0][collectedIndex] = currentWorld;
                                         collectedIndex++;
@@ -3640,7 +3937,7 @@ var org;
                     var types = new Int8Array(collectedWorldsSize);
                     for (var i = 0; i < collectedWorldsSize; i++) {
                         timeTreeKeys[i * 3] = collectedWorlds[i];
-                        timeTreeKeys[i * 3 + 1] = org.mwg.core.CoreConstants.NULL_LONG;
+                        timeTreeKeys[i * 3 + 1] = org.mwg.internal.CoreConstants.NULL_LONG;
                         timeTreeKeys[i * 3 + 2] = node.id();
                         types[i] = org.mwg.chunk.ChunkType.TIME_TREE_CHUNK;
                     }
@@ -3651,7 +3948,7 @@ var org;
                                 callback(new Float64Array(0));
                             }
                             else {
-                                var collectedSize_1 = new Int32Array([org.mwg.core.CoreConstants.MAP_INITIAL_CAPACITY]);
+                                var collectedSize_1 = new Int32Array([org.mwg.internal.CoreConstants.MAP_INITIAL_CAPACITY]);
                                 var collectedSuperTimes_1 = [new Float64Array(collectedSize_1[0])];
                                 var collectedSuperTimesAssociatedWorlds_1 = [new Float64Array(collectedSize_1[0])];
                                 var insert_index_1 = new Int32Array([0]);
@@ -3661,7 +3958,7 @@ var org;
                                     if (timeTree != null) {
                                         var currentDivergenceTime = objectWorldOrder.get(collectedWorlds[i]);
                                         var finalPreviousDivergenceTime_1 = previousDivergenceTime;
-                                        timeTree.range(currentDivergenceTime, previousDivergenceTime, org.mwg.core.CoreConstants.END_OF_TIME, function (t) {
+                                        timeTree.range(currentDivergenceTime, previousDivergenceTime, org.mwg.internal.CoreConstants.END_OF_TIME, function (t) {
                                             {
                                                 if (t != finalPreviousDivergenceTime_1) {
                                                     collectedSuperTimes_1[0][insert_index_1[0]] = t;
@@ -3708,7 +4005,7 @@ var org;
                                 callback(new Float64Array(0));
                             }
                             else {
-                                var collectedTimesSize_1 = new Int32Array([org.mwg.core.CoreConstants.MAP_INITIAL_CAPACITY]);
+                                var collectedTimesSize_1 = new Int32Array([org.mwg.internal.CoreConstants.MAP_INITIAL_CAPACITY]);
                                 var collectedTimes_1 = [new Float64Array(collectedTimesSize_1[0])];
                                 var insert_index_2 = new Int32Array([0]);
                                 var previousDivergenceTime = endOfSearch;
@@ -3720,7 +4017,7 @@ var org;
                                             currentDivergenceTime = beginningOfSearch;
                                         }
                                         var finalPreviousDivergenceTime_2 = previousDivergenceTime;
-                                        timeTree.range(currentDivergenceTime, previousDivergenceTime, org.mwg.core.CoreConstants.END_OF_TIME, function (t) {
+                                        timeTree.range(currentDivergenceTime, previousDivergenceTime, org.mwg.internal.CoreConstants.END_OF_TIME, function (t) {
                                             {
                                                 if (t != finalPreviousDivergenceTime_2) {
                                                     collectedTimes_1[0][insert_index_2[0]] = t;
@@ -3779,7 +4076,7 @@ var org;
                 return MWGResolver;
             }());
             MWGResolver.KEY_SIZE = 3;
-            core.MWGResolver = MWGResolver;
+            internal.MWGResolver = MWGResolver;
             var chunk;
             (function (chunk_2) {
                 var heap;
@@ -3802,8 +4099,8 @@ var org;
                             this._graph = p_graph;
                             this._maxEntries = initialCapacity;
                             this._hashEntries = initialCapacity * HeapChunkSpace.HASH_LOAD_FACTOR;
-                            this._lru = new org.mwg.core.chunk.heap.HeapFixedStack(initialCapacity, true);
-                            this._dirtiesStack = new org.mwg.core.chunk.heap.HeapFixedStack(initialCapacity, false);
+                            this._lru = new org.mwg.internal.chunk.heap.HeapFixedStack(initialCapacity, true);
+                            this._dirtiesStack = new org.mwg.internal.chunk.heap.HeapFixedStack(initialCapacity, false);
                             this._hashNext = new java.util.concurrent.atomic.AtomicIntegerArray(initialCapacity);
                             this._hash = new java.util.concurrent.atomic.AtomicIntegerArray(this._hashEntries);
                             for (var i = 0; i < initialCapacity; i++) {
@@ -3816,7 +4113,7 @@ var org;
                             this._chunkWorlds = new java.util.concurrent.atomic.AtomicLongArray(this._maxEntries);
                             this._chunkTimes = new java.util.concurrent.atomic.AtomicLongArray(this._maxEntries);
                             this._chunkIds = new java.util.concurrent.atomic.AtomicLongArray(this._maxEntries);
-                            this._chunkTypes = new org.mwg.core.chunk.heap.HeapAtomicByteArray(this._maxEntries);
+                            this._chunkTypes = new org.mwg.internal.chunk.heap.HeapAtomicByteArray(this._maxEntries);
                             this._chunkMarks = new java.util.concurrent.atomic.AtomicLongArray(this._maxEntries);
                             for (var i = 0; i < this._maxEntries; i++) {
                                 this._chunkMarks.set(i, 0);
@@ -4027,16 +4324,16 @@ var org;
                             var toInsert = null;
                             switch (type) {
                                 case org.mwg.chunk.ChunkType.STATE_CHUNK:
-                                    toInsert = new org.mwg.core.chunk.heap.HeapStateChunk(this, currentVictimIndex);
+                                    toInsert = new org.mwg.internal.chunk.heap.HeapStateChunk(this, currentVictimIndex);
                                     break;
                                 case org.mwg.chunk.ChunkType.WORLD_ORDER_CHUNK:
-                                    toInsert = new org.mwg.core.chunk.heap.HeapWorldOrderChunk(this, currentVictimIndex);
+                                    toInsert = new org.mwg.internal.chunk.heap.HeapWorldOrderChunk(this, currentVictimIndex);
                                     break;
                                 case org.mwg.chunk.ChunkType.TIME_TREE_CHUNK:
-                                    toInsert = new org.mwg.core.chunk.heap.HeapTimeTreeChunk(this, currentVictimIndex);
+                                    toInsert = new org.mwg.internal.chunk.heap.HeapTimeTreeChunk(this, currentVictimIndex);
                                     break;
                                 case org.mwg.chunk.ChunkType.GEN_CHUNK:
-                                    toInsert = new org.mwg.core.chunk.heap.HeapGenChunk(this, id, currentVictimIndex);
+                                    toInsert = new org.mwg.internal.chunk.heap.HeapGenChunk(this, id, currentVictimIndex);
                                     break;
                             }
                             if (this._chunkValues.get(currentVictimIndex) != null) {
@@ -4128,7 +4425,7 @@ var org;
                             return this._lru.size();
                         };
                         HeapChunkSpace.prototype.newVolatileGraph = function () {
-                            return new org.mwg.core.chunk.heap.HeapEGraph(null, null, this._graph);
+                            return new org.mwg.internal.chunk.heap.HeapEGraph(null, null, this._graph);
                         };
                         HeapChunkSpace.prototype.printMarked = function () {
                             for (var i = 0; i < this._chunkValues.length(); i++) {
@@ -4464,7 +4761,7 @@ var org;
                                 this._nodes_capacity = origin._nodes_capacity;
                                 this._nodes = new Array(this._nodes_capacity);
                                 for (var i = 0; i < this._nodes_index; i++) {
-                                    this._nodes[i] = new org.mwg.core.chunk.heap.HeapENode(this, i, origin._nodes[i]);
+                                    this._nodes[i] = new org.mwg.internal.chunk.heap.HeapENode(this, i, origin._nodes[i]);
                                 }
                                 for (var i = 0; i < this._nodes_index; i++) {
                                     this._nodes[i].rebase();
@@ -4500,7 +4797,7 @@ var org;
                                 }
                                 var elem = this._nodes[index];
                                 if (elem == null && createIfAbsent) {
-                                    elem = new org.mwg.core.chunk.heap.HeapENode(this, index, null);
+                                    elem = new org.mwg.internal.chunk.heap.HeapENode(this, index, null);
                                     this._nodes[index] = elem;
                                 }
                                 return elem;
@@ -4530,7 +4827,7 @@ var org;
                                 this._nodes_capacity = newCapacity;
                                 this._nodes = newNodes;
                             }
-                            var newNode = new org.mwg.core.chunk.heap.HeapENode(this, this._nodes_index, null);
+                            var newNode = new org.mwg.internal.chunk.heap.HeapENode(this, this._nodes_index, null);
                             this._nodes[this._nodes_index] = newNode;
                             this._nodes_index++;
                             return newNode;
@@ -4658,17 +4955,17 @@ var org;
                                                 break;
                                             case org.mwg.Type.RELATION:
                                                 if (origin._v[i] != null) {
-                                                    this._v[i] = new org.mwg.core.chunk.heap.HeapRelation(this, origin._v[i]);
+                                                    this._v[i] = new org.mwg.internal.chunk.heap.HeapRelation(this, origin._v[i]);
                                                 }
                                                 break;
                                             case org.mwg.Type.DMATRIX:
                                                 if (origin._v[i] != null) {
-                                                    this._v[i] = new org.mwg.core.chunk.heap.HeapDMatrix(this, origin._v[i]);
+                                                    this._v[i] = new org.mwg.internal.chunk.heap.HeapDMatrix(this, origin._v[i]);
                                                 }
                                                 break;
                                             case org.mwg.Type.LMATRIX:
                                                 if (origin._v[i] != null) {
-                                                    this._v[i] = new org.mwg.core.chunk.heap.HeapLMatrix(this, origin._v[i]);
+                                                    this._v[i] = new org.mwg.internal.chunk.heap.HeapLMatrix(this, origin._v[i]);
                                                 }
                                                 break;
                                             default:
@@ -5020,28 +5317,28 @@ var org;
                             var toSet = null;
                             switch (type) {
                                 case org.mwg.Type.ERELATION:
-                                    toSet = new org.mwg.core.chunk.heap.HeapERelation(this, null);
+                                    toSet = new org.mwg.internal.chunk.heap.HeapERelation(this, null);
                                     break;
                                 case org.mwg.Type.RELATION:
-                                    toSet = new org.mwg.core.chunk.heap.HeapRelation(this, null);
+                                    toSet = new org.mwg.internal.chunk.heap.HeapRelation(this, null);
                                     break;
                                 case org.mwg.Type.RELATION_INDEXED:
-                                    toSet = new org.mwg.core.chunk.heap.HeapRelationIndexed(this, this.egraph.graph());
+                                    toSet = new org.mwg.internal.chunk.heap.HeapRelationIndexed(this, this.egraph.graph());
                                     break;
                                 case org.mwg.Type.DMATRIX:
-                                    toSet = new org.mwg.core.chunk.heap.HeapDMatrix(this, null);
+                                    toSet = new org.mwg.internal.chunk.heap.HeapDMatrix(this, null);
                                     break;
                                 case org.mwg.Type.LMATRIX:
-                                    toSet = new org.mwg.core.chunk.heap.HeapLMatrix(this, null);
+                                    toSet = new org.mwg.internal.chunk.heap.HeapLMatrix(this, null);
                                     break;
                                 case org.mwg.Type.STRING_TO_INT_MAP:
-                                    toSet = new org.mwg.core.chunk.heap.HeapStringIntMap(this);
+                                    toSet = new org.mwg.internal.chunk.heap.HeapStringIntMap(this);
                                     break;
                                 case org.mwg.Type.LONG_TO_LONG_MAP:
-                                    toSet = new org.mwg.core.chunk.heap.HeapLongLongMap(this);
+                                    toSet = new org.mwg.internal.chunk.heap.HeapLongLongMap(this);
                                     break;
                                 case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
-                                    toSet = new org.mwg.core.chunk.heap.HeapLongLongArrayMap(this);
+                                    toSet = new org.mwg.internal.chunk.heap.HeapLongLongArrayMap(this);
                                     break;
                             }
                             this.internal_set(key, type, toSet, true, false);
@@ -5287,11 +5584,11 @@ var org;
                                 if (this._v[i] != null) {
                                     var loopValue = this._v[i];
                                     if (loopValue != null) {
-                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_ESEP);
+                                        buffer.write(org.mwg.internal.CoreConstants.CHUNK_ESEP);
                                         org.mwg.utility.Base64.encodeIntToBuffer(this._type[i], buffer);
-                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_ESEP);
+                                        buffer.write(org.mwg.internal.CoreConstants.CHUNK_ESEP);
                                         org.mwg.utility.Base64.encodeIntToBuffer(this._k[i], buffer);
-                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_ESEP);
+                                        buffer.write(org.mwg.internal.CoreConstants.CHUNK_ESEP);
                                         switch (this._type[i]) {
                                             case org.mwg.Type.ENODE:
                                                 org.mwg.utility.Base64.encodeIntToBuffer(loopValue._id, buffer);
@@ -5300,7 +5597,7 @@ var org;
                                                 var castedLongArrERel = loopValue;
                                                 org.mwg.utility.Base64.encodeIntToBuffer(castedLongArrERel.size(), buffer);
                                                 for (var j = 0; j < castedLongArrERel.size(); j++) {
-                                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                     org.mwg.utility.Base64.encodeIntToBuffer(castedLongArrERel.node(j)._id, buffer);
                                                 }
                                                 break;
@@ -5309,10 +5606,10 @@ var org;
                                                 break;
                                             case org.mwg.Type.BOOL:
                                                 if (this._v[i]) {
-                                                    org.mwg.utility.Base64.encodeIntToBuffer(org.mwg.core.CoreConstants.BOOL_TRUE, buffer);
+                                                    org.mwg.utility.Base64.encodeIntToBuffer(org.mwg.internal.CoreConstants.BOOL_TRUE, buffer);
                                                 }
                                                 else {
-                                                    org.mwg.utility.Base64.encodeIntToBuffer(org.mwg.core.CoreConstants.BOOL_FALSE, buffer);
+                                                    org.mwg.utility.Base64.encodeIntToBuffer(org.mwg.internal.CoreConstants.BOOL_FALSE, buffer);
                                                 }
                                                 break;
                                             case org.mwg.Type.LONG:
@@ -5328,7 +5625,7 @@ var org;
                                                 var castedDoubleArr = loopValue;
                                                 org.mwg.utility.Base64.encodeIntToBuffer(castedDoubleArr.length, buffer);
                                                 for (var j = 0; j < castedDoubleArr.length; j++) {
-                                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                     org.mwg.utility.Base64.encodeDoubleToBuffer(castedDoubleArr[j], buffer);
                                                 }
                                                 break;
@@ -5336,7 +5633,7 @@ var org;
                                                 var castedLongArrRel = loopValue;
                                                 org.mwg.utility.Base64.encodeIntToBuffer(castedLongArrRel.size(), buffer);
                                                 for (var j = 0; j < castedLongArrRel.size(); j++) {
-                                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                     org.mwg.utility.Base64.encodeLongToBuffer(castedLongArrRel.unsafe_get(j), buffer);
                                                 }
                                                 break;
@@ -5344,7 +5641,7 @@ var org;
                                                 var castedLongArr = loopValue;
                                                 org.mwg.utility.Base64.encodeIntToBuffer(castedLongArr.length, buffer);
                                                 for (var j = 0; j < castedLongArr.length; j++) {
-                                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                     org.mwg.utility.Base64.encodeLongToBuffer(castedLongArr[j], buffer);
                                                 }
                                                 break;
@@ -5352,7 +5649,7 @@ var org;
                                                 var castedIntArr = loopValue;
                                                 org.mwg.utility.Base64.encodeIntToBuffer(castedIntArr.length, buffer);
                                                 for (var j = 0; j < castedIntArr.length; j++) {
-                                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                     org.mwg.utility.Base64.encodeIntToBuffer(castedIntArr[j], buffer);
                                                 }
                                                 break;
@@ -5362,7 +5659,7 @@ var org;
                                                 if (unsafeContent != null) {
                                                     org.mwg.utility.Base64.encodeIntToBuffer(unsafeContent.length, buffer);
                                                     for (var j = 0; j < unsafeContent.length; j++) {
-                                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                        buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                         org.mwg.utility.Base64.encodeDoubleToBuffer(unsafeContent[j], buffer);
                                                     }
                                                 }
@@ -5373,7 +5670,7 @@ var org;
                                                 if (unsafeLContent != null) {
                                                     org.mwg.utility.Base64.encodeIntToBuffer(unsafeLContent.length, buffer);
                                                     for (var j = 0; j < unsafeLContent.length; j++) {
-                                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                        buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                         org.mwg.utility.Base64.encodeLongToBuffer(unsafeLContent[j], buffer);
                                                     }
                                                 }
@@ -5383,9 +5680,9 @@ var org;
                                                 org.mwg.utility.Base64.encodeIntToBuffer(castedStringLongMap.size(), buffer);
                                                 castedStringLongMap.unsafe_each(function (key, value) {
                                                     {
-                                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                        buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                         org.mwg.utility.Base64.encodeStringToBuffer(key, buffer);
-                                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                        buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                         org.mwg.utility.Base64.encodeLongToBuffer(value, buffer);
                                                     }
                                                 });
@@ -5395,9 +5692,9 @@ var org;
                                                 org.mwg.utility.Base64.encodeIntToBuffer(castedLongLongMap.size(), buffer);
                                                 castedLongLongMap.unsafe_each(function (key, value) {
                                                     {
-                                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                        buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                         org.mwg.utility.Base64.encodeLongToBuffer(key, buffer);
-                                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                        buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                         org.mwg.utility.Base64.encodeLongToBuffer(value, buffer);
                                                     }
                                                 });
@@ -5408,9 +5705,9 @@ var org;
                                                 org.mwg.utility.Base64.encodeIntToBuffer(castedLongLongArrayMap.size(), buffer);
                                                 castedLongLongArrayMap.unsafe_each(function (key, value) {
                                                     {
-                                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                        buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                         org.mwg.utility.Base64.encodeLongToBuffer(key, buffer);
-                                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                        buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                         org.mwg.utility.Base64.encodeLongToBuffer(value, buffer);
                                                     }
                                                 });
@@ -5570,7 +5867,7 @@ var org;
                                                     }
                                                     break;
                                                 case org.mwg.Type.RELATION:
-                                                    var relation = new org.mwg.core.chunk.heap.HeapRelation(this, null);
+                                                    var relation = new org.mwg.internal.chunk.heap.HeapRelation(this, null);
                                                     cursor++;
                                                     cursor = relation.load(buffer, cursor, payloadSize);
                                                     this.internal_set(read_key, read_type, relation, true, initial);
@@ -5584,7 +5881,7 @@ var org;
                                                     }
                                                     break;
                                                 case org.mwg.Type.DMATRIX:
-                                                    var matrix = new org.mwg.core.chunk.heap.HeapDMatrix(this, null);
+                                                    var matrix = new org.mwg.internal.chunk.heap.HeapDMatrix(this, null);
                                                     cursor++;
                                                     cursor = matrix.load(buffer, cursor, payloadSize);
                                                     this.internal_set(read_key, read_type, matrix, true, initial);
@@ -5598,7 +5895,7 @@ var org;
                                                     }
                                                     break;
                                                 case org.mwg.Type.LMATRIX:
-                                                    var lmatrix = new org.mwg.core.chunk.heap.HeapLMatrix(this, null);
+                                                    var lmatrix = new org.mwg.internal.chunk.heap.HeapLMatrix(this, null);
                                                     cursor++;
                                                     cursor = lmatrix.load(buffer, cursor, payloadSize);
                                                     this.internal_set(read_key, read_type, lmatrix, true, initial);
@@ -5612,7 +5909,7 @@ var org;
                                                     }
                                                     break;
                                                 case org.mwg.Type.LONG_TO_LONG_MAP:
-                                                    var l2lmap = new org.mwg.core.chunk.heap.HeapLongLongMap(this);
+                                                    var l2lmap = new org.mwg.internal.chunk.heap.HeapLongLongMap(this);
                                                     cursor++;
                                                     cursor = l2lmap.load(buffer, cursor, payloadSize);
                                                     this.internal_set(read_key, read_type, l2lmap, true, initial);
@@ -5626,7 +5923,7 @@ var org;
                                                     }
                                                     break;
                                                 case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
-                                                    var l2lrmap = new org.mwg.core.chunk.heap.HeapLongLongArrayMap(this);
+                                                    var l2lrmap = new org.mwg.internal.chunk.heap.HeapLongLongArrayMap(this);
                                                     cursor++;
                                                     cursor = l2lrmap.load(buffer, cursor, payloadSize);
                                                     this.internal_set(read_key, read_type, l2lrmap, true, initial);
@@ -5640,7 +5937,7 @@ var org;
                                                     }
                                                     break;
                                                 case org.mwg.Type.RELATION_INDEXED:
-                                                    var relationIndexed = new org.mwg.core.chunk.heap.HeapRelationIndexed(this, graph);
+                                                    var relationIndexed = new org.mwg.internal.chunk.heap.HeapRelationIndexed(this, graph);
                                                     cursor++;
                                                     cursor = relationIndexed.load(buffer, cursor, payloadSize);
                                                     this.internal_set(read_key, read_type, relationIndexed, true, initial);
@@ -5654,7 +5951,7 @@ var org;
                                                     }
                                                     break;
                                                 case org.mwg.Type.STRING_TO_INT_MAP:
-                                                    var s2lmap = new org.mwg.core.chunk.heap.HeapStringIntMap(this);
+                                                    var s2lmap = new org.mwg.internal.chunk.heap.HeapStringIntMap(this);
                                                     cursor++;
                                                     cursor = s2lmap.load(buffer, cursor, payloadSize);
                                                     this.internal_set(read_key, read_type, s2lmap, true, initial);
@@ -5675,7 +5972,7 @@ var org;
                                                     while (cursor < payloadSize && current != org.mwg.Constants.CHUNK_SEP && current != org.mwg.Constants.CHUNK_ENODE_SEP && current != org.mwg.Constants.CHUNK_ESEP) {
                                                         if (current == org.mwg.Constants.CHUNK_VAL_SEP) {
                                                             if (eRelation == null) {
-                                                                eRelation = new org.mwg.core.chunk.heap.HeapERelation(this, null);
+                                                                eRelation = new org.mwg.internal.chunk.heap.HeapERelation(this, null);
                                                                 eRelation.allocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                                             }
                                                             else {
@@ -5687,7 +5984,7 @@ var org;
                                                         current = buffer.read(cursor);
                                                     }
                                                     if (eRelation == null) {
-                                                        eRelation = new org.mwg.core.chunk.heap.HeapERelation(this, null);
+                                                        eRelation = new org.mwg.internal.chunk.heap.HeapERelation(this, null);
                                                         eRelation.allocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
                                                     }
                                                     else {
@@ -5724,7 +6021,7 @@ var org;
                         HeapENode.prototype.load_primitive = function (read_key, read_type, buffer, previous, cursor, initial) {
                             switch (read_type) {
                                 case org.mwg.Type.BOOL:
-                                    this.internal_set(read_key, read_type, (org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor) == org.mwg.core.CoreConstants.BOOL_TRUE), true, initial);
+                                    this.internal_set(read_key, read_type, (org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor) == org.mwg.internal.CoreConstants.BOOL_TRUE), true, initial);
                                     break;
                                 case org.mwg.Type.INT:
                                     this.internal_set(read_key, read_type, org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor), true, initial);
@@ -6400,7 +6697,7 @@ var org;
                             }
                         };
                         HeapLongLongArrayMap.prototype.cloneFor = function (newParent) {
-                            var cloned = new org.mwg.core.chunk.heap.HeapLongLongArrayMap(newParent);
+                            var cloned = new org.mwg.internal.chunk.heap.HeapLongLongArrayMap(newParent);
                             cloned.mapSize = this.mapSize;
                             cloned.capacity = this.capacity;
                             if (this.keys != null) {
@@ -6702,7 +6999,7 @@ var org;
                             }
                         };
                         HeapLongLongMap.prototype.cloneFor = function (newParent) {
-                            var cloned = new org.mwg.core.chunk.heap.HeapLongLongMap(newParent);
+                            var cloned = new org.mwg.internal.chunk.heap.HeapLongLongMap(newParent);
                             cloned.mapSize = this.mapSize;
                             cloned.capacity = this.capacity;
                             if (this.keys != null) {
@@ -7296,7 +7593,7 @@ var org;
                             return flat;
                         };
                         HeapRelationIndexed.prototype.cloneIRelFor = function (newParent, graph) {
-                            var cloned = new org.mwg.core.chunk.heap.HeapRelationIndexed(newParent, graph);
+                            var cloned = new org.mwg.internal.chunk.heap.HeapRelationIndexed(newParent, graph);
                             cloned.mapSize = this.mapSize;
                             cloned.capacity = this.capacity;
                             if (this.keys != null) {
@@ -7322,7 +7619,7 @@ var org;
                             return cloned;
                         };
                         return HeapRelationIndexed;
-                    }(org.mwg.core.chunk.heap.HeapLongLongArrayMap));
+                    }(org.mwg.internal.chunk.heap.HeapLongLongArrayMap));
                     heap.HeapRelationIndexed = HeapRelationIndexed;
                     var HeapStateChunk = (function () {
                         function HeapStateChunk(p_space, p_index) {
@@ -7526,28 +7823,28 @@ var org;
                             var toSet = null;
                             switch (p_type) {
                                 case org.mwg.Type.RELATION:
-                                    toSet = new org.mwg.core.chunk.heap.HeapRelation(this, null);
+                                    toSet = new org.mwg.internal.chunk.heap.HeapRelation(this, null);
                                     break;
                                 case org.mwg.Type.RELATION_INDEXED:
-                                    toSet = new org.mwg.core.chunk.heap.HeapRelationIndexed(this, this._space.graph());
+                                    toSet = new org.mwg.internal.chunk.heap.HeapRelationIndexed(this, this._space.graph());
                                     break;
                                 case org.mwg.Type.DMATRIX:
-                                    toSet = new org.mwg.core.chunk.heap.HeapDMatrix(this, null);
+                                    toSet = new org.mwg.internal.chunk.heap.HeapDMatrix(this, null);
                                     break;
                                 case org.mwg.Type.LMATRIX:
-                                    toSet = new org.mwg.core.chunk.heap.HeapLMatrix(this, null);
+                                    toSet = new org.mwg.internal.chunk.heap.HeapLMatrix(this, null);
                                     break;
                                 case org.mwg.Type.EGRAPH:
-                                    toSet = new org.mwg.core.chunk.heap.HeapEGraph(this, null, this._space.graph());
+                                    toSet = new org.mwg.internal.chunk.heap.HeapEGraph(this, null, this._space.graph());
                                     break;
                                 case org.mwg.Type.STRING_TO_INT_MAP:
-                                    toSet = new org.mwg.core.chunk.heap.HeapStringIntMap(this);
+                                    toSet = new org.mwg.internal.chunk.heap.HeapStringIntMap(this);
                                     break;
                                 case org.mwg.Type.LONG_TO_LONG_MAP:
-                                    toSet = new org.mwg.core.chunk.heap.HeapLongLongMap(this);
+                                    toSet = new org.mwg.internal.chunk.heap.HeapLongLongMap(this);
                                     break;
                                 case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
-                                    toSet = new org.mwg.core.chunk.heap.HeapLongLongArrayMap(this);
+                                    toSet = new org.mwg.internal.chunk.heap.HeapLongLongArrayMap(this);
                                     break;
                             }
                             this.internal_set(p_key, p_type, toSet, true, false);
@@ -7567,21 +7864,21 @@ var org;
                             for (var i = 0; i < this._size; i++) {
                                 var loopValue = this._v[i];
                                 if (loopValue != null) {
-                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_SEP);
                                     org.mwg.utility.Base64.encodeIntToBuffer(this._type[i], buffer);
-                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_SEP);
                                     org.mwg.utility.Base64.encodeIntToBuffer(this._k[i], buffer);
-                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_SEP);
                                     switch (this._type[i]) {
                                         case org.mwg.Type.STRING:
                                             org.mwg.utility.Base64.encodeStringToBuffer(loopValue, buffer);
                                             break;
                                         case org.mwg.Type.BOOL:
                                             if (this._v[i]) {
-                                                org.mwg.utility.Base64.encodeIntToBuffer(org.mwg.core.CoreConstants.BOOL_TRUE, buffer);
+                                                org.mwg.utility.Base64.encodeIntToBuffer(org.mwg.internal.CoreConstants.BOOL_TRUE, buffer);
                                             }
                                             else {
-                                                org.mwg.utility.Base64.encodeIntToBuffer(org.mwg.core.CoreConstants.BOOL_FALSE, buffer);
+                                                org.mwg.utility.Base64.encodeIntToBuffer(org.mwg.internal.CoreConstants.BOOL_FALSE, buffer);
                                             }
                                             break;
                                         case org.mwg.Type.LONG:
@@ -7597,7 +7894,7 @@ var org;
                                             var castedDoubleArr = loopValue;
                                             org.mwg.utility.Base64.encodeIntToBuffer(castedDoubleArr.length, buffer);
                                             for (var j = 0; j < castedDoubleArr.length; j++) {
-                                                buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                 org.mwg.utility.Base64.encodeDoubleToBuffer(castedDoubleArr[j], buffer);
                                             }
                                             break;
@@ -7605,7 +7902,7 @@ var org;
                                             var castedLongArr = loopValue;
                                             org.mwg.utility.Base64.encodeIntToBuffer(castedLongArr.length, buffer);
                                             for (var j = 0; j < castedLongArr.length; j++) {
-                                                buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                 org.mwg.utility.Base64.encodeLongToBuffer(castedLongArr[j], buffer);
                                             }
                                             break;
@@ -7613,7 +7910,7 @@ var org;
                                             var castedIntArr = loopValue;
                                             org.mwg.utility.Base64.encodeIntToBuffer(castedIntArr.length, buffer);
                                             for (var j = 0; j < castedIntArr.length; j++) {
-                                                buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                 org.mwg.utility.Base64.encodeIntToBuffer(castedIntArr[j], buffer);
                                             }
                                             break;
@@ -7621,7 +7918,7 @@ var org;
                                             var castedLongArrRel = loopValue;
                                             org.mwg.utility.Base64.encodeIntToBuffer(castedLongArrRel.size(), buffer);
                                             for (var j = 0; j < castedLongArrRel.size(); j++) {
-                                                buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                 org.mwg.utility.Base64.encodeLongToBuffer(castedLongArrRel.unsafe_get(j), buffer);
                                             }
                                             break;
@@ -7631,7 +7928,7 @@ var org;
                                             if (unsafeContent != null) {
                                                 org.mwg.utility.Base64.encodeIntToBuffer(unsafeContent.length, buffer);
                                                 for (var j = 0; j < unsafeContent.length; j++) {
-                                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                     org.mwg.utility.Base64.encodeDoubleToBuffer(unsafeContent[j], buffer);
                                                 }
                                             }
@@ -7642,7 +7939,7 @@ var org;
                                             if (unsafeLContent != null) {
                                                 org.mwg.utility.Base64.encodeIntToBuffer(unsafeLContent.length, buffer);
                                                 for (var j = 0; j < unsafeLContent.length; j++) {
-                                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                     org.mwg.utility.Base64.encodeLongToBuffer(unsafeLContent[j], buffer);
                                                 }
                                             }
@@ -7652,9 +7949,9 @@ var org;
                                             org.mwg.utility.Base64.encodeIntToBuffer(castedStringLongMap.size(), buffer);
                                             castedStringLongMap.unsafe_each(function (key, value) {
                                                 {
-                                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                     org.mwg.utility.Base64.encodeStringToBuffer(key, buffer);
-                                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                     org.mwg.utility.Base64.encodeLongToBuffer(value, buffer);
                                                 }
                                             });
@@ -7664,9 +7961,9 @@ var org;
                                             org.mwg.utility.Base64.encodeIntToBuffer(castedLongLongMap.size(), buffer);
                                             castedLongLongMap.unsafe_each(function (key, value) {
                                                 {
-                                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                     org.mwg.utility.Base64.encodeLongToBuffer(key, buffer);
-                                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                     org.mwg.utility.Base64.encodeLongToBuffer(value, buffer);
                                                 }
                                             });
@@ -7677,9 +7974,9 @@ var org;
                                             org.mwg.utility.Base64.encodeIntToBuffer(castedLongLongArrayMap.size(), buffer);
                                             castedLongLongArrayMap.unsafe_each(function (key, value) {
                                                 {
-                                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                     org.mwg.utility.Base64.encodeLongToBuffer(key, buffer);
-                                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                                     org.mwg.utility.Base64.encodeLongToBuffer(value, buffer);
                                                 }
                                             });
@@ -7690,7 +7987,7 @@ var org;
                                             var eGSize = castedEGraph.size();
                                             org.mwg.utility.Base64.encodeIntToBuffer(eGSize, buffer);
                                             for (var j = 0; j < eGSize; j++) {
-                                                buffer.write(org.mwg.core.CoreConstants.CHUNK_ENODE_SEP);
+                                                buffer.write(org.mwg.internal.CoreConstants.CHUNK_ENODE_SEP);
                                                 eNodes[j].save(buffer);
                                             }
                                             castedEGraph._dirty = false;
@@ -7763,22 +8060,22 @@ var org;
                                             break;
                                         case org.mwg.Type.RELATION:
                                             if (casted._v[i] != null) {
-                                                this._v[i] = new org.mwg.core.chunk.heap.HeapRelation(this, casted._v[i]);
+                                                this._v[i] = new org.mwg.internal.chunk.heap.HeapRelation(this, casted._v[i]);
                                             }
                                             break;
                                         case org.mwg.Type.DMATRIX:
                                             if (casted._v[i] != null) {
-                                                this._v[i] = new org.mwg.core.chunk.heap.HeapDMatrix(this, casted._v[i]);
+                                                this._v[i] = new org.mwg.internal.chunk.heap.HeapDMatrix(this, casted._v[i]);
                                             }
                                             break;
                                         case org.mwg.Type.LMATRIX:
                                             if (casted._v[i] != null) {
-                                                this._v[i] = new org.mwg.core.chunk.heap.HeapLMatrix(this, casted._v[i]);
+                                                this._v[i] = new org.mwg.internal.chunk.heap.HeapLMatrix(this, casted._v[i]);
                                             }
                                             break;
                                         case org.mwg.Type.EGRAPH:
                                             if (casted._v[i] != null) {
-                                                this._v[i] = new org.mwg.core.chunk.heap.HeapEGraph(this, casted._v[i], this._space.graph());
+                                                this._v[i] = new org.mwg.internal.chunk.heap.HeapEGraph(this, casted._v[i], this._space.graph());
                                             }
                                             break;
                                         default:
@@ -8229,7 +8526,7 @@ var org;
                                                         previous = cursor;
                                                         break;
                                                     case org.mwg.Type.RELATION:
-                                                        var relation = new org.mwg.core.chunk.heap.HeapRelation(this, null);
+                                                        var relation = new org.mwg.internal.chunk.heap.HeapRelation(this, null);
                                                         cursor++;
                                                         cursor = relation.load(buffer, cursor, payloadSize);
                                                         this.internal_set(read_key, read_type, relation, true, initial);
@@ -8243,7 +8540,7 @@ var org;
                                                         }
                                                         break;
                                                     case org.mwg.Type.DMATRIX:
-                                                        var matrix = new org.mwg.core.chunk.heap.HeapDMatrix(this, null);
+                                                        var matrix = new org.mwg.internal.chunk.heap.HeapDMatrix(this, null);
                                                         cursor++;
                                                         cursor = matrix.load(buffer, cursor, payloadSize);
                                                         this.internal_set(read_key, read_type, matrix, true, initial);
@@ -8257,7 +8554,7 @@ var org;
                                                         }
                                                         break;
                                                     case org.mwg.Type.LMATRIX:
-                                                        var lmatrix = new org.mwg.core.chunk.heap.HeapLMatrix(this, null);
+                                                        var lmatrix = new org.mwg.internal.chunk.heap.HeapLMatrix(this, null);
                                                         cursor++;
                                                         cursor = lmatrix.load(buffer, cursor, payloadSize);
                                                         this.internal_set(read_key, read_type, lmatrix, true, initial);
@@ -8271,7 +8568,7 @@ var org;
                                                         }
                                                         break;
                                                     case org.mwg.Type.LONG_TO_LONG_MAP:
-                                                        var l2lmap = new org.mwg.core.chunk.heap.HeapLongLongMap(this);
+                                                        var l2lmap = new org.mwg.internal.chunk.heap.HeapLongLongMap(this);
                                                         cursor++;
                                                         cursor = l2lmap.load(buffer, cursor, payloadSize);
                                                         this.internal_set(read_key, read_type, l2lmap, true, initial);
@@ -8285,7 +8582,7 @@ var org;
                                                         }
                                                         break;
                                                     case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
-                                                        var l2lrmap = new org.mwg.core.chunk.heap.HeapLongLongArrayMap(this);
+                                                        var l2lrmap = new org.mwg.internal.chunk.heap.HeapLongLongArrayMap(this);
                                                         cursor++;
                                                         cursor = l2lrmap.load(buffer, cursor, payloadSize);
                                                         this.internal_set(read_key, read_type, l2lrmap, true, initial);
@@ -8299,7 +8596,7 @@ var org;
                                                         }
                                                         break;
                                                     case org.mwg.Type.RELATION_INDEXED:
-                                                        var relationIndexed = new org.mwg.core.chunk.heap.HeapRelationIndexed(this, this._space.graph());
+                                                        var relationIndexed = new org.mwg.internal.chunk.heap.HeapRelationIndexed(this, this._space.graph());
                                                         cursor++;
                                                         cursor = relationIndexed.load(buffer, cursor, payloadSize);
                                                         this.internal_set(read_key, read_type, relationIndexed, true, initial);
@@ -8313,7 +8610,7 @@ var org;
                                                         }
                                                         break;
                                                     case org.mwg.Type.STRING_TO_INT_MAP:
-                                                        var s2lmap = new org.mwg.core.chunk.heap.HeapStringIntMap(this);
+                                                        var s2lmap = new org.mwg.internal.chunk.heap.HeapStringIntMap(this);
                                                         cursor++;
                                                         cursor = s2lmap.load(buffer, cursor, payloadSize);
                                                         this.internal_set(read_key, read_type, s2lmap, true, initial);
@@ -8327,7 +8624,7 @@ var org;
                                                         }
                                                         break;
                                                     case org.mwg.Type.EGRAPH:
-                                                        var eGraph = new org.mwg.core.chunk.heap.HeapEGraph(this, null, this.graph());
+                                                        var eGraph = new org.mwg.internal.chunk.heap.HeapEGraph(this, null, this.graph());
                                                         cursor++;
                                                         cursor = eGraph.load(buffer, cursor, payloadSize);
                                                         this.internal_set(read_key, read_type, eGraph, true, initial);
@@ -8364,7 +8661,7 @@ var org;
                         HeapStateChunk.prototype.load_primitive = function (read_key, read_type, buffer, previous, cursor, initial) {
                             switch (read_type) {
                                 case org.mwg.Type.BOOL:
-                                    this.internal_set(read_key, read_type, (org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor) == org.mwg.core.CoreConstants.BOOL_TRUE), true, initial);
+                                    this.internal_set(read_key, read_type, (org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor) == org.mwg.internal.CoreConstants.BOOL_TRUE), true, initial);
                                     break;
                                 case org.mwg.Type.INT:
                                     this.internal_set(read_key, read_type, org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor), true, initial);
@@ -8461,7 +8758,7 @@ var org;
                             }
                         };
                         HeapStringIntMap.prototype.cloneFor = function (newContainer) {
-                            var cloned = new org.mwg.core.chunk.heap.HeapStringIntMap(newContainer);
+                            var cloned = new org.mwg.internal.chunk.heap.HeapStringIntMap(newContainer);
                             cloned.mapSize = this.mapSize;
                             cloned.capacity = this.capacity;
                             if (this.keys != null) {
@@ -8757,43 +9054,43 @@ var org;
                             }
                         };
                         HeapTimeTreeChunk.prototype.save = function (buffer) {
-                            if (this._extra != org.mwg.core.CoreConstants.NULL_LONG && this._extra != 0) {
+                            if (this._extra != org.mwg.internal.CoreConstants.NULL_LONG && this._extra != 0) {
                                 org.mwg.utility.Base64.encodeLongToBuffer(this._extra, buffer);
-                                buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                buffer.write(org.mwg.internal.CoreConstants.CHUNK_SEP);
                             }
-                            if (this._extra2 != org.mwg.core.CoreConstants.NULL_LONG && this._extra2 != 0) {
+                            if (this._extra2 != org.mwg.internal.CoreConstants.NULL_LONG && this._extra2 != 0) {
                                 org.mwg.utility.Base64.encodeLongToBuffer(this._extra2, buffer);
-                                buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                buffer.write(org.mwg.internal.CoreConstants.CHUNK_SEP);
                             }
                             org.mwg.utility.Base64.encodeIntToBuffer(this._size, buffer);
                             for (var i = 0; i < this._size; i++) {
-                                buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                 org.mwg.utility.Base64.encodeLongToBuffer(this._k[i], buffer);
                             }
                             this._dirty = false;
                             if (this._diff != null) {
-                                org.mwg.core.CoreConstants.fillBooleanArray(this._diff, false);
+                                org.mwg.internal.CoreConstants.fillBooleanArray(this._diff, false);
                             }
                         };
                         HeapTimeTreeChunk.prototype.saveDiff = function (buffer) {
                             if (this._dirty) {
-                                if (this._extra != org.mwg.core.CoreConstants.NULL_LONG && this._extra != 0) {
+                                if (this._extra != org.mwg.internal.CoreConstants.NULL_LONG && this._extra != 0) {
                                     org.mwg.utility.Base64.encodeLongToBuffer(this._extra, buffer);
-                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_SEP);
                                 }
-                                if (this._extra2 != org.mwg.core.CoreConstants.NULL_LONG && this._extra2 != 0) {
+                                if (this._extra2 != org.mwg.internal.CoreConstants.NULL_LONG && this._extra2 != 0) {
                                     org.mwg.utility.Base64.encodeLongToBuffer(this._extra2, buffer);
-                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_SEP);
                                 }
                                 org.mwg.utility.Base64.encodeIntToBuffer(this._size, buffer);
                                 for (var i = 0; i < this._size; i++) {
                                     if (this._diff[i]) {
-                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                        buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                         org.mwg.utility.Base64.encodeLongToBuffer(this._k[i], buffer);
                                     }
                                 }
                                 this._dirty = false;
-                                org.mwg.core.CoreConstants.fillBooleanArray(this._diff, false);
+                                org.mwg.internal.CoreConstants.fillBooleanArray(this._diff, false);
                             }
                         };
                         HeapTimeTreeChunk.prototype.load = function (buffer) {
@@ -8860,7 +9157,7 @@ var org;
                                 resultKey = this.key(result);
                             }
                             else {
-                                resultKey = org.mwg.core.CoreConstants.NULL_LONG;
+                                resultKey = org.mwg.internal.CoreConstants.NULL_LONG;
                             }
                             return resultKey;
                         };
@@ -8874,7 +9171,7 @@ var org;
                                 resultKey = this.key(result);
                             }
                             else {
-                                resultKey = org.mwg.core.CoreConstants.NULL_LONG;
+                                resultKey = org.mwg.internal.CoreConstants.NULL_LONG;
                             }
                             return resultKey;
                         };
@@ -8885,7 +9182,7 @@ var org;
                                 resultKey = this.key(result);
                             }
                             else {
-                                resultKey = org.mwg.core.CoreConstants.NULL_LONG;
+                                resultKey = org.mwg.internal.CoreConstants.NULL_LONG;
                             }
                             return resultKey;
                         };
@@ -8909,12 +9206,12 @@ var org;
                             this._back_meta = new Int32Array(this._k.length * HeapTimeTreeChunk.META_SIZE);
                             this._colors = [];
                             this._diff = [];
-                            org.mwg.core.CoreConstants.fillBooleanArray(this._diff, false);
+                            org.mwg.internal.CoreConstants.fillBooleanArray(this._diff, false);
                             this._root = -1;
                             var _previousSize = this._size;
                             this._size = 0;
                             for (var i = 0; i < _previousSize; i++) {
-                                if (previousValue[i] != org.mwg.core.CoreConstants.NULL_LONG && previousValue[i] < max) {
+                                if (previousValue[i] != org.mwg.internal.CoreConstants.NULL_LONG && previousValue[i] < max) {
                                     this.internal_insert(previousValue[i], false);
                                 }
                             }
@@ -8929,7 +9226,7 @@ var org;
                                 java.lang.System.arraycopy(this._k, 0, new_back_kv, 0, this._size);
                             }
                             var new_back_diff = [];
-                            org.mwg.core.CoreConstants.fillBooleanArray(new_back_diff, false);
+                            org.mwg.internal.CoreConstants.fillBooleanArray(new_back_diff, false);
                             if (this._diff != null) {
                                 java.lang.System.arraycopy(this._diff, 0, new_back_diff, 0, this._size);
                             }
@@ -9313,7 +9610,7 @@ var org;
                             this._space = p_space;
                             this._lock = 0;
                             this._magic = 0;
-                            this._extra = org.mwg.core.CoreConstants.NULL_LONG;
+                            this._extra = org.mwg.internal.CoreConstants.NULL_LONG;
                             this._size = 0;
                             this._capacity = 0;
                             this._kv = null;
@@ -9366,7 +9663,7 @@ var org;
                                     }
                                 }
                             }
-                            return org.mwg.core.CoreConstants.NULL_LONG;
+                            return org.mwg.internal.CoreConstants.NULL_LONG;
                         };
                         HeapWorldOrderChunk.prototype.put = function (key, value) {
                             this.internal_put(key, value, true);
@@ -9425,7 +9722,7 @@ var org;
                                 this._next = new Int32Array(this._capacity);
                                 java.util.Arrays.fill(this._next, 0, this._capacity, -1);
                                 this._diff = [];
-                                org.mwg.core.CoreConstants.fillBooleanArray(this._diff, false);
+                                org.mwg.internal.CoreConstants.fillBooleanArray(this._diff, false);
                                 this._hash = new Int32Array(this._capacity * 2);
                                 java.util.Arrays.fill(this._hash, 0, this._capacity * 2, -1);
                                 this._kv = new Float64Array(this._capacity * 2);
@@ -9453,7 +9750,7 @@ var org;
                                     this._diff = [];
                                     this._capacity = newCapacity;
                                     java.util.Arrays.fill(this._next, 0, newCapacity, -1);
-                                    org.mwg.core.CoreConstants.fillBooleanArray(this._diff, false);
+                                    org.mwg.internal.CoreConstants.fillBooleanArray(this._diff, false);
                                     java.util.Arrays.fill(this._hash, 0, newCapacity * 2, -1);
                                     return true;
                                 }
@@ -9461,7 +9758,7 @@ var org;
                                     var temp_kv = new Float64Array(newCapacity * 2);
                                     java.lang.System.arraycopy(this._kv, 0, temp_kv, 0, this._size * 2);
                                     var temp_diff = [];
-                                    org.mwg.core.CoreConstants.fillBooleanArray(temp_diff, false);
+                                    org.mwg.internal.CoreConstants.fillBooleanArray(temp_diff, false);
                                     java.lang.System.arraycopy(this._diff, 0, temp_diff, 0, this._size);
                                     var temp_next = new Int32Array(newCapacity);
                                     var temp_hash = new Int32Array(newCapacity * 2);
@@ -9496,7 +9793,7 @@ var org;
                                 var bufferSize = buffer.length();
                                 var initDone = false;
                                 var previousStart = 0;
-                                var loopKey = org.mwg.core.CoreConstants.NULL_LONG;
+                                var loopKey = org.mwg.internal.CoreConstants.NULL_LONG;
                                 while (cursor < bufferSize) {
                                     var current = buffer.read(cursor);
                                     switch (current) {
@@ -9509,13 +9806,13 @@ var org;
                                                 this.resize(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
                                                 initDone = true;
                                             }
-                                            else if (loopKey == org.mwg.core.CoreConstants.NULL_LONG) {
+                                            else if (loopKey == org.mwg.internal.CoreConstants.NULL_LONG) {
                                                 loopKey = org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
                                             }
                                             else {
                                                 var loopValue = org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
                                                 this.internal_put(loopKey, loopValue, !initial);
-                                                loopKey = org.mwg.core.CoreConstants.NULL_LONG;
+                                                loopKey = org.mwg.internal.CoreConstants.NULL_LONG;
                                             }
                                             previousStart = cursor + 1;
                                             break;
@@ -9526,7 +9823,7 @@ var org;
                                     this.resize(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, 0, cursor));
                                 }
                                 else {
-                                    if (loopKey != org.mwg.core.CoreConstants.NULL_LONG) {
+                                    if (loopKey != org.mwg.internal.CoreConstants.NULL_LONG) {
                                         var loopValue = org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
                                         this.internal_put(loopKey, loopValue, !initial);
                                     }
@@ -9546,31 +9843,31 @@ var org;
                             return org.mwg.chunk.ChunkType.WORLD_ORDER_CHUNK;
                         };
                         HeapWorldOrderChunk.prototype.save = function (buffer) {
-                            if (this._extra != org.mwg.core.CoreConstants.NULL_LONG) {
+                            if (this._extra != org.mwg.internal.CoreConstants.NULL_LONG) {
                                 org.mwg.utility.Base64.encodeLongToBuffer(this._extra, buffer);
-                                buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                buffer.write(org.mwg.internal.CoreConstants.CHUNK_SEP);
                             }
                             org.mwg.utility.Base64.encodeIntToBuffer(this._size, buffer);
                             for (var i = 0; i < this._size; i++) {
-                                buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                 org.mwg.utility.Base64.encodeLongToBuffer(this._kv[i * 2], buffer);
-                                buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                 org.mwg.utility.Base64.encodeLongToBuffer(this._kv[i * 2 + 1], buffer);
                             }
                             this._dirty = false;
                         };
                         HeapWorldOrderChunk.prototype.saveDiff = function (buffer) {
                             if (this._dirty) {
-                                if (this._extra != org.mwg.core.CoreConstants.NULL_LONG) {
+                                if (this._extra != org.mwg.internal.CoreConstants.NULL_LONG) {
                                     org.mwg.utility.Base64.encodeLongToBuffer(this._extra, buffer);
-                                    buffer.write(org.mwg.core.CoreConstants.CHUNK_SEP);
+                                    buffer.write(org.mwg.internal.CoreConstants.CHUNK_SEP);
                                 }
                                 org.mwg.utility.Base64.encodeIntToBuffer(this._size, buffer);
                                 for (var i = 0; i < this._size; i++) {
                                     if (this._diff[i]) {
-                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                        buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                         org.mwg.utility.Base64.encodeLongToBuffer(this._kv[i * 2], buffer);
-                                        buffer.write(org.mwg.core.CoreConstants.CHUNK_VAL_SEP);
+                                        buffer.write(org.mwg.internal.CoreConstants.CHUNK_VAL_SEP);
                                         org.mwg.utility.Base64.encodeLongToBuffer(this._kv[i * 2 + 1], buffer);
                                     }
                                 }
@@ -9581,7 +9878,7 @@ var org;
                     }());
                     heap.HeapWorldOrderChunk = HeapWorldOrderChunk;
                 })(heap = chunk_2.heap || (chunk_2.heap = {}));
-            })(chunk = core.chunk || (core.chunk = {}));
+            })(chunk = internal.chunk || (internal.chunk = {}));
             var memory;
             (function (memory) {
                 var HeapBuffer = (function () {
@@ -9595,7 +9892,7 @@ var org;
                     };
                     HeapBuffer.prototype.write = function (b) {
                         if (this.buffer == null) {
-                            this.buffer = new Int8Array(org.mwg.core.CoreConstants.MAP_INITIAL_CAPACITY);
+                            this.buffer = new Int8Array(org.mwg.internal.CoreConstants.MAP_INITIAL_CAPACITY);
                             this.buffer[0] = b;
                             this.writeCursor = 1;
                         }
@@ -9619,7 +9916,7 @@ var org;
                     };
                     HeapBuffer.prototype.writeAll = function (bytes) {
                         if (this.buffer == null) {
-                            var initSize = this.getNewSize(org.mwg.core.CoreConstants.MAP_INITIAL_CAPACITY, bytes.length);
+                            var initSize = this.getNewSize(org.mwg.internal.CoreConstants.MAP_INITIAL_CAPACITY, bytes.length);
                             this.buffer = new Int8Array(initSize);
                             java.lang.System.arraycopy(bytes, 0, this.buffer, 0, bytes.length);
                             this.writeCursor = bytes.length;
@@ -9669,15 +9966,15 @@ var org;
                     function HeapMemoryFactory() {
                     }
                     HeapMemoryFactory.prototype.newSpace = function (memorySize, graph) {
-                        return new org.mwg.core.chunk.heap.HeapChunkSpace(memorySize, graph);
+                        return new org.mwg.internal.chunk.heap.HeapChunkSpace(memorySize, graph);
                     };
                     HeapMemoryFactory.prototype.newBuffer = function () {
-                        return new org.mwg.core.memory.HeapBuffer();
+                        return new org.mwg.internal.memory.HeapBuffer();
                     };
                     return HeapMemoryFactory;
                 }());
                 memory.HeapMemoryFactory = HeapMemoryFactory;
-            })(memory = core.memory || (core.memory = {}));
+            })(memory = internal.memory || (internal.memory = {}));
             var scheduler;
             (function (scheduler) {
                 var JobQueue = (function () {
@@ -9686,7 +9983,7 @@ var org;
                         this.last = null;
                     }
                     JobQueue.prototype.add = function (item) {
-                        var elem = new org.mwg.core.scheduler.JobQueue.JobQueueElem(item, null);
+                        var elem = new org.mwg.internal.scheduler.JobQueue.JobQueueElem(item, null);
                         if (this.first == null) {
                             this.first = elem;
                             this.last = elem;
@@ -9730,7 +10027,7 @@ var org;
                 scheduler.NoopScheduler = NoopScheduler;
                 var TrampolineScheduler = (function () {
                     function TrampolineScheduler() {
-                        this.queue = new org.mwg.core.scheduler.JobQueue();
+                        this.queue = new org.mwg.internal.scheduler.JobQueue();
                         this.wip = new java.util.concurrent.atomic.AtomicInteger(0);
                     }
                     TrampolineScheduler.prototype.dispatch = function (affinity, job) {
@@ -9752,7 +10049,7 @@ var org;
                     return TrampolineScheduler;
                 }());
                 scheduler.TrampolineScheduler = TrampolineScheduler;
-            })(scheduler = core.scheduler || (core.scheduler = {}));
+            })(scheduler = internal.scheduler || (internal.scheduler = {}));
             var task;
             (function (task_1) {
                 var ActionAddRemoveToGlobalIndex = (function () {
@@ -9771,7 +10068,7 @@ var org;
                         var previousResult = ctx.result();
                         var templatedIndexName = ctx.template(this._name);
                         var templatedAttributes = ctx.templates(this._attributes);
-                        var counter = new org.mwg.core.utility.CoreDeferCounter(previousResult.size());
+                        var counter = new org.mwg.internal.utility.CoreDeferCounter(previousResult.size());
                         var _loop_5 = function (i) {
                             var loop = previousResult.get(i);
                             if (loop instanceof org.mwg.base.BaseNode) {
@@ -9806,15 +10103,15 @@ var org;
                     };
                     ActionAddRemoveToGlobalIndex.prototype.serialize = function (builder) {
                         if (this._timed) {
-                            builder.append(org.mwg.core.task.ActionNames.ADD_TO_GLOBAL_TIMED_INDEX);
+                            builder.append(org.mwg.internal.task.CoreActionNames.ADD_TO_GLOBAL_TIMED_INDEX);
                         }
                         else {
-                            builder.append(org.mwg.core.task.ActionNames.ADD_TO_GLOBAL_INDEX);
+                            builder.append(org.mwg.internal.task.CoreActionNames.ADD_TO_GLOBAL_INDEX);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeStringParams(this._attributes, builder);
+                        org.mwg.internal.task.TaskHelper.serializeStringParams(this._attributes, builder);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionAddRemoveToGlobalIndex.prototype.toString = function () {
@@ -9869,17 +10166,17 @@ var org;
                     };
                     ActionAddRemoveVarToRelation.prototype.serialize = function (builder) {
                         if (this._isAdd) {
-                            builder.append(org.mwg.core.task.ActionNames.ADD_VAR_TO_RELATION);
+                            builder.append(org.mwg.internal.task.CoreActionNames.ADD_VAR_TO_RELATION);
                         }
                         else {
-                            builder.append(org.mwg.core.task.ActionNames.REMOVE_VAR_TO_RELATION);
+                            builder.append(org.mwg.internal.task.CoreActionNames.REMOVE_VAR_TO_RELATION);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeString(this._varFrom, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._varFrom, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeStringParams(this._attributes, builder);
+                        org.mwg.internal.task.TaskHelper.serializeStringParams(this._attributes, builder);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionAddRemoveVarToRelation.prototype.toString = function () {
@@ -9908,9 +10205,9 @@ var org;
                         ctx.continueTask();
                     };
                     ActionAddToVar.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.ADD_TO_VAR);
+                        builder.append(org.mwg.internal.task.CoreActionNames.ADD_TO_VAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionAddToVar.prototype.toString = function () {
@@ -9954,14 +10251,14 @@ var org;
                     };
                     ActionAttributes.prototype.serialize = function (builder) {
                         if (this._filter == -1) {
-                            builder.append(org.mwg.core.task.ActionNames.ATTRIBUTES);
+                            builder.append(org.mwg.internal.task.CoreActionNames.ATTRIBUTES);
                             builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                             builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                         }
                         else {
-                            builder.append(org.mwg.core.task.ActionNames.ATTRIBUTES_WITH_TYPE);
+                            builder.append(org.mwg.internal.task.CoreActionNames.ATTRIBUTES_WITH_TYPE);
                             builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                            org.mwg.core.task.TaskHelper.serializeType(this._filter, builder);
+                            org.mwg.internal.task.TaskHelper.serializeType(this._filter, builder);
                             builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                         }
                     };
@@ -9980,7 +10277,7 @@ var org;
                         ctx.continueWith(ctx.newResult());
                     };
                     ActionClearResult.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.CLEAR_RESULT);
+                        builder.append(org.mwg.internal.task.CoreActionNames.CLEAR_RESULT);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
@@ -10009,14 +10306,14 @@ var org;
                     };
                     ActionCreateNode.prototype.serialize = function (builder) {
                         if (this._typeNode == null) {
-                            builder.append(org.mwg.core.task.ActionNames.CREATE_NODE);
+                            builder.append(org.mwg.internal.task.CoreActionNames.CREATE_NODE);
                             builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                             builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                         }
                         else {
-                            builder.append(org.mwg.core.task.ActionNames.CREATE_TYPED_NODE);
+                            builder.append(org.mwg.internal.task.CoreActionNames.CREATE_TYPED_NODE);
                             builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                            org.mwg.core.task.TaskHelper.serializeString(this._typeNode, builder, true);
+                            org.mwg.internal.task.TaskHelper.serializeString(this._typeNode, builder, true);
                             builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                         }
                     };
@@ -10038,7 +10335,7 @@ var org;
                     }
                     ActionDeclareVar.prototype.eval = function (ctx) {
                         if (this._isGlobal) {
-                            ctx.setGlobalVariable(ctx.template(this._name), org.mwg.core.task.Actions.emptyResult());
+                            ctx.setGlobalVariable(ctx.template(this._name), org.mwg.internal.task.CoreActions.emptyResult());
                         }
                         else {
                             ctx.declareVariable(ctx.template(this._name));
@@ -10047,13 +10344,13 @@ var org;
                     };
                     ActionDeclareVar.prototype.serialize = function (builder) {
                         if (this._isGlobal) {
-                            builder.append(org.mwg.core.task.ActionNames.DECLARE_GLOBAL_VAR);
+                            builder.append(org.mwg.internal.task.CoreActionNames.DECLARE_GLOBAL_VAR);
                         }
                         else {
-                            builder.append(org.mwg.core.task.ActionNames.DECLARE_VAR);
+                            builder.append(org.mwg.internal.task.CoreActionNames.DECLARE_VAR);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionDeclareVar.prototype.toString = function () {
@@ -10083,13 +10380,13 @@ var org;
                     };
                     ActionDefineAsVar.prototype.serialize = function (builder) {
                         if (this._global) {
-                            builder.append(org.mwg.core.task.ActionNames.DEFINE_AS_GLOBAL_VAR);
+                            builder.append(org.mwg.internal.task.CoreActionNames.DEFINE_AS_GLOBAL_VAR);
                         }
                         else {
-                            builder.append(org.mwg.core.task.ActionNames.DEFINE_AS_VAR);
+                            builder.append(org.mwg.internal.task.CoreActionNames.DEFINE_AS_VAR);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionDefineAsVar.prototype.toString = function () {
@@ -10103,7 +10400,7 @@ var org;
                 var ActionExecuteExpression = (function () {
                     function ActionExecuteExpression(mathExpression) {
                         this._expression = mathExpression;
-                        this._engine = org.mwg.core.task.math.CoreMathExpressionEngine.parse(mathExpression);
+                        this._engine = org.mwg.internal.task.math.CoreMathExpressionEngine.parse(mathExpression);
                     }
                     ActionExecuteExpression.prototype.eval = function (ctx) {
                         var previous = ctx.result();
@@ -10127,9 +10424,9 @@ var org;
                         ctx.continueWith(next);
                     };
                     ActionExecuteExpression.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.EXECUTE_EXPRESSION);
+                        builder.append(org.mwg.internal.task.CoreActionNames.EXECUTE_EXPRESSION);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._expression, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._expression, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionExecuteExpression.prototype.toString = function () {
@@ -10152,7 +10449,7 @@ var org;
                             var next = ctx.newResult();
                             for (var i = 0; i < result.size(); i++) {
                                 var loop = result.get(i);
-                                if (loop instanceof org.mwg.core.task.CoreTaskResult) {
+                                if (loop instanceof org.mwg.base.BaseTaskResult) {
                                     var casted = loop;
                                     for (var j = 0; j < casted.size(); j++) {
                                         var resultLoop = casted.get(j);
@@ -10171,7 +10468,7 @@ var org;
                         }
                     };
                     ActionFlat.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.FLAT);
+                        builder.append(org.mwg.internal.task.CoreActionNames.FLAT);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
@@ -10197,9 +10494,9 @@ var org;
                         ctx.continueWith(nextResult);
                     };
                     ActionFlipVar.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.FLIP_VAR);
+                        builder.append(org.mwg.internal.task.CoreActionNames.FLIP_VAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionFlipVar.prototype.toString = function () {
@@ -10221,7 +10518,7 @@ var org;
                         });
                     };
                     ActionIndexNames.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.INDEX_NAMES);
+                        builder.append(org.mwg.internal.task.CoreActionNames.INDEX_NAMES);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
@@ -10265,9 +10562,9 @@ var org;
                         });
                     };
                     ActionLookup.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.LOOKUP);
+                        builder.append(org.mwg.internal.task.CoreActionNames.LOOKUP);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._id, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._id, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionLookup.prototype.toString = function () {
@@ -10299,9 +10596,9 @@ var org;
                         });
                     };
                     ActionLookupAll.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.LOOKUP_ALL);
+                        builder.append(org.mwg.internal.task.CoreActionNames.LOOKUP_ALL);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._ids, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._ids, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionLookupAll.prototype.toString = function () {
@@ -10336,7 +10633,7 @@ var org;
                     };
                     ActionNamed.prototype.serialize = function (builder) {
                         builder.append(this._name);
-                        org.mwg.core.task.TaskHelper.serializeStringParams(this._params, builder);
+                        org.mwg.internal.task.TaskHelper.serializeStringParams(this._params, builder);
                     };
                     ActionNamed.prototype.toString = function () {
                         var res = new java.lang.StringBuilder();
@@ -10346,67 +10643,6 @@ var org;
                     return ActionNamed;
                 }());
                 task_1.ActionNamed = ActionNamed;
-                var ActionNames = (function () {
-                    function ActionNames() {
-                    }
-                    return ActionNames;
-                }());
-                ActionNames.ADD_VAR_TO_RELATION = "addVarToRelation";
-                ActionNames.REMOVE_VAR_TO_RELATION = "removeVarToRelation";
-                ActionNames.ADD_TO_GLOBAL_INDEX = "addToGlobalIndex";
-                ActionNames.ADD_TO_GLOBAL_TIMED_INDEX = "addToGlobalTimedIndex";
-                ActionNames.ADD_TO_VAR = "addToVar";
-                ActionNames.ATTRIBUTES = "attributes";
-                ActionNames.ATTRIBUTES_WITH_TYPE = "attributesWithType";
-                ActionNames.CLEAR_RESULT = "clearResult";
-                ActionNames.CREATE_NODE = "createNode";
-                ActionNames.CREATE_TYPED_NODE = "createTypedNode";
-                ActionNames.DECLARE_GLOBAL_VAR = "declareGlobalVar";
-                ActionNames.DECLARE_VAR = "declareVar";
-                ActionNames.FLIP_VAR = "flipVar";
-                ActionNames.DEFINE_AS_GLOBAL_VAR = "defineAsGlobalVar";
-                ActionNames.DEFINE_AS_VAR = "defineAsVar";
-                ActionNames.EXECUTE_EXPRESSION = "executeExpression";
-                ActionNames.INDEX_NAMES = "indexNames";
-                ActionNames.LOOKUP = "lookup";
-                ActionNames.LOOKUP_ALL = "lookupAll";
-                ActionNames.PRINT = "print";
-                ActionNames.PRINTLN = "println";
-                ActionNames.READ_GLOBAL_INDEX = "readGlobalIndex";
-                ActionNames.READ_VAR = "readVar";
-                ActionNames.REMOVE = "remove";
-                ActionNames.REMOVE_FROM_GLOBAL_INDEX = "removeFromGlobalIndex";
-                ActionNames.SAVE = "save";
-                ActionNames.SCRIPT = "script";
-                ActionNames.ASYNC_SCRIPT = "asyncScript";
-                ActionNames.SELECT = "select";
-                ActionNames.SET_AS_VAR = "setAsVar";
-                ActionNames.FORCE_ATTRIBUTE = "forceAttribute";
-                ActionNames.SET_ATTRIBUTE = "setAttribute";
-                ActionNames.TIME_SENSITIVITY = "timeSensitivity";
-                ActionNames.TIMEPOINTS = "timepoints";
-                ActionNames.TRAVEL_IN_TIME = "travelInTime";
-                ActionNames.TRAVEL_IN_WORLD = "travelInWorld";
-                ActionNames.WITH = "with";
-                ActionNames.WITHOUT = "without";
-                ActionNames.TRAVERSE = "traverse";
-                ActionNames.ATTRIBUTE = "attribute";
-                ActionNames.LOOP = "loop";
-                ActionNames.LOOP_PAR = "loopPar";
-                ActionNames.FOR_EACH = "forEach";
-                ActionNames.FOR_EACH_PAR = "forEachPar";
-                ActionNames.MAP = "map";
-                ActionNames.MAP_PAR = "mapPar";
-                ActionNames.PIPE = "pipe";
-                ActionNames.PIPE_PAR = "pipePar";
-                ActionNames.DO_WHILE = "doWhile";
-                ActionNames.WHILE_DO = "whileDo";
-                ActionNames.ISOLATE = "isolate";
-                ActionNames.IF_THEN = "ifThen";
-                ActionNames.IF_THEN_ELSE = "ifThenElse";
-                ActionNames.ATOMIC = "atomic";
-                ActionNames.FLAT = "flat";
-                task_1.ActionNames = ActionNames;
                 var ActionPrint = (function () {
                     function ActionPrint(p_name, withLineBreak) {
                         this._name = p_name;
@@ -10423,13 +10659,13 @@ var org;
                     };
                     ActionPrint.prototype.serialize = function (builder) {
                         if (this._withLineBreak) {
-                            builder.append(org.mwg.core.task.ActionNames.PRINTLN);
+                            builder.append(org.mwg.internal.task.CoreActionNames.PRINTLN);
                         }
                         else {
-                            builder.append(org.mwg.core.task.ActionNames.PRINT);
+                            builder.append(org.mwg.internal.task.CoreActionNames.PRINT);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionPrint.prototype.toString = function () {
@@ -10475,12 +10711,12 @@ var org;
                         });
                     };
                     ActionReadGlobalIndex.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.READ_GLOBAL_INDEX);
+                        builder.append(org.mwg.internal.task.CoreActionNames.READ_GLOBAL_INDEX);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._name, builder, true);
                         if (this._params != null && this._params.length > 0) {
                             builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                            org.mwg.core.task.TaskHelper.serializeStringParams(this._params, builder);
+                            org.mwg.internal.task.TaskHelper.serializeStringParams(this._params, builder);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
@@ -10509,7 +10745,7 @@ var org;
                             cursor--;
                         }
                         if (indexEnd != -1 && indexStart != -1) {
-                            this._index = org.mwg.core.task.TaskHelper.parseInt(p_name.substring(indexStart, indexEnd));
+                            this._index = org.mwg.internal.task.TaskHelper.parseInt(p_name.substring(indexStart, indexEnd));
                             this._name = p_name.substring(0, indexStart - 1);
                         }
                         else {
@@ -10532,9 +10768,9 @@ var org;
                         ctx.continueWith(varResult);
                     };
                     ActionReadVar.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.READ_VAR);
+                        builder.append(org.mwg.internal.task.CoreActionNames.READ_VAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._origin, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._origin, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionReadVar.prototype.toString = function () {
@@ -10564,9 +10800,9 @@ var org;
                         ctx.continueTask();
                     };
                     ActionRemove.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.REMOVE);
+                        builder.append(org.mwg.internal.task.CoreActionNames.REMOVE);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionRemove.prototype.toString = function () {
@@ -10588,7 +10824,7 @@ var org;
                         });
                     };
                     ActionSave.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.SAVE);
+                        builder.append(org.mwg.internal.task.CoreActionNames.SAVE);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
@@ -10627,13 +10863,13 @@ var org;
                     };
                     ActionScript.prototype.serialize = function (builder) {
                         if (this._async) {
-                            builder.append(org.mwg.core.task.ActionNames.ASYNC_SCRIPT);
+                            builder.append(org.mwg.internal.task.CoreActionNames.ASYNC_SCRIPT);
                         }
                         else {
-                            builder.append(org.mwg.core.task.ActionNames.SCRIPT);
+                            builder.append(org.mwg.internal.task.CoreActionNames.SCRIPT);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._script, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._script, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionScript.prototype.toString = function () {
@@ -10682,9 +10918,9 @@ var org;
                         if (this._script == null) {
                             throw new Error("Select remote usage not managed yet, please use SelectScript instead !");
                         }
-                        builder.append(org.mwg.core.task.ActionNames.SELECT);
+                        builder.append(org.mwg.internal.task.CoreActionNames.SELECT);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._script, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._script, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionSelect.prototype.toString = function () {
@@ -10753,7 +10989,7 @@ var org;
                         ctx.continueTask();
                     };
                     ActionSetAsVar.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.SET_AS_VAR);
+                        builder.append(org.mwg.internal.task.CoreActionNames.SET_AS_VAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         builder.append(this._name);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
@@ -10784,7 +11020,7 @@ var org;
                                     toSet = this.parseBoolean(valueAfterTemplate);
                                     break;
                                 case org.mwg.Type.INT:
-                                    toSet = org.mwg.core.task.TaskHelper.parseInt(valueAfterTemplate);
+                                    toSet = org.mwg.internal.task.TaskHelper.parseInt(valueAfterTemplate);
                                     break;
                                 case org.mwg.Type.DOUBLE:
                                     toSet = parseFloat(valueAfterTemplate);
@@ -10871,17 +11107,17 @@ var org;
                     };
                     ActionSetAttribute.prototype.serialize = function (builder) {
                         if (this._force) {
-                            builder.append(org.mwg.core.task.ActionNames.FORCE_ATTRIBUTE);
+                            builder.append(org.mwg.internal.task.CoreActionNames.FORCE_ATTRIBUTE);
                         }
                         else {
-                            builder.append(org.mwg.core.task.ActionNames.SET_ATTRIBUTE);
+                            builder.append(org.mwg.internal.task.CoreActionNames.SET_ATTRIBUTE);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeType(this._propertyType, builder);
+                        org.mwg.internal.task.TaskHelper.serializeType(this._propertyType, builder);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeString(this._value, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._value, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionSetAttribute.prototype.toString = function () {
@@ -10909,7 +11145,7 @@ var org;
                         ctx.continueTask();
                     };
                     ActionTimeSensitivity.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.SET_ATTRIBUTE);
+                        builder.append(org.mwg.internal.task.CoreActionNames.SET_ATTRIBUTE);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         builder.append(this._delta);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
@@ -10967,7 +11203,7 @@ var org;
                         }
                         var next = ctx.newResult();
                         if (previous != null) {
-                            var defer_1 = new org.mwg.core.utility.CoreDeferCounter(previous.size());
+                            var defer_1 = new org.mwg.internal.utility.CoreDeferCounter(previous.size());
                             var _loop_6 = function (i) {
                                 if (previous.get(i) instanceof org.mwg.base.BaseNode) {
                                     var casted_1 = previous.get(i);
@@ -10997,7 +11233,7 @@ var org;
                         }
                     };
                     ActionTimepoints.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.TIMEPOINTS);
+                        builder.append(org.mwg.internal.task.CoreActionNames.TIMEPOINTS);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
@@ -11033,7 +11269,7 @@ var org;
                         }
                         ctx.setTime(parsedTime);
                         var previous = ctx.result();
-                        var defer = new org.mwg.core.utility.CoreDeferCounter(previous.size());
+                        var defer = new org.mwg.internal.utility.CoreDeferCounter(previous.size());
                         var previousSize = previous.size();
                         var _loop_7 = function (i) {
                             var loopObj = previous.get(i);
@@ -11062,7 +11298,7 @@ var org;
                         });
                     };
                     ActionTravelInTime.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.TRAVEL_IN_TIME);
+                        builder.append(org.mwg.internal.task.CoreActionNames.TRAVEL_IN_TIME);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         builder.append(this._time);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
@@ -11099,7 +11335,7 @@ var org;
                         }
                         ctx.setWorld(parsedWorld);
                         var previous = ctx.result();
-                        var defer = new org.mwg.core.utility.CoreDeferCounter(previous.size());
+                        var defer = new org.mwg.internal.utility.CoreDeferCounter(previous.size());
                         var previousSize = previous.size();
                         var _loop_8 = function (i) {
                             var loopObj = previous.get(i);
@@ -11128,7 +11364,7 @@ var org;
                         });
                     };
                     ActionTravelInWorld.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.TRAVEL_IN_TIME);
+                        builder.append(org.mwg.internal.task.CoreActionNames.TRAVEL_IN_TIME);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         builder.append(this._world);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
@@ -11265,18 +11501,18 @@ var org;
                         }
                         else {
                             if (this._isAttribute) {
-                                builder.append(org.mwg.core.task.ActionNames.ATTRIBUTE);
+                                builder.append(org.mwg.internal.task.CoreActionNames.ATTRIBUTE);
                                 builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                                 builder.append(this._name);
                                 builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                             }
                             else {
-                                builder.append(org.mwg.core.task.ActionNames.TRAVERSE);
+                                builder.append(org.mwg.internal.task.CoreActionNames.TRAVERSE);
                                 builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                                 builder.append(this._name);
                                 if (this._params != null && this._params.length > 0) {
                                     builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                                    org.mwg.core.task.TaskHelper.serializeStringParams(this._params, builder);
+                                    org.mwg.internal.task.TaskHelper.serializeStringParams(this._params, builder);
                                 }
                                 builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                             }
@@ -11322,11 +11558,11 @@ var org;
                         ctx.continueWith(next);
                     };
                     ActionWith.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.WITH);
+                        builder.append(org.mwg.internal.task.CoreActionNames.WITH);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeString(this._patternTemplate, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._patternTemplate, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionWith.prototype.toString = function () {
@@ -11369,11 +11605,11 @@ var org;
                         ctx.continueWith(next);
                     };
                     ActionWithout.prototype.serialize = function (builder) {
-                        builder.append(org.mwg.core.task.ActionNames.WITHOUT);
+                        builder.append(org.mwg.internal.task.CoreActionNames.WITHOUT);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._name, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._name, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeString(this._patternTemplate, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._patternTemplate, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     ActionWithout.prototype.toString = function () {
@@ -11384,287 +11620,6 @@ var org;
                     return ActionWithout;
                 }());
                 task_1.ActionWithout = ActionWithout;
-                var Actions = (function () {
-                    function Actions() {
-                    }
-                    Actions.flat = function () {
-                        return new org.mwg.core.task.ActionFlat();
-                    };
-                    Actions.travelInWorld = function (world) {
-                        return new org.mwg.core.task.ActionTravelInWorld(world);
-                    };
-                    Actions.travelInTime = function (time) {
-                        return new org.mwg.core.task.ActionTravelInTime(time);
-                    };
-                    Actions.inject = function (input) {
-                        return new org.mwg.core.task.ActionInject(input);
-                    };
-                    Actions.defineAsGlobalVar = function (name) {
-                        return new org.mwg.core.task.ActionDefineAsVar(name, true);
-                    };
-                    Actions.defineAsVar = function (name) {
-                        return new org.mwg.core.task.ActionDefineAsVar(name, false);
-                    };
-                    Actions.declareGlobalVar = function (name) {
-                        return new org.mwg.core.task.ActionDeclareVar(true, name);
-                    };
-                    Actions.declareVar = function (name) {
-                        return new org.mwg.core.task.ActionDeclareVar(false, name);
-                    };
-                    Actions.readVar = function (name) {
-                        return new org.mwg.core.task.ActionReadVar(name);
-                    };
-                    Actions.flipVar = function (name) {
-                        return new org.mwg.core.task.ActionFlipVar(name);
-                    };
-                    Actions.setAsVar = function (name) {
-                        return new org.mwg.core.task.ActionSetAsVar(name);
-                    };
-                    Actions.addToVar = function (name) {
-                        return new org.mwg.core.task.ActionAddToVar(name);
-                    };
-                    Actions.setAttribute = function (name, type, value) {
-                        return new org.mwg.core.task.ActionSetAttribute(name, type, value, false);
-                    };
-                    Actions.timeSensitivity = function (delta, offset) {
-                        return new org.mwg.core.task.ActionTimeSensitivity(delta, offset);
-                    };
-                    Actions.forceAttribute = function (name, type, value) {
-                        return new org.mwg.core.task.ActionSetAttribute(name, type, value, true);
-                    };
-                    Actions.remove = function (name) {
-                        return new org.mwg.core.task.ActionRemove(name);
-                    };
-                    Actions.attributes = function () {
-                        return new org.mwg.core.task.ActionAttributes(-1);
-                    };
-                    Actions.attributesWithTypes = function (filterType) {
-                        return new org.mwg.core.task.ActionAttributes(filterType);
-                    };
-                    Actions.addVarToRelation = function (relName, varName) {
-                        var attributes = [];
-                        for (var _i = 2; _i < arguments.length; _i++) {
-                            attributes[_i - 2] = arguments[_i];
-                        }
-                        return new ((_a = org.mwg.core.task.ActionAddRemoveVarToRelation).bind.apply(_a, [void 0, true, relName, varName].concat(attributes)))();
-                        var _a;
-                    };
-                    Actions.removeVarFromRelation = function (relName, varFrom) {
-                        var attributes = [];
-                        for (var _i = 2; _i < arguments.length; _i++) {
-                            attributes[_i - 2] = arguments[_i];
-                        }
-                        return new ((_a = org.mwg.core.task.ActionAddRemoveVarToRelation).bind.apply(_a, [void 0, false, relName, varFrom].concat(attributes)))();
-                        var _a;
-                    };
-                    Actions.traverse = function (name) {
-                        var params = [];
-                        for (var _i = 1; _i < arguments.length; _i++) {
-                            params[_i - 1] = arguments[_i];
-                        }
-                        return new ((_a = org.mwg.core.task.ActionTraverseOrAttribute).bind.apply(_a, [void 0, false, false, name].concat(params)))();
-                        var _a;
-                    };
-                    Actions.attribute = function (name) {
-                        var params = [];
-                        for (var _i = 1; _i < arguments.length; _i++) {
-                            params[_i - 1] = arguments[_i];
-                        }
-                        return new ((_a = org.mwg.core.task.ActionTraverseOrAttribute).bind.apply(_a, [void 0, true, false, name].concat(params)))();
-                        var _a;
-                    };
-                    Actions.readGlobalIndex = function (indexName) {
-                        var query = [];
-                        for (var _i = 1; _i < arguments.length; _i++) {
-                            query[_i - 1] = arguments[_i];
-                        }
-                        return new ((_a = org.mwg.core.task.ActionReadGlobalIndex).bind.apply(_a, [void 0, indexName].concat(query)))();
-                        var _a;
-                    };
-                    Actions.addToGlobalIndex = function (name) {
-                        var attributes = [];
-                        for (var _i = 1; _i < arguments.length; _i++) {
-                            attributes[_i - 1] = arguments[_i];
-                        }
-                        return new ((_a = org.mwg.core.task.ActionAddRemoveToGlobalIndex).bind.apply(_a, [void 0, false, false, name].concat(attributes)))();
-                        var _a;
-                    };
-                    Actions.addToGlobalTimedIndex = function (name) {
-                        var attributes = [];
-                        for (var _i = 1; _i < arguments.length; _i++) {
-                            attributes[_i - 1] = arguments[_i];
-                        }
-                        return new ((_a = org.mwg.core.task.ActionAddRemoveToGlobalIndex).bind.apply(_a, [void 0, false, true, name].concat(attributes)))();
-                        var _a;
-                    };
-                    Actions.removeFromGlobalIndex = function (name) {
-                        var attributes = [];
-                        for (var _i = 1; _i < arguments.length; _i++) {
-                            attributes[_i - 1] = arguments[_i];
-                        }
-                        return new ((_a = org.mwg.core.task.ActionAddRemoveToGlobalIndex).bind.apply(_a, [void 0, true, false, name].concat(attributes)))();
-                        var _a;
-                    };
-                    Actions.removeFromGlobalTimedIndex = function (name) {
-                        var attributes = [];
-                        for (var _i = 1; _i < arguments.length; _i++) {
-                            attributes[_i - 1] = arguments[_i];
-                        }
-                        return new ((_a = org.mwg.core.task.ActionAddRemoveToGlobalIndex).bind.apply(_a, [void 0, true, true, name].concat(attributes)))();
-                        var _a;
-                    };
-                    Actions.indexNames = function () {
-                        return new org.mwg.core.task.ActionIndexNames();
-                    };
-                    Actions.selectWith = function (name, pattern) {
-                        return new org.mwg.core.task.ActionWith(name, pattern);
-                    };
-                    Actions.selectWithout = function (name, pattern) {
-                        return new org.mwg.core.task.ActionWithout(name, pattern);
-                    };
-                    Actions.select = function (filterFunction) {
-                        return new org.mwg.core.task.ActionSelect(null, filterFunction);
-                    };
-                    Actions.selectObject = function (filterFunction) {
-                        return new org.mwg.core.task.ActionSelectObject(filterFunction);
-                    };
-                    Actions.selectScript = function (script) {
-                        return new org.mwg.core.task.ActionSelect(script, null);
-                    };
-                    Actions.print = function (name) {
-                        return new org.mwg.core.task.ActionPrint(name, false);
-                    };
-                    Actions.println = function (name) {
-                        return new org.mwg.core.task.ActionPrint(name, true);
-                    };
-                    Actions.executeExpression = function (expression) {
-                        return new org.mwg.core.task.ActionExecuteExpression(expression);
-                    };
-                    Actions.action = function (name) {
-                        var params = [];
-                        for (var _i = 1; _i < arguments.length; _i++) {
-                            params[_i - 1] = arguments[_i];
-                        }
-                        return new ((_a = org.mwg.core.task.ActionNamed).bind.apply(_a, [void 0, name].concat(params)))();
-                        var _a;
-                    };
-                    Actions.createNode = function () {
-                        return new org.mwg.core.task.ActionCreateNode(null);
-                    };
-                    Actions.createTypedNode = function (type) {
-                        return new org.mwg.core.task.ActionCreateNode(type);
-                    };
-                    Actions.save = function () {
-                        return new org.mwg.core.task.ActionSave();
-                    };
-                    Actions.script = function (script) {
-                        return new org.mwg.core.task.ActionScript(script, false);
-                    };
-                    Actions.asyncScript = function (script) {
-                        return new org.mwg.core.task.ActionScript(script, true);
-                    };
-                    Actions.lookup = function (nodeId) {
-                        return new org.mwg.core.task.ActionLookup(nodeId);
-                    };
-                    Actions.lookupAll = function (nodeIds) {
-                        return new org.mwg.core.task.ActionLookupAll(nodeIds);
-                    };
-                    Actions.timepoints = function (from, to) {
-                        return new org.mwg.core.task.ActionTimepoints(from, to);
-                    };
-                    Actions.clearResult = function () {
-                        return new org.mwg.core.task.ActionClearResult();
-                    };
-                    Actions.cond = function (mathExpression) {
-                        return new org.mwg.core.task.math.MathConditional(mathExpression).conditional();
-                    };
-                    Actions.newTask = function () {
-                        return new org.mwg.core.task.CoreTask();
-                    };
-                    Actions.emptyResult = function () {
-                        return new org.mwg.core.task.CoreTaskResult(null, false);
-                    };
-                    Actions.then = function (action) {
-                        return org.mwg.core.task.Actions.newTask().then(action);
-                    };
-                    Actions.thenDo = function (actionFunction) {
-                        return org.mwg.core.task.Actions.newTask().thenDo(actionFunction);
-                    };
-                    Actions.loop = function (from, to, subTask) {
-                        return org.mwg.core.task.Actions.newTask().loop(from, to, subTask);
-                    };
-                    Actions.loopPar = function (from, to, subTask) {
-                        return org.mwg.core.task.Actions.newTask().loopPar(from, to, subTask);
-                    };
-                    Actions.forEach = function (subTask) {
-                        return org.mwg.core.task.Actions.newTask().forEach(subTask);
-                    };
-                    Actions.forEachPar = function (subTask) {
-                        return org.mwg.core.task.Actions.newTask().forEachPar(subTask);
-                    };
-                    Actions.map = function (subTask) {
-                        return org.mwg.core.task.Actions.newTask().map(subTask);
-                    };
-                    Actions.mapPar = function (subTask) {
-                        return org.mwg.core.task.Actions.newTask().mapPar(subTask);
-                    };
-                    Actions.ifThen = function (cond, then) {
-                        return org.mwg.core.task.Actions.newTask().ifThen(cond, then);
-                    };
-                    Actions.ifThenScript = function (condScript, then) {
-                        return org.mwg.core.task.Actions.newTask().ifThenScript(condScript, then);
-                    };
-                    Actions.ifThenElse = function (cond, thenSub, elseSub) {
-                        return org.mwg.core.task.Actions.newTask().ifThenElse(cond, thenSub, elseSub);
-                    };
-                    Actions.ifThenElseScript = function (condScript, thenSub, elseSub) {
-                        return org.mwg.core.task.Actions.newTask().ifThenElseScript(condScript, thenSub, elseSub);
-                    };
-                    Actions.doWhile = function (task, cond) {
-                        return org.mwg.core.task.Actions.newTask().doWhile(task, cond);
-                    };
-                    Actions.doWhileScript = function (task, condScript) {
-                        return org.mwg.core.task.Actions.newTask().doWhileScript(task, condScript);
-                    };
-                    Actions.whileDo = function (cond, task) {
-                        return org.mwg.core.task.Actions.newTask().whileDo(cond, task);
-                    };
-                    Actions.whileDoScript = function (condScript, task) {
-                        return org.mwg.core.task.Actions.newTask().whileDoScript(condScript, task);
-                    };
-                    Actions.pipe = function () {
-                        var subTasks = [];
-                        for (var _i = 0; _i < arguments.length; _i++) {
-                            subTasks[_i] = arguments[_i];
-                        }
-                        return (_a = org.mwg.core.task.Actions.newTask()).pipe.apply(_a, subTasks);
-                        var _a;
-                    };
-                    Actions.pipePar = function () {
-                        var subTasks = [];
-                        for (var _i = 0; _i < arguments.length; _i++) {
-                            subTasks[_i] = arguments[_i];
-                        }
-                        return (_a = org.mwg.core.task.Actions.newTask()).pipePar.apply(_a, subTasks);
-                        var _a;
-                    };
-                    Actions.isolate = function (subTask) {
-                        return org.mwg.core.task.Actions.newTask().isolate(subTask);
-                    };
-                    Actions.atomic = function (protectedTask) {
-                        var variablesToLock = [];
-                        for (var _i = 1; _i < arguments.length; _i++) {
-                            variablesToLock[_i - 1] = arguments[_i];
-                        }
-                        return (_a = org.mwg.core.task.Actions.newTask()).atomic.apply(_a, [protectedTask].concat(variablesToLock));
-                        var _a;
-                    };
-                    Actions.parse = function (flat, graph) {
-                        return org.mwg.core.task.Actions.newTask().parse(flat, graph);
-                    };
-                    return Actions;
-                }());
-                task_1.Actions = Actions;
                 var CF_Action = (function () {
                     function CF_Action() {
                     }
@@ -11751,7 +11706,7 @@ var org;
                         return children_tasks;
                     };
                     CF_Atomic.prototype.cf_serialize = function (builder, dagIDS) {
-                        builder.append(org.mwg.core.task.ActionNames.LOOP);
+                        builder.append(org.mwg.internal.task.CoreActionNames.LOOP);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
@@ -11765,12 +11720,12 @@ var org;
                         }
                         for (var i = 0; i < this._variables.length; i++) {
                             builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                            org.mwg.core.task.TaskHelper.serializeString(this._variables[i], builder, true);
+                            org.mwg.internal.task.TaskHelper.serializeString(this._variables[i], builder, true);
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     return CF_Atomic;
-                }(org.mwg.core.task.CF_Action));
+                }(org.mwg.internal.task.CF_Action));
                 task_1.CF_Atomic = CF_Atomic;
                 var CF_DoWhile = (function (_super) {
                     __extends(CF_DoWhile, _super);
@@ -11829,7 +11784,7 @@ var org;
                         if (this._conditionalScript == null) {
                             throw new Error("Closure is not serializable, please use Script version instead!");
                         }
-                        builder.append(org.mwg.core.task.ActionNames.DO_WHILE);
+                        builder.append(org.mwg.internal.task.CoreActionNames.DO_WHILE);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         var castedAction = this._then;
                         var castedActionHash = castedAction.hashCode();
@@ -11842,11 +11797,11 @@ var org;
                             builder.append("" + dagIDS.get(castedActionHash));
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeString(this._conditionalScript, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._conditionalScript, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     return CF_DoWhile;
-                }(org.mwg.core.task.CF_Action));
+                }(org.mwg.internal.task.CF_Action));
                 task_1.CF_DoWhile = CF_DoWhile;
                 var CF_ForEach = (function (_super) {
                     __extends(CF_ForEach, _super);
@@ -11913,7 +11868,7 @@ var org;
                         return children_tasks;
                     };
                     CF_ForEach.prototype.cf_serialize = function (builder, dagIDS) {
-                        builder.append(org.mwg.core.task.ActionNames.FOR_EACH);
+                        builder.append(org.mwg.internal.task.CoreActionNames.FOR_EACH);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
@@ -11928,7 +11883,7 @@ var org;
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     return CF_ForEach;
-                }(org.mwg.core.task.CF_Action));
+                }(org.mwg.internal.task.CF_Action));
                 task_1.CF_ForEach = CF_ForEach;
                 var CF_ForEachPar = (function (_super) {
                     __extends(CF_ForEachPar, _super);
@@ -11996,7 +11951,7 @@ var org;
                         return children_tasks;
                     };
                     CF_ForEachPar.prototype.cf_serialize = function (builder, dagIDS) {
-                        builder.append(org.mwg.core.task.ActionNames.FOR_EACH_PAR);
+                        builder.append(org.mwg.internal.task.CoreActionNames.FOR_EACH_PAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
@@ -12011,7 +11966,7 @@ var org;
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     return CF_ForEachPar;
-                }(org.mwg.core.task.CF_Action));
+                }(org.mwg.internal.task.CF_Action));
                 task_1.CF_ForEachPar = CF_ForEachPar;
                 var CF_IfThen = (function (_super) {
                     __extends(CF_IfThen, _super);
@@ -12063,9 +12018,9 @@ var org;
                         if (this._conditionalScript == null) {
                             throw new Error("Closure is not serializable, please use Script version instead!");
                         }
-                        builder.append(org.mwg.core.task.ActionNames.IF_THEN);
+                        builder.append(org.mwg.internal.task.CoreActionNames.IF_THEN);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._conditionalScript, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._conditionalScript, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                         var castedAction = this._action;
                         var castedActionHash = castedAction.hashCode();
@@ -12080,7 +12035,7 @@ var org;
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     return CF_IfThen;
-                }(org.mwg.core.task.CF_Action));
+                }(org.mwg.internal.task.CF_Action));
                 task_1.CF_IfThen = CF_IfThen;
                 var CF_IfThenElse = (function (_super) {
                     __extends(CF_IfThenElse, _super);
@@ -12139,9 +12094,9 @@ var org;
                         if (this._conditionalScript == null) {
                             throw new Error("Closure is not serializable, please use Script version instead!");
                         }
-                        builder.append(org.mwg.core.task.ActionNames.IF_THEN_ELSE);
+                        builder.append(org.mwg.internal.task.CoreActionNames.IF_THEN_ELSE);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._conditionalScript, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._conditionalScript, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                         var castedSubThen = this._thenSub;
                         var castedSubThenHash = castedSubThen.hashCode();
@@ -12167,7 +12122,7 @@ var org;
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     return CF_IfThenElse;
-                }(org.mwg.core.task.CF_Action));
+                }(org.mwg.internal.task.CF_Action));
                 task_1.CF_IfThenElse = CF_IfThenElse;
                 var CF_Isolate = (function (_super) {
                     __extends(CF_Isolate, _super);
@@ -12208,7 +12163,7 @@ var org;
                         return children_tasks;
                     };
                     CF_Isolate.prototype.cf_serialize = function (builder, dagIDS) {
-                        builder.append(org.mwg.core.task.ActionNames.ISOLATE);
+                        builder.append(org.mwg.internal.task.CoreActionNames.ISOLATE);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
@@ -12223,7 +12178,7 @@ var org;
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     return CF_Isolate;
-                }(org.mwg.core.task.CF_Action));
+                }(org.mwg.internal.task.CF_Action));
                 task_1.CF_Isolate = CF_Isolate;
                 var CF_Loop = (function (_super) {
                     __extends(CF_Loop, _super);
@@ -12290,11 +12245,11 @@ var org;
                         return children_tasks;
                     };
                     CF_Loop.prototype.cf_serialize = function (builder, dagIDS) {
-                        builder.append(org.mwg.core.task.ActionNames.LOOP);
+                        builder.append(org.mwg.internal.task.CoreActionNames.LOOP);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._lower, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._lower, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeString(this._upper, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._upper, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
@@ -12309,7 +12264,7 @@ var org;
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     return CF_Loop;
-                }(org.mwg.core.task.CF_Action));
+                }(org.mwg.internal.task.CF_Action));
                 task_1.CF_Loop = CF_Loop;
                 var CF_LoopPar = (function (_super) {
                     __extends(CF_LoopPar, _super);
@@ -12376,11 +12331,11 @@ var org;
                         return children_tasks;
                     };
                     CF_LoopPar.prototype.cf_serialize = function (builder, dagIDS) {
-                        builder.append(org.mwg.core.task.ActionNames.LOOP_PAR);
+                        builder.append(org.mwg.internal.task.CoreActionNames.LOOP_PAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._lower, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._lower, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
-                        org.mwg.core.task.TaskHelper.serializeString(this._upper, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._upper, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
@@ -12395,7 +12350,7 @@ var org;
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     return CF_LoopPar;
-                }(org.mwg.core.task.CF_Action));
+                }(org.mwg.internal.task.CF_Action));
                 task_1.CF_LoopPar = CF_LoopPar;
                 var CF_Map = (function (_super) {
                     __extends(CF_Map, _super);
@@ -12478,7 +12433,7 @@ var org;
                         return children_tasks;
                     };
                     CF_Map.prototype.cf_serialize = function (builder, dagIDS) {
-                        builder.append(org.mwg.core.task.ActionNames.MAP);
+                        builder.append(org.mwg.internal.task.CoreActionNames.MAP);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
@@ -12493,7 +12448,7 @@ var org;
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     return CF_Map;
-                }(org.mwg.core.task.CF_Action));
+                }(org.mwg.internal.task.CF_Action));
                 task_1.CF_Map = CF_Map;
                 var CF_MapPar = (function (_super) {
                     __extends(CF_MapPar, _super);
@@ -12563,7 +12518,7 @@ var org;
                         return children_tasks;
                     };
                     CF_MapPar.prototype.cf_serialize = function (builder, dagIDS) {
-                        builder.append(org.mwg.core.task.ActionNames.MAP_PAR);
+                        builder.append(org.mwg.internal.task.CoreActionNames.MAP_PAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
@@ -12578,7 +12533,7 @@ var org;
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     return CF_MapPar;
-                }(org.mwg.core.task.CF_Action));
+                }(org.mwg.internal.task.CF_Action));
                 task_1.CF_MapPar = CF_MapPar;
                 var CF_Pipe = (function (_super) {
                     __extends(CF_Pipe, _super);
@@ -12652,7 +12607,7 @@ var org;
                         return this._subTasks;
                     };
                     CF_Pipe.prototype.cf_serialize = function (builder, dagIDS) {
-                        builder.append(org.mwg.core.task.ActionNames.PIPE);
+                        builder.append(org.mwg.internal.task.CoreActionNames.PIPE);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         for (var i = 0; i < this._subTasks.length; i++) {
                             if (i != 0) {
@@ -12672,7 +12627,7 @@ var org;
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     return CF_Pipe;
-                }(org.mwg.core.task.CF_Action));
+                }(org.mwg.internal.task.CF_Action));
                 task_1.CF_Pipe = CF_Pipe;
                 var CF_PipePar = (function (_super) {
                     __extends(CF_PipePar, _super);
@@ -12733,7 +12688,7 @@ var org;
                         return this._subTasks;
                     };
                     CF_PipePar.prototype.cf_serialize = function (builder, dagIDS) {
-                        builder.append(org.mwg.core.task.ActionNames.PIPE_PAR);
+                        builder.append(org.mwg.internal.task.CoreActionNames.PIPE_PAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         for (var i = 0; i < this._subTasks.length; i++) {
                             if (i != 0) {
@@ -12753,7 +12708,7 @@ var org;
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     return CF_PipePar;
-                }(org.mwg.core.task.CF_Action));
+                }(org.mwg.internal.task.CF_Action));
                 task_1.CF_PipePar = CF_PipePar;
                 var CF_ThenDo = (function () {
                     function CF_ThenDo(p_wrapped) {
@@ -12836,9 +12791,9 @@ var org;
                         if (this._conditionalScript == null) {
                             throw new Error("Closure is not serializable, please use Script version instead!");
                         }
-                        builder.append(org.mwg.core.task.ActionNames.WHILE_DO);
+                        builder.append(org.mwg.internal.task.CoreActionNames.WHILE_DO);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeString(this._conditionalScript, builder, true);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._conditionalScript, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                         var castedAction = this._then;
                         var castedActionHash = castedAction.hashCode();
@@ -12853,8 +12808,350 @@ var org;
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     return CF_WhileDo;
-                }(org.mwg.core.task.CF_Action));
+                }(org.mwg.internal.task.CF_Action));
                 task_1.CF_WhileDo = CF_WhileDo;
+                var CoreActionNames = (function () {
+                    function CoreActionNames() {
+                    }
+                    return CoreActionNames;
+                }());
+                CoreActionNames.ADD_VAR_TO_RELATION = "addVarToRelation";
+                CoreActionNames.REMOVE_VAR_TO_RELATION = "removeVarToRelation";
+                CoreActionNames.ADD_TO_GLOBAL_INDEX = "addToGlobalIndex";
+                CoreActionNames.ADD_TO_GLOBAL_TIMED_INDEX = "addToGlobalTimedIndex";
+                CoreActionNames.ADD_TO_VAR = "addToVar";
+                CoreActionNames.ATTRIBUTES = "attributes";
+                CoreActionNames.ATTRIBUTES_WITH_TYPE = "attributesWithType";
+                CoreActionNames.CLEAR_RESULT = "clearResult";
+                CoreActionNames.CREATE_NODE = "createNode";
+                CoreActionNames.CREATE_TYPED_NODE = "createTypedNode";
+                CoreActionNames.DECLARE_GLOBAL_VAR = "declareGlobalVar";
+                CoreActionNames.DECLARE_VAR = "declareVar";
+                CoreActionNames.FLIP_VAR = "flipVar";
+                CoreActionNames.DEFINE_AS_GLOBAL_VAR = "defineAsGlobalVar";
+                CoreActionNames.DEFINE_AS_VAR = "defineAsVar";
+                CoreActionNames.EXECUTE_EXPRESSION = "executeExpression";
+                CoreActionNames.INDEX_NAMES = "indexNames";
+                CoreActionNames.LOOKUP = "lookup";
+                CoreActionNames.LOOKUP_ALL = "lookupAll";
+                CoreActionNames.PRINT = "print";
+                CoreActionNames.PRINTLN = "println";
+                CoreActionNames.READ_GLOBAL_INDEX = "readGlobalIndex";
+                CoreActionNames.READ_VAR = "readVar";
+                CoreActionNames.REMOVE = "remove";
+                CoreActionNames.REMOVE_FROM_GLOBAL_INDEX = "removeFromGlobalIndex";
+                CoreActionNames.SAVE = "save";
+                CoreActionNames.SCRIPT = "script";
+                CoreActionNames.ASYNC_SCRIPT = "asyncScript";
+                CoreActionNames.SELECT = "select";
+                CoreActionNames.SET_AS_VAR = "setAsVar";
+                CoreActionNames.FORCE_ATTRIBUTE = "forceAttribute";
+                CoreActionNames.SET_ATTRIBUTE = "setAttribute";
+                CoreActionNames.TIME_SENSITIVITY = "timeSensitivity";
+                CoreActionNames.TIMEPOINTS = "timepoints";
+                CoreActionNames.TRAVEL_IN_TIME = "travelInTime";
+                CoreActionNames.TRAVEL_IN_WORLD = "travelInWorld";
+                CoreActionNames.WITH = "with";
+                CoreActionNames.WITHOUT = "without";
+                CoreActionNames.TRAVERSE = "traverse";
+                CoreActionNames.ATTRIBUTE = "attribute";
+                CoreActionNames.LOOP = "loop";
+                CoreActionNames.LOOP_PAR = "loopPar";
+                CoreActionNames.FOR_EACH = "forEach";
+                CoreActionNames.FOR_EACH_PAR = "forEachPar";
+                CoreActionNames.MAP = "map";
+                CoreActionNames.MAP_PAR = "mapPar";
+                CoreActionNames.PIPE = "pipe";
+                CoreActionNames.PIPE_PAR = "pipePar";
+                CoreActionNames.DO_WHILE = "doWhile";
+                CoreActionNames.WHILE_DO = "whileDo";
+                CoreActionNames.ISOLATE = "isolate";
+                CoreActionNames.IF_THEN = "ifThen";
+                CoreActionNames.IF_THEN_ELSE = "ifThenElse";
+                CoreActionNames.ATOMIC = "atomic";
+                CoreActionNames.FLAT = "flat";
+                task_1.CoreActionNames = CoreActionNames;
+                var CoreActions = (function () {
+                    function CoreActions() {
+                    }
+                    CoreActions.flat = function () {
+                        return new org.mwg.internal.task.ActionFlat();
+                    };
+                    CoreActions.travelInWorld = function (world) {
+                        return new org.mwg.internal.task.ActionTravelInWorld(world);
+                    };
+                    CoreActions.travelInTime = function (time) {
+                        return new org.mwg.internal.task.ActionTravelInTime(time);
+                    };
+                    CoreActions.inject = function (input) {
+                        return new org.mwg.internal.task.ActionInject(input);
+                    };
+                    CoreActions.defineAsGlobalVar = function (name) {
+                        return new org.mwg.internal.task.ActionDefineAsVar(name, true);
+                    };
+                    CoreActions.defineAsVar = function (name) {
+                        return new org.mwg.internal.task.ActionDefineAsVar(name, false);
+                    };
+                    CoreActions.declareGlobalVar = function (name) {
+                        return new org.mwg.internal.task.ActionDeclareVar(true, name);
+                    };
+                    CoreActions.declareVar = function (name) {
+                        return new org.mwg.internal.task.ActionDeclareVar(false, name);
+                    };
+                    CoreActions.readVar = function (name) {
+                        return new org.mwg.internal.task.ActionReadVar(name);
+                    };
+                    CoreActions.flipVar = function (name) {
+                        return new org.mwg.internal.task.ActionFlipVar(name);
+                    };
+                    CoreActions.setAsVar = function (name) {
+                        return new org.mwg.internal.task.ActionSetAsVar(name);
+                    };
+                    CoreActions.addToVar = function (name) {
+                        return new org.mwg.internal.task.ActionAddToVar(name);
+                    };
+                    CoreActions.setAttribute = function (name, type, value) {
+                        return new org.mwg.internal.task.ActionSetAttribute(name, type, value, false);
+                    };
+                    CoreActions.timeSensitivity = function (delta, offset) {
+                        return new org.mwg.internal.task.ActionTimeSensitivity(delta, offset);
+                    };
+                    CoreActions.forceAttribute = function (name, type, value) {
+                        return new org.mwg.internal.task.ActionSetAttribute(name, type, value, true);
+                    };
+                    CoreActions.remove = function (name) {
+                        return new org.mwg.internal.task.ActionRemove(name);
+                    };
+                    CoreActions.attributes = function () {
+                        return new org.mwg.internal.task.ActionAttributes(-1);
+                    };
+                    CoreActions.attributesWithTypes = function (filterType) {
+                        return new org.mwg.internal.task.ActionAttributes(filterType);
+                    };
+                    CoreActions.addVarToRelation = function (relName, varName) {
+                        var attributes = [];
+                        for (var _i = 2; _i < arguments.length; _i++) {
+                            attributes[_i - 2] = arguments[_i];
+                        }
+                        return new ((_a = org.mwg.internal.task.ActionAddRemoveVarToRelation).bind.apply(_a, [void 0, true, relName, varName].concat(attributes)))();
+                        var _a;
+                    };
+                    CoreActions.removeVarFromRelation = function (relName, varFrom) {
+                        var attributes = [];
+                        for (var _i = 2; _i < arguments.length; _i++) {
+                            attributes[_i - 2] = arguments[_i];
+                        }
+                        return new ((_a = org.mwg.internal.task.ActionAddRemoveVarToRelation).bind.apply(_a, [void 0, false, relName, varFrom].concat(attributes)))();
+                        var _a;
+                    };
+                    CoreActions.traverse = function (name) {
+                        var params = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            params[_i - 1] = arguments[_i];
+                        }
+                        return new ((_a = org.mwg.internal.task.ActionTraverseOrAttribute).bind.apply(_a, [void 0, false, false, name].concat(params)))();
+                        var _a;
+                    };
+                    CoreActions.attribute = function (name) {
+                        var params = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            params[_i - 1] = arguments[_i];
+                        }
+                        return new ((_a = org.mwg.internal.task.ActionTraverseOrAttribute).bind.apply(_a, [void 0, true, false, name].concat(params)))();
+                        var _a;
+                    };
+                    CoreActions.readGlobalIndex = function (indexName) {
+                        var query = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            query[_i - 1] = arguments[_i];
+                        }
+                        return new ((_a = org.mwg.internal.task.ActionReadGlobalIndex).bind.apply(_a, [void 0, indexName].concat(query)))();
+                        var _a;
+                    };
+                    CoreActions.addToGlobalIndex = function (name) {
+                        var attributes = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            attributes[_i - 1] = arguments[_i];
+                        }
+                        return new ((_a = org.mwg.internal.task.ActionAddRemoveToGlobalIndex).bind.apply(_a, [void 0, false, false, name].concat(attributes)))();
+                        var _a;
+                    };
+                    CoreActions.addToGlobalTimedIndex = function (name) {
+                        var attributes = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            attributes[_i - 1] = arguments[_i];
+                        }
+                        return new ((_a = org.mwg.internal.task.ActionAddRemoveToGlobalIndex).bind.apply(_a, [void 0, false, true, name].concat(attributes)))();
+                        var _a;
+                    };
+                    CoreActions.removeFromGlobalIndex = function (name) {
+                        var attributes = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            attributes[_i - 1] = arguments[_i];
+                        }
+                        return new ((_a = org.mwg.internal.task.ActionAddRemoveToGlobalIndex).bind.apply(_a, [void 0, true, false, name].concat(attributes)))();
+                        var _a;
+                    };
+                    CoreActions.removeFromGlobalTimedIndex = function (name) {
+                        var attributes = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            attributes[_i - 1] = arguments[_i];
+                        }
+                        return new ((_a = org.mwg.internal.task.ActionAddRemoveToGlobalIndex).bind.apply(_a, [void 0, true, true, name].concat(attributes)))();
+                        var _a;
+                    };
+                    CoreActions.indexNames = function () {
+                        return new org.mwg.internal.task.ActionIndexNames();
+                    };
+                    CoreActions.selectWith = function (name, pattern) {
+                        return new org.mwg.internal.task.ActionWith(name, pattern);
+                    };
+                    CoreActions.selectWithout = function (name, pattern) {
+                        return new org.mwg.internal.task.ActionWithout(name, pattern);
+                    };
+                    CoreActions.select = function (filterFunction) {
+                        return new org.mwg.internal.task.ActionSelect(null, filterFunction);
+                    };
+                    CoreActions.selectObject = function (filterFunction) {
+                        return new org.mwg.internal.task.ActionSelectObject(filterFunction);
+                    };
+                    CoreActions.selectScript = function (script) {
+                        return new org.mwg.internal.task.ActionSelect(script, null);
+                    };
+                    CoreActions.print = function (name) {
+                        return new org.mwg.internal.task.ActionPrint(name, false);
+                    };
+                    CoreActions.println = function (name) {
+                        return new org.mwg.internal.task.ActionPrint(name, true);
+                    };
+                    CoreActions.executeExpression = function (expression) {
+                        return new org.mwg.internal.task.ActionExecuteExpression(expression);
+                    };
+                    CoreActions.action = function (name) {
+                        var params = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            params[_i - 1] = arguments[_i];
+                        }
+                        return new ((_a = org.mwg.internal.task.ActionNamed).bind.apply(_a, [void 0, name].concat(params)))();
+                        var _a;
+                    };
+                    CoreActions.createNode = function () {
+                        return new org.mwg.internal.task.ActionCreateNode(null);
+                    };
+                    CoreActions.createTypedNode = function (type) {
+                        return new org.mwg.internal.task.ActionCreateNode(type);
+                    };
+                    CoreActions.save = function () {
+                        return new org.mwg.internal.task.ActionSave();
+                    };
+                    CoreActions.script = function (script) {
+                        return new org.mwg.internal.task.ActionScript(script, false);
+                    };
+                    CoreActions.asyncScript = function (script) {
+                        return new org.mwg.internal.task.ActionScript(script, true);
+                    };
+                    CoreActions.lookup = function (nodeId) {
+                        return new org.mwg.internal.task.ActionLookup(nodeId);
+                    };
+                    CoreActions.lookupAll = function (nodeIds) {
+                        return new org.mwg.internal.task.ActionLookupAll(nodeIds);
+                    };
+                    CoreActions.timepoints = function (from, to) {
+                        return new org.mwg.internal.task.ActionTimepoints(from, to);
+                    };
+                    CoreActions.clearResult = function () {
+                        return new org.mwg.internal.task.ActionClearResult();
+                    };
+                    CoreActions.cond = function (mathExpression) {
+                        return new org.mwg.internal.task.math.MathConditional(mathExpression).conditional();
+                    };
+                    CoreActions.newTask = function () {
+                        return new org.mwg.internal.task.CoreTask();
+                    };
+                    CoreActions.emptyResult = function () {
+                        return new org.mwg.base.BaseTaskResult(null, false);
+                    };
+                    CoreActions.then = function (action) {
+                        return org.mwg.internal.task.CoreActions.newTask().then(action);
+                    };
+                    CoreActions.thenDo = function (actionFunction) {
+                        return org.mwg.internal.task.CoreActions.newTask().thenDo(actionFunction);
+                    };
+                    CoreActions.loop = function (from, to, subTask) {
+                        return org.mwg.internal.task.CoreActions.newTask().loop(from, to, subTask);
+                    };
+                    CoreActions.loopPar = function (from, to, subTask) {
+                        return org.mwg.internal.task.CoreActions.newTask().loopPar(from, to, subTask);
+                    };
+                    CoreActions.forEach = function (subTask) {
+                        return org.mwg.internal.task.CoreActions.newTask().forEach(subTask);
+                    };
+                    CoreActions.forEachPar = function (subTask) {
+                        return org.mwg.internal.task.CoreActions.newTask().forEachPar(subTask);
+                    };
+                    CoreActions.map = function (subTask) {
+                        return org.mwg.internal.task.CoreActions.newTask().map(subTask);
+                    };
+                    CoreActions.mapPar = function (subTask) {
+                        return org.mwg.internal.task.CoreActions.newTask().mapPar(subTask);
+                    };
+                    CoreActions.ifThen = function (cond, then) {
+                        return org.mwg.internal.task.CoreActions.newTask().ifThen(cond, then);
+                    };
+                    CoreActions.ifThenScript = function (condScript, then) {
+                        return org.mwg.internal.task.CoreActions.newTask().ifThenScript(condScript, then);
+                    };
+                    CoreActions.ifThenElse = function (cond, thenSub, elseSub) {
+                        return org.mwg.internal.task.CoreActions.newTask().ifThenElse(cond, thenSub, elseSub);
+                    };
+                    CoreActions.ifThenElseScript = function (condScript, thenSub, elseSub) {
+                        return org.mwg.internal.task.CoreActions.newTask().ifThenElseScript(condScript, thenSub, elseSub);
+                    };
+                    CoreActions.doWhile = function (task, cond) {
+                        return org.mwg.internal.task.CoreActions.newTask().doWhile(task, cond);
+                    };
+                    CoreActions.doWhileScript = function (task, condScript) {
+                        return org.mwg.internal.task.CoreActions.newTask().doWhileScript(task, condScript);
+                    };
+                    CoreActions.whileDo = function (cond, task) {
+                        return org.mwg.internal.task.CoreActions.newTask().whileDo(cond, task);
+                    };
+                    CoreActions.whileDoScript = function (condScript, task) {
+                        return org.mwg.internal.task.CoreActions.newTask().whileDoScript(condScript, task);
+                    };
+                    CoreActions.pipe = function () {
+                        var subTasks = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            subTasks[_i] = arguments[_i];
+                        }
+                        return (_a = org.mwg.internal.task.CoreActions.newTask()).pipe.apply(_a, subTasks);
+                        var _a;
+                    };
+                    CoreActions.pipePar = function () {
+                        var subTasks = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            subTasks[_i] = arguments[_i];
+                        }
+                        return (_a = org.mwg.internal.task.CoreActions.newTask()).pipePar.apply(_a, subTasks);
+                        var _a;
+                    };
+                    CoreActions.isolate = function (subTask) {
+                        return org.mwg.internal.task.CoreActions.newTask().isolate(subTask);
+                    };
+                    CoreActions.atomic = function (protectedTask) {
+                        var variablesToLock = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            variablesToLock[_i - 1] = arguments[_i];
+                        }
+                        return (_a = org.mwg.internal.task.CoreActions.newTask()).atomic.apply(_a, [protectedTask].concat(variablesToLock));
+                        var _a;
+                    };
+                    CoreActions.parse = function (flat, graph) {
+                        return org.mwg.internal.task.CoreActions.newTask().parse(flat, graph);
+                    };
+                    return CoreActions;
+                }());
+                task_1.CoreActions = CoreActions;
                 var CoreTask = (function () {
                     function CoreTask() {
                         this.insertCapacity = org.mwg.Constants.MAP_INITIAL_CAPACITY;
@@ -12887,56 +13184,56 @@ var org;
                         return this;
                     };
                     CoreTask.prototype.thenDo = function (nextActionFunction) {
-                        return this.then(new org.mwg.core.task.CF_ThenDo(nextActionFunction));
+                        return this.then(new org.mwg.internal.task.CF_ThenDo(nextActionFunction));
                     };
                     CoreTask.prototype.doWhile = function (task, cond) {
-                        return this.then(new org.mwg.core.task.CF_DoWhile(task, cond, null));
+                        return this.then(new org.mwg.internal.task.CF_DoWhile(task, cond, null));
                     };
                     CoreTask.prototype.doWhileScript = function (task, condScript) {
-                        return this.then(new org.mwg.core.task.CF_DoWhile(task, org.mwg.core.task.CoreTask.condFromScript(condScript), condScript));
+                        return this.then(new org.mwg.internal.task.CF_DoWhile(task, org.mwg.internal.task.CoreTask.condFromScript(condScript), condScript));
                     };
                     CoreTask.prototype.loop = function (from, to, subTask) {
-                        return this.then(new org.mwg.core.task.CF_Loop(from, to, subTask));
+                        return this.then(new org.mwg.internal.task.CF_Loop(from, to, subTask));
                     };
                     CoreTask.prototype.loopPar = function (from, to, subTask) {
-                        return this.then(new org.mwg.core.task.CF_LoopPar(from, to, subTask));
+                        return this.then(new org.mwg.internal.task.CF_LoopPar(from, to, subTask));
                     };
                     CoreTask.prototype.forEach = function (subTask) {
-                        return this.then(new org.mwg.core.task.CF_ForEach(subTask));
+                        return this.then(new org.mwg.internal.task.CF_ForEach(subTask));
                     };
                     CoreTask.prototype.forEachPar = function (subTask) {
-                        return this.then(new org.mwg.core.task.CF_ForEachPar(subTask));
+                        return this.then(new org.mwg.internal.task.CF_ForEachPar(subTask));
                     };
                     CoreTask.prototype.map = function (subTask) {
-                        return this.then(new org.mwg.core.task.CF_Map(subTask));
+                        return this.then(new org.mwg.internal.task.CF_Map(subTask));
                     };
                     CoreTask.prototype.mapPar = function (subTask) {
-                        return this.then(new org.mwg.core.task.CF_MapPar(subTask));
+                        return this.then(new org.mwg.internal.task.CF_MapPar(subTask));
                     };
                     CoreTask.prototype.ifThen = function (cond, then) {
-                        return this.then(new org.mwg.core.task.CF_IfThen(cond, then, null));
+                        return this.then(new org.mwg.internal.task.CF_IfThen(cond, then, null));
                     };
                     CoreTask.prototype.ifThenScript = function (condScript, then) {
-                        return this.then(new org.mwg.core.task.CF_IfThen(org.mwg.core.task.CoreTask.condFromScript(condScript), then, condScript));
+                        return this.then(new org.mwg.internal.task.CF_IfThen(org.mwg.internal.task.CoreTask.condFromScript(condScript), then, condScript));
                     };
                     CoreTask.prototype.ifThenElse = function (cond, thenSub, elseSub) {
-                        return this.then(new org.mwg.core.task.CF_IfThenElse(cond, thenSub, elseSub, null));
+                        return this.then(new org.mwg.internal.task.CF_IfThenElse(cond, thenSub, elseSub, null));
                     };
                     CoreTask.prototype.ifThenElseScript = function (condScript, thenSub, elseSub) {
-                        return this.then(new org.mwg.core.task.CF_IfThenElse(org.mwg.core.task.CoreTask.condFromScript(condScript), thenSub, elseSub, condScript));
+                        return this.then(new org.mwg.internal.task.CF_IfThenElse(org.mwg.internal.task.CoreTask.condFromScript(condScript), thenSub, elseSub, condScript));
                     };
                     CoreTask.prototype.whileDo = function (cond, task) {
-                        return this.then(new org.mwg.core.task.CF_WhileDo(cond, task, null));
+                        return this.then(new org.mwg.internal.task.CF_WhileDo(cond, task, null));
                     };
                     CoreTask.prototype.whileDoScript = function (condScript, task) {
-                        return this.then(new org.mwg.core.task.CF_WhileDo(org.mwg.core.task.CoreTask.condFromScript(condScript), task, condScript));
+                        return this.then(new org.mwg.internal.task.CF_WhileDo(org.mwg.internal.task.CoreTask.condFromScript(condScript), task, condScript));
                     };
                     CoreTask.prototype.pipe = function () {
                         var subTasks = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             subTasks[_i] = arguments[_i];
                         }
-                        return this.then(new ((_a = org.mwg.core.task.CF_Pipe).bind.apply(_a, [void 0].concat(subTasks)))());
+                        return this.then(new ((_a = org.mwg.internal.task.CF_Pipe).bind.apply(_a, [void 0].concat(subTasks)))());
                         var _a;
                     };
                     CoreTask.prototype.pipePar = function () {
@@ -12944,18 +13241,18 @@ var org;
                         for (var _i = 0; _i < arguments.length; _i++) {
                             subTasks[_i] = arguments[_i];
                         }
-                        return this.then(new ((_a = org.mwg.core.task.CF_PipePar).bind.apply(_a, [void 0].concat(subTasks)))());
+                        return this.then(new ((_a = org.mwg.internal.task.CF_PipePar).bind.apply(_a, [void 0].concat(subTasks)))());
                         var _a;
                     };
                     CoreTask.prototype.isolate = function (subTask) {
-                        return this.then(new org.mwg.core.task.CF_Isolate(subTask));
+                        return this.then(new org.mwg.internal.task.CF_Isolate(subTask));
                     };
                     CoreTask.prototype.atomic = function (protectedTask) {
                         var variablesToLock = [];
                         for (var _i = 1; _i < arguments.length; _i++) {
                             variablesToLock[_i - 1] = arguments[_i];
                         }
-                        return this.then(new ((_a = org.mwg.core.task.CF_Atomic).bind.apply(_a, [void 0, protectedTask].concat(variablesToLock)))());
+                        return this.then(new ((_a = org.mwg.internal.task.CF_Atomic).bind.apply(_a, [void 0, protectedTask].concat(variablesToLock)))());
                         var _a;
                     };
                     CoreTask.prototype.execute = function (graph, callback) {
@@ -12969,13 +13266,13 @@ var org;
                     CoreTask.prototype.executeWith = function (graph, initial, callback) {
                         if (this.insertCursor > 0) {
                             var initalRes = void 0;
-                            if (initial instanceof org.mwg.core.task.CoreTaskResult) {
+                            if (initial instanceof org.mwg.base.BaseTaskResult) {
                                 initalRes = initial.clone();
                             }
                             else {
-                                initalRes = new org.mwg.core.task.CoreTaskResult(initial, true);
+                                initalRes = new org.mwg.base.BaseTaskResult(initial, true);
                             }
-                            var context_1 = new org.mwg.core.task.CoreTaskContext(this, this._hooks, null, initalRes, graph, callback);
+                            var context_1 = new org.mwg.internal.task.CoreTaskContext(this, this._hooks, null, initalRes, graph, callback);
                             graph.scheduler().dispatch(org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function () {
                                 {
                                     context_1.execute();
@@ -12984,19 +13281,19 @@ var org;
                         }
                         else {
                             if (callback != null) {
-                                callback(org.mwg.core.task.Actions.emptyResult());
+                                callback(org.mwg.internal.task.CoreActions.emptyResult());
                             }
                         }
                     };
                     CoreTask.prototype.prepare = function (graph, initial, callback) {
                         var initalRes;
-                        if (initial instanceof org.mwg.core.task.CoreTaskResult) {
+                        if (initial instanceof org.mwg.base.BaseTaskResult) {
                             initalRes = initial.clone();
                         }
                         else {
-                            initalRes = new org.mwg.core.task.CoreTaskResult(initial, true);
+                            initalRes = new org.mwg.base.BaseTaskResult(initial, true);
                         }
-                        return new org.mwg.core.task.CoreTaskContext(this, this._hooks, null, initalRes, graph, callback);
+                        return new org.mwg.internal.task.CoreTaskContext(this, this._hooks, null, initalRes, graph, callback);
                     };
                     CoreTask.prototype.executeUsing = function (preparedContext) {
                         if (this.insertCursor > 0) {
@@ -13009,7 +13306,7 @@ var org;
                         else {
                             var casted = preparedContext;
                             if (casted._callback != null) {
-                                casted._callback(org.mwg.core.task.Actions.emptyResult());
+                                casted._callback(org.mwg.internal.task.CoreActions.emptyResult());
                             }
                         }
                     };
@@ -13030,7 +13327,7 @@ var org;
                                     aggregatedHooks = temp_hooks;
                                 }
                             }
-                            var context_2 = new org.mwg.core.task.CoreTaskContext(this, aggregatedHooks, parentContext, initial.clone(), parentContext.graph(), callback);
+                            var context_2 = new org.mwg.internal.task.CoreTaskContext(this, aggregatedHooks, parentContext, initial.clone(), parentContext.graph(), callback);
                             parentContext.graph().scheduler().dispatch(affinity, function () {
                                 {
                                     context_2.execute();
@@ -13039,7 +13336,7 @@ var org;
                         }
                         else {
                             if (callback != null) {
-                                callback(org.mwg.core.task.Actions.emptyResult());
+                                callback(org.mwg.internal.task.CoreActions.emptyResult());
                             }
                         }
                     };
@@ -13060,7 +13357,7 @@ var org;
                                     aggregatedHooks = temp_hooks;
                                 }
                             }
-                            var context_3 = new org.mwg.core.task.CoreTaskContext(this, aggregatedHooks, parentContext, initial.clone(), parentContext.graph(), callback);
+                            var context_3 = new org.mwg.internal.task.CoreTaskContext(this, aggregatedHooks, parentContext, initial.clone(), parentContext.graph(), callback);
                             if (contextInitializer != null) {
                                 contextInitializer(context_3);
                             }
@@ -13072,7 +13369,7 @@ var org;
                         }
                         else {
                             if (callback != null) {
-                                callback(org.mwg.core.task.Actions.emptyResult());
+                                callback(org.mwg.internal.task.CoreActions.emptyResult());
                             }
                         }
                     };
@@ -13089,7 +13386,7 @@ var org;
                             throw new Error("flat should not be null");
                         }
                         var contextTasks = new java.util.HashMap();
-                        this.sub_parse(new org.mwg.core.task.CoreTaskReader(flat, 0), graph, contextTasks);
+                        this.sub_parse(new org.mwg.internal.task.CoreTaskReader(flat, 0), graph, contextTasks);
                         return this;
                     };
                     CoreTask.prototype.sub_parse = function (reader, graph, contextTasks) {
@@ -13129,7 +13426,7 @@ var org;
                                 case org.mwg.Constants.TASK_SEP:
                                     if (!isClosed) {
                                         var getName = reader.extract(previous, cursor).trim();
-                                        this.then(new org.mwg.core.task.ActionTraverseOrAttribute(false, true, getName));
+                                        this.then(new org.mwg.internal.task.ActionTraverseOrAttribute(false, true, getName));
                                     }
                                     actionName = null;
                                     isEscaped = false;
@@ -13142,7 +13439,7 @@ var org;
                                 case org.mwg.Constants.SUB_TASK_DECLR:
                                     if (!isClosed) {
                                         var getName = reader.extract(previous, cursor).trim();
-                                        this.then(new org.mwg.core.task.ActionTraverseOrAttribute(false, true, getName));
+                                        this.then(new org.mwg.internal.task.ActionTraverseOrAttribute(false, true, getName));
                                     }
                                     subTaskMode = true;
                                     actionName = null;
@@ -13190,7 +13487,7 @@ var org;
                                         }
                                     }
                                     if (graph == null) {
-                                        this.then(new ((_a = org.mwg.core.task.ActionNamed).bind.apply(_a, [void 0, actionName].concat(params)))());
+                                        this.then(new ((_a = org.mwg.internal.task.ActionNamed).bind.apply(_a, [void 0, actionName].concat(params)))());
                                     }
                                     else {
                                         var factory = graph.taskAction(actionName);
@@ -13221,7 +13518,7 @@ var org;
                                         if (paramsIndex >= paramsCapacity) {
                                             var newParamsCapacity = paramsCapacity * 2;
                                             if (newParamsCapacity == 0) {
-                                                newParamsCapacity = org.mwg.core.CoreConstants.MAP_INITIAL_CAPACITY;
+                                                newParamsCapacity = org.mwg.internal.CoreConstants.MAP_INITIAL_CAPACITY;
                                             }
                                             var newParams = new Array(newParamsCapacity);
                                             if (params != null) {
@@ -13242,11 +13539,11 @@ var org;
                                         var subTask = void 0;
                                         if (subTaskMode) {
                                             var subTaskName = reader.extract(previous, cursor).trim();
-                                            var subTaskID = org.mwg.core.task.TaskHelper.parseInt(subTaskName);
+                                            var subTaskID = org.mwg.internal.task.TaskHelper.parseInt(subTaskName);
                                             subTask = contextTasks.get(subTaskID);
                                         }
                                         else {
-                                            subTask = new org.mwg.core.task.CoreTask();
+                                            subTask = new org.mwg.internal.task.CoreTask();
                                         }
                                         subTask.sub_parse(subReader, graph, contextTasks);
                                         cursor = cursor + subReader.end() + 1;
@@ -13270,7 +13567,7 @@ var org;
                             if (getName.length > 0) {
                                 if (actionName != null) {
                                     if (graph == null) {
-                                        this.then(new ((_b = org.mwg.core.task.ActionNamed).bind.apply(_b, [void 0, actionName].concat(params)))());
+                                        this.then(new ((_b = org.mwg.internal.task.ActionNamed).bind.apply(_b, [void 0, actionName].concat(params)))());
                                     }
                                     else {
                                         var factory = graph.taskAction(actionName);
@@ -13283,7 +13580,7 @@ var org;
                                     }
                                 }
                                 else {
-                                    this.then(new org.mwg.core.task.ActionTraverseOrAttribute(false, true, getName.trim()));
+                                    this.then(new org.mwg.internal.task.ActionTraverseOrAttribute(false, true, getName.trim()));
                                 }
                             }
                         }
@@ -13292,7 +13589,7 @@ var org;
                     CoreTask.condFromScript = function (script) {
                         return function (ctx) {
                             {
-                                return org.mwg.core.task.CoreTask.executeScript(script, ctx);
+                                return org.mwg.internal.task.CoreTask.executeScript(script, ctx);
                             }
                         };
                     };
@@ -13303,395 +13600,395 @@ var org;
                         return eval(script);
                     };
                     CoreTask.fillDefault = function (registry) {
-                        registry.put(org.mwg.core.task.ActionNames.TRAVEL_IN_WORLD, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.TRAVEL_IN_WORLD, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.TRAVEL_IN_WORLD + " action need one parameter");
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.TRAVEL_IN_WORLD + " action need one parameter");
                                 }
-                                return new org.mwg.core.task.ActionTravelInWorld(params[0]);
+                                return new org.mwg.internal.task.ActionTravelInWorld(params[0]);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.TRAVEL_IN_TIME, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.TRAVEL_IN_TIME, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.TRAVEL_IN_TIME + " action need one parameter");
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.TRAVEL_IN_TIME + " action need one parameter");
                                 }
-                                return new org.mwg.core.task.ActionTravelInTime(params[0]);
+                                return new org.mwg.internal.task.ActionTravelInTime(params[0]);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.DEFINE_AS_GLOBAL_VAR, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.DEFINE_AS_GLOBAL_VAR, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.DEFINE_AS_GLOBAL_VAR + " action need one parameter");
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.DEFINE_AS_GLOBAL_VAR + " action need one parameter");
                                 }
-                                return new org.mwg.core.task.ActionDefineAsVar(params[0], true);
+                                return new org.mwg.internal.task.ActionDefineAsVar(params[0], true);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.DEFINE_AS_VAR, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.DEFINE_AS_VAR, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.DEFINE_AS_VAR + " action need one parameter");
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.DEFINE_AS_VAR + " action need one parameter");
                                 }
-                                return new org.mwg.core.task.ActionDefineAsVar(params[0], false);
+                                return new org.mwg.internal.task.ActionDefineAsVar(params[0], false);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.DECLARE_GLOBAL_VAR, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.DECLARE_GLOBAL_VAR, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.DECLARE_GLOBAL_VAR + " action need one parameter");
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.DECLARE_GLOBAL_VAR + " action need one parameter");
                                 }
-                                return new org.mwg.core.task.ActionDeclareVar(true, params[0]);
+                                return new org.mwg.internal.task.ActionDeclareVar(true, params[0]);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.DECLARE_VAR, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.DECLARE_VAR, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.DECLARE_VAR + " action need one parameter");
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.DECLARE_VAR + " action need one parameter");
                                 }
-                                return new org.mwg.core.task.ActionDeclareVar(false, params[0]);
+                                return new org.mwg.internal.task.ActionDeclareVar(false, params[0]);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.READ_VAR, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.READ_VAR, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.READ_VAR + " action need one parameter");
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.READ_VAR + " action need one parameter");
                                 }
-                                return new org.mwg.core.task.ActionReadVar(params[0]);
+                                return new org.mwg.internal.task.ActionReadVar(params[0]);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.SET_AS_VAR, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.SET_AS_VAR, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.SET_AS_VAR + " action need one parameter");
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.SET_AS_VAR + " action need one parameter");
                                 }
-                                return new org.mwg.core.task.ActionSetAsVar(params[0]);
+                                return new org.mwg.internal.task.ActionSetAsVar(params[0]);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.ADD_TO_VAR, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.ADD_TO_VAR, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
                                     throw new Error("addToVar action need one parameter");
                                 }
-                                return new org.mwg.core.task.ActionAddToVar(params[0]);
+                                return new org.mwg.internal.task.ActionAddToVar(params[0]);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.TRAVERSE, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.TRAVERSE, function (params, contextTasks) {
                             {
                                 if (params.length < 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.TRAVERSE + " action needs at least one parameter. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.TRAVERSE + " action needs at least one parameter. Received:" + params.length);
                                 }
                                 var getName = params[0];
                                 var getParams = new Array(params.length - 1);
                                 if (params.length > 1) {
                                     java.lang.System.arraycopy(params, 1, getParams, 0, params.length - 1);
                                 }
-                                return new ((_a = org.mwg.core.task.ActionTraverseOrAttribute).bind.apply(_a, [void 0, false, false, getName].concat(getParams)))();
+                                return new ((_a = org.mwg.internal.task.ActionTraverseOrAttribute).bind.apply(_a, [void 0, false, false, getName].concat(getParams)))();
                             }
                             var _a;
                         });
-                        registry.put(org.mwg.core.task.ActionNames.ATTRIBUTE, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.ATTRIBUTE, function (params, contextTasks) {
                             {
                                 if (params.length == 0) {
-                                    throw new Error(org.mwg.core.task.ActionNames.ATTRIBUTE + " action need one parameter");
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.ATTRIBUTE + " action need one parameter");
                                 }
                                 var getName = params[0];
                                 var getParams = new Array(params.length - 1);
                                 if (params.length > 1) {
                                     java.lang.System.arraycopy(params, 1, getParams, 0, params.length - 1);
                                 }
-                                return new ((_a = org.mwg.core.task.ActionTraverseOrAttribute).bind.apply(_a, [void 0, true, false, getName].concat(getParams)))();
+                                return new ((_a = org.mwg.internal.task.ActionTraverseOrAttribute).bind.apply(_a, [void 0, true, false, getName].concat(getParams)))();
                             }
                             var _a;
                         });
-                        registry.put(org.mwg.core.task.ActionNames.EXECUTE_EXPRESSION, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.EXECUTE_EXPRESSION, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.EXECUTE_EXPRESSION + " action need one parameter");
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.EXECUTE_EXPRESSION + " action need one parameter");
                                 }
-                                return new org.mwg.core.task.ActionExecuteExpression(params[0]);
+                                return new org.mwg.internal.task.ActionExecuteExpression(params[0]);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.READ_GLOBAL_INDEX, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.READ_GLOBAL_INDEX, function (params, contextTasks) {
                             {
                                 if (params.length < 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.READ_GLOBAL_INDEX + " action needs at least one parameter. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.READ_GLOBAL_INDEX + " action needs at least one parameter. Received:" + params.length);
                                 }
                                 var indexName = params[0];
                                 var queryParams = new Array(params.length - 1);
                                 if (params.length > 1) {
                                     java.lang.System.arraycopy(params, 1, queryParams, 0, params.length - 1);
                                 }
-                                return new ((_a = org.mwg.core.task.ActionReadGlobalIndex).bind.apply(_a, [void 0, indexName].concat(queryParams)))();
+                                return new ((_a = org.mwg.internal.task.ActionReadGlobalIndex).bind.apply(_a, [void 0, indexName].concat(queryParams)))();
                             }
                             var _a;
                         });
-                        registry.put(org.mwg.core.task.ActionNames.WITH, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.WITH, function (params, contextTasks) {
                             {
                                 if (params.length != 2) {
-                                    throw new Error(org.mwg.core.task.ActionNames.WITH + " action needs two parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.WITH + " action needs two parameters. Received:" + params.length);
                                 }
-                                return new org.mwg.core.task.ActionWith(params[0], params[1]);
+                                return new org.mwg.internal.task.ActionWith(params[0], params[1]);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.WITHOUT, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.WITHOUT, function (params, contextTasks) {
                             {
                                 if (params.length != 2) {
-                                    throw new Error(org.mwg.core.task.ActionNames.WITHOUT + " action needs two parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.WITHOUT + " action needs two parameters. Received:" + params.length);
                                 }
-                                return new org.mwg.core.task.ActionWithout(params[0], params[1]);
+                                return new org.mwg.internal.task.ActionWithout(params[0], params[1]);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.SCRIPT, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.SCRIPT, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.SCRIPT + " action needs one parameter. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.SCRIPT + " action needs one parameter. Received:" + params.length);
                                 }
-                                return new org.mwg.core.task.ActionScript(params[0], false);
+                                return new org.mwg.internal.task.ActionScript(params[0], false);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.ASYNC_SCRIPT, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.ASYNC_SCRIPT, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.SCRIPT + " action needs one parameter. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.SCRIPT + " action needs one parameter. Received:" + params.length);
                                 }
-                                return new org.mwg.core.task.ActionScript(params[0], true);
+                                return new org.mwg.internal.task.ActionScript(params[0], true);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.SELECT, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.SELECT, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.SELECT + " action needs one parameter. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.SELECT + " action needs one parameter. Received:" + params.length);
                                 }
-                                return new org.mwg.core.task.ActionSelect(params[0], null);
+                                return new org.mwg.internal.task.ActionSelect(params[0], null);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.CREATE_NODE, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.CREATE_NODE, function (params, contextTasks) {
                             {
                                 if (params != null && params.length != 0) {
-                                    throw new Error(org.mwg.core.task.ActionNames.CREATE_NODE + " action needs zero parameter. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.CREATE_NODE + " action needs zero parameter. Received:" + params.length);
                                 }
-                                return new org.mwg.core.task.ActionCreateNode(null);
+                                return new org.mwg.internal.task.ActionCreateNode(null);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.CREATE_TYPED_NODE, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.CREATE_TYPED_NODE, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.CREATE_TYPED_NODE + " action needs one parameter. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.CREATE_TYPED_NODE + " action needs one parameter. Received:" + params.length);
                                 }
-                                return new org.mwg.core.task.ActionCreateNode(params[0]);
+                                return new org.mwg.internal.task.ActionCreateNode(params[0]);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.PRINT, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.PRINT, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.PRINT + " action needs one parameter. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.PRINT + " action needs one parameter. Received:" + params.length);
                                 }
-                                return new org.mwg.core.task.ActionPrint(params[0], false);
+                                return new org.mwg.internal.task.ActionPrint(params[0], false);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.PRINTLN, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.PRINTLN, function (params, contextTasks) {
                             {
                                 if (params == null || params.length != 1) {
                                     if (params != null) {
-                                        throw new Error(org.mwg.core.task.ActionNames.PRINTLN + " action needs one parameter. Received:" + params.length);
+                                        throw new Error(org.mwg.internal.task.CoreActionNames.PRINTLN + " action needs one parameter. Received:" + params.length);
                                     }
                                     else {
-                                        throw new Error(org.mwg.core.task.ActionNames.PRINTLN + " action needs one parameter. Received: 0");
+                                        throw new Error(org.mwg.internal.task.CoreActionNames.PRINTLN + " action needs one parameter. Received: 0");
                                     }
                                 }
-                                return new org.mwg.core.task.ActionPrint(params[0], true);
+                                return new org.mwg.internal.task.ActionPrint(params[0], true);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.SET_ATTRIBUTE, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.SET_ATTRIBUTE, function (params, contextTasks) {
                             {
                                 if (params.length != 3) {
-                                    throw new Error(org.mwg.core.task.ActionNames.SET_ATTRIBUTE + " action needs three parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.SET_ATTRIBUTE + " action needs three parameters. Received:" + params.length);
                                 }
-                                return new org.mwg.core.task.ActionSetAttribute(params[0], org.mwg.Type.typeFromName(params[1]), params[2], false);
+                                return new org.mwg.internal.task.ActionSetAttribute(params[0], org.mwg.Type.typeFromName(params[1]), params[2], false);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.TIME_SENSITIVITY, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.TIME_SENSITIVITY, function (params, contextTasks) {
                             {
                                 if (params.length != 2) {
-                                    throw new Error(org.mwg.core.task.ActionNames.TIME_SENSITIVITY + " action needs two parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.TIME_SENSITIVITY + " action needs two parameters. Received:" + params.length);
                                 }
-                                return new org.mwg.core.task.ActionTimeSensitivity(java.lang.Long.parseLong(params[0]), java.lang.Long.parseLong(params[1]));
+                                return new org.mwg.internal.task.ActionTimeSensitivity(java.lang.Long.parseLong(params[0]), java.lang.Long.parseLong(params[1]));
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.FORCE_ATTRIBUTE, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.FORCE_ATTRIBUTE, function (params, contextTasks) {
                             {
                                 if (params.length != 3) {
-                                    throw new Error(org.mwg.core.task.ActionNames.FORCE_ATTRIBUTE + " action needs three parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.FORCE_ATTRIBUTE + " action needs three parameters. Received:" + params.length);
                                 }
-                                return new org.mwg.core.task.ActionSetAttribute(params[0], org.mwg.Type.typeFromName(params[1]), params[2], true);
+                                return new org.mwg.internal.task.ActionSetAttribute(params[0], org.mwg.Type.typeFromName(params[1]), params[2], true);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.ATTRIBUTES, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.ATTRIBUTES, function (params, contextTasks) {
                             {
                                 if (params.length != 0) {
-                                    throw new Error(org.mwg.core.task.ActionNames.ATTRIBUTES + " action needs no parameter. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.ATTRIBUTES + " action needs no parameter. Received:" + params.length);
                                 }
-                                return new org.mwg.core.task.ActionAttributes(-1);
+                                return new org.mwg.internal.task.ActionAttributes(-1);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.ATTRIBUTES_WITH_TYPE, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.ATTRIBUTES_WITH_TYPE, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.ATTRIBUTES_WITH_TYPE + " action needs one parameter. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.ATTRIBUTES_WITH_TYPE + " action needs one parameter. Received:" + params.length);
                                 }
-                                return new org.mwg.core.task.ActionAttributes(org.mwg.Type.typeFromName(params[0]));
+                                return new org.mwg.internal.task.ActionAttributes(org.mwg.Type.typeFromName(params[0]));
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.LOOP, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.LOOP, function (params, contextTasks) {
                             {
                                 if (params.length != 3) {
-                                    throw new Error(org.mwg.core.task.ActionNames.LOOP + " action needs three parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.LOOP + " action needs three parameters. Received:" + params.length);
                                 }
-                                var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[2]);
-                                return new org.mwg.core.task.CF_Loop(params[0], params[1], subTask);
+                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[2]);
+                                return new org.mwg.internal.task.CF_Loop(params[0], params[1], subTask);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.LOOP_PAR, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.LOOP_PAR, function (params, contextTasks) {
                             {
                                 if (params.length != 3) {
-                                    throw new Error(org.mwg.core.task.ActionNames.LOOP_PAR + " action needs three parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.LOOP_PAR + " action needs three parameters. Received:" + params.length);
                                 }
-                                var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[2]);
-                                return new org.mwg.core.task.CF_LoopPar(params[0], params[1], subTask);
+                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[2]);
+                                return new org.mwg.internal.task.CF_LoopPar(params[0], params[1], subTask);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.FOR_EACH, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.FOR_EACH, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.FOR_EACH + " action needs one parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.FOR_EACH + " action needs one parameters. Received:" + params.length);
                                 }
-                                var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.core.task.CF_ForEach(subTask);
+                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[0]);
+                                return new org.mwg.internal.task.CF_ForEach(subTask);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.FOR_EACH_PAR, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.FOR_EACH_PAR, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.FOR_EACH_PAR + " action needs one parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.FOR_EACH_PAR + " action needs one parameters. Received:" + params.length);
                                 }
-                                var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.core.task.CF_ForEachPar(subTask);
+                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[0]);
+                                return new org.mwg.internal.task.CF_ForEachPar(subTask);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.FLAT, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.FLAT, function (params, contextTasks) {
                             {
                                 if (params.length != 0) {
-                                    throw new Error(org.mwg.core.task.ActionNames.FLAT + " action needs one parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.FLAT + " action needs one parameters. Received:" + params.length);
                                 }
-                                return new org.mwg.core.task.ActionFlat();
+                                return new org.mwg.internal.task.ActionFlat();
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.MAP, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.MAP, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.MAP + " action needs one parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.MAP + " action needs one parameters. Received:" + params.length);
                                 }
-                                var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.core.task.CF_Map(subTask);
+                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[0]);
+                                return new org.mwg.internal.task.CF_Map(subTask);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.MAP_PAR, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.MAP_PAR, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.MAP_PAR + " action needs one parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.MAP_PAR + " action needs one parameters. Received:" + params.length);
                                 }
-                                var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.core.task.CF_MapPar(subTask);
+                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[0]);
+                                return new org.mwg.internal.task.CF_MapPar(subTask);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.PIPE, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.PIPE, function (params, contextTasks) {
                             {
                                 var subTasks = new Array(params.length);
                                 for (var i = 0; i < params.length; i++) {
-                                    subTasks[i] = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[i]);
+                                    subTasks[i] = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[i]);
                                 }
-                                return new ((_a = org.mwg.core.task.CF_Pipe).bind.apply(_a, [void 0].concat(subTasks)))();
+                                return new ((_a = org.mwg.internal.task.CF_Pipe).bind.apply(_a, [void 0].concat(subTasks)))();
                             }
                             var _a;
                         });
-                        registry.put(org.mwg.core.task.ActionNames.PIPE_PAR, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.PIPE_PAR, function (params, contextTasks) {
                             {
                                 var subTasks = new Array(params.length);
                                 for (var i = 0; i < params.length; i++) {
-                                    subTasks[i] = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[i]);
+                                    subTasks[i] = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[i]);
                                 }
-                                return new ((_a = org.mwg.core.task.CF_PipePar).bind.apply(_a, [void 0].concat(subTasks)))();
+                                return new ((_a = org.mwg.internal.task.CF_PipePar).bind.apply(_a, [void 0].concat(subTasks)))();
                             }
                             var _a;
                         });
-                        registry.put(org.mwg.core.task.ActionNames.DO_WHILE, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.DO_WHILE, function (params, contextTasks) {
                             {
                                 if (params.length != 2) {
-                                    throw new Error(org.mwg.core.task.ActionNames.DO_WHILE + " action needs two parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.DO_WHILE + " action needs two parameters. Received:" + params.length);
                                 }
-                                var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
+                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[0]);
                                 var script = params[1];
-                                return new org.mwg.core.task.CF_DoWhile(subTask, org.mwg.core.task.CoreTask.condFromScript(script), script);
+                                return new org.mwg.internal.task.CF_DoWhile(subTask, org.mwg.internal.task.CoreTask.condFromScript(script), script);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.WHILE_DO, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.WHILE_DO, function (params, contextTasks) {
                             {
                                 if (params.length != 2) {
-                                    throw new Error(org.mwg.core.task.ActionNames.DO_WHILE + " action needs two parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.DO_WHILE + " action needs two parameters. Received:" + params.length);
                                 }
                                 var script = params[0];
-                                var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[1]);
-                                return new org.mwg.core.task.CF_WhileDo(org.mwg.core.task.CoreTask.condFromScript(script), subTask, script);
+                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[1]);
+                                return new org.mwg.internal.task.CF_WhileDo(org.mwg.internal.task.CoreTask.condFromScript(script), subTask, script);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.ISOLATE, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.ISOLATE, function (params, contextTasks) {
                             {
                                 if (params.length != 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.ISOLATE + " action needs three parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.ISOLATE + " action needs three parameters. Received:" + params.length);
                                 }
-                                var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.core.task.CF_Isolate(subTask);
+                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[0]);
+                                return new org.mwg.internal.task.CF_Isolate(subTask);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.ATOMIC, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.ATOMIC, function (params, contextTasks) {
                             {
                                 if (params.length < 1) {
-                                    throw new Error(org.mwg.core.task.ActionNames.ATOMIC + " action needs at least one parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.ATOMIC + " action needs at least one parameters. Received:" + params.length);
                                 }
-                                var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
+                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[0]);
                                 var variables = new Array(params.length - 1);
                                 java.lang.System.arraycopy(params, 1, variables, 0, params.length - 1);
-                                return new ((_a = org.mwg.core.task.CF_Atomic).bind.apply(_a, [void 0, subTask].concat(variables)))();
+                                return new ((_a = org.mwg.internal.task.CF_Atomic).bind.apply(_a, [void 0, subTask].concat(variables)))();
                             }
                             var _a;
                         });
-                        registry.put(org.mwg.core.task.ActionNames.IF_THEN, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.IF_THEN, function (params, contextTasks) {
                             {
                                 if (params.length != 2) {
-                                    throw new Error(org.mwg.core.task.ActionNames.IF_THEN + " action needs two parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.IF_THEN + " action needs two parameters. Received:" + params.length);
                                 }
                                 var script = params[0];
-                                var taskThen = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[1]);
-                                return new org.mwg.core.task.CF_IfThen(org.mwg.core.task.CoreTask.condFromScript(script), taskThen, script);
+                                var taskThen = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[1]);
+                                return new org.mwg.internal.task.CF_IfThen(org.mwg.internal.task.CoreTask.condFromScript(script), taskThen, script);
                             }
                         });
-                        registry.put(org.mwg.core.task.ActionNames.IF_THEN_ELSE, function (params, contextTasks) {
+                        registry.put(org.mwg.internal.task.CoreActionNames.IF_THEN_ELSE, function (params, contextTasks) {
                             {
                                 if (params.length != 3) {
-                                    throw new Error(org.mwg.core.task.ActionNames.IF_THEN_ELSE + " action three two parameters. Received:" + params.length);
+                                    throw new Error(org.mwg.internal.task.CoreActionNames.IF_THEN_ELSE + " action three two parameters. Received:" + params.length);
                                 }
                                 var script = params[0];
-                                var taskThen = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[1]);
-                                var taskElse = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[2]);
-                                return new org.mwg.core.task.CF_IfThenElse(org.mwg.core.task.CoreTask.condFromScript(script), taskThen, taskElse, script);
+                                var taskThen = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[1]);
+                                var taskElse = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[2]);
+                                return new org.mwg.internal.task.CF_IfThenElse(org.mwg.internal.task.CoreTask.condFromScript(script), taskThen, taskElse, script);
                             }
                         });
                     };
                     CoreTask.getOrCreate = function (contextTasks, param) {
-                        var taskId = org.mwg.core.task.TaskHelper.parseInt(param);
+                        var taskId = org.mwg.internal.task.TaskHelper.parseInt(param);
                         var previous = contextTasks.get(taskId);
                         if (previous == null) {
-                            previous = new org.mwg.core.task.CoreTask();
+                            previous = new org.mwg.internal.task.CoreTask();
                             contextTasks.put(taskId, previous);
                         }
                         return previous;
@@ -13706,7 +14003,7 @@ var org;
                         var res = new java.lang.StringBuilder();
                         var dagCounters = new java.util.HashMap();
                         var dagCollector = new java.util.HashMap();
-                        org.mwg.core.task.CoreTask.deep_analyze(this, dagCounters, dagCollector);
+                        org.mwg.internal.task.CoreTask.deep_analyze(this, dagCounters, dagCollector);
                         var keys = dagCounters.keySet();
                         var flatKeys = keys.toArray(new Array(keys.size()));
                         var dagIDS = new java.util.HashMap();
@@ -13737,7 +14034,7 @@ var org;
                             if (i != 0) {
                                 builder.append(org.mwg.Constants.TASK_SEP);
                             }
-                            if (this.actions[i] instanceof org.mwg.core.task.CF_Action) {
+                            if (this.actions[i] instanceof org.mwg.internal.task.CF_Action) {
                                 this.actions[i].cf_serialize(builder, dagCounters);
                             }
                             else {
@@ -13752,10 +14049,10 @@ var org;
                             counters.put(tHash, 1);
                             dagCollector.put(tHash, t);
                             for (var i = 0; i < t.insertCursor; i++) {
-                                if (t.actions[i] instanceof org.mwg.core.task.CF_Action) {
+                                if (t.actions[i] instanceof org.mwg.internal.task.CF_Action) {
                                     var children = t.actions[i].children();
                                     for (var j = 0; j < children.length; j++) {
-                                        org.mwg.core.task.CoreTask.deep_analyze(children[j], counters, dagCollector);
+                                        org.mwg.internal.task.CoreTask.deep_analyze(children[j], counters, dagCollector);
                                     }
                                 }
                             }
@@ -13765,62 +14062,62 @@ var org;
                         }
                     };
                     CoreTask.prototype.travelInWorld = function (world) {
-                        return this.then(org.mwg.core.task.Actions.travelInWorld(world));
+                        return this.then(org.mwg.internal.task.CoreActions.travelInWorld(world));
                     };
                     CoreTask.prototype.travelInTime = function (time) {
-                        return this.then(org.mwg.core.task.Actions.travelInTime(time));
+                        return this.then(org.mwg.internal.task.CoreActions.travelInTime(time));
                     };
                     CoreTask.prototype.inject = function (input) {
-                        return this.then(org.mwg.core.task.Actions.inject(input));
+                        return this.then(org.mwg.internal.task.CoreActions.inject(input));
                     };
                     CoreTask.prototype.defineAsGlobalVar = function (name) {
-                        return this.then(org.mwg.core.task.Actions.defineAsGlobalVar(name));
+                        return this.then(org.mwg.internal.task.CoreActions.defineAsGlobalVar(name));
                     };
                     CoreTask.prototype.defineAsVar = function (name) {
-                        return this.then(org.mwg.core.task.Actions.defineAsVar(name));
+                        return this.then(org.mwg.internal.task.CoreActions.defineAsVar(name));
                     };
                     CoreTask.prototype.declareGlobalVar = function (name) {
-                        return this.then(org.mwg.core.task.Actions.declareGlobalVar(name));
+                        return this.then(org.mwg.internal.task.CoreActions.declareGlobalVar(name));
                     };
                     CoreTask.prototype.declareVar = function (name) {
-                        return this.then(org.mwg.core.task.Actions.declareVar(name));
+                        return this.then(org.mwg.internal.task.CoreActions.declareVar(name));
                     };
                     CoreTask.prototype.readVar = function (name) {
-                        return this.then(org.mwg.core.task.Actions.readVar(name));
+                        return this.then(org.mwg.internal.task.CoreActions.readVar(name));
                     };
                     CoreTask.prototype.setAsVar = function (name) {
-                        return this.then(org.mwg.core.task.Actions.setAsVar(name));
+                        return this.then(org.mwg.internal.task.CoreActions.setAsVar(name));
                     };
                     CoreTask.prototype.addToVar = function (name) {
-                        return this.then(org.mwg.core.task.Actions.addToVar(name));
+                        return this.then(org.mwg.internal.task.CoreActions.addToVar(name));
                     };
                     CoreTask.prototype.setAttribute = function (name, type, value) {
-                        return this.then(org.mwg.core.task.Actions.setAttribute(name, type, value));
+                        return this.then(org.mwg.internal.task.CoreActions.setAttribute(name, type, value));
                     };
                     CoreTask.prototype.timeSensitivity = function (delta, offset) {
-                        return this.then(org.mwg.core.task.Actions.timeSensitivity(delta, offset));
+                        return this.then(org.mwg.internal.task.CoreActions.timeSensitivity(delta, offset));
                     };
                     CoreTask.prototype.forceAttribute = function (name, type, value) {
-                        return this.then(org.mwg.core.task.Actions.forceAttribute(name, type, value));
+                        return this.then(org.mwg.internal.task.CoreActions.forceAttribute(name, type, value));
                     };
                     CoreTask.prototype.remove = function (name) {
-                        return this.then(org.mwg.core.task.Actions.remove(name));
+                        return this.then(org.mwg.internal.task.CoreActions.remove(name));
                     };
                     CoreTask.prototype.attributes = function () {
-                        return this.then(org.mwg.core.task.Actions.attributes());
+                        return this.then(org.mwg.internal.task.CoreActions.attributes());
                     };
                     CoreTask.prototype.timepoints = function (from, to) {
-                        return this.then(org.mwg.core.task.Actions.timepoints(from, to));
+                        return this.then(org.mwg.internal.task.CoreActions.timepoints(from, to));
                     };
                     CoreTask.prototype.attributesWithType = function (filterType) {
-                        return this.then(org.mwg.core.task.Actions.attributesWithTypes(filterType));
+                        return this.then(org.mwg.internal.task.CoreActions.attributesWithTypes(filterType));
                     };
                     CoreTask.prototype.addVarToRelation = function (relName, varName) {
                         var attributes = [];
                         for (var _i = 2; _i < arguments.length; _i++) {
                             attributes[_i - 2] = arguments[_i];
                         }
-                        return this.then((_a = org.mwg.core.task.Actions).addVarToRelation.apply(_a, [relName, varName].concat(attributes)));
+                        return this.then((_a = org.mwg.internal.task.CoreActions).addVarToRelation.apply(_a, [relName, varName].concat(attributes)));
                         var _a;
                     };
                     CoreTask.prototype.removeVarFromRelation = function (relName, varFrom) {
@@ -13828,7 +14125,7 @@ var org;
                         for (var _i = 2; _i < arguments.length; _i++) {
                             attributes[_i - 2] = arguments[_i];
                         }
-                        return this.then((_a = org.mwg.core.task.Actions).removeVarFromRelation.apply(_a, [relName, varFrom].concat(attributes)));
+                        return this.then((_a = org.mwg.internal.task.CoreActions).removeVarFromRelation.apply(_a, [relName, varFrom].concat(attributes)));
                         var _a;
                     };
                     CoreTask.prototype.traverse = function (name) {
@@ -13836,7 +14133,7 @@ var org;
                         for (var _i = 1; _i < arguments.length; _i++) {
                             params[_i - 1] = arguments[_i];
                         }
-                        return this.then((_a = org.mwg.core.task.Actions).traverse.apply(_a, [name].concat(params)));
+                        return this.then((_a = org.mwg.internal.task.CoreActions).traverse.apply(_a, [name].concat(params)));
                         var _a;
                     };
                     CoreTask.prototype.attribute = function (name) {
@@ -13844,7 +14141,7 @@ var org;
                         for (var _i = 1; _i < arguments.length; _i++) {
                             params[_i - 1] = arguments[_i];
                         }
-                        return this.then((_a = org.mwg.core.task.Actions).attribute.apply(_a, [name].concat(params)));
+                        return this.then((_a = org.mwg.internal.task.CoreActions).attribute.apply(_a, [name].concat(params)));
                         var _a;
                     };
                     CoreTask.prototype.readGlobalIndex = function (name) {
@@ -13852,7 +14149,7 @@ var org;
                         for (var _i = 1; _i < arguments.length; _i++) {
                             query[_i - 1] = arguments[_i];
                         }
-                        return this.then((_a = org.mwg.core.task.Actions).readGlobalIndex.apply(_a, [name].concat(query)));
+                        return this.then((_a = org.mwg.internal.task.CoreActions).readGlobalIndex.apply(_a, [name].concat(query)));
                         var _a;
                     };
                     CoreTask.prototype.addToGlobalIndex = function (name) {
@@ -13860,7 +14157,7 @@ var org;
                         for (var _i = 1; _i < arguments.length; _i++) {
                             attributes[_i - 1] = arguments[_i];
                         }
-                        return this.then((_a = org.mwg.core.task.Actions).addToGlobalIndex.apply(_a, [name].concat(attributes)));
+                        return this.then((_a = org.mwg.internal.task.CoreActions).addToGlobalIndex.apply(_a, [name].concat(attributes)));
                         var _a;
                     };
                     CoreTask.prototype.addToGlobalTimedIndex = function (name) {
@@ -13868,7 +14165,7 @@ var org;
                         for (var _i = 1; _i < arguments.length; _i++) {
                             attributes[_i - 1] = arguments[_i];
                         }
-                        return this.then((_a = org.mwg.core.task.Actions).addToGlobalTimedIndex.apply(_a, [name].concat(attributes)));
+                        return this.then((_a = org.mwg.internal.task.CoreActions).addToGlobalTimedIndex.apply(_a, [name].concat(attributes)));
                         var _a;
                     };
                     CoreTask.prototype.removeFromGlobalIndex = function (name) {
@@ -13876,7 +14173,7 @@ var org;
                         for (var _i = 1; _i < arguments.length; _i++) {
                             attributes[_i - 1] = arguments[_i];
                         }
-                        return this.then((_a = org.mwg.core.task.Actions).removeFromGlobalIndex.apply(_a, [name].concat(attributes)));
+                        return this.then((_a = org.mwg.internal.task.CoreActions).removeFromGlobalIndex.apply(_a, [name].concat(attributes)));
                         var _a;
                     };
                     CoreTask.prototype.removeFromGlobalTimedIndex = function (name) {
@@ -13884,73 +14181,73 @@ var org;
                         for (var _i = 1; _i < arguments.length; _i++) {
                             attributes[_i - 1] = arguments[_i];
                         }
-                        return this.then((_a = org.mwg.core.task.Actions).removeFromGlobalTimedIndex.apply(_a, [name].concat(attributes)));
+                        return this.then((_a = org.mwg.internal.task.CoreActions).removeFromGlobalTimedIndex.apply(_a, [name].concat(attributes)));
                         var _a;
                     };
                     CoreTask.prototype.indexNames = function () {
-                        return this.then(org.mwg.core.task.Actions.indexNames());
+                        return this.then(org.mwg.internal.task.CoreActions.indexNames());
                     };
                     CoreTask.prototype.selectWith = function (name, pattern) {
-                        return this.then(org.mwg.core.task.Actions.selectWith(name, pattern));
+                        return this.then(org.mwg.internal.task.CoreActions.selectWith(name, pattern));
                     };
                     CoreTask.prototype.selectWithout = function (name, pattern) {
-                        return this.then(org.mwg.core.task.Actions.selectWithout(name, pattern));
+                        return this.then(org.mwg.internal.task.CoreActions.selectWithout(name, pattern));
                     };
                     CoreTask.prototype.select = function (filterFunction) {
-                        return this.then(org.mwg.core.task.Actions.select(filterFunction));
+                        return this.then(org.mwg.internal.task.CoreActions.select(filterFunction));
                     };
                     CoreTask.prototype.selectObject = function (filterFunction) {
-                        return this.then(org.mwg.core.task.Actions.selectObject(filterFunction));
+                        return this.then(org.mwg.internal.task.CoreActions.selectObject(filterFunction));
                     };
                     CoreTask.prototype.selectScript = function (script) {
-                        return this.then(org.mwg.core.task.Actions.selectScript(script));
+                        return this.then(org.mwg.internal.task.CoreActions.selectScript(script));
                     };
                     CoreTask.prototype.print = function (name) {
-                        return this.then(org.mwg.core.task.Actions.print(name));
+                        return this.then(org.mwg.internal.task.CoreActions.print(name));
                     };
                     CoreTask.prototype.println = function (name) {
-                        return this.then(org.mwg.core.task.Actions.println(name));
+                        return this.then(org.mwg.internal.task.CoreActions.println(name));
                     };
                     CoreTask.prototype.executeExpression = function (expression) {
-                        return this.then(org.mwg.core.task.Actions.executeExpression(expression));
+                        return this.then(org.mwg.internal.task.CoreActions.executeExpression(expression));
                     };
                     CoreTask.prototype.createNode = function () {
-                        return this.then(org.mwg.core.task.Actions.createNode());
+                        return this.then(org.mwg.internal.task.CoreActions.createNode());
                     };
                     CoreTask.prototype.createTypedNode = function (type) {
-                        return this.then(org.mwg.core.task.Actions.createTypedNode(type));
+                        return this.then(org.mwg.internal.task.CoreActions.createTypedNode(type));
                     };
                     CoreTask.prototype.save = function () {
-                        return this.then(org.mwg.core.task.Actions.save());
+                        return this.then(org.mwg.internal.task.CoreActions.save());
                     };
                     CoreTask.prototype.script = function (script) {
-                        return this.then(org.mwg.core.task.Actions.script(script));
+                        return this.then(org.mwg.internal.task.CoreActions.script(script));
                     };
                     CoreTask.prototype.asyncScript = function (ascript) {
-                        return this.then(org.mwg.core.task.Actions.asyncScript(ascript));
+                        return this.then(org.mwg.internal.task.CoreActions.asyncScript(ascript));
                     };
                     CoreTask.prototype.lookup = function (nodeId) {
-                        return this.then(org.mwg.core.task.Actions.lookup(nodeId));
+                        return this.then(org.mwg.internal.task.CoreActions.lookup(nodeId));
                     };
                     CoreTask.prototype.lookupAll = function (nodeIds) {
-                        return this.then(org.mwg.core.task.Actions.lookupAll(nodeIds));
+                        return this.then(org.mwg.internal.task.CoreActions.lookupAll(nodeIds));
                     };
                     CoreTask.prototype.clearResult = function () {
-                        return this.then(org.mwg.core.task.Actions.clearResult());
+                        return this.then(org.mwg.internal.task.CoreActions.clearResult());
                     };
                     CoreTask.prototype.action = function (name) {
                         var params = [];
                         for (var _i = 1; _i < arguments.length; _i++) {
                             params[_i - 1] = arguments[_i];
                         }
-                        return this.then((_a = org.mwg.core.task.Actions).action.apply(_a, [name].concat(params)));
+                        return this.then((_a = org.mwg.internal.task.CoreActions).action.apply(_a, [name].concat(params)));
                         var _a;
                     };
                     CoreTask.prototype.flipVar = function (name) {
-                        return this.then(org.mwg.core.task.Actions.flipVar(name));
+                        return this.then(org.mwg.internal.task.CoreActions.flipVar(name));
                     };
                     CoreTask.prototype.flat = function () {
-                        return this.then(org.mwg.core.task.Actions.flat());
+                        return this.then(org.mwg.internal.task.CoreActions.flat());
                     };
                     return CoreTask;
                 }());
@@ -14057,23 +14354,23 @@ var org;
                         }
                     };
                     CoreTaskContext.prototype.wrap = function (input) {
-                        return new org.mwg.core.task.CoreTaskResult(input, false);
+                        return new org.mwg.base.BaseTaskResult(input, false);
                     };
                     CoreTaskContext.prototype.wrapClone = function (input) {
-                        return new org.mwg.core.task.CoreTaskResult(input, true);
+                        return new org.mwg.base.BaseTaskResult(input, true);
                     };
                     CoreTaskContext.prototype.newResult = function () {
-                        return new org.mwg.core.task.CoreTaskResult(null, false);
+                        return new org.mwg.base.BaseTaskResult(null, false);
                     };
                     CoreTaskContext.prototype.declareVariable = function (name) {
                         if (this._localVariables == null) {
                             this._localVariables = new java.util.HashMap();
                         }
-                        this._localVariables.put(name, new org.mwg.core.task.CoreTaskResult(null, false));
+                        this._localVariables.put(name, new org.mwg.base.BaseTaskResult(null, false));
                         return this;
                     };
                     CoreTaskContext.prototype.lazyWrap = function (input) {
-                        if (input instanceof org.mwg.core.task.CoreTaskResult) {
+                        if (input instanceof org.mwg.base.BaseTaskResult) {
                             return input;
                         }
                         else {
@@ -14139,11 +14436,11 @@ var org;
                     CoreTaskContext.prototype.addToGlobalVariable = function (name, value) {
                         var previous = this._globalVariables.get(name);
                         if (previous == null) {
-                            previous = new org.mwg.core.task.CoreTaskResult(null, false);
+                            previous = new org.mwg.base.BaseTaskResult(null, false);
                             this._globalVariables.put(name, previous);
                         }
                         if (value != null) {
-                            if (value instanceof org.mwg.core.task.CoreTaskResult) {
+                            if (value instanceof org.mwg.base.BaseTaskResult) {
                                 var casted = value;
                                 for (var i = 0; i < casted.size(); i++) {
                                     var loop = casted.get(i);
@@ -14176,11 +14473,11 @@ var org;
                         }
                         var previous = target.get(name);
                         if (previous == null) {
-                            previous = new org.mwg.core.task.CoreTaskResult(null, false);
+                            previous = new org.mwg.base.BaseTaskResult(null, false);
                             target.put(name, previous);
                         }
                         if (value != null) {
-                            if (value instanceof org.mwg.core.task.CoreTaskResult) {
+                            if (value instanceof org.mwg.base.BaseTaskResult) {
                                 var casted = value;
                                 for (var i = 0; i < casted.size(); i++) {
                                     var loop = casted.get(i);
@@ -14335,13 +14632,13 @@ var org;
                         if (this._callback != null) {
                             if (e != null) {
                                 if (this._result == null) {
-                                    this._result = new org.mwg.core.task.CoreTaskResult(null, false);
+                                    this._result = new org.mwg.base.BaseTaskResult(null, false);
                                 }
                                 this._result.setException(e);
                             }
                             if (this._output != null) {
                                 if (this._result == null) {
-                                    this._result = new org.mwg.core.task.CoreTaskResult(null, false);
+                                    this._result = new org.mwg.base.BaseTaskResult(null, false);
                                 }
                                 this._result.setOutput(this._output.toString());
                             }
@@ -14431,7 +14728,7 @@ var org;
                                 }
                                 var contextKey = input.substring(previousPos, cursor - 1).trim();
                                 if (contextKey.length > 0 && contextKey.charAt(0) == '=') {
-                                    var mathEngine = org.mwg.core.task.math.CoreMathExpressionEngine.parse(contextKey.substring(1));
+                                    var mathEngine = org.mwg.internal.task.math.CoreMathExpressionEngine.parse(contextKey.substring(1));
                                     var value = mathEngine.eval(null, this, new java.util.HashMap());
                                     var valueStr = value + "";
                                     for (var i = valueStr.length - 1; i >= 0; i--) {
@@ -14456,7 +14753,7 @@ var org;
                                             }
                                         }
                                         if (indexStart != -1) {
-                                            indexArray = org.mwg.core.task.TaskHelper.parseInt(contextKey.substring(indexStart, contextKey.length - 1));
+                                            indexArray = org.mwg.internal.task.TaskHelper.parseInt(contextKey.substring(indexStart, contextKey.length - 1));
                                             contextKey = contextKey.substring(0, indexStart - 1);
                                             if (indexArray < 0) {
                                                 throw new Error("Array index out of range: " + indexArray);
@@ -14582,271 +14879,11 @@ var org;
                         }
                     };
                     CoreTaskReader.prototype.slice = function (cursor) {
-                        return new org.mwg.core.task.CoreTaskReader(this.flat, cursor);
+                        return new org.mwg.internal.task.CoreTaskReader(this.flat, cursor);
                     };
                     return CoreTaskReader;
                 }());
                 task_1.CoreTaskReader = CoreTaskReader;
-                var CoreTaskResult = (function () {
-                    function CoreTaskResult(toWrap, protect) {
-                        this._capacity = 0;
-                        this._size = 0;
-                        this._exception = null;
-                        this._output = null;
-                        if (Array.isArray(toWrap)) {
-                            var castedToWrap = toWrap;
-                            this._size = toWrap.length;
-                            this._capacity = this._size;
-                            this._backend = new Array(this._size);
-                            if (protect) {
-                                for (var i = 0; i < this._size; i++) {
-                                    var loopObj = castedToWrap[i];
-                                    if (loopObj instanceof org.mwg.base.BaseNode) {
-                                        var loopNode = loopObj;
-                                        this._backend[i] = loopNode.graph().cloneNode(loopNode);
-                                    }
-                                    else {
-                                        this._backend[i] = loopObj;
-                                    }
-                                }
-                            }
-                            else {
-                                java.lang.System.arraycopy(castedToWrap, 0, this._backend, 0, this._size);
-                            }
-                        }
-                        else if (toWrap instanceof Float64Array) {
-                            var castedOther = toWrap;
-                            this._backend = new Array(castedOther.length);
-                            for (var i = 0; i < castedOther.length; i++) {
-                                this._backend[i] = castedOther[i];
-                            }
-                            this._capacity = this._backend.length;
-                            this._size = this._capacity;
-                        }
-                        else if (toWrap instanceof Int32Array) {
-                            var castedOther = toWrap;
-                            this._backend = new Array(castedOther.length);
-                            for (var i = 0; i < castedOther.length; i++) {
-                                this._backend[i] = castedOther[i];
-                            }
-                            this._capacity = this._backend.length;
-                            this._size = this._capacity;
-                        }
-                        else if (toWrap instanceof Float64Array) {
-                            var castedOther = toWrap;
-                            this._backend = new Array(castedOther.length);
-                            for (var i = 0; i < castedOther.length; i++) {
-                                this._backend[i] = castedOther[i];
-                            }
-                            this._capacity = this._backend.length;
-                            this._size = this._capacity;
-                        }
-                        else if (toWrap instanceof java.util.ArrayList) {
-                            var castedOtherList = toWrap;
-                            this._backend = new Array(castedOtherList.size());
-                            for (var i = 0; i < castedOtherList.size(); i++) {
-                                this._backend[i] = castedOtherList.get(i);
-                            }
-                            this._capacity = this._backend.length;
-                            this._size = this._capacity;
-                        }
-                        else if (toWrap instanceof org.mwg.core.task.CoreTaskResult) {
-                            var other = toWrap;
-                            this._size = other._size;
-                            this._capacity = other._capacity;
-                            if (other._backend != null) {
-                                this._backend = new Array(other._backend.length);
-                                if (protect) {
-                                    for (var i = 0; i < this._size; i++) {
-                                        var loopObj = other._backend[i];
-                                        if (loopObj instanceof org.mwg.base.BaseNode) {
-                                            var loopNode = loopObj;
-                                            this._backend[i] = loopNode.graph().cloneNode(loopNode);
-                                        }
-                                        else {
-                                            this._backend[i] = loopObj;
-                                        }
-                                    }
-                                }
-                                else {
-                                    java.lang.System.arraycopy(other._backend, 0, this._backend, 0, this._size);
-                                }
-                            }
-                        }
-                        else {
-                            if (toWrap != null) {
-                                this._backend = new Array(1);
-                                this._capacity = 1;
-                                this._size = 1;
-                                if (toWrap instanceof org.mwg.base.BaseNode) {
-                                    var toWrapNode = toWrap;
-                                    if (protect) {
-                                        this._backend[0] = toWrapNode.graph().cloneNode(toWrapNode);
-                                    }
-                                    else {
-                                        this._backend[0] = toWrapNode;
-                                    }
-                                }
-                                else {
-                                    this._backend[0] = toWrap;
-                                }
-                            }
-                        }
-                    }
-                    CoreTaskResult.prototype.asArray = function () {
-                        var flat = new Array(this._size);
-                        if (this._backend != null) {
-                            java.lang.System.arraycopy(this._backend, 0, flat, 0, this._size);
-                        }
-                        return flat;
-                    };
-                    CoreTaskResult.prototype.exception = function () {
-                        return this._exception;
-                    };
-                    CoreTaskResult.prototype.output = function () {
-                        return this._output;
-                    };
-                    CoreTaskResult.prototype.setException = function (e) {
-                        this._exception = e;
-                        return this;
-                    };
-                    CoreTaskResult.prototype.setOutput = function (output) {
-                        this._output = output;
-                        return this;
-                    };
-                    CoreTaskResult.prototype.fillWith = function (source) {
-                        if (source != null) {
-                            this._backend = source.asArray();
-                            this._capacity = this._backend.length;
-                            this._size = this._backend.length;
-                        }
-                        return this;
-                    };
-                    CoreTaskResult.prototype.iterator = function () {
-                        return new org.mwg.core.task.CoreTaskResultIterator(this._backend);
-                    };
-                    CoreTaskResult.prototype.get = function (index) {
-                        if (index < this._size) {
-                            return this._backend[index];
-                        }
-                        else {
-                            return null;
-                        }
-                    };
-                    CoreTaskResult.prototype.set = function (index, input) {
-                        if (index >= this._capacity) {
-                            this.extendTil(index);
-                        }
-                        this._backend[index] = input;
-                        if (index >= this._size) {
-                            this._size++;
-                        }
-                        return this;
-                    };
-                    CoreTaskResult.prototype.allocate = function (index) {
-                        if (index >= this._capacity) {
-                            if (this._backend == null) {
-                                this._backend = new Array(index);
-                                this._capacity = index;
-                            }
-                            else {
-                                throw new Error("Not implemented yet!!!");
-                            }
-                        }
-                        return this;
-                    };
-                    CoreTaskResult.prototype.add = function (input) {
-                        if (this._size >= this._capacity) {
-                            this.extendTil(this._size);
-                        }
-                        this.set(this._size, input);
-                        return this;
-                    };
-                    CoreTaskResult.prototype.clear = function () {
-                        this._backend = null;
-                        this._capacity = 0;
-                        this._size = 0;
-                        return this;
-                    };
-                    CoreTaskResult.prototype.clone = function () {
-                        return new org.mwg.core.task.CoreTaskResult(this, true);
-                    };
-                    CoreTaskResult.prototype.free = function () {
-                        for (var i = 0; i < this._capacity; i++) {
-                            if (this._backend[i] instanceof org.mwg.base.BaseNode) {
-                                this._backend[i].free();
-                            }
-                        }
-                    };
-                    CoreTaskResult.prototype.size = function () {
-                        return this._size;
-                    };
-                    CoreTaskResult.prototype.extendTil = function (index) {
-                        if (this._capacity <= index) {
-                            var newCapacity = this._capacity * 2;
-                            if (newCapacity <= index) {
-                                newCapacity = index + 1;
-                            }
-                            var extendedBackend = new Array(newCapacity);
-                            if (this._backend != null) {
-                                java.lang.System.arraycopy(this._backend, 0, extendedBackend, 0, this._size);
-                            }
-                            this._backend = extendedBackend;
-                            this._capacity = newCapacity;
-                        }
-                    };
-                    CoreTaskResult.prototype.toString = function () {
-                        return this.toJson(true);
-                    };
-                    CoreTaskResult.prototype.toJson = function (withContent) {
-                        var builder = new java.lang.StringBuilder();
-                        var isFirst = true;
-                        builder.append("{");
-                        if (this._exception != null) {
-                            isFirst = false;
-                            builder.append("\"error\":");
-                            org.mwg.core.task.TaskHelper.serializeString(this._exception.message, builder, false);
-                        }
-                        if (this._output != null) {
-                            if (!isFirst) {
-                                builder.append(",");
-                            }
-                            else {
-                                isFirst = false;
-                            }
-                            builder.append("\"output\":");
-                            org.mwg.core.task.TaskHelper.serializeString(this._output, builder, false);
-                        }
-                        if (this._size > 0) {
-                            if (!isFirst) {
-                                builder.append(",");
-                            }
-                            builder.append("\"result\":[");
-                            for (var i = 0; i < this._size; i++) {
-                                if (i != 0) {
-                                    builder.append(",");
-                                }
-                                var loop = this._backend[i];
-                                if (loop != null) {
-                                    var saved = loop.toString();
-                                    if (saved.length > 0) {
-                                        if (saved.charAt(0) == '{' || saved.charAt(0) == '[') {
-                                            builder.append(saved);
-                                        }
-                                        else {
-                                            org.mwg.core.task.TaskHelper.serializeString(saved, builder, false);
-                                        }
-                                    }
-                                }
-                            }
-                            builder.append("]");
-                        }
-                        builder.append("}");
-                        return builder.toString();
-                    };
-                    return CoreTaskResult;
-                }());
-                task_1.CoreTaskResult = CoreTaskResult;
                 var CoreTaskResultIterator = (function () {
                     function CoreTaskResultIterator(p_backend) {
                         this._current = new java.util.concurrent.atomic.AtomicInteger(0);
@@ -14902,7 +14939,7 @@ var org;
                                     nodes = tmp;
                                 }
                                 else if (Array.isArray(resAsArray[i])) {
-                                    var innerNodes = org.mwg.core.task.TaskHelper.flatNodes(resAsArray[i], strict);
+                                    var innerNodes = org.mwg.internal.task.TaskHelper.flatNodes(resAsArray[i], strict);
                                     var tmp = new Array(nodes.length + innerNodes.length);
                                     java.lang.System.arraycopy(nodes, 0, tmp, 0, nodes.length);
                                     java.lang.System.arraycopy(innerNodes, 0, tmp, nodes.length, innerNodes.length);
@@ -14974,13 +15011,13 @@ var org;
                             if (i != 0) {
                                 builder.append(org.mwg.Constants.TASK_PARAM_SEP);
                             }
-                            org.mwg.core.task.TaskHelper.serializeString(params[i], builder, true);
+                            org.mwg.internal.task.TaskHelper.serializeString(params[i], builder, true);
                         }
                     };
                     TaskHelper.serializeNameAndStringParams = function (name, params, builder) {
                         builder.append(name);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        org.mwg.core.task.TaskHelper.serializeStringParams(params, builder);
+                        org.mwg.internal.task.TaskHelper.serializeStringParams(params, builder);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
                     return TaskHelper;
@@ -14993,7 +15030,7 @@ var org;
                             this._cacheAST = this.buildAST(this.shuntingYard(expression));
                         }
                         CoreMathExpressionEngine.parse = function (p_expression) {
-                            return new org.mwg.core.task.math.CoreMathExpressionEngine(p_expression);
+                            return new org.mwg.internal.task.math.CoreMathExpressionEngine(p_expression);
                         };
                         CoreMathExpressionEngine.isNumber = function (st) {
                             return !isNaN(+st);
@@ -15022,12 +15059,12 @@ var org;
                         CoreMathExpressionEngine.prototype.shuntingYard = function (expression) {
                             var outputQueue = new java.util.ArrayList();
                             var stack = new java.util.Stack();
-                            var tokenizer = new org.mwg.core.task.math.MathExpressionTokenizer(expression);
+                            var tokenizer = new org.mwg.internal.task.math.MathExpressionTokenizer(expression);
                             var lastFunction = null;
                             var previousToken = null;
                             while (tokenizer.hasNext()) {
                                 var token = tokenizer.next();
-                                if (org.mwg.core.task.math.MathEntities.getINSTANCE().functions.keySet().contains(token.toUpperCase())) {
+                                if (org.mwg.internal.task.math.MathEntities.getINSTANCE().functions.keySet().contains(token.toUpperCase())) {
                                     stack.push(token);
                                     lastFunction = token;
                                 }
@@ -15039,10 +15076,10 @@ var org;
                                         throw new Error("Parse error for function '" + lastFunction + "'");
                                     }
                                 }
-                                else if (org.mwg.core.task.math.MathEntities.getINSTANCE().operators.keySet().contains(token)) {
-                                    var o1 = org.mwg.core.task.math.MathEntities.getINSTANCE().operators.get(token);
+                                else if (org.mwg.internal.task.math.MathEntities.getINSTANCE().operators.keySet().contains(token)) {
+                                    var o1 = org.mwg.internal.task.math.MathEntities.getINSTANCE().operators.get(token);
                                     var token2 = stack.isEmpty() ? null : stack.peek();
-                                    while (org.mwg.core.task.math.MathEntities.getINSTANCE().operators.keySet().contains(token2) && ((o1.isLeftAssoc() && o1.getPrecedence() <= org.mwg.core.task.math.MathEntities.getINSTANCE().operators.get(token2).getPrecedence()) || (o1.getPrecedence() < org.mwg.core.task.math.MathEntities.getINSTANCE().operators.get(token2).getPrecedence()))) {
+                                    while (org.mwg.internal.task.math.MathEntities.getINSTANCE().operators.keySet().contains(token2) && ((o1.isLeftAssoc() && o1.getPrecedence() <= org.mwg.internal.task.math.MathEntities.getINSTANCE().operators.get(token2).getPrecedence()) || (o1.getPrecedence() < org.mwg.internal.task.math.MathEntities.getINSTANCE().operators.get(token2).getPrecedence()))) {
                                         outputQueue.add(stack.pop());
                                         token2 = stack.isEmpty() ? null : stack.peek();
                                     }
@@ -15050,7 +15087,7 @@ var org;
                                 }
                                 else if ("(" === token) {
                                     if (previousToken != null) {
-                                        if (org.mwg.core.task.math.CoreMathExpressionEngine.isNumber(previousToken)) {
+                                        if (org.mwg.internal.task.math.CoreMathExpressionEngine.isNumber(previousToken)) {
                                             throw new Error("Missing operator at character position " + tokenizer.getPos());
                                         }
                                     }
@@ -15064,7 +15101,7 @@ var org;
                                         throw new Error("Mismatched parentheses");
                                     }
                                     stack.pop();
-                                    if (!stack.isEmpty() && org.mwg.core.task.math.MathEntities.getINSTANCE().functions.keySet().contains(stack.peek().toUpperCase())) {
+                                    if (!stack.isEmpty() && org.mwg.internal.task.math.MathEntities.getINSTANCE().functions.keySet().contains(stack.peek().toUpperCase())) {
                                         outputQueue.add(stack.pop());
                                     }
                                 }
@@ -15218,26 +15255,26 @@ var org;
                             var result = new Array(rpn.size());
                             for (var ii = 0; ii < rpn.size(); ii++) {
                                 var token = rpn.get(ii);
-                                if (org.mwg.core.task.math.MathEntities.getINSTANCE().operators.keySet().contains(token)) {
-                                    result[ii] = org.mwg.core.task.math.MathEntities.getINSTANCE().operators.get(token);
+                                if (org.mwg.internal.task.math.MathEntities.getINSTANCE().operators.keySet().contains(token)) {
+                                    result[ii] = org.mwg.internal.task.math.MathEntities.getINSTANCE().operators.get(token);
                                 }
-                                else if (org.mwg.core.task.math.MathEntities.getINSTANCE().functions.keySet().contains(token.toUpperCase())) {
-                                    result[ii] = org.mwg.core.task.math.MathEntities.getINSTANCE().functions.get(token.toUpperCase());
+                                else if (org.mwg.internal.task.math.MathEntities.getINSTANCE().functions.keySet().contains(token.toUpperCase())) {
+                                    result[ii] = org.mwg.internal.task.math.MathEntities.getINSTANCE().functions.get(token.toUpperCase());
                                 }
                                 else {
-                                    if (token.length > 0 && org.mwg.core.task.math.CoreMathExpressionEngine.isLetter(token.charAt(0))) {
-                                        result[ii] = new org.mwg.core.task.math.MathFreeToken(token);
+                                    if (token.length > 0 && org.mwg.internal.task.math.CoreMathExpressionEngine.isLetter(token.charAt(0))) {
+                                        result[ii] = new org.mwg.internal.task.math.MathFreeToken(token);
                                     }
                                     else {
                                         try {
                                             var parsed = this.parseDouble(token);
-                                            result[ii] = new org.mwg.core.task.math.MathDoubleToken(parsed);
+                                            result[ii] = new org.mwg.internal.task.math.MathDoubleToken(parsed);
                                         }
                                         catch ($ex$) {
                                             if ($ex$ instanceof Error) {
                                                 var e = $ex$;
                                                 {
-                                                    result[ii] = new org.mwg.core.task.math.MathFreeToken(token);
+                                                    result[ii] = new org.mwg.internal.task.math.MathFreeToken(token);
                                                 }
                                             }
                                             else {
@@ -15263,7 +15300,7 @@ var org;
                     var MathConditional = (function () {
                         function MathConditional(mathExpression) {
                             this._expression = mathExpression;
-                            this._engine = org.mwg.core.task.math.CoreMathExpressionEngine.parse(mathExpression);
+                            this._engine = org.mwg.internal.task.math.CoreMathExpressionEngine.parse(mathExpression);
                         }
                         MathConditional.prototype.conditional = function () {
                             var _this = this;
@@ -15299,49 +15336,49 @@ var org;
                     var MathEntities = (function () {
                         function MathEntities() {
                             this.operators = new java.util.HashMap();
-                            this.operators.put("+", new org.mwg.core.task.math.MathOperation("+", 20, true));
-                            this.operators.put("-", new org.mwg.core.task.math.MathOperation("-", 20, true));
-                            this.operators.put("*", new org.mwg.core.task.math.MathOperation("*", 30, true));
-                            this.operators.put("/", new org.mwg.core.task.math.MathOperation("/", 30, true));
-                            this.operators.put("%", new org.mwg.core.task.math.MathOperation("%", 30, true));
-                            this.operators.put("^", new org.mwg.core.task.math.MathOperation("^", 40, false));
-                            this.operators.put("&&", new org.mwg.core.task.math.MathOperation("&&", 4, false));
-                            this.operators.put("||", new org.mwg.core.task.math.MathOperation("||", 2, false));
-                            this.operators.put(">", new org.mwg.core.task.math.MathOperation(">", 10, false));
-                            this.operators.put(">=", new org.mwg.core.task.math.MathOperation(">=", 10, false));
-                            this.operators.put("<", new org.mwg.core.task.math.MathOperation("<", 10, false));
-                            this.operators.put("<=", new org.mwg.core.task.math.MathOperation("<=", 10, false));
-                            this.operators.put("==", new org.mwg.core.task.math.MathOperation("==", 7, false));
-                            this.operators.put("!=", new org.mwg.core.task.math.MathOperation("!=", 7, false));
+                            this.operators.put("+", new org.mwg.internal.task.math.MathOperation("+", 20, true));
+                            this.operators.put("-", new org.mwg.internal.task.math.MathOperation("-", 20, true));
+                            this.operators.put("*", new org.mwg.internal.task.math.MathOperation("*", 30, true));
+                            this.operators.put("/", new org.mwg.internal.task.math.MathOperation("/", 30, true));
+                            this.operators.put("%", new org.mwg.internal.task.math.MathOperation("%", 30, true));
+                            this.operators.put("^", new org.mwg.internal.task.math.MathOperation("^", 40, false));
+                            this.operators.put("&&", new org.mwg.internal.task.math.MathOperation("&&", 4, false));
+                            this.operators.put("||", new org.mwg.internal.task.math.MathOperation("||", 2, false));
+                            this.operators.put(">", new org.mwg.internal.task.math.MathOperation(">", 10, false));
+                            this.operators.put(">=", new org.mwg.internal.task.math.MathOperation(">=", 10, false));
+                            this.operators.put("<", new org.mwg.internal.task.math.MathOperation("<", 10, false));
+                            this.operators.put("<=", new org.mwg.internal.task.math.MathOperation("<=", 10, false));
+                            this.operators.put("==", new org.mwg.internal.task.math.MathOperation("==", 7, false));
+                            this.operators.put("!=", new org.mwg.internal.task.math.MathOperation("!=", 7, false));
                             this.functions = new java.util.HashMap();
-                            this.functions.put("NOT", new org.mwg.core.task.math.MathFunction("NOT", 1));
-                            this.functions.put("IF", new org.mwg.core.task.math.MathFunction("IF", 3));
-                            this.functions.put("RAND", new org.mwg.core.task.math.MathFunction("RAND", 0));
-                            this.functions.put("SIN", new org.mwg.core.task.math.MathFunction("SIN", 1));
-                            this.functions.put("COS", new org.mwg.core.task.math.MathFunction("COS", 1));
-                            this.functions.put("TAN", new org.mwg.core.task.math.MathFunction("TAN", 1));
-                            this.functions.put("ASIN", new org.mwg.core.task.math.MathFunction("ASIN", 1));
-                            this.functions.put("ACOS", new org.mwg.core.task.math.MathFunction("ACOS", 1));
-                            this.functions.put("ATAN", new org.mwg.core.task.math.MathFunction("ATAN", 1));
-                            this.functions.put("MAX", new org.mwg.core.task.math.MathFunction("MAX", 2));
-                            this.functions.put("MIN", new org.mwg.core.task.math.MathFunction("MIN", 2));
-                            this.functions.put("ABS", new org.mwg.core.task.math.MathFunction("ABS", 1));
-                            this.functions.put("LOG", new org.mwg.core.task.math.MathFunction("LOG", 1));
-                            this.functions.put("ROUND", new org.mwg.core.task.math.MathFunction("ROUND", 2));
-                            this.functions.put("FLOOR", new org.mwg.core.task.math.MathFunction("FLOOR", 1));
-                            this.functions.put("CEILING", new org.mwg.core.task.math.MathFunction("CEILING", 1));
-                            this.functions.put("SQRT", new org.mwg.core.task.math.MathFunction("SQRT", 1));
-                            this.functions.put("SECONDS", new org.mwg.core.task.math.MathFunction("SECONDS", 1));
-                            this.functions.put("MINUTES", new org.mwg.core.task.math.MathFunction("MINUTES", 1));
-                            this.functions.put("HOURS", new org.mwg.core.task.math.MathFunction("HOURS", 1));
-                            this.functions.put("DAY", new org.mwg.core.task.math.MathFunction("DAY", 1));
-                            this.functions.put("MONTH", new org.mwg.core.task.math.MathFunction("MONTH", 1));
-                            this.functions.put("YEAR", new org.mwg.core.task.math.MathFunction("YEAR", 1));
-                            this.functions.put("DAYOFWEEK", new org.mwg.core.task.math.MathFunction("DAYOFWEEK", 1));
+                            this.functions.put("NOT", new org.mwg.internal.task.math.MathFunction("NOT", 1));
+                            this.functions.put("IF", new org.mwg.internal.task.math.MathFunction("IF", 3));
+                            this.functions.put("RAND", new org.mwg.internal.task.math.MathFunction("RAND", 0));
+                            this.functions.put("SIN", new org.mwg.internal.task.math.MathFunction("SIN", 1));
+                            this.functions.put("COS", new org.mwg.internal.task.math.MathFunction("COS", 1));
+                            this.functions.put("TAN", new org.mwg.internal.task.math.MathFunction("TAN", 1));
+                            this.functions.put("ASIN", new org.mwg.internal.task.math.MathFunction("ASIN", 1));
+                            this.functions.put("ACOS", new org.mwg.internal.task.math.MathFunction("ACOS", 1));
+                            this.functions.put("ATAN", new org.mwg.internal.task.math.MathFunction("ATAN", 1));
+                            this.functions.put("MAX", new org.mwg.internal.task.math.MathFunction("MAX", 2));
+                            this.functions.put("MIN", new org.mwg.internal.task.math.MathFunction("MIN", 2));
+                            this.functions.put("ABS", new org.mwg.internal.task.math.MathFunction("ABS", 1));
+                            this.functions.put("LOG", new org.mwg.internal.task.math.MathFunction("LOG", 1));
+                            this.functions.put("ROUND", new org.mwg.internal.task.math.MathFunction("ROUND", 2));
+                            this.functions.put("FLOOR", new org.mwg.internal.task.math.MathFunction("FLOOR", 1));
+                            this.functions.put("CEILING", new org.mwg.internal.task.math.MathFunction("CEILING", 1));
+                            this.functions.put("SQRT", new org.mwg.internal.task.math.MathFunction("SQRT", 1));
+                            this.functions.put("SECONDS", new org.mwg.internal.task.math.MathFunction("SECONDS", 1));
+                            this.functions.put("MINUTES", new org.mwg.internal.task.math.MathFunction("MINUTES", 1));
+                            this.functions.put("HOURS", new org.mwg.internal.task.math.MathFunction("HOURS", 1));
+                            this.functions.put("DAY", new org.mwg.internal.task.math.MathFunction("DAY", 1));
+                            this.functions.put("MONTH", new org.mwg.internal.task.math.MathFunction("MONTH", 1));
+                            this.functions.put("YEAR", new org.mwg.internal.task.math.MathFunction("YEAR", 1));
+                            this.functions.put("DAYOFWEEK", new org.mwg.internal.task.math.MathFunction("DAYOFWEEK", 1));
                         }
                         MathEntities.getINSTANCE = function () {
                             if (MathEntities.INSTANCE == null) {
-                                MathEntities.INSTANCE = new org.mwg.core.task.math.MathEntities();
+                                MathEntities.INSTANCE = new org.mwg.internal.task.math.MathEntities();
                             }
                             return MathEntities.INSTANCE;
                         };
@@ -15371,22 +15408,22 @@ var org;
                                 return this.previousToken = null;
                             }
                             var ch = this.input.charAt(this.pos);
-                            while (org.mwg.core.task.math.CoreMathExpressionEngine.isWhitespace(ch) && this.pos < this.input.length) {
+                            while (org.mwg.internal.task.math.CoreMathExpressionEngine.isWhitespace(ch) && this.pos < this.input.length) {
                                 ch = this.input.charAt(++this.pos);
                             }
-                            if (org.mwg.core.task.math.CoreMathExpressionEngine.isDigit(ch)) {
-                                while ((org.mwg.core.task.math.CoreMathExpressionEngine.isDigit(ch) || ch == org.mwg.core.task.math.CoreMathExpressionEngine.decimalSeparator) && (this.pos < this.input.length)) {
+                            if (org.mwg.internal.task.math.CoreMathExpressionEngine.isDigit(ch)) {
+                                while ((org.mwg.internal.task.math.CoreMathExpressionEngine.isDigit(ch) || ch == org.mwg.internal.task.math.CoreMathExpressionEngine.decimalSeparator) && (this.pos < this.input.length)) {
                                     token.append(this.input.charAt(this.pos++));
                                     ch = this.pos == this.input.length ? '\0' : this.input.charAt(this.pos);
                                 }
                             }
-                            else if (ch == org.mwg.core.task.math.CoreMathExpressionEngine.minusSign && org.mwg.core.task.math.CoreMathExpressionEngine.isDigit(this.peekNextChar()) && ("(" === this.previousToken || "," === this.previousToken || this.previousToken == null || org.mwg.core.task.math.MathEntities.getINSTANCE().operators.keySet().contains(this.previousToken))) {
-                                token.append(org.mwg.core.task.math.CoreMathExpressionEngine.minusSign);
+                            else if (ch == org.mwg.internal.task.math.CoreMathExpressionEngine.minusSign && org.mwg.internal.task.math.CoreMathExpressionEngine.isDigit(this.peekNextChar()) && ("(" === this.previousToken || "," === this.previousToken || this.previousToken == null || org.mwg.internal.task.math.MathEntities.getINSTANCE().operators.keySet().contains(this.previousToken))) {
+                                token.append(org.mwg.internal.task.math.CoreMathExpressionEngine.minusSign);
                                 this.pos++;
                                 token.append(this.next());
                             }
-                            else if (org.mwg.core.task.math.CoreMathExpressionEngine.isLetter(ch) || (ch == '_') || (ch == '{') || (ch == '}') || (ch == '$')) {
-                                while ((org.mwg.core.task.math.CoreMathExpressionEngine.isLetter(ch) || org.mwg.core.task.math.CoreMathExpressionEngine.isDigit(ch) || (ch == '_') || (ch == '{') || (ch == '}') || (ch == '$')) && (this.pos < this.input.length)) {
+                            else if (org.mwg.internal.task.math.CoreMathExpressionEngine.isLetter(ch) || (ch == '_') || (ch == '{') || (ch == '}') || (ch == '$')) {
+                                while ((org.mwg.internal.task.math.CoreMathExpressionEngine.isLetter(ch) || org.mwg.internal.task.math.CoreMathExpressionEngine.isDigit(ch) || (ch == '_') || (ch == '{') || (ch == '}') || (ch == '$')) && (this.pos < this.input.length)) {
                                     token.append(this.input.charAt(this.pos++));
                                     ch = this.pos == this.input.length ? '\0' : this.input.charAt(this.pos);
                                 }
@@ -15394,7 +15431,7 @@ var org;
                                     if (this.input.charAt(this.pos) == '[') {
                                         token.append(this.input.charAt(this.pos++));
                                         ch = this.pos == this.input.length ? '\0' : this.input.charAt(this.pos);
-                                        while (org.mwg.core.task.math.CoreMathExpressionEngine.isDigit(ch) && this.pos < this.input.length) {
+                                        while (org.mwg.internal.task.math.CoreMathExpressionEngine.isDigit(ch) && this.pos < this.input.length) {
                                             token.append(this.input.charAt(this.pos++));
                                             ch = this.pos == this.input.length ? '\0' : this.input.charAt(this.pos);
                                         }
@@ -15412,15 +15449,15 @@ var org;
                                 this.pos++;
                             }
                             else {
-                                while (!org.mwg.core.task.math.CoreMathExpressionEngine.isLetter(ch) && !org.mwg.core.task.math.CoreMathExpressionEngine.isDigit(ch) && ch != '_' && !org.mwg.core.task.math.CoreMathExpressionEngine.isWhitespace(ch) && ch != '(' && ch != ')' && ch != ',' && (ch != '{') && (ch != '}') && (ch != '$') && (this.pos < this.input.length)) {
+                                while (!org.mwg.internal.task.math.CoreMathExpressionEngine.isLetter(ch) && !org.mwg.internal.task.math.CoreMathExpressionEngine.isDigit(ch) && ch != '_' && !org.mwg.internal.task.math.CoreMathExpressionEngine.isWhitespace(ch) && ch != '(' && ch != ')' && ch != ',' && (ch != '{') && (ch != '}') && (ch != '$') && (this.pos < this.input.length)) {
                                     token.append(this.input.charAt(this.pos));
                                     this.pos++;
                                     ch = this.pos == this.input.length ? '\0' : this.input.charAt(this.pos);
-                                    if (ch == org.mwg.core.task.math.CoreMathExpressionEngine.minusSign) {
+                                    if (ch == org.mwg.internal.task.math.CoreMathExpressionEngine.minusSign) {
                                         break;
                                     }
                                 }
-                                if (!org.mwg.core.task.math.MathEntities.getINSTANCE().operators.keySet().contains(token.toString())) {
+                                if (!org.mwg.internal.task.math.MathEntities.getINSTANCE().operators.keySet().contains(token.toString())) {
                                     throw new Error("Unknown operator '" + token + "' at position " + (this.pos - token.length + 1));
                                 }
                             }
@@ -15639,7 +15676,7 @@ var org;
                     }());
                     math.MathOperation = MathOperation;
                 })(math = task_1.math || (task_1.math = {}));
-            })(task = core.task || (core.task = {}));
+            })(task = internal.task || (internal.task = {}));
             var utility;
             (function (utility) {
                 var CoreDeferCounter = (function () {
@@ -15752,8 +15789,8 @@ var org;
                     return ReadOnlyStorage;
                 }());
                 utility.ReadOnlyStorage = ReadOnlyStorage;
-            })(utility = core.utility || (core.utility = {}));
-        })(core = mwg.core || (mwg.core = {}));
+            })(utility = internal.utility || (internal.utility = {}));
+        })(internal = mwg.internal || (mwg.internal = {}));
         var plugin;
         (function (plugin) {
             var SchedulerAffinity = (function () {
@@ -16345,7 +16382,7 @@ var org;
                     for (var i = 0; i < dataLength; i++) {
                         h = h.mul(org.mwg.utility.HashHelper.HMULT).xor(org.mwg.utility.HashHelper.byteTable[data[i] & 0xff]);
                     }
-                    return h.mod(org.mwg.core.CoreConstants.END_OF_TIME).toNumber();
+                    return h.mod(org.mwg.internal.CoreConstants.END_OF_TIME).toNumber();
                 };
                 return HashHelper;
             }());

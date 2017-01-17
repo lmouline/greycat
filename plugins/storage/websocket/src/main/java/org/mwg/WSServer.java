@@ -8,7 +8,7 @@ import io.undertow.websockets.WebSocketConnectionCallback;
 import io.undertow.websockets.core.*;
 import io.undertow.websockets.spi.WebSocketHttpExchange;
 import org.mwg.chunk.Chunk;
-import org.mwg.core.task.Actions;
+import org.mwg.internal.task.CoreActions;
 import org.mwg.plugin.Job;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
@@ -125,12 +125,12 @@ public class WSServer implements WebSocketConnectionCallback {
                 case WSConstants.REQ_TASK:
                     final List<Object> tasks = new ArrayList<Object>();
                     while (it.hasNext()) {
-                        Task t = Actions.newTask();
+                        Task t = CoreActions.newTask();
                         try {
                             t.loadFromBuffer(it.next(), graph);
                             tasks.add(t);
                         } catch (Exception e) {
-                            tasks.add(Actions.emptyResult().setException(e));
+                            tasks.add(CoreActions.emptyResult().setException(e));
                         }
                     }
                     final TaskResult[] results = new TaskResult[tasks.size()];

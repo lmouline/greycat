@@ -3,7 +3,7 @@ package org.mwg.ml.regression;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
-import org.mwg.core.scheduler.NoopScheduler;
+import org.mwg.internal.scheduler.NoopScheduler;
 import org.mwg.ml.MLPlugin;
 import org.mwg.ml.algorithm.regression.PolynomialNode;
 

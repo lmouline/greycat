@@ -5,12 +5,12 @@ import org.mwg.Constants;
 import org.mwg.DeferCounter;
 import org.mwg.Graph;
 import org.mwg.base.BaseNode;
-import org.mwg.core.task.Actions;
+import org.mwg.internal.task.CoreActions;
 import org.mwg.plugin.Job;
 import org.mwg.task.Task;
 import org.mwg.task.TaskResult;
 
-import static org.mwg.core.task.Actions.*;
+import static org.mwg.internal.task.CoreActions.*;
 
 public abstract class BaseMLNode extends BaseNode {
 
@@ -55,7 +55,7 @@ public abstract class BaseMLNode extends BaseNode {
             Task[] tasks = new Task[split.length];
             for (int i = 0; i < split.length; i++) {
                 Task t = newTask().then(travelInWorld("" + world()));
-                t.then(Actions.travelInTime(time() + ""));
+                t.then(CoreActions.travelInTime(time() + ""));
                 t.parse(split[i].trim(),graph());
                 tasks[i] = t;
             }

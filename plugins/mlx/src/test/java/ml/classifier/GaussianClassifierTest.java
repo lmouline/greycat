@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
-import org.mwg.core.scheduler.NoopScheduler;
+import org.mwg.internal.scheduler.NoopScheduler;
 import org.mwg.mlx.MLXPlugin;
 import org.mwg.mlx.algorithm.classifier.GaussianClassifierNode;
 

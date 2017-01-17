@@ -2,7 +2,7 @@ package org.mwg.memory.offheap;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.mwg.core.memory.AbstractBufferTest;
+import org.mwg.internal.memory.AbstractBufferTest;
 
 public class OffHeapBufferTest extends AbstractBufferTest {
 

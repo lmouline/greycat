@@ -2,6 +2,7 @@ package org.mwg.structure.tree;
 
 import org.mwg.*;
 import org.mwg.base.BaseNode;
+import org.mwg.internal.task.CoreActions;
 import org.mwg.plugin.Job;
 import org.mwg.plugin.NodeState;
 import org.mwg.struct.Relation;
@@ -15,7 +16,7 @@ import org.mwg.structure.util.NearestNeighborList;
 import org.mwg.task.*;
 import org.mwg.utility.Enforcer;
 
-import static org.mwg.core.task.Actions.*;
+import static org.mwg.internal.task.CoreActions.*;
 
 @SuppressWarnings("Duplicates")
 public class KDTree extends BaseNode {
@@ -620,7 +621,7 @@ public class KDTree extends BaseNode {
                     Task lookupall =
                             newTask()
                                     .then(travelInWorld(String.valueOf(world())))
-                                    .then(org.mwg.core.task.Actions.travelInTime(String.valueOf(time())))
+                                    .then(CoreActions.travelInTime(String.valueOf(time())))
                                     .then(readVar("res"))
                                     .then(lookupAll("{{result}}"));
 
@@ -686,7 +687,7 @@ public class KDTree extends BaseNode {
                 long[] res = nnl.distroyAndGetAllNodes();
                 if (res.length != 0) {
 
-                    Task lookupall = newTask().then(travelInWorld(String.valueOf(world()))).then(org.mwg.core.task.Actions.travelInTime(String.valueOf(time()))).then(readVar("res")).then(lookupAll("{{result}}"));
+                    Task lookupall = newTask().then(travelInWorld(String.valueOf(world()))).then(CoreActions.travelInTime(String.valueOf(time()))).then(readVar("res")).then(lookupAll("{{result}}"));
                     TaskContext tc = lookupall.prepare(graph(), null, new Callback<TaskResult>() {
                         @Override
                         public void on(TaskResult result) {
@@ -751,7 +752,7 @@ public class KDTree extends BaseNode {
                 long[] res = nnl.getNodes();
 
                 if (res.length != 0) {
-                    Task lookupall = newTask().then(travelInWorld(String.valueOf(world()))).then(org.mwg.core.task.Actions.travelInTime(String.valueOf(time()))).then(readVar("res")).then(lookupAll("{{result}}"));
+                    Task lookupall = newTask().then(travelInWorld(String.valueOf(world()))).then(CoreActions.travelInTime(String.valueOf(time()))).then(readVar("res")).then(lookupAll("{{result}}"));
                     TaskContext tc = lookupall.prepare(graph(), null, new Callback<TaskResult>() {
                         @Override
                         public void on(TaskResult result) {
@@ -811,7 +812,7 @@ public class KDTree extends BaseNode {
             Task[] tasks = new Task[split.length];
             for (int i = 0; i < split.length; i++) {
                 Task t = newTask().then(travelInWorld("" + current.world()));
-                t.then(org.mwg.core.task.Actions.travelInTime(current.time() + ""));
+                t.then(CoreActions.travelInTime(current.time() + ""));
                 t.parse(split[i].trim(), graph());
                 tasks[i] = t;
             }

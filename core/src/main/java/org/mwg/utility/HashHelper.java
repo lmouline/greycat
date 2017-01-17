@@ -273,7 +273,7 @@ public class HashHelper {
      * for (var i = 0; i < dataLength; i++) {
      * h = h.mul(org.mwg.utility.HashHelper.HMULT).xor(org.mwg.utility.HashHelper.byteTable[data[i] & 0xff]);
      * }
-     * return h.mod(org.mwg.core.CoreConstants.END_OF_TIME).toNumber();
+     * return h.mod(org.mwg.internal.CoreConstants.END_OF_TIME).toNumber();
      * }
      */
     public static long hashBytes(byte[] data) {

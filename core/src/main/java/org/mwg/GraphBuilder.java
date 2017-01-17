@@ -3,9 +3,9 @@ package org.mwg;
 import org.mwg.plugin.Plugin;
 import org.mwg.plugin.Scheduler;
 import org.mwg.plugin.Storage;
-import org.mwg.core.BlackHoleStorage;
-import org.mwg.core.scheduler.TrampolineScheduler;
-import org.mwg.core.utility.ReadOnlyStorage;
+import org.mwg.internal.BlackHoleStorage;
+import org.mwg.internal.scheduler.TrampolineScheduler;
+import org.mwg.internal.utility.ReadOnlyStorage;
 
 /**
  * Creates an instance of a Graph, with several customizable features.
@@ -99,7 +99,7 @@ public class GraphBuilder {
         if (_memorySize == -1) {
             _memorySize = 100000;
         }
-        return new org.mwg.core.CoreGraph(_storage, _memorySize, _scheduler, _plugins);
+        return new org.mwg.internal.CoreGraph(_storage, _memorySize, _scheduler, _plugins);
     }
 
 }
