@@ -295,6 +295,8 @@ public interface Task {
 
     Task setAttribute(String name, byte type, String value);
 
+    Task timeSensitivity(long delta, long offset);
+
     Task forceAttribute(String name, byte type, String value);
 
     Task remove(String name);

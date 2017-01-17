@@ -23,7 +23,7 @@ public class CoreTask implements org.mwg.task.Task {
 
 
     @Override
-    public Task addHook(final TaskHook p_hook) {
+    public final Task addHook(final TaskHook p_hook) {
         if (_hooks == null) {
             _hooks = new TaskHook[1];
             _hooks[0] = p_hook;
@@ -55,109 +55,109 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public Task doWhile(Task task, ConditionalFunction cond) {
+    public final Task doWhile(Task task, ConditionalFunction cond) {
         return then(new CF_ActionDoWhile(task, cond, null));
     }
 
     @Override
-    public Task doWhileScript(Task task, String condScript) {
+    public final Task doWhileScript(Task task, String condScript) {
         return then(new CF_ActionDoWhile(task, condFromScript(condScript), condScript));
     }
 
     @Override
-    public Task loop(String from, String to, Task subTask) {
+    public final Task loop(String from, String to, Task subTask) {
         return then(new CF_ActionLoop(from, to, subTask));
     }
 
     @Override
-    public Task loopPar(String from, String to, Task subTask) {
+    public final Task loopPar(String from, String to, Task subTask) {
         return then(new CF_ActionLoopPar(from, to, subTask));
     }
 
     @Override
-    public Task forEach(Task subTask) {
+    public final Task forEach(Task subTask) {
         return then(new CF_ActionForEach(subTask));
     }
 
     @Override
-    public Task forEachPar(Task subTask) {
+    public final Task forEachPar(Task subTask) {
         return then(new CF_ActionForEachPar(subTask));
     }
 
     @Override
-    public Task map(Task subTask) {
+    public final Task map(Task subTask) {
         return then(new CF_ActionMap(subTask));
     }
 
     @Override
-    public Task mapPar(Task subTask) {
+    public final Task mapPar(Task subTask) {
         return then(new CF_ActionMapPar(subTask));
     }
 
     @Override
-    public Task ifThen(ConditionalFunction cond, Task then) {
+    public final Task ifThen(ConditionalFunction cond, Task then) {
         return then(new CF_ActionIfThen(cond, then, null));
     }
 
     @Override
-    public Task ifThenScript(String condScript, Task then) {
+    public final Task ifThenScript(String condScript, Task then) {
         return then(new CF_ActionIfThen(condFromScript(condScript), then, condScript));
     }
 
     @Override
-    public Task ifThenElse(ConditionalFunction cond, Task thenSub, Task elseSub) {
+    public final Task ifThenElse(ConditionalFunction cond, Task thenSub, Task elseSub) {
         return then(new CF_ActionIfThenElse(cond, thenSub, elseSub, null));
     }
 
     @Override
-    public Task ifThenElseScript(String condScript, Task thenSub, Task elseSub) {
+    public final Task ifThenElseScript(String condScript, Task thenSub, Task elseSub) {
         return then(new CF_ActionIfThenElse(condFromScript(condScript), thenSub, elseSub, condScript));
     }
 
     @Override
-    public Task whileDo(ConditionalFunction cond, Task task) {
+    public final Task whileDo(ConditionalFunction cond, Task task) {
         return then(new CF_ActionWhileDo(cond, task, null));
     }
 
     @Override
-    public Task whileDoScript(String condScript, Task task) {
+    public final Task whileDoScript(String condScript, Task task) {
         return then(new CF_ActionWhileDo(condFromScript(condScript), task, condScript));
     }
 
     @Override
-    public Task pipe(Task... subTasks) {
+    public final Task pipe(Task... subTasks) {
         return then(new CF_ActionPipe(subTasks));
     }
 
     @Override
-    public Task pipePar(Task... subTasks) {
+    public final Task pipePar(Task... subTasks) {
         return then(new CF_ActionPipePar(subTasks));
     }
 
     @Override
-    public Task isolate(Task subTask) {
+    public final Task isolate(Task subTask) {
         return then(new CF_ActionIsolate(subTask));
     }
 
     @Override
-    public Task atomic(Task protectedTask, String... variablesToLock) {
+    public final Task atomic(Task protectedTask, String... variablesToLock) {
         return then(new CF_ActionAtomic(protectedTask, variablesToLock));
     }
 
     @Override
-    public void execute(final Graph graph, final Callback<TaskResult> callback) {
+    public final void execute(final Graph graph, final Callback<TaskResult> callback) {
         executeWith(graph, null, callback);
     }
 
     @Override
-    public TaskResult executeSync(final Graph graph) {
+    public final TaskResult executeSync(final Graph graph) {
         DeferCounterSync waiter = graph.newSyncCounter(1);
         executeWith(graph, null, waiter.wrap());
         return (TaskResult) waiter.waitResult();
     }
 
     @Override
-    public void executeWith(final Graph graph, final Object initial, final Callback<TaskResult> callback) {
+    public final void executeWith(final Graph graph, final Object initial, final Callback<TaskResult> callback) {
         if (insertCursor > 0) {
             final TaskResult initalRes;
             if (initial instanceof CoreTaskResult) {
@@ -180,7 +180,7 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public TaskContext prepare(Graph graph, Object initial, Callback<TaskResult> callback) {
+    public final TaskContext prepare(Graph graph, Object initial, Callback<TaskResult> callback) {
         final TaskResult initalRes;
         if (initial instanceof CoreTaskResult) {
             initalRes = ((TaskResult) initial).clone();
@@ -191,7 +191,7 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public void executeUsing(final TaskContext preparedContext) {
+    public final void executeUsing(final TaskContext preparedContext) {
         if (insertCursor > 0) {
             preparedContext.graph().scheduler().dispatch(SchedulerAffinity.SAME_THREAD, new Job() {
                 @Override
@@ -208,7 +208,7 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public void executeFrom(final TaskContext parentContext, final TaskResult initial, byte affinity, final Callback<TaskResult> callback) {
+    public final void executeFrom(final TaskContext parentContext, final TaskResult initial, byte affinity, final Callback<TaskResult> callback) {
         if (insertCursor > 0) {
             TaskHook[] aggregatedHooks = null;
             if (parentContext != null) {
@@ -239,7 +239,7 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public void executeFromUsing(TaskContext parentContext, TaskResult initial, byte affinity, Callback<TaskContext> contextInitializer, Callback<TaskResult> callback) {
+    public final void executeFromUsing(TaskContext parentContext, TaskResult initial, byte affinity, Callback<TaskContext> contextInitializer, Callback<TaskResult> callback) {
         if (insertCursor > 0) {
             TaskHook[] aggregatedHooks = null;
             if (parentContext != null) {
@@ -273,19 +273,19 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public Task loadFromBuffer(final Buffer buffer, final Graph graph) {
+    public final Task loadFromBuffer(final Buffer buffer, final Graph graph) {
         return parse(org.mwg.utility.Base64.decodeToStringWithBounds(buffer, 0, buffer.length()), graph);
     }
 
     @Override
-    public Task saveToBuffer(Buffer buffer) {
+    public final Task saveToBuffer(Buffer buffer) {
         final String saved = toString();
         org.mwg.utility.Base64.encodeStringToBuffer(saved, buffer);
         return this;
     }
 
     @Override
-    public Task parse(final String flat, final Graph graph) {
+    public final Task parse(final String flat, final Graph graph) {
         if (flat == null) {
             throw new RuntimeException("flat should not be null");
         }
@@ -741,6 +741,15 @@ public class CoreTask implements org.mwg.task.Task {
                 return new ActionSetAttribute(params[0], Type.typeFromName(params[1]), params[2], false);
             }
         });
+        registry.put(ActionNames.TIME_SENSITIVITY, new TaskActionFactory() {
+            @Override
+            public Action create(String[] params, Map<Integer, Task> contextTasks) {
+                if (params.length != 2) {
+                    throw new RuntimeException(ActionNames.TIME_SENSITIVITY + " action needs two parameters. Received:" + params.length);
+                }
+                return new ActionTimeSensitivity(Long.parseLong(params[0]), Long.parseLong(params[1]));
+            }
+        });
         registry.put(ActionNames.FORCE_ATTRIBUTE, new TaskActionFactory() {
             @Override
             public Action create(String[] params, Map<Integer, Task> contextTasks) {
@@ -949,7 +958,7 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         final StringBuilder res = new StringBuilder();
         final Map<Integer, Integer> dagCounters = new HashMap<Integer, Integer>();
         final Map<Integer, Task> dagCollector = new HashMap<Integer, Task>();
@@ -983,7 +992,7 @@ public class CoreTask implements org.mwg.task.Task {
         return res.toString();
     }
 
-    public void serialize(StringBuilder builder, Map<Integer, Integer> dagCounters) {
+    public final void serialize(StringBuilder builder, Map<Integer, Integer> dagCounters) {
         for (int i = 0; i < insertCursor; i++) {
             if (i != 0) {
                 builder.append(Constants.TASK_SEP);
@@ -1016,72 +1025,77 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public Task travelInWorld(String world) {
+    public final Task travelInWorld(final String world) {
         return then(Actions.travelInWorld(world));
     }
 
     @Override
-    public Task travelInTime(String time) {
+    public final Task travelInTime(final String time) {
         return then(Actions.travelInTime(time));
     }
 
     @Override
-    public Task inject(Object input) {
+    public final Task inject(final Object input) {
         return then(Actions.inject(input));
     }
 
     @Override
-    public Task defineAsGlobalVar(String name) {
+    public final Task defineAsGlobalVar(final String name) {
         return then(Actions.defineAsGlobalVar(name));
     }
 
     @Override
-    public Task defineAsVar(String name) {
+    public final Task defineAsVar(final String name) {
         return then(Actions.defineAsVar(name));
     }
 
     @Override
-    public Task declareGlobalVar(String name) {
+    public final Task declareGlobalVar(final String name) {
         return then(Actions.declareGlobalVar(name));
     }
 
     @Override
-    public Task declareVar(String name) {
+    public final Task declareVar(final String name) {
         return then(Actions.declareVar(name));
     }
 
     @Override
-    public Task readVar(String name) {
+    public final Task readVar(final String name) {
         return then(Actions.readVar(name));
     }
 
     @Override
-    public Task setAsVar(String name) {
+    public final Task setAsVar(final String name) {
         return then(Actions.setAsVar(name));
     }
 
     @Override
-    public Task addToVar(String name) {
+    public final Task addToVar(final String name) {
         return then(Actions.addToVar(name));
     }
 
     @Override
-    public Task setAttribute(String name, byte type, String value) {
+    public final Task setAttribute(final String name, final byte type, final String value) {
         return then(Actions.setAttribute(name, type, value));
     }
 
     @Override
-    public Task forceAttribute(String name, byte type, String value) {
+    public final Task timeSensitivity(final long delta, final long offset) {
+        return then(Actions.timeSensitivity(delta, offset));
+    }
+
+    @Override
+    public final Task forceAttribute(final String name, final byte type, final String value) {
         return then(Actions.forceAttribute(name, type, value));
     }
 
     @Override
-    public Task remove(String name) {
+    public final Task remove(final String name) {
         return then(Actions.remove(name));
     }
 
     @Override
-    public Task attributes() {
+    public final Task attributes() {
         return then(Actions.attributes());
     }
 
@@ -1096,147 +1110,147 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public Task addVarToRelation(String relName, String varName, String... attributes) {
+    public final Task addVarToRelation(final String relName, final String varName, final String... attributes) {
         return then(Actions.addVarToRelation(relName, varName, attributes));
     }
 
     @Override
-    public Task removeVarFromRelation(String relName, String varFrom, String... attributes) {
+    public final Task removeVarFromRelation(final String relName, final String varFrom, final String... attributes) {
         return then(Actions.removeVarFromRelation(relName, varFrom, attributes));
     }
 
     @Override
-    public Task traverse(String name, String... params) {
+    public final Task traverse(final String name, final String... params) {
         return then(Actions.traverse(name, params));
     }
 
     @Override
-    public Task attribute(String name, String... params) {
+    public final Task attribute(final String name, final String... params) {
         return then(Actions.attribute(name, params));
     }
 
     @Override
-    public Task readGlobalIndex(String name, String... query) {
+    public final Task readGlobalIndex(final String name, final String... query) {
         return then(Actions.readGlobalIndex(name, query));
     }
 
     @Override
-    public Task addToGlobalIndex(String name, String... attributes) {
+    public final Task addToGlobalIndex(final String name, final String... attributes) {
         return then(Actions.addToGlobalIndex(name, attributes));
     }
 
     @Override
-    public Task addToGlobalTimedIndex(String name, String... attributes) {
+    public final Task addToGlobalTimedIndex(final String name, final String... attributes) {
         return then(Actions.addToGlobalTimedIndex(name, attributes));
     }
 
     @Override
-    public Task removeFromGlobalIndex(String name, String... attributes) {
+    public final Task removeFromGlobalIndex(final String name, final String... attributes) {
         return then(Actions.removeFromGlobalIndex(name, attributes));
     }
 
     @Override
-    public Task removeFromGlobalTimedIndex(String name, String... attributes) {
+    public final Task removeFromGlobalTimedIndex(final String name, final String... attributes) {
         return then(Actions.removeFromGlobalTimedIndex(name, attributes));
     }
 
     @Override
-    public Task indexNames() {
+    public final Task indexNames() {
         return then(Actions.indexNames());
     }
 
     @Override
-    public Task selectWith(String name, String pattern) {
+    public final Task selectWith(final String name, final String pattern) {
         return then(Actions.selectWith(name, pattern));
     }
 
     @Override
-    public Task selectWithout(String name, String pattern) {
+    public final Task selectWithout(final String name, final String pattern) {
         return then(Actions.selectWithout(name, pattern));
     }
 
     @Override
-    public Task select(TaskFunctionSelect filterFunction) {
+    public final Task select(final TaskFunctionSelect filterFunction) {
         return then(Actions.select(filterFunction));
     }
 
     @Override
-    public Task selectObject(TaskFunctionSelectObject filterFunction) {
+    public final Task selectObject(final TaskFunctionSelectObject filterFunction) {
         return then(Actions.selectObject(filterFunction));
     }
 
     @Override
-    public Task selectScript(String script) {
+    public final Task selectScript(final String script) {
         return then(Actions.selectScript(script));
     }
 
     @Override
-    public Task print(String name) {
+    public final Task print(final String name) {
         return then(Actions.print(name));
     }
 
     @Override
-    public Task println(String name) {
+    public final Task println(final String name) {
         return then(Actions.println(name));
     }
 
     @Override
-    public Task executeExpression(String expression) {
+    public final Task executeExpression(final String expression) {
         return then(Actions.executeExpression(expression));
     }
 
     @Override
-    public Task createNode() {
+    public final Task createNode() {
         return then(Actions.createNode());
     }
 
     @Override
-    public Task createTypedNode(String type) {
+    public final Task createTypedNode(final String type) {
         return then(Actions.createTypedNode(type));
     }
 
     @Override
-    public Task save() {
+    public final Task save() {
         return then(Actions.save());
     }
 
     @Override
-    public Task script(String script) {
+    public final Task script(final String script) {
         return then(Actions.script(script));
     }
 
     @Override
-    public Task asyncScript(String ascript) {
+    public final Task asyncScript(final String ascript) {
         return then(Actions.asyncScript(ascript));
     }
 
     @Override
-    public Task lookup(String nodeId) {
+    public final Task lookup(final String nodeId) {
         return then(Actions.lookup(nodeId));
     }
 
     @Override
-    public Task lookupAll(String nodeIds) {
+    public final Task lookupAll(final String nodeIds) {
         return then(Actions.lookupAll(nodeIds));
     }
 
     @Override
-    public Task clearResult() {
+    public final Task clearResult() {
         return then(Actions.clearResult());
     }
 
     @Override
-    public Task action(String name, String... params) {
+    public final Task action(final String name, final String... params) {
         return then(Actions.action(name, params));
     }
 
     @Override
-    public Task flipVar(String name) {
+    public final Task flipVar(final String name) {
         return then(Actions.flipVar(name));
     }
 
     @Override
-    public Task flat() {
+    public final Task flat() {
         return then(Actions.flat());
     }
 

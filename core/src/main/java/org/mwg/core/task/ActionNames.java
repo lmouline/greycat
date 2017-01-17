@@ -34,6 +34,7 @@ public class ActionNames {
     public static String SET_AS_VAR = "setAsVar";
     public static String FORCE_ATTRIBUTE = "forceAttribute";
     public static String SET_ATTRIBUTE = "setAttribute";
+    public static String TIME_SENSITIVITY = "timeSensitivity";
     public static String TIMEPOINTS = "timepoints";
     public static String TRAVEL_IN_TIME = "travelInTime";
     public static String TRAVEL_IN_WORLD = "travelInWorld";

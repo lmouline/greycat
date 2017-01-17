@@ -135,8 +135,12 @@ public class Actions {
      * @param value will be interpreted as a template
      * @return the action to chain
      */
-    public static Action setAttribute(String name, byte type, String value) {
+    public static Action setAttribute(final String name, final byte type, final String value) {
         return new ActionSetAttribute(name, type, value, false);
+    }
+
+    public static Action timeSensitivity(final long delta, final long offset) {
+        return new ActionTimeSensitivity(delta, offset);
     }
 
     /**

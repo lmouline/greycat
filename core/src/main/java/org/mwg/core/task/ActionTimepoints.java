@@ -22,7 +22,7 @@ class ActionTimepoints implements Action {
 
     @Override
     public void eval(TaskContext ctx) {
-        final TaskResult previous  = ctx.result();
+        final TaskResult previous = ctx.result();
         String tFrom = ctx.template(_from);
         String tTo = ctx.template(_to);
         long parsedFrom;
@@ -40,15 +40,15 @@ class ActionTimepoints implements Action {
             parsedTo = d.longValue();
         }
         final TaskResult next = ctx.newResult();
-        if(previous != null) {
+        if (previous != null) {
             DeferCounter defer = new CoreDeferCounter(previous.size());
-            for(int i=0;i<previous.size();i++) {
-                if(previous.get(i) instanceof BaseNode) {
+            for (int i = 0; i < previous.size(); i++) {
+                if (previous.get(i) instanceof BaseNode) {
                     final Node casted = (Node) previous.get(i);
                     casted.timepoints(parsedFrom, parsedTo, new Callback<long[]>() {
                         @Override
                         public void on(long[] result) {
-                            for(int i=0;i<result.length;i++) {
+                            for (int i = 0; i < result.length; i++) {
                                 next.add(result[i]);
                             }
                             casted.free();
