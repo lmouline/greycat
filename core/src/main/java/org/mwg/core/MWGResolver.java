@@ -123,6 +123,24 @@ final class MWGResolver implements Resolver {
     }
 
     @Override
+    public final void setTimeSensitivity(final Node node, final long deltaTime, final long offset) {
+        final BaseNode casted = (BaseNode) node;
+        final TimeTreeChunk superTimeTree = (TimeTreeChunk) this._space.get(casted._index_superTimeTree);
+        superTimeTree.setExtra(deltaTime);
+        superTimeTree.setExtra2(offset);
+    }
+
+    @Override
+    public long[] getTimeSensitivity(final Node node) {
+        final BaseNode casted = (BaseNode) node;
+        final long[] result = new long[2];
+        final TimeTreeChunk superTimeTree = (TimeTreeChunk) this._space.get(casted._index_superTimeTree);
+        result[0] = superTimeTree.extra();
+        result[1] = superTimeTree.extra2();
+        return result;
+    }
+
+    @Override
     public final <A extends org.mwg.Node> void lookup(final long world, final long time, final long id, final Callback<A> callback) {
         final MWGResolver selfPointer = this;
         selfPointer._space.getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id, new Callback<Chunk>() {
@@ -1069,12 +1087,7 @@ final class MWGResolver implements Resolver {
             castedNode.cacheUnlock();
             return null;
         }
-
         nodeWorldOrder.lock();
-
-        final long nodeWorld = node.world();
-        final long nodeTime = node.time();
-        final long nodeId = node.id();
 
         //Get the previous StateChunk
         final StateChunk previouStateChunk = internal_resolveState(node, false);
@@ -1083,6 +1096,21 @@ final class MWGResolver implements Resolver {
             nodeWorldOrder.unlock();
             castedNode.cacheUnlock();
             return previouStateChunk;
+        }
+
+        final long nodeWorld = node.world();
+        long nodeTime = node.time();
+        final long nodeId = node.id();
+
+        //compute time sensitivity
+        final TimeTreeChunk superTimeTree = (TimeTreeChunk) this._space.get(castedNode._index_superTimeTree);
+        final long timeSensitivity = superTimeTree.extra();
+        if (timeSensitivity != 0 && timeSensitivity != Constants.NULL_LONG) {
+            long timeSensitivityOffset = superTimeTree.extra2();
+            if (timeSensitivityOffset == Constants.NULL_LONG) {
+                timeSensitivityOffset = 0;
+            }
+            nodeTime = nodeTime - (nodeTime % timeSensitivity) + timeSensitivityOffset;
         }
 
         final StateChunk clonedState = (StateChunk) this._space.createAndMark(STATE_CHUNK, nodeWorld, nodeTime, nodeId);
@@ -1096,7 +1124,7 @@ final class MWGResolver implements Resolver {
         _space.unmark(previouStateChunk.index());
 
         if (previouStateChunk.world() == nodeWorld || nodeWorldOrder.get(nodeWorld) != CoreConstants.NULL_LONG) {
-            final TimeTreeChunk superTimeTree = (TimeTreeChunk) this._space.get(castedNode._index_superTimeTree);
+            //final TimeTreeChunk superTimeTree = (TimeTreeChunk) this._space.get(castedNode._index_superTimeTree);
             final TimeTreeChunk timeTree = (TimeTreeChunk) this._space.get(castedNode._index_timeTree);
             //manage super tree here
             long superTreeSize = superTimeTree.size();

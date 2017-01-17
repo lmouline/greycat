@@ -244,4 +244,15 @@ public class QueryTest implements Resolver, Graph {
     public void externalUnlock(Node node) {
 
     }
+
+    @Override
+    public void setTimeSensitivity(Node node, long deltaTime, long delta) {
+
+    }
+
+    @Override
+    public long[] getTimeSensitivity(Node node) {
+        return new long[0];
+    }
+
 }

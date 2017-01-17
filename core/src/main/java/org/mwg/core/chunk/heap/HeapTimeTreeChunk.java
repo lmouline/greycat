@@ -27,11 +27,37 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
 
     private boolean _dirty;
 
+    //extra temporal element
+    private volatile long _extra;
+    private volatile long _extra2;
+
     HeapTimeTreeChunk(final HeapChunkSpace p_space, final long p_index) {
         _space = p_space;
         _index = p_index;
         _magic = 0;
         _dirty = false;
+        _extra = 0;
+        _extra2 = 0;
+    }
+
+    @Override
+    public final long extra() {
+        return _extra;
+    }
+
+    @Override
+    public final void setExtra(long extraValue) {
+        _extra = extraValue;
+    }
+
+    @Override
+    public final long extra2() {
+        return _extra2;
+    }
+
+    @Override
+    public final void setExtra2(long extraValue) {
+        _extra2 = extraValue;
     }
 
     @Override
@@ -68,9 +94,17 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public synchronized final void save(Buffer buffer) {
+        if (_extra != CoreConstants.NULL_LONG && _extra != 0) {
+            Base64.encodeLongToBuffer(_extra, buffer);
+            buffer.write(CoreConstants.CHUNK_SEP);
+        }
+        if (_extra2 != CoreConstants.NULL_LONG && _extra2 != 0) {
+            Base64.encodeLongToBuffer(_extra2, buffer);
+            buffer.write(CoreConstants.CHUNK_SEP);
+        }
         Base64.encodeIntToBuffer(_size, buffer);
         for (int i = 0; i < _size; i++) {
-            buffer.write(CoreConstants.CHUNK_SEP);
+            buffer.write(CoreConstants.CHUNK_VAL_SEP);
             Base64.encodeLongToBuffer(this._k[i], buffer);
         }
         _dirty = false;
@@ -82,10 +116,18 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     @Override
     public synchronized final void saveDiff(Buffer buffer) {
         if (_dirty) {
+            if (_extra != CoreConstants.NULL_LONG && _extra != 0) {
+                Base64.encodeLongToBuffer(_extra, buffer);
+                buffer.write(CoreConstants.CHUNK_SEP);
+            }
+            if (_extra2 != CoreConstants.NULL_LONG && _extra2 != 0) {
+                Base64.encodeLongToBuffer(_extra2, buffer);
+                buffer.write(CoreConstants.CHUNK_SEP);
+            }
             Base64.encodeIntToBuffer(_size, buffer);
             for (int i = 0; i < _size; i++) {
                 if (_diff[i]) {
-                    buffer.write(CoreConstants.CHUNK_SEP);
+                    buffer.write(CoreConstants.CHUNK_VAL_SEP);
                     Base64.encodeLongToBuffer(this._k[i], buffer);
                 }
             }
@@ -119,18 +161,31 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         long previous = 0;
         long payloadSize = buffer.length();
         boolean isFirst = true;
+        boolean isFirstExtra = true;
         while (cursor < payloadSize) {
             final byte current = buffer.read(cursor);
-            if (current == Constants.CHUNK_SEP) {
-                if (isFirst) {
-                    reallocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                    previous = cursor + 1;
-                    isFirst = false;
-                } else {
-                    boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
-                    isDirty = isDirty || insertResult;
-                    previous = cursor + 1;
-                }
+            switch (current) {
+                case Constants.CHUNK_SEP:
+                    if (isFirstExtra) {
+                        _extra = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                        previous = cursor + 1;
+                        isFirstExtra = false;
+                    } else {
+                        _extra2 = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                        previous = cursor + 1;
+                    }
+                    break;
+                case Constants.CHUNK_VAL_SEP:
+                    if (isFirst) {
+                        reallocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                        previous = cursor + 1;
+                        isFirst = false;
+                    } else {
+                        boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
+                        isDirty = isDirty || insertResult;
+                        previous = cursor + 1;
+                    }
+                    break;
             }
             cursor++;
         }

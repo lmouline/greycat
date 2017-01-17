@@ -432,6 +432,17 @@ public class BaseNode implements Node {
         _resolver.lookup(_world, targetTime, _id, callback);
     }
 
+    @Override
+    public final Node setTimeSensitivity(long deltaTime, long offset) {
+        _resolver.setTimeSensitivity(this, deltaTime, offset);
+        return this;
+    }
+
+    @Override
+    public final long[] timeSensitivity() {
+        return _resolver.getTimeSensitivity(this);
+    }
+
     /**
      * @native ts
      * return isNaN(toTest);

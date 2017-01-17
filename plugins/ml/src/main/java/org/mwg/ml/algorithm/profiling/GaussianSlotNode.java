@@ -56,10 +56,7 @@ public class GaussianSlotNode extends BaseMLNode implements ProfilingNode {
                 double[] sum;
                 double[] sumSquare;
                 int features = values.length;
-
-
                 total = (int[]) resolved.getFromKey(INTERNAL_TOTAL_KEY);
-
                 if (numOfSlot == 1 || numOfSlot == 0) {
                     if (total == null) {
                         resolved.setFromKey(INTERNAL_FEATURES_NUMBER, Type.INT, features);

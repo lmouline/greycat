@@ -1,5 +1,7 @@
 package org.mwg;
 
+import org.mwg.utility.Tuple;
+
 /**
  * Node is the base element contained in the {@link Graph}.<br>
  * They belong to a world and time, have attributes (e.g. primitives, relations, and indexes).
@@ -258,8 +260,8 @@ public interface Node {
     long nextTime();
 */
 
-    /*
-    <A extends Node> A setTimeSensitivy(long deltaTime);
-    <A extends Node> A setTimeSensitivyOffset(long deltaTimeOffset);
-    */
+    Node setTimeSensitivity(long deltaTime, long offset);
+
+    long[] timeSensitivity();
+
 }

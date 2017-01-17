@@ -20,4 +20,12 @@ public interface TimeTreeChunk extends Chunk {
 
     int size();
 
+    long extra();
+
+    void setExtra(long extraValue);
+
+    long extra2();
+
+    void setExtra2(long extraValue);
+
 }

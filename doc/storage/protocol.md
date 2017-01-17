@@ -49,7 +49,7 @@ Hereafter are the details of these strings protocol.
    
 # 2. TimeTree Chunk
 
-    TimeTree := Size ( '|' Timestamp )*
+    TimeTree := ( Extra '|' Extra2 '|' )? Size ( ':' Timestamp )*
     Timestamp := Long
 
 # 3. WorldOrder Chunk

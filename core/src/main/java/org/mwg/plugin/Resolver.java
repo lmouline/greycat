@@ -126,4 +126,8 @@ public interface Resolver {
 
     void externalUnlock(org.mwg.Node node);
 
+    void setTimeSensitivity(org.mwg.Node node, long deltaTime, long delta);
+
+    long[] getTimeSensitivity(org.mwg.Node node);
+
 }
