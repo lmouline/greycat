@@ -51,97 +51,97 @@ public class CoreTask implements org.mwg.task.Task {
 
     @Override
     public final Task thenDo(ActionFunction nextActionFunction) {
-        return then(new CF_ActionThenDo(nextActionFunction));
+        return then(new CF_ThenDo(nextActionFunction));
     }
 
     @Override
     public final Task doWhile(Task task, ConditionalFunction cond) {
-        return then(new CF_ActionDoWhile(task, cond, null));
+        return then(new CF_DoWhile(task, cond, null));
     }
 
     @Override
     public final Task doWhileScript(Task task, String condScript) {
-        return then(new CF_ActionDoWhile(task, condFromScript(condScript), condScript));
+        return then(new CF_DoWhile(task, condFromScript(condScript), condScript));
     }
 
     @Override
     public final Task loop(String from, String to, Task subTask) {
-        return then(new CF_ActionLoop(from, to, subTask));
+        return then(new CF_Loop(from, to, subTask));
     }
 
     @Override
     public final Task loopPar(String from, String to, Task subTask) {
-        return then(new CF_ActionLoopPar(from, to, subTask));
+        return then(new CF_LoopPar(from, to, subTask));
     }
 
     @Override
     public final Task forEach(Task subTask) {
-        return then(new CF_ActionForEach(subTask));
+        return then(new CF_ForEach(subTask));
     }
 
     @Override
     public final Task forEachPar(Task subTask) {
-        return then(new CF_ActionForEachPar(subTask));
+        return then(new CF_ForEachPar(subTask));
     }
 
     @Override
     public final Task map(Task subTask) {
-        return then(new CF_ActionMap(subTask));
+        return then(new CF_Map(subTask));
     }
 
     @Override
     public final Task mapPar(Task subTask) {
-        return then(new CF_ActionMapPar(subTask));
+        return then(new CF_MapPar(subTask));
     }
 
     @Override
     public final Task ifThen(ConditionalFunction cond, Task then) {
-        return then(new CF_ActionIfThen(cond, then, null));
+        return then(new CF_IfThen(cond, then, null));
     }
 
     @Override
     public final Task ifThenScript(String condScript, Task then) {
-        return then(new CF_ActionIfThen(condFromScript(condScript), then, condScript));
+        return then(new CF_IfThen(condFromScript(condScript), then, condScript));
     }
 
     @Override
     public final Task ifThenElse(ConditionalFunction cond, Task thenSub, Task elseSub) {
-        return then(new CF_ActionIfThenElse(cond, thenSub, elseSub, null));
+        return then(new CF_IfThenElse(cond, thenSub, elseSub, null));
     }
 
     @Override
     public final Task ifThenElseScript(String condScript, Task thenSub, Task elseSub) {
-        return then(new CF_ActionIfThenElse(condFromScript(condScript), thenSub, elseSub, condScript));
+        return then(new CF_IfThenElse(condFromScript(condScript), thenSub, elseSub, condScript));
     }
 
     @Override
     public final Task whileDo(ConditionalFunction cond, Task task) {
-        return then(new CF_ActionWhileDo(cond, task, null));
+        return then(new CF_WhileDo(cond, task, null));
     }
 
     @Override
     public final Task whileDoScript(String condScript, Task task) {
-        return then(new CF_ActionWhileDo(condFromScript(condScript), task, condScript));
+        return then(new CF_WhileDo(condFromScript(condScript), task, condScript));
     }
 
     @Override
     public final Task pipe(Task... subTasks) {
-        return then(new CF_ActionPipe(subTasks));
+        return then(new CF_Pipe(subTasks));
     }
 
     @Override
     public final Task pipePar(Task... subTasks) {
-        return then(new CF_ActionPipePar(subTasks));
+        return then(new CF_PipePar(subTasks));
     }
 
     @Override
     public final Task isolate(Task subTask) {
-        return then(new CF_ActionIsolate(subTask));
+        return then(new CF_Isolate(subTask));
     }
 
     @Override
     public final Task atomic(Task protectedTask, String... variablesToLock) {
-        return then(new CF_ActionAtomic(protectedTask, variablesToLock));
+        return then(new CF_Atomic(protectedTask, variablesToLock));
     }
 
     @Override
@@ -784,7 +784,7 @@ public class CoreTask implements org.mwg.task.Task {
                     throw new RuntimeException(ActionNames.LOOP + " action needs three parameters. Received:" + params.length);
                 }
                 final Task subTask = getOrCreate(contextTasks, params[2]);
-                return new CF_ActionLoop(params[0], params[1], subTask);
+                return new CF_Loop(params[0], params[1], subTask);
             }
         });
         registry.put(ActionNames.LOOP_PAR, new TaskActionFactory() {
@@ -794,7 +794,7 @@ public class CoreTask implements org.mwg.task.Task {
                     throw new RuntimeException(ActionNames.LOOP_PAR + " action needs three parameters. Received:" + params.length);
                 }
                 final Task subTask = getOrCreate(contextTasks, params[2]);
-                return new CF_ActionLoopPar(params[0], params[1], subTask);
+                return new CF_LoopPar(params[0], params[1], subTask);
             }
         });
         registry.put(ActionNames.FOR_EACH, new TaskActionFactory() {
@@ -804,7 +804,7 @@ public class CoreTask implements org.mwg.task.Task {
                     throw new RuntimeException(ActionNames.FOR_EACH + " action needs one parameters. Received:" + params.length);
                 }
                 final Task subTask = getOrCreate(contextTasks, params[0]);
-                return new CF_ActionForEach(subTask);
+                return new CF_ForEach(subTask);
             }
         });
         registry.put(ActionNames.FOR_EACH_PAR, new TaskActionFactory() {
@@ -814,7 +814,7 @@ public class CoreTask implements org.mwg.task.Task {
                     throw new RuntimeException(ActionNames.FOR_EACH_PAR + " action needs one parameters. Received:" + params.length);
                 }
                 final Task subTask = getOrCreate(contextTasks, params[0]);
-                return new CF_ActionForEachPar(subTask);
+                return new CF_ForEachPar(subTask);
             }
         });
         registry.put(ActionNames.FLAT, new TaskActionFactory() {
@@ -833,7 +833,7 @@ public class CoreTask implements org.mwg.task.Task {
                     throw new RuntimeException(ActionNames.MAP + " action needs one parameters. Received:" + params.length);
                 }
                 final Task subTask = getOrCreate(contextTasks, params[0]);
-                return new CF_ActionMap(subTask);
+                return new CF_Map(subTask);
             }
         });
         registry.put(ActionNames.MAP_PAR, new TaskActionFactory() {
@@ -843,7 +843,7 @@ public class CoreTask implements org.mwg.task.Task {
                     throw new RuntimeException(ActionNames.MAP_PAR + " action needs one parameters. Received:" + params.length);
                 }
                 final Task subTask = getOrCreate(contextTasks, params[0]);
-                return new CF_ActionMapPar(subTask);
+                return new CF_MapPar(subTask);
             }
         });
         registry.put(ActionNames.PIPE, new TaskActionFactory() {
@@ -853,7 +853,7 @@ public class CoreTask implements org.mwg.task.Task {
                 for (int i = 0; i < params.length; i++) {
                     subTasks[i] = getOrCreate(contextTasks, params[i]);
                 }
-                return new CF_ActionPipe(subTasks);
+                return new CF_Pipe(subTasks);
             }
         });
         registry.put(ActionNames.PIPE_PAR, new TaskActionFactory() {
@@ -863,7 +863,7 @@ public class CoreTask implements org.mwg.task.Task {
                 for (int i = 0; i < params.length; i++) {
                     subTasks[i] = getOrCreate(contextTasks, params[i]);
                 }
-                return new CF_ActionPipePar(subTasks);
+                return new CF_PipePar(subTasks);
             }
         });
         registry.put(ActionNames.DO_WHILE, new TaskActionFactory() {
@@ -874,7 +874,7 @@ public class CoreTask implements org.mwg.task.Task {
                 }
                 final Task subTask = getOrCreate(contextTasks, params[0]);
                 final String script = params[1];
-                return new CF_ActionDoWhile(subTask, condFromScript(script), script);
+                return new CF_DoWhile(subTask, condFromScript(script), script);
             }
         });
         registry.put(ActionNames.WHILE_DO, new TaskActionFactory() {
@@ -885,7 +885,7 @@ public class CoreTask implements org.mwg.task.Task {
                 }
                 final String script = params[0];
                 final Task subTask = getOrCreate(contextTasks, params[1]);
-                return new CF_ActionWhileDo(condFromScript(script), subTask, script);
+                return new CF_WhileDo(condFromScript(script), subTask, script);
             }
         });
         registry.put(ActionNames.ISOLATE, new TaskActionFactory() {
@@ -895,7 +895,7 @@ public class CoreTask implements org.mwg.task.Task {
                     throw new RuntimeException(ActionNames.ISOLATE + " action needs three parameters. Received:" + params.length);
                 }
                 final Task subTask = getOrCreate(contextTasks, params[0]);
-                return new CF_ActionIsolate(subTask);
+                return new CF_Isolate(subTask);
             }
         });
         registry.put(ActionNames.ATOMIC, new TaskActionFactory() {
@@ -907,7 +907,7 @@ public class CoreTask implements org.mwg.task.Task {
                 final Task subTask = getOrCreate(contextTasks, params[0]);
                 String[] variables = new String[params.length - 1];
                 System.arraycopy(params, 1, variables, 0, params.length - 1);
-                return new CF_ActionAtomic(subTask, variables);
+                return new CF_Atomic(subTask, variables);
             }
         });
         registry.put(ActionNames.IF_THEN, new TaskActionFactory() {
@@ -918,7 +918,7 @@ public class CoreTask implements org.mwg.task.Task {
                 }
                 final String script = params[0];
                 final Task taskThen = getOrCreate(contextTasks, params[1]);
-                return new CF_ActionIfThen(condFromScript(script), taskThen, script);
+                return new CF_IfThen(condFromScript(script), taskThen, script);
             }
         });
         registry.put(ActionNames.IF_THEN_ELSE, new TaskActionFactory() {
@@ -930,7 +930,7 @@ public class CoreTask implements org.mwg.task.Task {
                 final String script = params[0];
                 final Task taskThen = getOrCreate(contextTasks, params[1]);
                 final Task taskElse = getOrCreate(contextTasks, params[2]);
-                return new CF_ActionIfThenElse(condFromScript(script), taskThen, taskElse, script);
+                return new CF_IfThenElse(condFromScript(script), taskThen, taskElse, script);
             }
         });
     }

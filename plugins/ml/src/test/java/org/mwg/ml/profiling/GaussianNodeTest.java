@@ -84,12 +84,7 @@ public class GaussianNodeTest {
                     gaussianNodeLive.travelInTime(time, new Callback<GaussianMixtureNode>() {
                         @Override
                         public void on(GaussianMixtureNode result) {
-                            result.learnVector(train[finalI], new Callback<Boolean>() {
-                                @Override
-                                public void on(Boolean result) {
-
-                                }
-                            });
+                            result.learnWith(train[finalI]);
                         }
                     });
                     time++;

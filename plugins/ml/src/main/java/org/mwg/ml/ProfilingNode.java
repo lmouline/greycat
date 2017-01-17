@@ -12,6 +12,8 @@ public interface ProfilingNode extends Node {
      */
     void learn(Callback<Boolean> callback);
 
+    void learnWith(double[] values);
+
     /**
      * Main infer function to give a cluster ID,
      * The input features are defined through features extractions.

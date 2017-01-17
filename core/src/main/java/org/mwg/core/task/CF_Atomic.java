@@ -14,12 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class CF_ActionAtomic extends CF_Action {
+public class CF_Atomic extends CF_Action {
 
     private final String[] _variables;
     private final Task _subTask;
 
-    CF_ActionAtomic(final Task p_subTask, final String... variables) {
+    CF_Atomic(final Task p_subTask, final String... variables) {
         super();
         this._subTask = p_subTask;
         this._variables = variables;

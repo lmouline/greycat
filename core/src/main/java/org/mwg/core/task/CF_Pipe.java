@@ -10,11 +10,11 @@ import org.mwg.task.TaskResult;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class CF_ActionPipe extends CF_Action {
+class CF_Pipe extends CF_Action {
 
     private final Task[] _subTasks;
 
-    CF_ActionPipe(final Task... p_subTasks) {
+    CF_Pipe(final Task... p_subTasks) {
         super();
         _subTasks = p_subTasks;
     }

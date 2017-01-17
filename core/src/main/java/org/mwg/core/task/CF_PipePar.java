@@ -11,11 +11,11 @@ import org.mwg.task.TaskResult;
 
 import java.util.Map;
 
-class CF_ActionPipePar extends CF_Action {
+class CF_PipePar extends CF_Action {
 
     private final Task[] _subTasks;
 
-    CF_ActionPipePar(final Task... p_subTasks) {
+    CF_PipePar(final Task... p_subTasks) {
         super();
         _subTasks = p_subTasks;
     }

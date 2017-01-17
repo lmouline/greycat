@@ -83,18 +83,17 @@ public class GaussianNode extends BaseMLNode implements ProfilingNode {
             @Override
             public void on(double[] values) {
                 //ToDO temporal hack to avoid features extractions - to remove later
-                learnVector(values, callback);
+                learnWith(values);
+                callback.on(true);
             }
         });
     }
 
-
-    public void learnVector(final double[] values, final Callback<Boolean> callback) {
-        final NodeState resolved = this._resolver.alignState(this);
+    @Override
+    public final void learnWith(final double[] values) {
         int features = values.length;
         //manage total
         int total = getTotal();
-
         //Create dirac
         if (total == 0) {
             double[] sum = new double[features];
@@ -161,9 +160,6 @@ public class GaussianNode extends BaseMLNode implements ProfilingNode {
             set(INTERNAL_MIN_KEY, Type.DOUBLE_ARRAY, min);
             set(INTERNAL_MAX_KEY, Type.DOUBLE_ARRAY, max);
             set(INTERNAL_SUMSQUARE_KEY, Type.DOUBLE_ARRAY, sumsquares);
-        }
-        if (callback != null) {
-            callback.on(true);
         }
     }
 

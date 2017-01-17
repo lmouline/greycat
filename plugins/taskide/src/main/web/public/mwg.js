@@ -10383,6 +10383,7 @@ var org;
                 ActionNames.SET_AS_VAR = "setAsVar";
                 ActionNames.FORCE_ATTRIBUTE = "forceAttribute";
                 ActionNames.SET_ATTRIBUTE = "setAttribute";
+                ActionNames.TIME_SENSITIVITY = "timeSensitivity";
                 ActionNames.TIMEPOINTS = "timepoints";
                 ActionNames.TRAVEL_IN_TIME = "travelInTime";
                 ActionNames.TRAVEL_IN_WORLD = "travelInWorld";
@@ -10891,6 +10892,38 @@ var org;
                     return ActionSetAttribute;
                 }());
                 task_1.ActionSetAttribute = ActionSetAttribute;
+                var ActionTimeSensitivity = (function () {
+                    function ActionTimeSensitivity(delta, offset) {
+                        this._delta = delta;
+                        this._offset = offset;
+                    }
+                    ActionTimeSensitivity.prototype.eval = function (ctx) {
+                        var previousResult = ctx.result();
+                        for (var i = 0; i < previousResult.size(); i++) {
+                            var loopObj = previousResult.get(i);
+                            if (loopObj instanceof org.mwg.base.BaseNode) {
+                                var loopNode = loopObj;
+                                loopNode.setTimeSensitivity(this._delta, this._offset);
+                            }
+                        }
+                        ctx.continueTask();
+                    };
+                    ActionTimeSensitivity.prototype.serialize = function (builder) {
+                        builder.append(org.mwg.core.task.ActionNames.SET_ATTRIBUTE);
+                        builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
+                        builder.append(this._delta);
+                        builder.append(org.mwg.Constants.TASK_PARAM_SEP);
+                        builder.append(this._offset);
+                        builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
+                    };
+                    ActionTimeSensitivity.prototype.toString = function () {
+                        var res = new java.lang.StringBuilder();
+                        this.serialize(res);
+                        return res.toString();
+                    };
+                    return ActionTimeSensitivity;
+                }());
+                task_1.ActionTimeSensitivity = ActionTimeSensitivity;
                 var ActionTimepoints = (function () {
                     function ActionTimepoints(from, to) {
                         this._from = from;
@@ -11393,6 +11426,9 @@ var org;
                     Actions.setAttribute = function (name, type, value) {
                         return new org.mwg.core.task.ActionSetAttribute(name, type, value, false);
                     };
+                    Actions.timeSensitivity = function (delta, offset) {
+                        return new org.mwg.core.task.ActionTimeSensitivity(delta, offset);
+                    };
                     Actions.forceAttribute = function (name, type, value) {
                         return new org.mwg.core.task.ActionSetAttribute(name, type, value, true);
                     };
@@ -11643,9 +11679,9 @@ var org;
                     return CF_Action;
                 }());
                 task_1.CF_Action = CF_Action;
-                var CF_ActionAtomic = (function (_super) {
-                    __extends(CF_ActionAtomic, _super);
-                    function CF_ActionAtomic(p_subTask) {
+                var CF_Atomic = (function (_super) {
+                    __extends(CF_Atomic, _super);
+                    function CF_Atomic(p_subTask) {
                         var variables = [];
                         for (var _i = 1; _i < arguments.length; _i++) {
                             variables[_i - 1] = arguments[_i];
@@ -11655,7 +11691,7 @@ var org;
                         _this._variables = variables;
                         return _this;
                     }
-                    CF_ActionAtomic.prototype.eval = function (ctx) {
+                    CF_Atomic.prototype.eval = function (ctx) {
                         var collected = new java.util.ArrayList();
                         for (var i = 0; i < this._variables.length; i++) {
                             var varName = this._variables[i];
@@ -11709,12 +11745,12 @@ var org;
                             }
                         });
                     };
-                    CF_ActionAtomic.prototype.children = function () {
+                    CF_Atomic.prototype.children = function () {
                         var children_tasks = new Array(1);
                         children_tasks[0] = this._subTask;
                         return children_tasks;
                     };
-                    CF_ActionAtomic.prototype.cf_serialize = function (builder, dagIDS) {
+                    CF_Atomic.prototype.cf_serialize = function (builder, dagIDS) {
                         builder.append(org.mwg.core.task.ActionNames.LOOP);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         var castedAction = this._subTask;
@@ -11733,19 +11769,19 @@ var org;
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
-                    return CF_ActionAtomic;
+                    return CF_Atomic;
                 }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionAtomic = CF_ActionAtomic;
-                var CF_ActionDoWhile = (function (_super) {
-                    __extends(CF_ActionDoWhile, _super);
-                    function CF_ActionDoWhile(p_then, p_cond, conditionalScript) {
+                task_1.CF_Atomic = CF_Atomic;
+                var CF_DoWhile = (function (_super) {
+                    __extends(CF_DoWhile, _super);
+                    function CF_DoWhile(p_then, p_cond, conditionalScript) {
                         var _this = _super.call(this) || this;
                         _this._cond = p_cond;
                         _this._then = p_then;
                         _this._conditionalScript = conditionalScript;
                         return _this;
                     }
-                    CF_ActionDoWhile.prototype.eval = function (ctx) {
+                    CF_DoWhile.prototype.eval = function (ctx) {
                         var _this = this;
                         var coreTaskContext = ctx;
                         var selfPointer = this;
@@ -11784,12 +11820,12 @@ var org;
                         };
                         this._then.executeFrom(ctx, coreTaskContext._result, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
                     };
-                    CF_ActionDoWhile.prototype.children = function () {
+                    CF_DoWhile.prototype.children = function () {
                         var children_tasks = new Array(1);
                         children_tasks[0] = this._then;
                         return children_tasks;
                     };
-                    CF_ActionDoWhile.prototype.cf_serialize = function (builder, dagIDS) {
+                    CF_DoWhile.prototype.cf_serialize = function (builder, dagIDS) {
                         if (this._conditionalScript == null) {
                             throw new Error("Closure is not serializable, please use Script version instead!");
                         }
@@ -11809,17 +11845,17 @@ var org;
                         org.mwg.core.task.TaskHelper.serializeString(this._conditionalScript, builder, true);
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
-                    return CF_ActionDoWhile;
+                    return CF_DoWhile;
                 }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionDoWhile = CF_ActionDoWhile;
-                var CF_ActionForEach = (function (_super) {
-                    __extends(CF_ActionForEach, _super);
-                    function CF_ActionForEach(p_subTask) {
+                task_1.CF_DoWhile = CF_DoWhile;
+                var CF_ForEach = (function (_super) {
+                    __extends(CF_ForEach, _super);
+                    function CF_ForEach(p_subTask) {
                         var _this = _super.call(this) || this;
                         _this._subTask = p_subTask;
                         return _this;
                     }
-                    CF_ActionForEach.prototype.eval = function (ctx) {
+                    CF_ForEach.prototype.eval = function (ctx) {
                         var selfPointer = this;
                         var previousResult = ctx.result();
                         if (previousResult == null) {
@@ -11871,12 +11907,12 @@ var org;
                             }
                         }
                     };
-                    CF_ActionForEach.prototype.children = function () {
+                    CF_ForEach.prototype.children = function () {
                         var children_tasks = new Array(1);
                         children_tasks[0] = this._subTask;
                         return children_tasks;
                     };
-                    CF_ActionForEach.prototype.cf_serialize = function (builder, dagIDS) {
+                    CF_ForEach.prototype.cf_serialize = function (builder, dagIDS) {
                         builder.append(org.mwg.core.task.ActionNames.FOR_EACH);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         var castedAction = this._subTask;
@@ -11891,17 +11927,17 @@ var org;
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
-                    return CF_ActionForEach;
+                    return CF_ForEach;
                 }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionForEach = CF_ActionForEach;
-                var CF_ActionForEachPar = (function (_super) {
-                    __extends(CF_ActionForEachPar, _super);
-                    function CF_ActionForEachPar(p_subTask) {
+                task_1.CF_ForEach = CF_ForEach;
+                var CF_ForEachPar = (function (_super) {
+                    __extends(CF_ForEachPar, _super);
+                    function CF_ForEachPar(p_subTask) {
                         var _this = _super.call(this) || this;
                         _this._subTask = p_subTask;
                         return _this;
                     }
-                    CF_ActionForEachPar.prototype.eval = function (ctx) {
+                    CF_ForEachPar.prototype.eval = function (ctx) {
                         var _this = this;
                         var previousResult = ctx.result();
                         var it = previousResult.iterator();
@@ -11954,12 +11990,12 @@ var org;
                             }
                         });
                     };
-                    CF_ActionForEachPar.prototype.children = function () {
+                    CF_ForEachPar.prototype.children = function () {
                         var children_tasks = new Array(1);
                         children_tasks[0] = this._subTask;
                         return children_tasks;
                     };
-                    CF_ActionForEachPar.prototype.cf_serialize = function (builder, dagIDS) {
+                    CF_ForEachPar.prototype.cf_serialize = function (builder, dagIDS) {
                         builder.append(org.mwg.core.task.ActionNames.FOR_EACH_PAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         var castedAction = this._subTask;
@@ -11974,12 +12010,12 @@ var org;
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
-                    return CF_ActionForEachPar;
+                    return CF_ForEachPar;
                 }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionForEachPar = CF_ActionForEachPar;
-                var CF_ActionIfThen = (function (_super) {
-                    __extends(CF_ActionIfThen, _super);
-                    function CF_ActionIfThen(cond, action, conditionalScript) {
+                task_1.CF_ForEachPar = CF_ForEachPar;
+                var CF_IfThen = (function (_super) {
+                    __extends(CF_IfThen, _super);
+                    function CF_IfThen(cond, action, conditionalScript) {
                         var _this = _super.call(this) || this;
                         if (cond == null) {
                             throw new Error("condition should not be null");
@@ -11992,7 +12028,7 @@ var org;
                         _this._action = action;
                         return _this;
                     }
-                    CF_ActionIfThen.prototype.eval = function (ctx) {
+                    CF_IfThen.prototype.eval = function (ctx) {
                         if (this._condition(ctx)) {
                             this._action.executeFrom(ctx, ctx.result(), org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (res) {
                                 {
@@ -12018,12 +12054,12 @@ var org;
                             ctx.continueTask();
                         }
                     };
-                    CF_ActionIfThen.prototype.children = function () {
+                    CF_IfThen.prototype.children = function () {
                         var children_tasks = new Array(1);
                         children_tasks[0] = this._action;
                         return children_tasks;
                     };
-                    CF_ActionIfThen.prototype.cf_serialize = function (builder, dagIDS) {
+                    CF_IfThen.prototype.cf_serialize = function (builder, dagIDS) {
                         if (this._conditionalScript == null) {
                             throw new Error("Closure is not serializable, please use Script version instead!");
                         }
@@ -12043,12 +12079,12 @@ var org;
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
-                    return CF_ActionIfThen;
+                    return CF_IfThen;
                 }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionIfThen = CF_ActionIfThen;
-                var CF_ActionIfThenElse = (function (_super) {
-                    __extends(CF_ActionIfThenElse, _super);
-                    function CF_ActionIfThenElse(cond, p_thenSub, p_elseSub, conditionalScript) {
+                task_1.CF_IfThen = CF_IfThen;
+                var CF_IfThenElse = (function (_super) {
+                    __extends(CF_IfThenElse, _super);
+                    function CF_IfThenElse(cond, p_thenSub, p_elseSub, conditionalScript) {
                         var _this = _super.call(this) || this;
                         if (cond == null) {
                             throw new Error("condition should not be null");
@@ -12065,7 +12101,7 @@ var org;
                         _this._elseSub = p_elseSub;
                         return _this;
                     }
-                    CF_ActionIfThenElse.prototype.eval = function (ctx) {
+                    CF_IfThenElse.prototype.eval = function (ctx) {
                         var selectedNextTask;
                         if (this._condition(ctx)) {
                             selectedNextTask = this._thenSub;
@@ -12093,13 +12129,13 @@ var org;
                             }
                         });
                     };
-                    CF_ActionIfThenElse.prototype.children = function () {
+                    CF_IfThenElse.prototype.children = function () {
                         var children_tasks = new Array(2);
                         children_tasks[0] = this._thenSub;
                         children_tasks[1] = this._elseSub;
                         return children_tasks;
                     };
-                    CF_ActionIfThenElse.prototype.cf_serialize = function (builder, dagIDS) {
+                    CF_IfThenElse.prototype.cf_serialize = function (builder, dagIDS) {
                         if (this._conditionalScript == null) {
                             throw new Error("Closure is not serializable, please use Script version instead!");
                         }
@@ -12130,12 +12166,12 @@ var org;
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
-                    return CF_ActionIfThenElse;
+                    return CF_IfThenElse;
                 }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionIfThenElse = CF_ActionIfThenElse;
-                var CF_ActionIsolate = (function (_super) {
-                    __extends(CF_ActionIsolate, _super);
-                    function CF_ActionIsolate(p_subTask) {
+                task_1.CF_IfThenElse = CF_IfThenElse;
+                var CF_Isolate = (function (_super) {
+                    __extends(CF_Isolate, _super);
+                    function CF_Isolate(p_subTask) {
                         var _this = _super.call(this) || this;
                         if (p_subTask == null) {
                             throw new Error("subTask should not be null");
@@ -12143,7 +12179,7 @@ var org;
                         _this._subTask = p_subTask;
                         return _this;
                     }
-                    CF_ActionIsolate.prototype.eval = function (ctx) {
+                    CF_Isolate.prototype.eval = function (ctx) {
                         var previous = ctx.result();
                         this._subTask.executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
                             {
@@ -12166,12 +12202,12 @@ var org;
                             }
                         });
                     };
-                    CF_ActionIsolate.prototype.children = function () {
+                    CF_Isolate.prototype.children = function () {
                         var children_tasks = new Array(1);
                         children_tasks[0] = this._subTask;
                         return children_tasks;
                     };
-                    CF_ActionIsolate.prototype.cf_serialize = function (builder, dagIDS) {
+                    CF_Isolate.prototype.cf_serialize = function (builder, dagIDS) {
                         builder.append(org.mwg.core.task.ActionNames.ISOLATE);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         var castedAction = this._subTask;
@@ -12186,19 +12222,19 @@ var org;
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
-                    return CF_ActionIsolate;
+                    return CF_Isolate;
                 }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionIsolate = CF_ActionIsolate;
-                var CF_ActionLoop = (function (_super) {
-                    __extends(CF_ActionLoop, _super);
-                    function CF_ActionLoop(p_lower, p_upper, p_subTask) {
+                task_1.CF_Isolate = CF_Isolate;
+                var CF_Loop = (function (_super) {
+                    __extends(CF_Loop, _super);
+                    function CF_Loop(p_lower, p_upper, p_subTask) {
                         var _this = _super.call(this) || this;
                         _this._subTask = p_subTask;
                         _this._lower = p_lower;
                         _this._upper = p_upper;
                         return _this;
                     }
-                    CF_ActionLoop.prototype.eval = function (ctx) {
+                    CF_Loop.prototype.eval = function (ctx) {
                         var lowerString = ctx.template(this._lower);
                         var upperString = ctx.template(this._upper);
                         var lower = parseFloat(ctx.template(lowerString));
@@ -12248,12 +12284,12 @@ var org;
                             ctx.continueTask();
                         }
                     };
-                    CF_ActionLoop.prototype.children = function () {
+                    CF_Loop.prototype.children = function () {
                         var children_tasks = new Array(1);
                         children_tasks[0] = this._subTask;
                         return children_tasks;
                     };
-                    CF_ActionLoop.prototype.cf_serialize = function (builder, dagIDS) {
+                    CF_Loop.prototype.cf_serialize = function (builder, dagIDS) {
                         builder.append(org.mwg.core.task.ActionNames.LOOP);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         org.mwg.core.task.TaskHelper.serializeString(this._lower, builder, true);
@@ -12272,19 +12308,19 @@ var org;
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
-                    return CF_ActionLoop;
+                    return CF_Loop;
                 }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionLoop = CF_ActionLoop;
-                var CF_ActionLoopPar = (function (_super) {
-                    __extends(CF_ActionLoopPar, _super);
-                    function CF_ActionLoopPar(p_lower, p_upper, p_subTask) {
+                task_1.CF_Loop = CF_Loop;
+                var CF_LoopPar = (function (_super) {
+                    __extends(CF_LoopPar, _super);
+                    function CF_LoopPar(p_lower, p_upper, p_subTask) {
                         var _this = _super.call(this) || this;
                         _this._subTask = p_subTask;
                         _this._lower = p_lower;
                         _this._upper = p_upper;
                         return _this;
                     }
-                    CF_ActionLoopPar.prototype.eval = function (ctx) {
+                    CF_LoopPar.prototype.eval = function (ctx) {
                         var lowerString = ctx.template(this._lower);
                         var upperString = ctx.template(this._upper);
                         var lower = parseFloat(ctx.template(lowerString));
@@ -12334,12 +12370,12 @@ var org;
                             ctx.continueTask();
                         }
                     };
-                    CF_ActionLoopPar.prototype.children = function () {
+                    CF_LoopPar.prototype.children = function () {
                         var children_tasks = new Array(1);
                         children_tasks[0] = this._subTask;
                         return children_tasks;
                     };
-                    CF_ActionLoopPar.prototype.cf_serialize = function (builder, dagIDS) {
+                    CF_LoopPar.prototype.cf_serialize = function (builder, dagIDS) {
                         builder.append(org.mwg.core.task.ActionNames.LOOP_PAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         org.mwg.core.task.TaskHelper.serializeString(this._lower, builder, true);
@@ -12358,17 +12394,17 @@ var org;
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
-                    return CF_ActionLoopPar;
+                    return CF_LoopPar;
                 }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionLoopPar = CF_ActionLoopPar;
-                var CF_ActionMap = (function (_super) {
-                    __extends(CF_ActionMap, _super);
-                    function CF_ActionMap(p_subTask) {
+                task_1.CF_LoopPar = CF_LoopPar;
+                var CF_Map = (function (_super) {
+                    __extends(CF_Map, _super);
+                    function CF_Map(p_subTask) {
                         var _this = _super.call(this) || this;
                         _this._subTask = p_subTask;
                         return _this;
                     }
-                    CF_ActionMap.prototype.eval = function (ctx) {
+                    CF_Map.prototype.eval = function (ctx) {
                         var _this = this;
                         var selfPointer = this;
                         var previousResult = ctx.result();
@@ -12436,12 +12472,12 @@ var org;
                             }
                         }
                     };
-                    CF_ActionMap.prototype.children = function () {
+                    CF_Map.prototype.children = function () {
                         var children_tasks = new Array(1);
                         children_tasks[0] = this._subTask;
                         return children_tasks;
                     };
-                    CF_ActionMap.prototype.cf_serialize = function (builder, dagIDS) {
+                    CF_Map.prototype.cf_serialize = function (builder, dagIDS) {
                         builder.append(org.mwg.core.task.ActionNames.MAP);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         var castedAction = this._subTask;
@@ -12456,17 +12492,17 @@ var org;
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
-                    return CF_ActionMap;
+                    return CF_Map;
                 }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionMap = CF_ActionMap;
-                var CF_ActionMapPar = (function (_super) {
-                    __extends(CF_ActionMapPar, _super);
-                    function CF_ActionMapPar(p_subTask) {
+                task_1.CF_Map = CF_Map;
+                var CF_MapPar = (function (_super) {
+                    __extends(CF_MapPar, _super);
+                    function CF_MapPar(p_subTask) {
                         var _this = _super.call(this) || this;
                         _this._subTask = p_subTask;
                         return _this;
                     }
-                    CF_ActionMapPar.prototype.eval = function (ctx) {
+                    CF_MapPar.prototype.eval = function (ctx) {
                         var _this = this;
                         var previousResult = ctx.result();
                         var finalResult = ctx.wrap(null);
@@ -12521,12 +12557,12 @@ var org;
                             }
                         });
                     };
-                    CF_ActionMapPar.prototype.children = function () {
+                    CF_MapPar.prototype.children = function () {
                         var children_tasks = new Array(1);
                         children_tasks[0] = this._subTask;
                         return children_tasks;
                     };
-                    CF_ActionMapPar.prototype.cf_serialize = function (builder, dagIDS) {
+                    CF_MapPar.prototype.cf_serialize = function (builder, dagIDS) {
                         builder.append(org.mwg.core.task.ActionNames.MAP_PAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         var castedAction = this._subTask;
@@ -12541,12 +12577,12 @@ var org;
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
-                    return CF_ActionMapPar;
+                    return CF_MapPar;
                 }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionMapPar = CF_ActionMapPar;
-                var CF_ActionPipe = (function (_super) {
-                    __extends(CF_ActionPipe, _super);
-                    function CF_ActionPipe() {
+                task_1.CF_MapPar = CF_MapPar;
+                var CF_Pipe = (function (_super) {
+                    __extends(CF_Pipe, _super);
+                    function CF_Pipe() {
                         var p_subTasks = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             p_subTasks[_i] = arguments[_i];
@@ -12555,7 +12591,7 @@ var org;
                         _this._subTasks = p_subTasks;
                         return _this;
                     }
-                    CF_ActionPipe.prototype.eval = function (ctx) {
+                    CF_Pipe.prototype.eval = function (ctx) {
                         var _this = this;
                         var previous = ctx.result();
                         var cursor = new java.util.concurrent.atomic.AtomicInteger(0);
@@ -12612,10 +12648,10 @@ var org;
                             ctx.continueWith(next);
                         }
                     };
-                    CF_ActionPipe.prototype.children = function () {
+                    CF_Pipe.prototype.children = function () {
                         return this._subTasks;
                     };
-                    CF_ActionPipe.prototype.cf_serialize = function (builder, dagIDS) {
+                    CF_Pipe.prototype.cf_serialize = function (builder, dagIDS) {
                         builder.append(org.mwg.core.task.ActionNames.PIPE);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         for (var i = 0; i < this._subTasks.length; i++) {
@@ -12635,12 +12671,12 @@ var org;
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
-                    return CF_ActionPipe;
+                    return CF_Pipe;
                 }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionPipe = CF_ActionPipe;
-                var CF_ActionPipePar = (function (_super) {
-                    __extends(CF_ActionPipePar, _super);
-                    function CF_ActionPipePar() {
+                task_1.CF_Pipe = CF_Pipe;
+                var CF_PipePar = (function (_super) {
+                    __extends(CF_PipePar, _super);
+                    function CF_PipePar() {
                         var p_subTasks = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             p_subTasks[_i] = arguments[_i];
@@ -12649,7 +12685,7 @@ var org;
                         _this._subTasks = p_subTasks;
                         return _this;
                     }
-                    CF_ActionPipePar.prototype.eval = function (ctx) {
+                    CF_PipePar.prototype.eval = function (ctx) {
                         var previous = ctx.result();
                         var subTasksSize = this._subTasks.length;
                         var next = ctx.newResult();
@@ -12693,10 +12729,10 @@ var org;
                             }
                         });
                     };
-                    CF_ActionPipePar.prototype.children = function () {
+                    CF_PipePar.prototype.children = function () {
                         return this._subTasks;
                     };
-                    CF_ActionPipePar.prototype.cf_serialize = function (builder, dagIDS) {
+                    CF_PipePar.prototype.cf_serialize = function (builder, dagIDS) {
                         builder.append(org.mwg.core.task.ActionNames.PIPE_PAR);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         for (var i = 0; i < this._subTasks.length; i++) {
@@ -12716,38 +12752,38 @@ var org;
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
-                    return CF_ActionPipePar;
+                    return CF_PipePar;
                 }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionPipePar = CF_ActionPipePar;
-                var CF_ActionThenDo = (function () {
-                    function CF_ActionThenDo(p_wrapped) {
+                task_1.CF_PipePar = CF_PipePar;
+                var CF_ThenDo = (function () {
+                    function CF_ThenDo(p_wrapped) {
                         if (p_wrapped == null) {
                             throw new Error("action should not be null");
                         }
                         this._wrapped = p_wrapped;
                     }
-                    CF_ActionThenDo.prototype.eval = function (ctx) {
+                    CF_ThenDo.prototype.eval = function (ctx) {
                         this._wrapped(ctx);
                     };
-                    CF_ActionThenDo.prototype.toString = function () {
+                    CF_ThenDo.prototype.toString = function () {
                         return "then()";
                     };
-                    CF_ActionThenDo.prototype.serialize = function (builder) {
+                    CF_ThenDo.prototype.serialize = function (builder) {
                         throw new Error("Not managed yet!");
                     };
-                    return CF_ActionThenDo;
+                    return CF_ThenDo;
                 }());
-                task_1.CF_ActionThenDo = CF_ActionThenDo;
-                var CF_ActionWhileDo = (function (_super) {
-                    __extends(CF_ActionWhileDo, _super);
-                    function CF_ActionWhileDo(p_cond, p_then, conditionalScript) {
+                task_1.CF_ThenDo = CF_ThenDo;
+                var CF_WhileDo = (function (_super) {
+                    __extends(CF_WhileDo, _super);
+                    function CF_WhileDo(p_cond, p_then, conditionalScript) {
                         var _this = _super.call(this) || this;
                         _this._cond = p_cond;
                         _this._then = p_then;
                         _this._conditionalScript = conditionalScript;
                         return _this;
                     }
-                    CF_ActionWhileDo.prototype.eval = function (ctx) {
+                    CF_WhileDo.prototype.eval = function (ctx) {
                         var _this = this;
                         var coreTaskContext = ctx;
                         var selfPointer = this;
@@ -12791,12 +12827,12 @@ var org;
                             ctx.continueTask();
                         }
                     };
-                    CF_ActionWhileDo.prototype.children = function () {
+                    CF_WhileDo.prototype.children = function () {
                         var children_tasks = new Array(1);
                         children_tasks[0] = this._then;
                         return children_tasks;
                     };
-                    CF_ActionWhileDo.prototype.cf_serialize = function (builder, dagIDS) {
+                    CF_WhileDo.prototype.cf_serialize = function (builder, dagIDS) {
                         if (this._conditionalScript == null) {
                             throw new Error("Closure is not serializable, please use Script version instead!");
                         }
@@ -12816,9 +12852,9 @@ var org;
                         }
                         builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
                     };
-                    return CF_ActionWhileDo;
+                    return CF_WhileDo;
                 }(org.mwg.core.task.CF_Action));
-                task_1.CF_ActionWhileDo = CF_ActionWhileDo;
+                task_1.CF_WhileDo = CF_WhileDo;
                 var CoreTask = (function () {
                     function CoreTask() {
                         this.insertCapacity = org.mwg.Constants.MAP_INITIAL_CAPACITY;
@@ -12851,56 +12887,56 @@ var org;
                         return this;
                     };
                     CoreTask.prototype.thenDo = function (nextActionFunction) {
-                        return this.then(new org.mwg.core.task.CF_ActionThenDo(nextActionFunction));
+                        return this.then(new org.mwg.core.task.CF_ThenDo(nextActionFunction));
                     };
                     CoreTask.prototype.doWhile = function (task, cond) {
-                        return this.then(new org.mwg.core.task.CF_ActionDoWhile(task, cond, null));
+                        return this.then(new org.mwg.core.task.CF_DoWhile(task, cond, null));
                     };
                     CoreTask.prototype.doWhileScript = function (task, condScript) {
-                        return this.then(new org.mwg.core.task.CF_ActionDoWhile(task, org.mwg.core.task.CoreTask.condFromScript(condScript), condScript));
+                        return this.then(new org.mwg.core.task.CF_DoWhile(task, org.mwg.core.task.CoreTask.condFromScript(condScript), condScript));
                     };
                     CoreTask.prototype.loop = function (from, to, subTask) {
-                        return this.then(new org.mwg.core.task.CF_ActionLoop(from, to, subTask));
+                        return this.then(new org.mwg.core.task.CF_Loop(from, to, subTask));
                     };
                     CoreTask.prototype.loopPar = function (from, to, subTask) {
-                        return this.then(new org.mwg.core.task.CF_ActionLoopPar(from, to, subTask));
+                        return this.then(new org.mwg.core.task.CF_LoopPar(from, to, subTask));
                     };
                     CoreTask.prototype.forEach = function (subTask) {
-                        return this.then(new org.mwg.core.task.CF_ActionForEach(subTask));
+                        return this.then(new org.mwg.core.task.CF_ForEach(subTask));
                     };
                     CoreTask.prototype.forEachPar = function (subTask) {
-                        return this.then(new org.mwg.core.task.CF_ActionForEachPar(subTask));
+                        return this.then(new org.mwg.core.task.CF_ForEachPar(subTask));
                     };
                     CoreTask.prototype.map = function (subTask) {
-                        return this.then(new org.mwg.core.task.CF_ActionMap(subTask));
+                        return this.then(new org.mwg.core.task.CF_Map(subTask));
                     };
                     CoreTask.prototype.mapPar = function (subTask) {
-                        return this.then(new org.mwg.core.task.CF_ActionMapPar(subTask));
+                        return this.then(new org.mwg.core.task.CF_MapPar(subTask));
                     };
                     CoreTask.prototype.ifThen = function (cond, then) {
-                        return this.then(new org.mwg.core.task.CF_ActionIfThen(cond, then, null));
+                        return this.then(new org.mwg.core.task.CF_IfThen(cond, then, null));
                     };
                     CoreTask.prototype.ifThenScript = function (condScript, then) {
-                        return this.then(new org.mwg.core.task.CF_ActionIfThen(org.mwg.core.task.CoreTask.condFromScript(condScript), then, condScript));
+                        return this.then(new org.mwg.core.task.CF_IfThen(org.mwg.core.task.CoreTask.condFromScript(condScript), then, condScript));
                     };
                     CoreTask.prototype.ifThenElse = function (cond, thenSub, elseSub) {
-                        return this.then(new org.mwg.core.task.CF_ActionIfThenElse(cond, thenSub, elseSub, null));
+                        return this.then(new org.mwg.core.task.CF_IfThenElse(cond, thenSub, elseSub, null));
                     };
                     CoreTask.prototype.ifThenElseScript = function (condScript, thenSub, elseSub) {
-                        return this.then(new org.mwg.core.task.CF_ActionIfThenElse(org.mwg.core.task.CoreTask.condFromScript(condScript), thenSub, elseSub, condScript));
+                        return this.then(new org.mwg.core.task.CF_IfThenElse(org.mwg.core.task.CoreTask.condFromScript(condScript), thenSub, elseSub, condScript));
                     };
                     CoreTask.prototype.whileDo = function (cond, task) {
-                        return this.then(new org.mwg.core.task.CF_ActionWhileDo(cond, task, null));
+                        return this.then(new org.mwg.core.task.CF_WhileDo(cond, task, null));
                     };
                     CoreTask.prototype.whileDoScript = function (condScript, task) {
-                        return this.then(new org.mwg.core.task.CF_ActionWhileDo(org.mwg.core.task.CoreTask.condFromScript(condScript), task, condScript));
+                        return this.then(new org.mwg.core.task.CF_WhileDo(org.mwg.core.task.CoreTask.condFromScript(condScript), task, condScript));
                     };
                     CoreTask.prototype.pipe = function () {
                         var subTasks = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             subTasks[_i] = arguments[_i];
                         }
-                        return this.then(new ((_a = org.mwg.core.task.CF_ActionPipe).bind.apply(_a, [void 0].concat(subTasks)))());
+                        return this.then(new ((_a = org.mwg.core.task.CF_Pipe).bind.apply(_a, [void 0].concat(subTasks)))());
                         var _a;
                     };
                     CoreTask.prototype.pipePar = function () {
@@ -12908,18 +12944,18 @@ var org;
                         for (var _i = 0; _i < arguments.length; _i++) {
                             subTasks[_i] = arguments[_i];
                         }
-                        return this.then(new ((_a = org.mwg.core.task.CF_ActionPipePar).bind.apply(_a, [void 0].concat(subTasks)))());
+                        return this.then(new ((_a = org.mwg.core.task.CF_PipePar).bind.apply(_a, [void 0].concat(subTasks)))());
                         var _a;
                     };
                     CoreTask.prototype.isolate = function (subTask) {
-                        return this.then(new org.mwg.core.task.CF_ActionIsolate(subTask));
+                        return this.then(new org.mwg.core.task.CF_Isolate(subTask));
                     };
                     CoreTask.prototype.atomic = function (protectedTask) {
                         var variablesToLock = [];
                         for (var _i = 1; _i < arguments.length; _i++) {
                             variablesToLock[_i - 1] = arguments[_i];
                         }
-                        return this.then(new ((_a = org.mwg.core.task.CF_ActionAtomic).bind.apply(_a, [void 0, protectedTask].concat(variablesToLock)))());
+                        return this.then(new ((_a = org.mwg.core.task.CF_Atomic).bind.apply(_a, [void 0, protectedTask].concat(variablesToLock)))());
                         var _a;
                     };
                     CoreTask.prototype.execute = function (graph, callback) {
@@ -13474,6 +13510,14 @@ var org;
                                 return new org.mwg.core.task.ActionSetAttribute(params[0], org.mwg.Type.typeFromName(params[1]), params[2], false);
                             }
                         });
+                        registry.put(org.mwg.core.task.ActionNames.TIME_SENSITIVITY, function (params, contextTasks) {
+                            {
+                                if (params.length != 2) {
+                                    throw new Error(org.mwg.core.task.ActionNames.TIME_SENSITIVITY + " action needs two parameters. Received:" + params.length);
+                                }
+                                return new org.mwg.core.task.ActionTimeSensitivity(java.lang.Long.parseLong(params[0]), java.lang.Long.parseLong(params[1]));
+                            }
+                        });
                         registry.put(org.mwg.core.task.ActionNames.FORCE_ATTRIBUTE, function (params, contextTasks) {
                             {
                                 if (params.length != 3) {
@@ -13504,7 +13548,7 @@ var org;
                                     throw new Error(org.mwg.core.task.ActionNames.LOOP + " action needs three parameters. Received:" + params.length);
                                 }
                                 var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[2]);
-                                return new org.mwg.core.task.CF_ActionLoop(params[0], params[1], subTask);
+                                return new org.mwg.core.task.CF_Loop(params[0], params[1], subTask);
                             }
                         });
                         registry.put(org.mwg.core.task.ActionNames.LOOP_PAR, function (params, contextTasks) {
@@ -13513,7 +13557,7 @@ var org;
                                     throw new Error(org.mwg.core.task.ActionNames.LOOP_PAR + " action needs three parameters. Received:" + params.length);
                                 }
                                 var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[2]);
-                                return new org.mwg.core.task.CF_ActionLoopPar(params[0], params[1], subTask);
+                                return new org.mwg.core.task.CF_LoopPar(params[0], params[1], subTask);
                             }
                         });
                         registry.put(org.mwg.core.task.ActionNames.FOR_EACH, function (params, contextTasks) {
@@ -13522,7 +13566,7 @@ var org;
                                     throw new Error(org.mwg.core.task.ActionNames.FOR_EACH + " action needs one parameters. Received:" + params.length);
                                 }
                                 var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.core.task.CF_ActionForEach(subTask);
+                                return new org.mwg.core.task.CF_ForEach(subTask);
                             }
                         });
                         registry.put(org.mwg.core.task.ActionNames.FOR_EACH_PAR, function (params, contextTasks) {
@@ -13531,7 +13575,7 @@ var org;
                                     throw new Error(org.mwg.core.task.ActionNames.FOR_EACH_PAR + " action needs one parameters. Received:" + params.length);
                                 }
                                 var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.core.task.CF_ActionForEachPar(subTask);
+                                return new org.mwg.core.task.CF_ForEachPar(subTask);
                             }
                         });
                         registry.put(org.mwg.core.task.ActionNames.FLAT, function (params, contextTasks) {
@@ -13548,7 +13592,7 @@ var org;
                                     throw new Error(org.mwg.core.task.ActionNames.MAP + " action needs one parameters. Received:" + params.length);
                                 }
                                 var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.core.task.CF_ActionMap(subTask);
+                                return new org.mwg.core.task.CF_Map(subTask);
                             }
                         });
                         registry.put(org.mwg.core.task.ActionNames.MAP_PAR, function (params, contextTasks) {
@@ -13557,7 +13601,7 @@ var org;
                                     throw new Error(org.mwg.core.task.ActionNames.MAP_PAR + " action needs one parameters. Received:" + params.length);
                                 }
                                 var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.core.task.CF_ActionMapPar(subTask);
+                                return new org.mwg.core.task.CF_MapPar(subTask);
                             }
                         });
                         registry.put(org.mwg.core.task.ActionNames.PIPE, function (params, contextTasks) {
@@ -13566,7 +13610,7 @@ var org;
                                 for (var i = 0; i < params.length; i++) {
                                     subTasks[i] = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[i]);
                                 }
-                                return new ((_a = org.mwg.core.task.CF_ActionPipe).bind.apply(_a, [void 0].concat(subTasks)))();
+                                return new ((_a = org.mwg.core.task.CF_Pipe).bind.apply(_a, [void 0].concat(subTasks)))();
                             }
                             var _a;
                         });
@@ -13576,7 +13620,7 @@ var org;
                                 for (var i = 0; i < params.length; i++) {
                                     subTasks[i] = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[i]);
                                 }
-                                return new ((_a = org.mwg.core.task.CF_ActionPipePar).bind.apply(_a, [void 0].concat(subTasks)))();
+                                return new ((_a = org.mwg.core.task.CF_PipePar).bind.apply(_a, [void 0].concat(subTasks)))();
                             }
                             var _a;
                         });
@@ -13587,7 +13631,7 @@ var org;
                                 }
                                 var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
                                 var script = params[1];
-                                return new org.mwg.core.task.CF_ActionDoWhile(subTask, org.mwg.core.task.CoreTask.condFromScript(script), script);
+                                return new org.mwg.core.task.CF_DoWhile(subTask, org.mwg.core.task.CoreTask.condFromScript(script), script);
                             }
                         });
                         registry.put(org.mwg.core.task.ActionNames.WHILE_DO, function (params, contextTasks) {
@@ -13597,7 +13641,7 @@ var org;
                                 }
                                 var script = params[0];
                                 var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[1]);
-                                return new org.mwg.core.task.CF_ActionWhileDo(org.mwg.core.task.CoreTask.condFromScript(script), subTask, script);
+                                return new org.mwg.core.task.CF_WhileDo(org.mwg.core.task.CoreTask.condFromScript(script), subTask, script);
                             }
                         });
                         registry.put(org.mwg.core.task.ActionNames.ISOLATE, function (params, contextTasks) {
@@ -13606,7 +13650,7 @@ var org;
                                     throw new Error(org.mwg.core.task.ActionNames.ISOLATE + " action needs three parameters. Received:" + params.length);
                                 }
                                 var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.core.task.CF_ActionIsolate(subTask);
+                                return new org.mwg.core.task.CF_Isolate(subTask);
                             }
                         });
                         registry.put(org.mwg.core.task.ActionNames.ATOMIC, function (params, contextTasks) {
@@ -13617,7 +13661,7 @@ var org;
                                 var subTask = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[0]);
                                 var variables = new Array(params.length - 1);
                                 java.lang.System.arraycopy(params, 1, variables, 0, params.length - 1);
-                                return new ((_a = org.mwg.core.task.CF_ActionAtomic).bind.apply(_a, [void 0, subTask].concat(variables)))();
+                                return new ((_a = org.mwg.core.task.CF_Atomic).bind.apply(_a, [void 0, subTask].concat(variables)))();
                             }
                             var _a;
                         });
@@ -13628,7 +13672,7 @@ var org;
                                 }
                                 var script = params[0];
                                 var taskThen = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[1]);
-                                return new org.mwg.core.task.CF_ActionIfThen(org.mwg.core.task.CoreTask.condFromScript(script), taskThen, script);
+                                return new org.mwg.core.task.CF_IfThen(org.mwg.core.task.CoreTask.condFromScript(script), taskThen, script);
                             }
                         });
                         registry.put(org.mwg.core.task.ActionNames.IF_THEN_ELSE, function (params, contextTasks) {
@@ -13639,7 +13683,7 @@ var org;
                                 var script = params[0];
                                 var taskThen = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[1]);
                                 var taskElse = org.mwg.core.task.CoreTask.getOrCreate(contextTasks, params[2]);
-                                return new org.mwg.core.task.CF_ActionIfThenElse(org.mwg.core.task.CoreTask.condFromScript(script), taskThen, taskElse, script);
+                                return new org.mwg.core.task.CF_IfThenElse(org.mwg.core.task.CoreTask.condFromScript(script), taskThen, taskElse, script);
                             }
                         });
                     };
@@ -13752,6 +13796,9 @@ var org;
                     };
                     CoreTask.prototype.setAttribute = function (name, type, value) {
                         return this.then(org.mwg.core.task.Actions.setAttribute(name, type, value));
+                    };
+                    CoreTask.prototype.timeSensitivity = function (delta, offset) {
+                        return this.then(org.mwg.core.task.Actions.timeSensitivity(delta, offset));
                     };
                     CoreTask.prototype.forceAttribute = function (name, type, value) {
                         return this.then(org.mwg.core.task.Actions.forceAttribute(name, type, value));

@@ -7,13 +7,13 @@ import org.mwg.task.*;
 
 import java.util.Map;
 
-class CF_ActionIfThen extends CF_Action {
+class CF_IfThen extends CF_Action {
 
     private ConditionalFunction _condition;
     private org.mwg.task.Task _action;
     private String _conditionalScript;
 
-    CF_ActionIfThen(final ConditionalFunction cond, final org.mwg.task.Task action, final String conditionalScript) {
+    CF_IfThen(final ConditionalFunction cond, final org.mwg.task.Task action, final String conditionalScript) {
         super();
         if (cond == null) {
             throw new RuntimeException("condition should not be null");

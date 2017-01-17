@@ -11,14 +11,14 @@ import org.mwg.task.TaskResult;
 
 import java.util.Map;
 
-class CF_ActionLoopPar extends CF_Action {
+class CF_LoopPar extends CF_Action {
 
     private final Task _subTask;
 
     private final String _lower;
     private final String _upper;
 
-    CF_ActionLoopPar(final String p_lower, final String p_upper, final Task p_subTask) {
+    CF_LoopPar(final String p_lower, final String p_upper, final Task p_subTask) {
         super();
         this._subTask = p_subTask;
         this._lower = p_lower;

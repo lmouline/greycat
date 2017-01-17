@@ -4,11 +4,11 @@ import org.mwg.task.Action;
 import org.mwg.task.ActionFunction;
 import org.mwg.task.TaskContext;
 
-class CF_ActionThenDo implements Action {
+class CF_ThenDo implements Action {
 
     private final ActionFunction _wrapped;
 
-    CF_ActionThenDo(final ActionFunction p_wrapped) {
+    CF_ThenDo(final ActionFunction p_wrapped) {
         if (p_wrapped == null) {
             throw new RuntimeException("action should not be null");
         }

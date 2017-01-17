@@ -1482,6 +1482,7 @@ declare module org {
                     static SET_AS_VAR: string;
                     static FORCE_ATTRIBUTE: string;
                     static SET_ATTRIBUTE: string;
+                    static TIME_SENSITIVITY: string;
                     static TIMEPOINTS: string;
                     static TRAVEL_IN_TIME: string;
                     static TRAVEL_IN_WORLD: string;
@@ -1585,6 +1586,14 @@ declare module org {
                     serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
+                class ActionTimeSensitivity implements org.mwg.task.Action {
+                    private _delta;
+                    private _offset;
+                    constructor(delta: number, offset: number);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
+                    toString(): string;
+                }
                 class ActionTimepoints implements org.mwg.task.Action {
                     private _from;
                     private _to;
@@ -1647,6 +1656,7 @@ declare module org {
                     static setAsVar(name: string): org.mwg.task.Action;
                     static addToVar(name: string): org.mwg.task.Action;
                     static setAttribute(name: string, type: number, value: string): org.mwg.task.Action;
+                    static timeSensitivity(delta: number, offset: number): org.mwg.task.Action;
                     static forceAttribute(name: string, type: number, value: string): org.mwg.task.Action;
                     static remove(name: string): org.mwg.task.Action;
                     static attributes(): org.mwg.task.Action;
@@ -1711,7 +1721,7 @@ declare module org {
                     serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
-                class CF_ActionAtomic extends org.mwg.core.task.CF_Action {
+                class CF_Atomic extends org.mwg.core.task.CF_Action {
                     private _variables;
                     private _subTask;
                     constructor(p_subTask: org.mwg.task.Task, ...variables: string[]);
@@ -1719,7 +1729,7 @@ declare module org {
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
-                class CF_ActionDoWhile extends org.mwg.core.task.CF_Action {
+                class CF_DoWhile extends org.mwg.core.task.CF_Action {
                     private _cond;
                     private _then;
                     private _conditionalScript;
@@ -1728,21 +1738,21 @@ declare module org {
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
-                class CF_ActionForEach extends org.mwg.core.task.CF_Action {
+                class CF_ForEach extends org.mwg.core.task.CF_Action {
                     private _subTask;
                     constructor(p_subTask: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
-                class CF_ActionForEachPar extends org.mwg.core.task.CF_Action {
+                class CF_ForEachPar extends org.mwg.core.task.CF_Action {
                     private _subTask;
                     constructor(p_subTask: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
-                class CF_ActionIfThen extends org.mwg.core.task.CF_Action {
+                class CF_IfThen extends org.mwg.core.task.CF_Action {
                     private _condition;
                     private _action;
                     private _conditionalScript;
@@ -1751,7 +1761,7 @@ declare module org {
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
-                class CF_ActionIfThenElse extends org.mwg.core.task.CF_Action {
+                class CF_IfThenElse extends org.mwg.core.task.CF_Action {
                     private _condition;
                     private _thenSub;
                     private _elseSub;
@@ -1761,14 +1771,14 @@ declare module org {
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
-                class CF_ActionIsolate extends org.mwg.core.task.CF_Action {
+                class CF_Isolate extends org.mwg.core.task.CF_Action {
                     private _subTask;
                     constructor(p_subTask: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
-                class CF_ActionLoop extends org.mwg.core.task.CF_Action {
+                class CF_Loop extends org.mwg.core.task.CF_Action {
                     private _lower;
                     private _upper;
                     private _subTask;
@@ -1777,7 +1787,7 @@ declare module org {
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
-                class CF_ActionLoopPar extends org.mwg.core.task.CF_Action {
+                class CF_LoopPar extends org.mwg.core.task.CF_Action {
                     private _subTask;
                     private _lower;
                     private _upper;
@@ -1786,42 +1796,42 @@ declare module org {
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
-                class CF_ActionMap extends org.mwg.core.task.CF_Action {
+                class CF_Map extends org.mwg.core.task.CF_Action {
                     private _subTask;
                     constructor(p_subTask: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
-                class CF_ActionMapPar extends org.mwg.core.task.CF_Action {
+                class CF_MapPar extends org.mwg.core.task.CF_Action {
                     private _subTask;
                     constructor(p_subTask: org.mwg.task.Task);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
-                class CF_ActionPipe extends org.mwg.core.task.CF_Action {
+                class CF_Pipe extends org.mwg.core.task.CF_Action {
                     private _subTasks;
                     constructor(...p_subTasks: org.mwg.task.Task[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
-                class CF_ActionPipePar extends org.mwg.core.task.CF_Action {
+                class CF_PipePar extends org.mwg.core.task.CF_Action {
                     private _subTasks;
                     constructor(...p_subTasks: org.mwg.task.Task[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
-                class CF_ActionThenDo implements org.mwg.task.Action {
+                class CF_ThenDo implements org.mwg.task.Action {
                     private _wrapped;
                     constructor(p_wrapped: org.mwg.task.ActionFunction);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     toString(): string;
                     serialize(builder: java.lang.StringBuilder): void;
                 }
-                class CF_ActionWhileDo extends org.mwg.core.task.CF_Action {
+                class CF_WhileDo extends org.mwg.core.task.CF_Action {
                     private _cond;
                     private _then;
                     private _conditionalScript;
@@ -1886,6 +1896,7 @@ declare module org {
                     setAsVar(name: string): org.mwg.task.Task;
                     addToVar(name: string): org.mwg.task.Task;
                     setAttribute(name: string, type: number, value: string): org.mwg.task.Task;
+                    timeSensitivity(delta: number, offset: number): org.mwg.task.Task;
                     forceAttribute(name: string, type: number, value: string): org.mwg.task.Task;
                     remove(name: string): org.mwg.task.Task;
                     attributes(): org.mwg.task.Task;
@@ -2434,6 +2445,7 @@ declare module org {
                 setAsVar(name: string): org.mwg.task.Task;
                 addToVar(name: string): org.mwg.task.Task;
                 setAttribute(name: string, type: number, value: string): org.mwg.task.Task;
+                timeSensitivity(delta: number, offset: number): org.mwg.task.Task;
                 forceAttribute(name: string, type: number, value: string): org.mwg.task.Task;
                 remove(name: string): org.mwg.task.Task;
                 attributes(): org.mwg.task.Task;

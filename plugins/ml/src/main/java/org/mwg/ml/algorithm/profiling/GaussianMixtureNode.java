@@ -117,7 +117,7 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
             @Override
             public void on(double[] values) {
                 //ToDO temporal hack to avoid features extractions - to remove later
-                learnVector(values, callback);
+                learnWith(values);
             }
         });
     }
@@ -165,7 +165,8 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
 
 
     //ToDO temporal hack to avoid features extractions - to remove later
-    public void learnVector(final double[] values, final Callback<Boolean> callback) {
+    //TODO ASSAD
+    public void learnWith(final double[] values) {
         final NodeState resolved = this._resolver.resolveState(this);
 
         final int width = resolved.getFromKeyWithDefault(WIDTH, WIDTH_DEF);
@@ -186,15 +187,11 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
                 if (result != null) {
                     result.free();
                 }
-                if (callback != null) {
-                    callback.on(true);
-                }
             }
         });
 
         TaskResult resolutionTR = context.newResult().add(resolution);
         TaskResult valuesTR = context.newResult().add(values);
-
         context.setGlobalVariable("width", width);
         context.setGlobalVariable("compressionFactor", compressionFactor);
         context.setGlobalVariable("compressionIter", compressionIter);
@@ -202,9 +199,7 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
         context.setGlobalVariable("threshold", threshold);
         context.setGlobalVariable("values", valuesTR);
         context.setGlobalVariable("root", this);
-
         traverseTask.executeUsing(context);
-
     }
 
     private boolean checkInside(final double[] min, final double[] max, final double[] resolution, final double threshold, double level) {

@@ -36,12 +36,7 @@ public class GaussianMixtureModelTest {
                     data[2] = -60 + rand.nextDouble() * 20; //avg=-50 [-60,-40]
                     //node1.setTrainingVector(data);
 
-                    node1.learnVector(data, new Callback<Boolean>() {
-                        @Override
-                        public void on(Boolean result) {
-
-                        }
-                    });
+                    node1.learnWith(data);
 
                     sum[0] += data[0];
                     sum[1] += data[1];

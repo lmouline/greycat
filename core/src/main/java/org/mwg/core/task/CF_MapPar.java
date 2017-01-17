@@ -10,11 +10,11 @@ import org.mwg.utility.Tuple;
 
 import java.util.Map;
 
-class CF_ActionForEachPar extends CF_Action {
+class CF_MapPar extends CF_Action {
 
     private final Task _subTask;
 
-    CF_ActionForEachPar(final Task p_subTask) {
+    CF_MapPar(final Task p_subTask) {
         super();
         _subTask = p_subTask;
     }
@@ -22,11 +22,13 @@ class CF_ActionForEachPar extends CF_Action {
     @Override
     public void eval(final TaskContext ctx) {
         final TaskResult previousResult = ctx.result();
+        final TaskResult finalResult = ctx.wrap(null);
         final TaskResultIterator it = previousResult.iterator();
         final int previousSize = previousResult.size();
         if (previousSize == -1) {
             throw new RuntimeException("Foreach on non array structure are not supported yet!");
         }
+        finalResult.allocate(previousSize);
         final DeferCounter waiter = ctx.graph().newCounter(previousSize);
         final Job[] dequeueJob = new Job[1];
         final Exception[] exceptionDuringTask = new Exception[1];
@@ -45,13 +47,13 @@ class CF_ActionForEachPar extends CF_Action {
                         @Override
                         public void on(TaskResult result) {
                             if (result != null) {
+                                finalResult.add(result);
                                 if (result.output() != null) {
                                     ctx.append(result.output());
                                 }
                                 if (result.exception() != null) {
                                     exceptionDuringTask[0] = result.exception();
                                 }
-                                result.free();
                             }
                             waiter.count();
                             dequeueJob[0].run();
@@ -60,7 +62,6 @@ class CF_ActionForEachPar extends CF_Action {
                 }
             }
         };
-        //create max // worker for this forEach
         final int nbThread = ctx.graph().scheduler().workers();
         for (int i = 0; i < nbThread; i++) {
             dequeueJob[0].run();
@@ -69,25 +70,24 @@ class CF_ActionForEachPar extends CF_Action {
             @Override
             public void run() {
                 if (exceptionDuringTask[0] != null) {
-                    ctx.endTask(null, exceptionDuringTask[0]);
+                    ctx.endTask(finalResult, exceptionDuringTask[0]);
                 } else {
-                    ctx.continueTask();
+                    ctx.continueWith(finalResult);
                 }
-
             }
         });
     }
 
     @Override
-    public final Task[] children() {
+    public Task[] children() {
         Task[] children_tasks = new Task[1];
         children_tasks[0] = _subTask;
         return children_tasks;
     }
 
     @Override
-    public final void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
-        builder.append(ActionNames.FOR_EACH_PAR);
+    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
+        builder.append(ActionNames.MAP_PAR);
         builder.append(Constants.TASK_PARAM_OPEN);
         final CoreTask castedAction = (CoreTask) _subTask;
         final int castedActionHash = castedAction.hashCode();
@@ -101,3 +101,4 @@ class CF_ActionForEachPar extends CF_Action {
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 }
+

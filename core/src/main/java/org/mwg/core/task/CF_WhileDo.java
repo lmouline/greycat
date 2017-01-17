@@ -7,13 +7,13 @@ import org.mwg.task.*;
 
 import java.util.Map;
 
-class CF_ActionDoWhile extends CF_Action {
+class CF_WhileDo extends CF_Action {
 
     private final ConditionalFunction _cond;
     private final Task _then;
     private final String _conditionalScript;
 
-    CF_ActionDoWhile(final Task p_then, final ConditionalFunction p_cond, final String conditionalScript) {
+    CF_WhileDo(final ConditionalFunction p_cond, final Task p_then, String conditionalScript) {
         super();
         this._cond = p_cond;
         this._then = p_then;
@@ -23,23 +23,23 @@ class CF_ActionDoWhile extends CF_Action {
     @Override
     public void eval(final TaskContext ctx) {
         final CoreTaskContext coreTaskContext = (CoreTaskContext) ctx;
-        final CF_ActionDoWhile selfPointer = this;
+        final CF_WhileDo selfPointer = this;
         final Callback[] recursiveAction = new Callback[1];
         recursiveAction[0] = new Callback<TaskResult>() {
             @Override
             public void on(final TaskResult res) {
+                Exception foundException = null;
                 final TaskResult previous = coreTaskContext._result;
                 coreTaskContext._result = res;
-                Exception exceptionDuringTask = null;
                 if (res != null) {
                     if (res.output() != null) {
                         ctx.append(res.output());
                     }
                     if (res.exception() != null) {
-                        exceptionDuringTask = res.exception();
+                        foundException = res.exception();
                     }
                 }
-                if (_cond.eval(ctx) && exceptionDuringTask == null) {
+                if (_cond.eval(ctx) && foundException == null) {
                     if (previous != null) {
                         previous.free();
                     }
@@ -48,15 +48,19 @@ class CF_ActionDoWhile extends CF_Action {
                     if (previous != null) {
                         previous.free();
                     }
-                    if (exceptionDuringTask != null) {
-                        ctx.endTask(res, exceptionDuringTask);
+                    if (foundException != null) {
+                        ctx.endTask(res, foundException);
                     } else {
                         ctx.continueWith(res);
                     }
                 }
             }
         };
-        _then.executeFrom(ctx, coreTaskContext._result, SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+        if (_cond.eval(ctx)) {
+            _then.executeFrom(ctx, coreTaskContext._result, SchedulerAffinity.SAME_THREAD, recursiveAction[0]);
+        } else {
+            ctx.continueTask();
+        }
     }
 
     @Override
@@ -71,8 +75,10 @@ class CF_ActionDoWhile extends CF_Action {
         if (_conditionalScript == null) {
             throw new RuntimeException("Closure is not serializable, please use Script version instead!");
         }
-        builder.append(ActionNames.DO_WHILE);
+        builder.append(ActionNames.WHILE_DO);
         builder.append(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_conditionalScript, builder, true);
+        builder.append(Constants.TASK_PARAM_SEP);
         final CoreTask castedAction = (CoreTask) _then;
         final int castedActionHash = castedAction.hashCode();
         if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
@@ -82,8 +88,6 @@ class CF_ActionDoWhile extends CF_Action {
         } else {
             builder.append("" + dagIDS.get(castedActionHash));
         }
-        builder.append(Constants.TASK_PARAM_SEP);
-        TaskHelper.serializeString(_conditionalScript, builder, true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 
