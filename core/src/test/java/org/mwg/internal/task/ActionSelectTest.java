@@ -10,7 +10,7 @@ import org.mwg.utility.HashHelper;
 
 import static org.mwg.internal.task.CoreActions.readGlobalIndex;
 import static org.mwg.internal.task.CoreActions.select;
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.newTask;
 
 public class ActionSelectTest extends AbstractActionTest {
 

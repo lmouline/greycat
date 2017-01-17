@@ -10,10 +10,8 @@ import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
 import static org.mwg.internal.task.CoreActions.*;
+import static org.mwg.task.Tasks.newTask;
 
-/**
- * Created by assaad on 07/12/2016.
- */
 public class ReadContinuous implements Action {
 
     public final static String NAME = "readContinuous";
@@ -48,7 +46,7 @@ public class ReadContinuous implements Action {
     public void serialize(StringBuilder builder) {
         builder.append(NAME);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_relName, builder,true);
+        TaskHelper.serializeString(_relName, builder, true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

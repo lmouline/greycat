@@ -8,7 +8,7 @@ import org.mwg.Node;
 import org.mwg.task.*;
 
 import static org.mwg.internal.task.CoreActions.*;
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.newTask;
 
 public class ActionWhileDoTest extends AbstractActionTest {
 

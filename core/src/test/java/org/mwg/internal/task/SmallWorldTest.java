@@ -8,7 +8,7 @@ import org.mwg.task.TaskResult;
 import org.mwg.utility.VerbosePlugin;
 
 import static org.mwg.internal.task.CoreActions.*;
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.*;
 
 public class SmallWorldTest {
 

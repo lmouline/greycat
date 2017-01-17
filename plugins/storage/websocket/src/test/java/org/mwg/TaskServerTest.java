@@ -1,6 +1,6 @@
 package org.mwg;
 
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.newTask;
 
 public class TaskServerTest {
 

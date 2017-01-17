@@ -10,7 +10,7 @@ import org.mwg.task.*;
 import static org.mwg.internal.task.CoreActions.readGlobalIndex;
 import static org.mwg.internal.task.CoreActions.attributes;
 import static org.mwg.internal.task.CoreActions.attributesWithTypes;
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.newTask;
 
 public class ActionPropertiesTest {
     private Graph graph;

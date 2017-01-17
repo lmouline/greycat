@@ -17,6 +17,7 @@ import org.mwg.task.*;
 import org.mwg.utility.Enforcer;
 
 import static org.mwg.internal.task.CoreActions.*;
+import static org.mwg.task.Tasks.newTask;
 
 public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
 

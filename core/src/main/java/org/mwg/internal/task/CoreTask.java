@@ -175,7 +175,7 @@ public class CoreTask implements org.mwg.task.Task {
             });
         } else {
             if (callback != null) {
-                callback.on(CoreActions.emptyResult());
+                callback.on(Tasks.emptyResult());
             }
         }
     }
@@ -203,7 +203,7 @@ public class CoreTask implements org.mwg.task.Task {
         } else {
             CoreTaskContext casted = (CoreTaskContext) preparedContext;
             if (casted._callback != null) {
-                casted._callback.on(CoreActions.emptyResult());
+                casted._callback.on(Tasks.emptyResult());
             }
         }
     }
@@ -234,7 +234,7 @@ public class CoreTask implements org.mwg.task.Task {
             });
         } else {
             if (callback != null) {
-                callback.on(CoreActions.emptyResult());
+                callback.on(Tasks.emptyResult());
             }
         }
     }
@@ -268,7 +268,7 @@ public class CoreTask implements org.mwg.task.Task {
             });
         } else {
             if (callback != null) {
-                callback.on(CoreActions.emptyResult());
+                callback.on(Tasks.emptyResult());
             }
         }
     }

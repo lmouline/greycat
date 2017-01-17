@@ -12,7 +12,7 @@ import java.util.Map;
 
 import static org.mwg.internal.task.CoreActions.defineAsGlobalVar;
 import static org.mwg.internal.task.CoreActions.inject;
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.newTask;
 
 public class MathEngineTest {
     @Test

@@ -10,7 +10,7 @@ import org.mwg.internal.scheduler.NoopScheduler;
 import org.mwg.task.*;
 
 import static org.mwg.internal.task.CoreActions.*;
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.newTask;
 
 public class FlagTest {
     @Test

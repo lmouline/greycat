@@ -8,6 +8,7 @@ import org.mwg.internal.task.CoreActions;
 import org.mwg.struct.RelationIndexed;
 import org.mwg.task.ActionFunction;
 import org.mwg.task.TaskContext;
+import org.mwg.task.Tasks;
 
 public class IndexTest {
 
@@ -115,7 +116,7 @@ public class IndexTest {
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                CoreActions.newTask()
+                Tasks.newTask()
                         .travelInTime(System.currentTimeMillis() + "")
                         .travelInWorld("0")
                         .readGlobalIndex("indexName") //comment this line to make the test passed
@@ -156,7 +157,7 @@ public class IndexTest {
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                CoreActions.newTask()
+                Tasks.newTask()
                         .travelInTime("0")
                         .travelInWorld("0")
                         .createNode()

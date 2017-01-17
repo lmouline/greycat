@@ -9,6 +9,7 @@ import org.mwg.task.TaskContext;
 import org.mwg.task.TaskHook;
 
 import static org.mwg.internal.task.CoreActions.*;
+import static org.mwg.task.Tasks.newTask;
 
 public class HookTest {
 

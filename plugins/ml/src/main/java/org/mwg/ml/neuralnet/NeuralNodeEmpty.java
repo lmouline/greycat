@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import static org.mwg.internal.task.CoreActions.setAsVar;
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.newTask;
 
 public class NeuralNodeEmpty extends BaseNode {
     public static String NAME = "NeuralNodeEmpty";

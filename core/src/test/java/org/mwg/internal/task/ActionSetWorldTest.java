@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.mwg.task.ActionFunction;
 import org.mwg.task.TaskContext;
 
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.newTask;
 import static org.mwg.internal.task.CoreActions.travelInWorld;
 
 public class ActionSetWorldTest extends AbstractActionTest {

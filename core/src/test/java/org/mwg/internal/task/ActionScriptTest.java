@@ -8,6 +8,7 @@ import org.mwg.task.TaskContext;
 import org.mwg.task.TaskResult;
 
 import static org.mwg.internal.task.CoreActions.*;
+import static org.mwg.task.Tasks.newTask;
 
 public class ActionScriptTest extends AbstractActionTest {
 

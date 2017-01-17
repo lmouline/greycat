@@ -1849,30 +1849,6 @@ declare module org {
                     static lookupAll(nodeIds: string): org.mwg.task.Action;
                     static timepoints(from: string, to: string): org.mwg.task.Action;
                     static clearResult(): org.mwg.task.Action;
-                    static cond(mathExpression: string): org.mwg.task.ConditionalFunction;
-                    static newTask(): org.mwg.task.Task;
-                    static emptyResult(): org.mwg.task.TaskResult<any>;
-                    static then(action: org.mwg.task.Action): org.mwg.task.Task;
-                    static thenDo(actionFunction: org.mwg.task.ActionFunction): org.mwg.task.Task;
-                    static loop(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
-                    static loopPar(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
-                    static forEach(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                    static forEachPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                    static map(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                    static mapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                    static ifThen(cond: org.mwg.task.ConditionalFunction, then: org.mwg.task.Task): org.mwg.task.Task;
-                    static ifThenScript(condScript: string, then: org.mwg.task.Task): org.mwg.task.Task;
-                    static ifThenElse(cond: org.mwg.task.ConditionalFunction, thenSub: org.mwg.task.Task, elseSub: org.mwg.task.Task): org.mwg.task.Task;
-                    static ifThenElseScript(condScript: string, thenSub: org.mwg.task.Task, elseSub: org.mwg.task.Task): org.mwg.task.Task;
-                    static doWhile(task: org.mwg.task.Task, cond: org.mwg.task.ConditionalFunction): org.mwg.task.Task;
-                    static doWhileScript(task: org.mwg.task.Task, condScript: string): org.mwg.task.Task;
-                    static whileDo(cond: org.mwg.task.ConditionalFunction, task: org.mwg.task.Task): org.mwg.task.Task;
-                    static whileDoScript(condScript: string, task: org.mwg.task.Task): org.mwg.task.Task;
-                    static pipe(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
-                    static pipePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
-                    static isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
-                    static atomic(protectedTask: org.mwg.task.Task, ...variablesToLock: string[]): org.mwg.task.Task;
-                    static parse(flat: string, graph: org.mwg.Graph): org.mwg.task.Task;
                 }
                 class CoreTask implements org.mwg.task.Task {
                     private insertCapacity;
@@ -2555,6 +2531,32 @@ declare module org {
             interface TaskResultIterator<A> {
                 next(): A;
                 nextWithIndex(): org.mwg.utility.Tuple<number, A>;
+            }
+            class Tasks {
+                static cond(mathExpression: string): org.mwg.task.ConditionalFunction;
+                static newTask(): org.mwg.task.Task;
+                static emptyResult(): org.mwg.task.TaskResult<any>;
+                static then(action: org.mwg.task.Action): org.mwg.task.Task;
+                static thenDo(actionFunction: org.mwg.task.ActionFunction): org.mwg.task.Task;
+                static loop(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
+                static loopPar(from: string, to: string, subTask: org.mwg.task.Task): org.mwg.task.Task;
+                static forEach(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                static forEachPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                static map(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                static mapPar(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                static ifThen(cond: org.mwg.task.ConditionalFunction, then: org.mwg.task.Task): org.mwg.task.Task;
+                static ifThenScript(condScript: string, then: org.mwg.task.Task): org.mwg.task.Task;
+                static ifThenElse(cond: org.mwg.task.ConditionalFunction, thenSub: org.mwg.task.Task, elseSub: org.mwg.task.Task): org.mwg.task.Task;
+                static ifThenElseScript(condScript: string, thenSub: org.mwg.task.Task, elseSub: org.mwg.task.Task): org.mwg.task.Task;
+                static doWhile(task: org.mwg.task.Task, cond: org.mwg.task.ConditionalFunction): org.mwg.task.Task;
+                static doWhileScript(task: org.mwg.task.Task, condScript: string): org.mwg.task.Task;
+                static whileDo(cond: org.mwg.task.ConditionalFunction, task: org.mwg.task.Task): org.mwg.task.Task;
+                static whileDoScript(condScript: string, task: org.mwg.task.Task): org.mwg.task.Task;
+                static pipe(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
+                static pipePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
+                static isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                static atomic(protectedTask: org.mwg.task.Task, ...variablesToLock: string[]): org.mwg.task.Task;
+                static parse(flat: string, graph: org.mwg.Graph): org.mwg.task.Task;
             }
         }
         module utility {

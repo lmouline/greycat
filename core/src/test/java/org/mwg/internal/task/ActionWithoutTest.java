@@ -7,7 +7,7 @@ import org.mwg.task.TaskContext;
 
 import static org.mwg.internal.task.CoreActions.readGlobalIndex;
 import static org.mwg.internal.task.CoreActions.selectWithout;
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.newTask;
 
 public class ActionWithoutTest extends AbstractActionTest {
 

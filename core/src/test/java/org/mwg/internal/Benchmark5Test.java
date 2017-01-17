@@ -10,7 +10,7 @@ import org.mwg.task.TaskResult;
 
 import java.util.Random;
 
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.newTask;
 
 /**
  * @ignore ts

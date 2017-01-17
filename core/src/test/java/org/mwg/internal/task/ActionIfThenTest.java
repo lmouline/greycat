@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.mwg.task.*;
 
 import static org.mwg.internal.task.CoreActions.*;
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.newTask;
 
 public class ActionIfThenTest extends AbstractActionTest {
 

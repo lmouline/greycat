@@ -6,6 +6,7 @@ import org.mwg.task.ActionFunction;
 import org.mwg.task.TaskContext;
 
 import static org.mwg.internal.task.CoreActions.*;
+import static org.mwg.task.Tasks.newTask;
 
 public class ActionSelectScriptTest extends AbstractActionTest {
 

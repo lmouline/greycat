@@ -18,9 +18,10 @@ import java.text.SimpleDateFormat;
 import static org.mwg.internal.task.CoreActions.*;
 import static org.mwg.importer.ImporterActions.readFiles;
 import static org.mwg.importer.ImporterActions.readLines;
+import static org.mwg.task.Tasks.newTask;
+import static org.mwg.task.Tasks.then;
 
 public class ImporterTest {
-
 
     @Test
     public void testReadLines() {

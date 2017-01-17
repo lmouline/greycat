@@ -17,6 +17,8 @@ import org.mwg.task.*;
 import org.mwg.utility.Enforcer;
 
 import static org.mwg.internal.task.CoreActions.*;
+import static org.mwg.task.Tasks.emptyResult;
+import static org.mwg.task.Tasks.newTask;
 
 @SuppressWarnings("Duplicates")
 public class KDTree extends BaseNode {
@@ -485,12 +487,10 @@ public class KDTree extends BaseNode {
                             // storing results in temp-nearest and temp-dist-sqd
                             //nnbr(further_kd, target, further_hr, max_dist_sqd, lev + 1, K, nnl);
 
-
                             //The 3 variables to set for next round of reccursivity:
                             ctx.defineVariableForSubTask("hr", further_hr);
                             ctx.defineVariableForSubTask("max_dist_sqd", max_dist_sqd2);
                             ctx.defineVariableForSubTask("lev", lev + 1);
-
 
                             ctx.defineVariable("continueFar", true);
 

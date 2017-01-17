@@ -10335,7 +10335,7 @@ var org;
                     }
                     ActionDeclareVar.prototype.eval = function (ctx) {
                         if (this._isGlobal) {
-                            ctx.setGlobalVariable(ctx.template(this._name), org.mwg.internal.task.CoreActions.emptyResult());
+                            ctx.setGlobalVariable(ctx.template(this._name), org.mwg.task.Tasks.emptyResult());
                         }
                         else {
                             ctx.declareVariable(ctx.template(this._name));
@@ -13062,93 +13062,6 @@ var org;
                     CoreActions.clearResult = function () {
                         return new org.mwg.internal.task.ActionClearResult();
                     };
-                    CoreActions.cond = function (mathExpression) {
-                        return new org.mwg.internal.task.math.MathConditional(mathExpression).conditional();
-                    };
-                    CoreActions.newTask = function () {
-                        return new org.mwg.internal.task.CoreTask();
-                    };
-                    CoreActions.emptyResult = function () {
-                        return new org.mwg.base.BaseTaskResult(null, false);
-                    };
-                    CoreActions.then = function (action) {
-                        return org.mwg.internal.task.CoreActions.newTask().then(action);
-                    };
-                    CoreActions.thenDo = function (actionFunction) {
-                        return org.mwg.internal.task.CoreActions.newTask().thenDo(actionFunction);
-                    };
-                    CoreActions.loop = function (from, to, subTask) {
-                        return org.mwg.internal.task.CoreActions.newTask().loop(from, to, subTask);
-                    };
-                    CoreActions.loopPar = function (from, to, subTask) {
-                        return org.mwg.internal.task.CoreActions.newTask().loopPar(from, to, subTask);
-                    };
-                    CoreActions.forEach = function (subTask) {
-                        return org.mwg.internal.task.CoreActions.newTask().forEach(subTask);
-                    };
-                    CoreActions.forEachPar = function (subTask) {
-                        return org.mwg.internal.task.CoreActions.newTask().forEachPar(subTask);
-                    };
-                    CoreActions.map = function (subTask) {
-                        return org.mwg.internal.task.CoreActions.newTask().map(subTask);
-                    };
-                    CoreActions.mapPar = function (subTask) {
-                        return org.mwg.internal.task.CoreActions.newTask().mapPar(subTask);
-                    };
-                    CoreActions.ifThen = function (cond, then) {
-                        return org.mwg.internal.task.CoreActions.newTask().ifThen(cond, then);
-                    };
-                    CoreActions.ifThenScript = function (condScript, then) {
-                        return org.mwg.internal.task.CoreActions.newTask().ifThenScript(condScript, then);
-                    };
-                    CoreActions.ifThenElse = function (cond, thenSub, elseSub) {
-                        return org.mwg.internal.task.CoreActions.newTask().ifThenElse(cond, thenSub, elseSub);
-                    };
-                    CoreActions.ifThenElseScript = function (condScript, thenSub, elseSub) {
-                        return org.mwg.internal.task.CoreActions.newTask().ifThenElseScript(condScript, thenSub, elseSub);
-                    };
-                    CoreActions.doWhile = function (task, cond) {
-                        return org.mwg.internal.task.CoreActions.newTask().doWhile(task, cond);
-                    };
-                    CoreActions.doWhileScript = function (task, condScript) {
-                        return org.mwg.internal.task.CoreActions.newTask().doWhileScript(task, condScript);
-                    };
-                    CoreActions.whileDo = function (cond, task) {
-                        return org.mwg.internal.task.CoreActions.newTask().whileDo(cond, task);
-                    };
-                    CoreActions.whileDoScript = function (condScript, task) {
-                        return org.mwg.internal.task.CoreActions.newTask().whileDoScript(condScript, task);
-                    };
-                    CoreActions.pipe = function () {
-                        var subTasks = [];
-                        for (var _i = 0; _i < arguments.length; _i++) {
-                            subTasks[_i] = arguments[_i];
-                        }
-                        return (_a = org.mwg.internal.task.CoreActions.newTask()).pipe.apply(_a, subTasks);
-                        var _a;
-                    };
-                    CoreActions.pipePar = function () {
-                        var subTasks = [];
-                        for (var _i = 0; _i < arguments.length; _i++) {
-                            subTasks[_i] = arguments[_i];
-                        }
-                        return (_a = org.mwg.internal.task.CoreActions.newTask()).pipePar.apply(_a, subTasks);
-                        var _a;
-                    };
-                    CoreActions.isolate = function (subTask) {
-                        return org.mwg.internal.task.CoreActions.newTask().isolate(subTask);
-                    };
-                    CoreActions.atomic = function (protectedTask) {
-                        var variablesToLock = [];
-                        for (var _i = 1; _i < arguments.length; _i++) {
-                            variablesToLock[_i - 1] = arguments[_i];
-                        }
-                        return (_a = org.mwg.internal.task.CoreActions.newTask()).atomic.apply(_a, [protectedTask].concat(variablesToLock));
-                        var _a;
-                    };
-                    CoreActions.parse = function (flat, graph) {
-                        return org.mwg.internal.task.CoreActions.newTask().parse(flat, graph);
-                    };
                     return CoreActions;
                 }());
                 task_1.CoreActions = CoreActions;
@@ -13281,7 +13194,7 @@ var org;
                         }
                         else {
                             if (callback != null) {
-                                callback(org.mwg.internal.task.CoreActions.emptyResult());
+                                callback(org.mwg.task.Tasks.emptyResult());
                             }
                         }
                     };
@@ -13306,7 +13219,7 @@ var org;
                         else {
                             var casted = preparedContext;
                             if (casted._callback != null) {
-                                casted._callback(org.mwg.internal.task.CoreActions.emptyResult());
+                                casted._callback(org.mwg.task.Tasks.emptyResult());
                             }
                         }
                     };
@@ -13336,7 +13249,7 @@ var org;
                         }
                         else {
                             if (callback != null) {
-                                callback(org.mwg.internal.task.CoreActions.emptyResult());
+                                callback(org.mwg.task.Tasks.emptyResult());
                             }
                         }
                     };
@@ -13369,7 +13282,7 @@ var org;
                         }
                         else {
                             if (callback != null) {
-                                callback(org.mwg.internal.task.CoreActions.emptyResult());
+                                callback(org.mwg.task.Tasks.emptyResult());
                             }
                         }
                     };
@@ -15804,6 +15717,102 @@ var org;
             SchedulerAffinity.ANY_REMOTE_THREAD = 3;
             plugin.SchedulerAffinity = SchedulerAffinity;
         })(plugin = mwg.plugin || (mwg.plugin = {}));
+        var task;
+        (function (task_2) {
+            var Tasks = (function () {
+                function Tasks() {
+                }
+                Tasks.cond = function (mathExpression) {
+                    return new org.mwg.internal.task.math.MathConditional(mathExpression).conditional();
+                };
+                Tasks.newTask = function () {
+                    return new org.mwg.internal.task.CoreTask();
+                };
+                Tasks.emptyResult = function () {
+                    return new org.mwg.base.BaseTaskResult(null, false);
+                };
+                Tasks.then = function (action) {
+                    return org.mwg.task.Tasks.newTask().then(action);
+                };
+                Tasks.thenDo = function (actionFunction) {
+                    return org.mwg.task.Tasks.newTask().thenDo(actionFunction);
+                };
+                Tasks.loop = function (from, to, subTask) {
+                    return org.mwg.task.Tasks.newTask().loop(from, to, subTask);
+                };
+                Tasks.loopPar = function (from, to, subTask) {
+                    return org.mwg.task.Tasks.newTask().loopPar(from, to, subTask);
+                };
+                Tasks.forEach = function (subTask) {
+                    return org.mwg.task.Tasks.newTask().forEach(subTask);
+                };
+                Tasks.forEachPar = function (subTask) {
+                    return org.mwg.task.Tasks.newTask().forEachPar(subTask);
+                };
+                Tasks.map = function (subTask) {
+                    return org.mwg.task.Tasks.newTask().map(subTask);
+                };
+                Tasks.mapPar = function (subTask) {
+                    return org.mwg.task.Tasks.newTask().mapPar(subTask);
+                };
+                Tasks.ifThen = function (cond, then) {
+                    return org.mwg.task.Tasks.newTask().ifThen(cond, then);
+                };
+                Tasks.ifThenScript = function (condScript, then) {
+                    return org.mwg.task.Tasks.newTask().ifThenScript(condScript, then);
+                };
+                Tasks.ifThenElse = function (cond, thenSub, elseSub) {
+                    return org.mwg.task.Tasks.newTask().ifThenElse(cond, thenSub, elseSub);
+                };
+                Tasks.ifThenElseScript = function (condScript, thenSub, elseSub) {
+                    return org.mwg.task.Tasks.newTask().ifThenElseScript(condScript, thenSub, elseSub);
+                };
+                Tasks.doWhile = function (task, cond) {
+                    return org.mwg.task.Tasks.newTask().doWhile(task, cond);
+                };
+                Tasks.doWhileScript = function (task, condScript) {
+                    return org.mwg.task.Tasks.newTask().doWhileScript(task, condScript);
+                };
+                Tasks.whileDo = function (cond, task) {
+                    return org.mwg.task.Tasks.newTask().whileDo(cond, task);
+                };
+                Tasks.whileDoScript = function (condScript, task) {
+                    return org.mwg.task.Tasks.newTask().whileDoScript(condScript, task);
+                };
+                Tasks.pipe = function () {
+                    var subTasks = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        subTasks[_i] = arguments[_i];
+                    }
+                    return (_a = org.mwg.task.Tasks.newTask()).pipe.apply(_a, subTasks);
+                    var _a;
+                };
+                Tasks.pipePar = function () {
+                    var subTasks = [];
+                    for (var _i = 0; _i < arguments.length; _i++) {
+                        subTasks[_i] = arguments[_i];
+                    }
+                    return (_a = org.mwg.task.Tasks.newTask()).pipePar.apply(_a, subTasks);
+                    var _a;
+                };
+                Tasks.isolate = function (subTask) {
+                    return org.mwg.task.Tasks.newTask().isolate(subTask);
+                };
+                Tasks.atomic = function (protectedTask) {
+                    var variablesToLock = [];
+                    for (var _i = 1; _i < arguments.length; _i++) {
+                        variablesToLock[_i - 1] = arguments[_i];
+                    }
+                    return (_a = org.mwg.task.Tasks.newTask()).atomic.apply(_a, [protectedTask].concat(variablesToLock));
+                    var _a;
+                };
+                Tasks.parse = function (flat, graph) {
+                    return org.mwg.task.Tasks.newTask().parse(flat, graph);
+                };
+                return Tasks;
+            }());
+            task_2.Tasks = Tasks;
+        })(task = mwg.task || (mwg.task = {}));
         var utility;
         (function (utility) {
             var Base64 = (function () {

@@ -18,7 +18,7 @@ import java.util.Map;
 
 import static org.mwg.internal.task.CoreActions.lookup;
 import static org.mwg.internal.task.CoreActions.readVar;
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.newTask;
 
 class BioInputNeuralNode extends BaseNode {
 

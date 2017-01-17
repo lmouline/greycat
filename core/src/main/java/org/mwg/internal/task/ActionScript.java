@@ -10,7 +10,7 @@ import javax.script.*;
 import java.io.IOException;
 import java.io.Writer;
 
-public class ActionScript implements Action {
+class ActionScript implements Action {
 
     private final String _script;
     private final boolean _async;

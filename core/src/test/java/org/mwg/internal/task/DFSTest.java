@@ -7,6 +7,8 @@ import org.mwg.task.Task;
 import org.mwg.task.TaskResult;
 
 import static org.mwg.internal.task.CoreActions.*;
+import static org.mwg.task.Tasks.emptyResult;
+import static org.mwg.task.Tasks.newTask;
 
 public class DFSTest {
 

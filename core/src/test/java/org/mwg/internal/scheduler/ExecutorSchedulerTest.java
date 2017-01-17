@@ -7,7 +7,7 @@ import org.mwg.GraphBuilder;
 import org.mwg.task.TaskResult;
 
 import static org.mwg.internal.task.CoreActions.print;
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.newTask;
 
 /**
  * @ignore ts

@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
 import org.mwg.task.TaskResult;
+import org.mwg.task.Tasks;
 
 import static org.mwg.internal.task.CoreActions.timepoints;
 
@@ -15,7 +16,7 @@ public class ActionTimepointsTest {
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                CoreActions.newTask()
+                Tasks.newTask()
                         .travelInTime("0")
                         .travelInWorld("0")
                         .createNode()

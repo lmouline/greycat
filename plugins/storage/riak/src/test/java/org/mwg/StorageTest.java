@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.mwg.internal.task.CoreActions.*;
+import static org.mwg.task.Tasks.*;
 
 public class StorageTest {
 
@@ -13,7 +14,6 @@ public class StorageTest {
         try {
             test(new GraphBuilder().withStorage(new RiakStorage("localhost:32775,localhost:32773,localhost:32771,localhost:32769,localhost:8087")).withMemorySize(2000000).build());
             //  Thread.sleep(5000);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -21,13 +21,11 @@ public class StorageTest {
 
     // @Test
     public void test() throws IOException {
-
         try {
             test(new GraphBuilder().withStorage(new RiakStorage("127.0.0.1")).withMemorySize(2000000).build());
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     final static int valuesToInsert = 1000000;

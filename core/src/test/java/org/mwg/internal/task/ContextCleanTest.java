@@ -11,7 +11,7 @@ import org.mwg.task.TaskContext;
 
 import static org.mwg.internal.task.CoreActions.inject;
 import static org.mwg.internal.task.CoreActions.select;
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.newTask;
 
 public class ContextCleanTest {
 

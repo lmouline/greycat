@@ -6,7 +6,7 @@ import org.mwg.task.ActionFunction;
 import org.mwg.task.TaskContext;
 
 import static org.mwg.internal.task.CoreActions.inject;
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.newTask;
 import static org.mwg.internal.task.CoreActions.readGlobalIndex;
 
 public class ActionFromIndexAllTest extends AbstractActionTest {
