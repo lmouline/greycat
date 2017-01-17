@@ -7,7 +7,7 @@ import org.mwg.internal.scheduler.TrampolineScheduler;
 import org.mwg.memory.offheap.OffHeapMemoryPlugin;
 import org.mwg.task.Task;
 
-import static org.mwg.internal.task.CoreActions.newTask;
+import static org.mwg.task.Tasks.newTask;
 
 public class TrampolineTask {
 
