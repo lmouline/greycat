@@ -189,7 +189,7 @@ public class NDTree extends BaseNode implements Tree {
                             }
                             case IndexStrategy.INDEX: {
                                 LMatrix bufferValue = (LMatrix) node.getAt(E_BUFFER_VALUES);
-                                bufferValue.set(0, i, (long) value);
+                                bufferValue.set(0, i, value);
                                 return false; //Should not update parent total
                             }
                             default: {

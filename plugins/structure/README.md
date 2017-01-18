@@ -65,9 +65,9 @@ the same key under the Euclidean distance, because the distance separating them 
 The default distance threshold is set to **1e-10**. To set the distance threshold: 
 
 ```java
-NTree kdTree= (NTree) graph.newTypedNode(0,0, KDTree.NAME);
-kdTree.setDistance(Distances.EUCLIDEAN);    // Default distance
-kdTree.setDistanceThreshold(1e-10);         // Default threshold
+NTree kdTreeOld= (NTree) graph.newTypedNode(0,0, KDTree.NAME);
+kdTreeOld.setDistance(Distances.EUCLIDEAN);    // Default distance
+kdTreeOld.setDistanceThreshold(1e-10);         // Default threshold
 ```
 
 ### NDTree

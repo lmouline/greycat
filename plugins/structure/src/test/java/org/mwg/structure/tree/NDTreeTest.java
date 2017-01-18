@@ -18,7 +18,7 @@ public class NDTreeTest {
             @Override
             public void on(Boolean result) {
 
-                KDTree kdTree = (KDTree) graph.newTypedNode(0, 0, KDTree.NAME);
+                KDTreeOld kdTreeOld = (KDTreeOld) graph.newTypedNode(0, 0, KDTreeOld.NAME);
                 NDTree ndTree = (NDTree) graph.newTypedNode(0, 0, NDTree.NAME);
 
                 int dim = 5;
@@ -73,11 +73,11 @@ public class NDTreeTest {
 
                 ts = System.currentTimeMillis();
                 for (int i = 0; i < ins; i++) {
-                    kdTree.insertWith(keys[i], nodes[i], null);
+                    kdTreeOld.insertWith(keys[i], nodes[i], null);
                 }
                 te = System.currentTimeMillis() - ts;
 
-                System.out.println("kdTree insert: " + te + " ms");
+                System.out.println("kdTreeOld insert: " + te + " ms");
 
 
 
@@ -98,7 +98,7 @@ public class NDTreeTest {
                 ts = System.currentTimeMillis();
                 for (int i = 0; i < ins; i++) {
                     int finalI = i;
-                    kdTree.nearestN(keys[i], nsearch, new Callback<Node[]>() {
+                    kdTreeOld.nearestN(keys[i], nsearch, new Callback<Node[]>() {
                         @Override
                         public void on(Node[] result) {
                             for (int j = 0; j < nsearch; j++) {
@@ -108,7 +108,7 @@ public class NDTreeTest {
                     });
                 }
                 te = System.currentTimeMillis() - ts;
-                System.out.println("kdTree get all: " + te + " ms");
+                System.out.println("kdTreeOld get all: " + te + " ms");
 
                 for (int i = 0; i < ins; i++) {
                     for (int j = 0; j < nsearch; j++) {
@@ -134,7 +134,7 @@ public class NDTreeTest {
                 ts = System.currentTimeMillis();
                 for (int i = 0; i < test; i++) {
                     int finalI = i;
-                    kdTree.nearestN(keysTest[i], nsearch, new Callback<Node[]>() {
+                    kdTreeOld.nearestN(keysTest[i], nsearch, new Callback<Node[]>() {
                         @Override
                         public void on(Node[] result) {
                             for (int j = 0; j < nsearch; j++) {
@@ -144,7 +144,7 @@ public class NDTreeTest {
                     });
                 }
                 te = System.currentTimeMillis() - ts;
-                System.out.println("kdTree get all: " + te + " ms");
+                System.out.println("kdTreeOld get all: " + te + " ms");
 
                 for (int i = 0; i < test; i++) {
                     for (int j = 0; j < nsearch; j++) {

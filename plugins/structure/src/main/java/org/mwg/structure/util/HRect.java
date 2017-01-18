@@ -1,7 +1,7 @@
 package org.mwg.structure.util;
 
 
-// Hyper-Rectangle class supporting KDTree class
+// Hyper-Rectangle class supporting KDTreeOld class
 
 
 public class HRect {
@@ -40,7 +40,7 @@ public class HRect {
         return p;
     }
 
-    // used in initial conditions of KDTree.nearest()
+    // used in initial conditions of KDTreeOld.nearest()
     public static HRect infiniteHRect(int d) {
 
         double[] vmin = new double[d];

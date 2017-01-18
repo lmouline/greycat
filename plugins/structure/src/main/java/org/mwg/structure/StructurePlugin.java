@@ -6,7 +6,7 @@ import org.mwg.base.BasePlugin;
 import org.mwg.plugin.NodeFactory;
 import org.mwg.structure.action.NTreeNearestNWithinRadius;
 import org.mwg.structure.tree.NDTree;
-import org.mwg.structure.tree.KDTree;
+import org.mwg.structure.tree.KDTreeOld;
 import org.mwg.task.Action;
 import org.mwg.task.TaskActionFactory;
 //import org.mwg.structure.tree.NDTree;
@@ -20,10 +20,10 @@ public class StructurePlugin extends BasePlugin {
 
     public StructurePlugin() {
         super();
-        declareNodeType(KDTree.NAME, new NodeFactory() {
+        declareNodeType(KDTreeOld.NAME, new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
-                return new KDTree(world, time, id, graph);
+                return new KDTreeOld(world, time, id, graph);
             }
         });
 //        declareNodeType(NDTree.NAME, new NodeFactory() {
