@@ -404,8 +404,8 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
                 Base64.encodeLongToBuffer(extra, buffer);
                 buffer.write(Constants.CHUNK_SEP);
             }
-            final long size = OffHeapLongArray.get(addr, SIZE);
-            Base64.encodeLongToBuffer(size, buffer);
+            final int size = (int) OffHeapLongArray.get(addr, SIZE);
+            Base64.encodeIntToBuffer(size, buffer);
             for (long i = 0; i < size; i++) {
                 //save KV
                 buffer.write(Constants.CHUNK_VAL_SEP);

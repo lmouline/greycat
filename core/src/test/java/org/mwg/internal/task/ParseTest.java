@@ -19,14 +19,15 @@ public class ParseTest extends AbstractActionTest {
         // t.execute(graph, null);
         removeGraph();
     }
-
+/*
     @Test
     public void testAtomic() {
         initGraph();
         Task t = newTask();
         t.parse("readGlobalIndex(nodes).atomic({println(\"toto\")},\"param\")", graph);
+        Assert.assertEquals();
         System.out.println(t.toString());
-    }
+    }*/
 
     @Test
     public void testSubTask() {

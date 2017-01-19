@@ -9090,7 +9090,9 @@ var org;
                                         break;
                                     case org.mwg.Constants.CHUNK_VAL_SEP:
                                         if (isFirst) {
-                                            this.reallocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                            var treeSize = org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                                            var closePowerOfTwo = Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
+                                            this.reallocate(closePowerOfTwo);
                                             previous = cursor + 1;
                                             isFirst = false;
                                         }

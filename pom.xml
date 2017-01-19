@@ -92,13 +92,9 @@
     </developers>
 
     <modules>
-        <!--
-        <module>api</module>
-        -->
         <module>core</module>
 
         <module>plugins/model</module>
-
         <!-- Plugins Java & JS -->
         <module>plugins/storage/websocket</module>
         <module>plugins/structure</module>
@@ -107,13 +103,12 @@
         <!-- Plugin Java -->
 
         <module>plugins/taskide</module>
+        <module>plugins/memory</module>
+
         <!--
         <module>plugins/rest</module>
         -->
 
-        <!--
-        <module>plugins/memory</module>
-        -->
 
         <module>plugins/importer</module>
 
@@ -140,17 +135,12 @@
         -->
         <!-- Outside release-->
         <!--<module>plugins/debug</module>-->
-
         <!--
         <module>plugins/visualizer</module>
         <module>plugins/mlx</module>
         -->
-
         <module>plugins/benchmark</module>
-
         <module>plugins/search</module>
-
-
     </modules>
 
     <build>
