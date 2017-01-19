@@ -34,7 +34,7 @@ public class TaskServerTest {
                             nodesIndex.addToIndex(n1, "name");
                             nodesIndex.addToIndex(root, "name");
                             WSServer server = new WSServer(graph, 4000);
-                            TaskIDE.attach(server);
+                            TaskIDE.attach(server, graph);
                             server.start();
                             System.out.println("Server started http://localhost:4000/taskide");
                         }
