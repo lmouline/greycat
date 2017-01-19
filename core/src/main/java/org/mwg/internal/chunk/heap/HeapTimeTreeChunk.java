@@ -177,7 +177,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
                     break;
                 case Constants.CHUNK_VAL_SEP:
                     if (isFirst) {
-                        reallocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                        final int treeSize = Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                        final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
+                        reallocate(closePowerOfTwo);
                         previous = cursor + 1;
                         isFirst = false;
                     } else {

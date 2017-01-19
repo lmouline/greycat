@@ -16,12 +16,13 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
     private static final int DIRTY = 0;
     private static final int SIZE = 1;
     private static final int CAPACITY = 2;
-    private static final int LOCK_EXT = 3;
-    private static final int MAGIC = 4;
-    private static final int EXTRA = 5;
-    private static final int HASH_SUB = 6;
+    private static final int LOCK = 3;
+    private static final int LOCK_EXT = 4;
+    private static final int MAGIC = 5;
+    private static final int EXTRA = 6;
+    private static final int HASH_SUB = 7;
 
-    private static final int KV_OFFSET = 7;
+    private static final int KV_OFFSET = 8;
 
     private final OffHeapChunkSpace space;
     private final long index;//direct pointer to space
@@ -40,7 +41,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
                 OffHeapLongArray.set(temp_addr, DIRTY, 0);
                 OffHeapLongArray.set(temp_addr, SIZE, 0);
                 OffHeapLongArray.set(temp_addr, CAPACITY, initialCapacity);
-                OffHeapLongArray.set(temp_addr, LOCK_EXT, 0);
+                OffHeapLongArray.set(temp_addr, LOCK, 0);
                 OffHeapLongArray.set(temp_addr, MAGIC, 0);
                 OffHeapLongArray.set(temp_addr, EXTRA, Constants.NULL_LONG);
                 OffHeapLongArray.set(temp_addr, HASH_SUB, OffHeapConstants.NULL_PTR);
@@ -132,7 +133,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
         space.lockByIndex(index);
         try {
             final long addr = space.addrByIndex(index);
-            while (!OffHeapLongArray.compareAndSwap(addr, LOCK_EXT, 0, 1)) ;
+            while (!OffHeapLongArray.compareAndSwap(addr, LOCK, 0, 1)) ;
         } finally {
             space.unlockByIndex(index);
         }
@@ -143,7 +144,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
         space.lockByIndex(index);
         try {
             final long addr = space.addrByIndex(index);
-            if (!OffHeapLongArray.compareAndSwap(addr, LOCK_EXT, 1, 0)) {
+            if (!OffHeapLongArray.compareAndSwap(addr, LOCK, 1, 0)) {
                 throw new RuntimeException("CAS Error !!!");
             }
         } finally {
@@ -153,12 +154,26 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
 
     @Override
     public void externalLock() {
-        // TODO
+        space.lockByIndex(index);
+        try {
+            final long addr = space.addrByIndex(index);
+            while (!OffHeapLongArray.compareAndSwap(addr, LOCK_EXT, 0, 1)) ;
+        } finally {
+            space.unlockByIndex(index);
+        }
     }
 
     @Override
     public void externalUnlock() {
-        // TODO
+        space.lockByIndex(index);
+        try {
+            final long addr = space.addrByIndex(index);
+            if (!OffHeapLongArray.compareAndSwap(addr, LOCK_EXT, 1, 0)) {
+                throw new RuntimeException("CAS Error !!!");
+            }
+        } finally {
+            space.unlockByIndex(index);
+        }
     }
 
     @Override

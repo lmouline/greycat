@@ -4,6 +4,7 @@ import org.mwg.Constants;
 import org.mwg.chunk.ChunkType;
 import org.mwg.chunk.TimeTreeChunk;
 import org.mwg.chunk.TreeWalker;
+import org.mwg.internal.CoreConstants;
 import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.struct.Buffer;
 import org.mwg.utility.Base64;
@@ -15,8 +16,10 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     private static final int CAPACITY = 2;
     private static final int HEAD = 3;
     private static final int MAGIC = 4;
+    private static final int EXTRA = 5;
+    private static final int EXTRA2 = 6;
 
-    private static final int OFFSET = 5;
+    private static final int OFFSET = 7;
     private static final int ELEM_SIZE = 5;
 
     private final OffHeapChunkSpace space;
@@ -38,6 +41,8 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                 OffHeapLongArray.set(temp_addr, SIZE, 0);
                 OffHeapLongArray.set(temp_addr, DIRTY, 0);
                 OffHeapLongArray.set(temp_addr, HEAD, -1);
+                OffHeapLongArray.set(temp_addr, EXTRA, 0);
+                OffHeapLongArray.set(temp_addr, EXTRA2, 0);
             }
         } finally {
             space.unlockByIndex(index);
@@ -79,24 +84,46 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public long extra() {
-        // TODO
-        return 0;
+        long result;
+        space.lockByIndex(index);
+        try {
+            result = OffHeapLongArray.get(space.addrByIndex(index), EXTRA);
+        } finally {
+            space.unlockByIndex(index);
+        }
+        return result;
     }
 
     @Override
     public void setExtra(long extraValue) {
-        // TODO
+        space.lockByIndex(index);
+        try {
+            OffHeapLongArray.set(space.addrByIndex(index), EXTRA, extraValue);
+        } finally {
+            space.unlockByIndex(index);
+        }
     }
 
     @Override
     public long extra2() {
-        // TODO
-        return 0;
+        long result;
+        space.lockByIndex(index);
+        try {
+            result = OffHeapLongArray.get(space.addrByIndex(index), EXTRA2);
+        } finally {
+            space.unlockByIndex(index);
+        }
+        return result;
     }
 
     @Override
     public void setExtra2(long extraValue) {
-        // TODO
+        space.lockByIndex(index);
+        try {
+            OffHeapLongArray.set(space.addrByIndex(index), EXTRA2, extraValue);
+        } finally {
+            space.unlockByIndex(index);
+        }
     }
 
     @Override
@@ -138,10 +165,20 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         space.lockByIndex(index);
         try {
             final long addr = space.addrByIndex(index);
-            final long size = OffHeapLongArray.get(addr, SIZE);
-            Base64.encodeLongToBuffer(size, buffer);
+            final int size = (int) OffHeapLongArray.get(addr, SIZE);
+            final long extra = OffHeapLongArray.get(addr, EXTRA);
+            final long extra2 = OffHeapLongArray.get(addr, EXTRA2);
+            if (extra != CoreConstants.NULL_LONG && extra != 0) {
+                Base64.encodeLongToBuffer(extra, buffer);
+                buffer.write(CoreConstants.CHUNK_SEP);
+            }
+            if (extra2 != CoreConstants.NULL_LONG && extra2 != 0) {
+                Base64.encodeLongToBuffer(extra2, buffer);
+                buffer.write(CoreConstants.CHUNK_SEP);
+            }
+            Base64.encodeIntToBuffer(size, buffer);
             for (long i = 0; i < size; i++) {
-                buffer.write(Constants.CHUNK_SEP);
+                buffer.write(Constants.CHUNK_VAL_SEP);
                 Base64.encodeLongToBuffer(key(addr, i), buffer);
             }
             OffHeapLongArray.set(addr, DIRTY, 0);
@@ -157,10 +194,20 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             final long addr = space.addrByIndex(index);
             final boolean dirty = OffHeapLongArray.get(addr, DIRTY) == 1;
             if (dirty) {
-                final long size = OffHeapLongArray.get(addr, SIZE);
-                Base64.encodeLongToBuffer(size, buffer);
+                final int size = (int) OffHeapLongArray.get(addr, SIZE);
+                final long extra = OffHeapLongArray.get(addr, EXTRA);
+                final long extra2 = OffHeapLongArray.get(addr, EXTRA2);
+                if (extra != CoreConstants.NULL_LONG && extra != 0) {
+                    Base64.encodeLongToBuffer(extra, buffer);
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                }
+                if (extra2 != CoreConstants.NULL_LONG && extra2 != 0) {
+                    Base64.encodeLongToBuffer(extra2, buffer);
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                }
+                Base64.encodeIntToBuffer(size, buffer);
                 for (long i = 0; i < size; i++) {
-                    buffer.write(Constants.CHUNK_SEP);
+                    buffer.write(Constants.CHUNK_VAL_SEP);
                     Base64.encodeLongToBuffer(key(addr, i), buffer);
                 }
                 OffHeapLongArray.set(addr, DIRTY, 0);
@@ -189,6 +236,8 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         long cursor = 0;
         long previous = 0;
         long payloadSize = buffer.length();
+
+        /*
         boolean isFirst = true;
         while (cursor < payloadSize) {
             byte current = buffer.read(cursor);
@@ -204,6 +253,38 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                     isDirty = isDirty || insertResult;
                     previous = cursor + 1;
                 }
+            }
+            cursor++;
+        }*/
+
+        boolean isFirst = true;
+        boolean isFirstExtra = true;
+        while (cursor < payloadSize) {
+            final byte current = buffer.read(cursor);
+            switch (current) {
+                case Constants.CHUNK_SEP:
+                    if (isFirstExtra) {
+                        OffHeapLongArray.set(addr, EXTRA, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                        previous = cursor + 1;
+                        isFirstExtra = false;
+                    } else {
+                        OffHeapLongArray.set(addr, EXTRA2, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                        previous = cursor + 1;
+                    }
+                    break;
+                case Constants.CHUNK_VAL_SEP:
+                    if (isFirst) {
+                        final int treeSize = Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                        final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
+                        reallocate(addr, (int) OffHeapLongArray.get(addr, CAPACITY), closePowerOfTwo);
+                        previous = cursor + 1;
+                        isFirst = false;
+                    } else {
+                        boolean insertResult = internal_insert(addr, Base64.decodeToLongWithBounds(buffer, previous, cursor), true);
+                        isDirty = isDirty || insertResult;
+                        previous = cursor + 1;
+                    }
+                    break;
             }
             cursor++;
         }
@@ -340,7 +421,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         }
     }
 
-    private long reallocate(final long addr, final long previousCapacity, final long newCapacity) {
+    private long reallocate(final long addr, final int previousCapacity, final int newCapacity) {
         if (previousCapacity < newCapacity) {
             final long new_addr = OffHeapLongArray.reallocate(addr, OFFSET + (newCapacity * ELEM_SIZE));
             OffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
@@ -692,10 +773,10 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private boolean internal_insert(long addr, final long insertLey, final boolean initial) {
-        long size = OffHeapLongArray.get(addr, SIZE);
-        long capacity = OffHeapLongArray.get(addr, CAPACITY);
+        int size = (int) OffHeapLongArray.get(addr, SIZE);
+        int capacity = (int) OffHeapLongArray.get(addr, CAPACITY);
         if (capacity == size) {
-            long nextCapacity = size;
+            int nextCapacity = size;
             if (nextCapacity == 0) {
                 nextCapacity = Constants.MAP_INITIAL_CAPACITY;
             } else {

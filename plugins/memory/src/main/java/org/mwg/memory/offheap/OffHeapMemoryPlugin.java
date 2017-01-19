@@ -1,11 +1,18 @@
 package org.mwg.memory.offheap;
 
+import org.mwg.Graph;
+import org.mwg.plugin.Plugin;
 
-import org.mwg.base.BasePlugin;
+public class OffHeapMemoryPlugin implements Plugin {
 
-public class OffHeapMemoryPlugin extends BasePlugin {
-
-    public OffHeapMemoryPlugin() {
-        declareMemoryFactory(new OffHeapMemoryFactory());
+    @Override
+    public void start(Graph graph) {
+        graph.setMemoryFactory(new OffHeapMemoryFactory());
     }
+
+    @Override
+    public void stop() {
+
+    }
+
 }
