@@ -394,7 +394,7 @@ public class Generator {
                         .append("\t\t\t.setFactory(new org.mwg.plugin.NodeFactory() {\n" +
                                 "\t\t\t\t\t@Override\n" +
                                 "\t\t\t\t\tpublic org.mwg.Node create(long world, long time, long id, Graph graph) {\n" +
-                                "\t\t\t\t\t\treturn new " + fqn+"(world,time,id,graph);\n" +
+                                "\t\t\t\t\t\treturn new ").append(fqn).append("(world,time,id,graph);\n" +
                                 "\t\t\t\t\t}\n" +
                                 "\t\t\t\t});\n");
 
