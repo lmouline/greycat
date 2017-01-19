@@ -10,7 +10,6 @@ import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Type;
-import org.mwg.plugin.NodeFactory;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -378,26 +377,38 @@ public class Generator {
         } else {
             pluginClass.setName(name + "Plugin");
         }
-        pluginClass.setSuperType("org.mwg.base.BasePlugin");
-        MethodSource<JavaClassSource> pluginConstructor = pluginClass.addMethod().setConstructor(true);
-        pluginConstructor.setVisibility(Visibility.PUBLIC);
-        StringBuilder constructorContent = new StringBuilder();
-        constructorContent.append("super();\n");
+        pluginClass.addInterface("org.mwg.plugin.Plugin");
+
+        pluginClass.addMethod().setReturnTypeVoid()
+                .setVisibility(Visibility.PUBLIC)
+                .setName("stop")
+                .setBody("")
+                .addAnnotation(Override.class);
+
+        StringBuilder startBodyBuilder = new StringBuilder();
         for (KClassifier classifier : model.classifiers()) {
             if (classifier instanceof KClass) {
                 String fqn = classifier.fqn();
-                pluginClass.addImport(NodeFactory.class);
-                pluginClass.addImport(Graph.class);
-                constructorContent.append("\t\tdeclareNodeType(" + fqn + ".NODE_NAME, new NodeFactory() {\n" +
-                        "\t\t\t@Override\n" +
-                        "\t\t\tpublic org.mwg.Node create(long world, long time, long id, Graph graph) {\n" +
-                        "\t\t\t\treturn (org.mwg.Node)new " + fqn + "(world,time,id,graph);\n" +
-                        "\t\t\t}\n" +
-                        "\t\t});");
+                startBodyBuilder.append("\t\tgraph.nodeRegistry()\n")
+                        .append("\t\t\t.declaration(").append(fqn).append(".NODE_NAME").append(")").append("\n")
+                        .append("\t\t\t.setFactory(new org.mwg.plugin.NodeFactory() {\n" +
+                                "\t\t\t\t\t@Override\n" +
+                                "\t\t\t\t\tpublic org.mwg.Node create(long world, long time, long id, Graph graph) {\n" +
+                                "\t\t\t\t\t\treturn new " + fqn+"(world,time,id,graph);\n" +
+                                "\t\t\t\t\t}\n" +
+                                "\t\t\t\t});\n");
+
             }
         }
 
-        pluginConstructor.setBody(constructorContent.toString());
+        MethodSource<JavaClassSource> startMethod = pluginClass.addMethod();
+        startMethod.setReturnTypeVoid()
+                .setVisibility(Visibility.PUBLIC)
+                .addAnnotation(Override.class);
+        startMethod.setBody(startBodyBuilder.toString());
+        startMethod.setName("start");
+        startMethod.addParameter("org.mwg.Graph","graph");
+
         sources.add(pluginClass);
 
         //Generate model
