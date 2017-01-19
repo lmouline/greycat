@@ -75,6 +75,7 @@ public abstract class AbstractEGraphTest {
         egraph.free();
         space.free(chunk);
         space.freeAll();
+
     }
 
     @Test

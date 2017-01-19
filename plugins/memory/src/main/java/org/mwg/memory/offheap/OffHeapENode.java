@@ -62,13 +62,13 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             } else {
                 OffHeapLongArray.set(new_addr, SUBHASH, OffHeapConstants.NULL_PTR);
             }
-//            OffHeapEGraph.setNodeAddrAt(graphAddr, nodeId, new_addr);
             return new_addr;
         } else {
-            long nodeId = OffHeapLongArray.get(addr, ID);
-            long graphAddr = egraph.getAddr();
-
             //reallocation or overallocation
+
+            long graphAddr = egraph.getAddr();
+            long nodeId = OffHeapLongArray.get(addr, ID);
+
             final long new_addr = OffHeapLongArray.reallocate(addr, OFFSET + (newCapacity * ELEM_SIZE));
             OffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
             long subHash_ptr = OffHeapLongArray.get(new_addr, SUBHASH);
@@ -610,15 +610,12 @@ public class OffHeapENode implements ENode, OffHeapContainer {
 
     @SuppressWarnings("Duplicates")
     static void free(long addr) {
-        System.out.println("freeing node: " + addr);
-
         if (addr != OffHeapConstants.NULL_PTR) {
             final long subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
             final long size = OffHeapLongArray.get(addr, SIZE);
             for (long i = 0; i < size; i++) {
                 long value = value(addr, i);
                 byte type = type(addr, i);
-                System.out.println("free " + value + " of type " + type);
                 if (value != OffHeapConstants.NULL_PTR) {
                     freeElement(value, type);
                 }
