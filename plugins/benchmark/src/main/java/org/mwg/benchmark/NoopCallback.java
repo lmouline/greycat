@@ -20,9 +20,11 @@ public class NoopCallback {
                 .newBuilder()
                 .withScheduler(new NoopScheduler())
                 .withMemorySize(8000000);
+        /*
         if (isOffHeap) {
             builder.withPlugin(new OffHeapMemoryPlugin());
         }
+        */
         final Graph g = builder.build();
 
         final JsonObject benchmark = new JsonObject();

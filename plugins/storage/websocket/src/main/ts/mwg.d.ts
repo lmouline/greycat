@@ -382,8 +382,11 @@ declare module org {
             newBuffer(): org.mwg.struct.Buffer;
             newQuery(): org.mwg.Query;
             freeNodes(nodes: org.mwg.Node[]): void;
-            taskAction(name: string): org.mwg.task.TaskActionFactory;
             taskHooks(): org.mwg.task.TaskHook[];
+            actionRegistry(): org.mwg.plugin.ActionRegistry;
+            nodeRegistry(): org.mwg.plugin.NodeRegistry;
+            setMemoryFactory(factory: org.mwg.plugin.MemoryFactory): org.mwg.Graph;
+            addGlobalTaskHook(taskHook: org.mwg.task.TaskHook): org.mwg.Graph;
         }
         class GraphBuilder {
             private _storage;
@@ -460,6 +463,7 @@ declare module org {
             static DOUBLE_ARRAY: number;
             static LONG_ARRAY: number;
             static INT_ARRAY: number;
+            static STRING_ARRAY: number;
             static LONG_TO_LONG_MAP: number;
             static LONG_TO_LONG_ARRAY_MAP: number;
             static STRING_TO_INT_MAP: number;
@@ -470,6 +474,8 @@ declare module org {
             static EGRAPH: number;
             static ENODE: number;
             static ERELATION: number;
+            static TASK: number;
+            static TASK_ARRAY: number;
             static typeName(p_type: number): string;
             static typeFromName(name: string): number;
         }
@@ -538,26 +544,6 @@ declare module org {
                 timeSensitivity(): Float64Array;
                 static isNaN(toTest: number): boolean;
                 toString(): string;
-            }
-            class BasePlugin implements org.mwg.plugin.Plugin {
-                private _nodeTypes;
-                private _taskActions;
-                private _memoryFactory;
-                private _resolverFactory;
-                private _taskHooks;
-                declareNodeType(name: string, factory: org.mwg.plugin.NodeFactory): org.mwg.plugin.Plugin;
-                declareTaskAction(name: string, factory: org.mwg.task.TaskActionFactory): org.mwg.plugin.Plugin;
-                declareMemoryFactory(factory: org.mwg.plugin.MemoryFactory): org.mwg.plugin.Plugin;
-                declareResolverFactory(factory: org.mwg.plugin.ResolverFactory): org.mwg.plugin.Plugin;
-                taskHooks(): org.mwg.task.TaskHook[];
-                declareTaskHook(hook: org.mwg.task.TaskHook): org.mwg.plugin.Plugin;
-                nodeTypes(): string[];
-                nodeType(nodeTypeName: string): org.mwg.plugin.NodeFactory;
-                taskActionTypes(): string[];
-                taskActionType(taskTypeName: string): org.mwg.task.TaskActionFactory;
-                memoryFactory(): org.mwg.plugin.MemoryFactory;
-                resolverFactory(): org.mwg.plugin.ResolverFactory;
-                stop(): void;
             }
             class BaseTaskResult<A> implements org.mwg.task.TaskResult<A> {
                 private _backend;
@@ -702,24 +688,27 @@ declare module org {
                 private _space;
                 private _scheduler;
                 private _resolver;
-                private _nodeTypes;
-                private _taskActions;
                 private _isConnected;
                 private _lock;
                 private _plugins;
-                private _memoryFactory;
-                private _taskHooks;
                 private _prefix;
                 private _nodeKeyCalculator;
                 private _worldKeyCalculator;
+                private _actionRegistry;
+                private _nodeRegistry;
+                private _memoryFactory;
+                private _taskHooks;
                 constructor(p_storage: org.mwg.plugin.Storage, memorySize: number, p_scheduler: org.mwg.plugin.Scheduler, p_plugins: org.mwg.plugin.Plugin[]);
                 fork(world: number): number;
                 newNode(world: number, time: number): org.mwg.Node;
                 newTypedNode(world: number, time: number, nodeType: string): org.mwg.Node;
                 cloneNode(origin: org.mwg.Node): org.mwg.Node;
                 factoryByCode(code: number): org.mwg.plugin.NodeFactory;
-                taskAction(taskActionName: string): org.mwg.task.TaskActionFactory;
                 taskHooks(): org.mwg.task.TaskHook[];
+                actionRegistry(): org.mwg.plugin.ActionRegistry;
+                nodeRegistry(): org.mwg.plugin.NodeRegistry;
+                setMemoryFactory(factory: org.mwg.plugin.MemoryFactory): org.mwg.Graph;
+                addGlobalTaskHook(newTaskHook: org.mwg.task.TaskHook): org.mwg.Graph;
                 lookup<A extends org.mwg.Node>(world: number, time: number, id: number, callback: org.mwg.Callback<A>): void;
                 lookupBatch(worlds: Float64Array, times: Float64Array, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
                 lookupAll(world: number, time: number, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
@@ -742,6 +731,14 @@ declare module org {
                 storage(): org.mwg.plugin.Storage;
                 freeNodes(nodes: org.mwg.Node[]): void;
             }
+            class CoreNodeDeclaration implements org.mwg.plugin.NodeDeclaration {
+                private _name;
+                private _factory;
+                constructor(name: string);
+                name(): string;
+                factory(): org.mwg.plugin.NodeFactory;
+                setFactory(newFactory: org.mwg.plugin.NodeFactory): void;
+            }
             class CoreNodeIndex extends org.mwg.base.BaseNode implements org.mwg.NodeIndex {
                 static NAME: string;
                 constructor(p_world: number, p_time: number, p_id: number, p_graph: org.mwg.Graph);
@@ -753,6 +750,13 @@ declare module org {
                 clear(): org.mwg.NodeIndex;
                 find(callback: org.mwg.Callback<org.mwg.Node[]>, ...query: string[]): void;
                 findByQuery(query: org.mwg.Query, callback: org.mwg.Callback<org.mwg.Node[]>): void;
+            }
+            class CoreNodeRegistry implements org.mwg.plugin.NodeRegistry {
+                private backend;
+                private backend_hash;
+                constructor();
+                declaration(name: string): org.mwg.plugin.NodeDeclaration;
+                declarationByHash(hash: number): org.mwg.plugin.NodeDeclaration;
             }
             class CoreQuery implements org.mwg.Query {
                 private _resolver;
@@ -785,7 +789,6 @@ declare module org {
                 private static KEY_SIZE;
                 constructor(p_storage: org.mwg.plugin.Storage, p_space: org.mwg.chunk.ChunkSpace, p_graph: org.mwg.Graph);
                 init(): void;
-                typeName(node: org.mwg.Node): string;
                 typeCode(node: org.mwg.Node): number;
                 initNode(node: org.mwg.Node, codeType: number): void;
                 initWorld(parentWorld: number, childWorld: number): void;
@@ -1395,7 +1398,7 @@ declare module org {
                 }
                 class ActionAttributes implements org.mwg.task.Action {
                     private _filter;
-                    constructor(filterType: number);
+                    constructor(filterType: string);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
@@ -1556,7 +1559,7 @@ declare module org {
                     private _value;
                     private _propertyType;
                     private _force;
-                    constructor(name: string, propertyType: number, value: string, force: boolean);
+                    constructor(name: string, propertyType: string, value: string, force: boolean);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     private loadArray(valueAfterTemplate, type);
                     private parseBoolean(booleanValue);
@@ -1566,7 +1569,7 @@ declare module org {
                 class ActionTimeSensitivity implements org.mwg.task.Action {
                     private _delta;
                     private _offset;
-                    constructor(delta: number, offset: number);
+                    constructor(delta: string, offset: string);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
@@ -1745,6 +1748,20 @@ declare module org {
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
+                class CoreActionDeclaration implements org.mwg.plugin.ActionDeclaration {
+                    private _factory;
+                    private _params;
+                    private _description;
+                    private _name;
+                    constructor(name: string);
+                    factory(): org.mwg.plugin.ActionFactory;
+                    setFactory(factory: org.mwg.plugin.ActionFactory): org.mwg.plugin.ActionDeclaration;
+                    params(): Int8Array;
+                    setParams(...params: number[]): org.mwg.plugin.ActionDeclaration;
+                    description(): string;
+                    setDescription(description: string): org.mwg.plugin.ActionDeclaration;
+                    name(): string;
+                }
                 class CoreActionNames {
                     static ADD_VAR_TO_RELATION: string;
                     static REMOVE_VAR_TO_RELATION: string;
@@ -1802,6 +1819,12 @@ declare module org {
                     static ATOMIC: string;
                     static FLAT: string;
                 }
+                class CoreActionRegistry implements org.mwg.plugin.ActionRegistry {
+                    private backend;
+                    constructor();
+                    declaration(name: string): org.mwg.plugin.ActionDeclaration;
+                    declarations(): org.mwg.plugin.ActionDeclaration[];
+                }
                 class CoreActions {
                     static flat(): org.mwg.task.Action;
                     static travelInWorld(world: string): org.mwg.task.Action;
@@ -1816,7 +1839,7 @@ declare module org {
                     static setAsVar(name: string): org.mwg.task.Action;
                     static addToVar(name: string): org.mwg.task.Action;
                     static setAttribute(name: string, type: number, value: string): org.mwg.task.Action;
-                    static timeSensitivity(delta: number, offset: number): org.mwg.task.Action;
+                    static timeSensitivity(delta: string, offset: string): org.mwg.task.Action;
                     static forceAttribute(name: string, type: number, value: string): org.mwg.task.Action;
                     static remove(name: string): org.mwg.task.Action;
                     static attributes(): org.mwg.task.Action;
@@ -1887,9 +1910,10 @@ declare module org {
                     saveToBuffer(buffer: org.mwg.struct.Buffer): org.mwg.task.Task;
                     parse(flat: string, graph: org.mwg.Graph): org.mwg.task.Task;
                     private sub_parse(reader, graph, contextTasks);
+                    static loadAction(registry: org.mwg.plugin.ActionRegistry, actionName: string, params: string[], contextTasks: java.util.Map<number, org.mwg.task.Task>): org.mwg.task.Action;
                     private static condFromScript(script);
                     private static executeScript(script, context);
-                    static fillDefault(registry: java.util.Map<string, org.mwg.task.TaskActionFactory>): void;
+                    static fillDefault(registry: org.mwg.plugin.ActionRegistry): void;
                     private static getOrCreate(contextTasks, param);
                     hashCode(): number;
                     toString(): string;
@@ -1906,7 +1930,7 @@ declare module org {
                     setAsVar(name: string): org.mwg.task.Task;
                     addToVar(name: string): org.mwg.task.Task;
                     setAttribute(name: string, type: number, value: string): org.mwg.task.Task;
-                    timeSensitivity(delta: number, offset: number): org.mwg.task.Task;
+                    timeSensitivity(delta: string, offset: string): org.mwg.task.Task;
                     forceAttribute(name: string, type: number, value: string): org.mwg.task.Task;
                     remove(name: string): org.mwg.task.Task;
                     attributes(): org.mwg.task.Task;
@@ -2146,6 +2170,22 @@ declare module org {
             }
         }
         module plugin {
+            interface ActionDeclaration {
+                factory(): org.mwg.plugin.ActionFactory;
+                setFactory(factory: org.mwg.plugin.ActionFactory): org.mwg.plugin.ActionDeclaration;
+                params(): Int8Array;
+                setParams(...params: number[]): org.mwg.plugin.ActionDeclaration;
+                description(): string;
+                setDescription(description: string): org.mwg.plugin.ActionDeclaration;
+                name(): string;
+            }
+            interface ActionFactory {
+                (params: any[]): org.mwg.task.Action;
+            }
+            interface ActionRegistry {
+                declaration(name: string): org.mwg.plugin.ActionDeclaration;
+                declarations(): org.mwg.plugin.ActionDeclaration[];
+            }
             interface Job {
                 (): void;
             }
@@ -2153,8 +2193,17 @@ declare module org {
                 newSpace(memorySize: number, graph: org.mwg.Graph): org.mwg.chunk.ChunkSpace;
                 newBuffer(): org.mwg.struct.Buffer;
             }
+            interface NodeDeclaration {
+                name(): string;
+                factory(): org.mwg.plugin.NodeFactory;
+                setFactory(newFactory: org.mwg.plugin.NodeFactory): void;
+            }
             interface NodeFactory {
                 (world: number, time: number, id: number, graph: org.mwg.Graph): org.mwg.Node;
+            }
+            interface NodeRegistry {
+                declaration(name: string): org.mwg.plugin.NodeDeclaration;
+                declarationByHash(hash: number): org.mwg.plugin.NodeDeclaration;
             }
             interface NodeState {
                 world(): number;
@@ -2175,18 +2224,7 @@ declare module org {
                 (attributeKey: number, elemType: number, elem: any): void;
             }
             interface Plugin {
-                declareNodeType(name: string, factory: org.mwg.plugin.NodeFactory): org.mwg.plugin.Plugin;
-                declareTaskAction(name: string, factory: org.mwg.task.TaskActionFactory): org.mwg.plugin.Plugin;
-                declareMemoryFactory(factory: org.mwg.plugin.MemoryFactory): org.mwg.plugin.Plugin;
-                declareTaskHook(hook: org.mwg.task.TaskHook): org.mwg.plugin.Plugin;
-                declareResolverFactory(factory: org.mwg.plugin.ResolverFactory): org.mwg.plugin.Plugin;
-                nodeTypes(): string[];
-                nodeType(nodeTypeName: string): org.mwg.plugin.NodeFactory;
-                taskActionTypes(): string[];
-                taskActionType(taskTypeName: string): org.mwg.task.TaskActionFactory;
-                taskHooks(): org.mwg.task.TaskHook[];
-                memoryFactory(): org.mwg.plugin.MemoryFactory;
-                resolverFactory(): org.mwg.plugin.ResolverFactory;
+                start(graph: org.mwg.Graph): void;
                 stop(): void;
             }
             interface Resolver {
@@ -2194,7 +2232,6 @@ declare module org {
                 initNode(node: org.mwg.Node, typeCode: number): void;
                 initWorld(parentWorld: number, childWorld: number): void;
                 freeNode(node: org.mwg.Node): void;
-                typeName(node: org.mwg.Node): string;
                 typeCode(node: org.mwg.Node): number;
                 lookup<A extends org.mwg.Node>(world: number, time: number, id: number, callback: org.mwg.Callback<A>): void;
                 lookupBatch(worlds: Float64Array, times: Float64Array, ids: Float64Array, callback: org.mwg.Callback<org.mwg.Node[]>): void;
@@ -2429,7 +2466,7 @@ declare module org {
                 setAsVar(name: string): org.mwg.task.Task;
                 addToVar(name: string): org.mwg.task.Task;
                 setAttribute(name: string, type: number, value: string): org.mwg.task.Task;
-                timeSensitivity(delta: number, offset: number): org.mwg.task.Task;
+                timeSensitivity(delta: string, offset: string): org.mwg.task.Task;
                 forceAttribute(name: string, type: number, value: string): org.mwg.task.Task;
                 remove(name: string): org.mwg.task.Task;
                 attributes(): org.mwg.task.Task;
@@ -2665,8 +2702,9 @@ declare module org {
                 afterTask(context: org.mwg.task.TaskContext): void;
                 end(finalContext: org.mwg.task.TaskContext): void;
             }
-            class VerbosePlugin extends org.mwg.base.BasePlugin {
-                constructor();
+            class VerbosePlugin implements org.mwg.plugin.Plugin {
+                start(graph: org.mwg.Graph): void;
+                stop(): void;
             }
         }
     }

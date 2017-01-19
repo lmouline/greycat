@@ -28,7 +28,7 @@ public class LookupAllTest {
                 graph.save(new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result) {
-                        //do something selectWith the node
+                        //do something with the node
                         graph.lookup(0, 0, id, new Callback<org.mwg.Node>() {
                             @Override
                             public void on(org.mwg.Node result) {

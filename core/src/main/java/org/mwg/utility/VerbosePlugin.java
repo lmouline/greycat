@@ -1,12 +1,18 @@
 package org.mwg.utility;
 
-import org.mwg.base.BasePlugin;
+import org.mwg.Graph;
+import org.mwg.plugin.Plugin;
 
-public class VerbosePlugin extends BasePlugin {
+public class VerbosePlugin implements Plugin {
 
-    public VerbosePlugin() {
-        super();
-        declareTaskHook(new VerboseHook());
+    @Override
+    public void start(Graph graph) {
+        graph.addGlobalTaskHook(new VerboseHook());
+    }
+
+    @Override
+    public void stop() {
+
     }
 
 }

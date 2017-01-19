@@ -17,7 +17,7 @@ public class NTreeNearestNWithinRadius implements Action {
     private final int _n;
     private final double _radius;
 
-    public NTreeNearestNWithinRadius(final double[] key, final int n, final double radius) {
+    public NTreeNearestNWithinRadius(final int n, final double radius, final double[] key) {
         this._key = key;
         this._n = n;
         this._radius = radius;
@@ -53,7 +53,7 @@ public class NTreeNearestNWithinRadius implements Action {
                     }
 
                     ctx.graph().lookupAll(ctx.world(), ctx.time(), nodeIds, result -> {
-                        for(int j = 0; j < result.length; j++) {
+                        for (int j = 0; j < result.length; j++) {
                             TaskResult<Object> line = ctx.newResult();
                             line.add(tr.keys(j));
                             line.add(result[j]);

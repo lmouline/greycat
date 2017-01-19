@@ -2,6 +2,7 @@ package org.mwg.internal.task;
 
 import org.mwg.Constants;
 import org.mwg.Node;
+import org.mwg.Type;
 import org.mwg.base.BaseNode;
 import org.mwg.plugin.NodeState;
 import org.mwg.plugin.NodeStateCallback;
@@ -13,8 +14,12 @@ class ActionAttributes implements Action {
 
     private final byte _filter;
 
-    ActionAttributes(byte filterType) {
-        this._filter = filterType;
+    ActionAttributes(String filterType) {
+        if (filterType != null) {
+            _filter = Type.typeFromName(filterType);
+        } else {
+            _filter = (byte) -1;
+        }
     }
 
     @Override

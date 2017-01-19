@@ -40,11 +40,6 @@ final class MWGResolver implements Resolver {
     }
 
     @Override
-    public final String typeName(Node node) {
-        return hashToString(typeCode(node));
-    }
-
-    @Override
     public final int typeCode(Node node) {
         final BaseNode casted = (BaseNode) node;
         final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.get(casted._index_worldOrder);
@@ -844,7 +839,7 @@ final class MWGResolver implements Resolver {
                 nodeTimeTree.insert(time);
                 if (nodeTimeTree.size() == threshold) {
                     final long[] medianPoint = {-1};
-                    //we iterate over the tree selectWithout boundaries for values, but selectWith boundaries for number of collected times
+                    //we iterate over the tree without boundaries for values, but with boundaries for number of collected times
                     nodeTimeTree.range(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, nodeTimeTree.size() / 2, new TreeWalker() {
                         @Override
                         public void elem(long t) {
@@ -859,7 +854,7 @@ final class MWGResolver implements Resolver {
                     }
 
                     //TODO second iterate that can be avoided, however we need the median point to create the right tree
-                    //we iterate over the tree selectWithout boundaries for values, but selectWith boundaries for number of collected times
+                    //we iterate over the tree without boundaries for values, but with boundaries for number of collected times
                     final TimeTreeChunk finalRightTree = rightTree;
                     //rang iterate from the end of the tree
                     nodeTimeTree.range(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, nodeTimeTree.size() / 2, new TreeWalker() {
@@ -907,7 +902,7 @@ final class MWGResolver implements Resolver {
                         castedNode._previousResolveds.set(newResolveds);
                     }
                 } else {
-                    //update the state cache selectWithout superTree modification
+                    //update the state cache without superTree modification
                     long[] newResolveds = new long[6];
                     //previously resolved
                     newResolveds[CoreConstants.PREVIOUS_RESOLVED_WORLD_INDEX] = world;
@@ -1141,7 +1136,7 @@ final class MWGResolver implements Resolver {
             timeTree.insert(nodeTime);
             if (timeTree.size() == threshold) {
                 final long[] medianPoint = {-1};
-                //we iterate over the tree selectWithout boundaries for values, but selectWith boundaries for number of collected times
+                //we iterate over the tree without boundaries for values, but with boundaries for number of collected times
                 timeTree.range(CoreConstants.BEGINNING_OF_TIME, CoreConstants.END_OF_TIME, timeTree.size() / 2, new TreeWalker() {
                     @Override
                     public void elem(long t) {
@@ -1150,7 +1145,7 @@ final class MWGResolver implements Resolver {
                 });
                 TimeTreeChunk rightTree = (TimeTreeChunk) this._space.createAndMark(ChunkType.TIME_TREE_CHUNK, nodeWorld, medianPoint[0], nodeId);
                 //TODO second iterate that can be avoided, however we need the median point to create the right tree
-                //we iterate over the tree selectWithout boundaries for values, but selectWith boundaries for number of collected times
+                //we iterate over the tree without boundaries for values, but with boundaries for number of collected times
                 final TimeTreeChunk finalRightTree = rightTree;
                 //rang iterate readVar the end of the tree
                 timeTree.range(CoreConstants.BEGINNING_OF_TIME, CoreConstants.END_OF_TIME, timeTree.size() / 2, new TreeWalker() {

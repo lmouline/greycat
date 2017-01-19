@@ -1,16 +1,18 @@
 package org.mwg.importer.util;
 
+import org.mwg.base.BaseTaskResult;
 import org.mwg.task.TaskResult;
 import org.mwg.task.TaskResultIterator;
 import org.mwg.utility.Tuple;
 
 import java.io.*;
 
-public class IterableLines implements TaskResult<String> {
+public class IterableLines extends BaseTaskResult<String> {
 
     private final String _path;
 
     public IterableLines(String p_path) {
+        super(null, false);
         this._path = p_path;
     }
 
@@ -112,26 +114,6 @@ public class IterableLines implements TaskResult<String> {
     @Override
     public Object[] asArray() {
         return new Object[0];
-    }
-
-    @Override
-    public Exception exception() {
-        return null;
-    }
-
-    @Override
-    public String output() {
-        return null;
-    }
-
-    @Override
-    public TaskResult<String> setException(Exception e) {
-        return null;
-    }
-
-    @Override
-    public TaskResult<String> setOutput(String output) {
-        return null;
     }
 
     @Override

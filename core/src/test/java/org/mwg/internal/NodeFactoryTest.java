@@ -8,12 +8,12 @@ import org.mwg.GraphBuilder;
 import org.mwg.Node;
 import org.mwg.internal.scheduler.NoopScheduler;
 import org.mwg.base.BaseNode;
-import org.mwg.base.BasePlugin;
 import org.mwg.plugin.NodeFactory;
+import org.mwg.plugin.Plugin;
 
 public class NodeFactoryTest {
 
-    private static final String NAME = "HelloWorldNode";
+    static final String NAME = "HelloWorldNode";
 
     interface ExNode extends org.mwg.Node {
         String sayHello();
@@ -39,14 +39,28 @@ public class NodeFactoryTest {
         }
     }
 
+    class ExNodePlugin implements Plugin {
+
+        @Override
+        public void start(Graph graph) {
+            graph.nodeRegistry().declaration(NAME).setFactory(new NodeFactory() {
+                @Override
+                public Node create(long world, long time, long id, Graph graph) {
+                    return new ExNodeImpl(world, time, id, graph);
+                }
+            });
+        }
+
+        @Override
+        public void stop() {
+
+        }
+
+    }
+
     @Test
     public void heapTest() {
-        test(new GraphBuilder().withScheduler(new NoopScheduler()).withPlugin(new BasePlugin().declareNodeType(NAME, new NodeFactory() {
-            @Override
-            public Node create(long world, long time, long id, Graph graph) {
-                return new ExNodeImpl(world, time, id, graph);
-            }
-        })).build());
+        test(new GraphBuilder().withScheduler(new NoopScheduler()).withPlugin(new ExNodePlugin()).build());
     }
 
     /**

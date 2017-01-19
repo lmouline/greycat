@@ -1,6 +1,7 @@
 package org.mwg.base;
 
 import org.mwg.*;
+import org.mwg.plugin.NodeDeclaration;
 import org.mwg.plugin.NodeState;
 import org.mwg.plugin.NodeStateCallback;
 import org.mwg.plugin.Resolver;
@@ -93,7 +94,11 @@ public class BaseNode implements Node {
 
     @Override
     public final String nodeTypeName() {
-        return this._resolver.typeName(this);
+        final NodeDeclaration declaration = this.graph().nodeRegistry().declarationByHash(this._resolver.typeCode(this));
+        if (declaration != null) {
+            return declaration.name();
+        }
+        return null;
     }
 
     protected final NodeState unphasedState() {

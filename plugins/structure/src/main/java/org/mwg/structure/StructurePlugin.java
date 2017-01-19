@@ -2,112 +2,46 @@ package org.mwg.structure;
 
 import org.mwg.Graph;
 import org.mwg.Node;
-import org.mwg.base.BasePlugin;
+import org.mwg.Type;
+import org.mwg.plugin.ActionFactory;
 import org.mwg.plugin.NodeFactory;
+import org.mwg.plugin.Plugin;
 import org.mwg.structure.action.NTreeNearestNWithinRadius;
 import org.mwg.structure.tree.NDTree;
-import org.mwg.structure.tree.KDTreeOld;
+import org.mwg.structure.tree.KDTree;
 import org.mwg.task.Action;
-import org.mwg.task.TaskActionFactory;
-//import org.mwg.structure.tree.NDTree;
-//import org.mwg.structure.tree.SparseNDTree;
-//import org.mwg.task.Action;
-//import org.mwg.task.TaskActionFactory;
-//
-//import static org.mwg.core.task.CoreActions.newTask;
 
-public class StructurePlugin extends BasePlugin {
+public class StructurePlugin implements Plugin {
 
-    public StructurePlugin() {
-        super();
-        declareNodeType(KDTreeOld.NAME, new NodeFactory() {
+    @Override
+    public void start(Graph graph) {
+        graph.actionRegistry()
+                .declaration(NTreeNearestNWithinRadius.NAME)
+                .setParams(Type.INT, Type.DOUBLE, Type.DOUBLE_ARRAY)
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new NTreeNearestNWithinRadius((int) params[0], (double) params[1], (double[]) params[2]);
+                    }
+                });
+        graph.nodeRegistry().declaration(KDTree.NAME).setFactory(new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
-                return new KDTreeOld(world, time, id, graph);
+                return new KDTree(world, time, id, graph);
             }
         });
-//        declareNodeType(NDTree.NAME, new NodeFactory() {
-//            @Override
-//            public Node create(long world, long time, long id, Graph graph) {
-//                return new NDTree(world, time, id, graph);
-//            }
-//        });
-//
-        declareNodeType(NDTree.NAME, new NodeFactory() {
+        graph.nodeRegistry().declaration(NDTree.NAME).setFactory(new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
                 return new NDTree(world, time, id, graph);
             }
         });
-//
-//        declareNodeType(SparseNDTree.NAME, new NodeFactory() {
-//            @Override
-//            public Node create(long world, long time, long id, Graph graph) {
-//                return new SparseNDTree(world, time, id, graph);
-//            }
-//        });
-//
-//        declareTaskAction(NTreeInsertTo.NAME, new TaskActionFactory() {
-//            @Override
-//            public Action create(String[] params,java.util.Map<java.lang.Integer,org.mwg.task.Task> counters) {
-//                if (params.length != 1) {
-//                    throw new RuntimeException("Bad param number!");
-//                }
-//                return new NTreeInsertTo(params[0]);
-//            }
-//        });
-//        declareTaskAction(TraverseById.NAME, new TaskActionFactory() {
-//            @Override
-//            public Action create(String[] params,java.util.Map<java.lang.Integer,org.mwg.task.Task> counters) {
-//                if (params.length != 1) {
-//                    throw new RuntimeException("Bad param number!");
-//                }
-//                return new TraverseById(params[0]);
-//            }
-//        });
-//        declareTaskAction(NTreeNearestN.NAME, new TaskActionFactory() {
-//            @Override
-//            public Action create(String[] params,java.util.Map<java.lang.Integer,org.mwg.task.Task> counters) {
-//                if (params.length < 2) {
-//                    throw new RuntimeException("Bad param number!");
-//                }
-//                int n = Integer.parseInt(params[params.length - 1]);
-//                double[] key = new double[params.length - 1];
-//                for (int i = 0; i < params.length - 1; i++) {
-//                    key[i] = Double.parseDouble(params[i]);
-//
-//                }
-//                return new NTreeNearestN(key, n);
-//            }
-//        });
-//        declareTaskAction(NTreeNearestWithinRadius.NAME, new TaskActionFactory() {
-//            @Override
-//            public Action create(String[] params,java.util.Map<java.lang.Integer,org.mwg.task.Task> counters) {
-//                if (params.length < 2) {
-//                    throw new RuntimeException("Bad param number!");
-//                }
-//                double radius = Double.parseDouble(params[params.length - 1]);
-//                double[] key = new double[params.length - 1];
-//                for (int i = 0; i < params.length - 1; i++) {
-//                    key[i] = Double.parseDouble(params[i]);
-//                }
-//                return new NTreeNearestWithinRadius(key, radius);
-//            }
-//        });
-        declareTaskAction(NTreeNearestNWithinRadius.NAME, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, java.util.Map<java.lang.Integer,org.mwg.task.Task> counters) {
-                if (params.length < 3) {
-                    throw new RuntimeException("Bad param number!");
-                }
-                double radius = Double.parseDouble(params[params.length - 1]);
-                int n = Integer.parseInt(params[params.length - 2]);
-                double[] key = new double[params.length - 2];
-                for (int i = 0; i < params.length - 2; i++) {
-                    key[i] = Double.parseDouble(params[i]);
-                }
-                return new NTreeNearestNWithinRadius(key, n, radius);
-            }
-        });
     }
+
+    @Override
+    public void stop() {
+
+    }
+
+
 }

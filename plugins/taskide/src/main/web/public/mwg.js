@@ -1369,6 +1369,8 @@ var org;
                         return "LONG_ARRAY";
                     case org.mwg.Type.INT_ARRAY:
                         return "INT_ARRAY";
+                    case org.mwg.Type.STRING_ARRAY:
+                        return "STRING_ARRAY";
                     case org.mwg.Type.LONG_TO_LONG_MAP:
                         return "LONG_TO_LONG_MAP";
                     case org.mwg.Type.LONG_TO_LONG_ARRAY_MAP:
@@ -1389,6 +1391,10 @@ var org;
                         return "ENODE";
                     case org.mwg.Type.ERELATION:
                         return "ERELATION";
+                    case org.mwg.Type.TASK:
+                        return "TASK";
+                    case org.mwg.Type.TASK_ARRAY:
+                        return "TASK_ARRAY";
                     default:
                         return "unknown";
                 }
@@ -1411,6 +1417,8 @@ var org;
                         return org.mwg.Type.LONG_ARRAY;
                     case "INT_ARRAY":
                         return org.mwg.Type.INT_ARRAY;
+                    case "STRING_ARRAY":
+                        return org.mwg.Type.STRING_ARRAY;
                     case "LONG_TO_LONG_MAP":
                         return org.mwg.Type.LONG_TO_LONG_MAP;
                     case "LONG_TO_LONG_ARRAY_MAP":
@@ -1431,6 +1439,10 @@ var org;
                         return org.mwg.Type.ENODE;
                     case "ERELATION":
                         return org.mwg.Type.ERELATION;
+                    case "TASK":
+                        return org.mwg.Type.TASK;
+                    case "TASK_ARRAY":
+                        return org.mwg.Type.TASK_ARRAY;
                     default:
                         return -1;
                 }
@@ -1445,16 +1457,19 @@ var org;
         Type.DOUBLE_ARRAY = 6;
         Type.LONG_ARRAY = 7;
         Type.INT_ARRAY = 8;
-        Type.LONG_TO_LONG_MAP = 9;
-        Type.LONG_TO_LONG_ARRAY_MAP = 10;
-        Type.STRING_TO_INT_MAP = 11;
-        Type.RELATION = 12;
-        Type.RELATION_INDEXED = 13;
+        Type.STRING_ARRAY = 9;
+        Type.LONG_TO_LONG_MAP = 10;
+        Type.LONG_TO_LONG_ARRAY_MAP = 11;
+        Type.STRING_TO_INT_MAP = 12;
+        Type.RELATION = 13;
+        Type.RELATION_INDEXED = 14;
         Type.DMATRIX = 15;
         Type.LMATRIX = 16;
         Type.EGRAPH = 17;
         Type.ENODE = 18;
         Type.ERELATION = 19;
+        Type.TASK = 20;
+        Type.TASK_ARRAY = 21;
         mwg.Type = Type;
         var base;
         (function (base) {
@@ -1492,7 +1507,11 @@ var org;
                 };
                 BaseNode.prototype.init = function () { };
                 BaseNode.prototype.nodeTypeName = function () {
-                    return this._resolver.typeName(this);
+                    var declaration = this.graph().nodeRegistry().declarationByHash(this._resolver.typeCode(this));
+                    if (declaration != null) {
+                        return declaration.name();
+                    }
+                    return null;
                 };
                 BaseNode.prototype.unphasedState = function () {
                     return this._resolver.resolveState(this);
@@ -2034,60 +2053,6 @@ var org;
                 return BaseNode;
             }());
             base.BaseNode = BaseNode;
-            var BasePlugin = (function () {
-                function BasePlugin() {
-                    this._nodeTypes = new java.util.HashMap();
-                    this._taskActions = new java.util.HashMap();
-                    this._taskHooks = new Array(0);
-                }
-                BasePlugin.prototype.declareNodeType = function (name, factory) {
-                    this._nodeTypes.put(name, factory);
-                    return this;
-                };
-                BasePlugin.prototype.declareTaskAction = function (name, factory) {
-                    this._taskActions.put(name, factory);
-                    return this;
-                };
-                BasePlugin.prototype.declareMemoryFactory = function (factory) {
-                    this._memoryFactory = factory;
-                    return this;
-                };
-                BasePlugin.prototype.declareResolverFactory = function (factory) {
-                    this._resolverFactory = factory;
-                    return this;
-                };
-                BasePlugin.prototype.taskHooks = function () {
-                    return this._taskHooks;
-                };
-                BasePlugin.prototype.declareTaskHook = function (hook) {
-                    var new_hooks = new Array(this._taskHooks.length + 1);
-                    java.lang.System.arraycopy(this._taskHooks, 0, new_hooks, 0, this._taskHooks.length);
-                    new_hooks[this._taskHooks.length] = hook;
-                    this._taskHooks = new_hooks;
-                    return this;
-                };
-                BasePlugin.prototype.nodeTypes = function () {
-                    return this._nodeTypes.keySet().toArray(new Array(this._nodeTypes.size()));
-                };
-                BasePlugin.prototype.nodeType = function (nodeTypeName) {
-                    return this._nodeTypes.get(nodeTypeName);
-                };
-                BasePlugin.prototype.taskActionTypes = function () {
-                    return this._taskActions.keySet().toArray(new Array(this._taskActions.size()));
-                };
-                BasePlugin.prototype.taskActionType = function (taskTypeName) {
-                    return this._taskActions.get(taskTypeName);
-                };
-                BasePlugin.prototype.memoryFactory = function () {
-                    return this._memoryFactory;
-                };
-                BasePlugin.prototype.resolverFactory = function () {
-                    return this._resolverFactory;
-                };
-                BasePlugin.prototype.stop = function () { };
-                return BasePlugin;
-            }());
-            base.BasePlugin = BasePlugin;
             var BaseTaskResult = (function () {
                 function BaseTaskResult(toWrap, protect) {
                     this._capacity = 0;
@@ -2478,68 +2443,24 @@ var org;
                     this._prefix = null;
                     this._nodeKeyCalculator = null;
                     this._worldKeyCalculator = null;
+                    this._actionRegistry = new org.mwg.internal.task.CoreActionRegistry();
+                    this._nodeRegistry = new org.mwg.internal.CoreNodeRegistry();
+                    this._memoryFactory = new org.mwg.internal.memory.HeapMemoryFactory();
                     var selfPointer = this;
-                    var memoryFactory = null;
-                    var resolverFactory = null;
                     var temp_hooks = new Array(0);
                     if (p_plugins != null) {
                         for (var i = 0; i < p_plugins.length; i++) {
                             var loopPlugin = p_plugins[i];
-                            var loopMF = loopPlugin.memoryFactory();
-                            var loopHF = loopPlugin.taskHooks();
-                            if (loopMF != null) {
-                                memoryFactory = loopMF;
-                            }
-                            var loopRF = loopPlugin.resolverFactory();
-                            if (loopRF != null) {
-                                resolverFactory = loopRF;
-                            }
-                            if (loopHF != null) {
-                                var temp_temp_hooks = new Array(temp_hooks.length + loopHF.length);
-                                java.lang.System.arraycopy(temp_hooks, 0, temp_temp_hooks, 0, temp_hooks.length);
-                                java.lang.System.arraycopy(loopHF, 0, temp_temp_hooks, temp_hooks.length, loopHF.length);
-                                temp_hooks = temp_temp_hooks;
-                            }
+                            loopPlugin.start(this);
                         }
-                    }
-                    if (memoryFactory == null) {
-                        memoryFactory = new org.mwg.internal.memory.HeapMemoryFactory();
-                    }
-                    if (resolverFactory == null) {
-                        resolverFactory = {
-                            newResolver: function (storage, space) {
-                                {
-                                    return new org.mwg.internal.MWGResolver(storage, space, selfPointer);
-                                }
-                            }
-                        };
                     }
                     this._taskHooks = temp_hooks;
                     this._storage = p_storage;
-                    this._memoryFactory = memoryFactory;
-                    this._space = memoryFactory.newSpace(memorySize, selfPointer);
-                    this._resolver = resolverFactory.newResolver(this._storage, this._space);
+                    this._space = this._memoryFactory.newSpace(memorySize, selfPointer);
+                    this._resolver = new org.mwg.internal.MWGResolver(this._storage, this._space, selfPointer);
                     this._scheduler = p_scheduler;
-                    this._taskActions = new java.util.HashMap();
-                    org.mwg.internal.task.CoreTask.fillDefault(this._taskActions);
-                    this._nodeTypes = new java.util.HashMap();
-                    if (p_plugins != null) {
-                        for (var i = 0; i < p_plugins.length; i++) {
-                            var loopPlugin = p_plugins[i];
-                            var plugin_names = loopPlugin.nodeTypes();
-                            for (var j = 0; j < plugin_names.length; j++) {
-                                var plugin_name = plugin_names[j];
-                                var hashPlugin = this._resolver.stringToHash(plugin_name, false);
-                                this._nodeTypes.put(hashPlugin, loopPlugin.nodeType(plugin_name));
-                            }
-                            var task_names = loopPlugin.taskActionTypes();
-                            for (var j = 0; j < task_names.length; j++) {
-                                var task_name = task_names[j];
-                                this._taskActions.put(task_name, loopPlugin.taskActionType(task_name));
-                            }
-                        }
-                    }
-                    this._nodeTypes.put(this._resolver.stringToHash(org.mwg.internal.CoreNodeIndex.NAME, false), function (world, time, id, graph) {
+                    org.mwg.internal.task.CoreTask.fillDefault(this._actionRegistry);
+                    this._nodeRegistry.declaration(org.mwg.internal.CoreNodeIndex.NAME).setFactory(function (world, time, id, graph) {
                         {
                             return new org.mwg.internal.CoreNodeIndex(world, time, id, graph);
                         }
@@ -2620,23 +2541,40 @@ var org;
                     }
                 };
                 CoreGraph.prototype.factoryByCode = function (code) {
-                    if (this._nodeTypes != null && code != -1) {
-                        return this._nodeTypes.get(code);
+                    var declaration = this._nodeRegistry.declarationByHash(code);
+                    if (declaration != null) {
+                        return declaration.factory();
                     }
-                    else {
-                        return null;
-                    }
-                };
-                CoreGraph.prototype.taskAction = function (taskActionName) {
-                    if (this._taskActions != null && taskActionName != null) {
-                        return this._taskActions.get(taskActionName);
-                    }
-                    else {
-                        return null;
-                    }
+                    return null;
                 };
                 CoreGraph.prototype.taskHooks = function () {
                     return this._taskHooks;
+                };
+                CoreGraph.prototype.actionRegistry = function () {
+                    return this._actionRegistry;
+                };
+                CoreGraph.prototype.nodeRegistry = function () {
+                    return this._nodeRegistry;
+                };
+                CoreGraph.prototype.setMemoryFactory = function (factory) {
+                    if (this._isConnected.get()) {
+                        throw new Error("Memory factory cannot be changed after connection !");
+                    }
+                    this._memoryFactory = factory;
+                    return this;
+                };
+                CoreGraph.prototype.addGlobalTaskHook = function (newTaskHook) {
+                    if (this._taskHooks == null) {
+                        this._taskHooks = new Array(1);
+                        this._taskHooks[0] = newTaskHook;
+                    }
+                    else {
+                        var temp_temp_hooks = new Array(this._taskHooks.length + 1);
+                        java.lang.System.arraycopy(this._taskHooks, 0, temp_temp_hooks, 0, this._taskHooks.length);
+                        temp_temp_hooks[this._taskHooks.length] = newTaskHook;
+                        this._taskHooks = temp_temp_hooks;
+                    }
+                    return this;
                 };
                 CoreGraph.prototype.lookup = function (world, time, id, callback) {
                     if (!this._isConnected.get()) {
@@ -2720,17 +2658,6 @@ var org;
                                                                 selfPointer._nodeKeyCalculator.load(view1);
                                                             }
                                                             selfPointer._resolver.init();
-                                                            if (_this._plugins != null) {
-                                                                for (var i = 0; i < _this._plugins.length; i++) {
-                                                                    var nodeTypes = _this._plugins[i].nodeTypes();
-                                                                    if (nodeTypes != null) {
-                                                                        for (var j = 0; j < nodeTypes.length; j++) {
-                                                                            var pluginName = nodeTypes[j];
-                                                                            selfPointer._resolver.stringToHash(pluginName, true);
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
                                                         }
                                                         catch ($ex$) {
                                                             if ($ex$ instanceof Error) {
@@ -2930,6 +2857,22 @@ var org;
                 return CoreGraph;
             }());
             internal.CoreGraph = CoreGraph;
+            var CoreNodeDeclaration = (function () {
+                function CoreNodeDeclaration(name) {
+                    this._name = name;
+                }
+                CoreNodeDeclaration.prototype.name = function () {
+                    return this._name;
+                };
+                CoreNodeDeclaration.prototype.factory = function () {
+                    return this._factory;
+                };
+                CoreNodeDeclaration.prototype.setFactory = function (newFactory) {
+                    this._factory = newFactory;
+                };
+                return CoreNodeDeclaration;
+            }());
+            internal.CoreNodeDeclaration = CoreNodeDeclaration;
             var CoreNodeIndex = (function (_super) {
                 __extends(CoreNodeIndex, _super);
                 function CoreNodeIndex(p_world, p_time, p_id, p_graph) {
@@ -2987,6 +2930,26 @@ var org;
             }(org.mwg.base.BaseNode));
             CoreNodeIndex.NAME = "NodeIndex";
             internal.CoreNodeIndex = CoreNodeIndex;
+            var CoreNodeRegistry = (function () {
+                function CoreNodeRegistry() {
+                    this.backend = new java.util.HashMap();
+                    this.backend_hash = new java.util.HashMap();
+                }
+                CoreNodeRegistry.prototype.declaration = function (name) {
+                    var previous = this.backend.get(name);
+                    if (previous == null) {
+                        previous = new org.mwg.internal.CoreNodeDeclaration(name);
+                        this.backend.put(name, previous);
+                        this.backend_hash.put(org.mwg.utility.HashHelper.hash(name), previous);
+                    }
+                    return previous;
+                };
+                CoreNodeRegistry.prototype.declarationByHash = function (hash) {
+                    return this.backend_hash.get(hash);
+                };
+                return CoreNodeRegistry;
+            }());
+            internal.CoreNodeRegistry = CoreNodeRegistry;
             var CoreQuery = (function () {
                 function CoreQuery(graph, p_resolver) {
                     this.capacity = 1;
@@ -3080,9 +3043,6 @@ var org;
                 MWGResolver.prototype.init = function () {
                     this.dictionary = this._space.getAndMark(org.mwg.chunk.ChunkType.STATE_CHUNK, org.mwg.internal.CoreConstants.GLOBAL_DICTIONARY_KEY[0], org.mwg.internal.CoreConstants.GLOBAL_DICTIONARY_KEY[1], org.mwg.internal.CoreConstants.GLOBAL_DICTIONARY_KEY[2]);
                     this.globalWorldOrderChunk = this._space.getAndMark(org.mwg.chunk.ChunkType.WORLD_ORDER_CHUNK, 0, 0, org.mwg.Constants.NULL_LONG);
-                };
-                MWGResolver.prototype.typeName = function (node) {
-                    return this.hashToString(this.typeCode(node));
                 };
                 MWGResolver.prototype.typeCode = function (node) {
                     var casted = node;
@@ -10220,7 +10180,12 @@ var org;
                 task_1.ActionAddToVar = ActionAddToVar;
                 var ActionAttributes = (function () {
                     function ActionAttributes(filterType) {
-                        this._filter = filterType;
+                        if (filterType != null) {
+                            this._filter = org.mwg.Type.typeFromName(filterType);
+                        }
+                        else {
+                            this._filter = -1;
+                        }
                     }
                     ActionAttributes.prototype.eval = function (ctx) {
                         var _this = this;
@@ -10619,11 +10584,7 @@ var org;
                         this._params = params;
                     }
                     ActionNamed.prototype.eval = function (ctx) {
-                        var actionFactory = ctx.graph().taskAction(this._name);
-                        if (actionFactory == null) {
-                            throw new Error("Unknown task action: " + this._params);
-                        }
-                        var subAction = actionFactory(ctx.templates(this._params), null);
+                        var subAction = org.mwg.internal.task.CoreTask.loadAction(ctx.graph().actionRegistry(), this._name, this._params, null);
                         if (subAction != null) {
                             subAction.eval(ctx);
                         }
@@ -10684,9 +10645,6 @@ var org;
                         }
                         if (p_indexName == null) {
                             throw new Error("indexName should not be null");
-                        }
-                        if (p_query == null) {
-                            throw new Error("query should not be null");
                         }
                         this._name = p_indexName;
                         this._params = p_query;
@@ -11006,7 +10964,7 @@ var org;
                     function ActionSetAttribute(name, propertyType, value, force) {
                         this._name = name;
                         this._value = value;
-                        this._propertyType = propertyType;
+                        this._propertyType = org.mwg.Type.typeFromName(propertyType);
                         this._force = force;
                     }
                     ActionSetAttribute.prototype.eval = function (ctx) {
@@ -11135,11 +11093,13 @@ var org;
                     }
                     ActionTimeSensitivity.prototype.eval = function (ctx) {
                         var previousResult = ctx.result();
+                        var parsedDelta = java.lang.Long.parseLong(ctx.template(this._delta));
+                        var parsedOffset = java.lang.Long.parseLong(ctx.template(this._offset));
                         for (var i = 0; i < previousResult.size(); i++) {
                             var loopObj = previousResult.get(i);
                             if (loopObj instanceof org.mwg.base.BaseNode) {
                                 var loopNode = loopObj;
-                                loopNode.setTimeSensitivity(this._delta, this._offset);
+                                loopNode.setTimeSensitivity(parsedDelta, parsedOffset);
                             }
                         }
                         ctx.continueTask();
@@ -12810,6 +12770,44 @@ var org;
                     return CF_WhileDo;
                 }(org.mwg.internal.task.CF_Action));
                 task_1.CF_WhileDo = CF_WhileDo;
+                var CoreActionDeclaration = (function () {
+                    function CoreActionDeclaration(name) {
+                        this._factory = null;
+                        this._params = null;
+                        this._description = null;
+                        this._name = name;
+                    }
+                    CoreActionDeclaration.prototype.factory = function () {
+                        return this._factory;
+                    };
+                    CoreActionDeclaration.prototype.setFactory = function (factory) {
+                        this._factory = factory;
+                        return this;
+                    };
+                    CoreActionDeclaration.prototype.params = function () {
+                        return this._params;
+                    };
+                    CoreActionDeclaration.prototype.setParams = function () {
+                        var params = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            params[_i] = arguments[_i];
+                        }
+                        this._params = Int8Array.from(params);
+                        return this;
+                    };
+                    CoreActionDeclaration.prototype.description = function () {
+                        return this._description;
+                    };
+                    CoreActionDeclaration.prototype.setDescription = function (description) {
+                        this._description = description;
+                        return this;
+                    };
+                    CoreActionDeclaration.prototype.name = function () {
+                        return this._name;
+                    };
+                    return CoreActionDeclaration;
+                }());
+                task_1.CoreActionDeclaration = CoreActionDeclaration;
                 var CoreActionNames = (function () {
                     function CoreActionNames() {
                     }
@@ -12871,6 +12869,25 @@ var org;
                 CoreActionNames.ATOMIC = "atomic";
                 CoreActionNames.FLAT = "flat";
                 task_1.CoreActionNames = CoreActionNames;
+                var CoreActionRegistry = (function () {
+                    function CoreActionRegistry() {
+                        this.backend = new java.util.HashMap();
+                    }
+                    CoreActionRegistry.prototype.declaration = function (name) {
+                        var previous = this.backend.get(name);
+                        if (previous == null) {
+                            previous = new org.mwg.internal.task.CoreActionDeclaration(name);
+                            this.backend.put(name, previous);
+                        }
+                        return previous;
+                    };
+                    CoreActionRegistry.prototype.declarations = function () {
+                        var result = this.backend.values().toArray(new Array(this.backend.size()));
+                        return result;
+                    };
+                    return CoreActionRegistry;
+                }());
+                task_1.CoreActionRegistry = CoreActionRegistry;
                 var CoreActions = (function () {
                     function CoreActions() {
                     }
@@ -12911,22 +12928,22 @@ var org;
                         return new org.mwg.internal.task.ActionAddToVar(name);
                     };
                     CoreActions.setAttribute = function (name, type, value) {
-                        return new org.mwg.internal.task.ActionSetAttribute(name, type, value, false);
+                        return new org.mwg.internal.task.ActionSetAttribute(name, org.mwg.Type.typeName(type), value, false);
                     };
                     CoreActions.timeSensitivity = function (delta, offset) {
                         return new org.mwg.internal.task.ActionTimeSensitivity(delta, offset);
                     };
                     CoreActions.forceAttribute = function (name, type, value) {
-                        return new org.mwg.internal.task.ActionSetAttribute(name, type, value, true);
+                        return new org.mwg.internal.task.ActionSetAttribute(name, org.mwg.Type.typeName(type), value, true);
                     };
                     CoreActions.remove = function (name) {
                         return new org.mwg.internal.task.ActionRemove(name);
                     };
                     CoreActions.attributes = function () {
-                        return new org.mwg.internal.task.ActionAttributes(-1);
+                        return new org.mwg.internal.task.ActionAttributes(null);
                     };
                     CoreActions.attributesWithTypes = function (filterType) {
-                        return new org.mwg.internal.task.ActionAttributes(filterType);
+                        return new org.mwg.internal.task.ActionAttributes(org.mwg.Type.typeName(filterType));
                     };
                     CoreActions.addVarToRelation = function (relName, varName) {
                         var attributes = [];
@@ -13303,6 +13320,7 @@ var org;
                         return this;
                     };
                     CoreTask.prototype.sub_parse = function (reader, graph, contextTasks) {
+                        var registry = graph.actionRegistry();
                         var cursor = 0;
                         var flatSize = reader.available();
                         var previous = 0;
@@ -13403,11 +13421,7 @@ var org;
                                         this.then(new ((_a = org.mwg.internal.task.ActionNamed).bind.apply(_a, [void 0, actionName].concat(params)))());
                                     }
                                     else {
-                                        var factory = graph.taskAction(actionName);
-                                        if (factory == null) {
-                                            throw new Error("Parse error, unknown action |" + actionName + "|");
-                                        }
-                                        this.then(factory(params, contextTasks));
+                                        this.then(org.mwg.internal.task.CoreTask.loadAction(registry, actionName, params, contextTasks));
                                     }
                                     actionName = null;
                                     previous = cursor + 1;
@@ -13483,13 +13497,9 @@ var org;
                                         this.then(new ((_b = org.mwg.internal.task.ActionNamed).bind.apply(_b, [void 0, actionName].concat(params)))());
                                     }
                                     else {
-                                        var factory = graph.taskAction(actionName);
-                                        if (factory == null) {
-                                            throw new Error("Parse error, unknown action : " + actionName);
-                                        }
                                         var singleParam = new Array(1);
                                         singleParam[0] = getName;
-                                        this.then(factory(singleParam, contextTasks));
+                                        this.then(org.mwg.internal.task.CoreTask.loadAction(registry, actionName, singleParam, contextTasks));
                                     }
                                 }
                                 else {
@@ -13498,6 +13508,91 @@ var org;
                             }
                         }
                         var _a, _b;
+                    };
+                    CoreTask.loadAction = function (registry, actionName, params, contextTasks) {
+                        var declaration = registry.declaration(actionName);
+                        if (declaration == null || declaration.factory() == null) {
+                            var varargs = params;
+                            return new ((_a = org.mwg.internal.task.ActionNamed).bind.apply(_a, [void 0, actionName].concat(varargs)))();
+                        }
+                        else {
+                            var factory = declaration.factory();
+                            var declaredParams = declaration.params();
+                            if (declaredParams != null && params != null) {
+                                var resultSize = declaredParams.length;
+                                var parsedParams = new Array(resultSize);
+                                var varargs_index = 0;
+                                for (var i = 0; i < params.length; i++) {
+                                    var correspondingType = void 0;
+                                    if (i < resultSize) {
+                                        correspondingType = declaredParams[i];
+                                    }
+                                    else {
+                                        correspondingType = declaredParams[resultSize - 1];
+                                    }
+                                    switch (correspondingType) {
+                                        case org.mwg.Type.STRING:
+                                            parsedParams[i] = params[i];
+                                            break;
+                                        case org.mwg.Type.LONG:
+                                            parsedParams[i] = java.lang.Long.parseLong(params[i]);
+                                            break;
+                                        case org.mwg.Type.DOUBLE:
+                                            parsedParams[i] = parseFloat(params[i]);
+                                            break;
+                                        case org.mwg.Type.TASK:
+                                            parsedParams[i] = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[i]);
+                                            break;
+                                        case org.mwg.Type.STRING_ARRAY:
+                                            if (varargs_index == 0) {
+                                                var parsedSubParam = new Array(resultSize - i);
+                                                parsedSubParam[varargs_index] = params[i];
+                                                varargs_index = 1;
+                                                parsedParams[i] = parsedSubParam;
+                                            }
+                                            else {
+                                                parsedParams[resultSize - 1][varargs_index] = params[i];
+                                                varargs_index++;
+                                            }
+                                            break;
+                                        case org.mwg.Type.DOUBLE_ARRAY:
+                                            if (varargs_index == 0) {
+                                                var parsedSubParam = new Float64Array(resultSize - i);
+                                                parsedSubParam[varargs_index] = parseFloat(params[i]);
+                                                varargs_index = 1;
+                                                parsedParams[i] = parsedSubParam;
+                                            }
+                                            else {
+                                                parsedParams[resultSize - 1][varargs_index] = parseFloat(params[i]);
+                                                varargs_index++;
+                                            }
+                                            break;
+                                        case org.mwg.Type.TASK_ARRAY:
+                                            if (varargs_index == 0) {
+                                                var parsedSubParamTask = new Array(resultSize - i);
+                                                parsedSubParamTask[varargs_index] = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[i]);
+                                                varargs_index = 1;
+                                                parsedParams[i] = parsedSubParamTask;
+                                            }
+                                            else {
+                                                parsedParams[resultSize - 1][varargs_index] = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[i]);
+                                                varargs_index++;
+                                            }
+                                            break;
+                                    }
+                                }
+                                if (resultSize > params.length) {
+                                    for (var i = params.length; i < resultSize; i++) {
+                                        parsedParams[i] = null;
+                                    }
+                                }
+                                return factory(parsedParams);
+                            }
+                            else {
+                                return factory(new Array(0));
+                            }
+                        }
+                        var _a;
                     };
                     CoreTask.condFromScript = function (script) {
                         return function (ctx) {
@@ -13513,387 +13608,244 @@ var org;
                         return eval(script);
                     };
                     CoreTask.fillDefault = function (registry) {
-                        registry.put(org.mwg.internal.task.CoreActionNames.TRAVEL_IN_WORLD, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.TRAVEL_IN_WORLD).setParams(org.mwg.Type.STRING).setDescription("Sets the task context to a particular world. Every nodes in current result will be switch ot new world.").setFactory(function (params) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.TRAVEL_IN_WORLD + " action need one parameter");
-                                }
                                 return new org.mwg.internal.task.ActionTravelInWorld(params[0]);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.TRAVEL_IN_TIME, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.TRAVEL_IN_TIME).setParams(org.mwg.Type.STRING).setDescription("Switches the time of the task context, i.e. travels the task context in time. Every nodes in current result will be switch ot new time.").setFactory(function (params) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.TRAVEL_IN_TIME + " action need one parameter");
-                                }
                                 return new org.mwg.internal.task.ActionTravelInTime(params[0]);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.DEFINE_AS_GLOBAL_VAR, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.DEFINE_AS_GLOBAL_VAR).setParams(org.mwg.Type.STRING).setDescription("Stores the task result as a global variable in the task context and starts a new scope (for sub tasks).").setFactory(function (params) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.DEFINE_AS_GLOBAL_VAR + " action need one parameter");
-                                }
                                 return new org.mwg.internal.task.ActionDefineAsVar(params[0], true);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.DEFINE_AS_VAR, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.DEFINE_AS_VAR).setParams(org.mwg.Type.STRING).setDescription("Stores the task result as a local variable in the task context and starts a new scope (for sub tasks).").setFactory(function (params) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.DEFINE_AS_VAR + " action need one parameter");
-                                }
                                 return new org.mwg.internal.task.ActionDefineAsVar(params[0], false);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.DECLARE_GLOBAL_VAR, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.DECLARE_GLOBAL_VAR).setParams(org.mwg.Type.STRING).setDescription("Stores the task result as a global variable in the task context and starts a new scope (for sub tasks).").setFactory(function (params) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.DECLARE_GLOBAL_VAR + " action need one parameter");
-                                }
                                 return new org.mwg.internal.task.ActionDeclareVar(true, params[0]);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.DECLARE_VAR, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.DECLARE_VAR).setParams(org.mwg.Type.STRING).setDescription("Stores the task result as a local variable in the task context and starts a new scope (for sub tasks).").setFactory(function (params) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.DECLARE_VAR + " action need one parameter");
-                                }
                                 return new org.mwg.internal.task.ActionDeclareVar(false, params[0]);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.READ_VAR, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.READ_VAR).setParams(org.mwg.Type.STRING).setDescription("Retrieves a stored variable. To reach a particular index, a default array notation can be used. Therefore, A[B] will be interpreted as: extract value stored at index B from the variable A.").setFactory(function (params) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.READ_VAR + " action need one parameter");
-                                }
                                 return new org.mwg.internal.task.ActionReadVar(params[0]);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.SET_AS_VAR, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.SET_AS_VAR).setParams(org.mwg.Type.STRING).setDescription("Stores the current task result into a named variable without starting a new scope.").setFactory(function (params) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.SET_AS_VAR + " action need one parameter");
-                                }
                                 return new org.mwg.internal.task.ActionSetAsVar(params[0]);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.ADD_TO_VAR, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.ADD_TO_VAR).setParams(org.mwg.Type.STRING).setDescription("Adds the current task result to the named variable.").setFactory(function (params) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error("addToVar action need one parameter");
-                                }
                                 return new org.mwg.internal.task.ActionAddToVar(params[0]);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.TRAVERSE, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.TRAVERSE).setParams(org.mwg.Type.STRING, org.mwg.Type.STRING_ARRAY).setDescription("Retrieves any nodes contained in a relations of the nodes present in the current result.").setFactory(function (params) {
                             {
-                                if (params.length < 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.TRAVERSE + " action needs at least one parameter. Received:" + params.length);
+                                var varrags = params[1];
+                                if (varrags != null) {
+                                    return new ((_a = org.mwg.internal.task.ActionTraverseOrAttribute).bind.apply(_a, [void 0, false, false, params[0]].concat(varrags)))();
                                 }
-                                var getName = params[0];
-                                var getParams = new Array(params.length - 1);
-                                if (params.length > 1) {
-                                    java.lang.System.arraycopy(params, 1, getParams, 0, params.length - 1);
+                                else {
+                                    return new org.mwg.internal.task.ActionTraverseOrAttribute(false, false, params[0]);
                                 }
-                                return new ((_a = org.mwg.internal.task.ActionTraverseOrAttribute).bind.apply(_a, [void 0, false, false, getName].concat(getParams)))();
                             }
                             var _a;
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.ATTRIBUTE, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.ATTRIBUTE).setParams(org.mwg.Type.STRING).setDescription("Retrieves any attribute(s) contained in the nodes present in the current result.").setFactory(function (params) {
                             {
-                                if (params.length == 0) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.ATTRIBUTE + " action need one parameter");
-                                }
-                                var getName = params[0];
-                                var getParams = new Array(params.length - 1);
-                                if (params.length > 1) {
-                                    java.lang.System.arraycopy(params, 1, getParams, 0, params.length - 1);
-                                }
-                                return new ((_a = org.mwg.internal.task.ActionTraverseOrAttribute).bind.apply(_a, [void 0, true, false, getName].concat(getParams)))();
-                            }
-                            var _a;
-                        });
-                        registry.put(org.mwg.internal.task.CoreActionNames.EXECUTE_EXPRESSION, function (params, contextTasks) {
-                            {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.EXECUTE_EXPRESSION + " action need one parameter");
-                                }
-                                return new org.mwg.internal.task.ActionExecuteExpression(params[0]);
+                                return new org.mwg.internal.task.ActionTraverseOrAttribute(false, false, params[0]);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.READ_GLOBAL_INDEX, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.WITH).setParams(org.mwg.Type.STRING, org.mwg.Type.STRING).setDescription("Filters the previous result to keep nodes, which named attribute has a specific value.").setFactory(function (params) {
                             {
-                                if (params.length < 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.READ_GLOBAL_INDEX + " action needs at least one parameter. Received:" + params.length);
-                                }
-                                var indexName = params[0];
-                                var queryParams = new Array(params.length - 1);
-                                if (params.length > 1) {
-                                    java.lang.System.arraycopy(params, 1, queryParams, 0, params.length - 1);
-                                }
-                                return new ((_a = org.mwg.internal.task.ActionReadGlobalIndex).bind.apply(_a, [void 0, indexName].concat(queryParams)))();
-                            }
-                            var _a;
-                        });
-                        registry.put(org.mwg.internal.task.CoreActionNames.WITH, function (params, contextTasks) {
-                            {
-                                if (params.length != 2) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.WITH + " action needs two parameters. Received:" + params.length);
-                                }
                                 return new org.mwg.internal.task.ActionWith(params[0], params[1]);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.WITHOUT, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.WITHOUT).setParams(org.mwg.Type.STRING, org.mwg.Type.STRING).setDescription("Filters the previous result to keep nodes, which named attribute does not have a given value.").setFactory(function (params) {
                             {
-                                if (params.length != 2) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.WITHOUT + " action needs two parameters. Received:" + params.length);
-                                }
                                 return new org.mwg.internal.task.ActionWithout(params[0], params[1]);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.SCRIPT, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.SCRIPT).setParams(org.mwg.Type.STRING).setDescription("Execute a JS script; Current context is automatically injected as ctx variables. Other variables are directly reachable as JS vars. Execution is synchronous").setFactory(function (params) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.SCRIPT + " action needs one parameter. Received:" + params.length);
-                                }
                                 return new org.mwg.internal.task.ActionScript(params[0], false);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.ASYNC_SCRIPT, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.ASYNC_SCRIPT).setParams(org.mwg.Type.STRING).setDescription("Execute a JS script; Current context is automatically injected as ctx variables. Other variables are directly reachable as JS vars. Execution is asynchronous and script must contains a ctx.continueTask(); or ctx.continueWith(newResult).").setFactory(function (params) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.SCRIPT + " action needs one parameter. Received:" + params.length);
-                                }
                                 return new org.mwg.internal.task.ActionScript(params[0], true);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.SELECT, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.CREATE_NODE).setParams().setDescription("Creates a new node in the [world,time] of the current context.").setFactory(function (params) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.SELECT + " action needs one parameter. Received:" + params.length);
-                                }
-                                return new org.mwg.internal.task.ActionSelect(params[0], null);
-                            }
-                        });
-                        registry.put(org.mwg.internal.task.CoreActionNames.CREATE_NODE, function (params, contextTasks) {
-                            {
-                                if (params != null && params.length != 0) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.CREATE_NODE + " action needs zero parameter. Received:" + params.length);
-                                }
                                 return new org.mwg.internal.task.ActionCreateNode(null);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.CREATE_TYPED_NODE, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.CREATE_TYPED_NODE).setParams(org.mwg.Type.STRING).setDescription("Creates a new typed node in the [world,time] of the current context.").setFactory(function (params) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.CREATE_TYPED_NODE + " action needs one parameter. Received:" + params.length);
-                                }
                                 return new org.mwg.internal.task.ActionCreateNode(params[0]);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.PRINT, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.PRINT).setParams(org.mwg.Type.STRING).setDescription("Prints the action in a human readable format (without line breaks).").setFactory(function (params) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.PRINT + " action needs one parameter. Received:" + params.length);
-                                }
                                 return new org.mwg.internal.task.ActionPrint(params[0], false);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.PRINTLN, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.PRINTLN).setParams(org.mwg.Type.STRING).setDescription("Prints the action in a human readable format (with line breaks).").setFactory(function (params) {
                             {
-                                if (params == null || params.length != 1) {
-                                    if (params != null) {
-                                        throw new Error(org.mwg.internal.task.CoreActionNames.PRINTLN + " action needs one parameter. Received:" + params.length);
-                                    }
-                                    else {
-                                        throw new Error(org.mwg.internal.task.CoreActionNames.PRINTLN + " action needs one parameter. Received: 0");
-                                    }
-                                }
                                 return new org.mwg.internal.task.ActionPrint(params[0], true);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.SET_ATTRIBUTE, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.ATTRIBUTES).setParams().setDescription("Retrieves all attribute names of nodes present in the previous task result.").setFactory(function (params) {
                             {
-                                if (params.length != 3) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.SET_ATTRIBUTE + " action needs three parameters. Received:" + params.length);
-                                }
-                                return new org.mwg.internal.task.ActionSetAttribute(params[0], org.mwg.Type.typeFromName(params[1]), params[2], false);
+                                return new org.mwg.internal.task.ActionAttributes(null);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.TIME_SENSITIVITY, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.ATTRIBUTES).setParams().setDescription("Retrieves all attribute names of nodes present in the previous task result.").setFactory(function (params) {
                             {
-                                if (params.length != 2) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.TIME_SENSITIVITY + " action needs two parameters. Received:" + params.length);
-                                }
-                                return new org.mwg.internal.task.ActionTimeSensitivity(java.lang.Long.parseLong(params[0]), java.lang.Long.parseLong(params[1]));
+                                return new org.mwg.internal.task.ActionAttributes(null);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.FORCE_ATTRIBUTE, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.ATTRIBUTES_WITH_TYPE).setParams(org.mwg.Type.STRING).setDescription("Gets and filters all attribute names of nodes present in the previous result.").setFactory(function (params) {
                             {
-                                if (params.length != 3) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.FORCE_ATTRIBUTE + " action needs three parameters. Received:" + params.length);
-                                }
-                                return new org.mwg.internal.task.ActionSetAttribute(params[0], org.mwg.Type.typeFromName(params[1]), params[2], true);
+                                return new org.mwg.internal.task.ActionAttributes(params[0]);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.ATTRIBUTES, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.FLAT).setParams().setDescription("Flat a TaskResult containing TaskResult to a flat TaskResult.").setFactory(function (params) {
                             {
-                                if (params.length != 0) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.ATTRIBUTES + " action needs no parameter. Received:" + params.length);
-                                }
-                                return new org.mwg.internal.task.ActionAttributes(-1);
-                            }
-                        });
-                        registry.put(org.mwg.internal.task.CoreActionNames.ATTRIBUTES_WITH_TYPE, function (params, contextTasks) {
-                            {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.ATTRIBUTES_WITH_TYPE + " action needs one parameter. Received:" + params.length);
-                                }
-                                return new org.mwg.internal.task.ActionAttributes(org.mwg.Type.typeFromName(params[0]));
-                            }
-                        });
-                        registry.put(org.mwg.internal.task.CoreActionNames.LOOP, function (params, contextTasks) {
-                            {
-                                if (params.length != 3) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.LOOP + " action needs three parameters. Received:" + params.length);
-                                }
-                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[2]);
-                                return new org.mwg.internal.task.CF_Loop(params[0], params[1], subTask);
-                            }
-                        });
-                        registry.put(org.mwg.internal.task.CoreActionNames.LOOP_PAR, function (params, contextTasks) {
-                            {
-                                if (params.length != 3) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.LOOP_PAR + " action needs three parameters. Received:" + params.length);
-                                }
-                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[2]);
-                                return new org.mwg.internal.task.CF_LoopPar(params[0], params[1], subTask);
-                            }
-                        });
-                        registry.put(org.mwg.internal.task.CoreActionNames.FOR_EACH, function (params, contextTasks) {
-                            {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.FOR_EACH + " action needs one parameters. Received:" + params.length);
-                                }
-                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.internal.task.CF_ForEach(subTask);
-                            }
-                        });
-                        registry.put(org.mwg.internal.task.CoreActionNames.FOR_EACH_PAR, function (params, contextTasks) {
-                            {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.FOR_EACH_PAR + " action needs one parameters. Received:" + params.length);
-                                }
-                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.internal.task.CF_ForEachPar(subTask);
-                            }
-                        });
-                        registry.put(org.mwg.internal.task.CoreActionNames.FLAT, function (params, contextTasks) {
-                            {
-                                if (params.length != 0) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.FLAT + " action needs one parameters. Received:" + params.length);
-                                }
                                 return new org.mwg.internal.task.ActionFlat();
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.MAP, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.EXECUTE_EXPRESSION).setParams(org.mwg.Type.STRING).setDescription("Executes an expression on all nodes given from the previous step.").setFactory(function (params) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.MAP + " action needs one parameters. Received:" + params.length);
-                                }
-                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.internal.task.CF_Map(subTask);
+                                return new org.mwg.internal.task.ActionExecuteExpression(params[0]);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.MAP_PAR, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.READ_GLOBAL_INDEX).setParams(org.mwg.Type.STRING, org.mwg.Type.STRING_ARRAY).setDescription("Retrieves indexed nodes matching the query.").setFactory(function (params) {
                             {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.MAP_PAR + " action needs one parameters. Received:" + params.length);
+                                var varargs = params[1];
+                                if (varargs != null) {
+                                    return new ((_a = org.mwg.internal.task.ActionReadGlobalIndex).bind.apply(_a, [void 0, params[0]].concat(varargs)))();
                                 }
-                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.internal.task.CF_MapPar(subTask);
-                            }
-                        });
-                        registry.put(org.mwg.internal.task.CoreActionNames.PIPE, function (params, contextTasks) {
-                            {
-                                var subTasks = new Array(params.length);
-                                for (var i = 0; i < params.length; i++) {
-                                    subTasks[i] = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[i]);
+                                else {
+                                    return new org.mwg.internal.task.ActionReadGlobalIndex(params[0]);
                                 }
-                                return new ((_a = org.mwg.internal.task.CF_Pipe).bind.apply(_a, [void 0].concat(subTasks)))();
                             }
                             var _a;
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.PIPE_PAR, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.SELECT).setParams(org.mwg.Type.STRING).setDescription("Use a JS script to filter nodes. The task context is inject in the variable 'context'. The current node is inject in the variable 'node'.").setFactory(function (params) {
                             {
-                                var subTasks = new Array(params.length);
-                                for (var i = 0; i < params.length; i++) {
-                                    subTasks[i] = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[i]);
-                                }
-                                return new ((_a = org.mwg.internal.task.CF_PipePar).bind.apply(_a, [void 0].concat(subTasks)))();
+                                return new org.mwg.internal.task.ActionSelect(params[0], null);
+                            }
+                        });
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.TIME_SENSITIVITY).setParams(org.mwg.Type.STRING, org.mwg.Type.STRING).setDescription("Adjust the time sensitivity of nodes present in current result.").setFactory(function (params) {
+                            {
+                                return new org.mwg.internal.task.ActionTimeSensitivity(params[0], params[1]);
+                            }
+                        });
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.SET_ATTRIBUTE).setParams(org.mwg.Type.STRING, org.mwg.Type.STRING, org.mwg.Type.STRING).setDescription("Sets the value of an attribute for all nodes present in the current result. If value is similar to the previously stored one, nodes will remain unmodified.").setFactory(function (params) {
+                            {
+                                return new org.mwg.internal.task.ActionSetAttribute(params[0], params[1], params[2], true);
+                            }
+                        });
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.FORCE_ATTRIBUTE).setParams(org.mwg.Type.STRING, org.mwg.Type.STRING, org.mwg.Type.STRING).setDescription("Forces the value of an attribute for all nodes present in the current result. If value is similar to the previously stored one, nodes will still be modified and their timeline will be affected.").setFactory(function (params) {
+                            {
+                                return new org.mwg.internal.task.ActionSetAttribute(params[0], params[1], params[2], true);
+                            }
+                        });
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.LOOP).setParams(org.mwg.Type.STRING, org.mwg.Type.STRING, org.mwg.Type.TASK).setDescription("Executes a task in a range.").setFactory(function (params) {
+                            {
+                                return new org.mwg.internal.task.CF_Loop(params[0], params[1], params[2]);
+                            }
+                        });
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.LOOP_PAR).setParams(org.mwg.Type.STRING, org.mwg.Type.STRING, org.mwg.Type.TASK).setDescription("Parallel version of loop(String, String, Task). Executes a task in a range. Steps can be executed in parallel. Creates as many threads as elements in the collection.").setFactory(function (params) {
+                            {
+                                return new org.mwg.internal.task.CF_LoopPar(params[0], params[1], params[2]);
+                            }
+                        });
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.FOR_EACH).setParams(org.mwg.Type.TASK).setDescription("Iterates through a collection and calls the sub task for each element.").setFactory(function (params) {
+                            {
+                                return new org.mwg.internal.task.CF_ForEach(params[0]);
+                            }
+                        });
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.FOR_EACH_PAR).setParams(org.mwg.Type.TASK).setDescription("Parallel version of forEach(Task). All sub tasks can be called in parallel. Creates as many threads as elements in the collection.").setFactory(function (params) {
+                            {
+                                return new org.mwg.internal.task.CF_ForEachPar(params[0]);
+                            }
+                        });
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.MAP).setParams(org.mwg.Type.TASK).setDescription("Iterates through a collection and calls the sub task for each element in parallel and then aggregates all results in an array of array manner.").setFactory(function (params) {
+                            {
+                                return new org.mwg.internal.task.CF_Map(params[0]);
+                            }
+                        });
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.MAP_PAR).setParams(org.mwg.Type.TASK).setDescription("Parallel version of map(Task). Iterates through a collection and calls the sub task for each element in parallel and then aggregates all results in an array of array manner.").setFactory(function (params) {
+                            {
+                                return new org.mwg.internal.task.CF_MapPar(params[0]);
+                            }
+                        });
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.PIPE).setParams(org.mwg.Type.TASK_ARRAY).setDescription("Executes and waits for a number of given sub tasks. The result of these sub tasks is immediately enqueued and available in the next sub task in a array of array manner.").setFactory(function (params) {
+                            {
+                                var varargs = params[0];
+                                return new ((_a = org.mwg.internal.task.CF_Pipe).bind.apply(_a, [void 0].concat(varargs)))();
                             }
                             var _a;
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.DO_WHILE, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.PIPE_PAR).setParams(org.mwg.Type.TASK_ARRAY).setDescription("Parallel version of pipe(Tasks...). Executes and waits a number of given sub tasks. The result of these sub tasks is immediately enqueued and available in the next sub task in a array of array manner.").setFactory(function (params) {
                             {
-                                if (params.length != 2) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.DO_WHILE + " action needs two parameters. Received:" + params.length);
-                                }
-                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                var script = params[1];
-                                return new org.mwg.internal.task.CF_DoWhile(subTask, org.mwg.internal.task.CoreTask.condFromScript(script), script);
-                            }
-                        });
-                        registry.put(org.mwg.internal.task.CoreActionNames.WHILE_DO, function (params, contextTasks) {
-                            {
-                                if (params.length != 2) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.DO_WHILE + " action needs two parameters. Received:" + params.length);
-                                }
-                                var script = params[0];
-                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[1]);
-                                return new org.mwg.internal.task.CF_WhileDo(org.mwg.internal.task.CoreTask.condFromScript(script), subTask, script);
-                            }
-                        });
-                        registry.put(org.mwg.internal.task.CoreActionNames.ISOLATE, function (params, contextTasks) {
-                            {
-                                if (params.length != 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.ISOLATE + " action needs three parameters. Received:" + params.length);
-                                }
-                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                return new org.mwg.internal.task.CF_Isolate(subTask);
-                            }
-                        });
-                        registry.put(org.mwg.internal.task.CoreActionNames.ATOMIC, function (params, contextTasks) {
-                            {
-                                if (params.length < 1) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.ATOMIC + " action needs at least one parameters. Received:" + params.length);
-                                }
-                                var subTask = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[0]);
-                                var variables = new Array(params.length - 1);
-                                java.lang.System.arraycopy(params, 1, variables, 0, params.length - 1);
-                                return new ((_a = org.mwg.internal.task.CF_Atomic).bind.apply(_a, [void 0, subTask].concat(variables)))();
+                                var varargs = params[0];
+                                return new ((_a = org.mwg.internal.task.CF_PipePar).bind.apply(_a, [void 0].concat(varargs)))();
                             }
                             var _a;
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.IF_THEN, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.DO_WHILE).setParams(org.mwg.Type.STRING, org.mwg.Type.TASK).setDescription("Executes a give task until a given condition evaluates to true.").setFactory(function (params) {
                             {
-                                if (params.length != 2) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.IF_THEN + " action needs two parameters. Received:" + params.length);
-                                }
-                                var script = params[0];
-                                var taskThen = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[1]);
-                                return new org.mwg.internal.task.CF_IfThen(org.mwg.internal.task.CoreTask.condFromScript(script), taskThen, script);
+                                return new org.mwg.internal.task.CF_DoWhile(params[1], org.mwg.internal.task.CoreTask.condFromScript(params[0]), params[0]);
                             }
                         });
-                        registry.put(org.mwg.internal.task.CoreActionNames.IF_THEN_ELSE, function (params, contextTasks) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.WHILE_DO).setParams(org.mwg.Type.STRING, org.mwg.Type.TASK).setDescription("Similar to doWhile(Task, ConditionalExpression) but the task is at least executed once.").setFactory(function (params) {
                             {
-                                if (params.length != 3) {
-                                    throw new Error(org.mwg.internal.task.CoreActionNames.IF_THEN_ELSE + " action three two parameters. Received:" + params.length);
+                                return new org.mwg.internal.task.CF_WhileDo(org.mwg.internal.task.CoreTask.condFromScript(params[0]), params[1], params[0]);
+                            }
+                        });
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.ISOLATE).setParams(org.mwg.Type.TASK).setDescription("Executes a given sub task in an isolated environment.").setFactory(function (params) {
+                            {
+                                return new org.mwg.internal.task.CF_Isolate(params[0]);
+                            }
+                        });
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.ATOMIC).setParams(org.mwg.Type.TASK, org.mwg.Type.STRING_ARRAY).setDescription("Atomically execute a subTask while blocking on nodes present in named variables").setFactory(function (params) {
+                            {
+                                var varargs = params[1];
+                                if (varargs != null) {
+                                    return new ((_a = org.mwg.internal.task.CF_Atomic).bind.apply(_a, [void 0, params[0]].concat(varargs)))();
                                 }
-                                var script = params[0];
-                                var taskThen = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[1]);
-                                var taskElse = org.mwg.internal.task.CoreTask.getOrCreate(contextTasks, params[2]);
-                                return new org.mwg.internal.task.CF_IfThenElse(org.mwg.internal.task.CoreTask.condFromScript(script), taskThen, taskElse, script);
+                                else {
+                                    return new org.mwg.internal.task.CF_Atomic(params[0]);
+                                }
+                            }
+                            var _a;
+                        });
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.IF_THEN).setParams(org.mwg.Type.STRING, org.mwg.Type.TASK).setDescription("Executes a sub task if a given condition is evaluated to true.").setFactory(function (params) {
+                            {
+                                return new org.mwg.internal.task.CF_IfThen(org.mwg.internal.task.CoreTask.condFromScript(params[0]), params[1], params[0]);
+                            }
+                        });
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.IF_THEN_ELSE).setParams(org.mwg.Type.STRING, org.mwg.Type.TASK, org.mwg.Type.TASK).setDescription("Executes a sub task if a given condition is evaluated to true, another one otherwise.").setFactory(function (params) {
+                            {
+                                return new org.mwg.internal.task.CF_IfThenElse(org.mwg.internal.task.CoreTask.condFromScript(params[0]), params[1], params[2], params[0]);
                             }
                         });
                     };
@@ -16476,15 +16428,15 @@ var org;
                 return VerboseHook;
             }());
             utility.VerboseHook = VerboseHook;
-            var VerbosePlugin = (function (_super) {
-                __extends(VerbosePlugin, _super);
+            var VerbosePlugin = (function () {
                 function VerbosePlugin() {
-                    var _this = _super.call(this) || this;
-                    _this.declareTaskHook(new org.mwg.utility.VerboseHook());
-                    return _this;
                 }
+                VerbosePlugin.prototype.start = function (graph) {
+                    graph.addGlobalTaskHook(new org.mwg.utility.VerboseHook());
+                };
+                VerbosePlugin.prototype.stop = function () { };
                 return VerbosePlugin;
-            }(org.mwg.base.BasePlugin));
+            }());
             utility.VerbosePlugin = VerbosePlugin;
         })(utility = mwg.utility || (mwg.utility = {}));
     })(mwg = org.mwg || (org.mwg = {}));

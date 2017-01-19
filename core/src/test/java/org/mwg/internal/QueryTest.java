@@ -63,11 +63,6 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
-    public String typeName(Node node) {
-        return null;
-    }
-
-    @Override
     public int typeCode(Node node) {
         return 0;
     }
@@ -196,13 +191,28 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
-    public TaskActionFactory taskAction(String name) {
+    public TaskHook[] taskHooks() {
+        return new TaskHook[0];
+    }
+
+    @Override
+    public ActionRegistry actionRegistry() {
         return null;
     }
 
     @Override
-    public TaskHook[] taskHooks() {
-        return new TaskHook[0];
+    public NodeRegistry nodeRegistry() {
+        return null;
+    }
+
+    @Override
+    public Graph setMemoryFactory(MemoryFactory factory) {
+        return null;
+    }
+
+    @Override
+    public Graph addGlobalTaskHook(TaskHook taskHook) {
+        return null;
     }
 
     @Override

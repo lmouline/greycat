@@ -17,13 +17,14 @@ public class Type {
     public static final byte DOUBLE_ARRAY = 6;
     public static final byte LONG_ARRAY = 7;
     public static final byte INT_ARRAY = 8;
+    public static final byte STRING_ARRAY = 9;
 
-    public static final byte LONG_TO_LONG_MAP = 9;
-    public static final byte LONG_TO_LONG_ARRAY_MAP = 10;
-    public static final byte STRING_TO_INT_MAP = 11;
+    public static final byte LONG_TO_LONG_MAP = 10;
+    public static final byte LONG_TO_LONG_ARRAY_MAP = 11;
+    public static final byte STRING_TO_INT_MAP = 12;
 
-    public static final byte RELATION = 12;
-    public static final byte RELATION_INDEXED = 13;
+    public static final byte RELATION = 13;
+    public static final byte RELATION_INDEXED = 14;
 
     public static final byte DMATRIX = 15;
     public static final byte LMATRIX = 16;
@@ -31,6 +32,9 @@ public class Type {
     public static final byte EGRAPH = 17;
     public static final byte ENODE = 18;
     public static final byte ERELATION = 19;
+
+    public static final byte TASK = 20;
+    public static final byte TASK_ARRAY = 21;
 
     /**
      * Convert a type that represent a byte to a readable String representation
@@ -58,6 +62,8 @@ public class Type {
                 return "LONG_ARRAY";
             case Type.INT_ARRAY:
                 return "INT_ARRAY";
+            case Type.STRING_ARRAY:
+                return "STRING_ARRAY";
             /* Maps */
             case Type.LONG_TO_LONG_MAP:
                 return "LONG_TO_LONG_MAP";
@@ -79,6 +85,10 @@ public class Type {
                 return "ENODE";
             case Type.ERELATION:
                 return "ERELATION";
+            case Type.TASK:
+                return "TASK";
+            case Type.TASK_ARRAY:
+                return "TASK_ARRAY";
             default:
                 return "unknown";
         }
@@ -102,6 +112,8 @@ public class Type {
                 return Type.LONG_ARRAY;
             case "INT_ARRAY":
                 return Type.INT_ARRAY;
+            case "STRING_ARRAY":
+                return Type.STRING_ARRAY;
             case "LONG_TO_LONG_MAP":
                 return Type.LONG_TO_LONG_MAP;
             case "LONG_TO_LONG_ARRAY_MAP":
@@ -122,6 +134,10 @@ public class Type {
                 return Type.ENODE;
             case "ERELATION":
                 return Type.ERELATION;
+            case "TASK":
+                return Type.TASK;
+            case "TASK_ARRAY":
+                return Type.TASK_ARRAY;
             default:
                 return -1;
         }

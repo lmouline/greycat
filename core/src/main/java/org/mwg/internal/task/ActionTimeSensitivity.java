@@ -9,10 +9,10 @@ import org.mwg.task.TaskResult;
 
 class ActionTimeSensitivity implements Action {
 
-    private final long _delta;
-    private final long _offset;
+    private final String _delta;
+    private final String _offset;
 
-    ActionTimeSensitivity(final long delta, final long offset) {
+    ActionTimeSensitivity(final String delta, final String offset) {
         this._delta = delta;
         this._offset = offset;
     }
@@ -20,11 +20,13 @@ class ActionTimeSensitivity implements Action {
     @Override
     public void eval(final TaskContext ctx) {
         final TaskResult previousResult = ctx.result();
+        final long parsedDelta = Long.parseLong(ctx.template(_delta));
+        final long parsedOffset = Long.parseLong(ctx.template(_offset));
         for (int i = 0; i < previousResult.size(); i++) {
             Object loopObj = previousResult.get(i);
             if (loopObj instanceof BaseNode) {
                 Node loopNode = (Node) loopObj;
-                loopNode.setTimeSensitivity(_delta, _offset);
+                loopNode.setTimeSensitivity(parsedDelta, parsedOffset);
             }
         }
         ctx.continueTask();

@@ -3,8 +3,7 @@ package org.mwg.internal.task;
 import org.mwg.*;
 import org.mwg.base.BaseTaskResult;
 import org.mwg.internal.CoreConstants;
-import org.mwg.plugin.Job;
-import org.mwg.plugin.SchedulerAffinity;
+import org.mwg.plugin.*;
 import org.mwg.struct.Buffer;
 import org.mwg.task.*;
 
@@ -296,6 +295,7 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     private void sub_parse(final CoreTaskReader reader, final Graph graph, final Map<Integer, Task> contextTasks) {
+        final ActionRegistry registry = graph.actionRegistry();
         int cursor = 0;
         int flatSize = reader.available();
         int previous = 0;
@@ -393,11 +393,7 @@ public class CoreTask implements org.mwg.task.Task {
                     if (graph == null) {
                         then(new ActionNamed(actionName, params));
                     } else {
-                        final TaskActionFactory factory = graph.taskAction(actionName);
-                        if (factory == null) {
-                            throw new RuntimeException("Parse error, unknown action |" + actionName + "|");
-                        }
-                        then(factory.create(params, contextTasks));
+                        then(loadAction(registry, actionName, params, contextTasks));
                     }
                     actionName = null;
                     previous = cursor + 1;
@@ -471,18 +467,92 @@ public class CoreTask implements org.mwg.task.Task {
                     if (graph == null) {
                         then(new ActionNamed(actionName, params));
                     } else {
-                        final TaskActionFactory factory = graph.taskAction(actionName);
-                        if (factory == null) {
-                            throw new RuntimeException("Parse error, unknown action : " + actionName);
-                        }
                         final String[] singleParam = new String[1];
                         singleParam[0] = getName;
-                        then(factory.create(singleParam, contextTasks));
+                        then(loadAction(registry, actionName, singleParam, contextTasks));
                     }
                 } else {
                     then(new ActionTraverseOrAttribute(false, true, getName.trim()));//default action
                 }
+            }
+        }
+    }
 
+    static Action loadAction(final ActionRegistry registry, final String actionName, final String[] params, final Map<Integer, Task> contextTasks) {
+        final ActionDeclaration declaration = registry.declaration(actionName);
+        if (declaration == null || declaration.factory() == null) {
+            final String[] varargs = params;
+            return new ActionNamed(actionName, varargs);
+        } else {
+            final ActionFactory factory = declaration.factory();
+            final byte[] declaredParams = declaration.params();
+            if (declaredParams != null && params != null) {
+                int resultSize = declaredParams.length;
+                Object[] parsedParams = new Object[resultSize];
+                int varargs_index = 0;
+                for (int i = 0; i < params.length; i++) {
+                    byte correspondingType;
+                    if (i < resultSize) {
+                        correspondingType = declaredParams[i];
+                    } else {
+                        correspondingType = declaredParams[resultSize - 1]; // varargs
+                    }
+                    switch (correspondingType) {
+                        case Type.STRING:
+                            parsedParams[i] = params[i];
+                            break;
+                        case Type.LONG:
+                            parsedParams[i] = Long.parseLong(params[i]);
+                            break;
+                        case Type.DOUBLE:
+                            parsedParams[i] = Double.parseDouble(params[i]);
+                            break;
+                        case Type.TASK:
+                            parsedParams[i] = getOrCreate(contextTasks, params[i]);
+                            break;
+                        case Type.STRING_ARRAY:
+                            if (varargs_index == 0) {
+                                final String[] parsedSubParam = new String[resultSize - i];
+                                parsedSubParam[varargs_index] = params[i];
+                                varargs_index = 1;
+                                parsedParams[i] = parsedSubParam;
+                            } else {
+                                ((String[]) parsedParams[resultSize - 1])[varargs_index] = params[i];
+                                varargs_index++;
+                            }
+                            break;
+                        case Type.DOUBLE_ARRAY:
+                            if (varargs_index == 0) {
+                                final double[] parsedSubParam = new double[resultSize - i];
+                                parsedSubParam[varargs_index] = Double.parseDouble(params[i]);
+                                varargs_index = 1;
+                                parsedParams[i] = parsedSubParam;
+                            } else {
+                                ((double[]) parsedParams[resultSize - 1])[varargs_index] = Double.parseDouble(params[i]);
+                                varargs_index++;
+                            }
+                            break;
+                        case Type.TASK_ARRAY:
+                            if (varargs_index == 0) {
+                                final Task[] parsedSubParamTask = new Task[resultSize - i];
+                                parsedSubParamTask[varargs_index] = getOrCreate(contextTasks, params[i]);
+                                varargs_index = 1;
+                                parsedParams[i] = parsedSubParamTask;
+                            } else {
+                                ((Task[]) parsedParams[resultSize - 1])[varargs_index] = getOrCreate(contextTasks, params[i]);
+                                varargs_index++;
+                            }
+                            break;
+                    }
+                }
+                if (resultSize > params.length) {
+                    for (int i = params.length; i < resultSize; i++) {
+                        parsedParams[i] = null;
+                    }
+                }
+                return factory.create(parsedParams);
+            } else {
+                return factory.create(new Object[0]);
             }
         }
     }
@@ -514,426 +584,411 @@ public class CoreTask implements org.mwg.task.Task {
         }
     }
 
-    public static void fillDefault(Map<String, TaskActionFactory> registry) {
-        registry.put(CoreActionNames.TRAVEL_IN_WORLD, new TaskActionFactory() { //DefaultTask
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.TRAVEL_IN_WORLD + " action need one parameter");
-                }
-                return new ActionTravelInWorld(params[0]);
-            }
-        });
-        registry.put(CoreActionNames.TRAVEL_IN_TIME, new TaskActionFactory() { //DefaultTask
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.TRAVEL_IN_TIME + " action need one parameter");
-                }
-                return new ActionTravelInTime(params[0]);
-            }
-        });
-        registry.put(CoreActionNames.DEFINE_AS_GLOBAL_VAR, new TaskActionFactory() { //DefaultTask
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.DEFINE_AS_GLOBAL_VAR + " action need one parameter");
-                }
-                return new ActionDefineAsVar(params[0], true);
-            }
-        });
-        registry.put(CoreActionNames.DEFINE_AS_VAR, new TaskActionFactory() { //DefaultTask
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.DEFINE_AS_VAR + " action need one parameter");
-                }
-                return new ActionDefineAsVar(params[0], false);
-            }
-        });
-        registry.put(CoreActionNames.DECLARE_GLOBAL_VAR, new TaskActionFactory() { //DefaultTask
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.DECLARE_GLOBAL_VAR + " action need one parameter");
-                }
-                return new ActionDeclareVar(true, params[0]);
-            }
-        });
-        registry.put(CoreActionNames.DECLARE_VAR, new TaskActionFactory() { //DefaultTask
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.DECLARE_VAR + " action need one parameter");
-                }
-                return new ActionDeclareVar(false, params[0]);
-            }
-        });
-        registry.put(CoreActionNames.READ_VAR, new TaskActionFactory() { //DefaultTask
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.READ_VAR + " action need one parameter");
-                }
-                return new ActionReadVar(params[0]);
-            }
-        });
-        registry.put(CoreActionNames.SET_AS_VAR, new TaskActionFactory() { //DefaultTask
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.SET_AS_VAR + " action need one parameter");
-                }
-                return new ActionSetAsVar(params[0]);
-            }
-        });
-        registry.put(CoreActionNames.ADD_TO_VAR, new TaskActionFactory() { //DefaultTask
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException("addToVar action need one parameter");
-                }
-                return new ActionAddToVar(params[0]);
-            }
-        });
-        registry.put(CoreActionNames.TRAVERSE, new TaskActionFactory() { //DefaultTask
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length < 1) {
-                    throw new RuntimeException(CoreActionNames.TRAVERSE + " action needs at least one parameter. Received:" + params.length);
-                }
-                final String getName = params[0];
-                final String[] getParams = new String[params.length - 1];
-                if (params.length > 1) {
-                    System.arraycopy(params, 1, getParams, 0, params.length - 1);
-                }
-                return new ActionTraverseOrAttribute(false, false, getName, getParams);
-            }
-        });
-        registry.put(CoreActionNames.ATTRIBUTE, new TaskActionFactory() { //DefaultTask
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length == 0) {
-                    throw new RuntimeException(CoreActionNames.ATTRIBUTE + " action need one parameter");
-                }
-                final String getName = params[0];
-                final String[] getParams = new String[params.length - 1];
-                if (params.length > 1) {
-                    System.arraycopy(params, 1, getParams, 0, params.length - 1);
-                }
-                return new ActionTraverseOrAttribute(true, false, getName, getParams);
-            }
-        });
-
-        registry.put(CoreActionNames.EXECUTE_EXPRESSION, new TaskActionFactory() { //DefaultTask
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.EXECUTE_EXPRESSION + " action need one parameter");
-                }
-                return new ActionExecuteExpression(params[0]);
-            }
-        });
-        registry.put(CoreActionNames.READ_GLOBAL_INDEX, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length < 1) {
-                    throw new RuntimeException(CoreActionNames.READ_GLOBAL_INDEX + " action needs at least one parameter. Received:" + params.length);
-                }
-                final String indexName = params[0];
-                final String[] queryParams = new String[params.length - 1];
-                if (params.length > 1) {
-                    System.arraycopy(params, 1, queryParams, 0, params.length - 1);
-                }
-                return new ActionReadGlobalIndex(indexName, queryParams);
-            }
-        });
-        registry.put(CoreActionNames.WITH, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 2) {
-                    throw new RuntimeException(CoreActionNames.WITH + " action needs two parameters. Received:" + params.length);
-                }
-                return new ActionWith(params[0], params[1]);
-            }
-        });
-        registry.put(CoreActionNames.WITHOUT, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 2) {
-                    throw new RuntimeException(CoreActionNames.WITHOUT + " action needs two parameters. Received:" + params.length);
-                }
-                return new ActionWithout(params[0], params[1]);
-            }
-        });
-        registry.put(CoreActionNames.SCRIPT, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.SCRIPT + " action needs one parameter. Received:" + params.length);
-                }
-                return new ActionScript(params[0], false);
-            }
-        });
-        registry.put(CoreActionNames.ASYNC_SCRIPT, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.SCRIPT + " action needs one parameter. Received:" + params.length);
-                }
-                return new ActionScript(params[0], true);
-            }
-        });
-        registry.put(CoreActionNames.SELECT, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.SELECT + " action needs one parameter. Received:" + params.length);
-                }
-                return new ActionSelect(params[0], null);
-            }
-        });
-        registry.put(CoreActionNames.CREATE_NODE, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params != null && params.length != 0) {
-                    throw new RuntimeException(CoreActionNames.CREATE_NODE + " action needs zero parameter. Received:" + params.length);
-                }
-                return new ActionCreateNode(null);
-            }
-        });
-        registry.put(CoreActionNames.CREATE_TYPED_NODE, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.CREATE_TYPED_NODE + " action needs one parameter. Received:" + params.length);
-                }
-                return new ActionCreateNode(params[0]);
-            }
-        });
-        registry.put(CoreActionNames.PRINT, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.PRINT + " action needs one parameter. Received:" + params.length);
-                }
-                return new ActionPrint(params[0], false);
-            }
-        });
-        registry.put(CoreActionNames.PRINTLN, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params == null || params.length != 1) {
-                    if (params != null) {
-                        throw new RuntimeException(CoreActionNames.PRINTLN + " action needs one parameter. Received:" + params.length);
-                    } else {
-                        throw new RuntimeException(CoreActionNames.PRINTLN + " action needs one parameter. Received: 0");
+    public static void fillDefault(ActionRegistry registry) {
+        registry.declaration(CoreActionNames.TRAVEL_IN_WORLD)
+                .setParams(Type.STRING)
+                .setDescription("Sets the task context to a particular world. Every nodes in current result will be switch ot new world.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionTravelInWorld((String) params[0]);
                     }
-                }
-                return new ActionPrint(params[0], true);
-            }
-        });
-        registry.put(CoreActionNames.SET_ATTRIBUTE, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 3) {
-                    throw new RuntimeException(CoreActionNames.SET_ATTRIBUTE + " action needs three parameters. Received:" + params.length);
-                }
-                return new ActionSetAttribute(params[0], Type.typeFromName(params[1]), params[2], false);
-            }
-        });
-        registry.put(CoreActionNames.TIME_SENSITIVITY, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 2) {
-                    throw new RuntimeException(CoreActionNames.TIME_SENSITIVITY + " action needs two parameters. Received:" + params.length);
-                }
-                return new ActionTimeSensitivity(Long.parseLong(params[0]), Long.parseLong(params[1]));
-            }
-        });
-        registry.put(CoreActionNames.FORCE_ATTRIBUTE, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 3) {
-                    throw new RuntimeException(CoreActionNames.FORCE_ATTRIBUTE + " action needs three parameters. Received:" + params.length);
-                }
-                return new ActionSetAttribute(params[0], Type.typeFromName(params[1]), params[2], true);
-            }
-        });
-        registry.put(CoreActionNames.ATTRIBUTES, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 0) {
-                    throw new RuntimeException(CoreActionNames.ATTRIBUTES + " action needs no parameter. Received:" + params.length);
-                }
-                return new ActionAttributes((byte) -1);
-            }
-        });
-        registry.put(CoreActionNames.ATTRIBUTES_WITH_TYPE, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.ATTRIBUTES_WITH_TYPE + " action needs one parameter. Received:" + params.length);
-                }
-                return new ActionAttributes(Type.typeFromName(params[0]));
-            }
-        });
-        registry.put(CoreActionNames.LOOP, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 3) {
-                    throw new RuntimeException(CoreActionNames.LOOP + " action needs three parameters. Received:" + params.length);
-                }
-                final Task subTask = getOrCreate(contextTasks, params[2]);
-                return new CF_Loop(params[0], params[1], subTask);
-            }
-        });
-        registry.put(CoreActionNames.LOOP_PAR, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 3) {
-                    throw new RuntimeException(CoreActionNames.LOOP_PAR + " action needs three parameters. Received:" + params.length);
-                }
-                final Task subTask = getOrCreate(contextTasks, params[2]);
-                return new CF_LoopPar(params[0], params[1], subTask);
-            }
-        });
-        registry.put(CoreActionNames.FOR_EACH, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.FOR_EACH + " action needs one parameters. Received:" + params.length);
-                }
-                final Task subTask = getOrCreate(contextTasks, params[0]);
-                return new CF_ForEach(subTask);
-            }
-        });
-        registry.put(CoreActionNames.FOR_EACH_PAR, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.FOR_EACH_PAR + " action needs one parameters. Received:" + params.length);
-                }
-                final Task subTask = getOrCreate(contextTasks, params[0]);
-                return new CF_ForEachPar(subTask);
-            }
-        });
-        registry.put(CoreActionNames.FLAT, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 0) {
-                    throw new RuntimeException(CoreActionNames.FLAT + " action needs one parameters. Received:" + params.length);
-                }
-                return new ActionFlat();
-            }
-        });
-        registry.put(CoreActionNames.MAP, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.MAP + " action needs one parameters. Received:" + params.length);
-                }
-                final Task subTask = getOrCreate(contextTasks, params[0]);
-                return new CF_Map(subTask);
-            }
-        });
-        registry.put(CoreActionNames.MAP_PAR, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.MAP_PAR + " action needs one parameters. Received:" + params.length);
-                }
-                final Task subTask = getOrCreate(contextTasks, params[0]);
-                return new CF_MapPar(subTask);
-            }
-        });
-        registry.put(CoreActionNames.PIPE, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                final Task[] subTasks = new Task[params.length];
-                for (int i = 0; i < params.length; i++) {
-                    subTasks[i] = getOrCreate(contextTasks, params[i]);
-                }
-                return new CF_Pipe(subTasks);
-            }
-        });
-        registry.put(CoreActionNames.PIPE_PAR, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                final Task[] subTasks = new Task[params.length];
-                for (int i = 0; i < params.length; i++) {
-                    subTasks[i] = getOrCreate(contextTasks, params[i]);
-                }
-                return new CF_PipePar(subTasks);
-            }
-        });
-        registry.put(CoreActionNames.DO_WHILE, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 2) {
-                    throw new RuntimeException(CoreActionNames.DO_WHILE + " action needs two parameters. Received:" + params.length);
-                }
-                final Task subTask = getOrCreate(contextTasks, params[0]);
-                final String script = params[1];
-                return new CF_DoWhile(subTask, condFromScript(script), script);
-            }
-        });
-        registry.put(CoreActionNames.WHILE_DO, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 2) {
-                    throw new RuntimeException(CoreActionNames.DO_WHILE + " action needs two parameters. Received:" + params.length);
-                }
-                final String script = params[0];
-                final Task subTask = getOrCreate(contextTasks, params[1]);
-                return new CF_WhileDo(condFromScript(script), subTask, script);
-            }
-        });
-        registry.put(CoreActionNames.ISOLATE, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 1) {
-                    throw new RuntimeException(CoreActionNames.ISOLATE + " action needs three parameters. Received:" + params.length);
-                }
-                final Task subTask = getOrCreate(contextTasks, params[0]);
-                return new CF_Isolate(subTask);
-            }
-        });
-        registry.put(CoreActionNames.ATOMIC, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length < 1) {
-                    throw new RuntimeException(CoreActionNames.ATOMIC + " action needs at least one parameters. Received:" + params.length);
-                }
-                final Task subTask = getOrCreate(contextTasks, params[0]);
-                String[] variables = new String[params.length - 1];
-                System.arraycopy(params, 1, variables, 0, params.length - 1);
-                return new CF_Atomic(subTask, variables);
-            }
-        });
-        registry.put(CoreActionNames.IF_THEN, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 2) {
-                    throw new RuntimeException(CoreActionNames.IF_THEN + " action needs two parameters. Received:" + params.length);
-                }
-                final String script = params[0];
-                final Task taskThen = getOrCreate(contextTasks, params[1]);
-                return new CF_IfThen(condFromScript(script), taskThen, script);
-            }
-        });
-        registry.put(CoreActionNames.IF_THEN_ELSE, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params, Map<Integer, Task> contextTasks) {
-                if (params.length != 3) {
-                    throw new RuntimeException(CoreActionNames.IF_THEN_ELSE + " action three two parameters. Received:" + params.length);
-                }
-                final String script = params[0];
-                final Task taskThen = getOrCreate(contextTasks, params[1]);
-                final Task taskElse = getOrCreate(contextTasks, params[2]);
-                return new CF_IfThenElse(condFromScript(script), taskThen, taskElse, script);
-            }
-        });
+                });
+        registry.declaration(CoreActionNames.TRAVEL_IN_TIME)
+                .setParams(Type.STRING)
+                .setDescription("Switches the time of the task context, i.e. travels the task context in time. Every nodes in current result will be switch ot new time.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionTravelInTime((String) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.DEFINE_AS_GLOBAL_VAR)
+                .setParams(Type.STRING)
+                .setDescription("Stores the task result as a global variable in the task context and starts a new scope (for sub tasks).")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionDefineAsVar((String) params[0], true);
+                    }
+                });
+        registry.declaration(CoreActionNames.DEFINE_AS_VAR)
+                .setParams(Type.STRING)
+                .setDescription("Stores the task result as a local variable in the task context and starts a new scope (for sub tasks).")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionDefineAsVar((String) params[0], false);
+                    }
+                });
+        registry.declaration(CoreActionNames.DECLARE_GLOBAL_VAR)
+                .setParams(Type.STRING)
+                .setDescription("Stores the task result as a global variable in the task context and starts a new scope (for sub tasks).")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionDeclareVar(true, (String) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.DECLARE_VAR)
+                .setParams(Type.STRING)
+                .setDescription("Stores the task result as a local variable in the task context and starts a new scope (for sub tasks).")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionDeclareVar(false, (String) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.READ_VAR)
+                .setParams(Type.STRING)
+                .setDescription("Retrieves a stored variable. To reach a particular index, a default array notation can be used. Therefore, A[B] will be interpreted as: extract value stored at index B from the variable A.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionReadVar((String) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.SET_AS_VAR)
+                .setParams(Type.STRING)
+                .setDescription("Stores the current task result into a named variable without starting a new scope.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionSetAsVar((String) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.ADD_TO_VAR)
+                .setParams(Type.STRING)
+                .setDescription("Adds the current task result to the named variable.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionAddToVar((String) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.TRAVERSE)
+                .setParams(Type.STRING, Type.STRING_ARRAY)
+                .setDescription("Retrieves any nodes contained in a relations of the nodes present in the current result.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        final String[] varrags = (String[]) params[1];
+                        if (varrags != null) {
+                            return new ActionTraverseOrAttribute(false, false, (String) params[0], varrags);
+                        } else {
+                            return new ActionTraverseOrAttribute(false, false, (String) params[0]);
+                        }
+                    }
+                });
+        registry.declaration(CoreActionNames.ATTRIBUTE)
+                .setParams(Type.STRING)
+                .setDescription("Retrieves any attribute(s) contained in the nodes present in the current result.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionTraverseOrAttribute(false, false, (String) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.WITH)
+                .setParams(Type.STRING, Type.STRING)
+                .setDescription("Filters the previous result to keep nodes, which named attribute has a specific value.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionWith((String) params[0], (String) params[1]);
+                    }
+                });
+        registry.declaration(CoreActionNames.WITHOUT)
+                .setParams(Type.STRING, Type.STRING)
+                .setDescription("Filters the previous result to keep nodes, which named attribute does not have a given value.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionWithout((String) params[0], (String) params[1]);
+                    }
+                });
+        registry.declaration(CoreActionNames.SCRIPT)
+                .setParams(Type.STRING)
+                .setDescription("Execute a JS script; Current context is automatically injected as ctx variables. Other variables are directly reachable as JS vars. Execution is synchronous")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionScript((String) params[0], false);
+                    }
+                });
+        registry.declaration(CoreActionNames.ASYNC_SCRIPT)
+                .setParams(Type.STRING)
+                .setDescription("Execute a JS script; Current context is automatically injected as ctx variables. Other variables are directly reachable as JS vars. Execution is asynchronous and script must contains a ctx.continueTask(); or ctx.continueWith(newResult).")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionScript((String) params[0], true);
+                    }
+                });
+        registry.declaration(CoreActionNames.CREATE_NODE)
+                .setParams()
+                .setDescription("Creates a new node in the [world,time] of the current context.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionCreateNode(null);
+                    }
+                });
+        registry.declaration(CoreActionNames.CREATE_TYPED_NODE)
+                .setParams(Type.STRING)
+                .setDescription("Creates a new typed node in the [world,time] of the current context.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionCreateNode((String) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.PRINT)
+                .setParams(Type.STRING)
+                .setDescription("Prints the action in a human readable format (without line breaks).")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionPrint((String) params[0], false);
+                    }
+                });
+        registry.declaration(CoreActionNames.PRINTLN)
+                .setParams(Type.STRING)
+                .setDescription("Prints the action in a human readable format (with line breaks).")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionPrint((String) params[0], true);
+                    }
+                });
+        registry.declaration(CoreActionNames.ATTRIBUTES)
+                .setParams()
+                .setDescription("Retrieves all attribute names of nodes present in the previous task result.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionAttributes(null);
+                    }
+                });
+        registry.declaration(CoreActionNames.ATTRIBUTES)
+                .setParams()
+                .setDescription("Retrieves all attribute names of nodes present in the previous task result.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionAttributes(null);
+                    }
+                });
+        registry.declaration(CoreActionNames.ATTRIBUTES_WITH_TYPE)
+                .setParams(Type.STRING)
+                .setDescription("Gets and filters all attribute names of nodes present in the previous result.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionAttributes((String) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.FLAT)
+                .setParams()
+                .setDescription("Flat a TaskResult containing TaskResult to a flat TaskResult.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionFlat();
+                    }
+                });
+        registry.declaration(CoreActionNames.EXECUTE_EXPRESSION)
+                .setParams(Type.STRING)
+                .setDescription("Executes an expression on all nodes given from the previous step.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionExecuteExpression((String) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.READ_GLOBAL_INDEX)
+                .setParams(Type.STRING, Type.STRING_ARRAY)
+                .setDescription("Retrieves indexed nodes matching the query.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        final String[] varargs = (String[]) params[1];
+                        if (varargs != null) {
+                            return new ActionReadGlobalIndex((String) params[0], varargs);
+                        } else {
+                            return new ActionReadGlobalIndex((String) params[0]);
+                        }
+                    }
+                });
+        registry.declaration(CoreActionNames.SELECT)
+                .setParams(Type.STRING)
+                .setDescription("Use a JS script to filter nodes. The task context is inject in the variable 'context'. The current node is inject in the variable 'node'.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionSelect((String) params[0], null);
+                    }
+                });
+        registry.declaration(CoreActionNames.TIME_SENSITIVITY)
+                .setParams(Type.STRING, Type.STRING)
+                .setDescription("Adjust the time sensitivity of nodes present in current result.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionTimeSensitivity((String) params[0], (String) params[1]);
+                    }
+                });
+        registry.declaration(CoreActionNames.SET_ATTRIBUTE)
+                .setParams(Type.STRING, Type.STRING, Type.STRING)
+                .setDescription("Sets the value of an attribute for all nodes present in the current result. If value is similar to the previously stored one, nodes will remain unmodified.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionSetAttribute((String) params[0], (String) params[1], (String) params[2], true);
+                    }
+                });
+        registry.declaration(CoreActionNames.FORCE_ATTRIBUTE)
+                .setParams(Type.STRING, Type.STRING, Type.STRING)
+                .setDescription("Forces the value of an attribute for all nodes present in the current result. If value is similar to the previously stored one, nodes will still be modified and their timeline will be affected.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionSetAttribute((String) params[0], (String) params[1], (String) params[2], true);
+                    }
+                });
+        registry.declaration(CoreActionNames.LOOP)
+                .setParams(Type.STRING, Type.STRING, Type.TASK)
+                .setDescription("Executes a task in a range.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new CF_Loop((String) params[0], (String) params[1], (Task) params[2]);
+                    }
+                });
+        registry.declaration(CoreActionNames.LOOP_PAR)
+                .setParams(Type.STRING, Type.STRING, Type.TASK)
+                .setDescription("Parallel version of loop(String, String, Task). Executes a task in a range. Steps can be executed in parallel. Creates as many threads as elements in the collection.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new CF_LoopPar((String) params[0], (String) params[1], (Task) params[2]);
+                    }
+                });
+        registry.declaration(CoreActionNames.FOR_EACH)
+                .setParams(Type.TASK)
+                .setDescription("Iterates through a collection and calls the sub task for each element.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new CF_ForEach((Task) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.FOR_EACH_PAR)
+                .setParams(Type.TASK)
+                .setDescription("Parallel version of forEach(Task). All sub tasks can be called in parallel. Creates as many threads as elements in the collection.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new CF_ForEachPar((Task) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.MAP)
+                .setParams(Type.TASK)
+                .setDescription("Iterates through a collection and calls the sub task for each element in parallel and then aggregates all results in an array of array manner.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new CF_Map((Task) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.MAP_PAR)
+                .setParams(Type.TASK)
+                .setDescription("Parallel version of map(Task). Iterates through a collection and calls the sub task for each element in parallel and then aggregates all results in an array of array manner.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new CF_MapPar((Task) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.PIPE)
+                .setParams(Type.TASK_ARRAY)
+                .setDescription("Executes and waits for a number of given sub tasks. The result of these sub tasks is immediately enqueued and available in the next sub task in a array of array manner.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        final Task[] varargs = (Task[]) params[0];
+                        return new CF_Pipe(varargs);
+                    }
+                });
+        registry.declaration(CoreActionNames.PIPE_PAR)
+                .setParams(Type.TASK_ARRAY)
+                .setDescription("Parallel version of pipe(Tasks...). Executes and waits a number of given sub tasks. The result of these sub tasks is immediately enqueued and available in the next sub task in a array of array manner.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        final Task[] varargs = (Task[]) params[0];
+                        return new CF_PipePar(varargs);
+                    }
+                });
+        registry.declaration(CoreActionNames.DO_WHILE)
+                .setParams(Type.STRING, Type.TASK)
+                .setDescription("Executes a give task until a given condition evaluates to true.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new CF_DoWhile((Task) params[1], condFromScript((String) params[0]), (String) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.WHILE_DO)
+                .setParams(Type.STRING, Type.TASK)
+                .setDescription("Similar to doWhile(Task, ConditionalExpression) but the task is at least executed once.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new CF_WhileDo(condFromScript((String) params[0]), (Task) params[1], (String) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.ISOLATE)
+                .setParams(Type.TASK)
+                .setDescription("Executes a given sub task in an isolated environment.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new CF_Isolate((Task) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.ATOMIC)
+                .setParams(Type.TASK, Type.STRING_ARRAY)
+                .setDescription("Atomically execute a subTask while blocking on nodes present in named variables")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        final String[] varargs = (String[]) params[1];
+                        if (varargs != null) {
+                            return new CF_Atomic((Task) params[0], varargs);
+                        } else {
+                            return new CF_Atomic((Task) params[0]);
+                        }
+                    }
+                });
+        registry.declaration(CoreActionNames.IF_THEN)
+                .setParams(Type.STRING, Type.TASK)
+                .setDescription("Executes a sub task if a given condition is evaluated to true.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new CF_IfThen(condFromScript((String) params[0]), (Task) params[1], (String) params[0]);
+                    }
+                });
+        registry.declaration(CoreActionNames.IF_THEN_ELSE)
+                .setParams(Type.STRING, Type.TASK, Type.TASK)
+                .setDescription("Executes a sub task if a given condition is evaluated to true, another one otherwise.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new CF_IfThenElse(condFromScript((String) params[0]), (Task) params[1], (Task) params[2], (String) params[0]);
+                    }
+                });
     }
 
     private static Task getOrCreate(Map<Integer, Task> contextTasks, String param) {
@@ -1081,7 +1136,7 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public final Task timeSensitivity(final long delta, final long offset) {
+    public final Task timeSensitivity(final String delta, final String offset) {
         return then(CoreActions.timeSensitivity(delta, offset));
     }
 

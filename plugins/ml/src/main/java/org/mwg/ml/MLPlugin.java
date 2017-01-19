@@ -2,6 +2,7 @@ package org.mwg.ml;
 
 import org.mwg.Graph;
 import org.mwg.Node;
+import org.mwg.Type;
 import org.mwg.ml.algorithm.anomalydetector.InterquartileRangeOutlierDetectorNode;
 import org.mwg.ml.algorithm.profiling.GaussianMixtureNode;
 import org.mwg.ml.algorithm.profiling.GaussianNode;
@@ -14,6 +15,7 @@ import org.mwg.ml.algorithm.regression.actions.SetContinuous;
 import org.mwg.ml.neuralnet.FlatNeuralNode;
 import org.mwg.ml.neuralnet.NeuralNode;
 import org.mwg.ml.neuralnet.NeuralNodeEmpty;
+import org.mwg.plugin.ActionFactory;
 import org.mwg.plugin.NodeFactory;
 import org.mwg.structure.StructurePlugin;
 import org.mwg.task.Action;
@@ -21,103 +23,99 @@ import org.mwg.task.TaskActionFactory;
 
 public class MLPlugin extends StructurePlugin {
 
-    public MLPlugin() {
-        super();
-        //PolynomialNode
-        declareNodeType(PolynomialNode.NAME, new NodeFactory() {
-            @Override
-            public Node create(long world, long time, long id, Graph graph) {
-                return new PolynomialNode(world, time, id, graph);
-            }
-        });
+    @Override
+    public void start(Graph graph) {
+        super.start(graph);
+        graph.actionRegistry()
+                .declaration(ReadContinuous.NAME)
+                .setParams(Type.STRING)
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ReadContinuous((String) params[0]);
+                    }
+                });
+        graph.actionRegistry()
+                .declaration(SetContinuous.NAME)
+                .setParams(Type.STRING, Type.STRING)
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new SetContinuous((String) params[0], (String) params[1]);
+                    }
+                });
 
-        declareNodeType(FlatNeuralNode.NAME, new NodeFactory() {
-            @Override
-            public Node create(long world, long time, long id, Graph graph) {
-                return new FlatNeuralNode(world, time, id, graph);
-            }
-        });
-
-        //A simple Gaussian Node
-        declareNodeType(GaussianNode.NAME, new NodeFactory() {
-            @Override
-            public Node create(long world, long time, long id, Graph graph) {
-                return new GaussianNode(world, time, id, graph);
-            }
-        });
-
-
-        //GaussianSlot
-        declareNodeType(GaussianSlotNode.NAME, new NodeFactory() {
-            @Override
-            public Node create(long world, long time, long id, Graph graph) {
-                return new GaussianSlotNode(world, time, id, graph);
-            }
-        });
-        //GaussianMixtureNode
-        declareNodeType(GaussianMixtureNode.NAME, new NodeFactory() {
-            @Override
-            public Node create(long world, long time, long id, Graph graph) {
-                return new GaussianMixtureNode(world, time, id, graph);
-            }
-        });
-        //LiveRegressionNode
-        declareNodeType(LiveLinearRegressionNode.NAME, new NodeFactory() {
-            @Override
-            public Node create(long world, long time, long id, Graph graph) {
-                return new LiveLinearRegressionNode(world, time, id, graph);
-            }
-        });
-        //InterquartileRangeOutlierDetectorNode
-        declareNodeType(InterquartileRangeOutlierDetectorNode.NAME, new NodeFactory() {
-            @Override
-            public Node create(long world, long time, long id, Graph graph) {
-                return new InterquartileRangeOutlierDetectorNode(world, time, id, graph);
-            }
-        });
-
-        declareNodeType(NeuralNode.NAME, new NodeFactory() {
-            @Override
-            public Node create(long world, long time, long id, Graph graph) {
-                return new NeuralNode(world, time, id, graph);
-            }
-        });
-
-        declareNodeType(NeuralNodeEmpty.NAME, new NodeFactory() {
-            @Override
-            public Node create(long world, long time, long id, Graph graph) {
-                return new NeuralNode(world, time, id, graph);
-            }
-        });
-
-//        declareNodeType(GaussianTreeNode.NAME, new NodeFactory() {
-//            @Override
-//            public Node create(long world, long time, long id, Graph graph) {
-//                return new GaussianTreeNode(world, time, id, graph);
-//            }
-//        });
-
-
-        declareTaskAction(SetContinuous.NAME, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params,java.util.Map<java.lang.Integer,org.mwg.task.Task> counters) {
-                if(params.length!=2){
-                    throw new RuntimeException("set continuous requires 2 parameters");
-                }
-                return new SetContinuous(params[0],params[1]);
-            }
-        });
-
-        declareTaskAction(ReadContinuous.NAME, new TaskActionFactory() {
-            @Override
-            public Action create(String[] params,java.util.Map<java.lang.Integer,org.mwg.task.Task> counters) {
-                if(params.length!=1){
-                    throw new RuntimeException("set continuous takes 1 parameter");
-                }
-                return new ReadContinuous(params[0]);
-            }
-        });
-
-
+        graph.nodeRegistry()
+                .declaration(PolynomialNode.NAME)
+                .setFactory(new NodeFactory() {
+                    @Override
+                    public Node create(long world, long time, long id, Graph graph) {
+                        return new PolynomialNode(world, time, id, graph);
+                    }
+                });
+        graph.nodeRegistry()
+                .declaration(FlatNeuralNode.NAME)
+                .setFactory(new NodeFactory() {
+                    @Override
+                    public Node create(long world, long time, long id, Graph graph) {
+                        return new FlatNeuralNode(world, time, id, graph);
+                    }
+                });
+        graph.nodeRegistry()
+                .declaration(GaussianNode.NAME)
+                .setFactory(new NodeFactory() {
+                    @Override
+                    public Node create(long world, long time, long id, Graph graph) {
+                        return new GaussianNode(world, time, id, graph);
+                    }
+                });
+        graph.nodeRegistry()
+                .declaration(GaussianSlotNode.NAME)
+                .setFactory(new NodeFactory() {
+                    @Override
+                    public Node create(long world, long time, long id, Graph graph) {
+                        return new GaussianSlotNode(world, time, id, graph);
+                    }
+                });
+        graph.nodeRegistry()
+                .declaration(GaussianMixtureNode.NAME)
+                .setFactory(new NodeFactory() {
+                    @Override
+                    public Node create(long world, long time, long id, Graph graph) {
+                        return new GaussianMixtureNode(world, time, id, graph);
+                    }
+                });
+        graph.nodeRegistry()
+                .declaration(LiveLinearRegressionNode.NAME)
+                .setFactory(new NodeFactory() {
+                    @Override
+                    public Node create(long world, long time, long id, Graph graph) {
+                        return new LiveLinearRegressionNode(world, time, id, graph);
+                    }
+                });
+        graph.nodeRegistry()
+                .declaration(InterquartileRangeOutlierDetectorNode.NAME)
+                .setFactory(new NodeFactory() {
+                    @Override
+                    public Node create(long world, long time, long id, Graph graph) {
+                        return new InterquartileRangeOutlierDetectorNode(world, time, id, graph);
+                    }
+                });
+        graph.nodeRegistry()
+                .declaration(NeuralNode.NAME)
+                .setFactory(new NodeFactory() {
+                    @Override
+                    public Node create(long world, long time, long id, Graph graph) {
+                        return new NeuralNode(world, time, id, graph);
+                    }
+                });
+        graph.nodeRegistry()
+                .declaration(NeuralNodeEmpty.NAME)
+                .setFactory(new NodeFactory() {
+                    @Override
+                    public Node create(long world, long time, long id, Graph graph) {
+                        return new NeuralNodeEmpty(world, time, id, graph);
+                    }
+                });
     }
 }

@@ -1,7 +1,6 @@
 package org.mwg.internal.task;
 
 import org.mwg.task.Action;
-import org.mwg.task.TaskActionFactory;
 import org.mwg.task.TaskContext;
 
 class ActionNamed implements Action {
@@ -16,11 +15,14 @@ class ActionNamed implements Action {
 
     @Override
     public void eval(final TaskContext ctx) {
+        /*
         final TaskActionFactory actionFactory = ctx.graph().taskAction(this._name);
         if (actionFactory == null) {
             throw new RuntimeException("Unknown task action: " + _params);
         }
         final Action subAction = actionFactory.create(ctx.templates(_params), null);
+        */
+        final Action subAction = CoreTask.loadAction(ctx.graph().actionRegistry(), _name, _params, null);
         if (subAction != null) {
             subAction.eval(ctx);
         } else {

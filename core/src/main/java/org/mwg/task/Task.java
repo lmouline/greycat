@@ -51,7 +51,7 @@ public interface Task {
     Task loop(String from, String to, Task subTask);
 
     /**
-     * Parallel version of {@link #loop(String, String, Task)}l.
+     * Parallel version of {@link #loop(String, String, Task)}.
      * Executes a task in a range. Steps can be executed in parallel. Creates as many threads as elements in the collection.
      *
      * @param from    range start
@@ -295,7 +295,7 @@ public interface Task {
 
     Task setAttribute(String name, byte type, String value);
 
-    Task timeSensitivity(long delta, long offset);
+    Task timeSensitivity(String delta, String offset);
 
     Task forceAttribute(String name, byte type, String value);
 

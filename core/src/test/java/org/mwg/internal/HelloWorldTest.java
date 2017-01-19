@@ -92,7 +92,7 @@ public class HelloWorldTest {
                                 node1.removeFromRelation("children", node2);
                                 Assert.assertTrue(HashHelper.equals("{\"world\":0,\"time\":0,\"id\":2,\"children\":[]}", node1.toString()));
 
-                                //destroy the node explicitly selectWithout waiting GC
+                                //destroy the node explicitly without waiting GC
                                 node0.free();
                                 node1.free();
                                 node2.free();

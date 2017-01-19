@@ -39,14 +39,6 @@ public interface Resolver {
     /**
      * Retrieve the string representation of the type of node passed as parameter
      *
-     * @param node The node which typename has to be returned
-     * @return the type name
-     */
-    String typeName(Node node);
-
-    /**
-     * Retrieve the string representation of the type of node passed as parameter
-     *
      * @param node The node to extract the type from
      * @return long encoded type
      */

@@ -15,10 +15,10 @@ class ActionSetAttribute implements Action {
     private final byte _propertyType;
     private final boolean _force;
 
-    ActionSetAttribute(final String name, final byte propertyType, final String value, final boolean force) {
+    ActionSetAttribute(final String name, final String propertyType, final String value, final boolean force) {
         this._name = name;
         this._value = value;
-        this._propertyType = propertyType;
+        this._propertyType = Type.typeFromName(propertyType);
         this._force = force;
     }
 

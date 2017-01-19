@@ -16,9 +16,6 @@ class ActionReadGlobalIndex implements Action {
         if (p_indexName == null) {
             throw new RuntimeException("indexName should not be null");
         }
-        if (p_query == null) {
-            throw new RuntimeException("query should not be null");
-        }
         _name = p_indexName;
         _params = p_query;
     }
@@ -30,7 +27,7 @@ class ActionReadGlobalIndex implements Action {
         ctx.graph().indexIfExists(ctx.world(), ctx.time(), name, new Callback<NodeIndex>() {
             @Override
             public void on(NodeIndex resolvedIndex) {
-                if(resolvedIndex != null){
+                if (resolvedIndex != null) {
                     resolvedIndex.find(new Callback<Node[]>() {
                         @Override
                         public void on(Node[] result) {
@@ -49,8 +46,8 @@ class ActionReadGlobalIndex implements Action {
     public void serialize(StringBuilder builder) {
         builder.append(CoreActionNames.READ_GLOBAL_INDEX);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_name, builder,true);
-        if(_params != null && _params.length > 0){
+        TaskHelper.serializeString(_name, builder, true);
+        if (_params != null && _params.length > 0) {
             builder.append(Constants.TASK_PARAM_SEP);
             TaskHelper.serializeStringParams(_params, builder);
         }

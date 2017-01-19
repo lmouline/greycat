@@ -24,9 +24,10 @@ public class TrampolineCallback {
                 .newBuilder()
                 .withScheduler(new TrampolineScheduler())
                 .withMemorySize(8000000);
+        /*
         if (isOffHeap) {
             builder.withPlugin(new OffHeapMemoryPlugin());
-        }
+        }*/
         final Graph g = builder.build();
 
         final JsonObject benchmark = new JsonObject();

@@ -227,18 +227,18 @@ public interface Graph {
     void freeNodes(Node[] nodes);
 
     /**
-     * Retrieve a task action factory, resolved by its name
-     *
-     * @param name of the task action
-     * @return the resolved task action or null if not configured
-     */
-    TaskActionFactory taskAction(String name);
-
-    /**
      * Retrieve the default task hook factory
      *
      * @return the current default task hook factory
      */
     TaskHook[] taskHooks();
+
+    ActionRegistry actionRegistry();
+
+    NodeRegistry nodeRegistry();
+
+    Graph setMemoryFactory(MemoryFactory factory);
+
+    Graph addGlobalTaskHook(TaskHook taskHook);
 
 }

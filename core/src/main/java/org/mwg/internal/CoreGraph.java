@@ -4,18 +4,17 @@ import org.mwg.*;
 import org.mwg.base.BaseNode;
 import org.mwg.chunk.*;
 import org.mwg.internal.memory.HeapMemoryFactory;
+import org.mwg.internal.task.CoreActionRegistry;
 import org.mwg.internal.task.CoreTask;
 import org.mwg.internal.utility.CoreDeferCounter;
 import org.mwg.internal.utility.CoreDeferCounterSync;
 import org.mwg.plugin.*;
 import org.mwg.struct.*;
-import org.mwg.task.TaskActionFactory;
 import org.mwg.task.TaskHook;
 import org.mwg.utility.Base64;
 import org.mwg.utility.HashHelper;
 import org.mwg.utility.KeyHelper;
 
-import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CoreGraph implements org.mwg.Graph {
@@ -25,84 +24,42 @@ public class CoreGraph implements org.mwg.Graph {
     private final Scheduler _scheduler;
     private final Resolver _resolver;
 
-    private final java.util.Map<Integer, NodeFactory> _nodeTypes;
-    private final java.util.Map<String, TaskActionFactory> _taskActions;
     private final AtomicBoolean _isConnected;
     private final AtomicBoolean _lock;
     private final Plugin[] _plugins;
-    private final MemoryFactory _memoryFactory;
-    private final TaskHook[] _taskHooks;
 
     private Short _prefix = null;
     private GenChunk _nodeKeyCalculator = null;
     private GenChunk _worldKeyCalculator = null;
 
+    private final ActionRegistry _actionRegistry;
+    private final NodeRegistry _nodeRegistry;
+    private MemoryFactory _memoryFactory;
+    private TaskHook[] _taskHooks;
+
     public CoreGraph(final Storage p_storage, long memorySize, Scheduler p_scheduler, Plugin[] p_plugins) {
+        //initiate the two registry
+        _actionRegistry = new CoreActionRegistry();
+        _nodeRegistry = new CoreNodeRegistry();
+        _memoryFactory = new HeapMemoryFactory();
         final Graph selfPointer = this;
         //First round, find relevant
-        MemoryFactory memoryFactory = null;
-        ResolverFactory resolverFactory = null;
         TaskHook[] temp_hooks = new TaskHook[0];
         if (p_plugins != null) {
             for (int i = 0; i < p_plugins.length; i++) {
                 final Plugin loopPlugin = p_plugins[i];
-                final MemoryFactory loopMF = loopPlugin.memoryFactory();
-                final TaskHook[] loopHF = loopPlugin.taskHooks();
-                if (loopMF != null) {
-                    memoryFactory = loopMF;
-                }
-                final ResolverFactory loopRF = loopPlugin.resolverFactory();
-                if (loopRF != null) {
-                    resolverFactory = loopRF;
-                }
-                if (loopHF != null) {
-                    TaskHook[] temp_temp_hooks = new TaskHook[temp_hooks.length + loopHF.length];
-                    System.arraycopy(temp_hooks, 0, temp_temp_hooks, 0, temp_hooks.length);
-                    System.arraycopy(loopHF, 0, temp_temp_hooks, temp_hooks.length, loopHF.length);
-                    temp_hooks = temp_temp_hooks;
-                }
+                loopPlugin.start(this);
             }
-        }
-        if (memoryFactory == null) {
-            memoryFactory = new HeapMemoryFactory();
-        }
-        if (resolverFactory == null) {
-            resolverFactory = new ResolverFactory() {
-                @Override
-                public Resolver newResolver(Storage storage, ChunkSpace space) {
-                    return new MWGResolver(storage, space, selfPointer);
-                }
-            };
         }
         //Second round, initialize all mandatory elements
         _taskHooks = temp_hooks;
         _storage = p_storage;
-        _memoryFactory = memoryFactory;
-        _space = memoryFactory.newSpace(memorySize, selfPointer);
-        _resolver = resolverFactory.newResolver(_storage, _space);
+        _space = _memoryFactory.newSpace(memorySize, selfPointer);
+        _resolver = new MWGResolver(_storage, _space, selfPointer);
         _scheduler = p_scheduler;
         //Third round, initialize all taskActions and nodeTypes
-        _taskActions = new HashMap<String, TaskActionFactory>();
-        CoreTask.fillDefault(this._taskActions);
-        this._nodeTypes = new HashMap<Integer, NodeFactory>();
-        if (p_plugins != null) {
-            for (int i = 0; i < p_plugins.length; i++) {
-                final Plugin loopPlugin = p_plugins[i];
-                final String[] plugin_names = loopPlugin.nodeTypes();
-                for (int j = 0; j < plugin_names.length; j++) {
-                    final String plugin_name = plugin_names[j];
-                    final int hashPlugin = _resolver.stringToHash(plugin_name, false);
-                    this._nodeTypes.put(hashPlugin, loopPlugin.nodeType(plugin_name));
-                }
-                final String[] task_names = loopPlugin.taskActionTypes();
-                for (int j = 0; j < task_names.length; j++) {
-                    final String task_name = task_names[j];
-                    _taskActions.put(task_name, loopPlugin.taskActionType(task_name));
-                }
-            }
-        }
-        //init default node types
-        this._nodeTypes.put(_resolver.stringToHash(CoreNodeIndex.NAME, false), new NodeFactory() {
+        CoreTask.fillDefault(this._actionRegistry);
+        this._nodeRegistry.declaration(CoreNodeIndex.NAME).setFactory(new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
                 return new CoreNodeIndex(world, time, id, graph);
@@ -173,7 +130,7 @@ public class CoreGraph implements org.mwg.Graph {
             this._space.mark(casted._index_worldOrder);
             //Create the cloned node
             final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.get(casted._index_worldOrder);
-            final NodeFactory resolvedFactory = factoryByCode((int)worldOrderChunk.extra());
+            final NodeFactory resolvedFactory = factoryByCode((int) worldOrderChunk.extra());
             BaseNode newNode;
             if (resolvedFactory == null) {
                 newNode = new BaseNode(origin.world(), origin.time(), origin.id(), this);
@@ -194,25 +151,49 @@ public class CoreGraph implements org.mwg.Graph {
     }
 
     public NodeFactory factoryByCode(int code) {
-        if (_nodeTypes != null && code != -1) {
-            return _nodeTypes.get(code);
-        } else {
-            return null;
+        NodeDeclaration declaration = _nodeRegistry.declarationByHash(code);
+        if (declaration != null) {
+            return declaration.factory();
         }
-    }
-
-    @Override
-    public TaskActionFactory taskAction(String taskActionName) {
-        if (this._taskActions != null && taskActionName != null) {
-            return _taskActions.get(taskActionName);
-        } else {
-            return null;
-        }
+        return null;
     }
 
     @Override
     public TaskHook[] taskHooks() {
         return _taskHooks;
+    }
+
+    @Override
+    public ActionRegistry actionRegistry() {
+        return _actionRegistry;
+    }
+
+    @Override
+    public NodeRegistry nodeRegistry() {
+        return _nodeRegistry;
+    }
+
+    @Override
+    public final Graph setMemoryFactory(MemoryFactory factory) {
+        if (_isConnected.get()) {
+            throw new RuntimeException("Memory factory cannot be changed after connection !");
+        }
+        _memoryFactory = factory;
+        return this;
+    }
+
+    @Override
+    public final synchronized Graph addGlobalTaskHook(TaskHook newTaskHook) {
+        if (_taskHooks == null) {
+            _taskHooks = new TaskHook[1];
+            _taskHooks[0] = newTaskHook;
+        } else {
+            TaskHook[] temp_temp_hooks = new TaskHook[_taskHooks.length + 1];
+            System.arraycopy(_taskHooks, 0, temp_temp_hooks, 0, _taskHooks.length);
+            temp_temp_hooks[_taskHooks.length] = newTaskHook;
+            _taskHooks = temp_temp_hooks;
+        }
+        return this;
     }
 
     @Override
@@ -322,18 +303,6 @@ public class CoreGraph implements org.mwg.Graph {
                                             }
                                             //init the resolver
                                             selfPointer._resolver.init();
-                                            if (_plugins != null) {
-                                                for (int i = 0; i < _plugins.length; i++) {
-                                                    String[] nodeTypes = _plugins[i].nodeTypes();
-                                                    if (nodeTypes != null) {
-                                                        for (int j = 0; j < nodeTypes.length; j++) {
-                                                            String pluginName = nodeTypes[j];
-                                                            //make sure that all plugins are present to the graph dictionary
-                                                            selfPointer._resolver.stringToHash(pluginName, true);
-                                                        }
-                                                    }
-                                                }
-                                            }
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                             noError = false;
@@ -349,7 +318,6 @@ public class CoreGraph implements org.mwg.Graph {
                                             callback.on(false);
                                         }
                                     }
-
                                 }
                             });
                         }

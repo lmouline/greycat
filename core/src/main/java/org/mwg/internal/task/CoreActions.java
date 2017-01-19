@@ -1,9 +1,6 @@
 package org.mwg.internal.task;
 
-import org.mwg.Graph;
 import org.mwg.Type;
-import org.mwg.base.BaseTaskResult;
-import org.mwg.internal.task.math.MathConditional;
 import org.mwg.task.*;
 
 public class CoreActions {
@@ -137,10 +134,10 @@ public class CoreActions {
      * @return the action to chain
      */
     public static Action setAttribute(final String name, final byte type, final String value) {
-        return new ActionSetAttribute(name, type, value, false);
+        return new ActionSetAttribute(name, Type.typeName(type), value, false);
     }
 
-    public static Action timeSensitivity(final long delta, final long offset) {
+    public static Action timeSensitivity(final String delta, final String offset) {
         return new ActionTimeSensitivity(delta, offset);
     }
 
@@ -154,7 +151,7 @@ public class CoreActions {
      * @return the action to chain
      */
     public static Action forceAttribute(String name, byte type, String value) {
-        return new ActionSetAttribute(name, type, value, true);
+        return new ActionSetAttribute(name, Type.typeName(type), value, true);
     }
 
     /**
@@ -174,7 +171,7 @@ public class CoreActions {
      * @return the action to chain
      */
     public static Action attributes() {
-        return new ActionAttributes((byte) -1);
+        return new ActionAttributes(null);
     }
 
     /**
@@ -184,7 +181,7 @@ public class CoreActions {
      * @return the action to chain
      */
     public static Action attributesWithTypes(byte filterType) {
-        return new ActionAttributes(filterType);
+        return new ActionAttributes(Type.typeName(filterType));
     }
 
     /**
