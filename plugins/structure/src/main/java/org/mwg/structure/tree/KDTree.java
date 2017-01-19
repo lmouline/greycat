@@ -3,6 +3,8 @@ package org.mwg.structure.tree;
 import org.mwg.Graph;
 import org.mwg.Type;
 import org.mwg.base.BaseNode;
+import org.mwg.plugin.NodeState;
+import org.mwg.struct.EGraph;
 import org.mwg.struct.ENode;
 import org.mwg.structure.Tree;
 import org.mwg.structure.TreeResult;
@@ -19,6 +21,7 @@ public class KDTree extends BaseNode implements Tree {
     public static String DISTANCE = "distance";
     private static String EGRAPH = "egraph";
     private static String STRATEGY = "strategy";
+    private static String DIM = "dim";
 
     public static int DISTANCE_DEF = Distances.DEFAULT;
 
@@ -53,7 +56,7 @@ public class KDTree extends BaseNode implements Tree {
         return false;
     }
 
-    private static boolean subInsert(final ENode node, final double[] key, final long value, final int strategyType, final int lev, final double[] resolution, final ENode root, final Distance distance) {
+    private static boolean internalInsert(final ENode node, final double[] key, final long value, final int strategyType, final int lev, final double[] resolution) {
 
         double[] pKey = (double[]) node.getAt(E_KEY);
         if (pKey == null) {
@@ -100,7 +103,7 @@ public class KDTree extends BaseNode implements Tree {
                 }
             }
 
-            if (subInsert(child, key, value, strategyType, (lev + 1) % key.length, resolution, root, distance)) {
+            if (internalInsert(child, key, value, strategyType, (lev + 1) % key.length, resolution)) {
                 //update parents reccursively
                 if (strategyType == IndexStrategy.PROFILE) {
                     node.setAt(E_SUBTREE_VALUES, Type.LONG, (long) node.getAt(E_SUBTREE_VALUES) + value);
@@ -138,12 +141,51 @@ public class KDTree extends BaseNode implements Tree {
 
     @Override
     public void insert(double[] keys, long value) {
+        final NodeState state = unphasedState();
+        int strategy = IndexStrategy.INDEX;
 
+        double[] resolution = (double[]) state.getFromKey(RESOLUTION);
+        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
+
+        synchronized (state) { // assumption that NodeState == StateChunk
+            ENode root = graph.root();
+            if (root == null) {
+                root = graph.newNode();
+                state.setFromKey(STRATEGY, Type.INT, strategy);
+                graph.setRoot(root);
+                state.setFromKey(DIM, Type.INT, keys.length);
+            } else {
+                if (keys.length != (int) state.getFromKey(DIM)) {
+                    throw new RuntimeException("Keys should always be the same length");
+                }
+            }
+            internalInsert(root, keys, value, strategy, 0, resolution);
+        }
     }
+
 
     @Override
     public void profile(double[] keys, long occurrence) {
+        final NodeState state = unphasedState();
+        int strategy = IndexStrategy.PROFILE;
 
+        double[] resolution = (double[]) state.getFromKey(RESOLUTION);
+        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
+        
+        synchronized (state) { // assumption that NodeState == StateChunk
+            ENode root = graph.root();
+            if (root == null) {
+                root = graph.newNode();
+                state.setFromKey(STRATEGY, Type.INT, strategy);
+                graph.setRoot(root);
+                state.setFromKey(DIM, Type.INT, keys.length);
+            } else {
+                if (keys.length != (int) state.getFromKey(DIM)) {
+                    throw new RuntimeException("Keys should always be the same length");
+                }
+            }
+            internalInsert(root, keys, occurrence, strategy, 0, resolution);
+        }
     }
 
     @Override
