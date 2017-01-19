@@ -10472,6 +10472,39 @@ var org;
                     return ActionFlipVar;
                 }());
                 task_1.ActionFlipVar = ActionFlipVar;
+                var ActionGlobalIndex = (function () {
+                    function ActionGlobalIndex(p_indexName) {
+                        if (p_indexName == null) {
+                            throw new Error("indexName should not be null");
+                        }
+                        this._name = p_indexName;
+                    }
+                    ActionGlobalIndex.prototype.eval = function (ctx) {
+                        var name = ctx.template(this._name);
+                        ctx.graph().indexIfExists(ctx.world(), ctx.time(), name, function (resolvedIndex) {
+                            {
+                                if (resolvedIndex != null) {
+                                    ctx.continueWith(ctx.wrap(resolvedIndex));
+                                }
+                                else {
+                                    ctx.continueWith(ctx.newResult());
+                                }
+                            }
+                        });
+                    };
+                    ActionGlobalIndex.prototype.serialize = function (builder) {
+                        builder.append(org.mwg.internal.task.CoreActionNames.GLOBAL_INDEX);
+                        builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
+                        builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
+                    };
+                    ActionGlobalIndex.prototype.toString = function () {
+                        var res = new java.lang.StringBuilder();
+                        this.serialize(res);
+                        return res.toString();
+                    };
+                    return ActionGlobalIndex;
+                }());
+                task_1.ActionGlobalIndex = ActionGlobalIndex;
                 var ActionIndexNames = (function () {
                     function ActionIndexNames() {
                     }
@@ -12084,62 +12117,6 @@ var org;
                     return CF_IfThenElse;
                 }(org.mwg.internal.task.CF_Action));
                 task_1.CF_IfThenElse = CF_IfThenElse;
-                var CF_Isolate = (function (_super) {
-                    __extends(CF_Isolate, _super);
-                    function CF_Isolate(p_subTask) {
-                        var _this = _super.call(this) || this;
-                        if (p_subTask == null) {
-                            throw new Error("subTask should not be null");
-                        }
-                        _this._subTask = p_subTask;
-                        return _this;
-                    }
-                    CF_Isolate.prototype.eval = function (ctx) {
-                        var previous = ctx.result();
-                        this._subTask.executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
-                            {
-                                var exceptionDuringTask = null;
-                                if (result != null) {
-                                    if (result.output() != null) {
-                                        ctx.append(result.output());
-                                    }
-                                    if (result.exception() != null) {
-                                        exceptionDuringTask = result.exception();
-                                    }
-                                    result.free();
-                                }
-                                if (exceptionDuringTask != null) {
-                                    ctx.endTask(previous, exceptionDuringTask);
-                                }
-                                else {
-                                    ctx.continueWith(previous);
-                                }
-                            }
-                        });
-                    };
-                    CF_Isolate.prototype.children = function () {
-                        var children_tasks = new Array(1);
-                        children_tasks[0] = this._subTask;
-                        return children_tasks;
-                    };
-                    CF_Isolate.prototype.cf_serialize = function (builder, dagIDS) {
-                        builder.append(org.mwg.internal.task.CoreActionNames.ISOLATE);
-                        builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
-                        var castedAction = this._subTask;
-                        var castedActionHash = castedAction.hashCode();
-                        if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
-                            builder.append(org.mwg.Constants.SUB_TASK_OPEN);
-                            castedAction.serialize(builder, dagIDS);
-                            builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
-                        }
-                        else {
-                            builder.append("" + dagIDS.get(castedActionHash));
-                        }
-                        builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
-                    };
-                    return CF_Isolate;
-                }(org.mwg.internal.task.CF_Action));
-                task_1.CF_Isolate = CF_Isolate;
                 var CF_Loop = (function (_super) {
                     __extends(CF_Loop, _super);
                     function CF_Loop(p_lower, p_upper, p_subTask) {
@@ -12670,6 +12647,79 @@ var org;
                     return CF_PipePar;
                 }(org.mwg.internal.task.CF_Action));
                 task_1.CF_PipePar = CF_PipePar;
+                var CF_PipeTo = (function (_super) {
+                    __extends(CF_PipeTo, _super);
+                    function CF_PipeTo(p_subTask) {
+                        var p_targets = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            p_targets[_i - 1] = arguments[_i];
+                        }
+                        var _this = _super.call(this) || this;
+                        if (p_subTask == null) {
+                            throw new Error("subTask should not be null");
+                        }
+                        _this._subTask = p_subTask;
+                        _this._targets = p_targets;
+                        return _this;
+                    }
+                    CF_PipeTo.prototype.eval = function (ctx) {
+                        var _this = this;
+                        var previous = ctx.result();
+                        this._subTask.executeFrom(ctx, previous, org.mwg.plugin.SchedulerAffinity.SAME_THREAD, function (result) {
+                            {
+                                var exceptionDuringTask = null;
+                                if (result != null) {
+                                    if (result.output() != null) {
+                                        ctx.append(result.output());
+                                    }
+                                    if (result.exception() != null) {
+                                        exceptionDuringTask = result.exception();
+                                    }
+                                    if (_this._targets != null && _this._targets.length > 0) {
+                                        for (var i = 0; i < _this._targets.length; i++) {
+                                            ctx.setVariable(_this._targets[i], result);
+                                        }
+                                    }
+                                    else {
+                                        result.free();
+                                    }
+                                }
+                                if (exceptionDuringTask != null) {
+                                    ctx.endTask(previous, exceptionDuringTask);
+                                }
+                                else {
+                                    ctx.continueWith(previous);
+                                }
+                            }
+                        });
+                    };
+                    CF_PipeTo.prototype.children = function () {
+                        var children_tasks = new Array(1);
+                        children_tasks[0] = this._subTask;
+                        return children_tasks;
+                    };
+                    CF_PipeTo.prototype.cf_serialize = function (builder, dagIDS) {
+                        builder.append(org.mwg.internal.task.CoreActionNames.PIPE_TO);
+                        builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
+                        var castedAction = this._subTask;
+                        var castedActionHash = castedAction.hashCode();
+                        if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
+                            builder.append(org.mwg.Constants.SUB_TASK_OPEN);
+                            castedAction.serialize(builder, dagIDS);
+                            builder.append(org.mwg.Constants.SUB_TASK_CLOSE);
+                        }
+                        else {
+                            builder.append("" + dagIDS.get(castedActionHash));
+                        }
+                        if (this._targets != null && this._targets.length > 0) {
+                            builder.append(org.mwg.Constants.TASK_PARAM_SEP);
+                            org.mwg.internal.task.TaskHelper.serializeStringParams(this._targets, builder);
+                        }
+                        builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
+                    };
+                    return CF_PipeTo;
+                }(org.mwg.internal.task.CF_Action));
+                task_1.CF_PipeTo = CF_PipeTo;
                 var CF_ThenDo = (function () {
                     function CF_ThenDo(p_wrapped) {
                         if (p_wrapped == null) {
@@ -12835,6 +12885,7 @@ var org;
                 CoreActionNames.PRINT = "print";
                 CoreActionNames.PRINTLN = "println";
                 CoreActionNames.READ_GLOBAL_INDEX = "readGlobalIndex";
+                CoreActionNames.GLOBAL_INDEX = "globalIndex";
                 CoreActionNames.READ_VAR = "readVar";
                 CoreActionNames.REMOVE = "remove";
                 CoreActionNames.REMOVE_FROM_GLOBAL_INDEX = "removeFromGlobalIndex";
@@ -12861,9 +12912,9 @@ var org;
                 CoreActionNames.MAP_PAR = "mapPar";
                 CoreActionNames.PIPE = "pipe";
                 CoreActionNames.PIPE_PAR = "pipePar";
+                CoreActionNames.PIPE_TO = "pipeTo";
                 CoreActionNames.DO_WHILE = "doWhile";
                 CoreActionNames.WHILE_DO = "whileDo";
-                CoreActionNames.ISOLATE = "isolate";
                 CoreActionNames.IF_THEN = "ifThen";
                 CoreActionNames.IF_THEN_ELSE = "ifThenElse";
                 CoreActionNames.ATOMIC = "atomic";
@@ -12984,6 +13035,9 @@ var org;
                         }
                         return new ((_a = org.mwg.internal.task.ActionReadGlobalIndex).bind.apply(_a, [void 0, indexName].concat(query)))();
                         var _a;
+                    };
+                    CoreActions.globalIndex = function (indexName) {
+                        return new org.mwg.internal.task.ActionGlobalIndex(indexName);
                     };
                     CoreActions.addToGlobalIndex = function (name) {
                         var attributes = [];
@@ -13174,8 +13228,13 @@ var org;
                         return this.then(new ((_a = org.mwg.internal.task.CF_PipePar).bind.apply(_a, [void 0].concat(subTasks)))());
                         var _a;
                     };
-                    CoreTask.prototype.isolate = function (subTask) {
-                        return this.then(new org.mwg.internal.task.CF_Isolate(subTask));
+                    CoreTask.prototype.pipeTo = function (subTask) {
+                        var vars = [];
+                        for (var _i = 1; _i < arguments.length; _i++) {
+                            vars[_i - 1] = arguments[_i];
+                        }
+                        return this.then(new ((_a = org.mwg.internal.task.CF_PipeTo).bind.apply(_a, [void 0, subTask].concat(vars)))());
+                        var _a;
                     };
                     CoreTask.prototype.atomic = function (protectedTask) {
                         var variablesToLock = [];
@@ -13747,6 +13806,11 @@ var org;
                             }
                             var _a;
                         });
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.GLOBAL_INDEX).setParams(org.mwg.Type.STRING).setDescription("Retrieve global index node").setFactory(function (params) {
+                            {
+                                return new org.mwg.internal.task.ActionGlobalIndex(params[0]);
+                            }
+                        });
                         registry.declaration(org.mwg.internal.task.CoreActionNames.SELECT).setParams(org.mwg.Type.STRING).setDescription("Use a JS script to filter nodes. The task context is inject in the variable 'context'. The current node is inject in the variable 'node'.").setFactory(function (params) {
                             {
                                 return new org.mwg.internal.task.ActionSelect(params[0], null);
@@ -13821,10 +13885,17 @@ var org;
                                 return new org.mwg.internal.task.CF_WhileDo(org.mwg.internal.task.CoreTask.condFromScript(params[0]), params[1], params[0]);
                             }
                         });
-                        registry.declaration(org.mwg.internal.task.CoreActionNames.ISOLATE).setParams(org.mwg.Type.TASK).setDescription("Executes a given sub task in an isolated environment.").setFactory(function (params) {
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.PIPE_TO).setParams(org.mwg.Type.TASK, org.mwg.Type.STRING_ARRAY).setDescription("Executes a given sub task in an isolated environment and store result as variables.").setFactory(function (params) {
                             {
-                                return new org.mwg.internal.task.CF_Isolate(params[0]);
+                                var varargs = params[1];
+                                if (varargs != null) {
+                                    return new ((_a = org.mwg.internal.task.CF_PipeTo).bind.apply(_a, [void 0, params[0]].concat(varargs)))();
+                                }
+                                else {
+                                    return new org.mwg.internal.task.CF_PipeTo(params[0]);
+                                }
                             }
+                            var _a;
                         });
                         registry.declaration(org.mwg.internal.task.CoreActionNames.ATOMIC).setParams(org.mwg.Type.TASK, org.mwg.Type.STRING_ARRAY).setDescription("Atomically execute a subTask while blocking on nodes present in named variables").setFactory(function (params) {
                             {
@@ -14016,6 +14087,9 @@ var org;
                         }
                         return this.then((_a = org.mwg.internal.task.CoreActions).readGlobalIndex.apply(_a, [name].concat(query)));
                         var _a;
+                    };
+                    CoreTask.prototype.globalIndex = function (indexName) {
+                        return this.then(org.mwg.internal.task.CoreActions.globalIndex(indexName));
                     };
                     CoreTask.prototype.addToGlobalIndex = function (name) {
                         var attributes = [];
@@ -15749,8 +15823,13 @@ var org;
                     return (_a = org.mwg.task.Tasks.newTask()).pipePar.apply(_a, subTasks);
                     var _a;
                 };
-                Tasks.isolate = function (subTask) {
-                    return org.mwg.task.Tasks.newTask().isolate(subTask);
+                Tasks.pipeTo = function (subTask) {
+                    var vars = [];
+                    for (var _i = 1; _i < arguments.length; _i++) {
+                        vars[_i - 1] = arguments[_i];
+                    }
+                    return (_a = org.mwg.task.Tasks.newTask()).pipeTo.apply(_a, [subTask].concat(vars));
+                    var _a;
                 };
                 Tasks.atomic = function (protectedTask) {
                     var variablesToLock = [];

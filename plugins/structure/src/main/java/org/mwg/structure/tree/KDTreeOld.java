@@ -211,7 +211,7 @@ public class KDTreeOld extends BaseNode {
                         ctx.continueTask();
                     }
                 })
-                .isolate(
+                .pipeTo(
                         newTask()
                                 .ifThen(new ConditionalFunction() {
                                     @Override
@@ -220,7 +220,7 @@ public class KDTreeOld extends BaseNode {
                                     }
                                 }, newTask()
                                         .then(traverse("{{near}}"))
-                                        .isolate(reccursiveDown)))
+                                        .pipeTo(reccursiveDown)))
 
                 .thenDo(new ActionFunction() {
                     @Override
@@ -298,7 +298,7 @@ public class KDTreeOld extends BaseNode {
                         ctx.continueTask();
                     }
                 })
-                .isolate(
+                .pipeTo(
                         newTask()
                                 .ifThen(new ConditionalFunction() {
                                             @Override
@@ -308,7 +308,7 @@ public class KDTreeOld extends BaseNode {
                                         },
                                         newTask()
                                                 .then(traverse("{{far}}"))
-                                                .isolate(reccursiveDown)));
+                                                .pipeTo(reccursiveDown)));
 
 
         return reccursiveDown;
@@ -423,7 +423,7 @@ public class KDTreeOld extends BaseNode {
                         ctx.continueTask();
                     }
                 })
-                .isolate(
+                .pipeTo(
                         newTask()
                                 .ifThen(new ConditionalFunction() {
                                     @Override
@@ -432,7 +432,7 @@ public class KDTreeOld extends BaseNode {
                                     }
                                 }, newTask()
                                         .then(traverse("{{near}}"))
-                                        .isolate(reccursiveDown)))
+                                        .pipeTo(reccursiveDown)))
 
                 .thenDo(new ActionFunction() {
                     @Override
@@ -500,7 +500,7 @@ public class KDTreeOld extends BaseNode {
                         ctx.continueTask();
                     }
                 })
-                .isolate(
+                .pipeTo(
                         newTask()
                                 .ifThen(new ConditionalFunction() {
                                     @Override
@@ -509,7 +509,7 @@ public class KDTreeOld extends BaseNode {
                                     }
                                 }, newTask()
                                         .then(traverse("{{far}}"))
-                                        .isolate(reccursiveDown)));
+                                        .pipeTo(reccursiveDown)));
         return reccursiveDown;
     }
 

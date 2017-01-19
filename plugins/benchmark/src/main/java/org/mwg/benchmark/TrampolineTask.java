@@ -66,7 +66,7 @@ public class TrampolineTask {
                 });
                 //step read position
                 t.loop("0", "" + times,
-                        newTask().travelInTime("{{i}}").isolate(newTask().attribute("lat").attribute("long"))
+                        newTask().travelInTime("{{i}}").pipeTo(newTask().attribute("lat").attribute("long"))
                 );
                 t.thenDo(ctx -> {
                     long afterRead = System.currentTimeMillis();
@@ -79,7 +79,7 @@ public class TrampolineTask {
                 });
                 t.readVar("user");
                 t.loop("0", "" + times,
-                        newTask().travelInTime("{{i}}").traverse("position").isolate(newTask().attribute("lat").attribute("long"))
+                        newTask().travelInTime("{{i}}").traverse("position").pipeTo(newTask().attribute("lat").attribute("long"))
                 );
                 t.thenDo(ctx -> {
                     long afterReadRelation = System.currentTimeMillis();

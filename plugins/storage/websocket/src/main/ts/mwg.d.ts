@@ -1452,6 +1452,13 @@ declare module org {
                     serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
                 }
+                class ActionGlobalIndex implements org.mwg.task.Action {
+                    private _name;
+                    constructor(p_indexName: string);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
+                    toString(): string;
+                }
                 class ActionIndexNames implements org.mwg.task.Action {
                     eval(ctx: org.mwg.task.TaskContext): void;
                     serialize(builder: java.lang.StringBuilder): void;
@@ -1679,13 +1686,6 @@ declare module org {
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
                 }
-                class CF_Isolate extends org.mwg.internal.task.CF_Action {
-                    private _subTask;
-                    constructor(p_subTask: org.mwg.task.Task);
-                    eval(ctx: org.mwg.task.TaskContext): void;
-                    children(): org.mwg.task.Task[];
-                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                }
                 class CF_Loop extends org.mwg.internal.task.CF_Action {
                     private _lower;
                     private _upper;
@@ -1728,6 +1728,14 @@ declare module org {
                 class CF_PipePar extends org.mwg.internal.task.CF_Action {
                     private _subTasks;
                     constructor(...p_subTasks: org.mwg.task.Task[]);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    children(): org.mwg.task.Task[];
+                    cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
+                }
+                class CF_PipeTo extends org.mwg.internal.task.CF_Action {
+                    private _subTask;
+                    private _targets;
+                    constructor(p_subTask: org.mwg.task.Task, ...p_targets: string[]);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     children(): org.mwg.task.Task[];
                     cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
@@ -1785,6 +1793,7 @@ declare module org {
                     static PRINT: string;
                     static PRINTLN: string;
                     static READ_GLOBAL_INDEX: string;
+                    static GLOBAL_INDEX: string;
                     static READ_VAR: string;
                     static REMOVE: string;
                     static REMOVE_FROM_GLOBAL_INDEX: string;
@@ -1811,9 +1820,9 @@ declare module org {
                     static MAP_PAR: string;
                     static PIPE: string;
                     static PIPE_PAR: string;
+                    static PIPE_TO: string;
                     static DO_WHILE: string;
                     static WHILE_DO: string;
-                    static ISOLATE: string;
                     static IF_THEN: string;
                     static IF_THEN_ELSE: string;
                     static ATOMIC: string;
@@ -1849,6 +1858,7 @@ declare module org {
                     static traverse(name: string, ...params: string[]): org.mwg.task.Action;
                     static attribute(name: string, ...params: string[]): org.mwg.task.Action;
                     static readGlobalIndex(indexName: string, ...query: string[]): org.mwg.task.Action;
+                    static globalIndex(indexName: string): org.mwg.task.Action;
                     static addToGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Action;
                     static addToGlobalTimedIndex(name: string, ...attributes: string[]): org.mwg.task.Action;
                     static removeFromGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Action;
@@ -1897,7 +1907,7 @@ declare module org {
                     whileDoScript(condScript: string, task: org.mwg.task.Task): org.mwg.task.Task;
                     pipe(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                     pipePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
-                    isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                    pipeTo(subTask: org.mwg.task.Task, ...vars: string[]): org.mwg.task.Task;
                     atomic(protectedTask: org.mwg.task.Task, ...variablesToLock: string[]): org.mwg.task.Task;
                     execute(graph: org.mwg.Graph, callback: org.mwg.Callback<org.mwg.task.TaskResult<any>>): void;
                     executeSync(graph: org.mwg.Graph): org.mwg.task.TaskResult<any>;
@@ -1941,6 +1951,7 @@ declare module org {
                     traverse(name: string, ...params: string[]): org.mwg.task.Task;
                     attribute(name: string, ...params: string[]): org.mwg.task.Task;
                     readGlobalIndex(name: string, ...query: string[]): org.mwg.task.Task;
+                    globalIndex(indexName: string): org.mwg.task.Task;
                     addToGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
                     addToGlobalTimedIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
                     removeFromGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
@@ -2443,7 +2454,7 @@ declare module org {
                 whileDoScript(condScript: string, task: org.mwg.task.Task): org.mwg.task.Task;
                 pipe(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                 pipePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
-                isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                pipeTo(subTask: org.mwg.task.Task, ...vars: string[]): org.mwg.task.Task;
                 parse(input: string, graph: org.mwg.Graph): org.mwg.task.Task;
                 loadFromBuffer(buffer: org.mwg.struct.Buffer, graph: org.mwg.Graph): org.mwg.task.Task;
                 saveToBuffer(buffer: org.mwg.struct.Buffer): org.mwg.task.Task;
@@ -2477,6 +2488,7 @@ declare module org {
                 traverse(name: string, ...params: string[]): org.mwg.task.Task;
                 attribute(name: string, ...params: string[]): org.mwg.task.Task;
                 readGlobalIndex(indexName: string, ...query: string[]): org.mwg.task.Task;
+                globalIndex(indexName: string): org.mwg.task.Task;
                 addToGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
                 addToGlobalTimedIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
                 removeFromGlobalIndex(name: string, ...attributes: string[]): org.mwg.task.Task;
@@ -2591,7 +2603,7 @@ declare module org {
                 static whileDoScript(condScript: string, task: org.mwg.task.Task): org.mwg.task.Task;
                 static pipe(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
                 static pipePar(...subTasks: org.mwg.task.Task[]): org.mwg.task.Task;
-                static isolate(subTask: org.mwg.task.Task): org.mwg.task.Task;
+                static pipeTo(subTask: org.mwg.task.Task, ...vars: string[]): org.mwg.task.Task;
                 static atomic(protectedTask: org.mwg.task.Task, ...variablesToLock: string[]): org.mwg.task.Task;
                 static parse(flat: string, graph: org.mwg.Graph): org.mwg.task.Task;
             }
