@@ -2,7 +2,33 @@
 
 > Why a (task/traversal/promise) API ?
 
-Manipulating the Many World Graph through an asynchronous API allows to write blazing-fast code without compromising on high-level abstractions. Asynchronous code often leads to what is known as [CallBack Hell](http://callbackhell.com/), that damage both the readability of code and its reusability, due to nested callbacks. To overcome this, modern libraries and APIs provide Promises and/or Futures. The common goal of these approaches is to offer a way to chain reusable elements and to synchronize the program flow in order to avoid repeated and error-prone code. MWG comes with a powerful API to manipulate and traverse graphs, which hides low-level, asynchronous task primitives behind an expressive API. Graph processing can be resource-hungry. To make the most out of the available main memory, MWG provides an API to explicitly free the memory of a node. A `.free()` method can be called once a node is not used anymore.
+Manipulating the Many World Graph through an asynchronous API allows to write blazing-fast code without compromising on high-level abstractions. 
+However, asynchronous code often leads to what is known as [CallBack Hell](http://callbackhell.com/), that damage both the readability of code and its reusability, due to nested callbacks. 
+To overcome this, modern libraries and APIs provide Promises and/or Futures. 
+The common goal of these approaches is to offer a way to chain reusable elements and to synchronize the program flow in order to avoid repeated and error-prone code. 
+MWG comes with a powerful API to manipulate and traverse graphs, which hides low-level, asynchronous task primitives behind an expressive API. 
+
+# Taxonomy of a Task
+
+In a nutshell a task is describing a sequence of actions, which pipe their results from actions to actions.
+So in the java API this describes a flow such as: action1 -> action2 ...
+
+``` java
+Tasks.newTask()
+.then(action1(param))
+.then(action2(param1, param2))
+```
+
+For core actions (present without plugin) the then wrapper is optional.
+
+``` java
+Tasks.newTask()
+.coreAction1(param)
+.then(action2(param1, param2))
+```
+
+
+
 
 # Running example
 
