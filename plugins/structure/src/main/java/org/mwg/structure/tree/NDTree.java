@@ -24,14 +24,12 @@ public class NDTree extends BaseNode implements Tree {
     public static String RESOLUTION = "resolution";
     public static String BUFFER_SIZE = "buffer_size";
     public static String DISTANCE = "distance";
-    public static String DISTANCE_THRESHOLD = "distance_threshold";
 
     private static String EGRAPH = "egraph";
     private static String STRATEGY = "strategy";
 
     public static int BUFFER_SIZE_DEF = 20;
     public static int DISTANCE_DEF = Distances.DEFAULT;
-    //public static double DISTANCE_THRESHOLD_DEF = 1e-20;
 
     private static int E_TOTAL = 0;
     private static int E_SUBNODES = 1;
@@ -320,10 +318,7 @@ public class NDTree extends BaseNode implements Tree {
         super.set(DISTANCE, Type.INT, distanceType);
     }
 
-    @Override
-    public void setDistanceThreshold(double distanceThreshold) {
-        super.set(DISTANCE_THRESHOLD, Type.DOUBLE, distanceThreshold);
-    }
+
 
 
     @Override

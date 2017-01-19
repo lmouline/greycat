@@ -16,9 +16,7 @@ public class KDTree extends BaseNode implements Tree {
     public static String NAME = "KDTree";
 
     public static String RESOLUTION = "resolution";
-    public static String BUFFER_SIZE = "buffer_size";
     public static String DISTANCE = "distance";
-    public static String DISTANCE_THRESHOLD = "distance_threshold";
     private static String EGRAPH = "egraph";
     private static String STRATEGY = "strategy";
 
@@ -137,10 +135,6 @@ public class KDTree extends BaseNode implements Tree {
         super.set(DISTANCE, Type.INT, distanceType);
     }
 
-    @Override
-    public void setDistanceThreshold(double distanceThreshold) {
-        super.set(DISTANCE_THRESHOLD, Type.DOUBLE, distanceThreshold);
-    }
 
     @Override
     public void insert(double[] keys, long value) {

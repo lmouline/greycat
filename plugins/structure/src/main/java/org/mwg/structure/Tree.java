@@ -7,8 +7,6 @@ public interface Tree extends Node {
     //Settings param
     void setDistance(int distanceType);
 
-    void setDistanceThreshold(double distanceThreshold);
-
     //Insert functions
     void insert(final double[] keys, final long value);
 
