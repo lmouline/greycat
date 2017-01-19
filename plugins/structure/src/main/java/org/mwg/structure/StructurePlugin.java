@@ -7,6 +7,7 @@ import org.mwg.plugin.ActionFactory;
 import org.mwg.plugin.NodeFactory;
 import org.mwg.plugin.Plugin;
 import org.mwg.structure.action.NTreeNearestNWithinRadius;
+import org.mwg.structure.tree.KDTreeOld;
 import org.mwg.structure.tree.NDTree;
 import org.mwg.structure.tree.KDTree;
 import org.mwg.task.Action;
@@ -24,10 +25,11 @@ public class StructurePlugin implements Plugin {
                         return new NTreeNearestNWithinRadius((int) params[0], (double) params[1], (double[]) params[2]);
                     }
                 });
-        graph.nodeRegistry().declaration(KDTree.NAME).setFactory(new NodeFactory() {
+
+        graph.nodeRegistry().declaration(KDTreeOld.NAME).setFactory(new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
-                return new KDTree(world, time, id, graph);
+                return new KDTreeOld(world, time, id, graph);
             }
         });
         graph.nodeRegistry().declaration(NDTree.NAME).setFactory(new NodeFactory() {
