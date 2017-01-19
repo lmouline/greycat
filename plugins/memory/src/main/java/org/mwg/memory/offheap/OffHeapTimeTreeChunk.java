@@ -78,6 +78,28 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @Override
+    public long extra() {
+        // TODO
+        return 0;
+    }
+
+    @Override
+    public void setExtra(long extraValue) {
+        // TODO
+    }
+
+    @Override
+    public long extra2() {
+        // TODO
+        return 0;
+    }
+
+    @Override
+    public void setExtra2(long extraValue) {
+        // TODO
+    }
+
+    @Override
     public final long index() {
         return index;
     }

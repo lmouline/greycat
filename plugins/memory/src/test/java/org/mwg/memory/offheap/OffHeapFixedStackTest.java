@@ -9,7 +9,6 @@ public class OffHeapFixedStackTest extends AbstractFixedStackTest {
 
     @Test
     public void offHeapFixedStackTest() {
-
         Stack stack = new OffHeapFixedStack(CAPACITY, true);
         test(stack);
         stack.free();

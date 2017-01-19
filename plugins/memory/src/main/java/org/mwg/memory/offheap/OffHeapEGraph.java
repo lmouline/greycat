@@ -130,6 +130,7 @@ public class OffHeapEGraph implements EGraph {
         setNodeAddrAt(addr, nodesIndex, newNode.getAddr());
         OffHeapLongArray.set(addr, NODES_INDEX, nodesIndex + 1);
 
+        System.out.println("node created: " + newNode.getAddr());
         return newNode;
     }
 

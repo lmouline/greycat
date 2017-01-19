@@ -152,6 +152,16 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
     }
 
     @Override
+    public void externalLock() {
+        // TODO
+    }
+
+    @Override
+    public void externalUnlock() {
+        // TODO
+    }
+
+    @Override
     public final void each(final LongLongMapCallBack callback) {
         space.lockByIndex(index);
         try {

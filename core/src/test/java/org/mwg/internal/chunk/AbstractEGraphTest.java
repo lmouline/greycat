@@ -51,6 +51,10 @@ public abstract class AbstractEGraphTest {
         ERelation resolvedERelation = (ERelation) eNode.get("testRel");
         Assert.assertEquals(3, resolvedERelation.size());
         Assert.assertEquals("[2,3,4]", resolvedERelation.toString());
+
+        egraph.free();
+        space.free(chunk);
+        space.freeAll();
     }
 
     @Test
@@ -67,6 +71,10 @@ public abstract class AbstractEGraphTest {
         for (int i = 0; i < 1000000; i++) {
             Assert.assertEquals(i, (int) eNode.getAt(i));
         }
+
+        egraph.free();
+        space.free(chunk);
+        space.freeAll();
     }
 
     @Test
@@ -119,6 +127,7 @@ public abstract class AbstractEGraphTest {
             Assert.assertTrue(rootLoaded != null);
             Assert.assertEquals(rootLoaded.toString(), rootLoaded.get("self").toString());
         });
+
     }
 
     @Test
@@ -172,7 +181,7 @@ public abstract class AbstractEGraphTest {
     }
 
     @Test
-    public void volatildeTest() {
+    public void volatileTest() {
         Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
         g.connect(null);
 
@@ -188,12 +197,16 @@ public abstract class AbstractEGraphTest {
         lmat.appendColumn(new long[]{1, 2, 3});
         lmat.set(1, 0, 5L);
 
-        DMatrix mat = (DMatrix) eNode.getOrCreate("mat", Type.DMATRIX);
+        DMatrix mat = (DMatrix) eNode.getOrCreate("dmat", Type.DMATRIX);
         mat.appendColumn(new double[]{1.0, 2.0, 3.0});
         mat.set(1, 0, 0.7);
 
         ERelation eRel = (ERelation) eNode.getOrCreate("erel", Type.ERELATION);
         eRel.add(eNode);
+
+        eGraph.free();
+        space.freeAll();
+
     }
 
 
