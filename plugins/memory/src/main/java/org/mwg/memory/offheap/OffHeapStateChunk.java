@@ -408,7 +408,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                             int eGSize = castedEGraph.size();
                             Base64.encodeIntToBuffer(eGSize, buffer);
                             for (int j = 0; j < eGSize; j++) {
-                                OffHeapENode eNode = new OffHeapENode(this, castedEGraph, space.graph(), j, OffHeapEGraph.nodeAddrAt(rawValue, j));
+                                OffHeapENode eNode = new OffHeapENode(castedEGraph, space.graph(), j, castedEGraph.nodeAddrAt(rawValue, j));
                                 buffer.write(CoreConstants.CHUNK_ENODE_SEP);
                                 eNode.save(buffer);
                             }

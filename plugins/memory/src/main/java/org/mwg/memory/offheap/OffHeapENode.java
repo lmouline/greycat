@@ -21,7 +21,6 @@ import java.util.Set;
 public class OffHeapENode implements ENode, OffHeapContainer {
     private final OffHeapEGraph egraph;
     private final Graph _graph;
-    //private final OffHeapContainer container;
 
     private static final byte LOAD_WAITING_ALLOC = 0;
     private static final byte LOAD_WAITING_TYPE = 1;
@@ -39,10 +38,9 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     private static final int OFFSET = 5;
     private static final int ELEM_SIZE = 3;
 
-    OffHeapENode(final OffHeapContainer p_container, final OffHeapEGraph p_egraph, final Graph p_graph, final long p_id, final long originAddr) {
+    OffHeapENode(final OffHeapEGraph p_egraph, final Graph p_graph, final long p_id, final long originAddr) {
         egraph = p_egraph;
         _graph = p_graph;
-        //container = p_container;
 
         long capacity = Constants.MAP_INITIAL_CAPACITY;
         if (originAddr != OffHeapConstants.NULL_PTR) {
@@ -64,8 +62,12 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             } else {
                 OffHeapLongArray.set(new_addr, SUBHASH, OffHeapConstants.NULL_PTR);
             }
+//            OffHeapEGraph.setNodeAddrAt(graphAddr, nodeId, new_addr);
             return new_addr;
         } else {
+            long nodeId = OffHeapLongArray.get(addr, ID);
+            long graphAddr = egraph.getAddr();
+
             //reallocation or overallocation
             final long new_addr = OffHeapLongArray.reallocate(addr, OFFSET + (newCapacity * ELEM_SIZE));
             OffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
@@ -85,6 +87,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                 setNext(subHash_ptr, i, hash(subHash_ptr, newCapacity, keyHash));
                 setHash(subHash_ptr, newCapacity, keyHash, i);
             }
+            OffHeapEGraph.setNodeAddrAt(graphAddr, nodeId, new_addr);
             return new_addr;
         }
     }
@@ -403,7 +406,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                 case Type.ERELATION:
                     return new OffHeapERelation(this, egraph, _graph, index);
                 case Type.ENODE:
-                    return new OffHeapENode(this, egraph, _graph, OffHeapENode.getId(rawValue), rawValue);
+                    return new OffHeapENode(egraph, _graph, OffHeapENode.getId(rawValue), rawValue);
                 case Type.DMATRIX:
                     return new OffHeapDMatrix(this, index);
                 case Type.LMATRIX:

@@ -54,7 +54,7 @@ public class OffHeapERelation implements ERelation {
         for (int i = 0; i < size; i++) {
             long nodeAddr = nodeAddrAt(addr, i);
             long nodeId = OffHeapENode.getId(nodeAddr);
-            OffHeapENode eNode = new OffHeapENode(container, eGraph, graph, nodeId, nodeAddr);
+            OffHeapENode eNode = new OffHeapENode(eGraph, graph, nodeId, nodeAddr);
             nodes[i] = eNode;
         }
         return nodes;
@@ -65,7 +65,7 @@ public class OffHeapERelation implements ERelation {
         long addr = container.addrByIndex(index);
         long nodeAddr = nodeAddrAt(addr, index);
         long nodeId = OffHeapENode.getId(nodeAddr);
-        return new OffHeapENode(container, eGraph, graph, nodeId, nodeAddr);
+        return new OffHeapENode(eGraph, graph, nodeId, nodeAddr);
     }
 
     @Override
