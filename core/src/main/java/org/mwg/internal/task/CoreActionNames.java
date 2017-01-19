@@ -24,6 +24,7 @@ public class CoreActionNames {
     public static String PRINT = "print";
     public static String PRINTLN = "println";
     public static String READ_GLOBAL_INDEX = "readGlobalIndex";
+    public static String GLOBAL_INDEX = "globalIndex";
     public static String READ_VAR = "readVar";
     public static String REMOVE = "remove";
     public static String REMOVE_FROM_GLOBAL_INDEX = "removeFromGlobalIndex";
@@ -50,9 +51,9 @@ public class CoreActionNames {
     public static String MAP_PAR = "mapPar";
     public static String PIPE = "pipe";
     public static String PIPE_PAR = "pipePar";
+    public static String PIPE_TO = "pipeTo";
     public static String DO_WHILE = "doWhile";
     public static String WHILE_DO = "whileDo";
-    public static String ISOLATE = "isolate";
     public static String IF_THEN = "ifThen";
     public static String IF_THEN_ELSE = "ifThenElse";
     public static String ATOMIC = "atomic";

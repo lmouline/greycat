@@ -25,13 +25,16 @@ class TaskEditor extends React.Component {
                 if (textUntilPosition.endsWith(".")) {
                     let result = [];
                     let registry = global.context.actions;
-                    for(var i=0;i<registry.length;i++){
+                    for (var i = 0; i < registry.length; i++) {
                         let declaration = registry[i];
                         let params = declaration['params'];
                         var insertParam = '(';
-                        if(params!== undefined && params != null){
-                            for(var j=0;j<params.length;j++){
-                                switch(params[j]){
+                        if (params !== undefined && params != null) {
+                            for (var j = 0; j < params.length; j++) {
+                                if (j != 0) {
+                                    insertParam += ',';
+                                }
+                                switch (params[j]) {
                                     case "STRING":
                                         insertParam += "\"param\"";
                                         break;
@@ -45,10 +48,10 @@ class TaskEditor extends React.Component {
                                         insertParam += "1.0";
                                         break;
                                     case "TASK":
-                                        insertParam += "{ }";
+                                        insertParam += "{}";
                                         break;
                                     case "TASK_ARRAY":
-                                        insertParam += "{ }, { }";
+                                        insertParam += "{},{}";
                                         break;
                                     case "STRING_ARRAY":
                                         insertParam += "\"varargs\",\"varargs2\"";
@@ -70,7 +73,7 @@ class TaskEditor extends React.Component {
                         }
                         insertParam += ')';
                         result.push({
-                            label:declaration['name'],
+                            label: declaration['name'],
                             kind: monaco.languages.CompletionItemKind.Function,
                             documentation: declaration['description'],
                             insertText: declaration['name'] + insertParam

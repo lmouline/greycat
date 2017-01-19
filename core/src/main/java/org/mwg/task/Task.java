@@ -183,7 +183,7 @@ public interface Task {
      * @param subTask to execute
      * @return this task to chain
      */
-    Task isolate(Task subTask);
+    Task pipeTo(Task subTask, String... vars);
 
     /**
      * Parses a string to build the current task.
@@ -316,6 +316,8 @@ public interface Task {
     Task attribute(String name, String... params);
 
     Task readGlobalIndex(String indexName, String... query);
+
+    Task globalIndex(String indexName);
 
     Task addToGlobalIndex(String name, String... attributes);
 

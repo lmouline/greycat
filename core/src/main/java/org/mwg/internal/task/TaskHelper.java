@@ -80,29 +80,31 @@ public class TaskHelper {
         }
         boolean escapteActivated = false;
         boolean previousIsEscape = false;
-        for (int i = 0; i < param.length(); i++) {
-            final char current = param.charAt(i);
-            if(current == '\r' || current == '\n'){
-                if (!escapteActivated) {
-                    escapteActivated = true;
-                    builder.append(param.substring(0, i));
-                }
-                //simply ignore the '\r'
-            } else if ( (singleQuote && current == '\'') || (!singleQuote && current == '\"')) {
-                if (!escapteActivated) {
-                    escapteActivated = true;
-                    builder.append(param.substring(0, i));
-                }
-                if (!previousIsEscape) {
-                    builder.append('\\');
-                }
-                builder.append(param.charAt(i));
-            } else {
-                if (escapteActivated) {
+        if(param != null){
+            for (int i = 0; i < param.length(); i++) {
+                final char current = param.charAt(i);
+                if(current == '\r' || current == '\n'){
+                    if (!escapteActivated) {
+                        escapteActivated = true;
+                        builder.append(param.substring(0, i));
+                    }
+                    //simply ignore the '\r'
+                } else if ( (singleQuote && current == '\'') || (!singleQuote && current == '\"')) {
+                    if (!escapteActivated) {
+                        escapteActivated = true;
+                        builder.append(param.substring(0, i));
+                    }
+                    if (!previousIsEscape) {
+                        builder.append('\\');
+                    }
                     builder.append(param.charAt(i));
+                } else {
+                    if (escapteActivated) {
+                        builder.append(param.charAt(i));
+                    }
                 }
+                previousIsEscape = (current == '\\');
             }
-            previousIsEscape = (current == '\\');
         }
         if (!escapteActivated) {
             builder.append(param);

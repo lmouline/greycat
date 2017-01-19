@@ -9,16 +9,18 @@ import org.mwg.task.TaskResult;
 
 import java.util.Map;
 
-class CF_Isolate extends CF_Action {
+class CF_PipeTo extends CF_Action {
 
     private final Task _subTask;
+    private final String[] _targets;
 
-    CF_Isolate(final Task p_subTask) {
+    CF_PipeTo(final Task p_subTask, final String... p_targets) {
         super();
         if (p_subTask == null) {
             throw new RuntimeException("subTask should not be null");
         }
         _subTask = p_subTask;
+        _targets = p_targets;
     }
 
     @Override
@@ -35,7 +37,13 @@ class CF_Isolate extends CF_Action {
                     if (result.exception() != null) {
                         exceptionDuringTask = result.exception();
                     }
-                    result.free();
+                    if (_targets != null && _targets.length > 0) {
+                        for (int i = 0; i < _targets.length; i++) {
+                            ctx.setVariable(_targets[i], result);
+                        }
+                    } else {
+                        result.free();
+                    }
                 }
                 if (exceptionDuringTask != null) {
                     ctx.endTask(previous, exceptionDuringTask);
@@ -55,7 +63,7 @@ class CF_Isolate extends CF_Action {
 
     @Override
     public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
-        builder.append(CoreActionNames.ISOLATE);
+        builder.append(CoreActionNames.PIPE_TO);
         builder.append(Constants.TASK_PARAM_OPEN);
         final CoreTask castedAction = (CoreTask) _subTask;
         final int castedActionHash = castedAction.hashCode();
@@ -65,6 +73,10 @@ class CF_Isolate extends CF_Action {
             builder.append(Constants.SUB_TASK_CLOSE);
         } else {
             builder.append("" + dagIDS.get(castedActionHash));
+        }
+        if (_targets != null && _targets.length > 0) {
+            builder.append(Constants.TASK_PARAM_SEP);
+            TaskHelper.serializeStringParams(_targets, builder);
         }
         builder.append(Constants.TASK_PARAM_CLOSE);
     }

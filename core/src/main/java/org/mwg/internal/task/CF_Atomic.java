@@ -90,7 +90,7 @@ public class CF_Atomic extends CF_Action {
 
     @Override
     public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
-        builder.append(CoreActionNames.LOOP);
+        builder.append(CoreActionNames.ATOMIC);
         builder.append(Constants.TASK_PARAM_OPEN);
         final CoreTask castedAction = (CoreTask) _subTask;
         final int castedActionHash = castedAction.hashCode();

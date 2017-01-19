@@ -55,7 +55,7 @@
     "react": "^15.3.2",
     "react-bootstrap": "0.30.7",
     "react-dom": "^15.3.2",
-    "react-monaco-editor": "0.7.0",
+    "react-monaco-editor": "0.7.3",
     "react-split-pane": "0.1.57",
     "renderjson": "1.2.3"
   },

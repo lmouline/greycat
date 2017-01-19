@@ -107,8 +107,8 @@ public class Tasks {
         return newTask().pipePar(subTasks);
     }
 
-    public static Task isolate(Task subTask) {
-        return newTask().isolate(subTask);
+    public static Task pipeTo(Task subTask, String... vars) {
+        return newTask().pipeTo(subTask, vars);
     }
 
     public static Task atomic(Task protectedTask, String... variablesToLock) {

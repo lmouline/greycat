@@ -21,6 +21,14 @@ public class ParseTest extends AbstractActionTest {
     }
 
     @Test
+    public void testAtomic() {
+        initGraph();
+        Task t = newTask();
+        t.parse("readGlobalIndex(nodes).atomic({println(\"toto\")},\"param\")", graph);
+        System.out.println(t.toString());
+    }
+
+    @Test
     public void testSubTask() {
         initGraph();
         Task t = newTask().parse("travelInTime(0).travelInWorld(0).readGlobalIndex(nodes).loop(0,3,{ println('->{{i}}') })", graph);

@@ -135,8 +135,8 @@ public class CoreTask implements org.mwg.task.Task {
     }
 
     @Override
-    public final Task isolate(Task subTask) {
-        return then(new CF_Isolate(subTask));
+    public final Task pipeTo(Task subTask, String... vars) {
+        return then(new CF_PipeTo(subTask, vars));
     }
 
     @Override
@@ -820,6 +820,15 @@ public class CoreTask implements org.mwg.task.Task {
                         }
                     }
                 });
+        registry.declaration(CoreActionNames.GLOBAL_INDEX)
+                .setParams(Type.STRING)
+                .setDescription("Retrieve global index node")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionGlobalIndex((String) params[0]);
+                    }
+                });
         registry.declaration(CoreActionNames.SELECT)
                 .setParams(Type.STRING)
                 .setDescription("Use a JS script to filter nodes. The task context is inject in the variable 'context'. The current node is inject in the variable 'node'.")
@@ -948,13 +957,18 @@ public class CoreTask implements org.mwg.task.Task {
                         return new CF_WhileDo(condFromScript((String) params[0]), (Task) params[1], (String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.ISOLATE)
-                .setParams(Type.TASK)
-                .setDescription("Executes a given sub task in an isolated environment.")
+        registry.declaration(CoreActionNames.PIPE_TO)
+                .setParams(Type.TASK, Type.STRING_ARRAY)
+                .setDescription("Executes a given sub task in an isolated environment and store result as variables.")
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        return new CF_Isolate((Task) params[0]);
+                        final String[] varargs = (String[]) params[1];
+                        if (varargs != null) {
+                            return new CF_PipeTo((Task) params[0], varargs);
+                        } else {
+                            return new CF_PipeTo((Task) params[0]);
+                        }
                     }
                 });
         registry.declaration(CoreActionNames.ATOMIC)
@@ -1188,6 +1202,11 @@ public class CoreTask implements org.mwg.task.Task {
     @Override
     public final Task readGlobalIndex(final String name, final String... query) {
         return then(CoreActions.readGlobalIndex(name, query));
+    }
+
+    @Override
+    public Task globalIndex(String indexName) {
+        return then(CoreActions.globalIndex(indexName));
     }
 
     @Override

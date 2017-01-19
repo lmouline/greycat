@@ -11666,7 +11666,7 @@ var org;
                         return children_tasks;
                     };
                     CF_Atomic.prototype.cf_serialize = function (builder, dagIDS) {
-                        builder.append(org.mwg.internal.task.CoreActionNames.LOOP);
+                        builder.append(org.mwg.internal.task.CoreActionNames.ATOMIC);
                         builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
                         var castedAction = this._subTask;
                         var castedActionHash = castedAction.hashCode();
@@ -14833,30 +14833,32 @@ var org;
                         }
                         var escapteActivated = false;
                         var previousIsEscape = false;
-                        for (var i = 0; i < param.length; i++) {
-                            var current = param.charAt(i);
-                            if (current == '\r' || current == '\n') {
-                                if (!escapteActivated) {
-                                    escapteActivated = true;
-                                    builder.append(param.substring(0, i));
+                        if (param != null) {
+                            for (var i = 0; i < param.length; i++) {
+                                var current = param.charAt(i);
+                                if (current == '\r' || current == '\n') {
+                                    if (!escapteActivated) {
+                                        escapteActivated = true;
+                                        builder.append(param.substring(0, i));
+                                    }
                                 }
-                            }
-                            else if ((singleQuote && current == '\'') || (!singleQuote && current == '\"')) {
-                                if (!escapteActivated) {
-                                    escapteActivated = true;
-                                    builder.append(param.substring(0, i));
-                                }
-                                if (!previousIsEscape) {
-                                    builder.append('\\');
-                                }
-                                builder.append(param.charAt(i));
-                            }
-                            else {
-                                if (escapteActivated) {
+                                else if ((singleQuote && current == '\'') || (!singleQuote && current == '\"')) {
+                                    if (!escapteActivated) {
+                                        escapteActivated = true;
+                                        builder.append(param.substring(0, i));
+                                    }
+                                    if (!previousIsEscape) {
+                                        builder.append('\\');
+                                    }
                                     builder.append(param.charAt(i));
                                 }
+                                else {
+                                    if (escapteActivated) {
+                                        builder.append(param.charAt(i));
+                                    }
+                                }
+                                previousIsEscape = (current == '\\');
                             }
-                            previousIsEscape = (current == '\\');
                         }
                         if (!escapteActivated) {
                             builder.append(param);
