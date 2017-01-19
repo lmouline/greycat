@@ -9,9 +9,6 @@ public interface Tree extends Node {
 
     void setDistanceThreshold(double distanceThreshold);
 
-    void setStrategy(byte strategy);
-
-
     //Insert functions
     void insert(final double[] keys, final long value);
 

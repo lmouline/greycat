@@ -26,8 +26,8 @@ public class NDTree extends BaseNode implements Tree {
     public static String DISTANCE = "distance";
     public static String DISTANCE_THRESHOLD = "distance_threshold";
 
-    private static int EGRAPH = 6;
-    private static int STRATEGY = 7;
+    private static String EGRAPH = "egraph";
+    private static String STRATEGY = "strategy";
 
     public static int BUFFER_SIZE_DEF = 20;
     public static int DISTANCE_DEF = Distances.DEFAULT;
@@ -325,10 +325,6 @@ public class NDTree extends BaseNode implements Tree {
         super.set(DISTANCE_THRESHOLD, Type.DOUBLE, distanceThreshold);
     }
 
-    @Override
-    public void setStrategy(byte strategy) {
-
-    }
 
     @Override
     public void insert(final double[] keys, final long value) {
@@ -337,14 +333,14 @@ public class NDTree extends BaseNode implements Tree {
         double[] max = (double[]) state.getFromKey(BOUND_MAX);
         check(keys, min, max);
         double[] resolution = (double[]) state.getFromKey(RESOLUTION);
-        EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
+        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
         int buffersize = state.getFromKeyWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
         //Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
         synchronized (state) { // assumption that NodeState == StateChunk
             ENode root = graph.root();
             if (root == null) {
                 root = graph.newNode();
-                state.set(STRATEGY, Type.INT, IndexStrategy.INDEX);
+                state.setFromKey(STRATEGY, Type.INT, IndexStrategy.INDEX);
                 graph.setRoot(root);
                 root.setAt(E_TOTAL, Type.LONG, 0);
                 root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
@@ -363,14 +359,14 @@ public class NDTree extends BaseNode implements Tree {
         double[] max = (double[]) state.getFromKey(BOUND_MAX);
         check(keys, min, max);
         double[] resolution = (double[]) state.getFromKey(RESOLUTION);
-        EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
+        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
         int buffersize = state.getFromKeyWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
         //Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
         synchronized (state) {
             ENode root = graph.root();
             if (root == null) {
                 root = graph.newNode();
-                state.set(STRATEGY, Type.INT, IndexStrategy.PROFILE);
+                state.setFromKey(STRATEGY, Type.INT, IndexStrategy.PROFILE);
                 graph.setRoot(root);
                 root.setAt(E_TOTAL, Type.LONG, 0);
                 root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
@@ -388,9 +384,9 @@ public class NDTree extends BaseNode implements Tree {
         final double[] min = (double[]) state.getFromKey(BOUND_MIN);
         final double[] max = (double[]) state.getFromKey(BOUND_MAX);
         check(keys, min, max);
-        final EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
+        final EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
         final Distance distance = Distances.getDistance(state.getFromKeyWithDefault(DISTANCE, DISTANCE_DEF));
-        final int strategyType = (int) state.get(STRATEGY);
+        final int strategyType = (int) state.getFromKey(STRATEGY);
         synchronized (state) {
             ENode root = graph.root();
             if (root == null) {
@@ -418,9 +414,9 @@ public class NDTree extends BaseNode implements Tree {
         double[] max = (double[]) state.getFromKey(BOUND_MAX);
         check(keys, min, max);
 
-        EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
+        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
         Distance distance = Distances.getDistance(state.getFromKeyWithDefault(DISTANCE, DISTANCE_DEF));
-        int strategyType = (int) state.get(STRATEGY);
+        int strategyType = (int) state.getFromKey(STRATEGY);
 
 
         ENode root = graph.root();
@@ -443,9 +439,9 @@ public class NDTree extends BaseNode implements Tree {
         double[] max = (double[]) state.getFromKey(BOUND_MAX);
         check(keys, min, max);
 
-        EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
+        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
         Distance distance = Distances.getDistance(state.getFromKeyWithDefault(DISTANCE, DISTANCE_DEF));
-        int strategyType = (int) state.get(STRATEGY);
+        int strategyType = (int) state.getFromKey(STRATEGY);
 
 
         ENode root = graph.root();
@@ -469,9 +465,9 @@ public class NDTree extends BaseNode implements Tree {
     public TreeResult query(double[] min, double[] max) {
         NodeState state = unphasedState();
 
-        EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
+        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
         Distance distance = Distances.getDistance(state.getFromKeyWithDefault(DISTANCE, DISTANCE_DEF));
-        int strategyType = (int) state.get(STRATEGY);
+        int strategyType = (int) state.getFromKey(STRATEGY);
 
         final double[] center = new double[max.length];
 
@@ -496,7 +492,7 @@ public class NDTree extends BaseNode implements Tree {
     @Override
     public long size() {
         NodeState state = unphasedState();
-        EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
+        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
         ENode root = graph.root();
         if (root == null) {
             return 0;
@@ -508,7 +504,7 @@ public class NDTree extends BaseNode implements Tree {
     @Override
     public long numberOfNodes() {
         NodeState state = unphasedState();
-        EGraph graph = (EGraph) state.getOrCreate(EGRAPH, Type.EGRAPH);
+        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
         ENode root = graph.root();
         if (root == null) {
             return 0;
