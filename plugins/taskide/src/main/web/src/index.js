@@ -29,7 +29,7 @@ global.context.url = function (val) {
     console.log('change url to ' + val);
 };
 
-fetch("http://"+window.location.hostname+":"+defaultPORT+"/actionregistry/").then(function (response) {
+fetch("http://" + window.location.hostname + ":" + defaultPORT + "/actionregistry/").then(function (response) {
     return response.json().then(function (actions) {
         global.context.actions = actions;
     });
@@ -63,9 +63,27 @@ const LoadingButton = React.createClass({
                 while (targetDomElem.firstChild) {
                     targetDomElem.removeChild(targetDomElem.firstChild);
                 }
-                targetDomElem.appendChild(
-                    renderjson(JSON.parse(results[0]))
-                );
+                let outputDomElem = document.getElementById("output_error_result");
+                while (outputDomElem.firstChild) {
+                    outputDomElem.removeChild(outputDomElem.firstChild);
+                }
+                let JSON_RESULT = JSON.parse(results[0]);
+                if (JSON_RESULT['result'] !== undefined) {
+                    targetDomElem.appendChild(
+                        renderjson(JSON_RESULT['result'])
+                    );
+                }
+                if (JSON_RESULT['error'] !== undefined) {
+                    let contentNode = document.createElement("div");
+                    contentNode.style.color = 'red';
+                    contentNode.innerText = JSON_RESULT['error'];
+                    outputDomElem.appendChild(contentNode);
+                }
+                if (JSON_RESULT['output'] !== undefined) {
+                    let contentNode = document.createElement("span");
+                    contentNode.innerText = JSON_RESULT['output'];
+                    outputDomElem.appendChild(contentNode);
+                }
                 self.setState({isLoading: false});
             }, task);
         } catch (e) {
