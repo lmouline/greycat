@@ -1101,11 +1101,15 @@ final class MWGResolver implements Resolver {
         final TimeTreeChunk superTimeTree = (TimeTreeChunk) this._space.get(castedNode._index_superTimeTree);
         final long timeSensitivity = superTimeTree.extra();
         if (timeSensitivity != 0 && timeSensitivity != Constants.NULL_LONG) {
-            long timeSensitivityOffset = superTimeTree.extra2();
-            if (timeSensitivityOffset == Constants.NULL_LONG) {
-                timeSensitivityOffset = 0;
+            if (timeSensitivity < 0) {
+                nodeTime = previouStateChunk.time();
+            } else {
+                long timeSensitivityOffset = superTimeTree.extra2();
+                if (timeSensitivityOffset == Constants.NULL_LONG) {
+                    timeSensitivityOffset = 0;
+                }
+                nodeTime = nodeTime - (nodeTime % timeSensitivity) + timeSensitivityOffset;
             }
-            nodeTime = nodeTime - (nodeTime % timeSensitivity) + timeSensitivityOffset;
         }
 
         final StateChunk clonedState = (StateChunk) this._space.createAndMark(STATE_CHUNK, nodeWorld, nodeTime, nodeId);
