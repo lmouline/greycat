@@ -1086,6 +1086,8 @@ final class MWGResolver implements Resolver {
 
         //Get the previous StateChunk
         final StateChunk previouStateChunk = internal_resolveState(node, false);
+        final long previousTime = previouStateChunk.time();
+        final long previousWorld = previouStateChunk.world();
         if (castedNode._world_magic == -1 && castedNode._time_magic == -1 && castedNode._super_time_magic == -1) {
             //it has been already rePhased, just return
             nodeWorldOrder.unlock();
@@ -1102,7 +1104,7 @@ final class MWGResolver implements Resolver {
         final long timeSensitivity = superTimeTree.extra();
         if (timeSensitivity != 0 && timeSensitivity != Constants.NULL_LONG) {
             if (timeSensitivity < 0) {
-                nodeTime = previouStateChunk.time();
+                nodeTime = previousTime;
             } else {
                 long timeSensitivityOffset = superTimeTree.extra2();
                 if (timeSensitivityOffset == Constants.NULL_LONG) {
@@ -1112,8 +1114,13 @@ final class MWGResolver implements Resolver {
             }
         }
 
-        final StateChunk clonedState = (StateChunk) this._space.createAndMark(STATE_CHUNK, nodeWorld, nodeTime, nodeId);
-        clonedState.loadFrom(previouStateChunk);
+        final StateChunk clonedState;
+        if (nodeTime != previousTime || nodeWorld != previousWorld) {
+            clonedState = (StateChunk) this._space.createAndMark(STATE_CHUNK, nodeWorld, nodeTime, nodeId);
+            clonedState.loadFrom(previouStateChunk);
+        } else {
+            clonedState = previouStateChunk;
+        }
 
         castedNode._world_magic = -1;
         castedNode._super_time_magic = -1;
@@ -1122,7 +1129,7 @@ final class MWGResolver implements Resolver {
         castedNode._index_stateChunk = clonedState.index();
         _space.unmark(previouStateChunk.index());
 
-        if (previouStateChunk.world() == nodeWorld || nodeWorldOrder.get(nodeWorld) != CoreConstants.NULL_LONG) {
+        if (previousWorld == nodeWorld || nodeWorldOrder.get(nodeWorld) != CoreConstants.NULL_LONG) {
             //final TimeTreeChunk superTimeTree = (TimeTreeChunk) this._space.get(castedNode._index_superTimeTree);
             final TimeTreeChunk timeTree = (TimeTreeChunk) this._space.get(castedNode._index_timeTree);
             //manage super tree here
