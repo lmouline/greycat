@@ -1118,6 +1118,8 @@ final class MWGResolver implements Resolver {
         if (nodeTime != previousTime || nodeWorld != previousWorld) {
             clonedState = (StateChunk) this._space.createAndMark(STATE_CHUNK, nodeWorld, nodeTime, nodeId);
             clonedState.loadFrom(previouStateChunk);
+            castedNode._index_stateChunk = clonedState.index();
+            _space.unmark(previouStateChunk.index());
         } else {
             clonedState = previouStateChunk;
         }
@@ -1125,9 +1127,6 @@ final class MWGResolver implements Resolver {
         castedNode._world_magic = -1;
         castedNode._super_time_magic = -1;
         castedNode._time_magic = -1;
-
-        castedNode._index_stateChunk = clonedState.index();
-        _space.unmark(previouStateChunk.index());
 
         if (previousWorld == nodeWorld || nodeWorldOrder.get(nodeWorld) != CoreConstants.NULL_LONG) {
             //final TimeTreeChunk superTimeTree = (TimeTreeChunk) this._space.get(castedNode._index_superTimeTree);
