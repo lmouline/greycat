@@ -142,7 +142,7 @@ class HeapRelation implements Relation {
                     _size++;
                 } else {
                     System.arraycopy(_back, 0, ex_back, 0, targetIndex);
-                    _back[targetIndex] = newValue;
+                    ex_back[targetIndex] = newValue;
                     System.arraycopy(_back, targetIndex, ex_back, targetIndex + 1, (_size - targetIndex));
                     _back = ex_back;
                     _size++;
