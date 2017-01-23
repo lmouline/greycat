@@ -329,48 +329,12 @@ public class KDTree extends BaseNode implements Tree {
 
     @Override
     public TreeResult nearestN(double[] keys, int nbElem) {
-        final NodeState state = unphasedState();
-        final EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
-        final Distance distance = Distances.getDistance(state.getFromKeyWithDefault(DISTANCE, DISTANCE_DEF));
-        synchronized (state) {
-            ENode root = graph.root();
-            if (root == null) {
-                return null;
-            }
-            if (keys.length != ((double[]) root.getAt(E_KEY)).length) {
-                throw new RuntimeException("Keys are not of the same size");
-            }
-
-            EGraph calcZone = graph().space().newVolatileGraph();
-            if (nbElem <= 0) {
-                throw new RuntimeException("nb elements can't be <=0");
-            }
-            VolatileResult nnl = new VolatileResult(calcZone.newNode(), nbElem);
-            reccursiveTraverse(root, nnl, distance, keys, HRect.infiniteHRect(keys.length), 0, keys.length, Double.MAX_VALUE, -1);
-            nnl.sort(true);
-            return nnl;
-        }
+        return nearestNWithinRadius(keys, -1, -1);
     }
 
     @Override
     public TreeResult nearestWithinRadius(double[] keys, double radius) {
-        final NodeState state = unphasedState();
-        final EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
-        final Distance distance = Distances.getDistance(state.getFromKeyWithDefault(DISTANCE, DISTANCE_DEF));
-        synchronized (state) {
-            ENode root = graph.root();
-            if (root == null) {
-                return null;
-            }
-            if (keys.length != ((double[]) root.getAt(E_KEY)).length) {
-                throw new RuntimeException("Keys are not of the same size");
-            }
-            EGraph calcZone = graph().space().newVolatileGraph();
-            VolatileResult nnl = new VolatileResult(calcZone.newNode(), -1);
-            reccursiveTraverse(root, nnl, distance, keys, HRect.infiniteHRect(keys.length), 0, keys.length, Double.MAX_VALUE, radius);
-            nnl.sort(true);
-            return nnl;
-        }
+        return nearestNWithinRadius(keys, -1, radius);
     }
 
     @Override
@@ -388,9 +352,6 @@ public class KDTree extends BaseNode implements Tree {
             }
 
             EGraph calcZone = graph().space().newVolatileGraph();
-            if (nbElem <= 0) {
-                throw new RuntimeException("nb elements can't be <=0");
-            }
             VolatileResult nnl = new VolatileResult(calcZone.newNode(), nbElem);
             reccursiveTraverse(root, nnl, distance, keys, HRect.infiniteHRect(keys.length), 0, keys.length, Double.MAX_VALUE, radius);
             nnl.sort(true);

@@ -1,26 +1,27 @@
 package org.mwg.structure.action;
 
-import org.mwg.Callback;
 import org.mwg.DeferCounter;
-import org.mwg.Node;
 import org.mwg.plugin.Job;
 import org.mwg.structure.TreeResult;
-import org.mwg.structure.tree.KDTreeOld;
+import org.mwg.structure.Tree;
+import org.mwg.structure.tree.KDTree;
 import org.mwg.structure.tree.NDTree;
 import org.mwg.task.*;
 
-public class NTreeNearestNWithinRadius implements Action {
+public class NearestNWithinRadius implements Action {
 
-    public static String NAME = "nTreeNearestNWithinRadius";
+    public static String NAME = "NearestNWithinRadius";
 
     private final double[] _key;
     private final int _n;
     private final double _radius;
+    private final boolean _fetchNodes;
 
-    public NTreeNearestNWithinRadius(final int n, final double radius, final double[] key) {
+    public NearestNWithinRadius(final int n, final double radius, final double[] key, final boolean fetchNodes) {
         this._key = key;
         this._n = n;
         this._radius = radius;
+        this._fetchNodes=fetchNodes;
     }
 
     @Override
@@ -32,38 +33,38 @@ public class NTreeNearestNWithinRadius implements Action {
             final TaskResultIterator previousResultIt = previousResult.iterator();
             Object iter = previousResultIt.next();
             while (iter != null) {
-                if (iter instanceof KDTreeOld) {
-                    ((KDTreeOld) iter).nearestNWithinRadius(_key, _n, _radius, new Callback<Node[]>() {
-                        @Override
-                        public void on(Node[] result) {
-                            for (int i = 0; i < result.length; i++) {
-                                if (result[i] != null) {
-                                    nextResult.add(result[i]);
-                                }
-                            }
-                            defer.count();
+            if (iter instanceof NDTree || iter instanceof KDTree) {
+                    TreeResult tr = ((Tree) iter).nearestNWithinRadius(_key, _n, _radius);
+
+                    if(_fetchNodes){
+                        long[] nodeIds = new long[tr.size()];
+                        for (int i = 0; i < tr.size(); i++) {
+                            nodeIds[i] = tr.value(i);
                         }
-                    });
-                } else if (iter instanceof NDTree) {
-                    TreeResult tr = ((NDTree) iter).nearestNWithinRadius(_key, _n, _radius);
 
-                    long[] nodeIds = new long[tr.size()];
-                    for (int i = 0; i < tr.size(); i++) {
-                        nodeIds[i] = tr.value(i);
+                        ctx.graph().lookupAll(ctx.world(), ctx.time(), nodeIds, result -> {
+                            for (int j = 0; j < result.length; j++) {
+                                TaskResult<Object> line = ctx.newResult();
+                                line.add(tr.keys(j));
+                                line.add(result[j]);
+                                line.add(tr.distance(j));
+                                nextResult.add(line);
+                            }
+                            tr.free();
+                            defer.count();
+                        });
                     }
-
-                    ctx.graph().lookupAll(ctx.world(), ctx.time(), nodeIds, result -> {
-                        for (int j = 0; j < result.length; j++) {
+                    else{
+                        for (int i = 0; i < tr.size(); i++) {
                             TaskResult<Object> line = ctx.newResult();
-                            line.add(tr.keys(j));
-                            line.add(result[j]);
-                            line.add(tr.distance(j));
+                            line.add(tr.keys(i));
+                            line.add(tr.value(i));
+                            line.add(tr.distance(i));
                             nextResult.add(line);
                         }
                         tr.free();
                         defer.count();
-                    });
-
+                    }
                 } else {
                     defer.count();
                 }
@@ -87,7 +88,7 @@ public class NTreeNearestNWithinRadius implements Action {
 
     @Override
     public String toString() {
-        return "nTreeNearestNWithinRadius(\'" + "\')";
+        return "NearestNWithinRadius(\'" + "\')";
     }
 
 }

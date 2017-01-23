@@ -319,8 +319,6 @@ public class NDTree extends BaseNode implements Tree {
     }
 
 
-
-
     @Override
     public void insert(final double[] keys, final long value) {
         final NodeState state = unphasedState();
@@ -375,55 +373,12 @@ public class NDTree extends BaseNode implements Tree {
 
     @Override
     public TreeResult nearestN(double[] keys, int nbElem) {
-        final NodeState state = unphasedState();
-        final double[] min = (double[]) state.getFromKey(BOUND_MIN);
-        final double[] max = (double[]) state.getFromKey(BOUND_MAX);
-        check(keys, min, max);
-        final EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
-        final Distance distance = Distances.getDistance(state.getFromKeyWithDefault(DISTANCE, DISTANCE_DEF));
-        final int strategyType = (int) state.getFromKey(STRATEGY);
-        synchronized (state) {
-            ENode root = graph.root();
-            if (root == null) {
-                return null;
-            }
-
-            EGraph calcZone = graph().space().newVolatileGraph();
-            if (nbElem <= 0) {
-                throw new RuntimeException("nb elements can't be <=0");
-            }
-            VolatileResult nnl = new VolatileResult(calcZone.newNode(), nbElem);
-            reccursiveTraverse(root, calcZone, nnl, strategyType, distance, keys, null, null, null, -1);
-            nnl.sort(true);
-            return nnl;
-        }
-
+        return nearestNWithinRadius(keys, -1, -1);
     }
 
     @Override
     public TreeResult nearestWithinRadius(double[] keys, double radius) {
-
-        NodeState state = unphasedState();
-
-        double[] min = (double[]) state.getFromKey(BOUND_MIN);
-        double[] max = (double[]) state.getFromKey(BOUND_MAX);
-        check(keys, min, max);
-
-        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
-        Distance distance = Distances.getDistance(state.getFromKeyWithDefault(DISTANCE, DISTANCE_DEF));
-        int strategyType = (int) state.getFromKey(STRATEGY);
-
-
-        ENode root = graph.root();
-        if (root == null) {
-            return null;
-        }
-
-        EGraph calcZone = graph().space().newVolatileGraph();
-        VolatileResult nnl = new VolatileResult(calcZone.newNode(), -1);
-        reccursiveTraverse(root, calcZone, nnl, strategyType, distance, keys, null, null, null, radius);
-        nnl.sort(true);
-        return nnl;
+        return nearestNWithinRadius(keys, -1, radius);
     }
 
     @Override
@@ -445,9 +400,6 @@ public class NDTree extends BaseNode implements Tree {
         }
 
         EGraph calcZone = graph().space().newVolatileGraph();
-        if (nbElem <= 0) {
-            throw new RuntimeException("nb elements can't be <=0");
-        }
         VolatileResult nnl = new VolatileResult(calcZone.newNode(), nbElem);
         reccursiveTraverse(root, calcZone, nnl, strategyType, distance, keys, null, null, null, radius);
         nnl.sort(true);
@@ -520,8 +472,6 @@ public class NDTree extends BaseNode implements Tree {
         }
         return res;
     }
-
-
 
 
     private static void reccursiveTraverse(final ENode node, final EGraph calcZone, final VolatileResult nnl, final int strategyType, final Distance distance, final double[] target, final double[] targetmin, final double[] targetmax, final double[] targetcenter, final double radius) {
@@ -640,8 +590,6 @@ public class NDTree extends BaseNode implements Tree {
             }
         }
     }
-
-
 
 
 }
