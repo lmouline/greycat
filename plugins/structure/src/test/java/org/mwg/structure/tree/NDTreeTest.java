@@ -133,13 +133,14 @@ public class NDTreeTest {
                 te = System.currentTimeMillis() - ts;
                 System.out.println("KDTree range: " + te + " ms");
 
+                System.out.println(trangeKD.size()+" , "+ trangeND.size());
                 Assert.assertTrue(trangeKD.size()==trangeND.size());
+
 
 
                 for(int i=0;i<trangeKD.size();i++){
                     Assert.assertTrue(trangeKD.value(i)==trangeND.value(i));
                 }
-
 
                 System.out.println("test pass!");
 

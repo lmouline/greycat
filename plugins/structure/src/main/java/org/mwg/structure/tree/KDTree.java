@@ -70,10 +70,13 @@ public class KDTree extends BaseNode implements Tree {
             rangeSearch(lowk, uppk, center, distance, (ENode) node.getAt(E_LEFT), (lev + 1) % dim, dim, nnl);
         }
         int j;
-        for (j = 0; j < dim && lowk[j] <= key[j] && uppk[j] >= key[j]; j++)
-            ;
+        j = 0;
+        while (j < dim && lowk[j] <= key[j] && uppk[j] >= key[j]) {
+            j++;
+        }
+
         if (j == dim) {
-            nnl.insert(key, (long) node.getAt(E_VALUE), distance.measure(key,center));
+            nnl.insert(key, (long) node.getAt(E_VALUE), distance.measure(key, center));
         }
         if (uppk[lev] > key[lev]) {
             rangeSearch(lowk, uppk, center, distance, (ENode) node.getAt(E_RIGHT), (lev + 1) % dim, dim, nnl);
@@ -415,7 +418,7 @@ public class KDTree extends BaseNode implements Tree {
 
         EGraph calcZone = graph().space().newVolatileGraph();
         VolatileResult nnl = new VolatileResult(calcZone.newNode(), -1);
-        rangeSearch(min,max,center,distance,root,0,min.length,nnl);
+        rangeSearch(min, max, center, distance, root, 0, min.length, nnl);
 
         nnl.sort(true);
         return nnl;
