@@ -1,5 +1,6 @@
 package org.mwg.structure.tree;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
 import org.mwg.structure.StructurePlugin;
@@ -18,7 +19,7 @@ public class NDTreeTest {
             @Override
             public void on(Boolean result) {
 
-                KDTreeOld kdTreeOld = (KDTreeOld) graph.newTypedNode(0, 0, KDTreeOld.NAME);
+                KDTree kdTree = (KDTree) graph.newTypedNode(0, 0, KDTree.NAME);
                 NDTree ndTree = (NDTree) graph.newTypedNode(0, 0, NDTree.NAME);
 
                 int dim = 5;
@@ -35,9 +36,9 @@ public class NDTreeTest {
                 ndTree.set(NDTree.RESOLUTION, Type.DOUBLE_ARRAY, precisions);
                 Random random = new Random();
                 random.setSeed(125362l);
-                int ins = 100;
-                int test = 10;
-                int nsearch = 3;
+                int ins = 1000;
+                int test = 100;
+                int nsearch = 10;
 
 
                 Node[] nodes = new Node[ins];
@@ -73,50 +74,13 @@ public class NDTreeTest {
 
                 ts = System.currentTimeMillis();
                 for (int i = 0; i < ins; i++) {
-                    kdTreeOld.insertWith(keys[i], nodes[i], null);
+                    kdTree.insert(keys[i], nodes[i].id());
                 }
                 te = System.currentTimeMillis() - ts;
 
-                System.out.println("kdTreeOld insert: " + te + " ms");
+                System.out.println("KDTree insert: " + te + " ms");
 
 
-
-            /*    long[][] temp = new long[ins][nsearch];
->>>>>>> Stashed changes
-                ts = System.currentTimeMillis();
-                for (int i = 0; i < ins; i++) {
-                    TreeResult res = NDTree.nearestN(keys[i], nsearch);
-                    for (int j = 0; j < nsearch; j++) {
-                        temp[i][j] = res.value(j);
-                    }
-                    res.free();
-                }
-                te = System.currentTimeMillis() - ts;
-                System.out.println("NDTree get all: " + te + " ms");
-
-                long[][] tempkdtree = new long[ins][nsearch];
-                ts = System.currentTimeMillis();
-                for (int i = 0; i < ins; i++) {
-                    int finalI = i;
-                    kdTreeOld.nearestN(keys[i], nsearch, new Callback<Node[]>() {
-                        @Override
-                        public void on(Node[] result) {
-                            for (int j = 0; j < nsearch; j++) {
-                                tempkdtree[finalI][j] = result[j].id();
-                            }
-                        }
-                    });
-                }
-                te = System.currentTimeMillis() - ts;
-                System.out.println("kdTreeOld get all: " + te + " ms");
-
-                for (int i = 0; i < ins; i++) {
-                    for (int j = 0; j < nsearch; j++) {
-                        if (temp[i][j] != tempkdtree[i][j]) {
-                            throw new RuntimeException("Error! "+temp[i][j]+"!="+tempkdtree[i][j]);
-                        }
-                    }
-                } */
 
                 long[][] temp = new long[test][nsearch];
                 ts = System.currentTimeMillis();
@@ -133,18 +97,14 @@ public class NDTreeTest {
                 long[][] tempkdtree = new long[test][nsearch];
                 ts = System.currentTimeMillis();
                 for (int i = 0; i < test; i++) {
-                    int finalI = i;
-                    kdTreeOld.nearestN(keysTest[i], nsearch, new Callback<Node[]>() {
-                        @Override
-                        public void on(Node[] result) {
-                            for (int j = 0; j < nsearch; j++) {
-                                tempkdtree[finalI][j] = result[j].id();
-                            }
-                        }
-                    });
+                    TreeResult res = kdTree.nearestN(keysTest[i], nsearch);
+                    for (int j = 0; j < nsearch; j++) {
+                        tempkdtree[i][j] = res.value(j);
+                    }
+                    res.free();
                 }
                 te = System.currentTimeMillis() - ts;
-                System.out.println("kdTreeOld get all: " + te + " ms");
+                System.out.println("KDTree get all: " + te + " ms");
 
                 for (int i = 0; i < test; i++) {
                     for (int j = 0; j < nsearch; j++) {
@@ -154,7 +114,35 @@ public class NDTreeTest {
                     }
                 }
 
+
+                double[] mins=new double[dim];
+                double[] maxs=new double[dim];
+
+                for(int i=0;i<dim;i++){
+                    mins[i]=0.2;
+                    maxs[i]=0.7;
+                }
+
+                ts = System.currentTimeMillis();
+                TreeResult trangeND= ndTree.query(mins,maxs);
+                te = System.currentTimeMillis() - ts;
+                System.out.println("NDtree range: " + te + " ms");
+
+                ts = System.currentTimeMillis();
+                TreeResult trangeKD = kdTree.query(mins,maxs);
+                te = System.currentTimeMillis() - ts;
+                System.out.println("KDTree range: " + te + " ms");
+
+                Assert.assertTrue(trangeKD.size()==trangeND.size());
+
+
+                for(int i=0;i<trangeKD.size();i++){
+                    Assert.assertTrue(trangeKD.value(i)==trangeND.value(i));
+                }
+
+
                 System.out.println("test pass!");
+
             }
         });
     }

@@ -54,32 +54,6 @@ public class HRect {
         return new HRect(vmin, vmax);
     }
 
-    // currently unused
-    protected HRect intersection(HRect r) {
-
-        double[] newmin = new double[min.length];
-        double[] newmax = new double[min.length];
-
-        for (int i = 0; i < min.length; ++i) {
-            newmin[i] = Math.max(min[i], r.min[i]);
-            newmax[i] = Math.min(max[i], r.max[i]);
-            if (newmin[i] >= newmax[i]) return null;
-        }
-
-        return new HRect(newmin, newmax);
-    }
-
-    // currently unused
-    protected double area() {
-
-        double a = 1;
-
-        for (int i = 0; i < min.length; ++i) {
-            a *= (max[i] - min[i]);
-        }
-
-        return a;
-    }
 
     public String toString() {
         return min + "\n" + max + "\n";

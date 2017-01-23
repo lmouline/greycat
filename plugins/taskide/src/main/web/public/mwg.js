@@ -2446,6 +2446,9 @@ var org;
                     this._actionRegistry = new org.mwg.internal.task.CoreActionRegistry();
                     this._nodeRegistry = new org.mwg.internal.CoreNodeRegistry();
                     this._memoryFactory = new org.mwg.internal.memory.HeapMemoryFactory();
+                    this._isConnected = new java.util.concurrent.atomic.AtomicBoolean(false);
+                    this._lock = new java.util.concurrent.atomic.AtomicBoolean(false);
+                    this._plugins = p_plugins;
                     var selfPointer = this;
                     var temp_hooks = new Array(0);
                     if (p_plugins != null) {
@@ -2465,9 +2468,6 @@ var org;
                             return new org.mwg.internal.CoreNodeIndex(world, time, id, graph);
                         }
                     });
-                    this._isConnected = new java.util.concurrent.atomic.AtomicBoolean(false);
-                    this._lock = new java.util.concurrent.atomic.AtomicBoolean(false);
-                    this._plugins = p_plugins;
                 }
                 CoreGraph.prototype.fork = function (world) {
                     var childWorld = this._worldKeyCalculator.newKey();
@@ -3745,6 +3745,8 @@ var org;
                     }
                     nodeWorldOrder.lock();
                     var previouStateChunk = this.internal_resolveState(node, false);
+                    var previousTime = previouStateChunk.time();
+                    var previousWorld = previouStateChunk.world();
                     if (castedNode._world_magic == -1 && castedNode._time_magic == -1 && castedNode._super_time_magic == -1) {
                         nodeWorldOrder.unlock();
                         castedNode.cacheUnlock();
@@ -3756,20 +3758,31 @@ var org;
                     var superTimeTree = this._space.get(castedNode._index_superTimeTree);
                     var timeSensitivity = superTimeTree.extra();
                     if (timeSensitivity != 0 && timeSensitivity != org.mwg.Constants.NULL_LONG) {
-                        var timeSensitivityOffset = superTimeTree.extra2();
-                        if (timeSensitivityOffset == org.mwg.Constants.NULL_LONG) {
-                            timeSensitivityOffset = 0;
+                        if (timeSensitivity < 0) {
+                            nodeTime = previousTime;
                         }
-                        nodeTime = nodeTime - (nodeTime % timeSensitivity) + timeSensitivityOffset;
+                        else {
+                            var timeSensitivityOffset = superTimeTree.extra2();
+                            if (timeSensitivityOffset == org.mwg.Constants.NULL_LONG) {
+                                timeSensitivityOffset = 0;
+                            }
+                            nodeTime = nodeTime - (nodeTime % timeSensitivity) + timeSensitivityOffset;
+                        }
                     }
-                    var clonedState = this._space.createAndMark(org.mwg.chunk.ChunkType.STATE_CHUNK, nodeWorld, nodeTime, nodeId);
-                    clonedState.loadFrom(previouStateChunk);
+                    var clonedState;
+                    if (nodeTime != previousTime || nodeWorld != previousWorld) {
+                        clonedState = this._space.createAndMark(org.mwg.chunk.ChunkType.STATE_CHUNK, nodeWorld, nodeTime, nodeId);
+                        clonedState.loadFrom(previouStateChunk);
+                        castedNode._index_stateChunk = clonedState.index();
+                        this._space.unmark(previouStateChunk.index());
+                    }
+                    else {
+                        clonedState = previouStateChunk;
+                    }
                     castedNode._world_magic = -1;
                     castedNode._super_time_magic = -1;
                     castedNode._time_magic = -1;
-                    castedNode._index_stateChunk = clonedState.index();
-                    this._space.unmark(previouStateChunk.index());
-                    if (previouStateChunk.world() == nodeWorld || nodeWorldOrder.get(nodeWorld) != org.mwg.internal.CoreConstants.NULL_LONG) {
+                    if (previousWorld == nodeWorld || nodeWorldOrder.get(nodeWorld) != org.mwg.internal.CoreConstants.NULL_LONG) {
                         var timeTree = this._space.get(castedNode._index_timeTree);
                         var superTreeSize = superTimeTree.size();
                         var threshold = org.mwg.internal.CoreConstants.SCALE_1 * 2;
@@ -7287,7 +7300,7 @@ var org;
                                     }
                                     else {
                                         java.lang.System.arraycopy(this._back, 0, ex_back, 0, targetIndex);
-                                        this._back[targetIndex] = newValue;
+                                        ex_back[targetIndex] = newValue;
                                         java.lang.System.arraycopy(this._back, targetIndex, ex_back, targetIndex + 1, (this._size - targetIndex));
                                         this._back = ex_back;
                                         this._size++;

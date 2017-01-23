@@ -521,24 +521,7 @@ public class NDTree extends BaseNode implements Tree {
         return res;
     }
 
-    private static boolean checkInside(final double[] targetmin, final double[] targetmax, final double[] boundMin, final double[] boundMax) {
-        for (int i = 0; i < boundMax.length; i++) {
-            if (targetmin[i] > boundMax[i] || targetmax[i] < boundMin[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
 
-
-    private static boolean checkInsideBounds(final double[] key, final double[] boundMin, final double[] boundMax) {
-        for (int i = 0; i < boundMax.length; i++) {
-            if (key[i] > boundMax[i] || key[i] < boundMin[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
 
 
     private static void reccursiveTraverse(final ENode node, final EGraph calcZone, final VolatileResult nnl, final int strategyType, final Distance distance, final double[] target, final double[] targetmin, final double[] targetmax, final double[] targetcenter, final double radius) {
@@ -560,13 +543,13 @@ public class NDTree extends BaseNode implements Tree {
                             for (int j = 0; j < buffer.rows(); j++) {
                                 tempK[j] = bufferkeys.get(j, i) / t;
                             }
-                            filter(tempK, t, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
+                            TreeHelper.filterAndInsert(tempK, t, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
                         }
                         return;
                     }
                     case IndexStrategy.INDEX: {
                         for (int i = 0; i < buffer.columns(); i++) {
-                            filter(buffer.column(i), bufferValue.get(0, i), target, targetmin, targetmax, targetcenter, distance, radius, nnl);
+                            TreeHelper.filterAndInsert(buffer.column(i), bufferValue.get(0, i), target, targetmin, targetmax, targetcenter, distance, radius, nnl);
                         }
                         return;
 
@@ -586,13 +569,13 @@ public class NDTree extends BaseNode implements Tree {
                         for (int i = 0; i < keyo.length; i++) {
                             key[i] = keyo[i] / value;
                         }
-                        filter(key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
+                        TreeHelper.filterAndInsert(key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
                         return;
                     }
                     case IndexStrategy.INDEX: {
                         double[] key = (double[]) node.getAt(E_PROFILE);
                         long value = (long) node.getAt(E_VALUE);
-                        filter(key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
+                        TreeHelper.filterAndInsert(key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
                         return;
                     }
                     default: {
@@ -608,7 +591,7 @@ public class NDTree extends BaseNode implements Tree {
             final double worst = nnl.getWorstDistance();
 
             if (targetmin == null || targetmax == null) {
-                if (!nnl.isCapacityReached() || getclosestDistance(target, boundMin, boundMax, distance) <= worst) {
+                if (!nnl.isCapacityReached() || TreeHelper.getclosestDistance(target, boundMin, boundMax, distance) <= worst) {
                     final ENode tempList = calcZone.newNode();
                     final VolatileResult childPriority = new VolatileResult(tempList, -1);
                     final int dim = boundMax.length;
@@ -630,7 +613,7 @@ public class NDTree extends BaseNode implements Tree {
                                         childMax[i] = boundMax[i];
                                     }
                                 }
-                                childPriority.insert(childMin, attributeKey, getclosestDistance(target, childMin, childMax, distance));
+                                childPriority.insert(childMin, attributeKey, TreeHelper.getclosestDistance(target, childMin, childMax, distance));
                             }
                         }
                     });
@@ -648,7 +631,7 @@ public class NDTree extends BaseNode implements Tree {
                     public void on(int attributeKey, byte elemType, Object elem) {
                         if (attributeKey >= E_OFFSET_REL) {
                             ENode child = (ENode) node.getAt(attributeKey);
-                            if (checkInside(targetmin, targetmax, (double[]) child.getAt(E_MIN), (double[]) child.getAt(E_MAX))) {
+                            if (TreeHelper.checkBoundsIntersection(targetmin, targetmax, (double[]) child.getAt(E_MIN), (double[]) child.getAt(E_MAX))) {
                                 reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, targetcenter, radius);
                             }
                         }
@@ -658,37 +641,7 @@ public class NDTree extends BaseNode implements Tree {
         }
     }
 
-    private static double getclosestDistance(double[] target, double[] boundMin, double[] boundMax, Distance distance) {
-        double[] closest = new double[target.length];
 
-        for (int i = 0; i < target.length; i++) {
-            if (target[i] >= boundMax[i]) {
-                closest[i] = boundMax[i];
-            } else if (target[i] <= boundMin[i]) {
-                closest[i] = boundMin[i];
-            } else {
-                closest[i] = target[i];
-            }
-        }
-        return distance.measure(closest, target);
-    }
 
-    private static void filter(double[] key, long value, double[] target, double[] targetmin, double[] targetmax, double[] targetcenter, Distance distance, double radius, VolatileResult nnl) {
-        if (targetmin != null) {
-            if (checkInsideBounds(key, targetmin, targetmax)) {
-                nnl.insert(key, value, distance.measure(key, targetcenter));
-            }
-        } else {
-            double dist = distance.measure(key, target);
-            if (radius > 0) {
-                if (dist < radius) {
-                    nnl.insert(key, value, dist);
-                }
-            } else {
-                nnl.insert(key, value, dist);
-            }
-        }
-
-    }
 
 }
