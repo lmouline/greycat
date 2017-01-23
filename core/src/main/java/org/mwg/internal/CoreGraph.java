@@ -42,6 +42,9 @@ public class CoreGraph implements org.mwg.Graph {
         _actionRegistry = new CoreActionRegistry();
         _nodeRegistry = new CoreNodeRegistry();
         _memoryFactory = new HeapMemoryFactory();
+        this._isConnected = new AtomicBoolean(false);
+        this._lock = new AtomicBoolean(false);
+        this._plugins = p_plugins;
         final Graph selfPointer = this;
         //First round, find relevant
         TaskHook[] temp_hooks = new TaskHook[0];
@@ -66,9 +69,6 @@ public class CoreGraph implements org.mwg.Graph {
             }
         });
         //variables init
-        this._isConnected = new AtomicBoolean(false);
-        this._lock = new AtomicBoolean(false);
-        this._plugins = p_plugins;
     }
 
     @Override
