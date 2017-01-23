@@ -1,7 +1,5 @@
 package org.mwg.structure;
 
-import org.mwg.struct.DMatrix;
-
 /**
  * Created by assaad on 05/01/2017.
  */

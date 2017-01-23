@@ -1,4 +1,4 @@
-package org.mwg.structure.tree;
+package org.mwg.structure.trees;
 
 import org.mwg.Graph;
 import org.mwg.Type;
@@ -13,6 +13,7 @@ import org.mwg.structure.Tree;
 import org.mwg.structure.TreeResult;
 import org.mwg.structure.distance.Distance;
 import org.mwg.structure.distance.Distances;
+import org.mwg.structure.util.TreeHelper;
 import org.mwg.structure.util.VolatileResult;
 
 public class NDTree extends BaseNode implements Tree {
@@ -92,7 +93,7 @@ public class NDTree extends BaseNode implements Tree {
 
     private static void check(double[] values, double[] min, double[] max) {
         if (min == null || max == null) {
-            throw new RuntimeException("Please set min and max boundary before inserting in the tree");
+            throw new RuntimeException("Please set min and max boundary before inserting in the trees");
         }
         if (values.length != min.length) {
             throw new RuntimeException("Values dimension mismatch");
@@ -256,7 +257,7 @@ public class NDTree extends BaseNode implements Tree {
                 return subInsert(node, key, value, strategyType, min, max, center, resolution, buffersize, root, false);
             }
         }
-        //Else we reached here last level of the tree, and the array is full, we need to start a profiler
+        //Else we reached here last level of the trees, and the array is full, we need to start a profiler
         else {
             switch (strategyType) {
                 case IndexStrategy.PROFILE: {

@@ -2,11 +2,14 @@ package org.mwg.structure.action;
 
 import org.mwg.DeferCounter;
 import org.mwg.plugin.Job;
-import org.mwg.structure.TreeResult;
 import org.mwg.structure.Tree;
-import org.mwg.structure.tree.KDTree;
-import org.mwg.structure.tree.NDTree;
-import org.mwg.task.*;
+import org.mwg.structure.TreeResult;
+import org.mwg.structure.trees.KDTree;
+import org.mwg.structure.trees.NDTree;
+import org.mwg.task.Action;
+import org.mwg.task.TaskContext;
+import org.mwg.task.TaskResult;
+import org.mwg.task.TaskResultIterator;
 
 public class NearestNWithinRadius implements Action {
 

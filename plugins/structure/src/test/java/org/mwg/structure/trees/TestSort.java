@@ -1,6 +1,5 @@
-package org.mwg.structure.tree;
+package org.mwg.structure.trees;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.mwg.*;
 import org.mwg.struct.EGraph;

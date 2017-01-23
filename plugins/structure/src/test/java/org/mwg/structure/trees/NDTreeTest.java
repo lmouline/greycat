@@ -1,4 +1,4 @@
-package org.mwg.structure.tree;
+package org.mwg.structure.trees;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -36,9 +36,9 @@ public class NDTreeTest {
                 ndTree.set(NDTree.RESOLUTION, Type.DOUBLE_ARRAY, precisions);
                 Random random = new Random();
                 random.setSeed(125362l);
-                int ins = 1000;
-                int test = 100;
-                int nsearch = 10;
+                int ins = 100;
+                int test = 10;
+                int nsearch = 4;
 
 
                 Node[] nodes = new Node[ins];

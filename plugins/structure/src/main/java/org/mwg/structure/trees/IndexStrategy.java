@@ -1,4 +1,4 @@
-package org.mwg.structure.tree;
+package org.mwg.structure.trees;
 
 class IndexStrategy {
     static final int INDEX = 0;

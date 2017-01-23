@@ -7,8 +7,8 @@ import org.mwg.plugin.ActionFactory;
 import org.mwg.plugin.NodeFactory;
 import org.mwg.plugin.Plugin;
 import org.mwg.structure.action.NearestNWithinRadius;
-import org.mwg.structure.tree.NDTree;
-import org.mwg.structure.tree.KDTree;
+import org.mwg.structure.trees.KDTree;
+import org.mwg.structure.trees.NDTree;
 import org.mwg.task.Action;
 
 public class StructurePlugin implements Plugin {

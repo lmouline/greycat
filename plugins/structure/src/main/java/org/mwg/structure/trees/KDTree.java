@@ -1,4 +1,4 @@
-package org.mwg.structure.tree;
+package org.mwg.structure.trees;
 
 import org.mwg.Graph;
 import org.mwg.Type;

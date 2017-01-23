@@ -1,7 +1,6 @@
-package org.mwg.structure.tree;
+package org.mwg.structure.util;
 
 import org.mwg.structure.distance.Distance;
-import org.mwg.structure.util.VolatileResult;
 
 /**
  * Created by assaad on 20/01/2017.
