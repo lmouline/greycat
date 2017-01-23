@@ -100,7 +100,7 @@ public class OffHeapEGraph implements EGraph {
     }
 
     @Override
-    public ENode root() {
+    public final ENode root() {
         long addr = parent.addrByIndex(index);
         if (OffHeapLongArray.get(addr, NODES_INDEX) > 0) {
             return new OffHeapENode(this, _graph, 0, nodeAddrAt(addr, 0));
@@ -109,7 +109,7 @@ public class OffHeapEGraph implements EGraph {
     }
 
     @Override
-    public ENode newNode() {
+    public final ENode newNode() {
         long addr = parent.addrByIndex(index);
         long nodesIndex = OffHeapLongArray.get(addr, NODES_INDEX);
         long nodesCapacity = OffHeapLongArray.get(addr, NODES_CAPACITY);
@@ -134,7 +134,7 @@ public class OffHeapEGraph implements EGraph {
     }
 
     @Override
-    public EGraph setRoot(ENode eNode) {
+    public final EGraph setRoot(ENode eNode) {
         long addr = parent.addrByIndex(index);
         final OffHeapENode casted = (OffHeapENode) eNode;
         final long previousId = OffHeapENode.getId(casted.getAddr());
@@ -149,7 +149,7 @@ public class OffHeapEGraph implements EGraph {
     }
 
     @Override
-    public EGraph drop(ENode eNode) {
+    public final EGraph drop(ENode eNode) {
         long addr = parent.addrByIndex(index);
         OffHeapENode casted = (OffHeapENode) eNode;
         long previousId = OffHeapENode.getId(casted.getAddr());
@@ -168,13 +168,13 @@ public class OffHeapEGraph implements EGraph {
     }
 
     @Override
-    public int size() {
+    public final int size() {
         long addr = parent.addrByIndex(index);
         return (int) OffHeapLongArray.get(addr, NODES_INDEX);
     }
 
     @Override
-    public void free() {
+    public final void free() {
         long addr = parent.addrByIndex(index);
         // free all nodes
         long nodesIndex = OffHeapLongArray.get(addr, NODES_INDEX);
@@ -201,7 +201,7 @@ public class OffHeapEGraph implements EGraph {
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         long addr = parent.addrByIndex(index);
         final StringBuilder builder = new StringBuilder();
         builder.append("{\"nodes\":[");
@@ -252,8 +252,7 @@ public class OffHeapEGraph implements EGraph {
         return OffHeapLongArray.cloneArray(addr, NODES + capacity);
     }
 
-    long getAddr() {
-        long addr = parent.addrByIndex(index);
-        return addr;
+    final long getAddr() {
+        return parent.addrByIndex(index);
     }
 }

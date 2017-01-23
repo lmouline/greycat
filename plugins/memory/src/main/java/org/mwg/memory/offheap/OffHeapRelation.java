@@ -251,7 +251,7 @@ class OffHeapRelation implements Relation {
             long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
                 final long size = OffHeapLongArray.get(addr, SIZE);
-                OffHeapLongArray.delete(addr, indexToDelete, size);
+                OffHeapLongArray.delete(addr, indexToDelete + SHIFT, size);
                 OffHeapLongArray.set(addr, SIZE, size - 1);
                 container.declareDirty();
             }
