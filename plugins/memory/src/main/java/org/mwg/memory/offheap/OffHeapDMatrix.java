@@ -387,7 +387,7 @@ class OffHeapDMatrix implements DMatrix {
         boolean isFirst = true;
         long previous = offset;
         long elemIndex = 0;
-        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
                     unsafe_init(Base64.decodeToIntWithBounds(buffer, previous, cursor));
@@ -399,7 +399,9 @@ class OffHeapDMatrix implements DMatrix {
                 previous = cursor + 1;
             }
             cursor++;
-            current = buffer.read(cursor);
+            if (cursor < max) {
+                current = buffer.read(cursor);
+            }
         }
         if (isFirst) {
             unsafe_init((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));

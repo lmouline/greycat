@@ -642,7 +642,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             case Type.ERELATION:
                 OffHeapERelation.free(addr);
                 break;
-                // is freed with the graph
+            // is freed with the graph
 //            case Type.ENODE:
 //                OffHeapENode.free(addr);
 //                break;
@@ -913,11 +913,11 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             if (value(addr, i) != OffHeapConstants.NULL_PTR) { //there is a real value
                 final long loopValue = value(addr, i);
                 if (loopValue != OffHeapConstants.NULL_PTR) {
-                    buffer.write(CoreConstants.CHUNK_SEP);
+                    buffer.write(CoreConstants.CHUNK_ESEP);
                     Base64.encodeIntToBuffer(type(addr, i), buffer);
-                    buffer.write(CoreConstants.CHUNK_SEP);
+                    buffer.write(CoreConstants.CHUNK_ESEP);
                     Base64.encodeLongToBuffer(key(addr, i), buffer);
-                    buffer.write(CoreConstants.CHUNK_SEP);
+                    buffer.write(CoreConstants.CHUNK_ESEP);
                     switch (type(addr, i)) {
                         //additional types for embedded
                         case Type.ENODE:
@@ -1004,9 +1004,9 @@ public class OffHeapENode implements ENode, OffHeapContainer {
         long read_key = -1;
         while (cursor < payloadSize) {
             byte current = buffer.read(cursor);
-            if (current == Constants.CHUNK_ENODE_SEP) {
+            if (current == Constants.CHUNK_ENODE_SEP || current == Constants.CHUNK_SEP) {
                 break;
-            } else if (current == Constants.CHUNK_SEP) {
+            } else if (current == Constants.CHUNK_ESEP) {
                 switch (state) {
                     case LOAD_WAITING_ALLOC:
                         allocate(OffHeapConstants.NULL_PTR, Base64.decodeToLongWithBounds(buffer, previous, cursor));
@@ -1042,7 +1042,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 cursor++;
                                 previous = cursor;
                                 current = buffer.read(cursor);
-                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
                                     if (current == Constants.CHUNK_VAL_SEP) {
                                         if (doubleArrayLoaded == null) {
                                             doubleArrayLoaded = new double[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
@@ -1063,7 +1063,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                     doubleArrayLoaded[doubleArrayIndex] = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
                                 }
                                 internal_set(read_key, read_type, doubleArrayLoaded, true, initial);
-                                if (current != Constants.CHUNK_ENODE_SEP) {
+                                if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
                                     state = LOAD_WAITING_TYPE;
                                     cursor++;
                                     previous = cursor;
@@ -1075,7 +1075,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 cursor++;
                                 previous = cursor;
                                 current = buffer.read(cursor);
-                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
                                     if (current == Constants.CHUNK_VAL_SEP) {
                                         if (longArrayLoaded == null) {
                                             longArrayLoaded = new long[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
@@ -1096,7 +1096,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                     longArrayLoaded[longArrayIndex] = Base64.decodeToLongWithBounds(buffer, previous, cursor);
                                 }
                                 internal_set(read_key, read_type, longArrayLoaded, true, initial);
-                                if (current != Constants.CHUNK_ENODE_SEP) {
+                                if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
                                     state = LOAD_WAITING_TYPE;
                                     cursor++;
                                     previous = cursor;
@@ -1108,7 +1108,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 cursor++;
                                 previous = cursor;
                                 current = buffer.read(cursor);
-                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
                                     if (current == Constants.CHUNK_VAL_SEP) {
                                         if (intArrayLoaded == null) {
                                             intArrayLoaded = new int[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
@@ -1129,7 +1129,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                     intArrayLoaded[intArrayIndex] = Base64.decodeToIntWithBounds(buffer, previous, cursor);
                                 }
                                 internal_set(read_key, read_type, intArrayLoaded, true, initial);
-                                if (current != Constants.CHUNK_ENODE_SEP) {
+                                if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
                                     state = LOAD_WAITING_TYPE;
                                     cursor++;
                                     previous = cursor;
@@ -1148,62 +1148,92 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 OffHeapDMatrix matrix = new OffHeapDMatrix(p_parent, OffHeapConstants.NULL_PTR);
                                 cursor++;
                                 cursor = matrix.load(buffer, cursor, payloadSize);
-                                cursor++;
                                 internal_set(read_key, read_type, matrix, true, initial);
-                                previous = cursor;
-                                state = LOAD_WAITING_TYPE;
+                                if (cursor < payloadSize) {
+                                    current = buffer.read(cursor);
+                                    if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                    }
+                                }
                                 break;
                             case Type.LMATRIX:
                                 OffHeapLMatrix lmatrix = new OffHeapLMatrix(p_parent, OffHeapConstants.NULL_PTR);
                                 cursor++;
                                 cursor = lmatrix.load(buffer, cursor, payloadSize);
-                                cursor++;
                                 internal_set(read_key, read_type, lmatrix, true, initial);
-                                previous = cursor;
-                                state = LOAD_WAITING_TYPE;
+                                if (cursor < payloadSize) {
+                                    current = buffer.read(cursor);
+                                    if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                    }
+                                }
                                 break;
                             case Type.LONG_TO_LONG_MAP:
                                 OffHeapLongLongMap l2lmap = new OffHeapLongLongMap(p_parent, OffHeapConstants.NULL_PTR);
                                 cursor++;
                                 cursor = l2lmap.load(buffer, cursor, payloadSize);
-                                cursor++;
                                 internal_set(read_key, read_type, l2lmap, true, initial);
-                                previous = cursor;
-                                state = LOAD_WAITING_TYPE;
+                                if (cursor < payloadSize) {
+                                    current = buffer.read(cursor);
+                                    if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                    }
+                                }
                                 break;
                             case Type.LONG_TO_LONG_ARRAY_MAP:
                                 OffHeapLongLongArrayMap l2lrmap = new OffHeapLongLongArrayMap(p_parent, OffHeapConstants.NULL_PTR);
                                 cursor++;
                                 cursor = l2lrmap.load(buffer, cursor, payloadSize);
-                                cursor++;
                                 internal_set(read_key, read_type, l2lrmap, true, initial);
-                                previous = cursor;
-                                state = LOAD_WAITING_TYPE;
+                                if (cursor < payloadSize) {
+                                    current = buffer.read(cursor);
+                                    if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                    }
+                                }
                                 break;
                             case Type.RELATION_INDEXED:
                                 OffHeapRelationIndexed relationIndexed = new OffHeapRelationIndexed(p_parent, OffHeapConstants.NULL_PTR, _graph);
                                 cursor++;
                                 cursor = relationIndexed.load(buffer, cursor, payloadSize);
-                                cursor++;
                                 internal_set(read_key, read_type, relationIndexed, true, initial);
-                                previous = cursor;
-                                state = LOAD_WAITING_TYPE;
+                                if (cursor < payloadSize) {
+                                    current = buffer.read(cursor);
+                                    if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                    }
+                                }
                                 break;
                             case Type.STRING_TO_INT_MAP:
                                 OffHeapStringLongMap s2lmap = new OffHeapStringLongMap(p_parent, OffHeapConstants.NULL_PTR);
                                 cursor++;
                                 cursor = s2lmap.load(buffer, cursor, payloadSize);
-                                cursor++;
                                 internal_set(read_key, read_type, s2lmap, true, initial);
-                                previous = cursor;
-                                state = LOAD_WAITING_TYPE;
+                                if (cursor < payloadSize) {
+                                    current = buffer.read(cursor);
+                                    if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                    }
+                                }
                                 break;
                             case Type.ERELATION:
                                 OffHeapERelation eRelation = null;
                                 cursor++;
                                 previous = cursor;
                                 current = buffer.read(cursor);
-                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
                                     if (current == Constants.CHUNK_VAL_SEP) {
                                         if (eRelation == null) {
                                             eRelation = new OffHeapERelation(this, egraph, _graph, OffHeapConstants.NULL_PTR);
@@ -1220,12 +1250,12 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 }
                                 if (eRelation == null) {
                                     eRelation = new OffHeapERelation(this, egraph, _graph, OffHeapConstants.NULL_PTR);
-                                    eRelation.allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                    eRelation.allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                 } else {
                                     eRelation.add(egraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true));
                                 }
                                 internal_set(read_key, read_type, eRelation, true, initial);
-                                if (current != Constants.CHUNK_ENODE_SEP) {
+                                if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
                                     state = LOAD_WAITING_TYPE;
                                     cursor++;
                                     previous = cursor;

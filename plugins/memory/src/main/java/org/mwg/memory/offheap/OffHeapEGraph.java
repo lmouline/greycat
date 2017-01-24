@@ -119,7 +119,6 @@ public class OffHeapEGraph implements EGraph {
             if (newCapacity == 0) {
                 newCapacity = Constants.MAP_INITIAL_CAPACITY;
             }
-
             // reallocate
             addr = OffHeapLongArray.reallocate(addr, NODES + newCapacity);
             parent.setAddrByIndex(index, addr);

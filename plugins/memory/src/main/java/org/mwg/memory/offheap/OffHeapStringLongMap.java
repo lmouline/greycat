@@ -431,7 +431,7 @@ class OffHeapStringLongMap implements StringIntMap {
         boolean isFirst = true;
         long previous = offset;
         String previousKey = null;
-        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP) {
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
                     preAllocate(Base64.decodeToLongWithBounds(buffer, previous, cursor));

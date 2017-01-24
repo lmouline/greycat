@@ -5954,11 +5954,13 @@ var org;
                                                             previous = cursor + 1;
                                                         }
                                                         cursor++;
-                                                        current = buffer.read(cursor);
+                                                        if (cursor < payloadSize) {
+                                                            current = buffer.read(cursor);
+                                                        }
                                                     }
                                                     if (eRelation == null) {
                                                         eRelation = new org.mwg.internal.chunk.heap.HeapERelation(this, null);
-                                                        eRelation.allocate(org.mwg.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                                        eRelation.allocate(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                                     }
                                                     else {
                                                         eRelation.add(this.egraph.nodeByIndex(org.mwg.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor), true));

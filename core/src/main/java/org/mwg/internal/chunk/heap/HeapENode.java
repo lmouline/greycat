@@ -1137,11 +1137,13 @@ class HeapENode implements ENode, HeapContainer {
                                         previous = cursor + 1;
                                     }
                                     cursor++;
-                                    current = buffer.read(cursor);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                    }
                                 }
                                 if (eRelation == null) {
                                     eRelation = new HeapERelation(this, null);
-                                    eRelation.allocate((int) Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                    eRelation.allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                 } else {
                                     eRelation.add(egraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true));
                                 }
