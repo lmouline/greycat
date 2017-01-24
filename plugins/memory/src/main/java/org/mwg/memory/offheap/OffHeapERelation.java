@@ -14,35 +14,35 @@ public class OffHeapERelation implements ERelation {
 
     private static final int SIZE = 0;
     private static final int CAPACITY = 1;
-    private static final int HEADER_SIZE = 2;
+    private static final int OFFSET = 2;
 
     public OffHeapERelation(OffHeapContainer container, OffHeapEGraph eGraph, Graph graph, long p_index) {
         this.eGraph = eGraph;
         this.graph = graph;
         this.index = p_index;
         this.container = container;
-
-        allocate(Constants.MAP_INITIAL_CAPACITY);
+        allocate(-1, Constants.MAP_INITIAL_CAPACITY);
     }
 
-    final void allocate(long newCapacity) {
+    final void allocate(long previousCapacity, long newCapacity) {
         long addr = OffHeapConstants.NULL_PTR;
         if (index != -1) {
             addr = container.addrByIndex(index);
         }
-
         final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
-        if (addr != OffHeapConstants.NULL_PTR) {
-            addr = OffHeapLongArray.reallocate(addr, closePowerOfTwo);
-        } else {
-            // allocate memory
-            addr = OffHeapLongArray.allocate(HEADER_SIZE + closePowerOfTwo);
-            OffHeapLongArray.set(addr, SIZE, 0);
-            OffHeapLongArray.set(addr, CAPACITY, closePowerOfTwo);
-        }
-
-        if (index != -1) {
-            container.setAddrByIndex(index, addr);
+        if (closePowerOfTwo > previousCapacity) {
+            if (addr != OffHeapConstants.NULL_PTR) {
+                addr = OffHeapLongArray.reallocate(addr, closePowerOfTwo);
+                OffHeapLongArray.fillByte(addr, OFFSET + previousCapacity, OFFSET + newCapacity, (byte) OffHeapConstants.NULL_PTR);
+            } else {
+                // allocate memory
+                addr = OffHeapLongArray.allocate(OFFSET + closePowerOfTwo);
+                OffHeapLongArray.set(addr, SIZE, 0);
+                OffHeapLongArray.set(addr, CAPACITY, closePowerOfTwo);
+            }
+            if (index != -1) {
+                container.setAddrByIndex(index, addr);
+            }
         }
     }
 
@@ -79,12 +79,11 @@ public class OffHeapERelation implements ERelation {
         long addr = container.addrByIndex(index);
         long capacity = OffHeapLongArray.get(addr, CAPACITY);
         long size = OffHeapLongArray.get(addr, SIZE);
-
         if (capacity == size) {
             if (capacity == 0) {
-                allocate(Constants.MAP_INITIAL_CAPACITY);
+                allocate(capacity, Constants.MAP_INITIAL_CAPACITY);
             } else {
-                allocate(capacity * 2);
+                allocate(capacity, capacity * 2);
             }
         }
         setNodeAddrAt(addr, size, ((OffHeapENode) eNode).getAddr());
@@ -97,7 +96,12 @@ public class OffHeapERelation implements ERelation {
     public ERelation addAll(ENode[] eNodes) {
         long addr = container.addrByIndex(index);
         long size = OffHeapLongArray.get(addr, SIZE);
-        allocate(HEADER_SIZE + eNodes.length + size);
+        long capacity = OffHeapLongArray.get(addr, CAPACITY);
+        long neededCapacity = eNodes.length + size;
+        if (neededCapacity > capacity) {
+            final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(neededCapacity) / Math.log(2)));
+            allocate(OFFSET + capacity, OFFSET + closePowerOfTwo);
+        }
         for (int i = 0; i < eNodes.length; i++) {
             long currentAddr = container.addrByIndex(index);
             OffHeapENode eNode = (OffHeapENode) eNodes[i];
@@ -137,11 +141,11 @@ public class OffHeapERelation implements ERelation {
     }
 
     static long nodeAddrAt(long addr, long index) {
-        return OffHeapLongArray.get(addr, HEADER_SIZE + index);
+        return OffHeapLongArray.get(addr, OFFSET + index);
     }
 
     static void setNodeAddrAt(long addr, long index, long value) {
-        OffHeapLongArray.set(addr, HEADER_SIZE + index, value);
+        OffHeapLongArray.set(addr, OFFSET + index, value);
     }
 
     @Override

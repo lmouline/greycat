@@ -113,7 +113,7 @@ class OffHeapLMatrix implements LMatrix {
             if (addr != OffHeapConstants.NULL_PTR) {
                 long nbRows = OffHeapLongArray.get(addr, INDEX_ROWS);
                 long nbColumns = OffHeapLongArray.get(addr, INDEX_COLUMNS);
-                OffHeapLongArray.fill(addr, INDEX_OFFSET, (nbRows * nbColumns), value);
+                OffHeapLongArray.fillLong(addr, INDEX_OFFSET, (nbRows * nbColumns), value);
                 container.declareDirty();
             }
         } finally {

@@ -16,7 +16,7 @@ public class OffHeapEGraph implements EGraph {
     private static final int DIRTY = 0;
     private static final int NODES_CAPACITY = 1;
     private static final int NODES_INDEX = 2;
-    private static final int NODES = 3;
+    private static final int OFFSET = 3;
 
     OffHeapEGraph(final OffHeapContainer p_container, final long p_index, final Graph p_graph) {
         parent = p_container;
@@ -33,7 +33,7 @@ public class OffHeapEGraph implements EGraph {
             long nodesCapacity = OffHeapLongArray.get(originAddr, NODES_CAPACITY);
             long nodesIndex = OffHeapLongArray.get(originAddr, NODES_INDEX);
 
-            long newAddr = OffHeapLongArray.allocate(NODES + nodesCapacity);
+            long newAddr = OffHeapLongArray.allocate(OFFSET + nodesCapacity);
             parent.setAddrByIndex(index, newAddr);
             OffHeapLongArray.set(newAddr, NODES_INDEX, nodesIndex);
             OffHeapLongArray.set(newAddr, NODES_CAPACITY, nodesCapacity);
@@ -48,7 +48,7 @@ public class OffHeapEGraph implements EGraph {
                 OffHeapENode.rebase(nodeAddrAt(newAddr, i), newAddr);
             }
         } else {
-            long newAddr = OffHeapLongArray.allocate(NODES);
+            long newAddr = OffHeapLongArray.allocate(OFFSET);
             parent.setAddrByIndex(index, newAddr);
             OffHeapLongArray.set(newAddr, DIRTY, 0);
             OffHeapLongArray.set(newAddr, NODES_INDEX, 0);
@@ -83,20 +83,20 @@ public class OffHeapEGraph implements EGraph {
         long addr = parent.addrByIndex(index);
         final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
         long nodesCapacity = OffHeapLongArray.get(addr, NODES_CAPACITY);
-
         if (closePowerOfTwo > nodesCapacity) {
-            long newAddr = OffHeapLongArray.reallocate(addr, closePowerOfTwo);
+            long newAddr = OffHeapLongArray.reallocate(addr, OFFSET + closePowerOfTwo);
+            OffHeapLongArray.fillByte(newAddr, OFFSET + nodesCapacity, OFFSET + closePowerOfTwo, (byte) OffHeapConstants.NULL_PTR);
             parent.setAddrByIndex(index, newAddr);
             OffHeapLongArray.set(newAddr, NODES_CAPACITY, closePowerOfTwo);
         }
     }
 
     static long nodeAddrAt(long eGraphAddr, long nodeIndex) {
-        return OffHeapLongArray.get(eGraphAddr, NODES + nodeIndex);
+        return OffHeapLongArray.get(eGraphAddr, OFFSET + nodeIndex);
     }
 
     static void setNodeAddrAt(long eGraphAddr, long nodeIndex, long nodeAddr) {
-        OffHeapLongArray.set(eGraphAddr, NODES + nodeIndex, nodeAddr);
+        OffHeapLongArray.set(eGraphAddr, OFFSET + nodeIndex, nodeAddr);
     }
 
     @Override
@@ -120,7 +120,7 @@ public class OffHeapEGraph implements EGraph {
                 newCapacity = Constants.MAP_INITIAL_CAPACITY;
             }
             // reallocate
-            addr = OffHeapLongArray.reallocate(addr, NODES + newCapacity);
+            addr = OffHeapLongArray.reallocate(addr, OFFSET + newCapacity);
             parent.setAddrByIndex(index, addr);
             OffHeapLongArray.set(addr, NODES_CAPACITY, newCapacity);
         }
@@ -218,23 +218,22 @@ public class OffHeapEGraph implements EGraph {
         return builder.toString();
     }
 
-    final OffHeapENode nodeByIndex(final long index, final boolean createIfAbsent) {
-        long addr = parent.addrByIndex(index);
-        long nodesCapacity = OffHeapLongArray.get(addr, NODES_CAPACITY);
-        long nodesIndex = OffHeapLongArray.get(addr, NODES_INDEX);
-
-        if (index < nodesCapacity) {
-            if (index > nodesIndex) {
-                OffHeapLongArray.set(addr, NODES_INDEX, index + 1);
+    final OffHeapENode nodeByIndex(final long nodeIndex, final boolean createIfAbsent) {
+        final long addr = parent.addrByIndex(index);
+        final long nodesCapacity = OffHeapLongArray.get(addr, NODES_CAPACITY);
+        final long nodesIndex = OffHeapLongArray.get(addr, NODES_INDEX);
+        if (nodeIndex < nodesCapacity) {
+            if (nodeIndex > nodesIndex) {
+                OffHeapLongArray.set(addr, NODES_INDEX, nodeIndex + 1);
             }
             OffHeapENode elem = null;
-            long elemAddr = nodeAddrAt(addr, index);
+            long elemAddr = nodeAddrAt(addr, nodeIndex);
             if (elemAddr != OffHeapConstants.NULL_PTR) {
-                elem = new OffHeapENode(this, _graph, index, elemAddr);
+                elem = new OffHeapENode(this, _graph, nodeIndex, elemAddr);
             }
             if (elemAddr == OffHeapConstants.NULL_PTR && createIfAbsent) {
-                elem = new OffHeapENode(this, _graph, index, OffHeapConstants.NULL_PTR);
-                setNodeAddrAt(addr, index, elem.getAddr());
+                elem = new OffHeapENode(this, _graph, nodeIndex, OffHeapConstants.NULL_PTR);
+                setNodeAddrAt(addr, nodeIndex, elem.getAddr());
             }
             return elem;
         } else {
@@ -248,7 +247,7 @@ public class OffHeapEGraph implements EGraph {
         }
         long capacity = OffHeapLongArray.get(addr, NODES_CAPACITY);
 
-        return OffHeapLongArray.cloneArray(addr, NODES + capacity);
+        return OffHeapLongArray.cloneArray(addr, OFFSET + capacity);
     }
 
     final long getAddr() {

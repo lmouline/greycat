@@ -1237,7 +1237,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                     if (current == Constants.CHUNK_VAL_SEP) {
                                         if (eRelation == null) {
                                             eRelation = new OffHeapERelation(this, egraph, _graph, OffHeapConstants.NULL_PTR);
-                                            eRelation.allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                            eRelation.allocate(-1, Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                         } else {
                                             eRelation.add(egraph.nodeByIndex((int) Base64.decodeToLongWithBounds(buffer, previous, cursor), true));
                                         }
@@ -1250,7 +1250,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 }
                                 if (eRelation == null) {
                                     eRelation = new OffHeapERelation(this, egraph, _graph, OffHeapConstants.NULL_PTR);
-                                    eRelation.allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                    eRelation.allocate(-1, Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                 } else {
                                     eRelation.add(egraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true));
                                 }

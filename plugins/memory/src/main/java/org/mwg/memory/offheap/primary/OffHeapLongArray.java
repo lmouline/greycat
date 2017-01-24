@@ -165,7 +165,7 @@ public class OffHeapLongArray {
         }
     }
 
-    public static void fill(final long addr, final long beginIndex, final long endIndex, final long valueToInsert) {
+    public static void fillLong(final long addr, final long beginIndex, final long endIndex, final long valueToInsert) {
         if (OffHeapConstants.DEBUG_MODE) {
             Long allocated = OffHeapConstants.SEGMENTS.get(addr);
             if (allocated == null || endIndex < 0 || (endIndex * 8) > allocated) {
@@ -175,6 +175,17 @@ public class OffHeapLongArray {
         for (long index = beginIndex; index < endIndex; index++) {
             unsafe.putLongVolatile(null, addr + index * 8, valueToInsert);
         }
+    }
+
+    public static void fillByte(final long addr, final long beginIndex, final long endIndex, final byte valueToInsert) {
+        if (OffHeapConstants.DEBUG_MODE) {
+            Long allocated = OffHeapConstants.SEGMENTS.get(addr);
+            if (allocated == null || endIndex < 0 || (endIndex * 8) > allocated) {
+                throw new RuntimeException("set: bad address " + endIndex + "(" + endIndex * 8 + ")" + " in " + allocated);
+            }
+        }
+        //setMemory
+        unsafe.setMemory(addr + (beginIndex * 8), (endIndex - beginIndex) * 8, valueToInsert);
     }
 
 

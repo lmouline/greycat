@@ -460,7 +460,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                     addr = OffHeapLongArray.cloneArray(castedAddr, OFFSET + (castedCapacity * ELEM_SIZE));
                     //clone sub hash if needed
                     if (castedSubHash != OffHeapConstants.NULL_PTR) {
-                        OffHeapLongArray.set(addr, SUBHASH, OffHeapLongArray.cloneArray(castedSubHash, castedCapacity * 3));
+                        OffHeapLongArray.set(addr, SUBHASH, OffHeapLongArray.cloneArray(castedSubHash, castedCapacity * 2));
                     }
                     //clone complex structures
                     //TODO optimze with a flag to avoid this iteration
@@ -739,7 +739,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
             OffHeapLongArray.set(new_addr, DIRTY, 0);
             OffHeapLongArray.set(new_addr, SIZE, 0);
             if (newCapacity > Constants.MAP_INITIAL_CAPACITY) {
-                OffHeapLongArray.set(new_addr, SUBHASH, OffHeapLongArray.allocate(newCapacity * 3));
+                OffHeapLongArray.set(new_addr, SUBHASH, OffHeapLongArray.allocate(newCapacity * 2));
             } else {
                 OffHeapLongArray.set(new_addr, SUBHASH, OffHeapConstants.NULL_PTR);
             }
@@ -751,10 +751,10 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
             OffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
             long subHash_ptr = OffHeapLongArray.get(new_addr, SUBHASH);
             if (subHash_ptr == OffHeapConstants.NULL_PTR) {
-                subHash_ptr = OffHeapLongArray.allocate(newCapacity * 3);
+                subHash_ptr = OffHeapLongArray.allocate(newCapacity * 2);
             } else {
-                subHash_ptr = OffHeapLongArray.reallocate(subHash_ptr, newCapacity * 3);
-                OffHeapLongArray.reset(subHash_ptr, newCapacity * 3);
+                subHash_ptr = OffHeapLongArray.reallocate(subHash_ptr, newCapacity * 2);
+                OffHeapLongArray.reset(subHash_ptr, newCapacity * 2);
             }
             OffHeapLongArray.set(new_addr, SUBHASH, subHash_ptr);
             //reHash
@@ -924,66 +924,105 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                                         OffHeapRelation relation = new OffHeapRelation(this, internal_set(read_key, read_type, null, true, initial));
                                         cursor++;
                                         cursor = relation.load(buffer, cursor, payloadSize);
-                                        cursor++;
-                                        previous = cursor;
-                                        state = LOAD_WAITING_TYPE;
+                                        if (cursor < payloadSize) {
+                                            current = buffer.read(cursor);
+                                            if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                state = LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                            }
+                                        }
                                         break;
                                     case Type.DMATRIX:
                                         OffHeapDMatrix dmatrix = new OffHeapDMatrix(this, internal_set(read_key, read_type, null, true, initial));
                                         cursor++;
                                         cursor = dmatrix.load(buffer, cursor, payloadSize);
-                                        cursor++;
-                                        previous = cursor;
-                                        state = LOAD_WAITING_TYPE;
+                                        if (cursor < payloadSize) {
+                                            current = buffer.read(cursor);
+                                            if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                state = LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                            }
+                                        }
                                         break;
                                     case Type.LMATRIX:
                                         OffHeapLMatrix lmatrix = new OffHeapLMatrix(this, internal_set(read_key, read_type, null, true, initial));
                                         cursor++;
                                         cursor = lmatrix.load(buffer, cursor, payloadSize);
-                                        cursor++;
-                                        previous = cursor;
-                                        state = LOAD_WAITING_TYPE;
+                                        if (cursor < payloadSize) {
+                                            current = buffer.read(cursor);
+                                            if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                state = LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                            }
+                                        }
                                         break;
                                     case Type.LONG_TO_LONG_MAP:
                                         OffHeapLongLongMap l2lmap = new OffHeapLongLongMap(this, internal_set(read_key, read_type, null, true, initial));
                                         cursor++;
                                         cursor = l2lmap.load(buffer, cursor, payloadSize);
-                                        cursor++;
-                                        previous = cursor;
-                                        state = LOAD_WAITING_TYPE;
+                                        if (cursor < payloadSize) {
+                                            current = buffer.read(cursor);
+                                            if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                state = LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                            }
+                                        }
                                         break;
                                     case Type.LONG_TO_LONG_ARRAY_MAP:
                                         OffHeapLongLongArrayMap l2lrmap = new OffHeapLongLongArrayMap(this, internal_set(read_key, read_type, null, true, initial));
                                         cursor++;
                                         cursor = l2lrmap.load(buffer, cursor, payloadSize);
-                                        cursor++;
-                                        previous = cursor;
-                                        state = LOAD_WAITING_TYPE;
+                                        if (cursor < payloadSize) {
+                                            current = buffer.read(cursor);
+                                            if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                state = LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                            }
+                                        }
                                         break;
                                     case Type.RELATION_INDEXED:
                                         OffHeapRelationIndexed relationIndexed = new OffHeapRelationIndexed(this, internal_set(read_key, read_type, null, true, initial), space.graph());
                                         cursor++;
                                         cursor = relationIndexed.load(buffer, cursor, payloadSize);
-                                        cursor++;
-                                        previous = cursor;
-                                        state = LOAD_WAITING_TYPE;
+                                        if (cursor < payloadSize) {
+                                            current = buffer.read(cursor);
+                                            if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                state = LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                            }
+                                        }
                                         break;
                                     case Type.STRING_TO_INT_MAP:
                                         OffHeapStringLongMap s2lmap = new OffHeapStringLongMap(this, internal_set(read_key, read_type, null, true, initial));
                                         cursor++;
                                         cursor = s2lmap.load(buffer, cursor, payloadSize);
-                                        cursor++;
-                                        previous = cursor;
-                                        state = LOAD_WAITING_TYPE;
+                                        if (cursor < payloadSize) {
+                                            current = buffer.read(cursor);
+                                            if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                state = LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                            }
+                                        }
                                         break;
                                     case Type.EGRAPH:
-                                        OffHeapEGraph eGraph = new OffHeapEGraph(this, OffHeapConstants.NULL_PTR, this.graph());
+                                        OffHeapEGraph eGraph = new OffHeapEGraph(this, internal_set(read_key, read_type, null, true, initial), this.graph());
                                         cursor++;
                                         cursor = eGraph.load(buffer, cursor, payloadSize);
-                                        cursor++;
-                                        internal_set(read_key, read_type, eGraph, true, initial);
-                                        previous = cursor;
-                                        state = LOAD_WAITING_TYPE;
+                                        if (cursor < payloadSize) {
+                                            current = buffer.read(cursor);
+                                            if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                state = LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                            }
+                                        }
                                         break;
                                     default:
                                         throw new RuntimeException("Not implemented yet!!!");
