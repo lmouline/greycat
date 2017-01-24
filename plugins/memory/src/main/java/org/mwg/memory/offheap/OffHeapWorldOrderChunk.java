@@ -42,6 +42,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
                 OffHeapLongArray.set(temp_addr, SIZE, 0);
                 OffHeapLongArray.set(temp_addr, CAPACITY, initialCapacity);
                 OffHeapLongArray.set(temp_addr, LOCK, 0);
+                OffHeapLongArray.set(temp_addr, LOCK_EXT, 0);
                 OffHeapLongArray.set(temp_addr, MAGIC, 0);
                 OffHeapLongArray.set(temp_addr, EXTRA, Constants.NULL_LONG);
                 OffHeapLongArray.set(temp_addr, HASH_SUB, OffHeapConstants.NULL_PTR);
