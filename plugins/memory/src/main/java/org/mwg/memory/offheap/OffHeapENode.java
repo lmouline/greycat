@@ -83,7 +83,10 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             final long size = OffHeapLongArray.get(new_addr, SIZE);
             final long hash_capacity = newCapacity * 2;
             for (long i = 0; i < size; i++) {
-                long keyHash = HashHelper.longHash(key(new_addr, i), hash_capacity);
+                long keyHash = key(new_addr, i) % hash_capacity;
+                if (keyHash < 0) {
+                    keyHash = keyHash * -1;
+                }
                 setNext(subHash_ptr, i, hash(subHash_ptr, newCapacity, keyHash));
                 setHash(subHash_ptr, newCapacity, keyHash, i);
             }
@@ -175,7 +178,10 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                 }
             }
         } else {
-            hashIndex = HashHelper.longHash(p_key, capacity * 2);
+            hashIndex = p_key % (capacity * 2);
+            if (hashIndex < 0) {
+                hashIndex = hashIndex * -1;
+            }
             long m = hash(subhash_ptr, capacity, hashIndex);
             while (m != -1) {
                 if (key(addr, m) == p_key) {
@@ -222,7 +228,10 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                         setType(addr, entry, typeOfVictim);
                         if (subhash_ptr != OffHeapConstants.NULL_PTR) {
                             setNext(addr, entry, next(subhash_ptr, indexVictim));
-                            long victimHash = HashHelper.longHash(key(addr, entry), capacity * 2);
+                            long victimHash = key(addr, entry) % (capacity * 2);
+                            if (victimHash < 0) {
+                                victimHash = victimHash * -1;
+                            }
                             long m = hash(subhash_ptr, capacity, victimHash);
                             if (m == indexVictim) {
                                 //the victim was the head of hashing list
@@ -263,7 +272,10 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             addr = allocate(addr, newCapacity);
             subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
             capacity = newCapacity;
-            hashIndex = HashHelper.longHash(p_key, capacity * 2);
+            hashIndex = p_key % (capacity * 2);
+            if (hashIndex < 0) {
+                hashIndex = hashIndex * -1;
+            }
         }
         final long insert_index = size;
         setKey(addr, insert_index, p_key);
@@ -443,7 +455,10 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             return -1;
         } else {
             final long capacity = OffHeapLongArray.get(addr, CAPACITY);
-            final long hashIndex = HashHelper.longHash(p_key, capacity * 2);
+            long hashIndex = p_key % (capacity * 2);
+            if (hashIndex < 0) {
+                hashIndex = hashIndex * -1;
+            }
             long m = hash(subhash_ptr, capacity, hashIndex);
             while (m >= 0) {
                 if (p_key == key(addr, m)) {
