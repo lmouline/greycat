@@ -1,8 +1,6 @@
 package org.mwg;
 
-import org.apache.hadoop.hbase.HColumnDescriptor;
-import org.apache.hadoop.hbase.client.*;
-import org.apache.hadoop.hbase.thrift.generated.Hbase;
+import org.apache.hadoop.hbase.thrift.generated.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -11,11 +9,10 @@ import org.apache.thrift.transport.TTransport;
 import org.mwg.plugin.Storage;
 import org.mwg.struct.Buffer;
 import org.mwg.struct.BufferIterator;
-import org.mwg.utility.Base64;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class HBaseThriftStorage implements Storage {
@@ -27,8 +24,9 @@ public class HBaseThriftStorage implements Storage {
 
     private String tablename;
 
-    private Connection connection;
-    private Table table;
+    private TTransport transport;
+    private Hbase.Client client;
+
     private boolean isConnected;
     private Graph graph;
 
@@ -39,6 +37,7 @@ public class HBaseThriftStorage implements Storage {
 
     @Override
     public void get(Buffer keys, Callback<Buffer> callback) {
+
         if (!isConnected) {
             throw new RuntimeException(_connectedError);
         }
@@ -46,7 +45,9 @@ public class HBaseThriftStorage implements Storage {
         final BufferIterator it = keys.iterator();
 
         boolean isFirst = true;
-        final List<Get> gets = new ArrayList<>();
+//        final List<Get> gets = new ArrayList<>();
+        final List<ByteBuffer> gets = new ArrayList<>();
+
         while (it.hasNext()) {
             final Buffer view = it.next();
             if (!isFirst) {
@@ -54,22 +55,30 @@ public class HBaseThriftStorage implements Storage {
             } else {
                 isFirst = false;
             }
-            final Get get = new Get(view.data());
-            gets.add(get);
+//            final Get get = new Get(view.data());
+//            gets.add(get);
+            gets.add(ByteBuffer.wrap(view.data()));
         }
 
         try {
-            Result[] res = table.get(gets);
-            if (res != null) {
-                for (int i = 0; i < res.length; i++) {
-                    byte[] r = res[i].getValue(Bytes.toBytes(COLUMN_FAMILY), Bytes.toBytes(COLUMN_NAME));
+//            Result[] res = table.get(gets);
+            List<TRowResult> res = client.getRows(ByteBuffer.wrap(Bytes.toBytes(tablename)), gets, new HashMap<>());
+            if (res != null && !res.isEmpty()) {
+                for (int i = 0; i < res.size(); i++) {
+                    final TRowResult row = res.get(i);
+                    // TODO check
+                    TColumn c = row.getSortedColumns().iterator().next();
+                    byte[] r = new byte[c.bufferForColumnName().remaining()];
+                    c.bufferForColumnName().get(r);
+
+//                    byte[] r = res[i].getValue(Bytes.toBytes(COLUMN_FAMILY), Bytes.toBytes(COLUMN_NAME));
                     if (r != null) {
                         result.writeAll(r);
                     }
                 }
             }
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -85,19 +94,24 @@ public class HBaseThriftStorage implements Storage {
             throw new RuntimeException(_connectedError);
         }
         try {
-            final List<Put> puts = new ArrayList<>();
+            final List<BatchMutation> batchMutations = new ArrayList<>();
 
             final BufferIterator it = stream.iterator();
             while (it.hasNext()) {
                 final Buffer keyView = it.next();
                 final Buffer valueView = it.next();
                 if (valueView != null) {
-                    final Put put = new Put(keyView.data());
-                    put.addColumn(Bytes.toBytes(COLUMN_FAMILY), Bytes.toBytes(COLUMN_NAME), valueView.data());
-                    puts.add(put);
+//                    final Put put = new Put(keyView.data());
+//                    put.addColumn(Bytes.toBytes(COLUMN_FAMILY), Bytes.toBytes(COLUMN_NAME), valueView.data());
+
+                    final List<Mutation> rowMutations = new ArrayList<>();
+                    rowMutations.add(new Mutation(false, ByteBuffer.wrap(Bytes.toBytes(COLUMN_NAME)), ByteBuffer.wrap(valueView.data()), true));
+                    batchMutations.add(new BatchMutation(ByteBuffer.wrap(keyView.data()), rowMutations));
                 }
             }
-            table.put(puts);
+//            table.put(puts);
+            client.mutateRows(ByteBuffer.wrap(Bytes.toBytes(tablename)), batchMutations, new HashMap<>());
+
             if (callback != null) {
                 callback.on(true);
             }
@@ -126,38 +140,24 @@ public class HBaseThriftStorage implements Storage {
 
         // Create a connection to the cluster.
         try {
-            TTransport transport = new TSocket("192.168.25.60", 2280);
+            transport = new TSocket("192.168.25.60", 8383);
             TProtocol protocol = new TBinaryProtocol(transport, true, true);
 
-            Hbase.Client client = new Hbase.Client(protocol);
+            client = new Hbase.Client(protocol);
 
             transport.open();
 
-            final Li
-            new HColumnDescriptor(COLUMN_FAMILY);
+            final List<ColumnDescriptor> descriptors = new ArrayList<>();
+            final ColumnDescriptor cd = new ColumnDescriptor();
+            cd.setName(Bytes.toBytes(COLUMN_FAMILY));
+            descriptors.add(cd);
             byte[] tablename = Bytes.toBytes(this.tablename);
 
-            client.createTable(ByteBuffer.wrap(tablename), );
-
-//            Configuration conf = HBaseConfiguration.create();
-//            conf.set("hbase.zookeeper.quorum", "192.168.25.60");
-//            conf.set("hbase.zookeeper.quorum", "localhost");
-//            conf.set("hbase.zookeeper.property.clientPort", "2280");
-//            conf.set("hbase.zookeeper.property.clientPort", "2181");
-//            conf.set("zookeeper.znode.parent", "/hbase");
-
-//            connection = ConnectionFactory.createConnection(conf);
-//            HBaseAdmin.checkHBaseAvailable(conf);
-//
-//            Admin admin = connection.getAdmin();
-
-
-//            if (!admin.tableExists(TableName.valueOf(tablename))) {
-//                HTableDescriptor tableDescriptor = new HTableDescriptor(TableName.valueOf(tablename));
-//                tableDescriptor.addFamily(new HColumnDescriptor(COLUMN_FAMILY));
-//                admin.createTable(tableDescriptor);
-//            }
-//            table = connection.getTable(TableName.valueOf(tablename));
+            try {
+                client.createTable(ByteBuffer.wrap(tablename), descriptors);
+            } catch (AlreadyExists alreadyExists) {
+                System.out.println("WARN: table already exists");
+            }
 
             isConnected = true;
             if (callback != null) {
@@ -176,55 +176,55 @@ public class HBaseThriftStorage implements Storage {
 
     @Override
     public void lock(Callback<Buffer> callback) {
-        if (!isConnected) {
-            throw new RuntimeException(_connectedError);
-        }
-
-        try {
-            final Result result = table.get(new Get(prefixKey));
-            byte[] current = result.getValue(Bytes.toBytes(COLUMN_FAMILY), Bytes.toBytes(COLUMN_NAME));
-            if (current == null) {
-                current = new String("0").getBytes();
-            }
-            final Short currentPrefix = Short.parseShort(new String(current));
-            final Put put = new Put(prefixKey);
-            put.addColumn(Bytes.toBytes(COLUMN_FAMILY), Bytes.toBytes(COLUMN_NAME), ((currentPrefix + 1) + "").getBytes());
-            table.put(put);
-
-            if (callback != null) {
-                Buffer newBuf = graph.newBuffer();
-                Base64.encodeIntToBuffer(currentPrefix, newBuf);
-                callback.on(newBuf);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        if (!isConnected) {
+//            throw new RuntimeException(_connectedError);
+//        }
+//
+//        try {
+//            final Result result = table.get(new Get(prefixKey));
+//            byte[] current = result.getValue(Bytes.toBytes(COLUMN_FAMILY), Bytes.toBytes(COLUMN_NAME));
+//            if (current == null) {
+//                current = new String("0").getBytes();
+//            }
+//            final Short currentPrefix = Short.parseShort(new String(current));
+//            final Put put = new Put(prefixKey);
+//            put.addColumn(Bytes.toBytes(COLUMN_FAMILY), Bytes.toBytes(COLUMN_NAME), ((currentPrefix + 1) + "").getBytes());
+//            table.put(put);
+//
+//            if (callback != null) {
+//                Buffer newBuf = graph.newBuffer();
+//                Base64.encodeIntToBuffer(currentPrefix, newBuf);
+//                callback.on(newBuf);
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
     }
 
     @Override
     public void unlock(Buffer previousLock, Callback<Boolean> callback) {
-        if (!isConnected) {
-            throw new RuntimeException(_connectedError);
-        }
-        callback.on(true);
+//        if (!isConnected) {
+//            throw new RuntimeException(_connectedError);
+//        }
+//        callback.on(true);
     }
 
     @Override
     public void disconnect(Callback<Boolean> callback) {
-        try {
-            connection.close();
-            connection = null;
-            isConnected = false;
-
-            if (callback != null) {
-                callback.on(true);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            if (callback != null) {
-                callback.on(false);
-            }
-        }
+//        try {
+//            connection.close();
+//            connection = null;
+//            isConnected = false;
+//
+//            if (callback != null) {
+//                callback.on(true);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            if (callback != null) {
+//                callback.on(false);
+//            }
+//        }
     }
 }
