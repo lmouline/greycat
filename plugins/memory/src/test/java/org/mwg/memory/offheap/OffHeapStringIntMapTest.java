@@ -2,11 +2,11 @@ package org.mwg.memory.offheap;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.mwg.internal.chunk.AbstractStringLongMapTest;
+import org.mwg.internal.chunk.AbstractStringIntMapTest;
 
-public class OffHeapStringLongMapTest extends AbstractStringLongMapTest {
+public class OffHeapStringIntMapTest extends AbstractStringIntMapTest {
 
-    public OffHeapStringLongMapTest() {
+    public OffHeapStringIntMapTest() {
         super(new OffHeapMemoryFactory());
     }
 

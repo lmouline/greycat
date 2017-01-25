@@ -13,7 +13,6 @@ import org.mwg.plugin.NodeStateCallback;
 import org.mwg.plugin.Resolver;
 import org.mwg.struct.*;
 import org.mwg.utility.Base64;
-import org.mwg.utility.HashHelper;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -424,7 +423,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                 case Type.LMATRIX:
                     return new OffHeapLMatrix(this, index);
                 case Type.STRING_TO_INT_MAP:
-                    return new OffHeapStringLongMap(this, index);
+                    return new OffHeapStringIntMap(this, index);
                 case Type.LONG_TO_LONG_MAP:
                     return new OffHeapLongLongMap(this, index);
                 case Type.LONG_TO_LONG_ARRAY_MAP:
@@ -515,7 +514,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                 toSet = new OffHeapLMatrix(this, index);
                 break;
             case Type.STRING_TO_INT_MAP:
-                toSet = new OffHeapStringLongMap(this, index);
+                toSet = new OffHeapStringIntMap(this, index);
                 break;
             case Type.LONG_TO_LONG_MAP:
                 toSet = new OffHeapLongLongMap(this, index);
@@ -674,7 +673,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                 OffHeapIntArray.freeObject(addr);
                 break;
             case Type.STRING_TO_INT_MAP:
-                OffHeapStringLongMap.free(addr);
+                OffHeapStringIntMap.free(addr);
                 break;
             case Type.LONG_TO_LONG_MAP:
                 OffHeapLongLongMap.free(addr);
@@ -893,7 +892,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("{");
-                        OffHeapStringLongMap castedMapS2L = new OffHeapStringLongMap(this, i);
+                        OffHeapStringIntMap castedMapS2L = new OffHeapStringIntMap(this, i);
                         isFirst[0] = true;
                         castedMapS2L.each(new StringLongMapCallBack() {
                             @Override
@@ -987,7 +986,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                             OffHeapLMatrix.save(loopValue, buffer);
                             break;
                         case Type.STRING_TO_INT_MAP:
-                            OffHeapStringLongMap.save(loopValue, buffer);
+                            OffHeapStringIntMap.save(loopValue, buffer);
                             break;
                         case Type.LONG_TO_LONG_MAP:
                             OffHeapLongLongMap.save(loopValue, buffer);
@@ -1230,7 +1229,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 }
                                 break;
                             case Type.STRING_TO_INT_MAP:
-                                OffHeapStringLongMap s2lmap = new OffHeapStringLongMap(p_parent, OffHeapConstants.NULL_PTR);
+                                OffHeapStringIntMap s2lmap = new OffHeapStringIntMap(p_parent, OffHeapConstants.NULL_PTR);
                                 cursor++;
                                 cursor = s2lmap.load(buffer, cursor, payloadSize);
                                 internal_set(read_key, read_type, s2lmap, true, initial);

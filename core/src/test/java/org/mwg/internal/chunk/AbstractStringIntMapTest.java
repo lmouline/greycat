@@ -10,11 +10,11 @@ import org.mwg.plugin.MemoryFactory;
 import org.mwg.struct.StringIntMap;
 import org.mwg.utility.HashHelper;
 
-public abstract class AbstractStringLongMapTest {
+public abstract class AbstractStringIntMapTest {
 
     private MemoryFactory factory;
 
-    public AbstractStringLongMapTest(MemoryFactory factory) {
+    public AbstractStringIntMapTest(MemoryFactory factory) {
         this.factory = factory;
     }
 

@@ -13,7 +13,6 @@ import org.mwg.memory.offheap.primary.OffHeapString;
 import org.mwg.plugin.NodeStateCallback;
 import org.mwg.struct.Buffer;
 import org.mwg.utility.Base64;
-import org.mwg.utility.HashHelper;
 
 class OffHeapStateChunk implements StateChunk, OffHeapContainer {
 
@@ -198,7 +197,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                 case Type.LMATRIX:
                     return new OffHeapLMatrix(this, index);
                 case Type.STRING_TO_INT_MAP:
-                    return new OffHeapStringLongMap(this, index);
+                    return new OffHeapStringIntMap(this, index);
                 case Type.LONG_TO_LONG_MAP:
                     return new OffHeapLongLongMap(this, index);
                 case Type.LONG_TO_LONG_ARRAY_MAP:
@@ -397,7 +396,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                             OffHeapLMatrix.save(rawValue, buffer);
                             break;
                         case Type.STRING_TO_INT_MAP:
-                            OffHeapStringLongMap.save(rawValue, buffer);
+                            OffHeapStringIntMap.save(rawValue, buffer);
                             break;
                         case Type.LONG_TO_LONG_MAP:
                             OffHeapLongLongMap.save(rawValue, buffer);
@@ -498,7 +497,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                                 setValue(addr, i, OffHeapLongLongArrayMap.clone(value(castedAddr, i)));
                                 break;
                             case Type.STRING_TO_INT_MAP:
-                                setValue(addr, i, OffHeapStringLongMap.clone(value(castedAddr, i)));
+                                setValue(addr, i, OffHeapStringIntMap.clone(value(castedAddr, i)));
                                 break;
                             case Type.EGRAPH:
                                 setValue(addr, i, OffHeapEGraph.clone(value(castedAddr, i)));
@@ -1014,7 +1013,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                                         }
                                         break;
                                     case Type.STRING_TO_INT_MAP:
-                                        OffHeapStringLongMap s2lmap = new OffHeapStringLongMap(this, internal_set(read_key, read_type, null, true, initial));
+                                        OffHeapStringIntMap s2lmap = new OffHeapStringIntMap(this, internal_set(read_key, read_type, null, true, initial));
                                         cursor++;
                                         cursor = s2lmap.load(buffer, cursor, payloadSize);
                                         if (cursor < payloadSize) {
@@ -1126,7 +1125,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                 OffHeapIntArray.freeObject(addr);
                 break;
             case Type.STRING_TO_INT_MAP:
-                OffHeapStringLongMap.free(addr);
+                OffHeapStringIntMap.free(addr);
                 break;
             case Type.LONG_TO_LONG_MAP:
                 OffHeapLongLongMap.free(addr);
