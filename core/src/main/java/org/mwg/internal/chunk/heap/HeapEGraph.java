@@ -76,6 +76,7 @@ class HeapEGraph implements EGraph {
             }
             return elem;
         } else {
+            //return null;
             throw new RuntimeException("bad API usage");
         }
     }

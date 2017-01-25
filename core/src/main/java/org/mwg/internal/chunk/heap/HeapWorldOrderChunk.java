@@ -32,8 +32,9 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     private volatile int _size;
     private int _capacity;
     private long[] _kv;
-    private int[] _next;
     private boolean[] _diff;
+
+    private int[] _next;
     private int[] _hash;
 
     private boolean _dirty;

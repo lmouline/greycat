@@ -17,7 +17,7 @@ public class GraphBuilder {
     private Plugin[] _plugins = null;
     private long _memorySize = -1;
     private boolean _readOnly = false;
-    private boolean _deepPriority = false;
+    private boolean _deepPriority = true;
 
     public static GraphBuilder newBuilder() {
         return new GraphBuilder();
@@ -88,7 +88,12 @@ public class GraphBuilder {
     }
 
     public GraphBuilder withDeepWorld() {
-        _deepPriority = true;
+        _deepPriority = Constants.DEEP_WORLD;
+        return this;
+    }
+
+    public GraphBuilder withWideWorld() {
+        _deepPriority = Constants.WIDE_WORLD;
         return this;
     }
 

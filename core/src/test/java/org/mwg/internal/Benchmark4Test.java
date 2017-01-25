@@ -67,10 +67,10 @@ public class Benchmark4Test {
         */
     }
 
-    //  @Test
+    // @Test
     public void test3() {
         int nb = 1000000;
-        HeapChunkSpace space = new HeapChunkSpace(nb, null, false);
+        HeapChunkSpace space = new HeapChunkSpace(nb, null, true);
         Map<Long, Chunk> map = new HashMap<Long, Chunk>();
         for (int i = 0; i < nb; i++) {
             long hashed = HashHelper.tripleHash(ChunkType.STATE_CHUNK, 0, 0, i, nb);
@@ -93,8 +93,10 @@ public class Benchmark4Test {
     // @Test
     public void testlookup() {
         Graph graph = new GraphBuilder()
-                .withMemorySize(5000000)
+                .withMemorySize(10000)
                 .withScheduler(new NoopScheduler())
+                .withStorage(new BlackHoleStorage())
+                // .withDeepWorld()
                 .build();
 
         final int nb = 1000000;
@@ -107,10 +109,14 @@ public class Benchmark4Test {
                 x.set("value", Type.DOUBLE, rand.nextDouble());
                 root.addToRelation("children", x);
                 x.free();
+                if (i % 1000 == 0) {
+                    graph.save(null);
+                }
             }
             long after = System.currentTimeMillis();
             long diff = after - begin;
             double diffSecond = diff / 1000d;
+            System.out.println(diffSecond);
             System.out.println((nb / 1000) / diffSecond);
 
         });
