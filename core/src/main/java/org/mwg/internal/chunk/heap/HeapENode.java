@@ -356,7 +356,7 @@ class HeapENode implements ENode, HeapContainer {
                         _next[entry] = _next[indexVictim];
                         int victimHash = _k[entry] % (_capacity * 2);
                         if (victimHash < 0) {
-                            victimHash = hashIndex * -1;
+                            victimHash = victimHash * -1;
                         }
                         m = _hash[victimHash];
                         if (m == indexVictim) {
