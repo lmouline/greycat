@@ -150,7 +150,7 @@ class HeapStringIntMap implements StringIntMap {
                 }
                 int m = hash(hashIndex);
                 while (m >= 0) {
-                    if (keyHash == keyH(m) && requestString.equals(key(m))) {
+                    if (keyHash == keyH(m)) {
                         result = value(m);
                         break;
                     }
@@ -241,7 +241,7 @@ class HeapStringIntMap implements StringIntMap {
                 int m = hash(hashIndex);
                 int found = -1;
                 while (m >= 0) {
-                    if (keyHash == keyH(m) && requestKey.equals(key(m))) {
+                    if (keyHash == keyH(m)) {
                         found = m;
                         break;
                     }
@@ -331,7 +331,10 @@ class HeapStringIntMap implements StringIntMap {
                 int m = currentHash;
                 int found = -1;
                 while (m >= 0) {
-                    if (keyHash == keyH(m) && insertKey.equals(key(m))) {
+                    if (keyHash == keyH(m)) {
+                        if (!(insertKey.equals(key(m)))) {
+                            throw new RuntimeException("Lotteries Winner !!! hashing conflict between " + key(m) + " and " + insertKey);
+                        }
                         found = m;
                         break;
                     }

@@ -16,7 +16,7 @@ public class HashHelper {
 
     private static final int len = 24;
 
-    public final static long longHash(long number, long max) {
+    public static long longHash(long number, long max) {
         long hash = number % max;
         return hash < 0 ? hash * -1 : hash;
 
