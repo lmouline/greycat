@@ -21,7 +21,7 @@ public abstract class AbstractMatrixTest {
     @Test
     public void genericTest() {
 
-        ChunkSpace space = factory.newSpace(100, null);
+        ChunkSpace space = factory.newSpace(100, null, false);
 
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
         DMatrix matrix = (DMatrix) chunk.getOrCreate(0, Type.DMATRIX);
@@ -70,7 +70,7 @@ public abstract class AbstractMatrixTest {
 
     @Test
     public void extractTest() {
-        ChunkSpace space = factory.newSpace(100, null);
+        ChunkSpace space = factory.newSpace(100, null, false);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
         DMatrix matrix = (DMatrix) chunk.getOrCreate(0, Type.DMATRIX);
         matrix.init(3, 2);
@@ -93,7 +93,7 @@ public abstract class AbstractMatrixTest {
 
     @Test
     public void appendTest() {
-        ChunkSpace space = factory.newSpace(100, null);
+        ChunkSpace space = factory.newSpace(100, null, false);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
         DMatrix matrix = (DMatrix) chunk.getOrCreate(0, Type.DMATRIX);
         matrix.appendColumn(new double[]{1, 2, 3});

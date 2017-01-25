@@ -55,6 +55,14 @@ public class HashHelper {
         */
     }
 
+    public static long simpleTripleHash(byte p0, long p1, long p2, long p3, long max) {
+        long hash = (((long) p0) ^ p1 ^ p2 ^ p3) % max;
+        if (hash < 0) {
+            hash = hash * -1;
+        }
+        return hash;
+    }
+
     public static long tripleHash(byte p0, long p1, long p2, long p3, long max) {
         if (max <= 0) {
             throw new IllegalArgumentException("Max must be > 0");
@@ -98,12 +106,6 @@ public class HashHelper {
         crc ^= crc >>> 15;
         crc *= PRIME2;
         crc ^= crc >>> 13;
-
-        /*
-        //To check later if we can replace by somthing better
-        crc = crc & 0x7FFFFFFFFFFFFFFFL; //convert positive
-        crc = crc % max;           // return between 0 and max
-        */
         crc = (crc < 0 ? crc * -1 : crc); // positive
         crc = crc % max;
         return crc;

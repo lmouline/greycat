@@ -21,7 +21,7 @@ public abstract class AbstractStringIntMapTest {
     @Test
     public void genericTest() {
 
-        ChunkSpace space = factory.newSpace(100, null);
+        ChunkSpace space = factory.newSpace(100, null, false);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
         StringIntMap map = (StringIntMap) chunk.getOrCreate(0, Type.STRING_TO_INT_MAP);
         map.put("Hello", 0);

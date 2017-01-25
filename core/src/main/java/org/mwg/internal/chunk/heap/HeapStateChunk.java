@@ -22,10 +22,12 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     private volatile int _size;
     private int[] _k;
     private Object[] _v;
-
-    private int[] _next;
-    private int[] _hash;
     private byte[] _type;
+
+    private int[] next_and_hash;
+
+    // private int[] _next;
+    // private int[] _hash;
 
     private boolean _dirty;
 
@@ -37,8 +39,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         _space = p_space;
         _index = p_index;
         //null hash function
-        _next = null;
-        _hash = null;
+        next_and_hash = null;
         _type = null;
         //init to empty size
         _size = 0;
@@ -79,7 +80,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     private int internal_find(final int p_key) {
         if (_size == 0) {
             return -1;
-        } else if (_hash == null) {
+        } else if (next_and_hash == null) {
             for (int i = 0; i < _size; i++) {
                 if (_k[i] == p_key) {
                     return i;
@@ -91,12 +92,12 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             if (hashIndex < 0) {
                 hashIndex = hashIndex * -1;
             }
-            int m = _hash[hashIndex];
+            int m = next_and_hash[_capacity + hashIndex];
             while (m >= 0) {
                 if (p_key == _k[m]) {
                     return m;
                 } else {
-                    m = _next[m];
+                    m = next_and_hash[m];
                 }
             }
             return -1;
@@ -442,15 +443,10 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             _type = cloned_type;
         }
         //copy next if not empty
-        if (casted._next != null) {
-            int[] cloned_next = new int[_capacity];
-            System.arraycopy(casted._next, 0, cloned_next, 0, _capacity);
-            _next = cloned_next;
-        }
-        if (casted._hash != null) {
-            int[] cloned_hash = new int[_capacity * 2];
-            System.arraycopy(casted._hash, 0, cloned_hash, 0, _capacity * 2);
-            _hash = cloned_hash;
+        if (casted.next_and_hash != null) {
+            int[] cloned_hash = new int[_capacity * 3];
+            System.arraycopy(casted.next_and_hash, 0, cloned_hash, 0, _capacity * 3);
+            next_and_hash = cloned_hash;
         }
         if (casted._v != null) {
             _v = new Object[_capacity];
@@ -644,7 +640,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         int entry = -1;
         int p_entry = -1;
         int hashIndex = -1;
-        if (_hash == null) {
+        if (next_and_hash == null) {
             for (int i = 0; i < _size; i++) {
                 if (_k[i] == p_key) {
                     entry = i;
@@ -656,26 +652,26 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             if (hashIndex < 0) {
                 hashIndex = hashIndex * -1;
             }
-            int m = _hash[hashIndex];
+            int m = next_and_hash[_capacity + hashIndex];
             while (m != -1) {
                 if (_k[m] == p_key) {
                     entry = m;
                     break;
                 }
                 p_entry = m;
-                m = _next[m];
+                m = next_and_hash[m];
             }
         }
         //case already present
         if (entry != -1) {
             if (replaceIfPresent || (p_type != _type[entry])) {
                 if (param_elem == null) {
-                    if (_hash != null) {
+                    if (next_and_hash != null) {
                         //unHash previous
                         if (p_entry != -1) {
-                            _next[p_entry] = _next[entry];
+                            next_and_hash[p_entry] = next_and_hash[entry];
                         } else {
-                            _hash[hashIndex] = -1;
+                            next_and_hash[_capacity + hashIndex] = -1;
                         }
                     }
                     int indexVictim = _size - 1;
@@ -689,24 +685,24 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         _k[entry] = _k[indexVictim];
                         _v[entry] = _v[indexVictim];
                         _type[entry] = _type[indexVictim];
-                        if (_hash != null) {
-                            _next[entry] = _next[indexVictim];
+                        if (next_and_hash != null) {
+                            next_and_hash[entry] = next_and_hash[indexVictim];
                             int victimHash = _k[entry] % (_capacity * 2);
-                            if(victimHash < 0){
+                            if (victimHash < 0) {
                                 victimHash = victimHash * -1;
                             }
-                            int m = _hash[victimHash];
+                            int m = next_and_hash[_capacity + victimHash];
                             if (m == indexVictim) {
                                 //the victim was the head of hashing list
-                                _hash[victimHash] = entry;
+                                next_and_hash[_capacity + victimHash] = entry;
                             } else {
                                 //the victim is in the next, reChain it
                                 while (m != -1) {
-                                    if (_next[m] == indexVictim) {
-                                        _next[m] = entry;
+                                    if (next_and_hash[m] == indexVictim) {
+                                        next_and_hash[m] = entry;
                                         break;
                                     }
-                                    m = _next[m];
+                                    m = next_and_hash[m];
                                 }
                             }
                         }
@@ -728,9 +724,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             _k[_size] = p_key;
             _v[_size] = param_elem;
             _type[_size] = p_type;
-            if (_hash != null) {
-                _next[_size] = _hash[hashIndex];
-                _hash[hashIndex] = _size;
+            if (next_and_hash != null) {
+                next_and_hash[_size] = next_and_hash[_capacity + hashIndex];
+                next_and_hash[_capacity + hashIndex] = _size;
             }
             _size++;
             declareDirty();
@@ -754,18 +750,16 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         _type[_size] = p_type;
         _size++;
         //reHash
-        _hash = new int[_capacity * 2];
-        Arrays.fill(_hash, 0, _capacity * 2, -1);
-        _next = new int[_capacity];
-        Arrays.fill(_next, 0, _capacity, -1);
+        next_and_hash = new int[_capacity * 3];
+        Arrays.fill(next_and_hash, 0, _capacity * 3, -1);
         int double_capacity = _capacity * 2;
         for (int i = 0; i < _size; i++) {
             int keyHash = _k[i] % double_capacity;
-            if(keyHash < 0){
+            if (keyHash < 0) {
                 keyHash = keyHash * -1;
             }
-            _next[i] = _hash[keyHash];
-            _hash[keyHash] = i;
+            next_and_hash[i] = next_and_hash[_capacity + keyHash];
+            next_and_hash[_capacity + keyHash] = i;
         }
         if (!initial) {
             declareDirty();
@@ -792,17 +786,15 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         }
         _type = ex_type;
         _capacity = newCapacity;
-        _hash = new int[_capacity * 2];
-        Arrays.fill(_hash, 0, _capacity * 2, -1);
-        _next = new int[_capacity];
-        Arrays.fill(_next, 0, _capacity, -1);
+        next_and_hash = new int[_capacity * 3];
+        Arrays.fill(next_and_hash, 0, _capacity * 3, -1);
         for (int i = 0; i < _size; i++) {
             int keyHash = _k[i] % (_capacity * 2);
             if (keyHash < 0) {
                 keyHash = keyHash * -1;
             }
-            _next[i] = _hash[keyHash];
-            _hash[keyHash] = i;
+            next_and_hash[i] = next_and_hash[_capacity + keyHash];
+            next_and_hash[_capacity + keyHash] = i;
         }
     }
 

@@ -44,6 +44,8 @@ public class HeapChunkSpace implements ChunkSpace {
 
     private final Graph _graph;
 
+    private final boolean _deep_priority;
+
     @Override
     public final Graph graph() {
         return this._graph;
@@ -61,7 +63,8 @@ public class HeapChunkSpace implements ChunkSpace {
         return this._chunkIds.get((int) index);
     }
 
-    public HeapChunkSpace(final int initialCapacity, final Graph p_graph) {
+    public HeapChunkSpace(final int initialCapacity, final Graph p_graph, final boolean deepWorldPriority) {
+        _deep_priority = deepWorldPriority;
         _graph = p_graph;
         _maxEntries = initialCapacity;
         _hashEntries = initialCapacity * HASH_LOAD_FACTOR;
@@ -88,7 +91,12 @@ public class HeapChunkSpace implements ChunkSpace {
 
     @Override
     public final Chunk getAndMark(final byte type, final long world, final long time, final long id) {
-        final int index = (int) HashHelper.tripleHash(type, world, time, id, this._hashEntries);
+        final int index;
+        if (_deep_priority) {
+            index = (int) HashHelper.tripleHash(type, world, time, id, this._hashEntries);
+        } else {
+            index = (int) HashHelper.simpleTripleHash(type, world, time, id, this._hashEntries);
+        }
         int m = this._hash.get(index);
         int found = -1;
         while (m != -1) {
@@ -250,7 +258,12 @@ public class HeapChunkSpace implements ChunkSpace {
     public final synchronized Chunk createAndMark(final byte type, final long world, final long time, final long id) {
         //first mark the object
         int entry = -1;
-        int hashIndex = (int) HashHelper.tripleHash(type, world, time, id, this._hashEntries);
+        final int hashIndex;
+        if (_deep_priority) {
+            hashIndex = (int) HashHelper.tripleHash(type, world, time, id, this._hashEntries);
+        } else {
+            hashIndex = (int) HashHelper.simpleTripleHash(type, world, time, id, this._hashEntries);
+        }
         int m = this._hash.get(hashIndex);
         while (m >= 0) {
             if (type == _chunkTypes.get(m) && world == _chunkWorlds.get(m) && time == _chunkTimes.get(m) && id == _chunkIds.get(m)) {
@@ -310,7 +323,12 @@ public class HeapChunkSpace implements ChunkSpace {
             final long victimTime = _chunkTimes.get(currentVictimIndex);
             final long victimObj = _chunkIds.get(currentVictimIndex);
             final byte victimType = _chunkTypes.get(currentVictimIndex);
-            final int indexVictim = (int) HashHelper.tripleHash(victimType, victimWorld, victimTime, victimObj, this._hashEntries);
+            final int indexVictim;
+            if (_deep_priority) {
+                indexVictim = (int) HashHelper.tripleHash(victimType, victimWorld, victimTime, victimObj, this._hashEntries);
+            } else {
+                indexVictim = (int) HashHelper.simpleTripleHash(victimType, victimWorld, victimTime, victimObj, this._hashEntries);
+            }
             m = _hash.get(indexVictim);
             int last = -1;
             while (m >= 0) {

@@ -6,16 +6,16 @@ import org.mwg.chunk.ChunkType;
 public class ChunkMicroBenchmark {
 
     public static void main(String[] args) {
-        int nb = 3000000;
+        int nb = 10000000;
         long init = System.currentTimeMillis();
-        HeapChunkSpace space = new HeapChunkSpace(nb, null);
+        HeapChunkSpace space = new HeapChunkSpace(nb, null, false);
         for (int i = 0; i < nb; i++) {
-            space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, i);
+            space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, i);
 
         }
         long begin = System.currentTimeMillis();
         for (int i = 0; i < nb; i++) {
-            Chunk c = space.getAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, i);
+            Chunk c = space.getAndMark(ChunkType.STATE_CHUNK, 0, 0, i);
             space.unmark(c.index());
         }
         long after = System.currentTimeMillis();

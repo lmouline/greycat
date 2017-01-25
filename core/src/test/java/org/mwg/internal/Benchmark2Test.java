@@ -1,5 +1,6 @@
 package org.mwg.internal;
 
+import org.junit.Test;
 import org.mwg.*;
 import org.mwg.internal.scheduler.NoopScheduler;
 import org.mwg.plugin.Job;
@@ -9,7 +10,7 @@ public class Benchmark2Test {
     /**
      * @ignore ts
      */
-    //@Test
+    // @Test
     public void heapTest() {
         final Graph graph = new GraphBuilder().withScheduler(new NoopScheduler()).withMemorySize(100).build();
         test(graph, new Callback<Boolean>() {

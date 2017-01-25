@@ -22,7 +22,7 @@ public abstract class AbstractLongLongArrayMapTest {
     @Test
     public void genericTest() {
 
-        ChunkSpace space = factory.newSpace(100, null);
+        ChunkSpace space = factory.newSpace(100, null, false);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
         LongLongArrayMap map = (LongLongArrayMap) chunk.getOrCreate(0, Type.LONG_TO_LONG_ARRAY_MAP);
 
@@ -98,7 +98,7 @@ public abstract class AbstractLongLongArrayMapTest {
 
         Graph g = (new GraphBuilder()).build();
         g.connect(result -> {
-            ChunkSpace space = factory.newSpace(100, g);
+            ChunkSpace space = factory.newSpace(100, g, false);
             StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
             LongLongArrayMap map = (LongLongArrayMap) chunk.getOrCreate(0, Type.LONG_TO_LONG_ARRAY_MAP);
 

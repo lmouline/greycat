@@ -37,7 +37,7 @@ public class CoreGraph implements org.mwg.Graph {
     private MemoryFactory _memoryFactory;
     private TaskHook[] _taskHooks;
 
-    public CoreGraph(final Storage p_storage, long memorySize, Scheduler p_scheduler, Plugin[] p_plugins) {
+    public CoreGraph(final Storage p_storage, final long memorySize, final Scheduler p_scheduler, final Plugin[] p_plugins, final boolean deepPriority) {
         //initiate the two registry
         _actionRegistry = new CoreActionRegistry();
         _nodeRegistry = new CoreNodeRegistry();
@@ -57,7 +57,7 @@ public class CoreGraph implements org.mwg.Graph {
         //Second round, initialize all mandatory elements
         _taskHooks = temp_hooks;
         _storage = p_storage;
-        _space = _memoryFactory.newSpace(memorySize, selfPointer);
+        _space = _memoryFactory.newSpace(memorySize, selfPointer, deepPriority);
         _resolver = new MWGResolver(_storage, _space, selfPointer);
         _scheduler = p_scheduler;
         //Third round, initialize all taskActions and nodeTypes

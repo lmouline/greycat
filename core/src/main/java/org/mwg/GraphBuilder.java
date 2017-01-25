@@ -17,6 +17,7 @@ public class GraphBuilder {
     private Plugin[] _plugins = null;
     private long _memorySize = -1;
     private boolean _readOnly = false;
+    private boolean _deepPriority = false;
 
     public static GraphBuilder newBuilder() {
         return new GraphBuilder();
@@ -86,6 +87,11 @@ public class GraphBuilder {
         return this;
     }
 
+    public GraphBuilder withDeepWorld() {
+        _deepPriority = true;
+        return this;
+    }
+
     public Graph build() {
         if (_storage == null) {
             _storage = new BlackHoleStorage();
@@ -99,7 +105,7 @@ public class GraphBuilder {
         if (_memorySize == -1) {
             _memorySize = 100000;
         }
-        return new org.mwg.internal.CoreGraph(_storage, _memorySize, _scheduler, _plugins);
+        return new org.mwg.internal.CoreGraph(_storage, _memorySize, _scheduler, _plugins, _deepPriority);
     }
 
 }

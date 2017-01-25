@@ -133,5 +133,9 @@ public class Constants {
 
     public static int BOOL_FALSE = 0;
 
+    public static boolean DEEP_WORLD = true;
+
+    public static boolean WIDE_WORLD = false;
+
 }
 

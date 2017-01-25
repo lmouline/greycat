@@ -1,5 +1,6 @@
 package org.mwg.internal;
 
+import org.junit.Test;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;
 import org.mwg.Node;
@@ -20,11 +21,11 @@ import java.util.Random;
  */
 public class Benchmark4Test {
 
-   // @Test
+    //@Test
     public void test() {
         int nb = 3000000;
         long init = System.currentTimeMillis();
-        HeapChunkSpace space = new HeapChunkSpace(nb * 2, null);
+        HeapChunkSpace space = new HeapChunkSpace(nb * 2, null, false);
         for (int i = 0; i < nb; i++) {
             Chunk c = space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, i);
             //space.putAndMark(ChunkType.STATE_CHUNK, 0, 0, i, c);
@@ -69,7 +70,7 @@ public class Benchmark4Test {
     //  @Test
     public void test3() {
         int nb = 1000000;
-        HeapChunkSpace space = new HeapChunkSpace(nb, null);
+        HeapChunkSpace space = new HeapChunkSpace(nb, null, false);
         Map<Long, Chunk> map = new HashMap<Long, Chunk>();
         for (int i = 0; i < nb; i++) {
             long hashed = HashHelper.tripleHash(ChunkType.STATE_CHUNK, 0, 0, i, nb);

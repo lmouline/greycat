@@ -344,6 +344,8 @@ declare module org {
             static MAP_INITIAL_CAPACITY: number;
             static BOOL_TRUE: number;
             static BOOL_FALSE: number;
+            static DEEP_WORLD: boolean;
+            static WIDE_WORLD: boolean;
             static isDefined(param: any): boolean;
             static equals(src: string, other: string): boolean;
             static longArrayEquals(src: Float64Array, other: Float64Array): boolean;
@@ -394,12 +396,14 @@ declare module org {
             private _plugins;
             private _memorySize;
             private _readOnly;
+            private _deepPriority;
             static newBuilder(): org.mwg.GraphBuilder;
             withStorage(storage: org.mwg.plugin.Storage): org.mwg.GraphBuilder;
             withReadOnlyStorage(storage: org.mwg.plugin.Storage): org.mwg.GraphBuilder;
             withMemorySize(numberOfElements: number): org.mwg.GraphBuilder;
             withScheduler(scheduler: org.mwg.plugin.Scheduler): org.mwg.GraphBuilder;
             withPlugin(plugin: org.mwg.plugin.Plugin): org.mwg.GraphBuilder;
+            withDeepWorld(): org.mwg.GraphBuilder;
             build(): org.mwg.Graph;
         }
         interface Node {
@@ -698,7 +702,7 @@ declare module org {
                 private _nodeRegistry;
                 private _memoryFactory;
                 private _taskHooks;
-                constructor(p_storage: org.mwg.plugin.Storage, memorySize: number, p_scheduler: org.mwg.plugin.Scheduler, p_plugins: org.mwg.plugin.Plugin[]);
+                constructor(p_storage: org.mwg.plugin.Storage, memorySize: number, p_scheduler: org.mwg.plugin.Scheduler, p_plugins: org.mwg.plugin.Plugin[], deepPriority: boolean);
                 fork(world: number): number;
                 newNode(world: number, time: number): org.mwg.Node;
                 newTypedNode(world: number, time: number, nodeType: string): org.mwg.Node;
@@ -838,11 +842,12 @@ declare module org {
                         private _chunkValues;
                         private _chunkMarks;
                         private _graph;
+                        private _deep_priority;
                         graph(): org.mwg.Graph;
                         worldByIndex(index: number): number;
                         timeByIndex(index: number): number;
                         idByIndex(index: number): number;
-                        constructor(initialCapacity: number, p_graph: org.mwg.Graph);
+                        constructor(initialCapacity: number, p_graph: org.mwg.Graph, deepWorldPriority: boolean);
                         getAndMark(type: number, world: number, time: number, id: number): org.mwg.chunk.Chunk;
                         get(index: number): org.mwg.chunk.Chunk;
                         getOrLoadAndMark(type: number, world: number, time: number, id: number, callback: org.mwg.Callback<org.mwg.chunk.Chunk>): void;
@@ -1139,9 +1144,8 @@ declare module org {
                         private _size;
                         private _k;
                         private _v;
-                        private _next;
-                        private _hash;
                         private _type;
+                        private next_and_hash;
                         private _dirty;
                         private static LOAD_WAITING_ALLOC;
                         private static LOAD_WAITING_TYPE;
@@ -1335,7 +1339,7 @@ declare module org {
                     toString(): string;
                 }
                 class HeapMemoryFactory implements org.mwg.plugin.MemoryFactory {
-                    newSpace(memorySize: number, graph: org.mwg.Graph): org.mwg.chunk.ChunkSpace;
+                    newSpace(memorySize: number, graph: org.mwg.Graph, deepWorld: boolean): org.mwg.chunk.ChunkSpace;
                     newBuffer(): org.mwg.struct.Buffer;
                 }
             }
@@ -2201,7 +2205,7 @@ declare module org {
                 (): void;
             }
             interface MemoryFactory {
-                newSpace(memorySize: number, graph: org.mwg.Graph): org.mwg.chunk.ChunkSpace;
+                newSpace(memorySize: number, graph: org.mwg.Graph, deepPriority: boolean): org.mwg.chunk.ChunkSpace;
                 newBuffer(): org.mwg.struct.Buffer;
             }
             interface NodeDeclaration {
@@ -2686,6 +2690,7 @@ declare module org {
                 private static HSTART;
                 private static HMULT;
                 static longHash(number: number, max: number): number;
+                static simpleTripleHash(p0: number, p1: number, p2: number, p3: number, max: number): number;
                 static tripleHash(p0: number, p1: number, p2: number, p3: number, max: number): number;
                 static rand(): number;
                 static equals(src: string, other: string): boolean;

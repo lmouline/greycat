@@ -19,7 +19,7 @@ public abstract class AbstractWorldOrderChunkTest {
 
     //@Test
     public void incrementalSave() {
-        ChunkSpace space = factory.newSpace(100, null);
+        ChunkSpace space = factory.newSpace(100, null, false);
         WorldOrderChunk map = (WorldOrderChunk) space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 1);
 
         Buffer buffer = factory.newBuffer();
@@ -49,7 +49,7 @@ public abstract class AbstractWorldOrderChunkTest {
 
     @Test
     public void simpleTest() {
-        ChunkSpace space = factory.newSpace(100, null);
+        ChunkSpace space = factory.newSpace(100, null, false);
         WorldOrderChunk map = (WorldOrderChunk) space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 0);
         //mass insert
         for (long i = 0; i < 10; i++) {
@@ -65,7 +65,7 @@ public abstract class AbstractWorldOrderChunkTest {
 
     @Test
     public void orderTest() {
-        ChunkSpace space = factory.newSpace(100, null);
+        ChunkSpace space = factory.newSpace(100, null, false);
         WorldOrderChunk map = (WorldOrderChunk) space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 0);
         //mass insert
         for (long i = 0; i < 10000; i++) {
@@ -81,7 +81,7 @@ public abstract class AbstractWorldOrderChunkTest {
 
     @Test
     public void saveLoadTest() {
-        ChunkSpace space = factory.newSpace(100, null);
+        ChunkSpace space = factory.newSpace(100, null, false);
         WorldOrderChunk map = (WorldOrderChunk) space.createAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, 1);
         //mass insert
         for (long i = 0; i < 10000; i++) {
