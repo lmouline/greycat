@@ -47,6 +47,8 @@ public class OffHeapENode implements ENode, OffHeapContainer {
         }
         addr = allocate(originAddr, capacity);
         OffHeapLongArray.set(addr, ID, p_id);
+
+        OffHeapEGraph.setNodeAddrAt(egraph.getAddr(), p_id, addr);
     }
 
     private long allocate(final long addr, final long newCapacity) {
@@ -61,10 +63,11 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             } else {
                 OffHeapLongArray.set(new_addr, SUBHASH, OffHeapConstants.NULL_PTR);
             }
+
             return new_addr;
+
         } else {
             //reallocation or overallocation
-
             long graphAddr = egraph.getAddr();
             long nodeId = OffHeapLongArray.get(addr, ID);
 
@@ -1251,7 +1254,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                     if (current == Constants.CHUNK_VAL_SEP) {
                                         if (eRelation == null) {
                                             eRelation = new OffHeapERelation(this, egraph, _graph, OffHeapConstants.NULL_PTR);
-                                            eRelation.allocate(-1, Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                            eRelation.allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                         } else {
                                             eRelation.add(egraph.nodeByIndex((int) Base64.decodeToLongWithBounds(buffer, previous, cursor), true));
                                         }
@@ -1264,7 +1267,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 }
                                 if (eRelation == null) {
                                     eRelation = new OffHeapERelation(this, egraph, _graph, OffHeapConstants.NULL_PTR);
-                                    eRelation.allocate(-1, Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                    eRelation.allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                 } else {
                                     eRelation.add(egraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true));
                                 }

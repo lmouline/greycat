@@ -607,6 +607,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
         if (addr == OffHeapConstants.NULL_PTR) {
             addr = allocate(addr, Constants.MAP_INITIAL_CAPACITY);
         }
+
         long entry = -1;
         long prev_entry = -1;
         long hashIndex = -1;
