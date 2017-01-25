@@ -93,8 +93,12 @@ class HeapStringIntMap implements StringIntMap {
             Arrays.fill(new_hashes, 0, newCapacity * 2, -1);
             hashs = new_hashes;
             nexts = new_nexts;
+            int double_capacity = capacity * 2;
             for (int i = 0; i < mapSize; i++) {
-                int new_key_hash = (int) HashHelper.longHash(keyH(i), newCapacity * 2);
+                int new_key_hash = keyH(i) % double_capacity;
+                if (new_key_hash < 0) {
+                    new_key_hash = new_key_hash * -1;
+                }
                 setNext(i, hash(new_key_hash));
                 setHash(new_key_hash, i);
             }
@@ -140,10 +144,13 @@ class HeapStringIntMap implements StringIntMap {
         synchronized (parent) {
             if (keys != null) {
                 final int keyHash = HashHelper.hash(requestString);
-                final int hashIndex = (int) HashHelper.longHash(keyHash, capacity * 2);
+                int hashIndex = keyHash % (capacity * 2);
+                if (hashIndex < 0) {
+                    hashIndex = hashIndex * -1;
+                }
                 int m = hash(hashIndex);
                 while (m >= 0) {
-                    if (keyHash == keyH(m)) {
+                    if (keyHash == keyH(m) && requestString.equals(key(m))) {
                         result = value(m);
                         break;
                     }
@@ -160,7 +167,10 @@ class HeapStringIntMap implements StringIntMap {
         String result = null;
         synchronized (parent) {
             if (keys != null) {
-                final int hashIndex = (int) HashHelper.longHash(keyHash, capacity * 2);
+                int hashIndex = keyHash % (capacity * 2);
+                if (hashIndex < 0) {
+                    hashIndex = hashIndex * -1;
+                }
                 int m = hash(hashIndex);
                 while (m >= 0) {
                     if (keyHash == keyH(m)) {
@@ -179,7 +189,10 @@ class HeapStringIntMap implements StringIntMap {
         boolean result = false;
         synchronized (parent) {
             if (keys != null) {
-                final int hashIndex = (int) HashHelper.longHash(keyHash, capacity * 2);
+                int hashIndex = keyHash % (capacity * 2);
+                if (hashIndex < 0) {
+                    hashIndex = hashIndex * -1;
+                }
                 int m = hash(hashIndex);
                 while (m >= 0) {
                     if (keyHash == keyH(m)) {
@@ -221,11 +234,14 @@ class HeapStringIntMap implements StringIntMap {
             if (keys != null && mapSize != 0) {
                 final int keyHash = HashHelper.hash(requestKey);
                 int hashCapacity = capacity * 2;
-                int hashIndex = (int) HashHelper.longHash(keyHash, hashCapacity);
+                int hashIndex = keyHash % hashCapacity;
+                if (hashIndex < 0) {
+                    hashIndex = hashIndex * -1;
+                }
                 int m = hash(hashIndex);
                 int found = -1;
                 while (m >= 0) {
-                    if (requestKey.equals(key(m))) {
+                    if (keyHash == keyH(m) && requestKey.equals(key(m))) {
                         found = m;
                         break;
                     }
@@ -233,7 +249,10 @@ class HeapStringIntMap implements StringIntMap {
                 }
                 if (found != -1) {
                     //first remove currentKey from hashChain
-                    int toRemoveHash = (int) HashHelper.longHash(keyHash, hashCapacity);
+                    int toRemoveHash = keyHash % hashCapacity;
+                    if (toRemoveHash < 0) {
+                        toRemoveHash = toRemoveHash * -1;
+                    }
                     m = hash(toRemoveHash);
                     if (m == found) {
                         setHash(toRemoveHash, next(m));
@@ -259,7 +278,10 @@ class HeapStringIntMap implements StringIntMap {
                         setKeyH(found, lastKeyH);
                         setValue(found, value(lastIndex));
                         setNext(found, next(lastIndex));
-                        int victimHash = (int) HashHelper.longHash(lastKeyH, hashCapacity);
+                        int victimHash = lastKeyH % hashCapacity;
+                        if (victimHash < 0) {
+                            victimHash = victimHash * -1;
+                        }
                         m = hash(victimHash);
                         if (m == lastIndex) {
                             //the victim was the head of hashing list
@@ -292,17 +314,24 @@ class HeapStringIntMap implements StringIntMap {
                 setKey(0, insertKey);
                 setKeyH(0, keyHash);
                 setValue(0, insertValue);
-                setHash((int) HashHelper.longHash(keyHash, capacity * 2), 0);
+                int hashIndex = keyHash % (capacity * 2);
+                if (hashIndex < 0) {
+                    hashIndex = hashIndex * -1;
+                }
+                setHash(hashIndex, 0);
                 setNext(0, -1);
                 mapSize++;
             } else {
                 int hashCapacity = capacity * 2;
-                int insertKeyHash = (int) HashHelper.longHash(keyHash, hashCapacity);
+                int insertKeyHash = keyHash % hashCapacity;
+                if (insertKeyHash < 0) {
+                    insertKeyHash = insertKeyHash * -1;
+                }
                 int currentHash = hash(insertKeyHash);
                 int m = currentHash;
                 int found = -1;
                 while (m >= 0) {
-                    if (insertKey == key(m)) {
+                    if (keyHash == keyH(m) && insertKey.equals(key(m))) {
                         found = m;
                         break;
                     }
@@ -316,7 +345,11 @@ class HeapStringIntMap implements StringIntMap {
                     setKey(lastIndex, insertKey);
                     setKeyH(lastIndex, keyHash);
                     setValue(lastIndex, insertValue);
-                    setHash((int) HashHelper.longHash(keyHash, capacity * 2), lastIndex);
+                    int hashIndex = keyHash % (capacity * 2);
+                    if (hashIndex < 0) {
+                        hashIndex = hashIndex * -1;
+                    }
+                    setHash(hashIndex, lastIndex);
                     setNext(lastIndex, currentHash);
                     mapSize++;
                     parent.declareDirty();
