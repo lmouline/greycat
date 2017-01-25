@@ -18,7 +18,7 @@ public class StorageTest2 {
 */
         //Unsafe.DEBUG_MODE = true;
 
-        test(new GraphBuilder().withStorage(new HBaseThriftStorage("data2")).withScheduler(new NoopScheduler()).withMemorySize(2000000).build());
+        test(new GraphBuilder().withStorage(new HBaseStorage("data2")).withScheduler(new NoopScheduler()).withMemorySize(2000000).build());
     }
 
     final int valuesToInsert = 1000000;

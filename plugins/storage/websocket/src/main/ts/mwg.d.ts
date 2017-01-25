@@ -315,12 +315,6 @@ declare class Long {
     toUnsigned(): Long;
 }
 declare module org {
-    module mwdb {
-        module chunk {
-            module offheap {
-            }
-        }
-    }
     module mwg {
         interface Callback<A> {
             (result: A): void;
