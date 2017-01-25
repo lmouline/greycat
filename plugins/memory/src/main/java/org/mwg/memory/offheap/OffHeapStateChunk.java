@@ -460,7 +460,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                     addr = OffHeapLongArray.cloneArray(castedAddr, OFFSET + (castedCapacity * ELEM_SIZE));
                     //clone sub hash if needed
                     if (castedSubHash != OffHeapConstants.NULL_PTR) {
-                        OffHeapLongArray.set(addr, SUBHASH, OffHeapLongArray.cloneArray(castedSubHash, castedCapacity * 2));
+                        OffHeapLongArray.set(addr, SUBHASH, OffHeapLongArray.cloneArray(castedSubHash, castedCapacity * 3));
                     }
                     //clone complex structures
                     //TODO optimze with a flag to avoid this iteration
@@ -621,7 +621,11 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
         } else {
             hashIndex = HashHelper.longHash(p_key, capacity * 2);
             long m = hash(subhash_ptr, capacity, hashIndex);
+            System.out.println("hashIndex " + hashIndex);
+            System.out.println("m " + m);
+            System.out.println("addr " + addr);
             while (m != -1) {
+                System.out.println("key " + key(addr, m));
                 if (key(addr, m) == p_key) {
                     entry = m;
                     break;
@@ -739,7 +743,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
             OffHeapLongArray.set(new_addr, DIRTY, 0);
             OffHeapLongArray.set(new_addr, SIZE, 0);
             if (newCapacity > Constants.MAP_INITIAL_CAPACITY) {
-                OffHeapLongArray.set(new_addr, SUBHASH, OffHeapLongArray.allocate(newCapacity * 2));
+                OffHeapLongArray.set(new_addr, SUBHASH, OffHeapLongArray.allocate(newCapacity * 3));
             } else {
                 OffHeapLongArray.set(new_addr, SUBHASH, OffHeapConstants.NULL_PTR);
             }
@@ -751,10 +755,10 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
             OffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
             long subHash_ptr = OffHeapLongArray.get(new_addr, SUBHASH);
             if (subHash_ptr == OffHeapConstants.NULL_PTR) {
-                subHash_ptr = OffHeapLongArray.allocate(newCapacity * 2);
+                subHash_ptr = OffHeapLongArray.allocate(newCapacity * 3);
             } else {
-                subHash_ptr = OffHeapLongArray.reallocate(subHash_ptr, newCapacity * 2);
-                OffHeapLongArray.reset(subHash_ptr, newCapacity * 2);
+                subHash_ptr = OffHeapLongArray.reallocate(subHash_ptr, newCapacity * 3);
+                OffHeapLongArray.reset(subHash_ptr, newCapacity * 3);
             }
             OffHeapLongArray.set(new_addr, SUBHASH, subHash_ptr);
             //reHash
