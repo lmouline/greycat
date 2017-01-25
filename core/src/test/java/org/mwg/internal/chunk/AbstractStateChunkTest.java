@@ -617,6 +617,7 @@ public abstract class AbstractStateChunkTest {
     }
 
 
+    /*
     @Test
     public void loadTest() {
         ChunkSpace space = factory.newSpace(100, null);
@@ -629,11 +630,9 @@ public abstract class AbstractStateChunkTest {
         space.free(chunk);
         space.freeAll();
     }
-
+    */
 
     // G|uwt/siomw,E,cm9vbTA|Zdk+o9BKZ,Y,C:G|lQYzlsJcx,Y,G:M:W:e
-
-
 
 
     private boolean compareBuffers(Buffer buffer, Buffer buffer2) {

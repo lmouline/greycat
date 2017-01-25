@@ -169,8 +169,12 @@ class HeapENode implements ENode, HeapContainer {
         Arrays.fill(_hash, 0, _capacity * 2, -1);
         _next = new int[_capacity];
         Arrays.fill(_next, 0, _capacity, -1);
+        final int double_capacity = _capacity * 2;
         for (int i = 0; i < _size; i++) {
-            int keyHash = (int) HashHelper.longHash(_k[i], _capacity * 2);
+            int keyHash = _k[i] % double_capacity;
+            if (keyHash < 0) {
+                keyHash = keyHash * -1;
+            }
             _next[i] = _hash[keyHash];
             _hash[keyHash] = i;
         }
@@ -180,7 +184,10 @@ class HeapENode implements ENode, HeapContainer {
         if (_size == 0) {
             return -1;
         }
-        final int hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
+        int hashIndex = p_key % (_capacity * 2);
+        if (hashIndex < 0) {
+            hashIndex = hashIndex * -1;
+        }
         int m = _hash[hashIndex];
         while (m >= 0) {
             if (p_key == _k[m]) {
@@ -300,7 +307,10 @@ class HeapENode implements ENode, HeapContainer {
             _v[0] = param_elem;
             _type[0] = p_type;
             _size = 1;
-            int hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
+            int hashIndex = p_key % (_capacity * 2);
+            if (hashIndex < 0) {
+                hashIndex = hashIndex * -1;
+            }
             _hash[hashIndex] = 0;
             if (!initial) {
                 declareDirty();
@@ -309,7 +319,10 @@ class HeapENode implements ENode, HeapContainer {
         }
         int entry = -1;
         int p_entry = -1;
-        final int hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
+        int hashIndex = p_key % (_capacity * 2);
+        if (hashIndex < 0) {
+            hashIndex = hashIndex * -1;
+        }
         int m = _hash[hashIndex];
         while (m != -1) {
             if (_k[m] == p_key) {
@@ -341,7 +354,10 @@ class HeapENode implements ENode, HeapContainer {
                         _v[entry] = _v[indexVictim];
                         _type[entry] = _type[indexVictim];
                         _next[entry] = _next[indexVictim];
-                        int victimHash = (int) HashHelper.longHash(_k[entry], _capacity * 2);
+                        int victimHash = _k[entry] % (_capacity * 2);
+                        if (victimHash < 0) {
+                            victimHash = hashIndex * -1;
+                        }
                         m = _hash[victimHash];
                         if (m == indexVictim) {
                             //the victim was the head of hashing list
@@ -406,7 +422,10 @@ class HeapENode implements ENode, HeapContainer {
         Arrays.fill(_next, 0, _capacity, -1);
         final int hashCapacity = _capacity * 2;
         for (int i = 0; i < _size; i++) {
-            int keyHash = (int) HashHelper.longHash(_k[i], hashCapacity);
+            int keyHash = _k[i] % hashCapacity;
+            if (keyHash < 0) {
+                keyHash = keyHash * -1;
+            }
             _next[i] = _hash[keyHash];
             _hash[keyHash] = i;
         }

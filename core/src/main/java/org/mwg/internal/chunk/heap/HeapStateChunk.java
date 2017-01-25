@@ -29,7 +29,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
 
     private boolean _dirty;
 
-    Graph graph() {
+    final Graph graph() {
         return _space.graph();
     }
 
@@ -76,7 +76,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         return internal_get(p_key);
     }
 
-    private int internal_find(final long p_key) {
+    private int internal_find(final int p_key) {
         if (_size == 0) {
             return -1;
         } else if (_hash == null) {
@@ -87,7 +87,10 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             }
             return -1;
         } else {
-            final int hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
+            int hashIndex = p_key % (_capacity * 2);
+            if (hashIndex < 0) {
+                hashIndex = hashIndex * -1;
+            }
             int m = _hash[hashIndex];
             while (m >= 0) {
                 if (p_key == _k[m]) {
@@ -100,7 +103,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         }
     }
 
-    private Object internal_get(final long p_key) {
+    private Object internal_get(final int p_key) {
         //empty chunk, we return immediately
         if (_size == 0) {
             return null;
@@ -188,27 +191,12 @@ class HeapStateChunk implements StateChunk, HeapContainer {
 
     @Override
     public synchronized final byte getType(final int p_key) {
-        if (_size == 0) {
+        final int found_index = internal_find(p_key);
+        if (found_index != -1) {
+            return _type[found_index];
+        } else {
             return -1;
         }
-        if (_hash == null) {
-            for (int i = 0; i < _capacity; i++) {
-                if (_k[i] == p_key) {
-                    return _type[i];
-                }
-            }
-        } else {
-            int hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
-            int m = _hash[hashIndex];
-            while (m >= 0) {
-                if (p_key == _k[m]) {
-                    return _type[m];
-                } else {
-                    m = _next[m];
-                }
-            }
-        }
-        return -1;
     }
 
     @Override
@@ -664,7 +652,10 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                 }
             }
         } else {
-            hashIndex = (int) HashHelper.longHash(p_key, _capacity * 2);
+            hashIndex = p_key % (_capacity * 2);
+            if (hashIndex < 0) {
+                hashIndex = hashIndex * -1;
+            }
             int m = _hash[hashIndex];
             while (m != -1) {
                 if (_k[m] == p_key) {
@@ -700,7 +691,10 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         _type[entry] = _type[indexVictim];
                         if (_hash != null) {
                             _next[entry] = _next[indexVictim];
-                            int victimHash = (int) HashHelper.longHash(_k[entry], _capacity * 2);
+                            int victimHash = _k[entry] % (_capacity * 2);
+                            if(victimHash < 0){
+                                victimHash = victimHash * -1;
+                            }
                             int m = _hash[victimHash];
                             if (m == indexVictim) {
                                 //the victim was the head of hashing list
@@ -764,8 +758,12 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         Arrays.fill(_hash, 0, _capacity * 2, -1);
         _next = new int[_capacity];
         Arrays.fill(_next, 0, _capacity, -1);
+        int double_capacity = _capacity * 2;
         for (int i = 0; i < _size; i++) {
-            int keyHash = (int) HashHelper.longHash(_k[i], _capacity * 2);
+            int keyHash = _k[i] % double_capacity;
+            if(keyHash < 0){
+                keyHash = keyHash * -1;
+            }
             _next[i] = _hash[keyHash];
             _hash[keyHash] = i;
         }
@@ -799,7 +797,10 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         _next = new int[_capacity];
         Arrays.fill(_next, 0, _capacity, -1);
         for (int i = 0; i < _size; i++) {
-            int keyHash = (int) HashHelper.longHash(_k[i], _capacity * 2);
+            int keyHash = _k[i] % (_capacity * 2);
+            if (keyHash < 0) {
+                keyHash = keyHash * -1;
+            }
             _next[i] = _hash[keyHash];
             _hash[keyHash] = i;
         }
