@@ -123,7 +123,7 @@ public interface Node {
      * @param type The type of the attribute. Must be one of {@link Type} int value.
      * @return An instance that can be altered at the current world and time.
      */
-    Object getOrCreate(String name, byte type, String... params);
+    Object getOrCreate(String name, byte type);
 
     /**
      * Gets or creates atomically a complex mutable attribute (e.g. Maps).<br>
@@ -132,7 +132,7 @@ public interface Node {
      * @param type  The type of the attribute. Must be one of {@link Type} int value.
      * @return An instance that can be altered at the current world and time.
      */
-    Object getOrCreateAt(int index, byte type, String... params);
+    Object getOrCreateAt(int index, byte type);
 
     /**
      * Retrieves the named relation.

@@ -251,12 +251,12 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public final Object getOrCreate(String name, byte type, String... params) {
-        return getOrCreateAt(this._resolver.stringToHash(name, true), type, params);
+    public final Object getOrCreate(String name, byte type) {
+        return getOrCreateAt(this._resolver.stringToHash(name, true), type);
     }
 
     @Override
-    public Object getOrCreateAt(int index, byte type, String... params) {
+    public Object getOrCreateAt(int index, byte type) {
         final NodeState preciseState = this._resolver.alignState(this);
         if (preciseState != null) {
             return preciseState.getOrCreate(index, type);
