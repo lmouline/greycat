@@ -1288,6 +1288,8 @@ var org;
         Constants.MAP_INITIAL_CAPACITY = 8;
         Constants.BOOL_TRUE = 1;
         Constants.BOOL_FALSE = 0;
+        Constants.DEEP_WORLD = true;
+        Constants.WIDE_WORLD = false;
         mwg.Constants = Constants;
         var GraphBuilder = (function () {
             function GraphBuilder() {
@@ -1296,6 +1298,7 @@ var org;
                 this._plugins = null;
                 this._memorySize = -1;
                 this._readOnly = false;
+                this._deepPriority = false;
             }
             GraphBuilder.newBuilder = function () {
                 return new org.mwg.GraphBuilder();
@@ -1330,6 +1333,10 @@ var org;
                 }
                 return this;
             };
+            GraphBuilder.prototype.withDeepWorld = function () {
+                this._deepPriority = true;
+                return this;
+            };
             GraphBuilder.prototype.build = function () {
                 if (this._storage == null) {
                     this._storage = new org.mwg.internal.BlackHoleStorage();
@@ -1343,7 +1350,7 @@ var org;
                 if (this._memorySize == -1) {
                     this._memorySize = 100000;
                 }
-                return new org.mwg.internal.CoreGraph(this._storage, this._memorySize, this._scheduler, this._plugins);
+                return new org.mwg.internal.CoreGraph(this._storage, this._memorySize, this._scheduler, this._plugins, this._deepPriority);
             };
             return GraphBuilder;
         }());
@@ -2439,7 +2446,7 @@ var org;
             CoreConstants.DEAD_NODE_ERROR = "This Node has been tagged destroyed, please don't use it anymore!";
             internal.CoreConstants = CoreConstants;
             var CoreGraph = (function () {
-                function CoreGraph(p_storage, memorySize, p_scheduler, p_plugins) {
+                function CoreGraph(p_storage, memorySize, p_scheduler, p_plugins, deepPriority) {
                     this._prefix = null;
                     this._nodeKeyCalculator = null;
                     this._worldKeyCalculator = null;
@@ -2459,7 +2466,7 @@ var org;
                     }
                     this._taskHooks = temp_hooks;
                     this._storage = p_storage;
-                    this._space = this._memoryFactory.newSpace(memorySize, selfPointer);
+                    this._space = this._memoryFactory.newSpace(memorySize, selfPointer, deepPriority);
                     this._resolver = new org.mwg.internal.MWGResolver(this._storage, this._space, selfPointer);
                     this._scheduler = p_scheduler;
                     org.mwg.internal.task.CoreTask.fillDefault(this._actionRegistry);
@@ -4068,7 +4075,8 @@ var org;
                     }());
                     heap.HeapAtomicByteArray = HeapAtomicByteArray;
                     var HeapChunkSpace = (function () {
-                        function HeapChunkSpace(initialCapacity, p_graph) {
+                        function HeapChunkSpace(initialCapacity, p_graph, deepWorldPriority) {
+                            this._deep_priority = deepWorldPriority;
                             this._graph = p_graph;
                             this._maxEntries = initialCapacity;
                             this._hashEntries = initialCapacity * HeapChunkSpace.HASH_LOAD_FACTOR;
@@ -4105,7 +4113,13 @@ var org;
                             return this._chunkIds.get(index);
                         };
                         HeapChunkSpace.prototype.getAndMark = function (type, world, time, id) {
-                            var index = org.mwg.utility.HashHelper.tripleHash(type, world, time, id, this._hashEntries);
+                            var index;
+                            if (this._deep_priority) {
+                                index = org.mwg.utility.HashHelper.tripleHash(type, world, time, id, this._hashEntries);
+                            }
+                            else {
+                                index = org.mwg.utility.HashHelper.simpleTripleHash(type, world, time, id, this._hashEntries);
+                            }
                             var m = this._hash.get(index);
                             var found = -1;
                             while (m != -1) {
@@ -4254,7 +4268,13 @@ var org;
                         HeapChunkSpace.prototype.free = function (chunk) { };
                         HeapChunkSpace.prototype.createAndMark = function (type, world, time, id) {
                             var entry = -1;
-                            var hashIndex = org.mwg.utility.HashHelper.tripleHash(type, world, time, id, this._hashEntries);
+                            var hashIndex;
+                            if (this._deep_priority) {
+                                hashIndex = org.mwg.utility.HashHelper.tripleHash(type, world, time, id, this._hashEntries);
+                            }
+                            else {
+                                hashIndex = org.mwg.utility.HashHelper.simpleTripleHash(type, world, time, id, this._hashEntries);
+                            }
                             var m = this._hash.get(hashIndex);
                             while (m >= 0) {
                                 if (type == this._chunkTypes.get(m) && world == this._chunkWorlds.get(m) && time == this._chunkTimes.get(m) && id == this._chunkIds.get(m)) {
@@ -4314,7 +4334,13 @@ var org;
                                 var victimTime = this._chunkTimes.get(currentVictimIndex);
                                 var victimObj = this._chunkIds.get(currentVictimIndex);
                                 var victimType = this._chunkTypes.get(currentVictimIndex);
-                                var indexVictim = org.mwg.utility.HashHelper.tripleHash(victimType, victimWorld, victimTime, victimObj, this._hashEntries);
+                                var indexVictim = void 0;
+                                if (this._deep_priority) {
+                                    indexVictim = org.mwg.utility.HashHelper.tripleHash(victimType, victimWorld, victimTime, victimObj, this._hashEntries);
+                                }
+                                else {
+                                    indexVictim = org.mwg.utility.HashHelper.simpleTripleHash(victimType, victimWorld, victimTime, victimObj, this._hashEntries);
+                                }
                                 m = this._hash.get(indexVictim);
                                 var last = -1;
                                 while (m >= 0) {
@@ -5007,8 +5033,12 @@ var org;
                             java.util.Arrays.fill(this._hash, 0, this._capacity * 2, -1);
                             this._next = new Int32Array(this._capacity);
                             java.util.Arrays.fill(this._next, 0, this._capacity, -1);
+                            var double_capacity = this._capacity * 2;
                             for (var i = 0; i < this._size; i++) {
-                                var keyHash = org.mwg.utility.HashHelper.longHash(this._k[i], this._capacity * 2);
+                                var keyHash = this._k[i] % double_capacity;
+                                if (keyHash < 0) {
+                                    keyHash = keyHash * -1;
+                                }
                                 this._next[i] = this._hash[keyHash];
                                 this._hash[keyHash] = i;
                             }
@@ -5017,7 +5047,10 @@ var org;
                             if (this._size == 0) {
                                 return -1;
                             }
-                            var hashIndex = org.mwg.utility.HashHelper.longHash(p_key, this._capacity * 2);
+                            var hashIndex = p_key % (this._capacity * 2);
+                            if (hashIndex < 0) {
+                                hashIndex = hashIndex * -1;
+                            }
                             var m = this._hash[hashIndex];
                             while (m >= 0) {
                                 if (p_key == this._k[m]) {
@@ -5142,7 +5175,10 @@ var org;
                                 this._v[0] = param_elem;
                                 this._type[0] = p_type;
                                 this._size = 1;
-                                var hashIndex_1 = org.mwg.utility.HashHelper.longHash(p_key, this._capacity * 2);
+                                var hashIndex_1 = p_key % (this._capacity * 2);
+                                if (hashIndex_1 < 0) {
+                                    hashIndex_1 = hashIndex_1 * -1;
+                                }
                                 this._hash[hashIndex_1] = 0;
                                 if (!initial) {
                                     this.declareDirty();
@@ -5151,7 +5187,10 @@ var org;
                             }
                             var entry = -1;
                             var p_entry = -1;
-                            var hashIndex = org.mwg.utility.HashHelper.longHash(p_key, this._capacity * 2);
+                            var hashIndex = p_key % (this._capacity * 2);
+                            if (hashIndex < 0) {
+                                hashIndex = hashIndex * -1;
+                            }
                             var m = this._hash[hashIndex];
                             while (m != -1) {
                                 if (this._k[m] == p_key) {
@@ -5181,7 +5220,10 @@ var org;
                                             this._v[entry] = this._v[indexVictim];
                                             this._type[entry] = this._type[indexVictim];
                                             this._next[entry] = this._next[indexVictim];
-                                            var victimHash = org.mwg.utility.HashHelper.longHash(this._k[entry], this._capacity * 2);
+                                            var victimHash = this._k[entry] % (this._capacity * 2);
+                                            if (victimHash < 0) {
+                                                victimHash = hashIndex * -1;
+                                            }
                                             m = this._hash[victimHash];
                                             if (m == indexVictim) {
                                                 this._hash[victimHash] = entry;
@@ -5243,7 +5285,10 @@ var org;
                             java.util.Arrays.fill(this._next, 0, this._capacity, -1);
                             var hashCapacity = this._capacity * 2;
                             for (var i = 0; i < this._size; i++) {
-                                var keyHash = org.mwg.utility.HashHelper.longHash(this._k[i], hashCapacity);
+                                var keyHash = this._k[i] % hashCapacity;
+                                if (keyHash < 0) {
+                                    keyHash = keyHash * -1;
+                                }
                                 this._next[i] = this._hash[keyHash];
                                 this._hash[keyHash] = i;
                             }
@@ -7600,8 +7645,7 @@ var org;
                         function HeapStateChunk(p_space, p_index) {
                             this._space = p_space;
                             this._index = p_index;
-                            this._next = null;
-                            this._hash = null;
+                            this.next_and_hash = null;
                             this._type = null;
                             this._size = 0;
                             this._capacity = 0;
@@ -7632,7 +7676,7 @@ var org;
                             if (this._size == 0) {
                                 return -1;
                             }
-                            else if (this._hash == null) {
+                            else if (this.next_and_hash == null) {
                                 for (var i = 0; i < this._size; i++) {
                                     if (this._k[i] == p_key) {
                                         return i;
@@ -7641,14 +7685,17 @@ var org;
                                 return -1;
                             }
                             else {
-                                var hashIndex = org.mwg.utility.HashHelper.longHash(p_key, this._capacity * 2);
-                                var m = this._hash[hashIndex];
+                                var hashIndex = p_key % (this._capacity * 2);
+                                if (hashIndex < 0) {
+                                    hashIndex = hashIndex * -1;
+                                }
+                                var m = this.next_and_hash[this._capacity + hashIndex];
                                 while (m >= 0) {
                                     if (p_key == this._k[m]) {
                                         return m;
                                     }
                                     else {
-                                        m = this._next[m];
+                                        m = this.next_and_hash[m];
                                     }
                                 }
                                 return -1;
@@ -7761,29 +7808,13 @@ var org;
                             }
                         };
                         HeapStateChunk.prototype.getType = function (p_key) {
-                            if (this._size == 0) {
-                                return -1;
-                            }
-                            if (this._hash == null) {
-                                for (var i = 0; i < this._capacity; i++) {
-                                    if (this._k[i] == p_key) {
-                                        return this._type[i];
-                                    }
-                                }
+                            var found_index = this.internal_find(p_key);
+                            if (found_index != -1) {
+                                return this._type[found_index];
                             }
                             else {
-                                var hashIndex = org.mwg.utility.HashHelper.longHash(p_key, this._capacity * 2);
-                                var m = this._hash[hashIndex];
-                                while (m >= 0) {
-                                    if (p_key == this._k[m]) {
-                                        return this._type[m];
-                                    }
-                                    else {
-                                        m = this._next[m];
-                                    }
-                                }
+                                return -1;
                             }
-                            return -1;
                         };
                         HeapStateChunk.prototype.getTypeFromKey = function (key) {
                             return this.getType(this._space.graph().resolver().stringToHash(key, false));
@@ -7999,15 +8030,10 @@ var org;
                                 java.lang.System.arraycopy(casted._type, 0, cloned_type, 0, this._capacity);
                                 this._type = cloned_type;
                             }
-                            if (casted._next != null) {
-                                var cloned_next = new Int32Array(this._capacity);
-                                java.lang.System.arraycopy(casted._next, 0, cloned_next, 0, this._capacity);
-                                this._next = cloned_next;
-                            }
-                            if (casted._hash != null) {
-                                var cloned_hash = new Int32Array(this._capacity * 2);
-                                java.lang.System.arraycopy(casted._hash, 0, cloned_hash, 0, this._capacity * 2);
-                                this._hash = cloned_hash;
+                            if (casted.next_and_hash != null) {
+                                var cloned_hash = new Int32Array(this._capacity * 3);
+                                java.lang.System.arraycopy(casted.next_and_hash, 0, cloned_hash, 0, this._capacity * 3);
+                                this.next_and_hash = cloned_hash;
                             }
                             if (casted._v != null) {
                                 this._v = new Array(this._capacity);
@@ -8221,7 +8247,7 @@ var org;
                             var entry = -1;
                             var p_entry = -1;
                             var hashIndex = -1;
-                            if (this._hash == null) {
+                            if (this.next_and_hash == null) {
                                 for (var i = 0; i < this._size; i++) {
                                     if (this._k[i] == p_key) {
                                         entry = i;
@@ -8230,26 +8256,29 @@ var org;
                                 }
                             }
                             else {
-                                hashIndex = org.mwg.utility.HashHelper.longHash(p_key, this._capacity * 2);
-                                var m = this._hash[hashIndex];
+                                hashIndex = p_key % (this._capacity * 2);
+                                if (hashIndex < 0) {
+                                    hashIndex = hashIndex * -1;
+                                }
+                                var m = this.next_and_hash[this._capacity + hashIndex];
                                 while (m != -1) {
                                     if (this._k[m] == p_key) {
                                         entry = m;
                                         break;
                                     }
                                     p_entry = m;
-                                    m = this._next[m];
+                                    m = this.next_and_hash[m];
                                 }
                             }
                             if (entry != -1) {
                                 if (replaceIfPresent || (p_type != this._type[entry])) {
                                     if (param_elem == null) {
-                                        if (this._hash != null) {
+                                        if (this.next_and_hash != null) {
                                             if (p_entry != -1) {
-                                                this._next[p_entry] = this._next[entry];
+                                                this.next_and_hash[p_entry] = this.next_and_hash[entry];
                                             }
                                             else {
-                                                this._hash[hashIndex] = -1;
+                                                this.next_and_hash[this._capacity + hashIndex] = -1;
                                             }
                                         }
                                         var indexVictim = this._size - 1;
@@ -8262,20 +8291,23 @@ var org;
                                             this._k[entry] = this._k[indexVictim];
                                             this._v[entry] = this._v[indexVictim];
                                             this._type[entry] = this._type[indexVictim];
-                                            if (this._hash != null) {
-                                                this._next[entry] = this._next[indexVictim];
-                                                var victimHash = org.mwg.utility.HashHelper.longHash(this._k[entry], this._capacity * 2);
-                                                var m = this._hash[victimHash];
+                                            if (this.next_and_hash != null) {
+                                                this.next_and_hash[entry] = this.next_and_hash[indexVictim];
+                                                var victimHash = this._k[entry] % (this._capacity * 2);
+                                                if (victimHash < 0) {
+                                                    victimHash = victimHash * -1;
+                                                }
+                                                var m = this.next_and_hash[this._capacity + victimHash];
                                                 if (m == indexVictim) {
-                                                    this._hash[victimHash] = entry;
+                                                    this.next_and_hash[this._capacity + victimHash] = entry;
                                                 }
                                                 else {
                                                     while (m != -1) {
-                                                        if (this._next[m] == indexVictim) {
-                                                            this._next[m] = entry;
+                                                        if (this.next_and_hash[m] == indexVictim) {
+                                                            this.next_and_hash[m] = entry;
                                                             break;
                                                         }
-                                                        m = this._next[m];
+                                                        m = this.next_and_hash[m];
                                                     }
                                                 }
                                             }
@@ -8298,9 +8330,9 @@ var org;
                                 this._k[this._size] = p_key;
                                 this._v[this._size] = param_elem;
                                 this._type[this._size] = p_type;
-                                if (this._hash != null) {
-                                    this._next[this._size] = this._hash[hashIndex];
-                                    this._hash[hashIndex] = this._size;
+                                if (this.next_and_hash != null) {
+                                    this.next_and_hash[this._size] = this.next_and_hash[this._capacity + hashIndex];
+                                    this.next_and_hash[this._capacity + hashIndex] = this._size;
                                 }
                                 this._size++;
                                 this.declareDirty();
@@ -8321,14 +8353,16 @@ var org;
                             this._v[this._size] = param_elem;
                             this._type[this._size] = p_type;
                             this._size++;
-                            this._hash = new Int32Array(this._capacity * 2);
-                            java.util.Arrays.fill(this._hash, 0, this._capacity * 2, -1);
-                            this._next = new Int32Array(this._capacity);
-                            java.util.Arrays.fill(this._next, 0, this._capacity, -1);
+                            this.next_and_hash = new Int32Array(this._capacity * 3);
+                            java.util.Arrays.fill(this.next_and_hash, 0, this._capacity * 3, -1);
+                            var double_capacity = this._capacity * 2;
                             for (var i = 0; i < this._size; i++) {
-                                var keyHash = org.mwg.utility.HashHelper.longHash(this._k[i], this._capacity * 2);
-                                this._next[i] = this._hash[keyHash];
-                                this._hash[keyHash] = i;
+                                var keyHash = this._k[i] % double_capacity;
+                                if (keyHash < 0) {
+                                    keyHash = keyHash * -1;
+                                }
+                                this.next_and_hash[i] = this.next_and_hash[this._capacity + keyHash];
+                                this.next_and_hash[this._capacity + keyHash] = i;
                             }
                             if (!initial) {
                                 this.declareDirty();
@@ -8354,14 +8388,15 @@ var org;
                             }
                             this._type = ex_type;
                             this._capacity = newCapacity;
-                            this._hash = new Int32Array(this._capacity * 2);
-                            java.util.Arrays.fill(this._hash, 0, this._capacity * 2, -1);
-                            this._next = new Int32Array(this._capacity);
-                            java.util.Arrays.fill(this._next, 0, this._capacity, -1);
+                            this.next_and_hash = new Int32Array(this._capacity * 3);
+                            java.util.Arrays.fill(this.next_and_hash, 0, this._capacity * 3, -1);
                             for (var i = 0; i < this._size; i++) {
-                                var keyHash = org.mwg.utility.HashHelper.longHash(this._k[i], this._capacity * 2);
-                                this._next[i] = this._hash[keyHash];
-                                this._hash[keyHash] = i;
+                                var keyHash = this._k[i] % (this._capacity * 2);
+                                if (keyHash < 0) {
+                                    keyHash = keyHash * -1;
+                                }
+                                this.next_and_hash[i] = this.next_and_hash[this._capacity + keyHash];
+                                this.next_and_hash[this._capacity + keyHash] = i;
                             }
                         };
                         HeapStateChunk.prototype.load = function (buffer) {
@@ -8724,8 +8759,12 @@ var org;
                                 java.util.Arrays.fill(new_hashes, 0, newCapacity * 2, -1);
                                 this.hashs = new_hashes;
                                 this.nexts = new_nexts;
+                                var double_capacity = this.capacity * 2;
                                 for (var i = 0; i < this.mapSize; i++) {
-                                    var new_key_hash = org.mwg.utility.HashHelper.longHash(this.keyH(i), newCapacity * 2);
+                                    var new_key_hash = this.keyH(i) % double_capacity;
+                                    if (new_key_hash < 0) {
+                                        new_key_hash = new_key_hash * -1;
+                                    }
                                     this.setNext(i, this.hash(new_key_hash));
                                     this.setHash(new_key_hash, i);
                                 }
@@ -8768,7 +8807,10 @@ var org;
                             {
                                 if (this.keys != null) {
                                     var keyHash = org.mwg.utility.HashHelper.hash(requestString);
-                                    var hashIndex = org.mwg.utility.HashHelper.longHash(keyHash, this.capacity * 2);
+                                    var hashIndex = keyHash % (this.capacity * 2);
+                                    if (hashIndex < 0) {
+                                        hashIndex = hashIndex * -1;
+                                    }
                                     var m = this.hash(hashIndex);
                                     while (m >= 0) {
                                         if (keyHash == this.keyH(m)) {
@@ -8785,7 +8827,10 @@ var org;
                             var result = null;
                             {
                                 if (this.keys != null) {
-                                    var hashIndex = org.mwg.utility.HashHelper.longHash(keyHash, this.capacity * 2);
+                                    var hashIndex = keyHash % (this.capacity * 2);
+                                    if (hashIndex < 0) {
+                                        hashIndex = hashIndex * -1;
+                                    }
                                     var m = this.hash(hashIndex);
                                     while (m >= 0) {
                                         if (keyHash == this.keyH(m)) {
@@ -8802,7 +8847,10 @@ var org;
                             var result = false;
                             {
                                 if (this.keys != null) {
-                                    var hashIndex = org.mwg.utility.HashHelper.longHash(keyHash, this.capacity * 2);
+                                    var hashIndex = keyHash % (this.capacity * 2);
+                                    if (hashIndex < 0) {
+                                        hashIndex = hashIndex * -1;
+                                    }
                                     var m = this.hash(hashIndex);
                                     while (m >= 0) {
                                         if (keyHash == this.keyH(m)) {
@@ -8837,18 +8885,24 @@ var org;
                                 if (this.keys != null && this.mapSize != 0) {
                                     var keyHash = org.mwg.utility.HashHelper.hash(requestKey);
                                     var hashCapacity = this.capacity * 2;
-                                    var hashIndex = org.mwg.utility.HashHelper.longHash(keyHash, hashCapacity);
+                                    var hashIndex = keyHash % hashCapacity;
+                                    if (hashIndex < 0) {
+                                        hashIndex = hashIndex * -1;
+                                    }
                                     var m = this.hash(hashIndex);
                                     var found = -1;
                                     while (m >= 0) {
-                                        if (requestKey === this.key(m)) {
+                                        if (keyHash == this.keyH(m)) {
                                             found = m;
                                             break;
                                         }
                                         m = this.next(m);
                                     }
                                     if (found != -1) {
-                                        var toRemoveHash = org.mwg.utility.HashHelper.longHash(keyHash, hashCapacity);
+                                        var toRemoveHash = keyHash % hashCapacity;
+                                        if (toRemoveHash < 0) {
+                                            toRemoveHash = toRemoveHash * -1;
+                                        }
                                         m = this.hash(toRemoveHash);
                                         if (m == found) {
                                             this.setHash(toRemoveHash, this.next(m));
@@ -8874,7 +8928,10 @@ var org;
                                             this.setKeyH(found, lastKeyH);
                                             this.setValue(found, this.value(lastIndex));
                                             this.setNext(found, this.next(lastIndex));
-                                            var victimHash = org.mwg.utility.HashHelper.longHash(lastKeyH, hashCapacity);
+                                            var victimHash = lastKeyH % hashCapacity;
+                                            if (victimHash < 0) {
+                                                victimHash = victimHash * -1;
+                                            }
                                             m = this.hash(victimHash);
                                             if (m == lastIndex) {
                                                 this.setHash(victimHash, found);
@@ -8904,18 +8961,28 @@ var org;
                                     this.setKey(0, insertKey);
                                     this.setKeyH(0, keyHash);
                                     this.setValue(0, insertValue);
-                                    this.setHash(org.mwg.utility.HashHelper.longHash(keyHash, this.capacity * 2), 0);
+                                    var hashIndex = keyHash % (this.capacity * 2);
+                                    if (hashIndex < 0) {
+                                        hashIndex = hashIndex * -1;
+                                    }
+                                    this.setHash(hashIndex, 0);
                                     this.setNext(0, -1);
                                     this.mapSize++;
                                 }
                                 else {
                                     var hashCapacity = this.capacity * 2;
-                                    var insertKeyHash = org.mwg.utility.HashHelper.longHash(keyHash, hashCapacity);
+                                    var insertKeyHash = keyHash % hashCapacity;
+                                    if (insertKeyHash < 0) {
+                                        insertKeyHash = insertKeyHash * -1;
+                                    }
                                     var currentHash = this.hash(insertKeyHash);
                                     var m = currentHash;
                                     var found = -1;
                                     while (m >= 0) {
-                                        if (insertKey == this.key(m)) {
+                                        if (keyHash == this.keyH(m)) {
+                                            if (!(insertKey === this.key(m))) {
+                                                throw new Error("Lotteries Winner !!! hashing conflict between " + this.key(m) + " and " + insertKey);
+                                            }
                                             found = m;
                                             break;
                                         }
@@ -8929,7 +8996,11 @@ var org;
                                         this.setKey(lastIndex, insertKey);
                                         this.setKeyH(lastIndex, keyHash);
                                         this.setValue(lastIndex, insertValue);
-                                        this.setHash(org.mwg.utility.HashHelper.longHash(keyHash, this.capacity * 2), lastIndex);
+                                        var hashIndex = keyHash % (this.capacity * 2);
+                                        if (hashIndex < 0) {
+                                            hashIndex = hashIndex * -1;
+                                        }
+                                        this.setHash(hashIndex, lastIndex);
                                         this.setNext(lastIndex, currentHash);
                                         this.mapSize++;
                                         this.parent.declareDirty();
@@ -9942,8 +10013,8 @@ var org;
                 var HeapMemoryFactory = (function () {
                     function HeapMemoryFactory() {
                     }
-                    HeapMemoryFactory.prototype.newSpace = function (memorySize, graph) {
-                        return new org.mwg.internal.chunk.heap.HeapChunkSpace(memorySize, graph);
+                    HeapMemoryFactory.prototype.newSpace = function (memorySize, graph, deepWorld) {
+                        return new org.mwg.internal.chunk.heap.HeapChunkSpace(memorySize, graph, deepWorld);
                     };
                     HeapMemoryFactory.prototype.newBuffer = function () {
                         return new org.mwg.internal.memory.HeapBuffer();
@@ -16361,6 +16432,13 @@ var org;
                 HashHelper.longHash = function (number, max) {
                     var hash = number % max;
                     return hash < 0 ? hash * -1 : hash;
+                };
+                HashHelper.simpleTripleHash = function (p0, p1, p2, p3, max) {
+                    var hash = (p0 ^ p1 ^ p2 ^ p3) % max;
+                    if (hash < 0) {
+                        hash = hash * -1;
+                    }
+                    return hash;
                 };
                 HashHelper.tripleHash = function (p0, p1, p2, p3, max) {
                     if (max <= 0) {
