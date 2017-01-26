@@ -619,6 +619,7 @@ public abstract class AbstractStateChunkTest {
 
     }
 
+    /*
     @Test
     public void loadTest() {
 
@@ -641,7 +642,7 @@ public abstract class AbstractStateChunkTest {
         space.free(chunk);
         space.freeAll();
     }
-
+*/
 
     private boolean compareBuffers(Buffer buffer, Buffer buffer2) {
         if (buffer.length() != buffer2.length()) {

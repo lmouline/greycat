@@ -251,6 +251,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                         }
                         setKey(addr, indexVictim, OffHeapConstants.NULL_PTR);
                         freeElement(value(addr, indexVictim), type(addr, indexVictim));
+                        setValue(addr, indexVictim, OffHeapConstants.NULL_PTR);
                         setType(addr, indexVictim, OffHeapConstants.NULL_PTR);
                     }
                     OffHeapLongArray.set(addr, SIZE, size - 1);
