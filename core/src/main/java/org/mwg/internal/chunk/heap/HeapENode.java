@@ -361,6 +361,9 @@ class HeapENode implements ENode, HeapContainer {
                                 m = _next_hash[m];
                             }
                         }
+                        _k[indexVictim] = -1;
+                        _v[indexVictim] = null;
+                        _type[indexVictim] = -1;
                     }
                     _size--;
                 } else {
