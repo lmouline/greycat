@@ -20,6 +20,7 @@ class HeapStringIntMap implements StringIntMap {
     private String[] keys = null;
     private int[] keysH = null;
     private int[] values = null;
+
     private int[] nexts = null;
     private int[] hashs = null;
 

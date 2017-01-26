@@ -21,6 +21,7 @@ public class CoreActionNames {
     public static String INDEX_NAMES = "indexNames";
     public static String LOOKUP = "lookup";
     public static String LOOKUP_ALL = "lookupAll";
+    public static String LOG = "log";
     public static String PRINT = "print";
     public static String PRINTLN = "println";
     public static String READ_GLOBAL_INDEX = "readGlobalIndex";

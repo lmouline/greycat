@@ -349,6 +349,16 @@ public class CoreActions {
     //Helper zone
 
     /**
+     * Log the template string in a human readable format.
+     *
+     * @param value of the action
+     * @return the action to chain
+     */
+    public static Action log(String value) {
+        return new ActionLog(value);
+    }
+
+    /**
      * Prints the action in a human readable format (without line breaks).
      *
      * @param name of the action

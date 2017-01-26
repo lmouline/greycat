@@ -339,6 +339,8 @@ public interface Task {
 
     Task selectObject(TaskFunctionSelectObject filterFunction);
 
+    Task log(String name);
+
     Task print(String name);
 
     Task println(String name);

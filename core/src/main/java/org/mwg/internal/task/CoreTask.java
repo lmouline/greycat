@@ -752,6 +752,15 @@ public class CoreTask implements org.mwg.task.Task {
                         return new ActionPrint((String) params[0], false);
                     }
                 });
+        registry.declaration(CoreActionNames.LOG)
+                .setParams(Type.STRING)
+                .setDescription("Prints the action in a human readable format (without line breaks).")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionLog((String) params[0]);
+                    }
+                });
         registry.declaration(CoreActionNames.PRINTLN)
                 .setParams(Type.STRING)
                 .setDescription("Prints the action in a human readable format (with line breaks).")
@@ -1252,6 +1261,11 @@ public class CoreTask implements org.mwg.task.Task {
     @Override
     public final Task selectObject(final TaskFunctionSelectObject filterFunction) {
         return then(CoreActions.selectObject(filterFunction));
+    }
+
+    @Override
+    public Task log(String name) {
+        return then(CoreActions.log(name));
     }
 
     @Override
