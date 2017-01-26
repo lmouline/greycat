@@ -38,16 +38,11 @@ class HeapENode implements ENode, HeapContainer {
                 System.arraycopy(origin._type, 0, cloned_type, 0, _capacity);
                 _type = cloned_type;
             }
-            //copy next if not empty
-            if (origin._next != null) {
-                int[] cloned_next = new int[_capacity];
-                System.arraycopy(origin._next, 0, cloned_next, 0, _capacity);
-                _next = cloned_next;
-            }
-            if (origin._hash != null) {
-                int[] cloned_hash = new int[_capacity * 2];
-                System.arraycopy(origin._hash, 0, cloned_hash, 0, _capacity * 2);
-                _hash = cloned_hash;
+            //copy next_hash if not empty
+            if (origin._next_hash != null) {
+                int[] cloned_hash = new int[_capacity * 3];
+                System.arraycopy(origin._next_hash, 0, cloned_hash, 0, _capacity * 3);
+                _next_hash = cloned_hash;
             }
             if (origin._v != null) {
                 _v = new Object[_capacity];
@@ -104,8 +99,7 @@ class HeapENode implements ENode, HeapContainer {
     private volatile int _size;
     private int[] _k;
     private Object[] _v;
-    private int[] _next;
-    private int[] _hash;
+    private int[] _next_hash;
     private byte[] _type;
     private boolean _dirty;
 
@@ -115,8 +109,7 @@ class HeapENode implements ENode, HeapContainer {
         _size = 0;
         _k = null;
         _v = null;
-        _next = null;
-        _hash = null;
+        _next_hash = null;
         _type = null;
         return this;
     }
@@ -165,18 +158,16 @@ class HeapENode implements ENode, HeapContainer {
         }
         _type = ex_type;
         _capacity = newCapacity;
-        _hash = new int[_capacity * 2];
-        Arrays.fill(_hash, 0, _capacity * 2, -1);
-        _next = new int[_capacity];
-        Arrays.fill(_next, 0, _capacity, -1);
+        _next_hash = new int[_capacity * 3];
+        Arrays.fill(_next_hash, 0, _capacity * 3, -1);
         final int double_capacity = _capacity * 2;
         for (int i = 0; i < _size; i++) {
             int keyHash = _k[i] % double_capacity;
             if (keyHash < 0) {
                 keyHash = keyHash * -1;
             }
-            _next[i] = _hash[keyHash];
-            _hash[keyHash] = i;
+            _next_hash[i] = _next_hash[_capacity + keyHash];
+            _next_hash[_capacity + keyHash] = i;
         }
     }
 
@@ -188,12 +179,12 @@ class HeapENode implements ENode, HeapContainer {
         if (hashIndex < 0) {
             hashIndex = hashIndex * -1;
         }
-        int m = _hash[hashIndex];
+        int m = _next_hash[_capacity + hashIndex];
         while (m >= 0) {
             if (p_key == _k[m]) {
                 return m;
             } else {
-                m = _next[m];
+                m = _next_hash[m];
             }
         }
         return -1;
@@ -299,10 +290,8 @@ class HeapENode implements ENode, HeapContainer {
             _k = new int[_capacity];
             _v = new Object[_capacity];
             _type = new byte[_capacity];
-            _next = new int[_capacity];
-            _hash = new int[_capacity * 2];
-            Arrays.fill(_hash, 0, _capacity * 2, -1);
-            Arrays.fill(_next, 0, _capacity, -1);
+            _next_hash = new int[_capacity * 3];
+            Arrays.fill(_next_hash, 0, _capacity * 3, -1);
             _k[0] = p_key;
             _v[0] = param_elem;
             _type[0] = p_type;
@@ -311,7 +300,7 @@ class HeapENode implements ENode, HeapContainer {
             if (hashIndex < 0) {
                 hashIndex = hashIndex * -1;
             }
-            _hash[hashIndex] = 0;
+            _next_hash[_capacity + hashIndex] = 0;
             if (!initial) {
                 declareDirty();
             }
@@ -323,14 +312,14 @@ class HeapENode implements ENode, HeapContainer {
         if (hashIndex < 0) {
             hashIndex = hashIndex * -1;
         }
-        int m = _hash[hashIndex];
+        int m = _next_hash[_capacity + hashIndex];
         while (m != -1) {
             if (_k[m] == p_key) {
                 entry = m;
                 break;
             }
             p_entry = m;
-            m = _next[m];
+            m = _next_hash[m];
         }
         //case already present
         if (entry != -1) {
@@ -338,9 +327,9 @@ class HeapENode implements ENode, HeapContainer {
                 if (param_elem == null) {
                     //unHash previous
                     if (p_entry != -1) {
-                        _next[p_entry] = _next[entry];
+                        _next_hash[p_entry] = _next_hash[entry];
                     } else {
-                        _hash[hashIndex] = -1;
+                        _next_hash[_capacity + hashIndex] = -1;
                     }
                     int indexVictim = _size - 1;
                     //just pop the last value
@@ -353,23 +342,23 @@ class HeapENode implements ENode, HeapContainer {
                         _k[entry] = _k[indexVictim];
                         _v[entry] = _v[indexVictim];
                         _type[entry] = _type[indexVictim];
-                        _next[entry] = _next[indexVictim];
+                        _next_hash[entry] = _next_hash[indexVictim];
                         int victimHash = _k[entry] % (_capacity * 2);
                         if (victimHash < 0) {
                             victimHash = victimHash * -1;
                         }
-                        m = _hash[victimHash];
+                        m = _next_hash[_capacity + victimHash];
                         if (m == indexVictim) {
                             //the victim was the head of hashing list
-                            _hash[victimHash] = entry;
+                            _next_hash[_capacity + victimHash] = entry;
                         } else {
                             //the victim is in the next, reChain it
                             while (m != -1) {
-                                if (_next[m] == indexVictim) {
-                                    _next[m] = entry;
+                                if (_next_hash[m] == indexVictim) {
+                                    _next_hash[m] = entry;
                                     break;
                                 }
-                                m = _next[m];
+                                m = _next_hash[m];
                             }
                         }
                     }
@@ -390,8 +379,8 @@ class HeapENode implements ENode, HeapContainer {
             _k[_size] = p_key;
             _v[_size] = param_elem;
             _type[_size] = p_type;
-            _next[_size] = _hash[hashIndex];
-            _hash[hashIndex] = _size;
+            _next_hash[_size] = _next_hash[_capacity + hashIndex];
+            _next_hash[_capacity + hashIndex] = _size;
             _size++;
             if (!initial) {
                 declareDirty();
@@ -416,18 +405,16 @@ class HeapENode implements ENode, HeapContainer {
         _type[_size] = p_type;
         _size++;
         //reHash
-        _hash = new int[_capacity * 2];
-        Arrays.fill(_hash, 0, _capacity * 2, -1);
-        _next = new int[_capacity];
-        Arrays.fill(_next, 0, _capacity, -1);
+        _next_hash = new int[_capacity * 3];
+        Arrays.fill(_next_hash, 0, _capacity * 3, -1);
         final int hashCapacity = _capacity * 2;
         for (int i = 0; i < _size; i++) {
             int keyHash = _k[i] % hashCapacity;
             if (keyHash < 0) {
                 keyHash = keyHash * -1;
             }
-            _next[i] = _hash[keyHash];
-            _hash[keyHash] = i;
+            _next_hash[i] = _next_hash[_capacity + keyHash];
+            _next_hash[_capacity + keyHash] = i;
         }
         if (!initial) {
             declareDirty();
