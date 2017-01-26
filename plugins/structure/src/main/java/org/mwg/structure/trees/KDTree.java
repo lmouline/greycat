@@ -13,21 +13,14 @@ import org.mwg.structure.distance.Distances;
 import org.mwg.structure.util.HRect;
 import org.mwg.structure.util.VolatileResult;
 
-/**
- * Created by assaad on 18/01/2017.
- */
 public class KDTree extends BaseNode implements Tree {
     public static String NAME = "KDTree";
-
     public static String RESOLUTION = "resolution";
     public static String DISTANCE = "distance";
     private static String EGRAPH = "egraph";
     private static String STRATEGY = "strategy";
     private static String DIM = "dim";
-
     public static int DISTANCE_DEF = Distances.DEFAULT;
-
-
     private static int E_SUBTREE_NODES = 0;
     private static int E_KEY = 1;
     private static int E_SUM_KEY = 2;
@@ -39,7 +32,6 @@ public class KDTree extends BaseNode implements Tree {
     public KDTree(long p_world, long p_time, long p_id, Graph p_graph) {
         super(p_world, p_time, p_id, p_graph);
     }
-
 
     private static boolean checkCreateLevels(double[] key1, double[] key2, double[] resolutions) {
         if (resolutions != null) {

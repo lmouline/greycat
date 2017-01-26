@@ -25,10 +25,6 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     private byte[] _type;
 
     private int[] next_and_hash;
-
-    // private int[] _next;
-    // private int[] _hash;
-
     private boolean _dirty;
 
     final Graph graph() {
