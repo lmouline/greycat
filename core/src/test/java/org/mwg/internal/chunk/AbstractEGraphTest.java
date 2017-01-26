@@ -148,7 +148,6 @@ public abstract class AbstractEGraphTest {
         eNode.set("name", Type.STRING, "myEnode");
 
 
-
         g.save(null);
 
         g.disconnect(null);
@@ -161,8 +160,8 @@ public abstract class AbstractEGraphTest {
         //final long before2 = System.currentTimeMillis();
         g.space().getOrLoadAndMark(ChunkType.STATE_CHUNK, 0, 0, 0, res -> {
             StateChunk loaded = (StateChunk) res;
-            Assert.assertEquals(loaded.get(0),chunk.get(0));
-            Assert.assertEquals(loaded.get(2),chunk.get(2));
+            Assert.assertEquals(loaded.get(0), chunk.get(0));
+            Assert.assertEquals(loaded.get(2), chunk.get(2));
 
             //System.out.println(loaded);
 
