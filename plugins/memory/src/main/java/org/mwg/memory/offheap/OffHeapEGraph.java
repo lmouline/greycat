@@ -85,7 +85,6 @@ public class OffHeapEGraph implements EGraph {
         long nodesCapacity = OffHeapLongArray.get(addr, NODES_CAPACITY);
         if (closePowerOfTwo > nodesCapacity) {
             long newAddr = OffHeapLongArray.reallocate(addr, OFFSET + closePowerOfTwo);
-//            OffHeapLongArray.fillByte(newAddr, OFFSET + nodesCapacity, OFFSET + closePowerOfTwo, (byte) OffHeapConstants.NULL_PTR);
             OffHeapLongArray.fillByte(newAddr, OFFSET + size(), OFFSET + closePowerOfTwo, (byte) OffHeapConstants.NULL_PTR);
 
             parent.setAddrByIndex(index, newAddr);
@@ -177,7 +176,11 @@ public class OffHeapEGraph implements EGraph {
     @Override
     public final void free() {
         long addr = parent.addrByIndex(index);
-        // free all nodes
+        freeByAddr(addr);
+    }
+
+
+    static void freeByAddr(long addr) {
         long nodesIndex = OffHeapLongArray.get(addr, NODES_INDEX);
         for (long i = 0; i < nodesIndex; i++) {
             OffHeapENode.free(nodeAddrAt(addr, i));

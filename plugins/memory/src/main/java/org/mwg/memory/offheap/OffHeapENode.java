@@ -249,6 +249,9 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                                 }
                             }
                         }
+                        setKey(addr, indexVictim, OffHeapConstants.NULL_PTR);
+                        freeElement(value(addr, indexVictim), type(addr, indexVictim));
+                        setType(addr, indexVictim, OffHeapConstants.NULL_PTR);
                     }
                     OffHeapLongArray.set(addr, SIZE, size - 1);
                 } else {
@@ -1010,7 +1013,6 @@ public class OffHeapENode implements ENode, OffHeapContainer {
 
     @SuppressWarnings("Duplicates")
     public final long load(final Buffer buffer, final long currentCursor, final OffHeapContainer p_parent) {
-//        final boolean initial = _k == null;
         final boolean initial = addr == OffHeapConstants.NULL_PTR;
 
         final long payloadSize = buffer.length();

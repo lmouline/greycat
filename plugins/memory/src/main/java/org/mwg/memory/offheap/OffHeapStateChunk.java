@@ -691,6 +691,9 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                                 }
                             }
                         }
+                        setKey(addr, indexVictim, OffHeapConstants.NULL_PTR);
+                        freeElement(value(addr, indexVictim), type(addr, indexVictim), space);
+                        setType(addr, indexVictim, (byte) OffHeapConstants.NULL_PTR);
                     }
                     OffHeapLongArray.set(addr, SIZE, size - 1);
                 } else {
@@ -1135,6 +1138,9 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
             case Type.LONG_TO_LONG_ARRAY_MAP:
                 OffHeapLongLongArrayMap.free(addr);
                 break;
+            case Type.EGRAPH:
+                OffHeapEGraph.freeByAddr(addr);
+
         }
     }
 

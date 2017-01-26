@@ -52,7 +52,6 @@ public abstract class AbstractEGraphTest {
         Assert.assertEquals(3, resolvedERelation.size());
         Assert.assertEquals("[2,3,4]", resolvedERelation.toString());
 
-        egraph.free();
         space.free(chunk);
         space.freeAll();
     }
