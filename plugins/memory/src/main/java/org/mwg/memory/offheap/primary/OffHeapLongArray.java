@@ -184,7 +184,6 @@ public class OffHeapLongArray {
                 throw new RuntimeException("set: bad address " + endIndex + "(" + endIndex * 8 + ")" + " in " + allocated);
             }
         }
-        //setMemory
         unsafe.setMemory(addr + (beginIndex * 8), (endIndex - beginIndex) * 8, valueToInsert);
     }
 

@@ -84,10 +84,8 @@ public class OffHeapEGraph implements EGraph {
         final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
         long nodesCapacity = OffHeapLongArray.get(addr, NODES_CAPACITY);
         if (closePowerOfTwo > nodesCapacity) {
-            long previousSize = OffHeapLongArray.get(addr, NODES_INDEX);
             long newAddr = OffHeapLongArray.reallocate(addr, OFFSET + closePowerOfTwo);
-            OffHeapLongArray.fillByte(newAddr, OFFSET + previousSize, OFFSET + closePowerOfTwo, (byte) OffHeapConstants.NULL_PTR);
-
+            OffHeapLongArray.fillByte(newAddr, OFFSET + nodesCapacity, OFFSET + closePowerOfTwo, (byte) OffHeapConstants.NULL_PTR);
             parent.setAddrByIndex(index, newAddr);
             OffHeapLongArray.set(newAddr, NODES_CAPACITY, closePowerOfTwo);
         }
