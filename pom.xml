@@ -103,10 +103,7 @@
         <!-- Plugin Java -->
 
         <module>plugins/taskide</module>
-
-        <!--
         <module>plugins/memory</module>
-        -->
 
 
         <!--

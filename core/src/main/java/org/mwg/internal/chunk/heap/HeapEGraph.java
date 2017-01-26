@@ -52,7 +52,7 @@ class HeapEGraph implements EGraph {
         return _graph;
     }
 
-    final void allocate(int newCapacity) {
+    private void allocate(int newCapacity) {
         final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
         if (closePowerOfTwo > _nodes_capacity) {
             HeapENode[] new_back = new HeapENode[closePowerOfTwo];
