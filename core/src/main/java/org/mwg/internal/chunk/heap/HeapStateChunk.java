@@ -706,6 +706,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 }
                             }
                         }
+                        _k[indexVictim] = -1;
+                        _v[indexVictim] = null;
+                        _type[indexVictim] = -1;
                     }
                     _size--;
                 } else {
