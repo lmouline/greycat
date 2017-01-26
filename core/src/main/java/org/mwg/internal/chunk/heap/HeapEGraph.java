@@ -175,7 +175,7 @@ class HeapEGraph implements EGraph {
                 }
                 cursor++;
                 HeapENode eNode = nodeByIndex(insertIndex, true);
-                cursor = eNode.load(buffer, cursor, parent, _graph);
+                cursor = eNode.load(buffer, cursor, _graph);
                 insertIndex++;
             } else {
                 cursor++;

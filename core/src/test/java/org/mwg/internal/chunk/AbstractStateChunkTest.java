@@ -25,7 +25,7 @@ public abstract class AbstractStateChunkTest {
         this.factory = factory;
     }
 
-   // @Test
+    // @Test
     public void speedTest() {
 
         int nb = 5000000;
@@ -621,10 +621,10 @@ public abstract class AbstractStateChunkTest {
     }
 
 
-    /*
     @Test
     public void loadTest() {
 
+        /*
         Graph g = GraphBuilder.newBuilder().withPlugin(new Plugin() {
             @Override
             public void start(Graph graph) {
@@ -637,7 +637,9 @@ public abstract class AbstractStateChunkTest {
             }
         }).withScheduler(new NoopScheduler()).build();
         g.connect(null);
-        ChunkSpace space = g.space();
+*/
+
+        ChunkSpace space = factory.newSpace(100, null, false);
 
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
 
@@ -651,8 +653,10 @@ public abstract class AbstractStateChunkTest {
         buffer.free();
         space.free(chunk);
         space.freeAll();
+
+        //g.disconnect(null);
     }
-    */
+
 
     private boolean compareBuffers(Buffer buffer, Buffer buffer2) {
         if (buffer.length() != buffer2.length()) {

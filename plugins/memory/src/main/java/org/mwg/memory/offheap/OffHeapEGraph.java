@@ -69,7 +69,7 @@ public class OffHeapEGraph implements EGraph {
                 }
                 cursor++;
                 OffHeapENode eNode = nodeByIndex(insertIndex, true);
-                cursor = eNode.load(buffer, cursor, parent);
+                cursor = eNode.load(buffer, cursor);
                 insertIndex++;
             } else {
                 cursor++;

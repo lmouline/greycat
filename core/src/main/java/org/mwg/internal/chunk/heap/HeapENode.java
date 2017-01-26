@@ -890,7 +890,7 @@ class HeapENode implements ENode, HeapContainer {
     private static final byte LOAD_WAITING_VALUE = 3;
 
     @SuppressWarnings("Duplicates")
-    public final long load(final Buffer buffer, final long currentCursor, final HeapContainer nodeParent, final Graph graph) {
+    public final long load(final Buffer buffer, final long currentCursor, final Graph graph) {
         final boolean initial = _k == null;
         final long payloadSize = buffer.length();
         long cursor = currentCursor;
