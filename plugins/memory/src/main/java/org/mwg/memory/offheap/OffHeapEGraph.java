@@ -176,15 +176,18 @@ public class OffHeapEGraph implements EGraph {
     public final void free() {
         long addr = parent.addrByIndex(index);
         freeByAddr(addr);
+        parent.setAddrByIndex(index, OffHeapConstants.NULL_PTR);
     }
 
 
     static void freeByAddr(long addr) {
-        long nodesIndex = OffHeapLongArray.get(addr, NODES_INDEX);
-        for (long i = 0; i < nodesIndex; i++) {
-            OffHeapENode.free(nodeAddrAt(addr, i));
+        if (addr != OffHeapConstants.NULL_PTR) {
+            long nodesIndex = OffHeapLongArray.get(addr, NODES_INDEX);
+            for (long i = 0; i < nodesIndex; i++) {
+                OffHeapENode.free(nodeAddrAt(addr, i));
+            }
+            OffHeapLongArray.free(addr);
         }
-        OffHeapLongArray.free(addr);
     }
 
     @Override
