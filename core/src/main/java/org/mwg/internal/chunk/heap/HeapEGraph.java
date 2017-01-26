@@ -66,7 +66,7 @@ class HeapEGraph implements EGraph {
 
     final HeapENode nodeByIndex(final int index, final boolean createIfAbsent) {
         if (index < _nodes_capacity) {
-            if (index > _nodes_index) {
+            if (index >= _nodes_index) {
                 _nodes_index = index + 1;
             }
             HeapENode elem = _nodes[index];
