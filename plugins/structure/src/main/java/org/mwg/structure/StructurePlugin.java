@@ -24,15 +24,12 @@ public class StructurePlugin implements Plugin {
                         return new NearestNWithinRadius((int) params[0], (double) params[1], (double[]) params[2], (boolean) params[3]);
                     }
                 });
-
-
         graph.nodeRegistry().declaration(KDTree.NAME).setFactory(new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
                 return new KDTree(world, time, id, graph);
             }
         });
-
         graph.nodeRegistry().declaration(NDTree.NAME).setFactory(new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
