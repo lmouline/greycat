@@ -653,6 +653,11 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     @SuppressWarnings("Duplicates")
     private static void freeElement(final long addr, final byte elemType) {
         switch (elemType) {
+            case Type.BOOL:
+            case Type.LONG:
+            case Type.INT:
+            case Type.DOUBLE:
+                break;
             case Type.STRING:
                 OffHeapString.free(addr);
                 break;
@@ -686,6 +691,11 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             case Type.LONG_TO_LONG_ARRAY_MAP:
                 OffHeapLongLongArrayMap.free(addr);
                 break;
+//            case Type.ENODE:
+//                OffHeapENode.freeElement(addr, elemType);
+//                break;
+//            default:
+//                throw new RuntimeException("freeElement unknown type " + elemType);
         }
     }
 
@@ -1310,7 +1320,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                 internal_set(read_key, read_type, Base64.decodeToStringWithBounds(buffer, previous, cursor), true, initial);
                 break;
             case Type.ENODE:
-                internal_set(read_key, read_type, egraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true), true, initial);
+                internal_set(read_key, read_type, Base64.decodeToIntWithBounds(buffer, previous, cursor), true, initial);
                 break;
         }
     }

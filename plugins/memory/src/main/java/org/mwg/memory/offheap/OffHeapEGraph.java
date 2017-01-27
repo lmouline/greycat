@@ -27,6 +27,7 @@ public class OffHeapEGraph implements EGraph {
     }
 
     private void preAllocate() {
+        // TODO only clone if really necessary! this method is very inefficient
         long originAddr = parent.addrByIndex(index);
         if (originAddr != OffHeapConstants.NULL_PTR) {
 
