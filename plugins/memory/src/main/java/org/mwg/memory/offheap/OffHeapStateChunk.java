@@ -406,7 +406,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                             OffHeapLongLongArrayMap.save(rawValue, buffer);
                             break;
                         case Type.EGRAPH:
-                            OffHeapEGraph castedEGraph = new OffHeapEGraph(this, rawValue, space.graph());
+                            OffHeapEGraph castedEGraph = new OffHeapEGraph(this, i, space.graph());
                             int eGSize = castedEGraph.size();
                             Base64.encodeIntToBuffer(eGSize, buffer);
                             for (int j = 0; j < eGSize; j++) {
