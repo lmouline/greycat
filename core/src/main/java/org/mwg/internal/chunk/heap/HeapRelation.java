@@ -1,12 +1,12 @@
 /**
  * Copyright 2017 The MWG Authors.  All rights reserved.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -53,10 +53,14 @@ class HeapRelation implements Relation {
     public long[] all() {
         long[] ids;
         synchronized (parent) {
-            final int relSize = _back.length;
-            ids = new long[relSize];
-            for (int i = 0; i < relSize; i++) {
-                ids[i] = _back[i];
+            if (_back == null) {
+                ids = new long[0];
+            } else {
+                final int relSize = _back.length;
+                ids = new long[relSize];
+                for (int i = 0; i < relSize; i++) {
+                    ids[i] = _back[i];
+                }
             }
         }
         return ids;
