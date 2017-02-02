@@ -16,6 +16,7 @@
     <properties>
         <antlr.version>4.5.3</antlr.version>
         <roaster.version>2.18.7.Final</roaster.version>
+        <header.path>${basedir}/../../HEADER</header.path>
     </properties>
 
     <modules>

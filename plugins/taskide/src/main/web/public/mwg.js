@@ -1298,7 +1298,7 @@ var org;
                 this._plugins = null;
                 this._memorySize = -1;
                 this._readOnly = false;
-                this._deepPriority = false;
+                this._deepPriority = true;
             }
             GraphBuilder.newBuilder = function () {
                 return new org.mwg.GraphBuilder();
@@ -1334,7 +1334,11 @@ var org;
                 return this;
             };
             GraphBuilder.prototype.withDeepWorld = function () {
-                this._deepPriority = true;
+                this._deepPriority = org.mwg.Constants.DEEP_WORLD;
+                return this;
+            };
+            GraphBuilder.prototype.withWideWorld = function () {
+                this._deepPriority = org.mwg.Constants.WIDE_WORLD;
                 return this;
             };
             GraphBuilder.prototype.build = function () {
@@ -1649,17 +1653,9 @@ var org;
                     }
                 };
                 BaseNode.prototype.getOrCreate = function (name, type) {
-                    var params = [];
-                    for (var _i = 2; _i < arguments.length; _i++) {
-                        params[_i - 2] = arguments[_i];
-                    }
-                    return this.getOrCreateAt.apply(this, [this._resolver.stringToHash(name, true), type].concat(params));
+                    return this.getOrCreateAt(this._resolver.stringToHash(name, true), type);
                 };
                 BaseNode.prototype.getOrCreateAt = function (index, type) {
-                    var params = [];
-                    for (var _i = 2; _i < arguments.length; _i++) {
-                        params[_i - 2] = arguments[_i];
-                    }
                     var preciseState = this._resolver.alignState(this);
                     if (preciseState != null) {
                         return preciseState.getOrCreate(index, type);
@@ -4791,7 +4787,7 @@ var org;
                         };
                         HeapEGraph.prototype.nodeByIndex = function (index, createIfAbsent) {
                             if (index < this._nodes_capacity) {
-                                if (index > this._nodes_index) {
+                                if (index >= this._nodes_index) {
                                     this._nodes_index = index + 1;
                                 }
                                 var elem = this._nodes[index];
@@ -4888,7 +4884,7 @@ var org;
                                     }
                                     cursor++;
                                     var eNode = this.nodeByIndex(insertIndex, true);
-                                    cursor = eNode.load(buffer, cursor, this.parent, this._graph);
+                                    cursor = eNode.load(buffer, cursor, this._graph);
                                     insertIndex++;
                                 }
                                 else {
@@ -4918,15 +4914,10 @@ var org;
                                     java.lang.System.arraycopy(origin._type, 0, cloned_type, 0, this._capacity);
                                     this._type = cloned_type;
                                 }
-                                if (origin._next != null) {
-                                    var cloned_next = new Int32Array(this._capacity);
-                                    java.lang.System.arraycopy(origin._next, 0, cloned_next, 0, this._capacity);
-                                    this._next = cloned_next;
-                                }
-                                if (origin._hash != null) {
-                                    var cloned_hash = new Int32Array(this._capacity * 2);
-                                    java.lang.System.arraycopy(origin._hash, 0, cloned_hash, 0, this._capacity * 2);
-                                    this._hash = cloned_hash;
+                                if (origin._next_hash != null) {
+                                    var cloned_hash = new Int32Array(this._capacity * 3);
+                                    java.lang.System.arraycopy(origin._next_hash, 0, cloned_hash, 0, this._capacity * 3);
+                                    this._next_hash = cloned_hash;
                                 }
                                 if (origin._v != null) {
                                     this._v = new Array(this._capacity);
@@ -4984,8 +4975,7 @@ var org;
                             this._size = 0;
                             this._k = null;
                             this._v = null;
-                            this._next = null;
-                            this._hash = null;
+                            this._next_hash = null;
                             this._type = null;
                             return this;
                         };
@@ -5029,18 +5019,16 @@ var org;
                             }
                             this._type = ex_type;
                             this._capacity = newCapacity;
-                            this._hash = new Int32Array(this._capacity * 2);
-                            java.util.Arrays.fill(this._hash, 0, this._capacity * 2, -1);
-                            this._next = new Int32Array(this._capacity);
-                            java.util.Arrays.fill(this._next, 0, this._capacity, -1);
+                            this._next_hash = new Int32Array(this._capacity * 3);
+                            java.util.Arrays.fill(this._next_hash, 0, this._capacity * 3, -1);
                             var double_capacity = this._capacity * 2;
                             for (var i = 0; i < this._size; i++) {
                                 var keyHash = this._k[i] % double_capacity;
                                 if (keyHash < 0) {
                                     keyHash = keyHash * -1;
                                 }
-                                this._next[i] = this._hash[keyHash];
-                                this._hash[keyHash] = i;
+                                this._next_hash[i] = this._next_hash[this._capacity + keyHash];
+                                this._next_hash[this._capacity + keyHash] = i;
                             }
                         };
                         HeapENode.prototype.internal_find = function (p_key) {
@@ -5051,13 +5039,13 @@ var org;
                             if (hashIndex < 0) {
                                 hashIndex = hashIndex * -1;
                             }
-                            var m = this._hash[hashIndex];
+                            var m = this._next_hash[this._capacity + hashIndex];
                             while (m >= 0) {
                                 if (p_key == this._k[m]) {
                                     return m;
                                 }
                                 else {
-                                    m = this._next[m];
+                                    m = this._next_hash[m];
                                 }
                             }
                             return -1;
@@ -5167,10 +5155,8 @@ var org;
                                 this._k = new Int32Array(this._capacity);
                                 this._v = new Array(this._capacity);
                                 this._type = new Int8Array(this._capacity);
-                                this._next = new Int32Array(this._capacity);
-                                this._hash = new Int32Array(this._capacity * 2);
-                                java.util.Arrays.fill(this._hash, 0, this._capacity * 2, -1);
-                                java.util.Arrays.fill(this._next, 0, this._capacity, -1);
+                                this._next_hash = new Int32Array(this._capacity * 3);
+                                java.util.Arrays.fill(this._next_hash, 0, this._capacity * 3, -1);
                                 this._k[0] = p_key;
                                 this._v[0] = param_elem;
                                 this._type[0] = p_type;
@@ -5179,7 +5165,7 @@ var org;
                                 if (hashIndex_1 < 0) {
                                     hashIndex_1 = hashIndex_1 * -1;
                                 }
-                                this._hash[hashIndex_1] = 0;
+                                this._next_hash[this._capacity + hashIndex_1] = 0;
                                 if (!initial) {
                                     this.declareDirty();
                                 }
@@ -5191,23 +5177,23 @@ var org;
                             if (hashIndex < 0) {
                                 hashIndex = hashIndex * -1;
                             }
-                            var m = this._hash[hashIndex];
+                            var m = this._next_hash[this._capacity + hashIndex];
                             while (m != -1) {
                                 if (this._k[m] == p_key) {
                                     entry = m;
                                     break;
                                 }
                                 p_entry = m;
-                                m = this._next[m];
+                                m = this._next_hash[m];
                             }
                             if (entry != -1) {
                                 if (replaceIfPresent || (p_type != this._type[entry])) {
                                     if (param_elem == null) {
                                         if (p_entry != -1) {
-                                            this._next[p_entry] = this._next[entry];
+                                            this._next_hash[p_entry] = this._next_hash[entry];
                                         }
                                         else {
-                                            this._hash[hashIndex] = -1;
+                                            this._next_hash[this._capacity + hashIndex] = -1;
                                         }
                                         var indexVictim = this._size - 1;
                                         if (entry == indexVictim) {
@@ -5219,24 +5205,27 @@ var org;
                                             this._k[entry] = this._k[indexVictim];
                                             this._v[entry] = this._v[indexVictim];
                                             this._type[entry] = this._type[indexVictim];
-                                            this._next[entry] = this._next[indexVictim];
+                                            this._next_hash[entry] = this._next_hash[indexVictim];
                                             var victimHash = this._k[entry] % (this._capacity * 2);
                                             if (victimHash < 0) {
-                                                victimHash = hashIndex * -1;
+                                                victimHash = victimHash * -1;
                                             }
-                                            m = this._hash[victimHash];
+                                            m = this._next_hash[this._capacity + victimHash];
                                             if (m == indexVictim) {
-                                                this._hash[victimHash] = entry;
+                                                this._next_hash[this._capacity + victimHash] = entry;
                                             }
                                             else {
                                                 while (m != -1) {
-                                                    if (this._next[m] == indexVictim) {
-                                                        this._next[m] = entry;
+                                                    if (this._next_hash[m] == indexVictim) {
+                                                        this._next_hash[m] = entry;
                                                         break;
                                                     }
-                                                    m = this._next[m];
+                                                    m = this._next_hash[m];
                                                 }
                                             }
+                                            this._k[indexVictim] = -1;
+                                            this._v[indexVictim] = null;
+                                            this._type[indexVictim] = -1;
                                         }
                                         this._size--;
                                     }
@@ -5256,8 +5245,8 @@ var org;
                                 this._k[this._size] = p_key;
                                 this._v[this._size] = param_elem;
                                 this._type[this._size] = p_type;
-                                this._next[this._size] = this._hash[hashIndex];
-                                this._hash[hashIndex] = this._size;
+                                this._next_hash[this._size] = this._next_hash[this._capacity + hashIndex];
+                                this._next_hash[this._capacity + hashIndex] = this._size;
                                 this._size++;
                                 if (!initial) {
                                     this.declareDirty();
@@ -5279,18 +5268,16 @@ var org;
                             this._v[this._size] = param_elem;
                             this._type[this._size] = p_type;
                             this._size++;
-                            this._hash = new Int32Array(this._capacity * 2);
-                            java.util.Arrays.fill(this._hash, 0, this._capacity * 2, -1);
-                            this._next = new Int32Array(this._capacity);
-                            java.util.Arrays.fill(this._next, 0, this._capacity, -1);
+                            this._next_hash = new Int32Array(this._capacity * 3);
+                            java.util.Arrays.fill(this._next_hash, 0, this._capacity * 3, -1);
                             var hashCapacity = this._capacity * 2;
                             for (var i = 0; i < this._size; i++) {
                                 var keyHash = this._k[i] % hashCapacity;
                                 if (keyHash < 0) {
                                     keyHash = keyHash * -1;
                                 }
-                                this._next[i] = this._hash[keyHash];
-                                this._hash[keyHash] = i;
+                                this._next_hash[i] = this._next_hash[this._capacity + keyHash];
+                                this._next_hash[this._capacity + keyHash] = i;
                             }
                             if (!initial) {
                                 this.declareDirty();
@@ -5738,7 +5725,7 @@ var org;
                             }
                             this._dirty = false;
                         };
-                        HeapENode.prototype.load = function (buffer, currentCursor, nodeParent, graph) {
+                        HeapENode.prototype.load = function (buffer, currentCursor, graph) {
                             var initial = this._k == null;
                             var payloadSize = buffer.length();
                             var cursor = currentCursor;
@@ -8311,6 +8298,9 @@ var org;
                                                     }
                                                 }
                                             }
+                                            this._k[indexVictim] = -1;
+                                            this._v[indexVictim] = null;
+                                            this._type[indexVictim] = -1;
                                         }
                                         this._size--;
                                     }
@@ -10635,6 +10625,28 @@ var org;
                     return ActionInject;
                 }());
                 task_1.ActionInject = ActionInject;
+                var ActionLog = (function () {
+                    function ActionLog(p_value) {
+                        this._value = p_value;
+                    }
+                    ActionLog.prototype.eval = function (ctx) {
+                        console.log(ctx.template(this._value));
+                        ctx.continueTask();
+                    };
+                    ActionLog.prototype.serialize = function (builder) {
+                        builder.append(org.mwg.internal.task.CoreActionNames.LOG);
+                        builder.append(org.mwg.Constants.TASK_PARAM_OPEN);
+                        org.mwg.internal.task.TaskHelper.serializeString(this._value, builder, true);
+                        builder.append(org.mwg.Constants.TASK_PARAM_CLOSE);
+                    };
+                    ActionLog.prototype.toString = function () {
+                        var res = new java.lang.StringBuilder();
+                        this.serialize(res);
+                        return res.toString();
+                    };
+                    return ActionLog;
+                }());
+                task_1.ActionLog = ActionLog;
                 var ActionLookup = (function () {
                     function ActionLookup(p_id) {
                         this._id = p_id;
@@ -12970,6 +12982,7 @@ var org;
                 CoreActionNames.INDEX_NAMES = "indexNames";
                 CoreActionNames.LOOKUP = "lookup";
                 CoreActionNames.LOOKUP_ALL = "lookupAll";
+                CoreActionNames.LOG = "log";
                 CoreActionNames.PRINT = "print";
                 CoreActionNames.PRINTLN = "println";
                 CoreActionNames.READ_GLOBAL_INDEX = "readGlobalIndex";
@@ -13176,6 +13189,9 @@ var org;
                     };
                     CoreActions.selectScript = function (script) {
                         return new org.mwg.internal.task.ActionSelect(script, null);
+                    };
+                    CoreActions.log = function (value) {
+                        return new org.mwg.internal.task.ActionLog(value);
                     };
                     CoreActions.print = function (name) {
                         return new org.mwg.internal.task.ActionPrint(name, false);
@@ -13852,6 +13868,11 @@ var org;
                                 return new org.mwg.internal.task.ActionPrint(params[0], false);
                             }
                         });
+                        registry.declaration(org.mwg.internal.task.CoreActionNames.LOG).setParams(org.mwg.Type.STRING).setDescription("Prints the action in a human readable format (without line breaks).").setFactory(function (params) {
+                            {
+                                return new org.mwg.internal.task.ActionLog(params[0]);
+                            }
+                        });
                         registry.declaration(org.mwg.internal.task.CoreActionNames.PRINTLN).setParams(org.mwg.Type.STRING).setDescription("Prints the action in a human readable format (with line breaks).").setFactory(function (params) {
                             {
                                 return new org.mwg.internal.task.ActionPrint(params[0], true);
@@ -14225,6 +14246,9 @@ var org;
                     };
                     CoreTask.prototype.selectObject = function (filterFunction) {
                         return this.then(org.mwg.internal.task.CoreActions.selectObject(filterFunction));
+                    };
+                    CoreTask.prototype.log = function (name) {
+                        return this.then(org.mwg.internal.task.CoreActions.log(name));
                     };
                     CoreTask.prototype.selectScript = function (script) {
                         return this.then(org.mwg.internal.task.CoreActions.selectScript(script));

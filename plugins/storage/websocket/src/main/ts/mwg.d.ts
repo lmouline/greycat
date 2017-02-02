@@ -404,6 +404,7 @@ declare module org {
             withScheduler(scheduler: org.mwg.plugin.Scheduler): org.mwg.GraphBuilder;
             withPlugin(plugin: org.mwg.plugin.Plugin): org.mwg.GraphBuilder;
             withDeepWorld(): org.mwg.GraphBuilder;
+            withWideWorld(): org.mwg.GraphBuilder;
             build(): org.mwg.Graph;
         }
         interface Node {
@@ -421,8 +422,8 @@ declare module org {
             forceSetAt(index: number, type: number, value: any): org.mwg.Node;
             remove(name: string): org.mwg.Node;
             removeAt(index: number): org.mwg.Node;
-            getOrCreate(name: string, type: number, ...params: string[]): any;
-            getOrCreateAt(index: number, type: number, ...params: string[]): any;
+            getOrCreate(name: string, type: number): any;
+            getOrCreateAt(index: number, type: number): any;
             relation(relationName: string, callback: org.mwg.Callback<org.mwg.Node[]>): void;
             relationAt(relationIndex: number, callback: org.mwg.Callback<org.mwg.Node[]>): void;
             addToRelation(relationName: string, relatedNode: org.mwg.Node, ...indexedAttributes: string[]): org.mwg.Node;
@@ -526,8 +527,8 @@ declare module org {
                 setAt(index: number, type: number, value: any): org.mwg.Node;
                 set(name: string, type: number, value: any): org.mwg.Node;
                 private isEquals(obj1, obj2, type);
-                getOrCreate(name: string, type: number, ...params: string[]): any;
-                getOrCreateAt(index: number, type: number, ...params: string[]): any;
+                getOrCreate(name: string, type: number): any;
+                getOrCreateAt(index: number, type: number): any;
                 type(name: string): number;
                 typeAt(index: number): number;
                 remove(name: string): org.mwg.Node;
@@ -915,7 +916,7 @@ declare module org {
                         size(): number;
                         free(): void;
                         graph(): org.mwg.Graph;
-                        allocate(newCapacity: number): void;
+                        private allocate(newCapacity);
                         nodeByIndex(index: number, createIfAbsent: boolean): org.mwg.internal.chunk.heap.HeapENode;
                         declareDirty(): void;
                         newNode(): org.mwg.struct.ENode;
@@ -932,8 +933,7 @@ declare module org {
                         private _size;
                         private _k;
                         private _v;
-                        private _next;
-                        private _hash;
+                        private _next_hash;
                         private _type;
                         private _dirty;
                         private static LOAD_WAITING_ALLOC;
@@ -958,7 +958,7 @@ declare module org {
                         getOrCreateAt(key: number, type: number): any;
                         toString(): string;
                         save(buffer: org.mwg.struct.Buffer): void;
-                        load(buffer: org.mwg.struct.Buffer, currentCursor: number, nodeParent: org.mwg.internal.chunk.heap.HeapContainer, graph: org.mwg.Graph): number;
+                        load(buffer: org.mwg.struct.Buffer, currentCursor: number, graph: org.mwg.Graph): number;
                         private load_primitive(read_key, read_type, buffer, previous, cursor, initial);
                         each(callBack: org.mwg.plugin.NodeStateCallback): void;
                     }
@@ -1290,8 +1290,8 @@ declare module org {
                         private _size;
                         private _capacity;
                         private _kv;
-                        private _next;
                         private _diff;
+                        private _next;
                         private _hash;
                         private _dirty;
                         constructor(p_space: org.mwg.internal.chunk.heap.HeapChunkSpace, p_index: number);
@@ -1471,6 +1471,13 @@ declare module org {
                 class ActionInject implements org.mwg.task.Action {
                     private _value;
                     constructor(value: any);
+                    eval(ctx: org.mwg.task.TaskContext): void;
+                    serialize(builder: java.lang.StringBuilder): void;
+                    toString(): string;
+                }
+                class ActionLog implements org.mwg.task.Action {
+                    private _value;
+                    constructor(p_value: string);
                     eval(ctx: org.mwg.task.TaskContext): void;
                     serialize(builder: java.lang.StringBuilder): void;
                     toString(): string;
@@ -1794,6 +1801,7 @@ declare module org {
                     static INDEX_NAMES: string;
                     static LOOKUP: string;
                     static LOOKUP_ALL: string;
+                    static LOG: string;
                     static PRINT: string;
                     static PRINTLN: string;
                     static READ_GLOBAL_INDEX: string;
@@ -1873,6 +1881,7 @@ declare module org {
                     static select(filterFunction: org.mwg.task.TaskFunctionSelect): org.mwg.task.Action;
                     static selectObject(filterFunction: org.mwg.task.TaskFunctionSelectObject): org.mwg.task.Action;
                     static selectScript(script: string): org.mwg.task.Action;
+                    static log(value: string): org.mwg.task.Action;
                     static print(name: string): org.mwg.task.Action;
                     static println(name: string): org.mwg.task.Action;
                     static executeExpression(expression: string): org.mwg.task.Action;
@@ -1965,6 +1974,7 @@ declare module org {
                     selectWithout(name: string, pattern: string): org.mwg.task.Task;
                     select(filterFunction: org.mwg.task.TaskFunctionSelect): org.mwg.task.Task;
                     selectObject(filterFunction: org.mwg.task.TaskFunctionSelectObject): org.mwg.task.Task;
+                    log(name: string): org.mwg.task.Task;
                     selectScript(script: string): org.mwg.task.Task;
                     print(name: string): org.mwg.task.Task;
                     println(name: string): org.mwg.task.Task;
@@ -2503,6 +2513,7 @@ declare module org {
                 select(filterFunction: org.mwg.task.TaskFunctionSelect): org.mwg.task.Task;
                 selectScript(script: string): org.mwg.task.Task;
                 selectObject(filterFunction: org.mwg.task.TaskFunctionSelectObject): org.mwg.task.Task;
+                log(name: string): org.mwg.task.Task;
                 print(name: string): org.mwg.task.Task;
                 println(name: string): org.mwg.task.Task;
                 executeExpression(expression: string): org.mwg.task.Task;

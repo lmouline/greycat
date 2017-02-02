@@ -11,6 +11,10 @@
         <relativePath>..</relativePath>
     </parent>
 
+    <properties>
+        <header.path>${basedir}/../../../HEADER</header.path>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.antlr</groupId>

@@ -15,7 +15,6 @@
 
     <build>
         <plugins>
-
             <plugin>
                 <groupId>org.kevoree.kmf</groupId>
                 <artifactId>mavenplugin</artifactId>
@@ -61,7 +60,6 @@
             <artifactId>ml</artifactId>
             <version>${mwg.version}</version>
         </dependency>
-
     </dependencies>
 
 </project>
