@@ -20,12 +20,12 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>core</artifactId>
     <name>mwg :: Core</name>
-    <version>11</version>
+    <version>12-SNAPSHOT</version>
 
     <parent>
         <artifactId>mwg</artifactId>
         <groupId>org.kevoree.mwg</groupId>
-        <version>11</version>
+        <version>12-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
 

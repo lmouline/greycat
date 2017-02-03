@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.kevoree.mwg.plugins</groupId>
         <artifactId>model</artifactId>
-        <version>11</version>
+        <version>12-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
 
