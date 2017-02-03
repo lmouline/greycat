@@ -64,11 +64,6 @@
         </dependency>
         <dependency>
             <groupId>org.kevoree.mwg</groupId>
-            <artifactId>api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.kevoree.mwg</groupId>
             <artifactId>core</artifactId>
             <version>${project.version}</version>
         </dependency>

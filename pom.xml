@@ -219,6 +219,7 @@
                         <exclude>**/public/*.ts</exclude>
                         <exclude>**/public/*.js</exclude>
                         <exclude>**/mwg.d.ts</exclude>
+                        <exclude>**/build/**</exclude>
                     </excludes>
                 </configuration>
                 <executions>

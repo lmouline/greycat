@@ -38,8 +38,8 @@
     <dependencies>
         <dependency>
             <groupId>org.kevoree.mwg</groupId>
-            <artifactId>api</artifactId>
-            <version>${project.parent.version}</version>
+            <artifactId>core</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.deeplearning4j</groupId>
@@ -51,14 +51,7 @@
             <artifactId>nd4j-native-platform</artifactId>
             <version>${deeplearning4j.version}</version>
         </dependency>
-
         <!-- Test -->
-        <dependency>
-            <groupId>org.kevoree.mwg</groupId>
-            <artifactId>core</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
