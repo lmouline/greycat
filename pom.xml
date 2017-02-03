@@ -224,6 +224,9 @@
                         <exclude>**/public/*.js</exclude>
                         <exclude>**/mwg.d.ts</exclude>
                         <exclude>**/build/**</exclude>
+                        <exclude>**/c3.*</exclude>
+                        <exclude>**/d3.*</exclude>
+                        <exclude>**/moment.js</exclude>
                     </excludes>
                 </configuration>
                 <executions>
