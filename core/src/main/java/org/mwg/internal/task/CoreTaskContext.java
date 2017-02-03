@@ -116,7 +116,7 @@ class CoreTaskContext implements TaskContext {
 
     private void recursive_collect(TaskContext ctx, Map<String, TaskResult> collector) {
         Map<String, TaskResult> localVariables = ((CoreTaskContext) ctx).localVariables();
-        if(localVariables != null){
+        if (localVariables != null) {
             String[] localKeys = localVariables.keySet().toArray(new String[localVariables.size()]);
             for (int i = 0; i < localKeys.length; i++) {
                 if (!collector.containsKey(localKeys[i])) {
@@ -581,7 +581,6 @@ class CoreTaskContext implements TaskContext {
                         }
                     }
                     TaskResult foundVar = variable(contextKey);
-
                     if (foundVar == null) {
                         switch (contextKey) {
                             case "result": {
@@ -598,7 +597,6 @@ class CoreTaskContext implements TaskContext {
                             break;
                         }
                     }
-
                     if (foundVar != null) {
                         if (foundVar.size() == 1 || indexArray != -1) {
                             //show element of array

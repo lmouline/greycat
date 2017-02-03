@@ -17,6 +17,7 @@ package org.mwg.internal.task;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.mwg.Callback;
 import org.mwg.Constants;
 import org.mwg.Node;
 import org.mwg.task.ActionFunction;
@@ -58,4 +59,17 @@ public class ActionTravelInTimeTest extends AbstractActionTest {
 
         removeGraph();
     }
+
+    @Test
+    public void testTravelInTime2() {
+        initGraph();
+        newTask().travelInTime("42").print("{{time}}").execute(graph, new Callback<TaskResult>() {
+            @Override
+            public void on(TaskResult result) {
+                Assert.assertEquals("42",result.output());
+            }
+        });
+        removeGraph();
+    }
+
 }
