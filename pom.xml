@@ -157,7 +157,11 @@
         <module>plugins/visualizer</module>
         <module>plugins/mlx</module>
         -->
+
+        <!--
         <module>plugins/benchmark</module>
+        -->
+
         <!--
         <module>plugins/search</module>
         -->
