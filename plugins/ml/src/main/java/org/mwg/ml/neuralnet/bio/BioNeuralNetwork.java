@@ -22,6 +22,8 @@ import org.mwg.struct.LongLongMap;
 import org.mwg.struct.LongLongMapCallBack;
 import org.mwg.struct.Relation;
 
+import java.util.Random;
+
 public class BioNeuralNetwork extends BaseNode {
 
     public static String NAME = "BioNeuralNetworkNode";
@@ -53,7 +55,9 @@ public class BioNeuralNetwork extends BaseNode {
             this.addToRelation(RELATION_INPUTS, input);
         }
         BioNeuralNode[] previousLayer = new BioNeuralNode[nodesPerLayer];
-        int seed = 0;
+        Random rand=new Random();
+        rand.setSeed(1234);
+
         //create hidden layers
         for (int i = 0; i < hiddenlayers; i++) {
             //first hidden layer
@@ -69,8 +73,7 @@ public class BioNeuralNetwork extends BaseNode {
                     spikeNb.fill(0d);
                     DMatrix weights = (DMatrix) neuralNode.getOrCreate(WEIGHTS, Type.DMATRIX);
                     weights.init(inputs, 1);
-                    weights.fillWithRandom(-1d, 1d, seed);
-                    seed++;
+                    weights.fillWithRandom(rand,-1d, 1d);
                     previousLayer[j] = neuralNode;
                     for (int k = 0; k < inputs; k++) {
                         ((LongLongMap) inputNodes[k].getOrCreate(RELATION_OUTPUTS, Type.LONG_TO_LONG_MAP)).put(neuralNode.id(), j);
@@ -94,8 +97,7 @@ public class BioNeuralNetwork extends BaseNode {
                     spikeNb.fill(0d);
                     DMatrix weights = (DMatrix) neuralNode.getOrCreate(WEIGHTS, Type.DMATRIX);
                     weights.init(nodesPerLayer, 1);
-                    weights.fillWithRandom(-1d, 1d, seed);
-                    seed++;
+                    weights.fillWithRandom(rand, -1d, 1d);
                     tempLayer[j] = neuralNode;
                     for (int k = 0; k < nodesPerLayer; k++) {
                         ((LongLongMap) previousLayer[k].getOrCreate(RELATION_OUTPUTS, Type.LONG_TO_LONG_MAP)).put(neuralNode.id(), j);
@@ -118,8 +120,7 @@ public class BioNeuralNetwork extends BaseNode {
             spikeNb.fill(0d);
             DMatrix weights = (DMatrix) output.getOrCreate(WEIGHTS, Type.DMATRIX);
             weights.init(nodesPerLayer, 1);
-            weights.fillWithRandom(-1d, 1d, seed);
-            seed++;
+            weights.fillWithRandom(rand, -1d, 1d);
             for (int k = 0; k < nodesPerLayer; k++) {
                 ((LongLongMap) previousLayer[k].getOrCreate(RELATION_OUTPUTS, Type.LONG_TO_LONG_MAP)).put(output.id(), i);
                 ((LongLongMap) output.getOrCreate(RELATION_INPUTS, Type.LONG_TO_LONG_MAP)).put(previousLayer[k].id(), k);

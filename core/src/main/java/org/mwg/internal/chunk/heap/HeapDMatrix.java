@@ -138,6 +138,44 @@ class HeapDMatrix implements DMatrix {
         return this;
     }
 
+    @Override
+    public DMatrix fillWithRandom(Random random, double min, double max) {
+        synchronized (parent) {
+            if (backend != null) {
+                if (!aligned) {
+                    double[] next_backend = new double[backend.length];
+                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                    backend = next_backend;
+                    aligned = true;
+                }
+                for (int i = 0; i < backend[INDEX_ROWS] * backend[INDEX_COLUMNS]; i++) {
+                    backend[i + INDEX_OFFSET] = random.nextInt() * (max - min) + min;
+                }
+                parent.declareDirty();
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public DMatrix fillWithRandomStd(Random random, double std) {
+        synchronized (parent) {
+            if (backend != null) {
+                if (!aligned) {
+                    double[] next_backend = new double[backend.length];
+                    System.arraycopy(backend, 0, next_backend, 0, backend.length);
+                    backend = next_backend;
+                    aligned = true;
+                }
+                for (int i = 0; i < backend[INDEX_ROWS] * backend[INDEX_COLUMNS]; i++) {
+                    backend[i + INDEX_OFFSET] = random.nextGaussian() * std;
+                }
+                parent.declareDirty();
+            }
+        }
+        return this;
+    }
+
     private void internal_fillWith(double[] values) {
         if (backend != null) {
             if (!aligned) {
@@ -152,30 +190,7 @@ class HeapDMatrix implements DMatrix {
         }
     }
 
-    @Override
-    public DMatrix fillWithRandom(double min, double max, long seed) {
-        synchronized (parent) {
-            internal_fillWithRandom(min, max, seed);
-        }
-        return this;
-    }
 
-    private void internal_fillWithRandom(double min, double max, long seed) {
-        Random rand = new Random();
-        rand.setSeed(seed);
-        if (backend != null) {
-            if (!aligned) {
-                double[] next_backend = new double[backend.length];
-                System.arraycopy(backend, 0, next_backend, 0, backend.length);
-                backend = next_backend;
-                aligned = true;
-            }
-            for (int i = 0; i < backend[INDEX_ROWS] * backend[INDEX_COLUMNS]; i++) {
-                backend[i + INDEX_OFFSET] = rand.nextInt() * (max - min) + min;
-            }
-            parent.declareDirty();
-        }
-    }
 
     @SuppressWarnings("Duplicates")
     @Override

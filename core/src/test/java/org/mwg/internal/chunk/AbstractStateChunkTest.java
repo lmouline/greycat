@@ -636,7 +636,7 @@ public abstract class AbstractStateChunkTest {
     }
 
 
-    @Test
+  /*  @Test
     public void loadTest() {
 
         /*
@@ -652,7 +652,7 @@ public abstract class AbstractStateChunkTest {
             }
         }).withScheduler(new NoopScheduler()).build();
         g.connect(null);
-*/
+
 
         ChunkSpace space = factory.newSpace(100, null, false);
 
@@ -671,7 +671,7 @@ public abstract class AbstractStateChunkTest {
 
         //g.disconnect(null);
     }
-
+*/
 
     private boolean compareBuffers(Buffer buffer, Buffer buffer2) {
         if (buffer.length() != buffer2.length()) {

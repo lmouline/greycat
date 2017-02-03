@@ -23,6 +23,8 @@ import org.mwg.ml.common.matrix.VolatileDMatrix;
 import org.mwg.plugin.NodeState;
 import org.mwg.struct.DMatrix;
 
+import java.util.Random;
+
 public class FlatNeuralNode extends BaseNode {
 
     //Inputs are organized in one row
@@ -63,6 +65,9 @@ public class FlatNeuralNode extends BaseNode {
         int previousDim = inputs;
         int nextDim = nodesPerLayer;
 
+        Random rand = new Random();
+        rand.setSeed(1234);
+
 
         for (int i = 0; i < hiddenlayers; i++) {
 
@@ -70,8 +75,8 @@ public class FlatNeuralNode extends BaseNode {
             DMatrix biases = layerBias(state, i);
             weights.init(previousDim, nextDim);
             biases.init(1, nextDim);
-            weights.fillWithRandom(-1.0, 1.0, System.currentTimeMillis());
-            biases.fillWithRandom(-1.0, 1.0, System.currentTimeMillis());
+            weights.fillWithRandom(rand,-1.0, 1.0 );
+            biases.fillWithRandom(rand, -1.0, 1.0);
 
             //initialize randomly here
 
@@ -83,8 +88,8 @@ public class FlatNeuralNode extends BaseNode {
         DMatrix biases = layerBias(state, hiddenlayers);
         weights.init(previousDim, nextDim);
         biases.init(1, nextDim);
-        weights.fillWithRandom(-1.0, 1.0, System.currentTimeMillis());
-        biases.fillWithRandom(-1.0, 1.0, System.currentTimeMillis());
+        weights.fillWithRandom(rand, -1.0, 1.0);
+        biases.fillWithRandom(rand,-1.0, 1.0);
 
         return this;
     }

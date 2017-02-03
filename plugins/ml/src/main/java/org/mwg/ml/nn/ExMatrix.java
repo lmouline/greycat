@@ -20,6 +20,8 @@ import org.mwg.ml.common.matrix.VolatileDMatrix;
 import org.mwg.struct.DMatrix;
 import org.mwg.struct.ENode;
 
+import java.util.Random;
+
 /**
  * Created by assaad on 27/01/2017.
  */
@@ -57,76 +59,103 @@ public class ExMatrix implements DMatrix {
         return this;
     }
 
-
-
-
     @Override
     public DMatrix fill(double value) {
-        return null;
+        w.fill(value);
+        return this;
     }
 
     @Override
     public DMatrix fillWith(double[] values) {
-        return null;
+        w.fillWith(values);
+        return this;
+
     }
 
     @Override
-    public DMatrix fillWithRandom(double min, double max, long seed) {
-        return null;
+    public DMatrix fillWithRandom(Random random, double min, double max) {
+        w.fillWithRandom(random,min,max);
+        return this;
     }
+
+    @Override
+    public DMatrix fillWithRandomStd(Random random, double std) {
+        w.fillWithRandomStd(random,std);
+        return this;
+    }
+
 
     @Override
     public int rows() {
-        return 0;
+        return w.rows();
     }
 
     @Override
     public int columns() {
-        return 0;
+        return w.columns();
     }
 
     @Override
     public double[] column(int i) {
-        return new double[0];
+        return w.column(i);
     }
 
     @Override
     public double get(int rowIndex, int columnIndex) {
-        return 0;
+        return w.get(rowIndex,columnIndex);
     }
 
     @Override
     public DMatrix set(int rowIndex, int columnIndex, double value) {
-        return null;
+        w.set(rowIndex,columnIndex,value);
+        return this;
     }
 
     @Override
     public DMatrix add(int rowIndex, int columnIndex, double value) {
-        return null;
+        w.add(rowIndex, columnIndex, value);
+        return this;
     }
 
     @Override
     public DMatrix appendColumn(double[] newColumn) {
+        w.appendColumn(newColumn);
+        dw.appendColumn(new double[newColumn.length]);
+        stepCache.appendColumn(new double[newColumn.length]);
         return null;
     }
 
     @Override
     public double[] data() {
-        return new double[0];
+        return w.data();
     }
 
     @Override
     public int leadingDimension() {
-        return 0;
+        return w.leadingDimension();
     }
 
     @Override
     public double unsafeGet(int index) {
-        return 0;
+        return w.unsafeGet(index);
     }
 
     @Override
     public DMatrix unsafeSet(int index, double value) {
-        return null;
+        w.unsafeSet(index, value);
+        return this;
     }
+
+    public DMatrix getW(){
+        return w;
+    }
+
+    public DMatrix getDw(){
+        return dw;
+    }
+
+    public DMatrix getStepCache(){
+        return stepCache;
+    }
+
 }

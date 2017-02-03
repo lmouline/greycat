@@ -15,6 +15,8 @@
  */
 package org.mwg.struct;
 
+import java.util.Random;
+
 public interface DMatrix {
 
     DMatrix init(int rows, int columns);
@@ -23,7 +25,9 @@ public interface DMatrix {
 
     DMatrix fillWith(double[] values);
 
-    DMatrix fillWithRandom(double min, double max, long seed);
+    DMatrix fillWithRandom(Random random, double min, double max);
+
+    DMatrix fillWithRandomStd(Random random, double std);
 
     int rows();
 

@@ -156,17 +156,15 @@ class OffHeapDMatrix implements DMatrix {
     }
 
     @Override
-    public DMatrix fillWithRandom(double min, double max, long seed) {
+    public DMatrix fillWithRandom(Random random, double min, double max) {
         container.lock();
         try {
             final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
                 final int nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
                 final int nbColumns = (int) OffHeapDoubleArray.get(addr, INDEX_COLUMNS);
-                final Random rand = new Random();
-                rand.setSeed(seed);
-                for (int i = 0; i < nbColumns * nbRows; i++) {
-                    OffHeapDoubleArray.set(addr, INDEX_OFFSET + i, rand.nextDouble() * (max - min) + min);
+                   for (int i = 0; i < nbColumns * nbRows; i++) {
+                    OffHeapDoubleArray.set(addr, INDEX_OFFSET + i, random.nextDouble() * (max - min) + min);
                 }
                 container.declareDirty();
             }
@@ -175,6 +173,27 @@ class OffHeapDMatrix implements DMatrix {
         }
         return this;
     }
+
+    @Override
+    public DMatrix fillWithRandomStd(Random random, double std) {
+        container.lock();
+        try {
+            final long addr = container.addrByIndex(index);
+            if (addr != OffHeapConstants.NULL_PTR) {
+                final int nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
+                final int nbColumns = (int) OffHeapDoubleArray.get(addr, INDEX_COLUMNS);
+                for (int i = 0; i < nbColumns * nbRows; i++) {
+                    OffHeapDoubleArray.set(addr, INDEX_OFFSET + i, random.nextGaussian() * std);
+                }
+                container.declareDirty();
+            }
+        } finally {
+            container.unlock();
+        }
+        return this;
+    }
+
+
 
     @Override
     public final int rows() {

@@ -125,14 +125,21 @@ public class VolatileDMatrix implements DMatrix {
     }
 
     @Override
-    public DMatrix fillWithRandom(double min, double max, long seed) {
-        Random rand = new Random();
-        rand.setSeed(seed);
+    public DMatrix fillWithRandom(Random random, double min, double max) {
         for (int i = 0; i < _nbRows * _nbColumns; i++) {
-            this._data[i] = rand.nextDouble() * (max - min) + min;
+            this._data[i] = random.nextDouble() * (max - min) + min;
         }
         return this;
     }
+
+    @Override
+    public DMatrix fillWithRandomStd(Random random, double std) {
+        for (int i = 0; i < _nbRows * _nbColumns; i++) {
+            this._data[i] = random.nextGaussian()*std;
+        }
+        return this;
+    }
+
 
     @Override
     public int leadingDimension() {

@@ -354,6 +354,8 @@ var java;
         var Random = (function () {
             function Random() {
                 this.seed = undefined;
+                this.haveNextNextGaussian = false;
+                this.nextNextGaussian = 0.;
             }
             Random.prototype.nextInt = function (max) {
                 if (typeof max === 'undefined') {
@@ -391,6 +393,24 @@ var java;
                 this.seed = (this.seed * 9301 + 49297) % 233280;
                 var rnd = this.seed / 233280;
                 return min + rnd * (max - min);
+            };
+            Random.prototype.nextGaussian = function () {
+                if (this.haveNextNextGaussian) {
+                    this.haveNextNextGaussian = false;
+                    return this.nextNextGaussian;
+                }
+                else {
+                    var v1, v2, s;
+                    do {
+                        v1 = 2 * this.nextDouble() - 1; // between -1 and 1
+                        v2 = 2 * this.nextDouble() - 1; // between -1 and 1
+                        s = v1 * v1 + v2 * v2;
+                    } while (s >= 1 || s == 0);
+                    var multiplier = Math.sqrt(-2 * Math.log(s) / s);
+                    this.nextNextGaussian = v2 * multiplier;
+                    this.haveNextNextGaussian = true;
+                    return v1 * multiplier;
+                }
             };
             return Random;
         }());
@@ -4542,6 +4562,40 @@ var org;
                             }
                             return this;
                         };
+                        HeapDMatrix.prototype.fillWithRandom = function (random, min, max) {
+                            {
+                                if (this.backend != null) {
+                                    if (!this.aligned) {
+                                        var next_backend = new Float64Array(this.backend.length);
+                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                        this.backend = next_backend;
+                                        this.aligned = true;
+                                    }
+                                    for (var i = 0; i < this.backend[HeapDMatrix.INDEX_ROWS] * this.backend[HeapDMatrix.INDEX_COLUMNS]; i++) {
+                                        this.backend[i + HeapDMatrix.INDEX_OFFSET] = random.nextInt() * (max - min) + min;
+                                    }
+                                    this.parent.declareDirty();
+                                }
+                            }
+                            return this;
+                        };
+                        HeapDMatrix.prototype.fillWithRandomStd = function (random, std) {
+                            {
+                                if (this.backend != null) {
+                                    if (!this.aligned) {
+                                        var next_backend = new Float64Array(this.backend.length);
+                                        java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                        this.backend = next_backend;
+                                        this.aligned = true;
+                                    }
+                                    for (var i = 0; i < this.backend[HeapDMatrix.INDEX_ROWS] * this.backend[HeapDMatrix.INDEX_COLUMNS]; i++) {
+                                        this.backend[i + HeapDMatrix.INDEX_OFFSET] = random.nextGaussian() * std;
+                                    }
+                                    this.parent.declareDirty();
+                                }
+                            }
+                            return this;
+                        };
                         HeapDMatrix.prototype.internal_fillWith = function (values) {
                             if (this.backend != null) {
                                 if (!this.aligned) {
@@ -4551,28 +4605,6 @@ var org;
                                     this.aligned = true;
                                 }
                                 java.lang.System.arraycopy(values, 0, this.backend, HeapDMatrix.INDEX_OFFSET, values.length);
-                                this.parent.declareDirty();
-                            }
-                        };
-                        HeapDMatrix.prototype.fillWithRandom = function (min, max, seed) {
-                            {
-                                this.internal_fillWithRandom(min, max, seed);
-                            }
-                            return this;
-                        };
-                        HeapDMatrix.prototype.internal_fillWithRandom = function (min, max, seed) {
-                            var rand = new java.util.Random();
-                            rand.setSeed(seed);
-                            if (this.backend != null) {
-                                if (!this.aligned) {
-                                    var next_backend = new Float64Array(this.backend.length);
-                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                    this.backend = next_backend;
-                                    this.aligned = true;
-                                }
-                                for (var i = 0; i < this.backend[HeapDMatrix.INDEX_ROWS] * this.backend[HeapDMatrix.INDEX_COLUMNS]; i++) {
-                                    this.backend[i + HeapDMatrix.INDEX_OFFSET] = rand.nextInt() * (max - min) + min;
-                                }
                                 this.parent.declareDirty();
                             }
                         };
@@ -7241,10 +7273,15 @@ var org;
                         HeapRelation.prototype.all = function () {
                             var ids;
                             {
-                                var relSize = this._back.length;
-                                ids = new Float64Array(relSize);
-                                for (var i = 0; i < relSize; i++) {
-                                    ids[i] = this._back[i];
+                                if (this._back == null) {
+                                    ids = new Float64Array(0);
+                                }
+                                else {
+                                    var relSize = this._back.length;
+                                    ids = new Float64Array(relSize);
+                                    for (var i = 0; i < relSize; i++) {
+                                        ids[i] = this._back[i];
+                                    }
                                 }
                             }
                             return ids;

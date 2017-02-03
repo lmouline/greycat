@@ -46,7 +46,7 @@
     </parent>
 
     <properties>
-        <java2typescript.plugin.version>81</java2typescript.plugin.version>
+        <java2typescript.plugin.version>82</java2typescript.plugin.version>
         <header.path>${basedir}/HEADER</header.path>
     </properties>
 

@@ -111,6 +111,9 @@ declare module java {
             nextBoolean(): boolean;
             setSeed(seed: number): void;
             private nextSeeded(min?, max?);
+            private haveNextNextGaussian;
+            private nextNextGaussian;
+            nextGaussian(): number;
         }
         interface Iterator<E> {
             hasNext(): boolean;
@@ -884,9 +887,9 @@ declare module org {
                         fill(value: number): org.mwg.struct.DMatrix;
                         private internal_fill(value);
                         fillWith(values: Float64Array): org.mwg.struct.DMatrix;
+                        fillWithRandom(random: java.util.Random, min: number, max: number): org.mwg.struct.DMatrix;
+                        fillWithRandomStd(random: java.util.Random, std: number): org.mwg.struct.DMatrix;
                         private internal_fillWith(values);
-                        fillWithRandom(min: number, max: number, seed: number): org.mwg.struct.DMatrix;
-                        private internal_fillWithRandom(min, max, seed);
                         rows(): number;
                         columns(): number;
                         column(index: number): Float64Array;
@@ -2322,7 +2325,8 @@ declare module org {
                 init(rows: number, columns: number): org.mwg.struct.DMatrix;
                 fill(value: number): org.mwg.struct.DMatrix;
                 fillWith(values: Float64Array): org.mwg.struct.DMatrix;
-                fillWithRandom(min: number, max: number, seed: number): org.mwg.struct.DMatrix;
+                fillWithRandom(random: java.util.Random, min: number, max: number): org.mwg.struct.DMatrix;
+                fillWithRandomStd(random: java.util.Random, std: number): org.mwg.struct.DMatrix;
                 rows(): number;
                 columns(): number;
                 column(i: number): Float64Array;
