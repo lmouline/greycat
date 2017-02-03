@@ -30,7 +30,7 @@ For lightweight development, we advise you to use ```.min.js``` files.
 Then, the JS API is practically identical to the Java API and can be used like in the following code snipped:
 
 ```js
-var mwg = new org.mwg.GraphBuilder()
+var mwg = new GraphBuilder()
 	.withStorage(new org.mwg.plugin.WSClient("ws://localhost:8081"))
 	.build();
 ```
@@ -70,7 +70,7 @@ Then, these dependencies can be used like in the following code snipped:
 </head>
 <body>
 <script>
-var mwg = new org.mwg.GraphBuilder()
+var mwg = new GraphBuilder()
     //.withStorage(new org.mwg.plugin.WSClient("ws://localhost:8081"))
     .build();
 mwg.connect(function(){

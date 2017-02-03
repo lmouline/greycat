@@ -1,6 +1,6 @@
 {
-  "name": "mwg",
+  "name": "greycat",
   "version": "1.0.0",
-  "main": "mwg.js",
-  "typings": "mwg.d.ts"
+  "main": "greycat.js",
+  "typings": "greycat.d.ts"
 }

@@ -6,8 +6,6 @@ import org.mwg.GraphBuilder;
 import org.mwg.Node;
 import org.mwg.Type;
 
-import static org.mwg.task.Actions.*;
-
 public class HelloWorld {
 
     public static void main(String[] args) {

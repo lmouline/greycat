@@ -1,12 +1,20 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.kevoree.mwg</groupId>
-    <artifactId>mwg</artifactId>
+    <groupId>com.datathings.greycat</groupId>
+    <artifactId>greycat</artifactId>
     <packaging>pom</packaging>
     <version>12-SNAPSHOT</version>
-    <name>mwg</name>
-    <url>https://github.com/kevoree-modeling/mwDB</url>
-    <description>Many-World Graph Database</description>
+    <name>greycat</name>
+
+    <url>https://github.com/datathings/greycat</url>
+    <description>greycat</description>
+
+    <scm>
+        <connection>scm:git:git@github.com:datathings/greycat.git</connection>
+        <developerConnection>scm:git:git@github.com:datathings/greycat.git</developerConnection>
+        <url>http://github.com/datathings/greycat.git</url>
+    </scm>
 
     <licenses>
         <license>
@@ -14,12 +22,6 @@
             <url>https://www.apache.org/licenses/LICENSE-2.0</url>
         </license>
     </licenses>
-
-    <scm>
-        <connection>scm:git:git@github.com:kevoree-modeling/mwDB.git</connection>
-        <developerConnection>scm:git:git@github.com:kevoree-modeling/mwDB.git</developerConnection>
-        <url>http://github.com/kevoree-modeling/mwDB.git</url>
-    </scm>
 
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -58,6 +60,7 @@
             <id>thomas.hartmann</id>
             <email>thomi.hartmann@gmail.com</email>
             <roles>
+                <role>admin</role>
                 <role>developer</role>
             </roles>
             <timezone>+2</timezone>
@@ -67,24 +70,7 @@
             <id>assaad.moawad</id>
             <email>assaad.moawad@uni.lu</email>
             <roles>
-                <role>developer</role>
-            </roles>
-            <timezone>+2</timezone>
-        </developer>
-        <developer>
-            <name>Ludovic MOULINE</name>
-            <id>ludovic.mouline</id>
-            <email>ludovic.mouline@uni.lu</email>
-            <roles>
-                <role>developer</role>
-            </roles>
-            <timezone>+2</timezone>
-        </developer>
-        <developer>
-            <name>Andrey BOYTSOV</name>
-            <id>andrey.boytsov</id>
-            <email>andrey.boytsov@uni.lu</email>
-            <roles>
+                <role>admin</role>
                 <role>developer</role>
             </roles>
             <timezone>+2</timezone>
@@ -93,60 +79,35 @@
 
     <modules>
         <module>core</module>
-
-        <module>plugins/model</module>
-        <!-- Plugins Java & JS -->
+        <module>plugins/importer</module>
+        <module>plugins/storage/leveldb</module>
+        <module>plugins/storage/rocksdb</module>
         <module>plugins/storage/websocket</module>
         <module>plugins/structure</module>
         <module>plugins/ml</module>
         <module>plugins/taskide</module>
+        <module>plugins/model</module>
+        <!-- Plugins Java & JS -->
 
         <!--
         <module>plugins/memory</module>
-        -->
-
-        <!--
         <module>plugins/rest</module>
-        -->
-
-        <module>plugins/importer</module>
-        <module>plugins/storage/leveldb</module>
-        <module>plugins/storage/rocksdb</module>
-
-        <!--
-
-                <module>plugins/storage/dyno</module>
+        <module>plugins/storage/dyno</module>
         <module>plugins/storage/nats</module>
-
-<module>plugins/storage/riak</module>
-<module>plugins/storage/cassandra</module>
-<module>plugins/storage/voldemort</module>
--->
-        <!--
+        <module>plugins/storage/riak</module>
+        <module>plugins/storage/cassandra</module>
+        <module>plugins/storage/voldemort</module>
         <module>plugins/storage/hbase</module>
-        -->
-
-        <!--
         <module>plugins/hazelcast</module>
-        -->
-        <!--
         <module>plugins/mlext</module>
         <module>plugins/rest</module>
-        -->
-        <!-- Outside release-->
-        <!--<module>plugins/debug</module>-->
-        <!--
+        <module>plugins/debug</module>
         <module>plugins/visualizer</module>
         <module>plugins/mlx</module>
-        -->
-
-        <!--
         <module>plugins/benchmark</module>
-        -->
-
-        <!--
         <module>plugins/search</module>
         -->
+
     </modules>
 
     <build>
@@ -154,7 +115,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.0.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -167,7 +128,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>3.6.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -222,7 +183,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.2</version>
+                <version>2.10.4</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>

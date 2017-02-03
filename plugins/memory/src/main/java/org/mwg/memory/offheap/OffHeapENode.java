@@ -11,7 +11,6 @@ import org.mwg.memory.offheap.primary.OffHeapLongArray;
 import org.mwg.memory.offheap.primary.OffHeapString;
 import org.mwg.plugin.NodeStateCallback;
 import org.mwg.plugin.Resolver;
-import org.mwg.struct.*;
 import org.mwg.utility.Base64;
 
 import java.util.HashSet;

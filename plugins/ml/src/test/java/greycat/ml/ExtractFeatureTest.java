@@ -1,0 +1,104 @@
+package greycat.ml;
+
+import greycat.*;
+import greycat.plugin.NodeFactory;
+import org.junit.Assert;
+import org.junit.Test;
+import org.mwg.*;
+
+public class ExtractFeatureTest {
+
+    @Test
+    public void test() {
+        final Graph graph = new GraphBuilder().build();
+        graph.nodeRegistry().declaration(NoopRegressionNode.NAME).setFactory(new NodeFactory() {
+            @Override
+            public Node create(long world, long time, long id, Graph graph) {
+                return new NoopRegressionNode(world, time, id, graph);
+            }
+        });
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+
+                Node domainNode = graph.newNode(0, 0);
+                domainNode.set("value", Type.DOUBLE, 42.2);
+
+                final RegressionNode learningNode = (RegressionNode) graph.newTypedNode(0, 0, "NoopRegressionNode");
+                learningNode.addToRelation("sensor", domainNode);
+                learningNode.set("from", Type.STRING, "sensor.value");
+                learningNode.learn(3, new Callback<Boolean>() {
+                    @Override
+                    public void on(Boolean result) {
+                        Assert.assertEquals("{\"world\":0,\"time\":0,\"id\":2,\"sensor\":[1],\"from\":\"sensor.value\",\"extracted\":[42.2]}", learningNode.toString());
+                    }
+                });
+
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void testMath() {
+        final Graph graph = new GraphBuilder().build();
+        graph.nodeRegistry().declaration(NoopRegressionNode.NAME).setFactory(new NodeFactory() {
+            @Override
+            public Node create(long world, long time, long id, Graph graph) {
+                return new NoopRegressionNode(world, time, id, graph);
+            }
+        });
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+
+                Node domainNode = graph.newNode(0, 0);
+                domainNode.set("value", Type.DOUBLE, 2.5);
+
+                final RegressionNode learningNode = (RegressionNode) graph.newTypedNode(0, 0, "NoopRegressionNode");
+                learningNode.addToRelation("sensor", domainNode);
+
+                learningNode.set("from", Type.STRING, "sensor.executeExpression(value*3)");
+                learningNode.learn(3, new Callback<Boolean>() {
+                    @Override
+                    public void on(Boolean result) {
+                        Assert.assertEquals("{\"world\":0,\"time\":0,\"id\":2,\"sensor\":[1],\"from\":\"sensor.executeExpression(value*3)\",\"extracted\":[7.5]}", learningNode.toString());
+                    }
+                });
+                graph.disconnect(null);
+            }
+        });
+    }
+
+    @Test
+    public void testMathEscaped() {
+        final Graph graph = new GraphBuilder().build();
+        graph.nodeRegistry().declaration(NoopRegressionNode.NAME).setFactory(new NodeFactory() {
+            @Override
+            public Node create(long world, long time, long id, Graph graph) {
+                return new NoopRegressionNode(world, time, id, graph);
+            }
+        });
+        graph.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+
+                Node domainNode = graph.newNode(0, 0);
+                domainNode.set("value", Type.DOUBLE, 2.5);
+
+                final RegressionNode learningNode = (RegressionNode) graph.newTypedNode(0, 0, "NoopRegressionNode");
+                learningNode.addToRelation("sensor", domainNode);
+                learningNode.set("from", Type.STRING, "sensor.executeExpression('value*3')");
+                learningNode.learn(3, new Callback<Boolean>() {
+                    @Override
+                    public void on(Boolean result) {
+                        Assert.assertEquals("{\"world\":0,\"time\":0,\"id\":2,\"sensor\":[1],\"from\":\"sensor.executeExpression('value*3')\",\"extracted\":[7.5]}", learningNode.toString());
+                    }
+                });
+
+                graph.disconnect(null);
+            }
+        });
+    }
+
+}

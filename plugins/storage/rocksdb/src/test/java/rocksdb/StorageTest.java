@@ -1,9 +1,10 @@
 package rocksdb;
 
+import greycat.*;
 import org.junit.Test;
 import org.mwg.*;
-import org.mwg.internal.scheduler.NoopScheduler;
-import org.mwg.plugin.Job;
+import greycat.internal.scheduler.NoopScheduler;
+import greycat.plugin.Job;
 
 import java.io.File;
 import java.io.IOException;

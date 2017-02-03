@@ -39,7 +39,7 @@ As any mwg plugin, the **StructurePlugin** should be inserted during the build s
 
 
 ```java
-import org.mwg.structure.StructurePlugin;
+import StructurePlugin;
 
 Graph graph = new GraphBuilder()
                   .withPlugin(new StructurePlugin())

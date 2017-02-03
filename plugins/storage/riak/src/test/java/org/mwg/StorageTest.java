@@ -5,9 +5,6 @@ import org.mwg.task.Task;
 import java.io.File;
 import java.io.IOException;
 
-import static org.mwg.internal.task.CoreActions.*;
-import static org.mwg.task.Tasks.*;
-
 public class StorageTest {
 
     public static void main(String[] args) {

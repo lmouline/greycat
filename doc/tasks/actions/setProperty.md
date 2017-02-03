@@ -15,7 +15,7 @@ setProperty requires 3 parameters:
 
 ## Property Type
 
-Types can be found in org.mwg.Type,
+Types can be found in Type,
 5 different types can be used
 
 * BOOL

@@ -33,7 +33,7 @@ Simply reference the full qualified name of the storage (should be an existing d
 Relative storage work as well and will be based on the current execution path.
 
 ```java
-import org.mwg.RocksDBStorage;
+import RocksDBStorage;
 
 GraphBuilder
     .builder()

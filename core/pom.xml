@@ -1,19 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<!--
+
+    Copyright 2017 The GreyCat Authors.  All rights reserved.
+    <p>
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    <p>
+    http://www.apache.org/licenses/LICENSE-2.0
+    <p>
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>core</artifactId>
-    <name>mwg :: Core</name>
+    <name>greycat :: Core</name>
     <version>12-SNAPSHOT</version>
 
     <parent>
-        <artifactId>mwg</artifactId>
-        <groupId>org.kevoree.mwg</groupId>
+        <artifactId>greycat</artifactId>
+        <groupId>com.datathings.greycat</groupId>
         <version>12-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
 
     <dependencies>
-        <!-- Test dependencies -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -23,7 +40,7 @@
     </dependencies>
 
     <properties>
-        <js.name>mwg</js.name>
+        <js.name>greycat</js.name>
         <header.path>${basedir}/../HEADER</header.path>
     </properties>
 
@@ -96,42 +113,52 @@
                         </goals>
                         <configuration>
                             <target>
-                                <echo message="NPM install dependency" />
-                                <copy file="${basedir}/../share/package.json" todir="${basedir}/target" />
+                                <echo message="NPM install dependency"/>
+                                <copy file="${basedir}/../share/package.json" todir="${basedir}/target"/>
                                 <exec executable="npm" dir="${basedir}/target" failonerror="true">
-                                    <arg value="install" />
+                                    <arg value="install"/>
                                 </exec>
-                                <echo message="Compile TypeScript to JavaScript" />
-                                <exec executable="${basedir}/target/node_modules/typescript/bin/tsc" dir="${basedir}/target/generated-sources/" failonerror="true">
-                                    <arg value="-d" />
-                                    <arg value="--sourceMap" />
-                                    <arg value="--target" />
-                                    <arg value="es5" />
-                                    <arg value="${basedir}/target/generated-sources/core.ts" />
-                                    <arg value="--out" />
-                                    <arg value="mwg.js" />
+                                <echo message="Compile TypeScript to JavaScript"/>
+                                <exec executable="${basedir}/target/node_modules/typescript/bin/tsc"
+                                      dir="${basedir}/target/generated-sources/" failonerror="true">
+                                    <arg value="-d"/>
+                                    <arg value="--sourceMap"/>
+                                    <arg value="--target"/>
+                                    <arg value="es5"/>
+                                    <arg value="${basedir}/target/generated-sources/core.ts"/>
+                                    <arg value="--out"/>
+                                    <arg value="greycat.js"/>
                                 </exec>
-                                <copy file="${basedir}/target/generated-sources/jre.ts" todir="${basedir}/target/classes-js" />
-                                <copy file="${basedir}/target/generated-sources/core.ts" todir="${basedir}/target/classes-js" />
-                                <copy file="${basedir}/target/generated-sources/mwg.d.ts" todir="${basedir}/target/classes-js" />
-                                <copy file="${basedir}/target/generated-sources/mwg.js" todir="${basedir}/target/classes-js" />
-                                <copy file="${basedir}/target/generated-sources/mwg.js.map" todir="${basedir}/target/classes-js" />
-                                <echo message="Minifying JavaScript" />
+                                <copy file="${basedir}/target/generated-sources/jre.ts"
+                                      todir="${basedir}/target/classes-js"/>
+                                <copy file="${basedir}/target/generated-sources/core.ts"
+                                      todir="${basedir}/target/classes-js"/>
+                                <copy file="${basedir}/target/generated-sources/greycat.d.ts"
+                                      todir="${basedir}/target/classes-js"/>
+                                <copy file="${basedir}/target/generated-sources/greycat.js"
+                                      todir="${basedir}/target/classes-js"/>
+                                <copy file="${basedir}/target/generated-sources/greycat.js.map"
+                                      todir="${basedir}/target/classes-js"/>
+                                <echo message="Minifying JavaScript"/>
                                 <java jar="${basedir}/../share/compiler.jar" fork="true" failonerror="true">
-                                    <arg value="--js" />
-                                    <arg value="${basedir}/target/classes-js/mwg.js" />
-                                    <arg value="--js_output_file" />
-                                    <arg value="${basedir}/target/classes-js/mwg.min.js" />
-                                    <arg value="--jscomp_off=uselessCode" />
+                                    <arg value="--js"/>
+                                    <arg value="${basedir}/target/classes-js/greycat.js"/>
+                                    <arg value="--js_output_file"/>
+                                    <arg value="${basedir}/target/classes-js/greycat.min.js"/>
+                                    <arg value="--jscomp_off=uselessCode"/>
                                 </java>
 
-                                <echo message="Package for NPM" />
-                                <copy file="${basedir}/target/classes-js/mwg.js" todir="${basedir}/target/classes-npm" />
-                                <copy file="${basedir}/target/classes-js/mwg.d.ts" todir="${basedir}/target/classes-npm" />
-                                <copy file="${basedir}/target/classes-js/mwg.js.map" todir="${basedir}/target/classes-npm" />
-                                <copy file="${basedir}/src/main/resources/package.json" todir="${basedir}/target/classes-npm" />
-                                <concat append="true" destfile="${basedir}/target/classes-npm/mwg.js">
-                                    ${line.separator}module.exports = org.mwg;
+                                <echo message="Package for NPM"/>
+                                <copy file="${basedir}/target/classes-js/greycat.js"
+                                      todir="${basedir}/target/classes-npm"/>
+                                <copy file="${basedir}/target/classes-js/greycat.d.ts"
+                                      todir="${basedir}/target/classes-npm"/>
+                                <copy file="${basedir}/target/classes-js/greycat.js.map"
+                                      todir="${basedir}/target/classes-npm"/>
+                                <copy file="${basedir}/src/main/resources/package.json"
+                                      todir="${basedir}/target/classes-npm"/>
+                                <concat append="true" destfile="${basedir}/target/classes-npm/greycat.js">
+                                    ${line.separator}module.exports = org.greycat;
                                 </concat>
                             </target>
                         </configuration>
@@ -145,29 +172,30 @@
                         </goals>
                         <configuration>
                             <target>
-                                <echo message="Compile tests TypeScript to JavaScript" />
+                                <echo message="Compile tests TypeScript to JavaScript"/>
                                 <exec executable="${basedir}/target/node_modules/typescript/bin/tsc" failonerror="true">
-                                    <arg value="--target" />
-                                    <arg value="es5" />
-                                    <arg value="${basedir}/target/generated-test-sources/test.ts" />
-                                    <arg value="--out" />
-                                    <arg value="${basedir}/target/test-classes/mwg.test.js" />
+                                    <arg value="--target"/>
+                                    <arg value="es5"/>
+                                    <arg value="${basedir}/target/generated-test-sources/test.ts"/>
+                                    <arg value="--out"/>
+                                    <arg value="${basedir}/target/test-classes/greycat.test.js"/>
                                 </exec>
                                 <concat destfile="${basedir}/target/test-classes/test.all.js" force="no">
-                                    <filelist dir="${basedir}/target/classes-js" files="mwg.js" />
-                                    <filelist dir="${basedir}/../share" files="spacer.js" />
-                                    <filelist dir="${basedir}/target/test-classes" files="mwg.test.js" />
-                                    <filelist dir="${basedir}/../share" files="spacer.js" />
-                                    <filelist dir="${basedir}/target/generated-test-sources/" files="testsRunner.js" />
+                                    <filelist dir="${basedir}/target/classes-js" files="greycat.js"/>
+                                    <filelist dir="${basedir}/../share" files="spacer.js"/>
+                                    <filelist dir="${basedir}/target/test-classes" files="greycat.test.js"/>
+                                    <filelist dir="${basedir}/../share" files="spacer.js"/>
+                                    <filelist dir="${basedir}/target/generated-test-sources/" files="testsRunner.js"/>
                                 </concat>
                                 <concat destfile="${basedir}/target/test-classes/test.all.dev.js" force="no">
-                                    <filelist dir="${basedir}/target/classes-js" files="mwg.js" />
-                                    <filelist dir="${basedir}/../share" files="spacer.js" />
-                                    <filelist dir="${basedir}/target/test-classes" files="mwg.test.js" />
-                                    <filelist dir="${basedir}/../share" files="spacer.js" />
-                                    <filelist dir="${basedir}/target/generated-test-sources/" files="testsRunnerDev.js" />
+                                    <filelist dir="${basedir}/target/classes-js" files="greycat.js"/>
+                                    <filelist dir="${basedir}/../share" files="spacer.js"/>
+                                    <filelist dir="${basedir}/target/test-classes" files="greycat.test.js"/>
+                                    <filelist dir="${basedir}/../share" files="spacer.js"/>
+                                    <filelist dir="${basedir}/target/generated-test-sources/"
+                                              files="testsRunnerDev.js"/>
                                 </concat>
-                                <copy file="${basedir}/../share/test.js" todir="${basedir}/target" />
+                                <copy file="${basedir}/../share/test.js" todir="${basedir}/target"/>
                             </target>
                         </configuration>
                     </execution>
@@ -180,9 +208,9 @@
                         </goals>
                         <configuration>
                             <target>
-                                <echo message="Execute JS tests" />
+                                <echo message="Execute JS tests"/>
                                 <exec executable="node" dir="${basedir}/target" failonerror="true">
-                                    <arg value="test.js" />
+                                    <arg value="test.js"/>
                                 </exec>
                             </target>
                         </configuration>

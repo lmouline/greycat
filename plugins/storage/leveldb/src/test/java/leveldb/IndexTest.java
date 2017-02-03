@@ -1,8 +1,9 @@
 package leveldb;
 
+import greycat.*;
 import org.junit.Test;
 import org.mwg.*;
-import org.mwg.internal.scheduler.NoopScheduler;
+import greycat.internal.scheduler.NoopScheduler;
 
 import java.io.IOException;
 import java.nio.file.*;

@@ -8,6 +8,6 @@ Therefore it is possible to execute all tasks in verbose mode using the followin
 ``` java
 Graph g = new GraphBuilder()
 	.withMemorySize(10000)
- 	.withPlugin(new org.mwg.utility.VerbosePlugin())
+ 	.withPlugin(new VerbosePlugin())
 	.build();
 ```

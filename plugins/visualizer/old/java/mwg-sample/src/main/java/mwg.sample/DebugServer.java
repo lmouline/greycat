@@ -4,8 +4,6 @@ import org.mwg.ml.MLPlugin;
 import org.mwg.ml.algorithm.anomalydetector.InterquartileRangeOutlierDetectorNode;
 import org.mwg.ml.algorithm.profiling.GaussianNode;
 
-import static org.mwg.task.Actions.*;
-
 
 public class DebugServer {
 
