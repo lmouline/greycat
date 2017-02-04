@@ -14,10 +14,10 @@
 /// limitations under the License.
 ///
 
-///<reference path='mwg.d.ts'/>
+///<reference path='greycat.d.ts'/>
 ///<reference path='reconnecting-websocket.ts'/>
 
-export module greycat {
+module greycat {
     export module plugin {
         export class WSClient implements greycat.plugin.Storage {
 
@@ -103,8 +103,8 @@ export module greycat {
                 }
                 let finalCB = callback;
                 this.send_rpc_req(this.REQ_TASK, tasksBuffer, function (resultBuffer) {
-                    var result = [];
-                    var it = resultBuffer.iterator();
+                    let result = [];
+                    let it = resultBuffer.iterator();
                     while (it.hasNext()) {
                         let view = it.next();
                         result.push(greycat.utility.Base64.decodeToStringWithBounds(view, 0, view.length()));
@@ -124,14 +124,14 @@ export module greycat {
                     if (firstCode == this.REQ_UPDATE) {
                         //console.log("NOTIFY UPDATE"); //TODO
                     } else {
-                        var callbackCodeView = it.next();
+                        let callbackCodeView = it.next();
                         if (callbackCodeView != null) {
-                            var callbackCode = greycat.utility.Base64.decodeToIntWithBounds(callbackCodeView, 0, callbackCodeView.length());
-                            var resolvedCallback = this.callbacks.get(callbackCode);
+                            let callbackCode = greycat.utility.Base64.decodeToIntWithBounds(callbackCodeView, 0, callbackCodeView.length());
+                            let resolvedCallback = this.callbacks.get(callbackCode);
                             if (resolvedCallback != null) {
                                 if (firstCode == this.RESP_GET || firstCode == this.RESP_LOCK || firstCode == this.RESP_TASK) {
-                                    var newBuf = this.graph.newBuffer();
-                                    var isFirst = true;
+                                    let newBuf = this.graph.newBuffer();
+                                    let isFirst = true;
                                     while (it.hasNext()) {
                                         if (isFirst) {
                                             isFirst = false;
@@ -154,10 +154,10 @@ export module greycat {
                 if (this.ws == null) {
                     throw new Error("Not connected!");
                 }
-                var buffer: greycat.struct.Buffer = this.graph.newBuffer();
+                let buffer: greycat.struct.Buffer = this.graph.newBuffer();
                 buffer.write(code);
                 buffer.write(greycat.Constants.BUFFER_SEP);
-                var hash = this.generator;
+                let hash = this.generator;
                 this.generator = this.generator + 1 % 1000000;
                 this.callbacks.put(hash, callback);
                 greycat.utility.Base64.encodeIntToBuffer(hash, buffer);
@@ -165,7 +165,7 @@ export module greycat {
                     buffer.write(greycat.Constants.BUFFER_SEP);
                     buffer.writeAll(payload.data());
                 }
-                var flatData = buffer.data();
+                let flatData = buffer.data();
                 buffer.free();
                 this.ws.send(flatData);
             }

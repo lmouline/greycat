@@ -29,8 +29,8 @@ global.context = {};
 let defaultPORT = window.location.port;
 let defaultURL = "ws://" + window.location.hostname + ":" + defaultPORT + "/ws";
 
-global.context.ws = new global.org.mwg.plugin.WSClient(defaultURL);
-global.context.graph = global.org.mwg.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
+global.context.ws = new global.greycat.plugin.WSClient(defaultURL);
+global.context.graph = global.greycat.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
 global.context.actions = [];
 global.context.graph.connect(null);
 
@@ -38,8 +38,8 @@ global.context.url = function (val) {
     if (global.context.graph !== undefined) {
         global.context.graph.disconnect(null);
     }
-    global.context.ws = new global.org.mwg.plugin.WSClient(val);
-    global.context.graph = global.org.mwg.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
+    global.context.ws = new global.geycat.plugin.WSClient(val);
+    global.context.graph = global.greycat.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
     global.context.graph.connect(null);
     console.log('change url to ' + val);
 };
@@ -70,7 +70,7 @@ const LoadingButton = React.createClass({
     handleClick() {
         let self = this;
         self.setState({isLoading: true});
-        let task = global.org.mwg.task.Tasks.newTask();
+        let task = global.greycat.task.Tasks.newTask();
         try {
             task.parse(global.context.code, window.context.graph);
             global.context.ws.executeTasks(function (results) {

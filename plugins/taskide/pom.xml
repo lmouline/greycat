@@ -18,14 +18,14 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.kevoree.mwg.plugins</groupId>
+    <groupId>com.datathings.greycat.plugins</groupId>
     <artifactId>taskide</artifactId>
     <version>12-SNAPSHOT</version>
-    <name>mwg :: Plugins :: TaskIDE</name>
+    <name>greycat :: Plugins :: TaskIDE</name>
 
     <parent>
-        <artifactId>mwg</artifactId>
-        <groupId>org.kevoree.mwg</groupId>
+        <artifactId>greycat</artifactId>
+        <groupId>com.datathings.greycat</groupId>
         <version>12-SNAPSHOT</version>
         <relativePath>../..</relativePath>
     </parent>
@@ -36,12 +36,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.kevoree.mwg</groupId>
+            <groupId>${project.parent.groupId}</groupId>
             <artifactId>core</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.kevoree.mwg.plugins</groupId>
+            <groupId>${project.parent.groupId}.plugins</groupId>
             <artifactId>websocket</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
@@ -69,8 +69,8 @@
                         </goals>
                         <configuration>
                             <target>
-                                <copy file="${basedir}/../../core/target/classes-js/mwg.js" todir="${basedir}/src/main/web/public" overwrite="true" />
-                                <copy file="${basedir}/../storage/websocket/target/classes-js/mwg.ws.js" todir="${basedir}/src/main/web/public" overwrite="true" />
+                                <copy file="${basedir}/../../core/target/classes-js/greycat.js" todir="${basedir}/src/main/web/public" overwrite="true" />
+                                <copy file="${basedir}/../websocket/target/classes-js/greycat.ws.js" todir="${basedir}/src/main/web/public" overwrite="true" />
                                 <echo message="npm install" />
                                 <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
                                     <arg value="install" />

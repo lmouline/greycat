@@ -101,12 +101,12 @@
         <module>plugins/leveldb</module>
         <module>plugins/rocksdb</module>
         <module>plugins/websocket</module>
+        <module>plugins/taskide</module>
 
         <module>plugins/structure</module>
         <module>plugins/ml</module>
 
         <!--
-        <module>plugins/taskide</module>
         <module>plugins/model</module>
         -->
         <!-- Plugins Java & JS -->
@@ -187,7 +187,7 @@
                         <exclude>**/node_modules/**</exclude>
                         <exclude>**/public/*.ts</exclude>
                         <exclude>**/public/*.js</exclude>
-                        <exclude>**/mwg.d.ts</exclude>
+                        <exclude>**/greycat.d.ts</exclude>
                         <exclude>**/build/**</exclude>
                         <exclude>**/c3.*</exclude>
                         <exclude>**/d3.*</exclude>

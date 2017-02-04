@@ -126,7 +126,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <descriptors>
-                        <descriptor>${basedir}/../../../share/zip.xml</descriptor>
+                        <descriptor>${basedir}/../../share/zip.xml</descriptor>
                     </descriptors>
                 </configuration>
                 <executions>
