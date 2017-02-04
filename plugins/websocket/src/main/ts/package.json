@@ -1,0 +1,6 @@
+{
+  "name": "greycat-plugin-ws",
+  "version": "1.0.0",
+  "main": "greycat.ws.js",
+  "typings": "greycat.ws.d.ts"
+}

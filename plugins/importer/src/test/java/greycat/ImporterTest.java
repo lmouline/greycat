@@ -1,3 +1,18 @@
+/**
+ * Copyright 2017 The GreyCat Authors.  All rights reserved.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package greycat;
 
 import greycat.task.ActionFunction;
@@ -19,6 +34,9 @@ import java.text.SimpleDateFormat;
 
 import static greycat.importer.ImporterActions.readFiles;
 import static greycat.importer.ImporterActions.readLines;
+import static greycat.internal.task.CoreActions.action;
+import static greycat.internal.task.CoreActions.defineAsGlobalVar;
+import static greycat.internal.task.CoreActions.inject;
 import static greycat.task.Tasks.newTask;
 import static greycat.task.Tasks.then;
 
@@ -33,7 +51,7 @@ public class ImporterTest {
             Node newNode = g.newNode(0, 0);
             //final Task t = readLines("/Users/duke/dev/mwDB/plugins/importer/src/test/resources/smarthome/smarthome_1.T15.txt")
             final Task t =
-                    then(readLines("smarthome/smarthome_mini_1.T15.txt"))
+                    then(readLines("smarthome/smarthome_mini_1.T15.csv"))
                             .forEach(
                                     newTask().ifThen(ctx -> !ctx.result().get(0).toString().startsWith("1:Date"),
                                             newTask().thenDo(context -> {
@@ -114,7 +132,7 @@ public class ImporterTest {
     public void testReadFilesOnFile() throws UnsupportedEncodingException, MalformedURLException, URISyntaxException {
         final Graph g = new GraphBuilder().withPlugin(new ImporterPlugin()).build();
         URL urlFIle = this.getClass().getClassLoader().getResource("smarthome/readme.md");
-        URL urlFIle2 = this.getClass().getClassLoader().getResource(URLDecoder.decode("folder with spaces in name/aFile.txt", "UTF-8"));
+        URL urlFIle2 = this.getClass().getClassLoader().getResource(URLDecoder.decode("folder with spaces in name/aFile.csv", "UTF-8"));
 
         File expectecFile = new File(urlFIle.toURI());
         File expectedFile2 = new File(urlFIle2.toURI());
@@ -163,7 +181,7 @@ public class ImporterTest {
     public void testReadFileOnUnknowFile() {
         final Graph g = new GraphBuilder().withPlugin(new ImporterPlugin()).build();
         g.connect(connectionResult -> {
-            Task t = newTask().then(readFiles("nonexistent-file.txt"));
+            Task t = newTask().then(readFiles("nonexistent-file.csv"));
             boolean exceptionCaught = false;
             try {
                 t.execute(g, null);

@@ -1,13 +1,29 @@
+====
+    Copyright 2017 The GreyCat Authors.  All rights reserved.
+    <p>
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    <p>
+    http://www.apache.org/licenses/LICENSE-2.0
+    <p>
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+====
+
 ==================================================================
 Activities of Daily Living (ADLs) Recognition Using Binary Sensors
 Version 1.0
 ==================================================================
-Francisco Javier Ordóñez
+Francisco Javier Ordï¿½ï¿½ez
 Office 2.1.B.17 (Sabatini Building)
 Carlos III University of Madrid
 Computer Science Deparment
-Escuela Politécnica Superior
-Avda. de la Universidad, 30. 28911 Leganés. Madrid.  Spain.
+Escuela Politï¿½cnica Superior
+Avda. de la Universidad, 30. 28911 Leganï¿½s. Madrid.  Spain.
 ==================================================================
 
 This dataset comprises information regarding the ADLs performed by two users on a daily basis in their 
@@ -47,7 +63,7 @@ License:
 ========
 Use of this dataset in publications must be acknowledged by referencing the following publication:
 
-	Ordóñez, F.J.; de Toledo, P.; Sanchis, A. Activity Recognition Using Hybrid Generative/Discriminative Models on Home Environments Using Binary Sensors. Sensors 2013, 13, 5460-5477.
+	Ordï¿½ï¿½ez, F.J.; de Toledo, P.; Sanchis, A. Activity Recognition Using Hybrid Generative/Discriminative Models on Home Environments Using Binary Sensors. Sensors 2013, 13, 5460-5477.
 
 This dataset is distributed AS-IS and no responsibility implied or explicit can be addressed to the authors or their institutions for its use or misuse. Any commercial use is prohibited.
-Francisco Javier Ordóñez. November 2013.
+Francisco Javier Ordï¿½ï¿½ez. November 2013.

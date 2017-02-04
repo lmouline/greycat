@@ -1,6 +1,6 @@
 # Structure Plugin:
 
-This **mwg plugin** aims at offering more complex data structures to index multi-dimensional data.
+This **GreyCat plugin** aims at offering more complex data structures to index multi-dimensional data.
 It consists of 3 main nodes: **KDTree, NDTree, SparseNDTree**. There 3 structures implement the **NTree** interface.
 
 The main concepts to understand for NTrees are the following:
@@ -99,8 +99,6 @@ sparseNDTree.setAt(SparseNDTree.BOUND_MAX, Type.DOUBLE_ARRAY, new double[]{1, 1,
 sparseNDTree.setAt(SparseNDTree.MAX_CHILDREN, Type.INT, 5);
 
 ```
-
-
 
 ## Task API 
 
