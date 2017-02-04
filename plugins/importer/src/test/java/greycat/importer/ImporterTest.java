@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat;
+package greycat.importer;
 
+import greycat.*;
 import org.junit.Assert;
 import org.junit.Test;
 import greycat.importer.ImporterActions;
