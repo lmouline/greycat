@@ -318,8 +318,18 @@ declare class Long {
     toUnsigned(): Long;
 }
 declare module greycat {
+    interface Action {
+        eval(ctx: greycat.TaskContext): void;
+        serialize(builder: java.lang.StringBuilder): void;
+    }
+    interface ActionFunction {
+        (ctx: greycat.TaskContext): void;
+    }
     interface Callback<A> {
         (result: A): void;
+    }
+    interface ConditionalFunction {
+        (ctx: greycat.TaskContext): boolean;
     }
     class Constants {
         static KEY_SIZE: number;
@@ -386,11 +396,11 @@ declare module greycat {
         newBuffer(): greycat.struct.Buffer;
         newQuery(): greycat.Query;
         freeNodes(nodes: greycat.Node[]): void;
-        taskHooks(): greycat.task.TaskHook[];
+        taskHooks(): greycat.TaskHook[];
         actionRegistry(): greycat.plugin.ActionRegistry;
         nodeRegistry(): greycat.plugin.NodeRegistry;
         setMemoryFactory(factory: greycat.plugin.MemoryFactory): greycat.Graph;
-        addGlobalTaskHook(taskHook: greycat.task.TaskHook): greycat.Graph;
+        addGlobalTaskHook(taskHook: greycat.TaskHook): greycat.Graph;
     }
     class GraphBuilder {
         private _storage;
@@ -461,6 +471,177 @@ declare module greycat {
         attributes(): Int32Array;
         values(): any[];
     }
+    interface Task {
+        then(nextAction: greycat.Action): greycat.Task;
+        thenDo(nextActionFunction: greycat.ActionFunction): greycat.Task;
+        doWhile(task: greycat.Task, cond: greycat.ConditionalFunction): greycat.Task;
+        doWhileScript(task: greycat.Task, condScript: string): greycat.Task;
+        loop(from: string, to: string, subTask: greycat.Task): greycat.Task;
+        loopPar(from: string, to: string, subTask: greycat.Task): greycat.Task;
+        forEach(subTask: greycat.Task): greycat.Task;
+        forEachPar(subTask: greycat.Task): greycat.Task;
+        flat(): greycat.Task;
+        map(subTask: greycat.Task): greycat.Task;
+        mapPar(subTask: greycat.Task): greycat.Task;
+        ifThen(cond: greycat.ConditionalFunction, then: greycat.Task): greycat.Task;
+        ifThenScript(condScript: string, then: greycat.Task): greycat.Task;
+        ifThenElse(cond: greycat.ConditionalFunction, thenSub: greycat.Task, elseSub: greycat.Task): greycat.Task;
+        ifThenElseScript(condScript: string, thenSub: greycat.Task, elseSub: greycat.Task): greycat.Task;
+        whileDo(cond: greycat.ConditionalFunction, task: greycat.Task): greycat.Task;
+        whileDoScript(condScript: string, task: greycat.Task): greycat.Task;
+        pipe(...subTasks: greycat.Task[]): greycat.Task;
+        pipePar(...subTasks: greycat.Task[]): greycat.Task;
+        pipeTo(subTask: greycat.Task, ...vars: string[]): greycat.Task;
+        parse(input: string, graph: greycat.Graph): greycat.Task;
+        loadFromBuffer(buffer: greycat.struct.Buffer, graph: greycat.Graph): greycat.Task;
+        saveToBuffer(buffer: greycat.struct.Buffer): greycat.Task;
+        addHook(hook: greycat.TaskHook): greycat.Task;
+        execute(graph: greycat.Graph, callback: greycat.Callback<greycat.TaskResult<any>>): void;
+        executeSync(graph: greycat.Graph): greycat.TaskResult<any>;
+        executeWith(graph: greycat.Graph, initial: any, callback: greycat.Callback<greycat.TaskResult<any>>): void;
+        prepare(graph: greycat.Graph, initial: any, callback: greycat.Callback<greycat.TaskResult<any>>): greycat.TaskContext;
+        executeUsing(preparedContext: greycat.TaskContext): void;
+        executeFrom(parentContext: greycat.TaskContext, initial: greycat.TaskResult<any>, affinity: number, callback: greycat.Callback<greycat.TaskResult<any>>): void;
+        executeFromUsing(parentContext: greycat.TaskContext, initial: greycat.TaskResult<any>, affinity: number, contextInitializer: greycat.Callback<greycat.TaskContext>, callback: greycat.Callback<greycat.TaskResult<any>>): void;
+        travelInWorld(world: string): greycat.Task;
+        travelInTime(time: string): greycat.Task;
+        inject(input: any): greycat.Task;
+        defineAsGlobalVar(name: string): greycat.Task;
+        defineAsVar(name: string): greycat.Task;
+        declareGlobalVar(name: string): greycat.Task;
+        declareVar(name: string): greycat.Task;
+        readVar(name: string): greycat.Task;
+        setAsVar(name: string): greycat.Task;
+        addToVar(name: string): greycat.Task;
+        setAttribute(name: string, type: number, value: string): greycat.Task;
+        timeSensitivity(delta: string, offset: string): greycat.Task;
+        forceAttribute(name: string, type: number, value: string): greycat.Task;
+        remove(name: string): greycat.Task;
+        attributes(): greycat.Task;
+        timepoints(from: string, to: string): greycat.Task;
+        attributesWithType(filterType: number): greycat.Task;
+        addVarToRelation(relName: string, varName: string, ...attributes: string[]): greycat.Task;
+        removeVarFromRelation(relName: string, varFrom: string, ...attributes: string[]): greycat.Task;
+        traverse(name: string, ...params: string[]): greycat.Task;
+        attribute(name: string, ...params: string[]): greycat.Task;
+        readGlobalIndex(indexName: string, ...query: string[]): greycat.Task;
+        globalIndex(indexName: string): greycat.Task;
+        addToGlobalIndex(name: string, ...attributes: string[]): greycat.Task;
+        addToGlobalTimedIndex(name: string, ...attributes: string[]): greycat.Task;
+        removeFromGlobalIndex(name: string, ...attributes: string[]): greycat.Task;
+        removeFromGlobalTimedIndex(name: string, ...attributes: string[]): greycat.Task;
+        indexNames(): greycat.Task;
+        selectWith(name: string, pattern: string): greycat.Task;
+        selectWithout(name: string, pattern: string): greycat.Task;
+        select(filterFunction: greycat.TaskFunctionSelect): greycat.Task;
+        selectScript(script: string): greycat.Task;
+        selectObject(filterFunction: greycat.TaskFunctionSelectObject): greycat.Task;
+        log(name: string): greycat.Task;
+        print(name: string): greycat.Task;
+        println(name: string): greycat.Task;
+        executeExpression(expression: string): greycat.Task;
+        createNode(): greycat.Task;
+        createTypedNode(type: string): greycat.Task;
+        save(): greycat.Task;
+        script(script: string): greycat.Task;
+        asyncScript(ascript: string): greycat.Task;
+        lookup(nodeId: string): greycat.Task;
+        lookupAll(nodeIds: string): greycat.Task;
+        clearResult(): greycat.Task;
+        action(name: string, ...params: string[]): greycat.Task;
+        flipVar(name: string): greycat.Task;
+        atomic(protectedTask: greycat.Task, ...variablesToLock: string[]): greycat.Task;
+    }
+    interface TaskContext {
+        graph(): greycat.Graph;
+        world(): number;
+        setWorld(world: number): greycat.TaskContext;
+        time(): number;
+        setTime(time: number): greycat.TaskContext;
+        variables(): greycat.utility.Tuple<string, greycat.TaskResult<any>>[];
+        variable(name: string): greycat.TaskResult<any>;
+        isGlobal(name: string): boolean;
+        wrap(input: any): greycat.TaskResult<any>;
+        wrapClone(input: any): greycat.TaskResult<any>;
+        newResult(): greycat.TaskResult<any>;
+        declareVariable(name: string): greycat.TaskContext;
+        defineVariable(name: string, initialResult: any): greycat.TaskContext;
+        defineVariableForSubTask(name: string, initialResult: any): greycat.TaskContext;
+        setGlobalVariable(name: string, value: any): greycat.TaskContext;
+        setVariable(name: string, value: any): greycat.TaskContext;
+        addToGlobalVariable(name: string, value: any): greycat.TaskContext;
+        addToVariable(name: string, value: any): greycat.TaskContext;
+        result(): greycat.TaskResult<any>;
+        resultAsNodes(): greycat.TaskResult<greycat.Node>;
+        resultAsStrings(): greycat.TaskResult<string>;
+        continueTask(): void;
+        continueWith(nextResult: greycat.TaskResult<any>): void;
+        endTask(nextResult: greycat.TaskResult<any>, e: Error): void;
+        template(input: string): string;
+        templates(inputs: string[]): string[];
+        append(additionalOutput: string): void;
+    }
+    interface TaskFunctionSelect {
+        (node: greycat.Node, context: greycat.TaskContext): boolean;
+    }
+    interface TaskFunctionSelectObject {
+        (object: any, context: greycat.TaskContext): boolean;
+    }
+    interface TaskHook {
+        start(initialContext: greycat.TaskContext): void;
+        beforeAction(action: greycat.Action, context: greycat.TaskContext): void;
+        afterAction(action: greycat.Action, context: greycat.TaskContext): void;
+        beforeTask(parentContext: greycat.TaskContext, context: greycat.TaskContext): void;
+        afterTask(context: greycat.TaskContext): void;
+        end(finalContext: greycat.TaskContext): void;
+    }
+    interface TaskResult<A> {
+        iterator(): greycat.TaskResultIterator<any>;
+        get(index: number): A;
+        set(index: number, input: A): greycat.TaskResult<A>;
+        allocate(index: number): greycat.TaskResult<A>;
+        add(input: A): greycat.TaskResult<A>;
+        clear(): greycat.TaskResult<A>;
+        clone(): greycat.TaskResult<A>;
+        free(): void;
+        size(): number;
+        asArray(): any[];
+        exception(): Error;
+        output(): string;
+        setException(e: Error): greycat.TaskResult<A>;
+        setOutput(output: string): greycat.TaskResult<A>;
+        fillWith(source: greycat.TaskResult<A>): greycat.TaskResult<A>;
+    }
+    interface TaskResultIterator<A> {
+        next(): A;
+        nextWithIndex(): greycat.utility.Tuple<number, A>;
+    }
+    class Tasks {
+        static cond(mathExpression: string): greycat.ConditionalFunction;
+        static newTask(): greycat.Task;
+        static emptyResult(): greycat.TaskResult<any>;
+        static then(action: greycat.Action): greycat.Task;
+        static thenDo(actionFunction: greycat.ActionFunction): greycat.Task;
+        static loop(from: string, to: string, subTask: greycat.Task): greycat.Task;
+        static loopPar(from: string, to: string, subTask: greycat.Task): greycat.Task;
+        static forEach(subTask: greycat.Task): greycat.Task;
+        static forEachPar(subTask: greycat.Task): greycat.Task;
+        static map(subTask: greycat.Task): greycat.Task;
+        static mapPar(subTask: greycat.Task): greycat.Task;
+        static ifThen(cond: greycat.ConditionalFunction, then: greycat.Task): greycat.Task;
+        static ifThenScript(condScript: string, then: greycat.Task): greycat.Task;
+        static ifThenElse(cond: greycat.ConditionalFunction, thenSub: greycat.Task, elseSub: greycat.Task): greycat.Task;
+        static ifThenElseScript(condScript: string, thenSub: greycat.Task, elseSub: greycat.Task): greycat.Task;
+        static doWhile(task: greycat.Task, cond: greycat.ConditionalFunction): greycat.Task;
+        static doWhileScript(task: greycat.Task, condScript: string): greycat.Task;
+        static whileDo(cond: greycat.ConditionalFunction, task: greycat.Task): greycat.Task;
+        static whileDoScript(condScript: string, task: greycat.Task): greycat.Task;
+        static pipe(...subTasks: greycat.Task[]): greycat.Task;
+        static pipePar(...subTasks: greycat.Task[]): greycat.Task;
+        static pipeTo(subTask: greycat.Task, ...vars: string[]): greycat.Task;
+        static atomic(protectedTask: greycat.Task, ...variablesToLock: string[]): greycat.Task;
+        static parse(flat: string, graph: greycat.Graph): greycat.Task;
+    }
     class Type {
         static BOOL: number;
         static STRING: number;
@@ -487,13 +668,13 @@ declare module greycat {
         static typeFromName(name: string): number;
     }
     module base {
-        class BaseHook implements greycat.task.TaskHook {
-            start(initialContext: greycat.task.TaskContext): void;
-            beforeAction(action: greycat.task.Action, context: greycat.task.TaskContext): void;
-            afterAction(action: greycat.task.Action, context: greycat.task.TaskContext): void;
-            beforeTask(parentContext: greycat.task.TaskContext, context: greycat.task.TaskContext): void;
-            afterTask(context: greycat.task.TaskContext): void;
-            end(finalContext: greycat.task.TaskContext): void;
+        class BaseHook implements greycat.TaskHook {
+            start(initialContext: greycat.TaskContext): void;
+            beforeAction(action: greycat.Action, context: greycat.TaskContext): void;
+            afterAction(action: greycat.Action, context: greycat.TaskContext): void;
+            beforeTask(parentContext: greycat.TaskContext, context: greycat.TaskContext): void;
+            afterTask(context: greycat.TaskContext): void;
+            end(finalContext: greycat.TaskContext): void;
         }
         class BaseNode implements greycat.Node {
             private _world;
@@ -552,7 +733,7 @@ declare module greycat {
             static isNaN(toTest: number): boolean;
             toString(): string;
         }
-        class BaseTaskResult<A> implements greycat.task.TaskResult<A> {
+        class BaseTaskResult<A> implements greycat.TaskResult<A> {
             private _backend;
             private _capacity;
             private _size;
@@ -561,24 +742,24 @@ declare module greycat {
             asArray(): any[];
             exception(): Error;
             output(): string;
-            setException(e: Error): greycat.task.TaskResult<A>;
-            setOutput(output: string): greycat.task.TaskResult<A>;
-            fillWith(source: greycat.task.TaskResult<A>): greycat.task.TaskResult<A>;
+            setException(e: Error): greycat.TaskResult<A>;
+            setOutput(output: string): greycat.TaskResult<A>;
+            fillWith(source: greycat.TaskResult<A>): greycat.TaskResult<A>;
             constructor(toWrap: any, protect: boolean);
-            iterator(): greycat.task.TaskResultIterator<any>;
+            iterator(): greycat.TaskResultIterator<any>;
             get(index: number): A;
-            set(index: number, input: A): greycat.task.TaskResult<A>;
-            allocate(index: number): greycat.task.TaskResult<A>;
-            add(input: A): greycat.task.TaskResult<A>;
-            clear(): greycat.task.TaskResult<A>;
-            clone(): greycat.task.TaskResult<A>;
+            set(index: number, input: A): greycat.TaskResult<A>;
+            allocate(index: number): greycat.TaskResult<A>;
+            add(input: A): greycat.TaskResult<A>;
+            clear(): greycat.TaskResult<A>;
+            clone(): greycat.TaskResult<A>;
             free(): void;
             size(): number;
             private extendTil(index);
             toString(): string;
             private toJson(withContent);
         }
-        class BaseTaskResultIterator<A> implements greycat.task.TaskResultIterator<A> {
+        class BaseTaskResultIterator<A> implements greycat.TaskResultIterator<A> {
             private _backend;
             private _size;
             private _current;
@@ -690,6 +871,28 @@ declare module greycat {
             static DEAD_NODE_ERROR: string;
             static fillBooleanArray(target: boolean[], elem: boolean): void;
         }
+        class CoreDeferCounter implements greycat.DeferCounter {
+            private _nb_down;
+            private _counter;
+            private _end;
+            constructor(nb: number);
+            count(): void;
+            getCount(): number;
+            then(p_callback: greycat.plugin.Job): void;
+            wrap(): greycat.Callback<any>;
+        }
+        class CoreDeferCounterSync implements greycat.DeferCounterSync {
+            private _nb_down;
+            private _counter;
+            private _end;
+            private _result;
+            constructor(nb: number);
+            count(): void;
+            getCount(): number;
+            then(p_callback: greycat.plugin.Job): void;
+            wrap(): greycat.Callback<any>;
+            waitResult(): any;
+        }
         class CoreGraph implements greycat.Graph {
             private _storage;
             private _space;
@@ -711,11 +914,11 @@ declare module greycat {
             newTypedNode(world: number, time: number, nodeType: string): greycat.Node;
             cloneNode(origin: greycat.Node): greycat.Node;
             factoryByCode(code: number): greycat.plugin.NodeFactory;
-            taskHooks(): greycat.task.TaskHook[];
+            taskHooks(): greycat.TaskHook[];
             actionRegistry(): greycat.plugin.ActionRegistry;
             nodeRegistry(): greycat.plugin.NodeRegistry;
             setMemoryFactory(factory: greycat.plugin.MemoryFactory): greycat.Graph;
-            addGlobalTaskHook(newTaskHook: greycat.task.TaskHook): greycat.Graph;
+            addGlobalTaskHook(newTaskHook: greycat.TaskHook): greycat.Graph;
             lookup<A extends greycat.Node>(world: number, time: number, id: number, callback: greycat.Callback<A>): void;
             lookupBatch(worlds: Float64Array, times: Float64Array, ids: Float64Array, callback: greycat.Callback<greycat.Node[]>): void;
             lookupAll(world: number, time: number, ids: Float64Array, callback: greycat.Callback<greycat.Node[]>): void;
@@ -822,509 +1025,24 @@ declare module greycat {
             stringToHash(name: string, insertIfNotExists: boolean): number;
             hashToString(key: number): string;
         }
-        module chunk {
-            module heap {
-                class HeapAtomicByteArray {
-                    private _back;
-                    constructor(initialSize: number);
-                    get(index: number): number;
-                    set(index: number, value: number): void;
-                }
-                class HeapChunkSpace implements greycat.chunk.ChunkSpace {
-                    private static HASH_LOAD_FACTOR;
-                    private _maxEntries;
-                    private _hashEntries;
-                    private _lru;
-                    private _dirtiesStack;
-                    private _hashNext;
-                    private _hash;
-                    private _chunkWorlds;
-                    private _chunkTimes;
-                    private _chunkIds;
-                    private _chunkTypes;
-                    private _chunkValues;
-                    private _chunkMarks;
-                    private _graph;
-                    private _deep_priority;
-                    graph(): greycat.Graph;
-                    worldByIndex(index: number): number;
-                    timeByIndex(index: number): number;
-                    idByIndex(index: number): number;
-                    constructor(initialCapacity: number, p_graph: greycat.Graph, deepWorldPriority: boolean);
-                    getAndMark(type: number, world: number, time: number, id: number): greycat.chunk.Chunk;
-                    get(index: number): greycat.chunk.Chunk;
-                    getOrLoadAndMark(type: number, world: number, time: number, id: number, callback: greycat.Callback<greycat.chunk.Chunk>): void;
-                    getOrLoadAndMarkAll(keys: Float64Array, callback: greycat.Callback<greycat.chunk.Chunk[]>): void;
-                    mark(index: number): number;
-                    unmark(index: number): void;
-                    free(chunk: greycat.chunk.Chunk): void;
-                    createAndMark(type: number, world: number, time: number, id: number): greycat.chunk.Chunk;
-                    notifyUpdate(index: number): void;
-                    save(callback: greycat.Callback<boolean>): void;
-                    clear(): void;
-                    freeAll(): void;
-                    available(): number;
-                    newVolatileGraph(): greycat.struct.EGraph;
-                    printMarked(): void;
-                }
-                interface HeapContainer {
-                    declareDirty(): void;
-                }
-                class HeapDMatrix implements greycat.struct.DMatrix {
-                    private static INDEX_ROWS;
-                    private static INDEX_COLUMNS;
-                    private static INDEX_MAX_COLUMN;
-                    private static INDEX_OFFSET;
-                    private parent;
-                    private backend;
-                    private aligned;
-                    constructor(p_parent: greycat.internal.chunk.heap.HeapContainer, origin: greycat.internal.chunk.heap.HeapDMatrix);
-                    init(rows: number, columns: number): greycat.struct.DMatrix;
-                    private internal_init(rows, columns);
-                    appendColumn(newColumn: Float64Array): greycat.struct.DMatrix;
-                    private internal_appendColumn(newColumn);
-                    fill(value: number): greycat.struct.DMatrix;
-                    private internal_fill(value);
-                    fillWith(values: Float64Array): greycat.struct.DMatrix;
-                    fillWithRandom(random: java.util.Random, min: number, max: number): greycat.struct.DMatrix;
-                    fillWithRandomStd(random: java.util.Random, std: number): greycat.struct.DMatrix;
-                    private internal_fillWith(values);
-                    rows(): number;
-                    columns(): number;
-                    column(index: number): Float64Array;
-                    get(rowIndex: number, columnIndex: number): number;
-                    set(rowIndex: number, columnIndex: number, value: number): greycat.struct.DMatrix;
-                    private internal_set(rowIndex, columnIndex, value);
-                    add(rowIndex: number, columnIndex: number, value: number): greycat.struct.DMatrix;
-                    private internal_add(rowIndex, columnIndex, value);
-                    data(): Float64Array;
-                    leadingDimension(): number;
-                    unsafeGet(index: number): number;
-                    unsafeSet(index: number, value: number): greycat.struct.DMatrix;
-                    private internal_unsafeSet(index, value);
-                    unsafe_data(): Float64Array;
-                    private unsafe_init(size);
-                    private unsafe_set(index, value);
-                    load(buffer: greycat.struct.Buffer, offset: number, max: number): number;
-                }
-                class HeapEGraph implements greycat.struct.EGraph {
-                    private _graph;
-                    private parent;
-                    _dirty: boolean;
-                    _nodes: greycat.internal.chunk.heap.HeapENode[];
-                    private _nodes_capacity;
-                    private _nodes_index;
-                    constructor(p_parent: greycat.internal.chunk.heap.HeapContainer, origin: greycat.internal.chunk.heap.HeapEGraph, p_graph: greycat.Graph);
-                    size(): number;
-                    free(): void;
-                    graph(): greycat.Graph;
-                    private allocate(newCapacity);
-                    nodeByIndex(index: number, createIfAbsent: boolean): greycat.internal.chunk.heap.HeapENode;
-                    declareDirty(): void;
-                    newNode(): greycat.struct.ENode;
-                    root(): greycat.struct.ENode;
-                    setRoot(eNode: greycat.struct.ENode): greycat.struct.EGraph;
-                    drop(eNode: greycat.struct.ENode): greycat.struct.EGraph;
-                    toString(): string;
-                    load(buffer: greycat.struct.Buffer, offset: number, max: number): number;
-                }
-                class HeapENode implements greycat.struct.ENode, greycat.internal.chunk.heap.HeapContainer {
-                    private egraph;
-                    _id: number;
-                    private _capacity;
-                    private _size;
-                    private _k;
-                    private _v;
-                    private _next_hash;
-                    private _type;
-                    private _dirty;
-                    private static LOAD_WAITING_ALLOC;
-                    private static LOAD_WAITING_TYPE;
-                    private static LOAD_WAITING_KEY;
-                    private static LOAD_WAITING_VALUE;
-                    constructor(p_egraph: greycat.internal.chunk.heap.HeapEGraph, p_id: number, origin: greycat.internal.chunk.heap.HeapENode);
-                    clear(): greycat.struct.ENode;
-                    declareDirty(): void;
-                    rebase(): void;
-                    private allocate(newCapacity);
-                    private internal_find(p_key);
-                    private internal_get(p_key);
-                    private internal_set(p_key, p_type, p_unsafe_elem, replaceIfPresent, initial);
-                    set(name: string, type: number, value: any): greycat.struct.ENode;
-                    setAt(key: number, type: number, value: any): greycat.struct.ENode;
-                    get(name: string): any;
-                    getAt(key: number): any;
-                    drop(): void;
-                    graph(): greycat.struct.EGraph;
-                    getOrCreate(key: string, type: number): any;
-                    getOrCreateAt(key: number, type: number): any;
-                    toString(): string;
-                    save(buffer: greycat.struct.Buffer): void;
-                    load(buffer: greycat.struct.Buffer, currentCursor: number, graph: greycat.Graph): number;
-                    private load_primitive(read_key, read_type, buffer, previous, cursor, initial);
-                    each(callBack: greycat.plugin.NodeStateCallback): void;
-                }
-                class HeapERelation implements greycat.struct.ERelation {
-                    private _back;
-                    private _size;
-                    private _capacity;
-                    private parent;
-                    constructor(p_parent: greycat.internal.chunk.heap.HeapContainer, origin: greycat.internal.chunk.heap.HeapERelation);
-                    rebase(newGraph: greycat.internal.chunk.heap.HeapEGraph): void;
-                    size(): number;
-                    nodes(): greycat.struct.ENode[];
-                    node(index: number): greycat.struct.ENode;
-                    add(eNode: greycat.struct.ENode): greycat.struct.ERelation;
-                    addAll(eNodes: greycat.struct.ENode[]): greycat.struct.ERelation;
-                    clear(): greycat.struct.ERelation;
-                    toString(): string;
-                    allocate(newCapacity: number): void;
-                }
-                class HeapFixedStack implements greycat.chunk.Stack {
-                    private _next;
-                    private _prev;
-                    private _capacity;
-                    private _first;
-                    private _last;
-                    private _count;
-                    constructor(capacity: number, fill: boolean);
-                    enqueue(index: number): boolean;
-                    dequeueTail(): number;
-                    dequeue(index: number): boolean;
-                    free(): void;
-                    size(): number;
-                }
-                class HeapGenChunk implements greycat.chunk.GenChunk {
-                    private _space;
-                    private _index;
-                    private _prefix;
-                    private _seed;
-                    private _dirty;
-                    constructor(p_space: greycat.internal.chunk.heap.HeapChunkSpace, p_id: number, p_index: number);
-                    save(buffer: greycat.struct.Buffer): void;
-                    saveDiff(buffer: greycat.struct.Buffer): void;
-                    load(buffer: greycat.struct.Buffer): void;
-                    loadDiff(buffer: greycat.struct.Buffer): void;
-                    private internal_load(buffer, diff);
-                    newKey(): number;
-                    index(): number;
-                    world(): number;
-                    time(): number;
-                    id(): number;
-                    chunkType(): number;
-                }
-                class HeapLMatrix implements greycat.struct.LMatrix {
-                    private static INDEX_ROWS;
-                    private static INDEX_COLUMNS;
-                    private static INDEX_MAX_COLUMN;
-                    private static INDEX_OFFSET;
-                    private parent;
-                    private backend;
-                    private aligned;
-                    constructor(p_parent: greycat.internal.chunk.heap.HeapContainer, origin: greycat.internal.chunk.heap.HeapLMatrix);
-                    init(rows: number, columns: number): greycat.struct.LMatrix;
-                    private internal_init(rows, columns);
-                    appendColumn(newColumn: Float64Array): greycat.struct.LMatrix;
-                    private internal_appendColumn(newColumn);
-                    fill(value: number): greycat.struct.LMatrix;
-                    private internal_fill(value);
-                    fillWith(values: Float64Array): greycat.struct.LMatrix;
-                    private internal_fillWith(values);
-                    fillWithRandom(min: number, max: number, seed: number): greycat.struct.LMatrix;
-                    private internal_fillWithRandom(min, max, seed);
-                    rows(): number;
-                    columns(): number;
-                    column(index: number): Float64Array;
-                    get(rowIndex: number, columnIndex: number): number;
-                    set(rowIndex: number, columnIndex: number, value: number): greycat.struct.LMatrix;
-                    private internal_set(rowIndex, columnIndex, value);
-                    add(rowIndex: number, columnIndex: number, value: number): greycat.struct.LMatrix;
-                    private internal_add(rowIndex, columnIndex, value);
-                    data(): Float64Array;
-                    leadingDimension(): number;
-                    unsafeGet(index: number): number;
-                    unsafeSet(index: number, value: number): greycat.struct.LMatrix;
-                    private internal_unsafeSet(index, value);
-                    unsafe_data(): Float64Array;
-                    unsafe_init(size: number): void;
-                    unsafe_set(index: number, value: number): void;
-                    load(buffer: greycat.struct.Buffer, offset: number, max: number): number;
-                }
-                class HeapLongLongArrayMap implements greycat.struct.LongLongArrayMap {
-                    parent: greycat.internal.chunk.heap.HeapContainer;
-                    mapSize: number;
-                    capacity: number;
-                    keys: Float64Array;
-                    values: Float64Array;
-                    nexts: Int32Array;
-                    hashs: Int32Array;
-                    constructor(p_listener: greycat.internal.chunk.heap.HeapContainer);
-                    private key(i);
-                    private setKey(i, newValue);
-                    private value(i);
-                    private setValue(i, newValue);
-                    private next(i);
-                    private setNext(i, newValue);
-                    private hash(i);
-                    private setHash(i, newValue);
-                    reallocate(newCapacity: number): void;
-                    cloneFor(newParent: greycat.internal.chunk.heap.HeapContainer): greycat.internal.chunk.heap.HeapLongLongArrayMap;
-                    get(requestKey: number): Float64Array;
-                    contains(requestKey: number, requestValue: number): boolean;
-                    each(callback: greycat.struct.LongLongArrayMapCallBack): void;
-                    unsafe_each(callback: greycat.struct.LongLongArrayMapCallBack): void;
-                    size(): number;
-                    delete(requestKey: number, requestValue: number): void;
-                    put(insertKey: number, insertValue: number): void;
-                    load(buffer: greycat.struct.Buffer, offset: number, max: number): number;
-                }
-                class HeapLongLongMap implements greycat.struct.LongLongMap {
-                    private parent;
-                    private mapSize;
-                    private capacity;
-                    private keys;
-                    private values;
-                    private nexts;
-                    private hashs;
-                    constructor(p_listener: greycat.internal.chunk.heap.HeapContainer);
-                    private key(i);
-                    private setKey(i, newValue);
-                    private value(i);
-                    private setValue(i, newValue);
-                    private next(i);
-                    private setNext(i, newValue);
-                    private hash(i);
-                    private setHash(i, newValue);
-                    reallocate(newCapacity: number): void;
-                    cloneFor(newParent: greycat.internal.chunk.heap.HeapContainer): greycat.internal.chunk.heap.HeapLongLongMap;
-                    get(requestKey: number): number;
-                    each(callback: greycat.struct.LongLongMapCallBack): void;
-                    unsafe_each(callback: greycat.struct.LongLongMapCallBack): void;
-                    size(): number;
-                    remove(requestKey: number): void;
-                    put(insertKey: number, insertValue: number): void;
-                    load(buffer: greycat.struct.Buffer, offset: number, max: number): number;
-                }
-                class HeapRelation implements greycat.struct.Relation {
-                    private _back;
-                    private _size;
-                    private parent;
-                    private aligned;
-                    constructor(p_parent: greycat.internal.chunk.heap.HeapContainer, origin: greycat.internal.chunk.heap.HeapRelation);
-                    allocate(_capacity: number): void;
-                    all(): Float64Array;
-                    size(): number;
-                    get(index: number): number;
-                    set(index: number, value: number): void;
-                    unsafe_get(index: number): number;
-                    addNode(node: greycat.Node): greycat.struct.Relation;
-                    add(newValue: number): greycat.struct.Relation;
-                    addAll(newValues: Float64Array): greycat.struct.Relation;
-                    insert(targetIndex: number, newValue: number): greycat.struct.Relation;
-                    remove(oldValue: number): greycat.struct.Relation;
-                    delete(toRemoveIndex: number): greycat.struct.Relation;
-                    clear(): greycat.struct.Relation;
-                    toString(): string;
-                    load(buffer: greycat.struct.Buffer, offset: number, max: number): number;
-                }
-                class HeapRelationIndexed extends greycat.internal.chunk.heap.HeapLongLongArrayMap implements greycat.struct.RelationIndexed {
-                    private _graph;
-                    constructor(p_listener: greycat.internal.chunk.heap.HeapContainer, graph: greycat.Graph);
-                    add(node: greycat.Node, ...attributeNames: string[]): greycat.struct.RelationIndexed;
-                    remove(node: greycat.Node, ...attributeNames: string[]): greycat.struct.RelationIndexed;
-                    private internal_add_remove(isIndex, node, ...attributeNames);
-                    clear(): greycat.struct.RelationIndexed;
-                    find(callback: greycat.Callback<greycat.Node[]>, world: number, time: number, ...params: string[]): void;
-                    findByQuery(query: greycat.Query, callback: greycat.Callback<greycat.Node[]>): void;
-                    all(): Float64Array;
-                    cloneIRelFor(newParent: greycat.internal.chunk.heap.HeapContainer, graph: greycat.Graph): greycat.internal.chunk.heap.HeapRelationIndexed;
-                }
-                class HeapStateChunk implements greycat.chunk.StateChunk, greycat.internal.chunk.heap.HeapContainer {
-                    private _index;
-                    private _space;
-                    private _capacity;
-                    private _size;
-                    private _k;
-                    private _v;
-                    private _type;
-                    private next_and_hash;
-                    private _dirty;
-                    private static LOAD_WAITING_ALLOC;
-                    private static LOAD_WAITING_TYPE;
-                    private static LOAD_WAITING_KEY;
-                    private static LOAD_WAITING_VALUE;
-                    graph(): greycat.Graph;
-                    constructor(p_space: greycat.internal.chunk.heap.HeapChunkSpace, p_index: number);
-                    world(): number;
-                    time(): number;
-                    id(): number;
-                    chunkType(): number;
-                    index(): number;
-                    get(p_key: number): any;
-                    private internal_find(p_key);
-                    private internal_get(p_key);
-                    set(p_elementIndex: number, p_elemType: number, p_unsafe_elem: any): void;
-                    setFromKey(key: string, p_elemType: number, p_unsafe_elem: any): void;
-                    getFromKey(key: string): any;
-                    getFromKeyWithDefault<A>(key: string, defaultValue: A): A;
-                    getWithDefault<A>(key: number, defaultValue: A): A;
-                    getType(p_key: number): number;
-                    getTypeFromKey(key: string): number;
-                    getOrCreate(p_key: number, p_type: number): any;
-                    getOrCreateFromKey(key: string, elemType: number): any;
-                    declareDirty(): void;
-                    save(buffer: greycat.struct.Buffer): void;
-                    saveDiff(buffer: greycat.struct.Buffer): void;
-                    each(callBack: greycat.plugin.NodeStateCallback): void;
-                    loadFrom(origin: greycat.chunk.StateChunk): void;
-                    private internal_set(p_key, p_type, p_unsafe_elem, replaceIfPresent, initial);
-                    private allocate(newCapacity);
-                    load(buffer: greycat.struct.Buffer): void;
-                    private load_primitive(read_key, read_type, buffer, previous, cursor, initial);
-                    loadDiff(buffer: greycat.struct.Buffer): void;
-                }
-                class HeapStringIntMap implements greycat.struct.StringIntMap {
-                    private parent;
-                    private mapSize;
-                    private capacity;
-                    private keys;
-                    private keysH;
-                    private values;
-                    private nexts;
-                    private hashs;
-                    constructor(p_parent: greycat.internal.chunk.heap.HeapContainer);
-                    private key(i);
-                    private setKey(i, newValue);
-                    private keyH(i);
-                    private setKeyH(i, newValue);
-                    private value(i);
-                    private setValue(i, newValue);
-                    private next(i);
-                    private setNext(i, newValue);
-                    private hash(i);
-                    private setHash(i, newValue);
-                    reallocate(newCapacity: number): void;
-                    cloneFor(newContainer: greycat.internal.chunk.heap.HeapContainer): greycat.internal.chunk.heap.HeapStringIntMap;
-                    getValue(requestString: string): number;
-                    getByHash(keyHash: number): string;
-                    containsHash(keyHash: number): boolean;
-                    each(callback: greycat.struct.StringLongMapCallBack): void;
-                    unsafe_each(callback: greycat.struct.StringLongMapCallBack): void;
-                    size(): number;
-                    remove(requestKey: string): void;
-                    put(insertKey: string, insertValue: number): void;
-                    load(buffer: greycat.struct.Buffer, offset: number, max: number): number;
-                }
-                class HeapTimeTreeChunk implements greycat.chunk.TimeTreeChunk {
-                    private static META_SIZE;
-                    private _index;
-                    private _space;
-                    private _root;
-                    private _back_meta;
-                    private _k;
-                    private _colors;
-                    private _diff;
-                    private _magic;
-                    private _size;
-                    private _dirty;
-                    private _extra;
-                    private _extra2;
-                    constructor(p_space: greycat.internal.chunk.heap.HeapChunkSpace, p_index: number);
-                    extra(): number;
-                    setExtra(extraValue: number): void;
-                    extra2(): number;
-                    setExtra2(extraValue: number): void;
-                    world(): number;
-                    time(): number;
-                    id(): number;
-                    size(): number;
-                    range(startKey: number, endKey: number, maxElements: number, walker: greycat.chunk.TreeWalker): void;
-                    save(buffer: greycat.struct.Buffer): void;
-                    saveDiff(buffer: greycat.struct.Buffer): void;
-                    load(buffer: greycat.struct.Buffer): void;
-                    loadDiff(buffer: greycat.struct.Buffer): void;
-                    private internal_load(buffer, initial);
-                    index(): number;
-                    previous(key: number): number;
-                    next(key: number): number;
-                    previousOrEqual(key: number): number;
-                    magic(): number;
-                    insert(p_key: number): void;
-                    unsafe_insert(p_key: number): void;
-                    chunkType(): number;
-                    clearAt(max: number): void;
-                    private reallocate(newCapacity);
-                    private key(p_currentIndex);
-                    private setKey(p_currentIndex, p_paramIndex, initial);
-                    private left(p_currentIndex);
-                    private setLeft(p_currentIndex, p_paramIndex);
-                    private right(p_currentIndex);
-                    private setRight(p_currentIndex, p_paramIndex);
-                    private parent(p_currentIndex);
-                    private setParent(p_currentIndex, p_paramIndex);
-                    private color(p_currentIndex);
-                    private setColor(p_currentIndex, p_paramIndex);
-                    private grandParent(p_currentIndex);
-                    private sibling(p_currentIndex);
-                    private uncle(p_currentIndex);
-                    private internal_previous(p_index);
-                    private internal_next(p_index);
-                    private internal_previousOrEqual_index(p_key);
-                    private internal_previous_index(p_key);
-                    private rotateLeft(n);
-                    private rotateRight(n);
-                    private replaceNode(oldn, newn);
-                    private insertCase1(n);
-                    private insertCase2(n);
-                    private insertCase3(n);
-                    private insertCase4(n_n);
-                    private insertCase5(n);
-                    private internal_insert(p_key, initial);
-                    private internal_set_dirty();
-                }
-                class HeapWorldOrderChunk implements greycat.chunk.WorldOrderChunk {
-                    private _space;
-                    private _index;
-                    private _lock;
-                    private _externalLock;
-                    private _magic;
-                    private _extra;
-                    private _size;
-                    private _capacity;
-                    private _kv;
-                    private _diff;
-                    private _next;
-                    private _hash;
-                    private _dirty;
-                    constructor(p_space: greycat.internal.chunk.heap.HeapChunkSpace, p_index: number);
-                    world(): number;
-                    time(): number;
-                    id(): number;
-                    extra(): number;
-                    setExtra(extraValue: number): void;
-                    lock(): void;
-                    unlock(): void;
-                    externalLock(): void;
-                    externalUnlock(): void;
-                    magic(): number;
-                    each(callback: greycat.struct.LongLongMapCallBack): void;
-                    get(key: number): number;
-                    put(key: number, value: number): void;
-                    private internal_put(key, value, notifyUpdate);
-                    private resize(newCapacity);
-                    load(buffer: greycat.struct.Buffer): void;
-                    loadDiff(buffer: greycat.struct.Buffer): void;
-                    private internal_load(initial, buffer);
-                    index(): number;
-                    remove(key: number): void;
-                    size(): number;
-                    chunkType(): number;
-                    save(buffer: greycat.struct.Buffer): void;
-                    saveDiff(buffer: greycat.struct.Buffer): void;
-                }
-            }
+        class ReadOnlyStorage implements greycat.plugin.Storage {
+            private wrapped;
+            constructor(toWrap: greycat.plugin.Storage);
+            get(keys: greycat.struct.Buffer, callback: greycat.Callback<greycat.struct.Buffer>): void;
+            put(stream: greycat.struct.Buffer, callback: greycat.Callback<boolean>): void;
+            remove(keys: greycat.struct.Buffer, callback: greycat.Callback<boolean>): void;
+            connect(graph: greycat.Graph, callback: greycat.Callback<boolean>): void;
+            disconnect(callback: greycat.Callback<boolean>): void;
+            lock(callback: greycat.Callback<greycat.struct.Buffer>): void;
+            unlock(previousLock: greycat.struct.Buffer, callback: greycat.Callback<boolean>): void;
         }
-        module memory {
+        module heap {
+            class HeapAtomicByteArray {
+                private _back;
+                constructor(initialSize: number);
+                get(index: number): number;
+                set(index: number, value: number): void;
+            }
             class HeapBuffer implements greycat.struct.Buffer {
                 private buffer;
                 private writeCursor;
@@ -1340,353 +1058,816 @@ declare module greycat {
                 removeLast(): void;
                 toString(): string;
             }
+            class HeapChunkSpace implements greycat.chunk.ChunkSpace {
+                private static HASH_LOAD_FACTOR;
+                private _maxEntries;
+                private _hashEntries;
+                private _lru;
+                private _dirtiesStack;
+                private _hashNext;
+                private _hash;
+                private _chunkWorlds;
+                private _chunkTimes;
+                private _chunkIds;
+                private _chunkTypes;
+                private _chunkValues;
+                private _chunkMarks;
+                private _graph;
+                private _deep_priority;
+                graph(): greycat.Graph;
+                worldByIndex(index: number): number;
+                timeByIndex(index: number): number;
+                idByIndex(index: number): number;
+                constructor(initialCapacity: number, p_graph: greycat.Graph, deepWorldPriority: boolean);
+                getAndMark(type: number, world: number, time: number, id: number): greycat.chunk.Chunk;
+                get(index: number): greycat.chunk.Chunk;
+                getOrLoadAndMark(type: number, world: number, time: number, id: number, callback: greycat.Callback<greycat.chunk.Chunk>): void;
+                getOrLoadAndMarkAll(keys: Float64Array, callback: greycat.Callback<greycat.chunk.Chunk[]>): void;
+                mark(index: number): number;
+                unmark(index: number): void;
+                free(chunk: greycat.chunk.Chunk): void;
+                createAndMark(type: number, world: number, time: number, id: number): greycat.chunk.Chunk;
+                notifyUpdate(index: number): void;
+                save(callback: greycat.Callback<boolean>): void;
+                clear(): void;
+                freeAll(): void;
+                available(): number;
+                newVolatileGraph(): greycat.struct.EGraph;
+                printMarked(): void;
+            }
+            interface HeapContainer {
+                declareDirty(): void;
+            }
+            class HeapDMatrix implements greycat.struct.DMatrix {
+                private static INDEX_ROWS;
+                private static INDEX_COLUMNS;
+                private static INDEX_MAX_COLUMN;
+                private static INDEX_OFFSET;
+                private parent;
+                private backend;
+                private aligned;
+                constructor(p_parent: greycat.internal.heap.HeapContainer, origin: greycat.internal.heap.HeapDMatrix);
+                init(rows: number, columns: number): greycat.struct.DMatrix;
+                private internal_init(rows, columns);
+                appendColumn(newColumn: Float64Array): greycat.struct.DMatrix;
+                private internal_appendColumn(newColumn);
+                fill(value: number): greycat.struct.DMatrix;
+                private internal_fill(value);
+                fillWith(values: Float64Array): greycat.struct.DMatrix;
+                fillWithRandom(random: java.util.Random, min: number, max: number): greycat.struct.DMatrix;
+                fillWithRandomStd(random: java.util.Random, std: number): greycat.struct.DMatrix;
+                private internal_fillWith(values);
+                rows(): number;
+                columns(): number;
+                column(index: number): Float64Array;
+                get(rowIndex: number, columnIndex: number): number;
+                set(rowIndex: number, columnIndex: number, value: number): greycat.struct.DMatrix;
+                private internal_set(rowIndex, columnIndex, value);
+                add(rowIndex: number, columnIndex: number, value: number): greycat.struct.DMatrix;
+                private internal_add(rowIndex, columnIndex, value);
+                data(): Float64Array;
+                leadingDimension(): number;
+                unsafeGet(index: number): number;
+                unsafeSet(index: number, value: number): greycat.struct.DMatrix;
+                private internal_unsafeSet(index, value);
+                unsafe_data(): Float64Array;
+                private unsafe_init(size);
+                private unsafe_set(index, value);
+                load(buffer: greycat.struct.Buffer, offset: number, max: number): number;
+            }
+            class HeapEGraph implements greycat.struct.EGraph {
+                private _graph;
+                private parent;
+                _dirty: boolean;
+                _nodes: greycat.internal.heap.HeapENode[];
+                private _nodes_capacity;
+                private _nodes_index;
+                constructor(p_parent: greycat.internal.heap.HeapContainer, origin: greycat.internal.heap.HeapEGraph, p_graph: greycat.Graph);
+                size(): number;
+                free(): void;
+                graph(): greycat.Graph;
+                private allocate(newCapacity);
+                nodeByIndex(index: number, createIfAbsent: boolean): greycat.internal.heap.HeapENode;
+                declareDirty(): void;
+                newNode(): greycat.struct.ENode;
+                root(): greycat.struct.ENode;
+                setRoot(eNode: greycat.struct.ENode): greycat.struct.EGraph;
+                drop(eNode: greycat.struct.ENode): greycat.struct.EGraph;
+                toString(): string;
+                load(buffer: greycat.struct.Buffer, offset: number, max: number): number;
+            }
+            class HeapENode implements greycat.struct.ENode, greycat.internal.heap.HeapContainer {
+                private egraph;
+                _id: number;
+                private _capacity;
+                private _size;
+                private _k;
+                private _v;
+                private _next_hash;
+                private _type;
+                private _dirty;
+                private static LOAD_WAITING_ALLOC;
+                private static LOAD_WAITING_TYPE;
+                private static LOAD_WAITING_KEY;
+                private static LOAD_WAITING_VALUE;
+                constructor(p_egraph: greycat.internal.heap.HeapEGraph, p_id: number, origin: greycat.internal.heap.HeapENode);
+                clear(): greycat.struct.ENode;
+                declareDirty(): void;
+                rebase(): void;
+                private allocate(newCapacity);
+                private internal_find(p_key);
+                private internal_get(p_key);
+                private internal_set(p_key, p_type, p_unsafe_elem, replaceIfPresent, initial);
+                set(name: string, type: number, value: any): greycat.struct.ENode;
+                setAt(key: number, type: number, value: any): greycat.struct.ENode;
+                get(name: string): any;
+                getAt(key: number): any;
+                drop(): void;
+                graph(): greycat.struct.EGraph;
+                getOrCreate(key: string, type: number): any;
+                getOrCreateAt(key: number, type: number): any;
+                toString(): string;
+                save(buffer: greycat.struct.Buffer): void;
+                load(buffer: greycat.struct.Buffer, currentCursor: number, graph: greycat.Graph): number;
+                private load_primitive(read_key, read_type, buffer, previous, cursor, initial);
+                each(callBack: greycat.plugin.NodeStateCallback): void;
+            }
+            class HeapERelation implements greycat.struct.ERelation {
+                private _back;
+                private _size;
+                private _capacity;
+                private parent;
+                constructor(p_parent: greycat.internal.heap.HeapContainer, origin: greycat.internal.heap.HeapERelation);
+                rebase(newGraph: greycat.internal.heap.HeapEGraph): void;
+                size(): number;
+                nodes(): greycat.struct.ENode[];
+                node(index: number): greycat.struct.ENode;
+                add(eNode: greycat.struct.ENode): greycat.struct.ERelation;
+                addAll(eNodes: greycat.struct.ENode[]): greycat.struct.ERelation;
+                clear(): greycat.struct.ERelation;
+                toString(): string;
+                allocate(newCapacity: number): void;
+            }
+            class HeapFixedStack implements greycat.chunk.Stack {
+                private _next;
+                private _prev;
+                private _capacity;
+                private _first;
+                private _last;
+                private _count;
+                constructor(capacity: number, fill: boolean);
+                enqueue(index: number): boolean;
+                dequeueTail(): number;
+                dequeue(index: number): boolean;
+                free(): void;
+                size(): number;
+            }
+            class HeapGenChunk implements greycat.chunk.GenChunk {
+                private _space;
+                private _index;
+                private _prefix;
+                private _seed;
+                private _dirty;
+                constructor(p_space: greycat.internal.heap.HeapChunkSpace, p_id: number, p_index: number);
+                save(buffer: greycat.struct.Buffer): void;
+                saveDiff(buffer: greycat.struct.Buffer): void;
+                load(buffer: greycat.struct.Buffer): void;
+                loadDiff(buffer: greycat.struct.Buffer): void;
+                private internal_load(buffer, diff);
+                newKey(): number;
+                index(): number;
+                world(): number;
+                time(): number;
+                id(): number;
+                chunkType(): number;
+            }
+            class HeapLMatrix implements greycat.struct.LMatrix {
+                private static INDEX_ROWS;
+                private static INDEX_COLUMNS;
+                private static INDEX_MAX_COLUMN;
+                private static INDEX_OFFSET;
+                private parent;
+                private backend;
+                private aligned;
+                constructor(p_parent: greycat.internal.heap.HeapContainer, origin: greycat.internal.heap.HeapLMatrix);
+                init(rows: number, columns: number): greycat.struct.LMatrix;
+                private internal_init(rows, columns);
+                appendColumn(newColumn: Float64Array): greycat.struct.LMatrix;
+                private internal_appendColumn(newColumn);
+                fill(value: number): greycat.struct.LMatrix;
+                private internal_fill(value);
+                fillWith(values: Float64Array): greycat.struct.LMatrix;
+                private internal_fillWith(values);
+                fillWithRandom(min: number, max: number, seed: number): greycat.struct.LMatrix;
+                private internal_fillWithRandom(min, max, seed);
+                rows(): number;
+                columns(): number;
+                column(index: number): Float64Array;
+                get(rowIndex: number, columnIndex: number): number;
+                set(rowIndex: number, columnIndex: number, value: number): greycat.struct.LMatrix;
+                private internal_set(rowIndex, columnIndex, value);
+                add(rowIndex: number, columnIndex: number, value: number): greycat.struct.LMatrix;
+                private internal_add(rowIndex, columnIndex, value);
+                data(): Float64Array;
+                leadingDimension(): number;
+                unsafeGet(index: number): number;
+                unsafeSet(index: number, value: number): greycat.struct.LMatrix;
+                private internal_unsafeSet(index, value);
+                unsafe_data(): Float64Array;
+                unsafe_init(size: number): void;
+                unsafe_set(index: number, value: number): void;
+                load(buffer: greycat.struct.Buffer, offset: number, max: number): number;
+            }
+            class HeapLongLongArrayMap implements greycat.struct.LongLongArrayMap {
+                parent: greycat.internal.heap.HeapContainer;
+                mapSize: number;
+                capacity: number;
+                keys: Float64Array;
+                values: Float64Array;
+                nexts: Int32Array;
+                hashs: Int32Array;
+                constructor(p_listener: greycat.internal.heap.HeapContainer);
+                private key(i);
+                private setKey(i, newValue);
+                private value(i);
+                private setValue(i, newValue);
+                private next(i);
+                private setNext(i, newValue);
+                private hash(i);
+                private setHash(i, newValue);
+                reallocate(newCapacity: number): void;
+                cloneFor(newParent: greycat.internal.heap.HeapContainer): greycat.internal.heap.HeapLongLongArrayMap;
+                get(requestKey: number): Float64Array;
+                contains(requestKey: number, requestValue: number): boolean;
+                each(callback: greycat.struct.LongLongArrayMapCallBack): void;
+                unsafe_each(callback: greycat.struct.LongLongArrayMapCallBack): void;
+                size(): number;
+                delete(requestKey: number, requestValue: number): void;
+                put(insertKey: number, insertValue: number): void;
+                load(buffer: greycat.struct.Buffer, offset: number, max: number): number;
+            }
+            class HeapLongLongMap implements greycat.struct.LongLongMap {
+                private parent;
+                private mapSize;
+                private capacity;
+                private keys;
+                private values;
+                private nexts;
+                private hashs;
+                constructor(p_listener: greycat.internal.heap.HeapContainer);
+                private key(i);
+                private setKey(i, newValue);
+                private value(i);
+                private setValue(i, newValue);
+                private next(i);
+                private setNext(i, newValue);
+                private hash(i);
+                private setHash(i, newValue);
+                reallocate(newCapacity: number): void;
+                cloneFor(newParent: greycat.internal.heap.HeapContainer): greycat.internal.heap.HeapLongLongMap;
+                get(requestKey: number): number;
+                each(callback: greycat.struct.LongLongMapCallBack): void;
+                unsafe_each(callback: greycat.struct.LongLongMapCallBack): void;
+                size(): number;
+                remove(requestKey: number): void;
+                put(insertKey: number, insertValue: number): void;
+                load(buffer: greycat.struct.Buffer, offset: number, max: number): number;
+            }
             class HeapMemoryFactory implements greycat.plugin.MemoryFactory {
                 newSpace(memorySize: number, graph: greycat.Graph, deepWorld: boolean): greycat.chunk.ChunkSpace;
                 newBuffer(): greycat.struct.Buffer;
             }
-        }
-        module scheduler {
-            class JobQueue {
-                private first;
-                private last;
-                add(item: greycat.plugin.Job): void;
-                poll(): greycat.plugin.Job;
+            class HeapRelation implements greycat.struct.Relation {
+                private _back;
+                private _size;
+                private parent;
+                private aligned;
+                constructor(p_parent: greycat.internal.heap.HeapContainer, origin: greycat.internal.heap.HeapRelation);
+                allocate(_capacity: number): void;
+                all(): Float64Array;
+                size(): number;
+                get(index: number): number;
+                set(index: number, value: number): void;
+                unsafe_get(index: number): number;
+                addNode(node: greycat.Node): greycat.struct.Relation;
+                add(newValue: number): greycat.struct.Relation;
+                addAll(newValues: Float64Array): greycat.struct.Relation;
+                insert(targetIndex: number, newValue: number): greycat.struct.Relation;
+                remove(oldValue: number): greycat.struct.Relation;
+                delete(toRemoveIndex: number): greycat.struct.Relation;
+                clear(): greycat.struct.Relation;
+                toString(): string;
+                load(buffer: greycat.struct.Buffer, offset: number, max: number): number;
             }
-            module JobQueue {
-                class JobQueueElem {
-                    _ptr: greycat.plugin.Job;
-                    _next: greycat.internal.scheduler.JobQueue.JobQueueElem;
-                    constructor(ptr: greycat.plugin.Job, next: greycat.internal.scheduler.JobQueue.JobQueueElem);
-                }
+            class HeapRelationIndexed extends greycat.internal.heap.HeapLongLongArrayMap implements greycat.struct.RelationIndexed {
+                private _graph;
+                constructor(p_listener: greycat.internal.heap.HeapContainer, graph: greycat.Graph);
+                add(node: greycat.Node, ...attributeNames: string[]): greycat.struct.RelationIndexed;
+                remove(node: greycat.Node, ...attributeNames: string[]): greycat.struct.RelationIndexed;
+                private internal_add_remove(isIndex, node, ...attributeNames);
+                clear(): greycat.struct.RelationIndexed;
+                find(callback: greycat.Callback<greycat.Node[]>, world: number, time: number, ...params: string[]): void;
+                findByQuery(query: greycat.Query, callback: greycat.Callback<greycat.Node[]>): void;
+                all(): Float64Array;
+                cloneIRelFor(newParent: greycat.internal.heap.HeapContainer, graph: greycat.Graph): greycat.internal.heap.HeapRelationIndexed;
             }
-            class NoopScheduler implements greycat.plugin.Scheduler {
-                dispatch(affinity: number, job: greycat.plugin.Job): void;
-                start(): void;
-                stop(): void;
-                workers(): number;
+            class HeapStateChunk implements greycat.chunk.StateChunk, greycat.internal.heap.HeapContainer {
+                private _index;
+                private _space;
+                private _capacity;
+                private _size;
+                private _k;
+                private _v;
+                private _type;
+                private next_and_hash;
+                private _dirty;
+                private static LOAD_WAITING_ALLOC;
+                private static LOAD_WAITING_TYPE;
+                private static LOAD_WAITING_KEY;
+                private static LOAD_WAITING_VALUE;
+                graph(): greycat.Graph;
+                constructor(p_space: greycat.internal.heap.HeapChunkSpace, p_index: number);
+                world(): number;
+                time(): number;
+                id(): number;
+                chunkType(): number;
+                index(): number;
+                get(p_key: number): any;
+                private internal_find(p_key);
+                private internal_get(p_key);
+                set(p_elementIndex: number, p_elemType: number, p_unsafe_elem: any): void;
+                setFromKey(key: string, p_elemType: number, p_unsafe_elem: any): void;
+                getFromKey(key: string): any;
+                getFromKeyWithDefault<A>(key: string, defaultValue: A): A;
+                getWithDefault<A>(key: number, defaultValue: A): A;
+                getType(p_key: number): number;
+                getTypeFromKey(key: string): number;
+                getOrCreate(p_key: number, p_type: number): any;
+                getOrCreateFromKey(key: string, elemType: number): any;
+                declareDirty(): void;
+                save(buffer: greycat.struct.Buffer): void;
+                saveDiff(buffer: greycat.struct.Buffer): void;
+                each(callBack: greycat.plugin.NodeStateCallback): void;
+                loadFrom(origin: greycat.chunk.StateChunk): void;
+                private internal_set(p_key, p_type, p_unsafe_elem, replaceIfPresent, initial);
+                private allocate(newCapacity);
+                load(buffer: greycat.struct.Buffer): void;
+                private load_primitive(read_key, read_type, buffer, previous, cursor, initial);
+                loadDiff(buffer: greycat.struct.Buffer): void;
             }
-            class TrampolineScheduler implements greycat.plugin.Scheduler {
-                private queue;
-                private wip;
-                dispatch(affinity: number, job: greycat.plugin.Job): void;
-                start(): void;
-                stop(): void;
-                workers(): number;
+            class HeapStringIntMap implements greycat.struct.StringIntMap {
+                private parent;
+                private mapSize;
+                private capacity;
+                private keys;
+                private keysH;
+                private values;
+                private nexts;
+                private hashs;
+                constructor(p_parent: greycat.internal.heap.HeapContainer);
+                private key(i);
+                private setKey(i, newValue);
+                private keyH(i);
+                private setKeyH(i, newValue);
+                private value(i);
+                private setValue(i, newValue);
+                private next(i);
+                private setNext(i, newValue);
+                private hash(i);
+                private setHash(i, newValue);
+                reallocate(newCapacity: number): void;
+                cloneFor(newContainer: greycat.internal.heap.HeapContainer): greycat.internal.heap.HeapStringIntMap;
+                getValue(requestString: string): number;
+                getByHash(keyHash: number): string;
+                containsHash(keyHash: number): boolean;
+                each(callback: greycat.struct.StringLongMapCallBack): void;
+                unsafe_each(callback: greycat.struct.StringLongMapCallBack): void;
+                size(): number;
+                remove(requestKey: string): void;
+                put(insertKey: string, insertValue: number): void;
+                load(buffer: greycat.struct.Buffer, offset: number, max: number): number;
+            }
+            class HeapTimeTreeChunk implements greycat.chunk.TimeTreeChunk {
+                private static META_SIZE;
+                private _index;
+                private _space;
+                private _root;
+                private _back_meta;
+                private _k;
+                private _colors;
+                private _diff;
+                private _magic;
+                private _size;
+                private _dirty;
+                private _extra;
+                private _extra2;
+                constructor(p_space: greycat.internal.heap.HeapChunkSpace, p_index: number);
+                extra(): number;
+                setExtra(extraValue: number): void;
+                extra2(): number;
+                setExtra2(extraValue: number): void;
+                world(): number;
+                time(): number;
+                id(): number;
+                size(): number;
+                range(startKey: number, endKey: number, maxElements: number, walker: greycat.chunk.TreeWalker): void;
+                save(buffer: greycat.struct.Buffer): void;
+                saveDiff(buffer: greycat.struct.Buffer): void;
+                load(buffer: greycat.struct.Buffer): void;
+                loadDiff(buffer: greycat.struct.Buffer): void;
+                private internal_load(buffer, initial);
+                index(): number;
+                previous(key: number): number;
+                next(key: number): number;
+                previousOrEqual(key: number): number;
+                magic(): number;
+                insert(p_key: number): void;
+                unsafe_insert(p_key: number): void;
+                chunkType(): number;
+                clearAt(max: number): void;
+                private reallocate(newCapacity);
+                private key(p_currentIndex);
+                private setKey(p_currentIndex, p_paramIndex, initial);
+                private left(p_currentIndex);
+                private setLeft(p_currentIndex, p_paramIndex);
+                private right(p_currentIndex);
+                private setRight(p_currentIndex, p_paramIndex);
+                private parent(p_currentIndex);
+                private setParent(p_currentIndex, p_paramIndex);
+                private color(p_currentIndex);
+                private setColor(p_currentIndex, p_paramIndex);
+                private grandParent(p_currentIndex);
+                private sibling(p_currentIndex);
+                private uncle(p_currentIndex);
+                private internal_previous(p_index);
+                private internal_next(p_index);
+                private internal_previousOrEqual_index(p_key);
+                private internal_previous_index(p_key);
+                private rotateLeft(n);
+                private rotateRight(n);
+                private replaceNode(oldn, newn);
+                private insertCase1(n);
+                private insertCase2(n);
+                private insertCase3(n);
+                private insertCase4(n_n);
+                private insertCase5(n);
+                private internal_insert(p_key, initial);
+                private internal_set_dirty();
+            }
+            class HeapWorldOrderChunk implements greycat.chunk.WorldOrderChunk {
+                private _space;
+                private _index;
+                private _lock;
+                private _externalLock;
+                private _magic;
+                private _extra;
+                private _size;
+                private _capacity;
+                private _kv;
+                private _diff;
+                private _next;
+                private _hash;
+                private _dirty;
+                constructor(p_space: greycat.internal.heap.HeapChunkSpace, p_index: number);
+                world(): number;
+                time(): number;
+                id(): number;
+                extra(): number;
+                setExtra(extraValue: number): void;
+                lock(): void;
+                unlock(): void;
+                externalLock(): void;
+                externalUnlock(): void;
+                magic(): number;
+                each(callback: greycat.struct.LongLongMapCallBack): void;
+                get(key: number): number;
+                put(key: number, value: number): void;
+                private internal_put(key, value, notifyUpdate);
+                private resize(newCapacity);
+                load(buffer: greycat.struct.Buffer): void;
+                loadDiff(buffer: greycat.struct.Buffer): void;
+                private internal_load(initial, buffer);
+                index(): number;
+                remove(key: number): void;
+                size(): number;
+                chunkType(): number;
+                save(buffer: greycat.struct.Buffer): void;
+                saveDiff(buffer: greycat.struct.Buffer): void;
             }
         }
         module task {
-            class ActionAddRemoveToGlobalIndex implements greycat.task.Action {
+            class ActionAddRemoveToGlobalIndex implements greycat.Action {
                 private _name;
                 private _attributes;
                 private _timed;
                 private _remove;
                 constructor(remove: boolean, timed: boolean, name: string, ...attributes: string[]);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionAddRemoveVarToRelation implements greycat.task.Action {
+            class ActionAddRemoveVarToRelation implements greycat.Action {
                 private _name;
                 private _varFrom;
                 private _attributes;
                 private _isAdd;
                 constructor(isAdd: boolean, name: string, varFrom: string, ...attributes: string[]);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionAddToVar implements greycat.task.Action {
+            class ActionAddToVar implements greycat.Action {
                 private _name;
                 constructor(p_name: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionAttributes implements greycat.task.Action {
+            class ActionAttributes implements greycat.Action {
                 private _filter;
                 constructor(filterType: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionClearResult implements greycat.task.Action {
-                eval(ctx: greycat.task.TaskContext): void;
+            class ActionClearResult implements greycat.Action {
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionCreateNode implements greycat.task.Action {
+            class ActionCreateNode implements greycat.Action {
                 private _typeNode;
                 constructor(typeNode: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionDeclareVar implements greycat.task.Action {
+            class ActionDeclareVar implements greycat.Action {
                 private _name;
                 private _isGlobal;
                 constructor(isGlobal: boolean, p_name: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionDefineAsVar implements greycat.task.Action {
+            class ActionDefineAsVar implements greycat.Action {
                 private _name;
                 private _global;
                 constructor(p_name: string, p_global: boolean);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionExecuteExpression implements greycat.task.Action {
+            class ActionExecuteExpression implements greycat.Action {
                 private _engine;
                 private _expression;
                 constructor(mathExpression: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionFlat implements greycat.task.Action {
+            class ActionFlat implements greycat.Action {
                 constructor();
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionFlipVar implements greycat.task.Action {
+            class ActionFlipVar implements greycat.Action {
                 private _name;
                 constructor(name: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionGlobalIndex implements greycat.task.Action {
+            class ActionGlobalIndex implements greycat.Action {
                 private _name;
                 constructor(p_indexName: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionIndexNames implements greycat.task.Action {
-                eval(ctx: greycat.task.TaskContext): void;
+            class ActionIndexNames implements greycat.Action {
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionInject implements greycat.task.Action {
+            class ActionInject implements greycat.Action {
                 private _value;
                 constructor(value: any);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionLog implements greycat.task.Action {
+            class ActionLog implements greycat.Action {
                 private _value;
                 constructor(p_value: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionLookup implements greycat.task.Action {
+            class ActionLookup implements greycat.Action {
                 private _id;
                 constructor(p_id: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionLookupAll implements greycat.task.Action {
+            class ActionLookupAll implements greycat.Action {
                 private _ids;
                 constructor(p_ids: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionNamed implements greycat.task.Action {
+            class ActionNamed implements greycat.Action {
                 private _name;
                 private _params;
                 constructor(name: string, ...params: string[]);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionPrint implements greycat.task.Action {
+            class ActionPrint implements greycat.Action {
                 private _name;
                 private _withLineBreak;
                 constructor(p_name: string, withLineBreak: boolean);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionReadGlobalIndex implements greycat.task.Action {
+            class ActionReadGlobalIndex implements greycat.Action {
                 private _name;
                 private _params;
                 constructor(p_indexName: string, ...p_query: string[]);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionReadVar implements greycat.task.Action {
+            class ActionReadVar implements greycat.Action {
                 private _origin;
                 private _name;
                 private _index;
                 constructor(p_name: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionRemove implements greycat.task.Action {
+            class ActionRemove implements greycat.Action {
                 private _name;
                 constructor(name: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionSave implements greycat.task.Action {
-                eval(ctx: greycat.task.TaskContext): void;
+            class ActionSave implements greycat.Action {
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionScript implements greycat.task.Action {
+            class ActionScript implements greycat.Action {
                 private _script;
                 private _async;
                 constructor(script: string, async: boolean);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionSelect implements greycat.task.Action {
+            class ActionSelect implements greycat.Action {
                 private _script;
                 private _filter;
-                constructor(script: string, filter: greycat.task.TaskFunctionSelect);
-                eval(ctx: greycat.task.TaskContext): void;
+                constructor(script: string, filter: greycat.TaskFunctionSelect);
+                eval(ctx: greycat.TaskContext): void;
                 private callScript(node, context);
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionSelectObject implements greycat.task.Action {
+            class ActionSelectObject implements greycat.Action {
                 private _filter;
-                constructor(filterFunction: greycat.task.TaskFunctionSelectObject);
-                eval(ctx: greycat.task.TaskContext): void;
+                constructor(filterFunction: greycat.TaskFunctionSelectObject);
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionSetAsVar implements greycat.task.Action {
+            class ActionSetAsVar implements greycat.Action {
                 private _name;
                 constructor(p_name: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionSetAttribute implements greycat.task.Action {
+            class ActionSetAttribute implements greycat.Action {
                 private _name;
                 private _value;
                 private _propertyType;
                 private _force;
                 constructor(name: string, propertyType: string, value: string, force: boolean);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 private loadArray(valueAfterTemplate, type);
                 private parseBoolean(booleanValue);
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionTimeSensitivity implements greycat.task.Action {
+            class ActionTimeSensitivity implements greycat.Action {
                 private _delta;
                 private _offset;
                 constructor(delta: string, offset: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionTimepoints implements greycat.task.Action {
+            class ActionTimepoints implements greycat.Action {
                 private _from;
                 private _to;
                 constructor(from: string, to: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionTravelInTime implements greycat.task.Action {
+            class ActionTravelInTime implements greycat.Action {
                 private _time;
                 constructor(time: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionTravelInWorld implements greycat.task.Action {
+            class ActionTravelInWorld implements greycat.Action {
                 private _world;
                 constructor(world: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionTraverseOrAttribute implements greycat.task.Action {
+            class ActionTraverseOrAttribute implements greycat.Action {
                 private _name;
                 private _params;
                 private _isAttribute;
                 private _isUnknown;
                 constructor(isAttribute: boolean, isUnknown: boolean, p_name: string, ...p_params: string[]);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionWith implements greycat.task.Action {
+            class ActionWith implements greycat.Action {
                 private _patternTemplate;
                 private _name;
                 constructor(name: string, stringPattern: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            class ActionWithout implements greycat.task.Action {
+            class ActionWithout implements greycat.Action {
                 private _patternTemplate;
                 private _name;
                 constructor(name: string, stringPattern: string);
-                eval(ctx: greycat.task.TaskContext): void;
+                eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
-            abstract class CF_Action implements greycat.task.Action {
-                abstract children(): greycat.task.Task[];
+            abstract class CF_Action implements greycat.Action {
+                abstract children(): greycat.Task[];
                 abstract cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
-                abstract eval(ctx: greycat.task.TaskContext): void;
+                abstract eval(ctx: greycat.TaskContext): void;
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
             class CF_Atomic extends greycat.internal.task.CF_Action {
                 private _variables;
                 private _subTask;
-                constructor(p_subTask: greycat.task.Task, ...variables: string[]);
-                eval(ctx: greycat.task.TaskContext): void;
-                children(): greycat.task.Task[];
+                constructor(p_subTask: greycat.Task, ...variables: string[]);
+                eval(ctx: greycat.TaskContext): void;
+                children(): greycat.Task[];
                 cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
             }
             class CF_DoWhile extends greycat.internal.task.CF_Action {
                 private _cond;
                 private _then;
                 private _conditionalScript;
-                constructor(p_then: greycat.task.Task, p_cond: greycat.task.ConditionalFunction, conditionalScript: string);
-                eval(ctx: greycat.task.TaskContext): void;
-                children(): greycat.task.Task[];
+                constructor(p_then: greycat.Task, p_cond: greycat.ConditionalFunction, conditionalScript: string);
+                eval(ctx: greycat.TaskContext): void;
+                children(): greycat.Task[];
                 cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
             }
             class CF_ForEach extends greycat.internal.task.CF_Action {
                 private _subTask;
-                constructor(p_subTask: greycat.task.Task);
-                eval(ctx: greycat.task.TaskContext): void;
-                children(): greycat.task.Task[];
+                constructor(p_subTask: greycat.Task);
+                eval(ctx: greycat.TaskContext): void;
+                children(): greycat.Task[];
                 cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
             }
             class CF_ForEachPar extends greycat.internal.task.CF_Action {
                 private _subTask;
-                constructor(p_subTask: greycat.task.Task);
-                eval(ctx: greycat.task.TaskContext): void;
-                children(): greycat.task.Task[];
+                constructor(p_subTask: greycat.Task);
+                eval(ctx: greycat.TaskContext): void;
+                children(): greycat.Task[];
                 cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
             }
             class CF_IfThen extends greycat.internal.task.CF_Action {
                 private _condition;
                 private _action;
                 private _conditionalScript;
-                constructor(cond: greycat.task.ConditionalFunction, action: greycat.task.Task, conditionalScript: string);
-                eval(ctx: greycat.task.TaskContext): void;
-                children(): greycat.task.Task[];
+                constructor(cond: greycat.ConditionalFunction, action: greycat.Task, conditionalScript: string);
+                eval(ctx: greycat.TaskContext): void;
+                children(): greycat.Task[];
                 cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
             }
             class CF_IfThenElse extends greycat.internal.task.CF_Action {
@@ -1694,69 +1875,69 @@ declare module greycat {
                 private _thenSub;
                 private _elseSub;
                 private _conditionalScript;
-                constructor(cond: greycat.task.ConditionalFunction, p_thenSub: greycat.task.Task, p_elseSub: greycat.task.Task, conditionalScript: string);
-                eval(ctx: greycat.task.TaskContext): void;
-                children(): greycat.task.Task[];
+                constructor(cond: greycat.ConditionalFunction, p_thenSub: greycat.Task, p_elseSub: greycat.Task, conditionalScript: string);
+                eval(ctx: greycat.TaskContext): void;
+                children(): greycat.Task[];
                 cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
             }
             class CF_Loop extends greycat.internal.task.CF_Action {
                 private _lower;
                 private _upper;
                 private _subTask;
-                constructor(p_lower: string, p_upper: string, p_subTask: greycat.task.Task);
-                eval(ctx: greycat.task.TaskContext): void;
-                children(): greycat.task.Task[];
+                constructor(p_lower: string, p_upper: string, p_subTask: greycat.Task);
+                eval(ctx: greycat.TaskContext): void;
+                children(): greycat.Task[];
                 cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
             }
             class CF_LoopPar extends greycat.internal.task.CF_Action {
                 private _subTask;
                 private _lower;
                 private _upper;
-                constructor(p_lower: string, p_upper: string, p_subTask: greycat.task.Task);
-                eval(ctx: greycat.task.TaskContext): void;
-                children(): greycat.task.Task[];
+                constructor(p_lower: string, p_upper: string, p_subTask: greycat.Task);
+                eval(ctx: greycat.TaskContext): void;
+                children(): greycat.Task[];
                 cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
             }
             class CF_Map extends greycat.internal.task.CF_Action {
                 private _subTask;
-                constructor(p_subTask: greycat.task.Task);
-                eval(ctx: greycat.task.TaskContext): void;
-                children(): greycat.task.Task[];
+                constructor(p_subTask: greycat.Task);
+                eval(ctx: greycat.TaskContext): void;
+                children(): greycat.Task[];
                 cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
             }
             class CF_MapPar extends greycat.internal.task.CF_Action {
                 private _subTask;
-                constructor(p_subTask: greycat.task.Task);
-                eval(ctx: greycat.task.TaskContext): void;
-                children(): greycat.task.Task[];
+                constructor(p_subTask: greycat.Task);
+                eval(ctx: greycat.TaskContext): void;
+                children(): greycat.Task[];
                 cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
             }
             class CF_Pipe extends greycat.internal.task.CF_Action {
                 private _subTasks;
-                constructor(...p_subTasks: greycat.task.Task[]);
-                eval(ctx: greycat.task.TaskContext): void;
-                children(): greycat.task.Task[];
+                constructor(...p_subTasks: greycat.Task[]);
+                eval(ctx: greycat.TaskContext): void;
+                children(): greycat.Task[];
                 cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
             }
             class CF_PipePar extends greycat.internal.task.CF_Action {
                 private _subTasks;
-                constructor(...p_subTasks: greycat.task.Task[]);
-                eval(ctx: greycat.task.TaskContext): void;
-                children(): greycat.task.Task[];
+                constructor(...p_subTasks: greycat.Task[]);
+                eval(ctx: greycat.TaskContext): void;
+                children(): greycat.Task[];
                 cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
             }
             class CF_PipeTo extends greycat.internal.task.CF_Action {
                 private _subTask;
                 private _targets;
-                constructor(p_subTask: greycat.task.Task, ...p_targets: string[]);
-                eval(ctx: greycat.task.TaskContext): void;
-                children(): greycat.task.Task[];
+                constructor(p_subTask: greycat.Task, ...p_targets: string[]);
+                eval(ctx: greycat.TaskContext): void;
+                children(): greycat.Task[];
                 cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
             }
-            class CF_ThenDo implements greycat.task.Action {
+            class CF_ThenDo implements greycat.Action {
                 private _wrapped;
-                constructor(p_wrapped: greycat.task.ActionFunction);
-                eval(ctx: greycat.task.TaskContext): void;
+                constructor(p_wrapped: greycat.ActionFunction);
+                eval(ctx: greycat.TaskContext): void;
                 toString(): string;
                 serialize(builder: java.lang.StringBuilder): void;
             }
@@ -1764,9 +1945,9 @@ declare module greycat {
                 private _cond;
                 private _then;
                 private _conditionalScript;
-                constructor(p_cond: greycat.task.ConditionalFunction, p_then: greycat.task.Task, conditionalScript: string);
-                eval(ctx: greycat.task.TaskContext): void;
-                children(): greycat.task.Task[];
+                constructor(p_cond: greycat.ConditionalFunction, p_then: greycat.Task, conditionalScript: string);
+                eval(ctx: greycat.TaskContext): void;
+                children(): greycat.Task[];
                 cf_serialize(builder: java.lang.StringBuilder, dagIDS: java.util.Map<number, number>): void;
             }
             class CoreActionDeclaration implements greycat.plugin.ActionDeclaration {
@@ -1849,93 +2030,93 @@ declare module greycat {
                 declarations(): greycat.plugin.ActionDeclaration[];
             }
             class CoreActions {
-                static flat(): greycat.task.Action;
-                static travelInWorld(world: string): greycat.task.Action;
-                static travelInTime(time: string): greycat.task.Action;
-                static inject(input: any): greycat.task.Action;
-                static defineAsGlobalVar(name: string): greycat.task.Action;
-                static defineAsVar(name: string): greycat.task.Action;
-                static declareGlobalVar(name: string): greycat.task.Action;
-                static declareVar(name: string): greycat.task.Action;
-                static readVar(name: string): greycat.task.Action;
-                static flipVar(name: string): greycat.task.Action;
-                static setAsVar(name: string): greycat.task.Action;
-                static addToVar(name: string): greycat.task.Action;
-                static setAttribute(name: string, type: number, value: string): greycat.task.Action;
-                static timeSensitivity(delta: string, offset: string): greycat.task.Action;
-                static forceAttribute(name: string, type: number, value: string): greycat.task.Action;
-                static remove(name: string): greycat.task.Action;
-                static attributes(): greycat.task.Action;
-                static attributesWithTypes(filterType: number): greycat.task.Action;
-                static addVarToRelation(relName: string, varName: string, ...attributes: string[]): greycat.task.Action;
-                static removeVarFromRelation(relName: string, varFrom: string, ...attributes: string[]): greycat.task.Action;
-                static traverse(name: string, ...params: string[]): greycat.task.Action;
-                static attribute(name: string, ...params: string[]): greycat.task.Action;
-                static readGlobalIndex(indexName: string, ...query: string[]): greycat.task.Action;
-                static globalIndex(indexName: string): greycat.task.Action;
-                static addToGlobalIndex(name: string, ...attributes: string[]): greycat.task.Action;
-                static addToGlobalTimedIndex(name: string, ...attributes: string[]): greycat.task.Action;
-                static removeFromGlobalIndex(name: string, ...attributes: string[]): greycat.task.Action;
-                static removeFromGlobalTimedIndex(name: string, ...attributes: string[]): greycat.task.Action;
-                static indexNames(): greycat.task.Action;
-                static selectWith(name: string, pattern: string): greycat.task.Action;
-                static selectWithout(name: string, pattern: string): greycat.task.Action;
-                static select(filterFunction: greycat.task.TaskFunctionSelect): greycat.task.Action;
-                static selectObject(filterFunction: greycat.task.TaskFunctionSelectObject): greycat.task.Action;
-                static selectScript(script: string): greycat.task.Action;
-                static log(value: string): greycat.task.Action;
-                static print(name: string): greycat.task.Action;
-                static println(name: string): greycat.task.Action;
-                static executeExpression(expression: string): greycat.task.Action;
-                static action(name: string, ...params: string[]): greycat.task.Action;
-                static createNode(): greycat.task.Action;
-                static createTypedNode(type: string): greycat.task.Action;
-                static save(): greycat.task.Action;
-                static script(script: string): greycat.task.Action;
-                static asyncScript(script: string): greycat.task.Action;
-                static lookup(nodeId: string): greycat.task.Action;
-                static lookupAll(nodeIds: string): greycat.task.Action;
-                static timepoints(from: string, to: string): greycat.task.Action;
-                static clearResult(): greycat.task.Action;
+                static flat(): greycat.Action;
+                static travelInWorld(world: string): greycat.Action;
+                static travelInTime(time: string): greycat.Action;
+                static inject(input: any): greycat.Action;
+                static defineAsGlobalVar(name: string): greycat.Action;
+                static defineAsVar(name: string): greycat.Action;
+                static declareGlobalVar(name: string): greycat.Action;
+                static declareVar(name: string): greycat.Action;
+                static readVar(name: string): greycat.Action;
+                static flipVar(name: string): greycat.Action;
+                static setAsVar(name: string): greycat.Action;
+                static addToVar(name: string): greycat.Action;
+                static setAttribute(name: string, type: number, value: string): greycat.Action;
+                static timeSensitivity(delta: string, offset: string): greycat.Action;
+                static forceAttribute(name: string, type: number, value: string): greycat.Action;
+                static remove(name: string): greycat.Action;
+                static attributes(): greycat.Action;
+                static attributesWithTypes(filterType: number): greycat.Action;
+                static addVarToRelation(relName: string, varName: string, ...attributes: string[]): greycat.Action;
+                static removeVarFromRelation(relName: string, varFrom: string, ...attributes: string[]): greycat.Action;
+                static traverse(name: string, ...params: string[]): greycat.Action;
+                static attribute(name: string, ...params: string[]): greycat.Action;
+                static readGlobalIndex(indexName: string, ...query: string[]): greycat.Action;
+                static globalIndex(indexName: string): greycat.Action;
+                static addToGlobalIndex(name: string, ...attributes: string[]): greycat.Action;
+                static addToGlobalTimedIndex(name: string, ...attributes: string[]): greycat.Action;
+                static removeFromGlobalIndex(name: string, ...attributes: string[]): greycat.Action;
+                static removeFromGlobalTimedIndex(name: string, ...attributes: string[]): greycat.Action;
+                static indexNames(): greycat.Action;
+                static selectWith(name: string, pattern: string): greycat.Action;
+                static selectWithout(name: string, pattern: string): greycat.Action;
+                static select(filterFunction: greycat.TaskFunctionSelect): greycat.Action;
+                static selectObject(filterFunction: greycat.TaskFunctionSelectObject): greycat.Action;
+                static selectScript(script: string): greycat.Action;
+                static log(value: string): greycat.Action;
+                static print(name: string): greycat.Action;
+                static println(name: string): greycat.Action;
+                static executeExpression(expression: string): greycat.Action;
+                static action(name: string, ...params: string[]): greycat.Action;
+                static createNode(): greycat.Action;
+                static createTypedNode(type: string): greycat.Action;
+                static save(): greycat.Action;
+                static script(script: string): greycat.Action;
+                static asyncScript(script: string): greycat.Action;
+                static lookup(nodeId: string): greycat.Action;
+                static lookupAll(nodeIds: string): greycat.Action;
+                static timepoints(from: string, to: string): greycat.Action;
+                static clearResult(): greycat.Action;
             }
-            class CoreTask implements greycat.task.Task {
+            class CoreTask implements greycat.Task {
                 private insertCapacity;
-                actions: greycat.task.Action[];
+                actions: greycat.Action[];
                 insertCursor: number;
-                _hooks: greycat.task.TaskHook[];
-                addHook(p_hook: greycat.task.TaskHook): greycat.task.Task;
-                then(nextAction: greycat.task.Action): greycat.task.Task;
-                thenDo(nextActionFunction: greycat.task.ActionFunction): greycat.task.Task;
-                doWhile(task: greycat.task.Task, cond: greycat.task.ConditionalFunction): greycat.task.Task;
-                doWhileScript(task: greycat.task.Task, condScript: string): greycat.task.Task;
-                loop(from: string, to: string, subTask: greycat.task.Task): greycat.task.Task;
-                loopPar(from: string, to: string, subTask: greycat.task.Task): greycat.task.Task;
-                forEach(subTask: greycat.task.Task): greycat.task.Task;
-                forEachPar(subTask: greycat.task.Task): greycat.task.Task;
-                map(subTask: greycat.task.Task): greycat.task.Task;
-                mapPar(subTask: greycat.task.Task): greycat.task.Task;
-                ifThen(cond: greycat.task.ConditionalFunction, then: greycat.task.Task): greycat.task.Task;
-                ifThenScript(condScript: string, then: greycat.task.Task): greycat.task.Task;
-                ifThenElse(cond: greycat.task.ConditionalFunction, thenSub: greycat.task.Task, elseSub: greycat.task.Task): greycat.task.Task;
-                ifThenElseScript(condScript: string, thenSub: greycat.task.Task, elseSub: greycat.task.Task): greycat.task.Task;
-                whileDo(cond: greycat.task.ConditionalFunction, task: greycat.task.Task): greycat.task.Task;
-                whileDoScript(condScript: string, task: greycat.task.Task): greycat.task.Task;
-                pipe(...subTasks: greycat.task.Task[]): greycat.task.Task;
-                pipePar(...subTasks: greycat.task.Task[]): greycat.task.Task;
-                pipeTo(subTask: greycat.task.Task, ...vars: string[]): greycat.task.Task;
-                atomic(protectedTask: greycat.task.Task, ...variablesToLock: string[]): greycat.task.Task;
-                execute(graph: greycat.Graph, callback: greycat.Callback<greycat.task.TaskResult<any>>): void;
-                executeSync(graph: greycat.Graph): greycat.task.TaskResult<any>;
-                executeWith(graph: greycat.Graph, initial: any, callback: greycat.Callback<greycat.task.TaskResult<any>>): void;
-                prepare(graph: greycat.Graph, initial: any, callback: greycat.Callback<greycat.task.TaskResult<any>>): greycat.task.TaskContext;
-                executeUsing(preparedContext: greycat.task.TaskContext): void;
-                executeFrom(parentContext: greycat.task.TaskContext, initial: greycat.task.TaskResult<any>, affinity: number, callback: greycat.Callback<greycat.task.TaskResult<any>>): void;
-                executeFromUsing(parentContext: greycat.task.TaskContext, initial: greycat.task.TaskResult<any>, affinity: number, contextInitializer: greycat.Callback<greycat.task.TaskContext>, callback: greycat.Callback<greycat.task.TaskResult<any>>): void;
-                loadFromBuffer(buffer: greycat.struct.Buffer, graph: greycat.Graph): greycat.task.Task;
-                saveToBuffer(buffer: greycat.struct.Buffer): greycat.task.Task;
-                parse(flat: string, graph: greycat.Graph): greycat.task.Task;
+                _hooks: greycat.TaskHook[];
+                addHook(p_hook: greycat.TaskHook): greycat.Task;
+                then(nextAction: greycat.Action): greycat.Task;
+                thenDo(nextActionFunction: greycat.ActionFunction): greycat.Task;
+                doWhile(task: greycat.Task, cond: greycat.ConditionalFunction): greycat.Task;
+                doWhileScript(task: greycat.Task, condScript: string): greycat.Task;
+                loop(from: string, to: string, subTask: greycat.Task): greycat.Task;
+                loopPar(from: string, to: string, subTask: greycat.Task): greycat.Task;
+                forEach(subTask: greycat.Task): greycat.Task;
+                forEachPar(subTask: greycat.Task): greycat.Task;
+                map(subTask: greycat.Task): greycat.Task;
+                mapPar(subTask: greycat.Task): greycat.Task;
+                ifThen(cond: greycat.ConditionalFunction, then: greycat.Task): greycat.Task;
+                ifThenScript(condScript: string, then: greycat.Task): greycat.Task;
+                ifThenElse(cond: greycat.ConditionalFunction, thenSub: greycat.Task, elseSub: greycat.Task): greycat.Task;
+                ifThenElseScript(condScript: string, thenSub: greycat.Task, elseSub: greycat.Task): greycat.Task;
+                whileDo(cond: greycat.ConditionalFunction, task: greycat.Task): greycat.Task;
+                whileDoScript(condScript: string, task: greycat.Task): greycat.Task;
+                pipe(...subTasks: greycat.Task[]): greycat.Task;
+                pipePar(...subTasks: greycat.Task[]): greycat.Task;
+                pipeTo(subTask: greycat.Task, ...vars: string[]): greycat.Task;
+                atomic(protectedTask: greycat.Task, ...variablesToLock: string[]): greycat.Task;
+                execute(graph: greycat.Graph, callback: greycat.Callback<greycat.TaskResult<any>>): void;
+                executeSync(graph: greycat.Graph): greycat.TaskResult<any>;
+                executeWith(graph: greycat.Graph, initial: any, callback: greycat.Callback<greycat.TaskResult<any>>): void;
+                prepare(graph: greycat.Graph, initial: any, callback: greycat.Callback<greycat.TaskResult<any>>): greycat.TaskContext;
+                executeUsing(preparedContext: greycat.TaskContext): void;
+                executeFrom(parentContext: greycat.TaskContext, initial: greycat.TaskResult<any>, affinity: number, callback: greycat.Callback<greycat.TaskResult<any>>): void;
+                executeFromUsing(parentContext: greycat.TaskContext, initial: greycat.TaskResult<any>, affinity: number, contextInitializer: greycat.Callback<greycat.TaskContext>, callback: greycat.Callback<greycat.TaskResult<any>>): void;
+                loadFromBuffer(buffer: greycat.struct.Buffer, graph: greycat.Graph): greycat.Task;
+                saveToBuffer(buffer: greycat.struct.Buffer): greycat.Task;
+                parse(flat: string, graph: greycat.Graph): greycat.Task;
                 private sub_parse(reader, graph, contextTasks);
-                static loadAction(registry: greycat.plugin.ActionRegistry, actionName: string, params: string[], contextTasks: java.util.Map<number, greycat.task.Task>): greycat.task.Action;
+                static loadAction(registry: greycat.plugin.ActionRegistry, actionName: string, params: string[], contextTasks: java.util.Map<number, greycat.Task>): greycat.Action;
                 private static condFromScript(script);
                 private static executeScript(script, context);
                 static fillDefault(registry: greycat.plugin.ActionRegistry): void;
@@ -1944,100 +2125,100 @@ declare module greycat {
                 toString(): string;
                 serialize(builder: java.lang.StringBuilder, dagCounters: java.util.Map<number, number>): void;
                 private static deep_analyze(t, counters, dagCollector);
-                travelInWorld(world: string): greycat.task.Task;
-                travelInTime(time: string): greycat.task.Task;
-                inject(input: any): greycat.task.Task;
-                defineAsGlobalVar(name: string): greycat.task.Task;
-                defineAsVar(name: string): greycat.task.Task;
-                declareGlobalVar(name: string): greycat.task.Task;
-                declareVar(name: string): greycat.task.Task;
-                readVar(name: string): greycat.task.Task;
-                setAsVar(name: string): greycat.task.Task;
-                addToVar(name: string): greycat.task.Task;
-                setAttribute(name: string, type: number, value: string): greycat.task.Task;
-                timeSensitivity(delta: string, offset: string): greycat.task.Task;
-                forceAttribute(name: string, type: number, value: string): greycat.task.Task;
-                remove(name: string): greycat.task.Task;
-                attributes(): greycat.task.Task;
-                timepoints(from: string, to: string): greycat.task.Task;
-                attributesWithType(filterType: number): greycat.task.Task;
-                addVarToRelation(relName: string, varName: string, ...attributes: string[]): greycat.task.Task;
-                removeVarFromRelation(relName: string, varFrom: string, ...attributes: string[]): greycat.task.Task;
-                traverse(name: string, ...params: string[]): greycat.task.Task;
-                attribute(name: string, ...params: string[]): greycat.task.Task;
-                readGlobalIndex(name: string, ...query: string[]): greycat.task.Task;
-                globalIndex(indexName: string): greycat.task.Task;
-                addToGlobalIndex(name: string, ...attributes: string[]): greycat.task.Task;
-                addToGlobalTimedIndex(name: string, ...attributes: string[]): greycat.task.Task;
-                removeFromGlobalIndex(name: string, ...attributes: string[]): greycat.task.Task;
-                removeFromGlobalTimedIndex(name: string, ...attributes: string[]): greycat.task.Task;
-                indexNames(): greycat.task.Task;
-                selectWith(name: string, pattern: string): greycat.task.Task;
-                selectWithout(name: string, pattern: string): greycat.task.Task;
-                select(filterFunction: greycat.task.TaskFunctionSelect): greycat.task.Task;
-                selectObject(filterFunction: greycat.task.TaskFunctionSelectObject): greycat.task.Task;
-                log(name: string): greycat.task.Task;
-                selectScript(script: string): greycat.task.Task;
-                print(name: string): greycat.task.Task;
-                println(name: string): greycat.task.Task;
-                executeExpression(expression: string): greycat.task.Task;
-                createNode(): greycat.task.Task;
-                createTypedNode(type: string): greycat.task.Task;
-                save(): greycat.task.Task;
-                script(script: string): greycat.task.Task;
-                asyncScript(ascript: string): greycat.task.Task;
-                lookup(nodeId: string): greycat.task.Task;
-                lookupAll(nodeIds: string): greycat.task.Task;
-                clearResult(): greycat.task.Task;
-                action(name: string, ...params: string[]): greycat.task.Task;
-                flipVar(name: string): greycat.task.Task;
-                flat(): greycat.task.Task;
+                travelInWorld(world: string): greycat.Task;
+                travelInTime(time: string): greycat.Task;
+                inject(input: any): greycat.Task;
+                defineAsGlobalVar(name: string): greycat.Task;
+                defineAsVar(name: string): greycat.Task;
+                declareGlobalVar(name: string): greycat.Task;
+                declareVar(name: string): greycat.Task;
+                readVar(name: string): greycat.Task;
+                setAsVar(name: string): greycat.Task;
+                addToVar(name: string): greycat.Task;
+                setAttribute(name: string, type: number, value: string): greycat.Task;
+                timeSensitivity(delta: string, offset: string): greycat.Task;
+                forceAttribute(name: string, type: number, value: string): greycat.Task;
+                remove(name: string): greycat.Task;
+                attributes(): greycat.Task;
+                timepoints(from: string, to: string): greycat.Task;
+                attributesWithType(filterType: number): greycat.Task;
+                addVarToRelation(relName: string, varName: string, ...attributes: string[]): greycat.Task;
+                removeVarFromRelation(relName: string, varFrom: string, ...attributes: string[]): greycat.Task;
+                traverse(name: string, ...params: string[]): greycat.Task;
+                attribute(name: string, ...params: string[]): greycat.Task;
+                readGlobalIndex(name: string, ...query: string[]): greycat.Task;
+                globalIndex(indexName: string): greycat.Task;
+                addToGlobalIndex(name: string, ...attributes: string[]): greycat.Task;
+                addToGlobalTimedIndex(name: string, ...attributes: string[]): greycat.Task;
+                removeFromGlobalIndex(name: string, ...attributes: string[]): greycat.Task;
+                removeFromGlobalTimedIndex(name: string, ...attributes: string[]): greycat.Task;
+                indexNames(): greycat.Task;
+                selectWith(name: string, pattern: string): greycat.Task;
+                selectWithout(name: string, pattern: string): greycat.Task;
+                select(filterFunction: greycat.TaskFunctionSelect): greycat.Task;
+                selectObject(filterFunction: greycat.TaskFunctionSelectObject): greycat.Task;
+                log(name: string): greycat.Task;
+                selectScript(script: string): greycat.Task;
+                print(name: string): greycat.Task;
+                println(name: string): greycat.Task;
+                executeExpression(expression: string): greycat.Task;
+                createNode(): greycat.Task;
+                createTypedNode(type: string): greycat.Task;
+                save(): greycat.Task;
+                script(script: string): greycat.Task;
+                asyncScript(ascript: string): greycat.Task;
+                lookup(nodeId: string): greycat.Task;
+                lookupAll(nodeIds: string): greycat.Task;
+                clearResult(): greycat.Task;
+                action(name: string, ...params: string[]): greycat.Task;
+                flipVar(name: string): greycat.Task;
+                flat(): greycat.Task;
             }
-            class CoreTaskContext implements greycat.task.TaskContext {
+            class CoreTaskContext implements greycat.TaskContext {
                 private _globalVariables;
                 private _parent;
                 private _graph;
-                _callback: greycat.Callback<greycat.task.TaskResult<any>>;
+                _callback: greycat.Callback<greycat.TaskResult<any>>;
                 private _localVariables;
                 private _nextVariables;
-                _result: greycat.task.TaskResult<any>;
+                _result: greycat.TaskResult<any>;
                 private _world;
                 private _time;
                 private _origin;
                 private cursor;
-                _hooks: greycat.task.TaskHook[];
+                _hooks: greycat.TaskHook[];
                 private _output;
-                constructor(origin: greycat.internal.task.CoreTask, p_hooks: greycat.task.TaskHook[], parentContext: greycat.task.TaskContext, initial: greycat.task.TaskResult<any>, p_graph: greycat.Graph, p_callback: greycat.Callback<greycat.task.TaskResult<any>>);
+                constructor(origin: greycat.internal.task.CoreTask, p_hooks: greycat.TaskHook[], parentContext: greycat.TaskContext, initial: greycat.TaskResult<any>, p_graph: greycat.Graph, p_callback: greycat.Callback<greycat.TaskResult<any>>);
                 graph(): greycat.Graph;
                 world(): number;
-                setWorld(p_world: number): greycat.task.TaskContext;
+                setWorld(p_world: number): greycat.TaskContext;
                 time(): number;
-                setTime(p_time: number): greycat.task.TaskContext;
-                variables(): greycat.utility.Tuple<string, greycat.task.TaskResult<any>>[];
+                setTime(p_time: number): greycat.TaskContext;
+                variables(): greycat.utility.Tuple<string, greycat.TaskResult<any>>[];
                 private recursive_collect(ctx, collector);
-                variable(name: string): greycat.task.TaskResult<any>;
+                variable(name: string): greycat.TaskResult<any>;
                 isGlobal(name: string): boolean;
                 private internal_deep_resolve(name);
-                wrap(input: any): greycat.task.TaskResult<any>;
-                wrapClone(input: any): greycat.task.TaskResult<any>;
-                newResult(): greycat.task.TaskResult<any>;
-                declareVariable(name: string): greycat.task.TaskContext;
+                wrap(input: any): greycat.TaskResult<any>;
+                wrapClone(input: any): greycat.TaskResult<any>;
+                newResult(): greycat.TaskResult<any>;
+                declareVariable(name: string): greycat.TaskContext;
                 private lazyWrap(input);
-                defineVariable(name: string, initialResult: any): greycat.task.TaskContext;
-                defineVariableForSubTask(name: string, initialResult: any): greycat.task.TaskContext;
-                setGlobalVariable(name: string, value: any): greycat.task.TaskContext;
-                setVariable(name: string, value: any): greycat.task.TaskContext;
+                defineVariable(name: string, initialResult: any): greycat.TaskContext;
+                defineVariableForSubTask(name: string, initialResult: any): greycat.TaskContext;
+                setGlobalVariable(name: string, value: any): greycat.TaskContext;
+                setVariable(name: string, value: any): greycat.TaskContext;
                 private internal_deep_resolve_map(name);
-                addToGlobalVariable(name: string, value: any): greycat.task.TaskContext;
-                addToVariable(name: string, value: any): greycat.task.TaskContext;
-                globalVariables(): java.util.Map<string, greycat.task.TaskResult<any>>;
-                localVariables(): java.util.Map<string, greycat.task.TaskResult<any>>;
-                result(): greycat.task.TaskResult<any>;
-                resultAsNodes(): greycat.task.TaskResult<greycat.Node>;
-                resultAsStrings(): greycat.task.TaskResult<string>;
-                continueWith(nextResult: greycat.task.TaskResult<any>): void;
+                addToGlobalVariable(name: string, value: any): greycat.TaskContext;
+                addToVariable(name: string, value: any): greycat.TaskContext;
+                globalVariables(): java.util.Map<string, greycat.TaskResult<any>>;
+                localVariables(): java.util.Map<string, greycat.TaskResult<any>>;
+                result(): greycat.TaskResult<any>;
+                resultAsNodes(): greycat.TaskResult<greycat.Node>;
+                resultAsStrings(): greycat.TaskResult<string>;
+                continueWith(nextResult: greycat.TaskResult<any>): void;
                 continueTask(): void;
-                endTask(preFinalResult: greycat.task.TaskResult<any>, e: Error): void;
+                endTask(preFinalResult: greycat.TaskResult<any>, e: Error): void;
                 execute(): void;
                 template(input: string): string;
                 templates(inputs: string[]): string[];
@@ -2056,7 +2237,7 @@ declare module greycat {
                 end(): number;
                 slice(cursor: number): greycat.internal.task.CoreTaskReader;
             }
-            class CoreTaskResultIterator<A> implements greycat.task.TaskResultIterator<A> {
+            class CoreTaskResultIterator<A> implements greycat.TaskResultIterator<A> {
                 private _backend;
                 private _size;
                 private _current;
@@ -2084,7 +2265,7 @@ declare module greycat {
                     static isLetter(c: string): boolean;
                     static isWhitespace(c: string): boolean;
                     private shuntingYard(expression);
-                    eval(context: greycat.Node, taskContext: greycat.task.TaskContext, variables: java.util.Map<string, number>): number;
+                    eval(context: greycat.Node, taskContext: greycat.TaskContext, variables: java.util.Map<string, number>): number;
                     private buildAST(rpn);
                     private parseDouble(val);
                     private parseInt(val);
@@ -2093,7 +2274,7 @@ declare module greycat {
                     private _engine;
                     private _expression;
                     constructor(mathExpression: string);
-                    conditional(): greycat.task.ConditionalFunction;
+                    conditional(): greycat.ConditionalFunction;
                     toString(): string;
                 }
                 class MathDoubleToken implements greycat.internal.task.math.MathToken {
@@ -2110,7 +2291,7 @@ declare module greycat {
                     constructor();
                 }
                 interface MathExpressionEngine {
-                    eval(context: greycat.Node, taskContext: greycat.task.TaskContext, variables: java.util.Map<string, number>): number;
+                    eval(context: greycat.Node, taskContext: greycat.TaskContext, variables: java.util.Map<string, number>): number;
                 }
                 class MathExpressionTokenizer {
                     private pos;
@@ -2160,41 +2341,6 @@ declare module greycat {
                 }
             }
         }
-        module utility {
-            class CoreDeferCounter implements greycat.DeferCounter {
-                private _nb_down;
-                private _counter;
-                private _end;
-                constructor(nb: number);
-                count(): void;
-                getCount(): number;
-                then(p_callback: greycat.plugin.Job): void;
-                wrap(): greycat.Callback<any>;
-            }
-            class CoreDeferCounterSync implements greycat.DeferCounterSync {
-                private _nb_down;
-                private _counter;
-                private _end;
-                private _result;
-                constructor(nb: number);
-                count(): void;
-                getCount(): number;
-                then(p_callback: greycat.plugin.Job): void;
-                wrap(): greycat.Callback<any>;
-                waitResult(): any;
-            }
-            class ReadOnlyStorage implements greycat.plugin.Storage {
-                private wrapped;
-                constructor(toWrap: greycat.plugin.Storage);
-                get(keys: greycat.struct.Buffer, callback: greycat.Callback<greycat.struct.Buffer>): void;
-                put(stream: greycat.struct.Buffer, callback: greycat.Callback<boolean>): void;
-                remove(keys: greycat.struct.Buffer, callback: greycat.Callback<boolean>): void;
-                connect(graph: greycat.Graph, callback: greycat.Callback<boolean>): void;
-                disconnect(callback: greycat.Callback<boolean>): void;
-                lock(callback: greycat.Callback<greycat.struct.Buffer>): void;
-                unlock(previousLock: greycat.struct.Buffer, callback: greycat.Callback<boolean>): void;
-            }
-        }
     }
     module plugin {
         interface ActionDeclaration {
@@ -2207,7 +2353,7 @@ declare module greycat {
             name(): string;
         }
         interface ActionFactory {
-            (params: any[]): greycat.task.Action;
+            (params: any[]): greycat.Action;
         }
         interface ActionRegistry {
             declaration(name: string): greycat.plugin.ActionDeclaration;
@@ -2301,7 +2447,36 @@ declare module greycat {
             disconnect(callback: greycat.Callback<boolean>): void;
         }
         interface TaskExecutor {
-            executeTasks(callback: greycat.Callback<string[]>, ...tasks: greycat.task.Task[]): void;
+            executeTasks(callback: greycat.Callback<string[]>, ...tasks: greycat.Task[]): void;
+        }
+    }
+    module scheduler {
+        class JobQueue {
+            private first;
+            private last;
+            add(item: greycat.plugin.Job): void;
+            poll(): greycat.plugin.Job;
+        }
+        module JobQueue {
+            class JobQueueElem {
+                _ptr: greycat.plugin.Job;
+                _next: greycat.scheduler.JobQueue.JobQueueElem;
+                constructor(ptr: greycat.plugin.Job, next: greycat.scheduler.JobQueue.JobQueueElem);
+            }
+        }
+        class NoopScheduler implements greycat.plugin.Scheduler {
+            dispatch(affinity: number, job: greycat.plugin.Job): void;
+            start(): void;
+            stop(): void;
+            workers(): number;
+        }
+        class TrampolineScheduler implements greycat.plugin.Scheduler {
+            private queue;
+            private wip;
+            dispatch(affinity: number, job: greycat.plugin.Job): void;
+            start(): void;
+            stop(): void;
+            workers(): number;
         }
     }
     module struct {
@@ -2440,192 +2615,6 @@ declare module greycat {
             (key: string, value: number): void;
         }
     }
-    module task {
-        interface Action {
-            eval(ctx: greycat.task.TaskContext): void;
-            serialize(builder: java.lang.StringBuilder): void;
-        }
-        interface ActionFunction {
-            (ctx: greycat.task.TaskContext): void;
-        }
-        interface ConditionalFunction {
-            (ctx: greycat.task.TaskContext): boolean;
-        }
-        interface Task {
-            then(nextAction: greycat.task.Action): greycat.task.Task;
-            thenDo(nextActionFunction: greycat.task.ActionFunction): greycat.task.Task;
-            doWhile(task: greycat.task.Task, cond: greycat.task.ConditionalFunction): greycat.task.Task;
-            doWhileScript(task: greycat.task.Task, condScript: string): greycat.task.Task;
-            loop(from: string, to: string, subTask: greycat.task.Task): greycat.task.Task;
-            loopPar(from: string, to: string, subTask: greycat.task.Task): greycat.task.Task;
-            forEach(subTask: greycat.task.Task): greycat.task.Task;
-            forEachPar(subTask: greycat.task.Task): greycat.task.Task;
-            flat(): greycat.task.Task;
-            map(subTask: greycat.task.Task): greycat.task.Task;
-            mapPar(subTask: greycat.task.Task): greycat.task.Task;
-            ifThen(cond: greycat.task.ConditionalFunction, then: greycat.task.Task): greycat.task.Task;
-            ifThenScript(condScript: string, then: greycat.task.Task): greycat.task.Task;
-            ifThenElse(cond: greycat.task.ConditionalFunction, thenSub: greycat.task.Task, elseSub: greycat.task.Task): greycat.task.Task;
-            ifThenElseScript(condScript: string, thenSub: greycat.task.Task, elseSub: greycat.task.Task): greycat.task.Task;
-            whileDo(cond: greycat.task.ConditionalFunction, task: greycat.task.Task): greycat.task.Task;
-            whileDoScript(condScript: string, task: greycat.task.Task): greycat.task.Task;
-            pipe(...subTasks: greycat.task.Task[]): greycat.task.Task;
-            pipePar(...subTasks: greycat.task.Task[]): greycat.task.Task;
-            pipeTo(subTask: greycat.task.Task, ...vars: string[]): greycat.task.Task;
-            parse(input: string, graph: greycat.Graph): greycat.task.Task;
-            loadFromBuffer(buffer: greycat.struct.Buffer, graph: greycat.Graph): greycat.task.Task;
-            saveToBuffer(buffer: greycat.struct.Buffer): greycat.task.Task;
-            addHook(hook: greycat.task.TaskHook): greycat.task.Task;
-            execute(graph: greycat.Graph, callback: greycat.Callback<greycat.task.TaskResult<any>>): void;
-            executeSync(graph: greycat.Graph): greycat.task.TaskResult<any>;
-            executeWith(graph: greycat.Graph, initial: any, callback: greycat.Callback<greycat.task.TaskResult<any>>): void;
-            prepare(graph: greycat.Graph, initial: any, callback: greycat.Callback<greycat.task.TaskResult<any>>): greycat.task.TaskContext;
-            executeUsing(preparedContext: greycat.task.TaskContext): void;
-            executeFrom(parentContext: greycat.task.TaskContext, initial: greycat.task.TaskResult<any>, affinity: number, callback: greycat.Callback<greycat.task.TaskResult<any>>): void;
-            executeFromUsing(parentContext: greycat.task.TaskContext, initial: greycat.task.TaskResult<any>, affinity: number, contextInitializer: greycat.Callback<greycat.task.TaskContext>, callback: greycat.Callback<greycat.task.TaskResult<any>>): void;
-            travelInWorld(world: string): greycat.task.Task;
-            travelInTime(time: string): greycat.task.Task;
-            inject(input: any): greycat.task.Task;
-            defineAsGlobalVar(name: string): greycat.task.Task;
-            defineAsVar(name: string): greycat.task.Task;
-            declareGlobalVar(name: string): greycat.task.Task;
-            declareVar(name: string): greycat.task.Task;
-            readVar(name: string): greycat.task.Task;
-            setAsVar(name: string): greycat.task.Task;
-            addToVar(name: string): greycat.task.Task;
-            setAttribute(name: string, type: number, value: string): greycat.task.Task;
-            timeSensitivity(delta: string, offset: string): greycat.task.Task;
-            forceAttribute(name: string, type: number, value: string): greycat.task.Task;
-            remove(name: string): greycat.task.Task;
-            attributes(): greycat.task.Task;
-            timepoints(from: string, to: string): greycat.task.Task;
-            attributesWithType(filterType: number): greycat.task.Task;
-            addVarToRelation(relName: string, varName: string, ...attributes: string[]): greycat.task.Task;
-            removeVarFromRelation(relName: string, varFrom: string, ...attributes: string[]): greycat.task.Task;
-            traverse(name: string, ...params: string[]): greycat.task.Task;
-            attribute(name: string, ...params: string[]): greycat.task.Task;
-            readGlobalIndex(indexName: string, ...query: string[]): greycat.task.Task;
-            globalIndex(indexName: string): greycat.task.Task;
-            addToGlobalIndex(name: string, ...attributes: string[]): greycat.task.Task;
-            addToGlobalTimedIndex(name: string, ...attributes: string[]): greycat.task.Task;
-            removeFromGlobalIndex(name: string, ...attributes: string[]): greycat.task.Task;
-            removeFromGlobalTimedIndex(name: string, ...attributes: string[]): greycat.task.Task;
-            indexNames(): greycat.task.Task;
-            selectWith(name: string, pattern: string): greycat.task.Task;
-            selectWithout(name: string, pattern: string): greycat.task.Task;
-            select(filterFunction: greycat.task.TaskFunctionSelect): greycat.task.Task;
-            selectScript(script: string): greycat.task.Task;
-            selectObject(filterFunction: greycat.task.TaskFunctionSelectObject): greycat.task.Task;
-            log(name: string): greycat.task.Task;
-            print(name: string): greycat.task.Task;
-            println(name: string): greycat.task.Task;
-            executeExpression(expression: string): greycat.task.Task;
-            createNode(): greycat.task.Task;
-            createTypedNode(type: string): greycat.task.Task;
-            save(): greycat.task.Task;
-            script(script: string): greycat.task.Task;
-            asyncScript(ascript: string): greycat.task.Task;
-            lookup(nodeId: string): greycat.task.Task;
-            lookupAll(nodeIds: string): greycat.task.Task;
-            clearResult(): greycat.task.Task;
-            action(name: string, ...params: string[]): greycat.task.Task;
-            flipVar(name: string): greycat.task.Task;
-            atomic(protectedTask: greycat.task.Task, ...variablesToLock: string[]): greycat.task.Task;
-        }
-        interface TaskActionFactory {
-            (params: string[], contextTasks: java.util.Map<number, greycat.task.Task>): greycat.task.Action;
-        }
-        interface TaskContext {
-            graph(): greycat.Graph;
-            world(): number;
-            setWorld(world: number): greycat.task.TaskContext;
-            time(): number;
-            setTime(time: number): greycat.task.TaskContext;
-            variables(): greycat.utility.Tuple<string, greycat.task.TaskResult<any>>[];
-            variable(name: string): greycat.task.TaskResult<any>;
-            isGlobal(name: string): boolean;
-            wrap(input: any): greycat.task.TaskResult<any>;
-            wrapClone(input: any): greycat.task.TaskResult<any>;
-            newResult(): greycat.task.TaskResult<any>;
-            declareVariable(name: string): greycat.task.TaskContext;
-            defineVariable(name: string, initialResult: any): greycat.task.TaskContext;
-            defineVariableForSubTask(name: string, initialResult: any): greycat.task.TaskContext;
-            setGlobalVariable(name: string, value: any): greycat.task.TaskContext;
-            setVariable(name: string, value: any): greycat.task.TaskContext;
-            addToGlobalVariable(name: string, value: any): greycat.task.TaskContext;
-            addToVariable(name: string, value: any): greycat.task.TaskContext;
-            result(): greycat.task.TaskResult<any>;
-            resultAsNodes(): greycat.task.TaskResult<greycat.Node>;
-            resultAsStrings(): greycat.task.TaskResult<string>;
-            continueTask(): void;
-            continueWith(nextResult: greycat.task.TaskResult<any>): void;
-            endTask(nextResult: greycat.task.TaskResult<any>, e: Error): void;
-            template(input: string): string;
-            templates(inputs: string[]): string[];
-            append(additionalOutput: string): void;
-        }
-        interface TaskFunctionSelect {
-            (node: greycat.Node, context: greycat.task.TaskContext): boolean;
-        }
-        interface TaskFunctionSelectObject {
-            (object: any, context: greycat.task.TaskContext): boolean;
-        }
-        interface TaskHook {
-            start(initialContext: greycat.task.TaskContext): void;
-            beforeAction(action: greycat.task.Action, context: greycat.task.TaskContext): void;
-            afterAction(action: greycat.task.Action, context: greycat.task.TaskContext): void;
-            beforeTask(parentContext: greycat.task.TaskContext, context: greycat.task.TaskContext): void;
-            afterTask(context: greycat.task.TaskContext): void;
-            end(finalContext: greycat.task.TaskContext): void;
-        }
-        interface TaskResult<A> {
-            iterator(): greycat.task.TaskResultIterator<any>;
-            get(index: number): A;
-            set(index: number, input: A): greycat.task.TaskResult<A>;
-            allocate(index: number): greycat.task.TaskResult<A>;
-            add(input: A): greycat.task.TaskResult<A>;
-            clear(): greycat.task.TaskResult<A>;
-            clone(): greycat.task.TaskResult<A>;
-            free(): void;
-            size(): number;
-            asArray(): any[];
-            exception(): Error;
-            output(): string;
-            setException(e: Error): greycat.task.TaskResult<A>;
-            setOutput(output: string): greycat.task.TaskResult<A>;
-            fillWith(source: greycat.task.TaskResult<A>): greycat.task.TaskResult<A>;
-        }
-        interface TaskResultIterator<A> {
-            next(): A;
-            nextWithIndex(): greycat.utility.Tuple<number, A>;
-        }
-        class Tasks {
-            static cond(mathExpression: string): greycat.task.ConditionalFunction;
-            static newTask(): greycat.task.Task;
-            static emptyResult(): greycat.task.TaskResult<any>;
-            static then(action: greycat.task.Action): greycat.task.Task;
-            static thenDo(actionFunction: greycat.task.ActionFunction): greycat.task.Task;
-            static loop(from: string, to: string, subTask: greycat.task.Task): greycat.task.Task;
-            static loopPar(from: string, to: string, subTask: greycat.task.Task): greycat.task.Task;
-            static forEach(subTask: greycat.task.Task): greycat.task.Task;
-            static forEachPar(subTask: greycat.task.Task): greycat.task.Task;
-            static map(subTask: greycat.task.Task): greycat.task.Task;
-            static mapPar(subTask: greycat.task.Task): greycat.task.Task;
-            static ifThen(cond: greycat.task.ConditionalFunction, then: greycat.task.Task): greycat.task.Task;
-            static ifThenScript(condScript: string, then: greycat.task.Task): greycat.task.Task;
-            static ifThenElse(cond: greycat.task.ConditionalFunction, thenSub: greycat.task.Task, elseSub: greycat.task.Task): greycat.task.Task;
-            static ifThenElseScript(condScript: string, thenSub: greycat.task.Task, elseSub: greycat.task.Task): greycat.task.Task;
-            static doWhile(task: greycat.task.Task, cond: greycat.task.ConditionalFunction): greycat.task.Task;
-            static doWhileScript(task: greycat.task.Task, condScript: string): greycat.task.Task;
-            static whileDo(cond: greycat.task.ConditionalFunction, task: greycat.task.Task): greycat.task.Task;
-            static whileDoScript(condScript: string, task: greycat.task.Task): greycat.task.Task;
-            static pipe(...subTasks: greycat.task.Task[]): greycat.task.Task;
-            static pipePar(...subTasks: greycat.task.Task[]): greycat.task.Task;
-            static pipeTo(subTask: greycat.task.Task, ...vars: string[]): greycat.task.Task;
-            static atomic(protectedTask: greycat.task.Task, ...variablesToLock: string[]): greycat.task.Task;
-            static parse(flat: string, graph: greycat.Graph): greycat.task.Task;
-        }
-    }
     module utility {
         class Base64 {
             private static dictionary;
@@ -2724,14 +2713,14 @@ declare module greycat {
             left(): A;
             right(): B;
         }
-        class VerboseHook implements greycat.task.TaskHook {
+        class VerboseHook implements greycat.TaskHook {
             private ctxIdents;
-            start(initialContext: greycat.task.TaskContext): void;
-            beforeAction(action: greycat.task.Action, context: greycat.task.TaskContext): void;
-            afterAction(action: greycat.task.Action, context: greycat.task.TaskContext): void;
-            beforeTask(parentContext: greycat.task.TaskContext, context: greycat.task.TaskContext): void;
-            afterTask(context: greycat.task.TaskContext): void;
-            end(finalContext: greycat.task.TaskContext): void;
+            start(initialContext: greycat.TaskContext): void;
+            beforeAction(action: greycat.Action, context: greycat.TaskContext): void;
+            afterAction(action: greycat.Action, context: greycat.TaskContext): void;
+            beforeTask(parentContext: greycat.TaskContext, context: greycat.TaskContext): void;
+            afterTask(context: greycat.TaskContext): void;
+            end(finalContext: greycat.TaskContext): void;
         }
         class VerbosePlugin implements greycat.plugin.Plugin {
             start(graph: greycat.Graph): void;

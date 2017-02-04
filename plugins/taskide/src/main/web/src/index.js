@@ -70,7 +70,7 @@ const LoadingButton = React.createClass({
     handleClick() {
         let self = this;
         self.setState({isLoading: true});
-        let task = global.greycat.task.Tasks.newTask();
+        let task = global.greycat.Tasks.newTask();
         try {
             task.parse(global.context.code, window.context.graph);
             global.context.ws.executeTasks(function (results) {

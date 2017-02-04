@@ -16,7 +16,7 @@
 package greycat.importer;
 
 import greycat.plugin.Plugin;
-import greycat.task.Action;
+import greycat.Action;
 import greycat.Graph;
 import greycat.Type;
 import greycat.plugin.ActionFactory;

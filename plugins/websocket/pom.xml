@@ -18,19 +18,17 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.datathings.greycat.plugins</groupId>
-    <artifactId>websocket</artifactId>
+    <artifactId>greycat-websocket</artifactId>
     <version>12-SNAPSHOT</version>
-    <name>greycat :: Plugins :: WebSocket</name>
+    <name>greycat-websocket</name>
 
     <properties>
-        <undertow.version>1.4.10.Final</undertow.version>
         <header.path>${basedir}/../../HEADER</header.path>
     </properties>
 
     <parent>
-        <artifactId>greycat</artifactId>
-        <groupId>com.datathings.greycat</groupId>
+        <artifactId>greycat-parent</artifactId>
+        <groupId>com.datathings</groupId>
         <version>12-SNAPSHOT</version>
         <relativePath>../..</relativePath>
     </parent>
@@ -42,16 +40,9 @@
             <version>${undertow.version}</version>
         </dependency>
         <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>core</artifactId>
+            <groupId>com.datathings</groupId>
+            <artifactId>greycat</artifactId>
             <version>${project.parent.version}</version>
-        </dependency>
-        <!-- Test -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -69,7 +60,7 @@
                             <target>
                                 <copy file="${basedir}/src/main/ts/greycat.ws.ts" todir="${basedir}/target/generated-sources" />
                                 <!-- Auto update for dev purpose -->
-                                <copy file="${basedir}/../../core/target/classes-js/greycat.d.ts" todir="${basedir}/src/main/ts" />
+                                <copy file="${basedir}/../../greycat/target/classes-js/greycat.d.ts" todir="${basedir}/src/main/ts" />
                                 <copy file="${basedir}/src/main/ts/greycat.d.ts" todir="${basedir}/target/generated-sources" />
 
                                 <copy file="${basedir}/../../share/package.json" todir="${basedir}/target" />

@@ -18,8 +18,6 @@ package greycat;
 import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
-import greycat.task.Task;
-import greycat.task.TaskResult;
 import io.undertow.Handlers;
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;

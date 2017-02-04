@@ -24,7 +24,7 @@ import greycat.plugin.Plugin;
 import greycat.structure.action.NearestNWithinRadius;
 import greycat.structure.trees.KDTree;
 import greycat.structure.trees.NDTree;
-import greycat.task.Action;
+import greycat.Action;
 
 public class StructurePlugin implements Plugin {
 

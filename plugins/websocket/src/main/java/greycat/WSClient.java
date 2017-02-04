@@ -17,7 +17,6 @@ package greycat;
 
 import greycat.plugin.TaskExecutor;
 import greycat.struct.BufferIterator;
-import greycat.task.Task;
 import io.undertow.connector.ByteBufferPool;
 import io.undertow.server.DefaultByteBufferPool;
 import io.undertow.websockets.client.WebSocketClient;

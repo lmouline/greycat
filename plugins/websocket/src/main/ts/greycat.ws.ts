@@ -93,7 +93,7 @@ module greycat {
                 this.send_rpc_req(this.REQ_UNLOCK, previousLock, callback);
             }
 
-            executeTasks(callback: greycat.Callback<String[]>, ...tasks: greycat.task.Task[]): void {
+            executeTasks(callback: greycat.Callback<String[]>, ...tasks: greycat.Task[]): void {
                 let tasksBuffer = this.graph.newBuffer();
                 for (let i = 0; i < tasks.length; i++) {
                     if (i != 0) {

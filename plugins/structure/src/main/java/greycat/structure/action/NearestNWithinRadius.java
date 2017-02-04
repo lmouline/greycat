@@ -18,13 +18,13 @@ package greycat.structure.action;
 import greycat.plugin.Job;
 import greycat.structure.trees.KDTree;
 import greycat.structure.trees.NDTree;
-import greycat.task.Action;
+import greycat.Action;
 import greycat.DeferCounter;
 import greycat.structure.Tree;
 import greycat.structure.TreeResult;
-import greycat.task.TaskContext;
-import greycat.task.TaskResult;
-import greycat.task.TaskResultIterator;
+import greycat.TaskContext;
+import greycat.TaskResult;
+import greycat.TaskResultIterator;
 
 public class NearestNWithinRadius implements Action {
 

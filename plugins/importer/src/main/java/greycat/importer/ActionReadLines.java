@@ -17,9 +17,9 @@ package greycat.importer;
 
 import greycat.Constants;
 import greycat.internal.task.TaskHelper;
-import greycat.task.Action;
+import greycat.Action;
 import greycat.importer.util.IterableLines;
-import greycat.task.TaskContext;
+import greycat.TaskContext;
 
 class ActionReadLines implements Action {
 

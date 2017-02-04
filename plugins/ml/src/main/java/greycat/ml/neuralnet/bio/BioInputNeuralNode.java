@@ -22,8 +22,8 @@ import greycat.plugin.Job;
 import greycat.plugin.SchedulerAffinity;
 import greycat.struct.LongLongArrayMap;
 import greycat.struct.LongLongMap;
-import greycat.task.Task;
-import greycat.task.TaskContext;
+import greycat.Task;
+import greycat.TaskContext;
 import greycat.utility.Tuple;
 
 import java.util.ArrayList;

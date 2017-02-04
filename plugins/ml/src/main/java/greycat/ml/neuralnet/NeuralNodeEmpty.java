@@ -16,9 +16,9 @@
 package greycat.ml.neuralnet;
 
 import greycat.struct.LongLongMap;
-import greycat.task.ActionFunction;
-import greycat.task.ConditionalFunction;
-import greycat.task.Task;
+import greycat.ActionFunction;
+import greycat.ConditionalFunction;
+import greycat.Task;
 import greycat.Callback;
 import greycat.Graph;
 import greycat.Type;
@@ -26,7 +26,7 @@ import greycat.base.BaseNode;
 import greycat.internal.task.CoreActions;
 import greycat.plugin.NodeState;
 import greycat.struct.Relation;
-import greycat.task.TaskContext;
+import greycat.TaskContext;
 
 import java.util.ArrayList;
 import java.util.Random;

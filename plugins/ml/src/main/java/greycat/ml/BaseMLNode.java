@@ -21,8 +21,8 @@ import greycat.DeferCounter;
 import greycat.Graph;
 import greycat.base.BaseNode;
 import greycat.plugin.Job;
-import greycat.task.Task;
-import greycat.task.TaskResult;
+import greycat.Task;
+import greycat.TaskResult;
 import greycat.internal.task.CoreActions;
 
 import static greycat.internal.task.CoreActions.travelInWorld;

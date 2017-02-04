@@ -21,10 +21,10 @@ import greycat.Tasks;
 import greycat.internal.task.CoreActions;
 import greycat.internal.task.TaskHelper;
 import greycat.ml.algorithm.regression.PolynomialNode;
-import greycat.task.Action;
-import greycat.task.Task;
-import greycat.task.TaskContext;
-import greycat.task.TaskResult;
+import greycat.Action;
+import greycat.Task;
+import greycat.TaskContext;
+import greycat.TaskResult;
 
 public class ReadContinuous implements Action {
 

@@ -16,10 +16,10 @@
 package greycat.importer;
 
 import greycat.Constants;
-import greycat.task.Action;
+import greycat.Action;
 import greycat.internal.task.TaskHelper;
-import greycat.task.TaskContext;
-import greycat.task.TaskResult;
+import greycat.TaskContext;
+import greycat.TaskResult;
 
 class ActionSplit implements Action {
 

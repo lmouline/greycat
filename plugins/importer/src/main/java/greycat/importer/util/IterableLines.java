@@ -16,8 +16,8 @@
 package greycat.importer.util;
 
 import greycat.base.BaseTaskResult;
-import greycat.task.TaskResult;
-import greycat.task.TaskResultIterator;
+import greycat.TaskResult;
+import greycat.TaskResultIterator;
 import greycat.utility.Tuple;
 
 import java.io.*;

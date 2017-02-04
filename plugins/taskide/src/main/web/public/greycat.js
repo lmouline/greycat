@@ -1364,10 +1364,10 @@ var greycat;
                 this._storage = new greycat.internal.BlackHoleStorage();
             }
             if (this._readOnly) {
-                this._storage = new greycat.internal.utility.ReadOnlyStorage(this._storage);
+                this._storage = new greycat.internal.ReadOnlyStorage(this._storage);
             }
             if (this._scheduler == null) {
-                this._scheduler = new greycat.internal.scheduler.TrampolineScheduler();
+                this._scheduler = new greycat.scheduler.TrampolineScheduler();
             }
             if (this._memorySize == -1) {
                 this._memorySize = 100000;
@@ -1377,6 +1377,104 @@ var greycat;
         return GraphBuilder;
     }());
     greycat.GraphBuilder = GraphBuilder;
+    var Tasks = (function () {
+        function Tasks() {
+        }
+        Tasks.cond = function (mathExpression) {
+            return new greycat.internal.task.math.MathConditional(mathExpression).conditional();
+        };
+        Tasks.newTask = function () {
+            return new greycat.internal.task.CoreTask();
+        };
+        Tasks.emptyResult = function () {
+            return new greycat.base.BaseTaskResult(null, false);
+        };
+        Tasks.then = function (action) {
+            return greycat.Tasks.newTask().then(action);
+        };
+        Tasks.thenDo = function (actionFunction) {
+            return greycat.Tasks.newTask().thenDo(actionFunction);
+        };
+        Tasks.loop = function (from, to, subTask) {
+            return greycat.Tasks.newTask().loop(from, to, subTask);
+        };
+        Tasks.loopPar = function (from, to, subTask) {
+            return greycat.Tasks.newTask().loopPar(from, to, subTask);
+        };
+        Tasks.forEach = function (subTask) {
+            return greycat.Tasks.newTask().forEach(subTask);
+        };
+        Tasks.forEachPar = function (subTask) {
+            return greycat.Tasks.newTask().forEachPar(subTask);
+        };
+        Tasks.map = function (subTask) {
+            return greycat.Tasks.newTask().map(subTask);
+        };
+        Tasks.mapPar = function (subTask) {
+            return greycat.Tasks.newTask().mapPar(subTask);
+        };
+        Tasks.ifThen = function (cond, then) {
+            return greycat.Tasks.newTask().ifThen(cond, then);
+        };
+        Tasks.ifThenScript = function (condScript, then) {
+            return greycat.Tasks.newTask().ifThenScript(condScript, then);
+        };
+        Tasks.ifThenElse = function (cond, thenSub, elseSub) {
+            return greycat.Tasks.newTask().ifThenElse(cond, thenSub, elseSub);
+        };
+        Tasks.ifThenElseScript = function (condScript, thenSub, elseSub) {
+            return greycat.Tasks.newTask().ifThenElseScript(condScript, thenSub, elseSub);
+        };
+        Tasks.doWhile = function (task, cond) {
+            return greycat.Tasks.newTask().doWhile(task, cond);
+        };
+        Tasks.doWhileScript = function (task, condScript) {
+            return greycat.Tasks.newTask().doWhileScript(task, condScript);
+        };
+        Tasks.whileDo = function (cond, task) {
+            return greycat.Tasks.newTask().whileDo(cond, task);
+        };
+        Tasks.whileDoScript = function (condScript, task) {
+            return greycat.Tasks.newTask().whileDoScript(condScript, task);
+        };
+        Tasks.pipe = function () {
+            var subTasks = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                subTasks[_i] = arguments[_i];
+            }
+            return (_a = greycat.Tasks.newTask()).pipe.apply(_a, subTasks);
+            var _a;
+        };
+        Tasks.pipePar = function () {
+            var subTasks = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                subTasks[_i] = arguments[_i];
+            }
+            return (_a = greycat.Tasks.newTask()).pipePar.apply(_a, subTasks);
+            var _a;
+        };
+        Tasks.pipeTo = function (subTask) {
+            var vars = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                vars[_i - 1] = arguments[_i];
+            }
+            return (_a = greycat.Tasks.newTask()).pipeTo.apply(_a, [subTask].concat(vars));
+            var _a;
+        };
+        Tasks.atomic = function (protectedTask) {
+            var variablesToLock = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                variablesToLock[_i - 1] = arguments[_i];
+            }
+            return (_a = greycat.Tasks.newTask()).atomic.apply(_a, [protectedTask].concat(variablesToLock));
+            var _a;
+        };
+        Tasks.parse = function (flat, graph) {
+            return greycat.Tasks.newTask().parse(flat, graph);
+        };
+        return Tasks;
+    }());
+    greycat.Tasks = Tasks;
     var Type = (function () {
         function Type() {
         }
@@ -2459,6 +2557,88 @@ var greycat;
         CoreConstants.SCALE_4 = 1000000;
         CoreConstants.DEAD_NODE_ERROR = "This Node has been tagged destroyed, please don't use it anymore!";
         internal.CoreConstants = CoreConstants;
+        var CoreDeferCounter = (function () {
+            function CoreDeferCounter(nb) {
+                this._counter = nb;
+                this._nb_down = new java.util.concurrent.atomic.AtomicInteger(0);
+            }
+            CoreDeferCounter.prototype.count = function () {
+                var previous;
+                var next;
+                do {
+                    previous = this._nb_down.get();
+                    next = previous + 1;
+                } while (!this._nb_down.compareAndSet(previous, next));
+                if (next == this._counter) {
+                    if (this._end != null) {
+                        this._end();
+                    }
+                }
+            };
+            CoreDeferCounter.prototype.getCount = function () {
+                return this._nb_down.get();
+            };
+            CoreDeferCounter.prototype.then = function (p_callback) {
+                this._end = p_callback;
+                if (this._nb_down.get() == this._counter) {
+                    if (p_callback != null) {
+                        p_callback();
+                    }
+                }
+            };
+            CoreDeferCounter.prototype.wrap = function () {
+                var _this = this;
+                return function (result) {
+                    {
+                        _this.count();
+                    }
+                };
+            };
+            return CoreDeferCounter;
+        }());
+        internal.CoreDeferCounter = CoreDeferCounter;
+        var CoreDeferCounterSync = (function () {
+            function CoreDeferCounterSync(nb) {
+                this._result = null;
+                this._counter = nb;
+                this._nb_down = new java.util.concurrent.atomic.AtomicInteger(0);
+            }
+            CoreDeferCounterSync.prototype.count = function () {
+                this._nb_down.set(this._nb_down.get() + 1);
+                if (this._nb_down.get() == this._counter) {
+                    if (this._end != null) {
+                        this._end();
+                    }
+                }
+            };
+            CoreDeferCounterSync.prototype.getCount = function () {
+                return this._nb_down.get();
+            };
+            CoreDeferCounterSync.prototype.then = function (p_callback) {
+                this._end = p_callback;
+                if (this._nb_down.get() == this._counter) {
+                    if (p_callback != null) {
+                        p_callback();
+                    }
+                }
+            };
+            CoreDeferCounterSync.prototype.wrap = function () {
+                var _this = this;
+                return function (result) {
+                    {
+                        _this._result = result;
+                        _this.count();
+                    }
+                };
+            };
+            CoreDeferCounterSync.prototype.waitResult = function () {
+                while (this._nb_down.get() != this._counter) {
+                }
+                return this._result;
+            };
+            return CoreDeferCounterSync;
+        }());
+        internal.CoreDeferCounterSync = CoreDeferCounterSync;
         var CoreGraph = (function () {
             function CoreGraph(p_storage, memorySize, p_scheduler, p_plugins, deepPriority) {
                 this._prefix = null;
@@ -2466,7 +2646,7 @@ var greycat;
                 this._worldKeyCalculator = null;
                 this._actionRegistry = new greycat.internal.task.CoreActionRegistry();
                 this._nodeRegistry = new greycat.internal.CoreNodeRegistry();
-                this._memoryFactory = new greycat.internal.memory.HeapMemoryFactory();
+                this._memoryFactory = new greycat.internal.heap.HeapMemoryFactory();
                 this._isConnected = new java.util.concurrent.atomic.AtomicBoolean(false);
                 this._lock = new java.util.concurrent.atomic.AtomicBoolean(false);
                 this._plugins = p_plugins;
@@ -2849,10 +3029,10 @@ var greycat;
                 });
             };
             CoreGraph.prototype.newCounter = function (expectedCountCalls) {
-                return new greycat.internal.utility.CoreDeferCounter(expectedCountCalls);
+                return new greycat.internal.CoreDeferCounter(expectedCountCalls);
             };
             CoreGraph.prototype.newSyncCounter = function (expectedCountCalls) {
-                return new greycat.internal.utility.CoreDeferCounterSync(expectedCountCalls);
+                return new greycat.internal.CoreDeferCounterSync(expectedCountCalls);
             };
             CoreGraph.prototype.resolver = function () {
                 return this._resolver;
@@ -4071,5889 +4251,49 @@ var greycat;
         }());
         MWGResolver.KEY_SIZE = 3;
         internal.MWGResolver = MWGResolver;
-        var chunk;
-        (function (chunk_2) {
-            var heap;
-            (function (heap) {
-                var HeapAtomicByteArray = (function () {
-                    function HeapAtomicByteArray(initialSize) {
-                        this._back = new Int8Array(initialSize);
-                    }
-                    HeapAtomicByteArray.prototype.get = function (index) {
-                        return this._back[index];
-                    };
-                    HeapAtomicByteArray.prototype.set = function (index, value) {
-                        this._back[index] = value;
-                    };
-                    return HeapAtomicByteArray;
-                }());
-                heap.HeapAtomicByteArray = HeapAtomicByteArray;
-                var HeapChunkSpace = (function () {
-                    function HeapChunkSpace(initialCapacity, p_graph, deepWorldPriority) {
-                        this._deep_priority = deepWorldPriority;
-                        this._graph = p_graph;
-                        this._maxEntries = initialCapacity;
-                        this._hashEntries = initialCapacity * HeapChunkSpace.HASH_LOAD_FACTOR;
-                        this._lru = new greycat.internal.chunk.heap.HeapFixedStack(initialCapacity, true);
-                        this._dirtiesStack = new greycat.internal.chunk.heap.HeapFixedStack(initialCapacity, false);
-                        this._hashNext = new java.util.concurrent.atomic.AtomicIntegerArray(initialCapacity);
-                        this._hash = new java.util.concurrent.atomic.AtomicIntegerArray(this._hashEntries);
-                        for (var i = 0; i < initialCapacity; i++) {
-                            this._hashNext.set(i, -1);
-                        }
-                        for (var i = 0; i < this._hashEntries; i++) {
-                            this._hash.set(i, -1);
-                        }
-                        this._chunkValues = new java.util.concurrent.atomic.AtomicReferenceArray(initialCapacity);
-                        this._chunkWorlds = new java.util.concurrent.atomic.AtomicLongArray(this._maxEntries);
-                        this._chunkTimes = new java.util.concurrent.atomic.AtomicLongArray(this._maxEntries);
-                        this._chunkIds = new java.util.concurrent.atomic.AtomicLongArray(this._maxEntries);
-                        this._chunkTypes = new greycat.internal.chunk.heap.HeapAtomicByteArray(this._maxEntries);
-                        this._chunkMarks = new java.util.concurrent.atomic.AtomicLongArray(this._maxEntries);
-                        for (var i = 0; i < this._maxEntries; i++) {
-                            this._chunkMarks.set(i, 0);
-                        }
-                    }
-                    HeapChunkSpace.prototype.graph = function () {
-                        return this._graph;
-                    };
-                    HeapChunkSpace.prototype.worldByIndex = function (index) {
-                        return this._chunkWorlds.get(index);
-                    };
-                    HeapChunkSpace.prototype.timeByIndex = function (index) {
-                        return this._chunkTimes.get(index);
-                    };
-                    HeapChunkSpace.prototype.idByIndex = function (index) {
-                        return this._chunkIds.get(index);
-                    };
-                    HeapChunkSpace.prototype.getAndMark = function (type, world, time, id) {
-                        var index;
-                        if (this._deep_priority) {
-                            index = greycat.utility.HashHelper.tripleHash(type, world, time, id, this._hashEntries);
-                        }
-                        else {
-                            index = greycat.utility.HashHelper.simpleTripleHash(type, world, time, id, this._hashEntries);
-                        }
-                        var m = this._hash.get(index);
-                        var found = -1;
-                        while (m != -1) {
-                            if (this._chunkTypes.get(m) == type && this._chunkWorlds.get(m) == world && this._chunkTimes.get(m) == time && this._chunkIds.get(m) == id) {
-                                if (this.mark(m) > 0) {
-                                    found = m;
-                                }
-                                break;
-                            }
-                            else {
-                                m = this._hashNext.get(m);
-                            }
-                        }
-                        if (found != -1) {
-                            return this._chunkValues.get(found);
-                        }
-                        else {
-                            return null;
-                        }
-                    };
-                    HeapChunkSpace.prototype.get = function (index) {
-                        return this._chunkValues.get(index);
-                    };
-                    HeapChunkSpace.prototype.getOrLoadAndMark = function (type, world, time, id, callback) {
-                        var _this = this;
-                        var fromMemory = this.getAndMark(type, world, time, id);
-                        if (fromMemory != null) {
-                            callback(fromMemory);
-                        }
-                        else {
-                            var keys_2 = this.graph().newBuffer();
-                            greycat.utility.KeyHelper.keyToBuffer(keys_2, type, world, time, id);
-                            this.graph().storage().get(keys_2, function (result) {
-                                {
-                                    if (result != null && result.length() > 0) {
-                                        var loadedChunk = _this.createAndMark(type, world, time, id);
-                                        loadedChunk.load(result);
-                                        result.free();
-                                        callback(loadedChunk);
-                                    }
-                                    else {
-                                        keys_2.free();
-                                        callback(null);
-                                    }
-                                }
-                            });
-                        }
-                    };
-                    HeapChunkSpace.prototype.getOrLoadAndMarkAll = function (keys, callback) {
-                        var _this = this;
-                        var querySize = keys.length / greycat.Constants.KEY_SIZE;
-                        var finalResult = new Array(querySize);
-                        var reverse = null;
-                        var reverseIndex = 0;
-                        var toLoadKeys = null;
-                        for (var i = 0; i < querySize; i++) {
-                            var offset = i * greycat.Constants.KEY_SIZE;
-                            var loopType = keys[offset];
-                            if (loopType != -1) {
-                                var fromMemory = this.getAndMark(keys[offset], keys[offset + 1], keys[offset + 2], keys[offset + 3]);
-                                if (fromMemory != null) {
-                                    finalResult[i] = fromMemory;
-                                }
-                                else {
-                                    if (reverse == null) {
-                                        reverse = new Int32Array(querySize);
-                                        toLoadKeys = this.graph().newBuffer();
-                                    }
-                                    reverse[reverseIndex] = i;
-                                    if (reverseIndex != 0) {
-                                        toLoadKeys.write(greycat.Constants.BUFFER_SEP);
-                                    }
-                                    greycat.utility.KeyHelper.keyToBuffer(toLoadKeys, keys[offset], keys[offset + 1], keys[offset + 2], keys[offset + 3]);
-                                    reverseIndex++;
-                                }
-                            }
-                            else {
-                                finalResult[i] = null;
-                            }
-                        }
-                        if (reverse != null) {
-                            var finalReverse_1 = reverse;
-                            this.graph().storage().get(toLoadKeys, function (loadAllResult) {
-                                {
-                                    var it = loadAllResult.iterator();
-                                    var i = 0;
-                                    while (it.hasNext()) {
-                                        var view = it.next();
-                                        var reversedIndex = finalReverse_1[i];
-                                        var reversedOffset = reversedIndex * greycat.Constants.KEY_SIZE;
-                                        if (view.length() > 0) {
-                                            var loadedChunk = _this.createAndMark(keys[reversedOffset], keys[reversedOffset + 1], keys[reversedOffset + 2], keys[reversedOffset + 3]);
-                                            loadedChunk.load(view);
-                                            finalResult[reversedIndex] = loadedChunk;
-                                        }
-                                        else {
-                                            finalResult[reversedIndex] = null;
-                                        }
-                                        i++;
-                                    }
-                                    loadAllResult.free();
-                                    callback(finalResult);
-                                }
-                            });
-                        }
-                        else {
-                            callback(finalResult);
-                        }
-                    };
-                    HeapChunkSpace.prototype.mark = function (index) {
-                        var castedIndex = index;
-                        var before;
-                        var after;
-                        do {
-                            before = this._chunkMarks.get(castedIndex);
-                            if (before != -1) {
-                                after = before + 1;
-                            }
-                            else {
-                                after = before;
-                            }
-                        } while (!this._chunkMarks.compareAndSet(castedIndex, before, after));
-                        if (before == 0 && after == 1) {
-                            this._lru.dequeue(index);
-                        }
-                        return after;
-                    };
-                    HeapChunkSpace.prototype.unmark = function (index) {
-                        var castedIndex = index;
-                        var before;
-                        var after;
-                        do {
-                            before = this._chunkMarks.get(castedIndex);
-                            if (before > 0) {
-                                after = before - 1;
-                            }
-                            else {
-                                console.error("WARNING: DOUBLE UNMARK");
-                                after = before;
-                            }
-                        } while (!this._chunkMarks.compareAndSet(castedIndex, before, after));
-                        if (before == 1 && after == 0) {
-                            this._lru.enqueue(index);
-                        }
-                    };
-                    HeapChunkSpace.prototype.free = function (chunk) { };
-                    HeapChunkSpace.prototype.createAndMark = function (type, world, time, id) {
-                        var entry = -1;
-                        var hashIndex;
-                        if (this._deep_priority) {
-                            hashIndex = greycat.utility.HashHelper.tripleHash(type, world, time, id, this._hashEntries);
-                        }
-                        else {
-                            hashIndex = greycat.utility.HashHelper.simpleTripleHash(type, world, time, id, this._hashEntries);
-                        }
-                        var m = this._hash.get(hashIndex);
-                        while (m >= 0) {
-                            if (type == this._chunkTypes.get(m) && world == this._chunkWorlds.get(m) && time == this._chunkTimes.get(m) && id == this._chunkIds.get(m)) {
-                                entry = m;
-                                break;
-                            }
-                            m = this._hashNext.get(m);
-                        }
-                        if (entry != -1) {
-                            var previous = void 0;
-                            var after = void 0;
-                            do {
-                                previous = this._chunkMarks.get(entry);
-                                if (previous != -1) {
-                                    after = previous + 1;
-                                }
-                                else {
-                                    after = previous;
-                                }
-                            } while (!this._chunkMarks.compareAndSet(entry, previous, after));
-                            if (after == (previous + 1)) {
-                                return this._chunkValues.get(entry);
-                            }
-                        }
-                        var currentVictimIndex = -1;
-                        while (currentVictimIndex == -1) {
-                            var temp_victim = this._lru.dequeueTail();
-                            if (temp_victim == -1) {
-                                break;
-                            }
-                            else {
-                                if (this._chunkMarks.compareAndSet(temp_victim, 0, -1)) {
-                                    currentVictimIndex = temp_victim;
-                                }
-                            }
-                        }
-                        if (currentVictimIndex == -1) {
-                            throw new Error("mwDB crashed, cache is full, please avoid to much retention of nodes or augment cache capacity! available:" + this.available());
-                        }
-                        var toInsert = null;
-                        switch (type) {
-                            case greycat.chunk.ChunkType.STATE_CHUNK:
-                                toInsert = new greycat.internal.chunk.heap.HeapStateChunk(this, currentVictimIndex);
-                                break;
-                            case greycat.chunk.ChunkType.WORLD_ORDER_CHUNK:
-                                toInsert = new greycat.internal.chunk.heap.HeapWorldOrderChunk(this, currentVictimIndex);
-                                break;
-                            case greycat.chunk.ChunkType.TIME_TREE_CHUNK:
-                                toInsert = new greycat.internal.chunk.heap.HeapTimeTreeChunk(this, currentVictimIndex);
-                                break;
-                            case greycat.chunk.ChunkType.GEN_CHUNK:
-                                toInsert = new greycat.internal.chunk.heap.HeapGenChunk(this, id, currentVictimIndex);
-                                break;
-                        }
-                        if (this._chunkValues.get(currentVictimIndex) != null) {
-                            var victimWorld = this._chunkWorlds.get(currentVictimIndex);
-                            var victimTime = this._chunkTimes.get(currentVictimIndex);
-                            var victimObj = this._chunkIds.get(currentVictimIndex);
-                            var victimType = this._chunkTypes.get(currentVictimIndex);
-                            var indexVictim = void 0;
-                            if (this._deep_priority) {
-                                indexVictim = greycat.utility.HashHelper.tripleHash(victimType, victimWorld, victimTime, victimObj, this._hashEntries);
-                            }
-                            else {
-                                indexVictim = greycat.utility.HashHelper.simpleTripleHash(victimType, victimWorld, victimTime, victimObj, this._hashEntries);
-                            }
-                            m = this._hash.get(indexVictim);
-                            var last = -1;
-                            while (m >= 0) {
-                                if (victimType == this._chunkTypes.get(m) && victimWorld == this._chunkWorlds.get(m) && victimTime == this._chunkTimes.get(m) && victimObj == this._chunkIds.get(m)) {
-                                    break;
-                                }
-                                last = m;
-                                m = this._hashNext.get(m);
-                            }
-                            if (last == -1) {
-                                var previousNext = this._hashNext.get(m);
-                                this._hash.set(indexVictim, previousNext);
-                            }
-                            else {
-                                if (m == -1) {
-                                    this._hashNext.set(last, -1);
-                                }
-                                else {
-                                    this._hashNext.set(last, this._hashNext.get(m));
-                                }
-                            }
-                            this._hashNext.set(m, -1);
-                        }
-                        this._chunkValues.set(currentVictimIndex, toInsert);
-                        this._chunkMarks.set(currentVictimIndex, 1);
-                        this._chunkTypes.set(currentVictimIndex, type);
-                        this._chunkWorlds.set(currentVictimIndex, world);
-                        this._chunkTimes.set(currentVictimIndex, time);
-                        this._chunkIds.set(currentVictimIndex, id);
-                        this._hashNext.set(currentVictimIndex, this._hash.get(hashIndex));
-                        this._hash.set(hashIndex, currentVictimIndex);
-                        return toInsert;
-                    };
-                    HeapChunkSpace.prototype.notifyUpdate = function (index) {
-                        if (this._dirtiesStack.enqueue(index)) {
-                            this.mark(index);
-                        }
-                    };
-                    HeapChunkSpace.prototype.save = function (callback) {
-                        var stream = this._graph.newBuffer();
-                        var isFirst = true;
-                        while (this._dirtiesStack.size() != 0) {
-                            var tail = this._dirtiesStack.dequeueTail();
-                            var loopChunk = this._chunkValues.get(tail);
-                            if (isFirst) {
-                                isFirst = false;
-                            }
-                            else {
-                                stream.write(greycat.Constants.BUFFER_SEP);
-                            }
-                            greycat.utility.KeyHelper.keyToBuffer(stream, this._chunkTypes.get(tail), this._chunkWorlds.get(tail), this._chunkTimes.get(tail), this._chunkIds.get(tail));
-                            stream.write(greycat.Constants.BUFFER_SEP);
-                            try {
-                                loopChunk.save(stream);
-                                this.unmark(tail);
-                            }
-                            catch ($ex$) {
-                                if ($ex$ instanceof Error) {
-                                    var e = $ex$;
-                                    {
-                                        console.error(e);
-                                    }
-                                }
-                                else {
-                                    throw $ex$;
-                                }
-                            }
-                        }
-                        this.graph().storage().put(stream, function (result) {
-                            {
-                                stream.free();
-                                if (callback != null) {
-                                    callback(result);
-                                }
-                            }
-                        });
-                    };
-                    HeapChunkSpace.prototype.clear = function () { };
-                    HeapChunkSpace.prototype.freeAll = function () { };
-                    HeapChunkSpace.prototype.available = function () {
-                        return this._lru.size();
-                    };
-                    HeapChunkSpace.prototype.newVolatileGraph = function () {
-                        return new greycat.internal.chunk.heap.HeapEGraph(null, null, this._graph);
-                    };
-                    HeapChunkSpace.prototype.printMarked = function () {
-                        for (var i = 0; i < this._chunkValues.length(); i++) {
-                            if (this._chunkValues.get(i) != null) {
-                                if (this._chunkMarks.get(i) != 0) {
-                                    switch (this._chunkTypes.get(i)) {
-                                        case greycat.chunk.ChunkType.STATE_CHUNK:
-                                            console.log("STATE(" + this._chunkWorlds.get(i) + "," + this._chunkTimes.get(i) + "," + this._chunkIds.get(i) + ")->marks->" + this._chunkMarks.get(i));
-                                            break;
-                                        case greycat.chunk.ChunkType.TIME_TREE_CHUNK:
-                                            console.log("TIME_TREE(" + this._chunkWorlds.get(i) + "," + this._chunkTimes.get(i) + "," + this._chunkIds.get(i) + ")->marks->" + this._chunkMarks.get(i));
-                                            break;
-                                        case greycat.chunk.ChunkType.WORLD_ORDER_CHUNK:
-                                            console.log("WORLD_ORDER(" + this._chunkWorlds.get(i) + "," + this._chunkTimes.get(i) + "," + this._chunkIds.get(i) + ")->marks->" + this._chunkMarks.get(i));
-                                            break;
-                                        case greycat.chunk.ChunkType.GEN_CHUNK:
-                                            console.log("GENERATOR(" + this._chunkWorlds.get(i) + "," + this._chunkTimes.get(i) + "," + this._chunkIds.get(i) + ")->marks->" + this._chunkMarks.get(i));
-                                            break;
-                                    }
-                                }
-                            }
-                        }
-                    };
-                    return HeapChunkSpace;
-                }());
-                HeapChunkSpace.HASH_LOAD_FACTOR = 4;
-                heap.HeapChunkSpace = HeapChunkSpace;
-                var HeapDMatrix = (function () {
-                    function HeapDMatrix(p_parent, origin) {
-                        this.backend = null;
-                        this.aligned = true;
-                        this.parent = p_parent;
-                        if (origin != null) {
-                            this.aligned = false;
-                            this.backend = origin.backend;
-                        }
-                    }
-                    HeapDMatrix.prototype.init = function (rows, columns) {
-                        {
-                            this.internal_init(rows, columns);
-                        }
-                        this.parent.declareDirty();
-                        return this;
-                    };
-                    HeapDMatrix.prototype.internal_init = function (rows, columns) {
-                        this.backend = new Float64Array(rows * columns + HeapDMatrix.INDEX_OFFSET);
-                        this.backend[HeapDMatrix.INDEX_ROWS] = rows;
-                        this.backend[HeapDMatrix.INDEX_COLUMNS] = columns;
-                        this.backend[HeapDMatrix.INDEX_MAX_COLUMN] = columns;
-                        this.aligned = true;
-                    };
-                    HeapDMatrix.prototype.appendColumn = function (newColumn) {
-                        {
-                            this.internal_appendColumn(newColumn);
-                            this.parent.declareDirty();
-                        }
-                        return this;
-                    };
-                    HeapDMatrix.prototype.internal_appendColumn = function (newColumn) {
-                        var nbRows;
-                        var nbColumns;
-                        var nbMaxColumn;
-                        if (this.backend == null) {
-                            nbRows = newColumn.length;
-                            nbColumns = greycat.Constants.MAP_INITIAL_CAPACITY;
-                            nbMaxColumn = 0;
-                            this.backend = new Float64Array(nbRows * nbColumns + HeapDMatrix.INDEX_OFFSET);
-                            this.backend[HeapDMatrix.INDEX_ROWS] = nbRows;
-                            this.backend[HeapDMatrix.INDEX_COLUMNS] = nbColumns;
-                            this.backend[HeapDMatrix.INDEX_MAX_COLUMN] = nbMaxColumn;
-                        }
-                        else {
-                            nbColumns = this.backend[HeapDMatrix.INDEX_COLUMNS];
-                            nbRows = this.backend[HeapDMatrix.INDEX_ROWS];
-                            nbMaxColumn = this.backend[HeapDMatrix.INDEX_MAX_COLUMN];
-                        }
-                        if (!this.aligned || nbMaxColumn == nbColumns) {
-                            if (nbMaxColumn == nbColumns) {
-                                nbColumns = nbColumns * 2;
-                                this.backend[HeapDMatrix.INDEX_COLUMNS] = nbColumns;
-                                var newLength = nbColumns * nbRows + HeapDMatrix.INDEX_OFFSET;
-                                var next_backend = new Float64Array(newLength);
-                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                this.backend = next_backend;
-                                this.aligned = true;
-                            }
-                            else {
-                                var next_backend = new Float64Array(this.backend.length);
-                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                this.backend = next_backend;
-                                this.aligned = true;
-                            }
-                        }
-                        java.lang.System.arraycopy(newColumn, 0, this.backend, (nbMaxColumn * nbRows) + HeapDMatrix.INDEX_OFFSET, newColumn.length);
-                        this.backend[HeapDMatrix.INDEX_MAX_COLUMN] = nbMaxColumn + 1;
-                    };
-                    HeapDMatrix.prototype.fill = function (value) {
-                        {
-                            this.internal_fill(value);
-                        }
-                        return this;
-                    };
-                    HeapDMatrix.prototype.internal_fill = function (value) {
-                        if (this.backend != null) {
-                            if (!this.aligned) {
-                                var next_backend = new Float64Array(this.backend.length);
-                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                this.backend = next_backend;
-                                this.aligned = true;
-                            }
-                            java.util.Arrays.fill(this.backend, HeapDMatrix.INDEX_OFFSET, this.backend.length - HeapDMatrix.INDEX_OFFSET, value);
-                            this.backend[HeapDMatrix.INDEX_MAX_COLUMN] = this.backend[HeapDMatrix.INDEX_COLUMNS];
-                            this.parent.declareDirty();
-                        }
-                    };
-                    HeapDMatrix.prototype.fillWith = function (values) {
-                        {
-                            this.internal_fillWith(values);
-                        }
-                        return this;
-                    };
-                    HeapDMatrix.prototype.fillWithRandom = function (random, min, max) {
-                        {
-                            if (this.backend != null) {
-                                if (!this.aligned) {
-                                    var next_backend = new Float64Array(this.backend.length);
-                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                    this.backend = next_backend;
-                                    this.aligned = true;
-                                }
-                                for (var i = 0; i < this.backend[HeapDMatrix.INDEX_ROWS] * this.backend[HeapDMatrix.INDEX_COLUMNS]; i++) {
-                                    this.backend[i + HeapDMatrix.INDEX_OFFSET] = random.nextInt() * (max - min) + min;
-                                }
-                                this.parent.declareDirty();
-                            }
-                        }
-                        return this;
-                    };
-                    HeapDMatrix.prototype.fillWithRandomStd = function (random, std) {
-                        {
-                            if (this.backend != null) {
-                                if (!this.aligned) {
-                                    var next_backend = new Float64Array(this.backend.length);
-                                    java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                    this.backend = next_backend;
-                                    this.aligned = true;
-                                }
-                                for (var i = 0; i < this.backend[HeapDMatrix.INDEX_ROWS] * this.backend[HeapDMatrix.INDEX_COLUMNS]; i++) {
-                                    this.backend[i + HeapDMatrix.INDEX_OFFSET] = random.nextGaussian() * std;
-                                }
-                                this.parent.declareDirty();
-                            }
-                        }
-                        return this;
-                    };
-                    HeapDMatrix.prototype.internal_fillWith = function (values) {
-                        if (this.backend != null) {
-                            if (!this.aligned) {
-                                var next_backend = new Float64Array(this.backend.length);
-                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                this.backend = next_backend;
-                                this.aligned = true;
-                            }
-                            java.lang.System.arraycopy(values, 0, this.backend, HeapDMatrix.INDEX_OFFSET, values.length);
-                            this.parent.declareDirty();
-                        }
-                    };
-                    HeapDMatrix.prototype.rows = function () {
-                        var result = 0;
-                        {
-                            if (this.backend != null) {
-                                result = this.backend[HeapDMatrix.INDEX_ROWS];
-                            }
-                        }
-                        return result;
-                    };
-                    HeapDMatrix.prototype.columns = function () {
-                        var result = 0;
-                        {
-                            if (this.backend != null) {
-                                result = this.backend[HeapDMatrix.INDEX_MAX_COLUMN];
-                            }
-                        }
-                        return result;
-                    };
-                    HeapDMatrix.prototype.column = function (index) {
-                        var result;
-                        {
-                            var nbRows = this.backend[HeapDMatrix.INDEX_ROWS];
-                            result = new Float64Array(nbRows);
-                            java.lang.System.arraycopy(this.backend, HeapDMatrix.INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
-                        }
-                        return result;
-                    };
-                    HeapDMatrix.prototype.get = function (rowIndex, columnIndex) {
-                        var result = 0;
-                        {
-                            if (this.backend != null) {
-                                var nbRows = this.backend[HeapDMatrix.INDEX_ROWS];
-                                result = this.backend[HeapDMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
-                            }
-                        }
-                        return result;
-                    };
-                    HeapDMatrix.prototype.set = function (rowIndex, columnIndex, value) {
-                        {
-                            this.internal_set(rowIndex, columnIndex, value);
-                        }
-                        return this;
-                    };
-                    HeapDMatrix.prototype.internal_set = function (rowIndex, columnIndex, value) {
-                        if (this.backend != null) {
-                            if (!this.aligned) {
-                                var next_backend = new Float64Array(this.backend.length);
-                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                this.backend = next_backend;
-                                this.aligned = true;
-                            }
-                            var nbRows = this.backend[HeapDMatrix.INDEX_ROWS];
-                            this.backend[HeapDMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
-                            this.parent.declareDirty();
-                        }
-                    };
-                    HeapDMatrix.prototype.add = function (rowIndex, columnIndex, value) {
-                        {
-                            this.internal_add(rowIndex, columnIndex, value);
-                        }
-                        return this;
-                    };
-                    HeapDMatrix.prototype.internal_add = function (rowIndex, columnIndex, value) {
-                        if (this.backend != null) {
-                            if (!this.aligned) {
-                                var next_backend = new Float64Array(this.backend.length);
-                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                this.backend = next_backend;
-                                this.aligned = true;
-                            }
-                            var nbRows = this.backend[HeapDMatrix.INDEX_ROWS];
-                            this.backend[HeapDMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + this.backend[HeapDMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
-                            this.parent.declareDirty();
-                        }
-                    };
-                    HeapDMatrix.prototype.data = function () {
-                        var copy = null;
-                        {
-                            if (this.backend != null) {
-                                copy = new Float64Array(this.backend.length - HeapDMatrix.INDEX_OFFSET);
-                                java.lang.System.arraycopy(this.backend, HeapDMatrix.INDEX_OFFSET, copy, 0, this.backend.length - HeapDMatrix.INDEX_OFFSET);
-                            }
-                        }
-                        return copy;
-                    };
-                    HeapDMatrix.prototype.leadingDimension = function () {
-                        if (this.backend == null) {
-                            return 0;
-                        }
-                        return Math.max(this.backend[HeapDMatrix.INDEX_COLUMNS], this.backend[HeapDMatrix.INDEX_ROWS]);
-                    };
-                    HeapDMatrix.prototype.unsafeGet = function (index) {
-                        var result = 0;
-                        {
-                            if (this.backend != null) {
-                                result = this.backend[HeapDMatrix.INDEX_OFFSET + index];
-                            }
-                        }
-                        return result;
-                    };
-                    HeapDMatrix.prototype.unsafeSet = function (index, value) {
-                        {
-                            this.internal_unsafeSet(index, value);
-                        }
-                        return this;
-                    };
-                    HeapDMatrix.prototype.internal_unsafeSet = function (index, value) {
-                        if (this.backend != null) {
-                            if (!this.aligned) {
-                                var next_backend = new Float64Array(this.backend.length);
-                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                this.backend = next_backend;
-                                this.aligned = true;
-                            }
-                            this.backend[HeapDMatrix.INDEX_OFFSET + index] = value;
-                            this.parent.declareDirty();
-                        }
-                    };
-                    HeapDMatrix.prototype.unsafe_data = function () {
-                        return this.backend;
-                    };
-                    HeapDMatrix.prototype.unsafe_init = function (size) {
-                        this.backend = new Float64Array(size);
-                        this.backend[HeapDMatrix.INDEX_ROWS] = 0;
-                        this.backend[HeapDMatrix.INDEX_COLUMNS] = 0;
-                        this.aligned = true;
-                    };
-                    HeapDMatrix.prototype.unsafe_set = function (index, value) {
-                        this.backend[index] = value;
-                    };
-                    HeapDMatrix.prototype.load = function (buffer, offset, max) {
-                        var cursor = offset;
-                        var current = buffer.read(cursor);
-                        var isFirst = true;
-                        var previous = offset;
-                        var elemIndex = 0;
-                        while (cursor < max && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
-                            if (current == greycat.Constants.CHUNK_VAL_SEP) {
-                                if (isFirst) {
-                                    this.unsafe_init(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                                    isFirst = false;
-                                }
-                                else {
-                                    this.unsafe_set(elemIndex, greycat.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor));
-                                    elemIndex++;
-                                }
-                                previous = cursor + 1;
-                            }
-                            cursor++;
-                            if (cursor < max) {
-                                current = buffer.read(cursor);
-                            }
-                        }
-                        if (isFirst) {
-                            this.unsafe_init(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                        }
-                        else {
-                            this.unsafe_set(elemIndex, greycat.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor));
-                        }
-                        return cursor;
-                    };
-                    return HeapDMatrix;
-                }());
-                HeapDMatrix.INDEX_ROWS = 0;
-                HeapDMatrix.INDEX_COLUMNS = 1;
-                HeapDMatrix.INDEX_MAX_COLUMN = 2;
-                HeapDMatrix.INDEX_OFFSET = 3;
-                heap.HeapDMatrix = HeapDMatrix;
-                var HeapEGraph = (function () {
-                    function HeapEGraph(p_parent, origin, p_graph) {
-                        this._nodes = null;
-                        this._nodes_capacity = 0;
-                        this._nodes_index = 0;
-                        this.parent = p_parent;
-                        this._graph = p_graph;
-                        if (origin != null) {
-                            this._nodes_index = origin._nodes_index;
-                            this._nodes_capacity = origin._nodes_capacity;
-                            this._nodes = new Array(this._nodes_capacity);
-                            for (var i = 0; i < this._nodes_index; i++) {
-                                this._nodes[i] = new greycat.internal.chunk.heap.HeapENode(this, i, origin._nodes[i]);
-                            }
-                            for (var i = 0; i < this._nodes_index; i++) {
-                                this._nodes[i].rebase();
-                            }
-                        }
-                    }
-                    HeapEGraph.prototype.size = function () {
-                        return this._nodes_index;
-                    };
-                    HeapEGraph.prototype.free = function () {
-                        this._nodes = null;
-                        this._nodes_capacity = 0;
-                        this._nodes_index = 0;
-                    };
-                    HeapEGraph.prototype.graph = function () {
-                        return this._graph;
-                    };
-                    HeapEGraph.prototype.allocate = function (newCapacity) {
-                        var closePowerOfTwo = Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
-                        if (closePowerOfTwo > this._nodes_capacity) {
-                            var new_back = new Array(closePowerOfTwo);
-                            if (this._nodes != null) {
-                                java.lang.System.arraycopy(this._nodes, 0, new_back, 0, this._nodes_index);
-                            }
-                            this._nodes = new_back;
-                            this._nodes_capacity = closePowerOfTwo;
-                        }
-                    };
-                    HeapEGraph.prototype.nodeByIndex = function (index, createIfAbsent) {
-                        if (index < this._nodes_capacity) {
-                            if (index >= this._nodes_index) {
-                                this._nodes_index = index + 1;
-                            }
-                            var elem = this._nodes[index];
-                            if (elem == null && createIfAbsent) {
-                                elem = new greycat.internal.chunk.heap.HeapENode(this, index, null);
-                                this._nodes[index] = elem;
-                            }
-                            return elem;
-                        }
-                        else {
-                            throw new Error("bad API usage");
-                        }
-                    };
-                    HeapEGraph.prototype.declareDirty = function () {
-                        if (!this._dirty) {
-                            this._dirty = true;
-                            if (this.parent != null) {
-                                this.parent.declareDirty();
-                            }
-                        }
-                    };
-                    HeapEGraph.prototype.newNode = function () {
-                        if (this._nodes_index == this._nodes_capacity) {
-                            var newCapacity = this._nodes_capacity * 2;
-                            if (newCapacity == 0) {
-                                newCapacity = greycat.Constants.MAP_INITIAL_CAPACITY;
-                            }
-                            var newNodes = new Array(newCapacity);
-                            if (this._nodes != null) {
-                                java.lang.System.arraycopy(this._nodes, 0, newNodes, 0, this._nodes_capacity);
-                            }
-                            this._nodes_capacity = newCapacity;
-                            this._nodes = newNodes;
-                        }
-                        var newNode = new greycat.internal.chunk.heap.HeapENode(this, this._nodes_index, null);
-                        this._nodes[this._nodes_index] = newNode;
-                        this._nodes_index++;
-                        return newNode;
-                    };
-                    HeapEGraph.prototype.root = function () {
-                        if (this._nodes_index > 0) {
-                            return this._nodes[0];
-                        }
-                        return null;
-                    };
-                    HeapEGraph.prototype.setRoot = function (eNode) {
-                        var casted = eNode;
-                        var previousID = casted._id;
-                        if (previousID != 0) {
-                            var previousRoot = this._nodes[0];
-                            this._nodes[previousID] = previousRoot;
-                            previousRoot._id = previousID;
-                            this._nodes[0] = casted;
-                            casted._id = 0;
-                        }
-                        return this;
-                    };
-                    HeapEGraph.prototype.drop = function (eNode) {
-                        var casted = eNode;
-                        var previousId = casted._id;
-                        if (previousId == this._nodes_index - 1) {
-                            this._nodes[previousId] = null;
-                            this._nodes_index--;
-                        }
-                        else {
-                            this._nodes[previousId] = this._nodes[this._nodes_index - 1];
-                            this._nodes[previousId]._id = previousId;
-                            this._nodes_index--;
-                        }
-                        return this;
-                    };
-                    HeapEGraph.prototype.toString = function () {
-                        var builder = new java.lang.StringBuilder();
-                        builder.append("{\"nodes\":[");
-                        for (var i = 0; i < this._nodes_index; i++) {
-                            if (i != 0) {
-                                builder.append(",");
-                            }
-                            builder.append(this._nodes[i].toString());
-                        }
-                        builder.append("]}");
-                        return builder.toString();
-                    };
-                    HeapEGraph.prototype.load = function (buffer, offset, max) {
-                        var cursor = offset;
-                        var current = buffer.read(cursor);
-                        var isFirst = true;
-                        var insertIndex = 0;
-                        while (cursor < max && current != greycat.Constants.CHUNK_SEP) {
-                            if (current == greycat.Constants.CHUNK_ENODE_SEP) {
-                                if (isFirst) {
-                                    this.allocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, offset, cursor));
-                                    isFirst = false;
-                                }
-                                cursor++;
-                                var eNode = this.nodeByIndex(insertIndex, true);
-                                cursor = eNode.load(buffer, cursor, this._graph);
-                                insertIndex++;
-                            }
-                            else {
-                                cursor++;
-                            }
-                            current = buffer.read(cursor);
-                        }
-                        return cursor;
-                    };
-                    return HeapEGraph;
-                }());
-                heap.HeapEGraph = HeapEGraph;
-                var HeapENode = (function () {
-                    function HeapENode(p_egraph, p_id, origin) {
-                        this.egraph = p_egraph;
-                        this._id = p_id;
-                        if (origin != null) {
-                            this._capacity = origin._capacity;
-                            this._size = origin._size;
-                            if (origin._k != null) {
-                                var cloned_k = new Int32Array(this._capacity);
-                                java.lang.System.arraycopy(origin._k, 0, cloned_k, 0, this._capacity);
-                                this._k = cloned_k;
-                            }
-                            if (origin._type != null) {
-                                var cloned_type = new Int8Array(this._capacity);
-                                java.lang.System.arraycopy(origin._type, 0, cloned_type, 0, this._capacity);
-                                this._type = cloned_type;
-                            }
-                            if (origin._next_hash != null) {
-                                var cloned_hash = new Int32Array(this._capacity * 3);
-                                java.lang.System.arraycopy(origin._next_hash, 0, cloned_hash, 0, this._capacity * 3);
-                                this._next_hash = cloned_hash;
-                            }
-                            if (origin._v != null) {
-                                this._v = new Array(this._capacity);
-                                for (var i = 0; i < this._size; i++) {
-                                    switch (origin._type[i]) {
-                                        case greycat.Type.LONG_TO_LONG_MAP:
-                                            if (origin._v[i] != null) {
-                                                this._v[i] = origin._v[i].cloneFor(this);
-                                            }
-                                            break;
-                                        case greycat.Type.RELATION_INDEXED:
-                                            if (origin._v[i] != null) {
-                                                this._v[i] = origin._v[i].cloneIRelFor(this, this.egraph.graph());
-                                            }
-                                            break;
-                                        case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
-                                            if (origin._v[i] != null) {
-                                                this._v[i] = origin._v[i].cloneFor(this);
-                                            }
-                                            break;
-                                        case greycat.Type.STRING_TO_INT_MAP:
-                                            if (origin._v[i] != null) {
-                                                this._v[i] = origin._v[i].cloneFor(this);
-                                            }
-                                            break;
-                                        case greycat.Type.RELATION:
-                                            if (origin._v[i] != null) {
-                                                this._v[i] = new greycat.internal.chunk.heap.HeapRelation(this, origin._v[i]);
-                                            }
-                                            break;
-                                        case greycat.Type.DMATRIX:
-                                            if (origin._v[i] != null) {
-                                                this._v[i] = new greycat.internal.chunk.heap.HeapDMatrix(this, origin._v[i]);
-                                            }
-                                            break;
-                                        case greycat.Type.LMATRIX:
-                                            if (origin._v[i] != null) {
-                                                this._v[i] = new greycat.internal.chunk.heap.HeapLMatrix(this, origin._v[i]);
-                                            }
-                                            break;
-                                        default:
-                                            this._v[i] = origin._v[i];
-                                            break;
-                                    }
-                                }
-                            }
-                        }
-                        else {
-                            this._capacity = 0;
-                            this._size = 0;
-                        }
-                    }
-                    HeapENode.prototype.clear = function () {
-                        this._capacity = 0;
-                        this._size = 0;
-                        this._k = null;
-                        this._v = null;
-                        this._next_hash = null;
-                        this._type = null;
-                        return this;
-                    };
-                    HeapENode.prototype.declareDirty = function () {
-                        if (!this._dirty) {
-                            this._dirty = true;
-                            this.egraph.declareDirty();
-                        }
-                    };
-                    HeapENode.prototype.rebase = function () {
-                        for (var i = 0; i < this._size; i++) {
-                            switch (this._type[i]) {
-                                case greycat.Type.ERELATION:
-                                    var previousERel = this._v[i];
-                                    previousERel.rebase(this.egraph);
-                                    break;
-                                case greycat.Type.ENODE:
-                                    var previous = this._v[i];
-                                    this._v[i] = this.egraph._nodes[previous._id];
-                                    break;
-                            }
-                        }
-                    };
-                    HeapENode.prototype.allocate = function (newCapacity) {
-                        if (newCapacity <= this._capacity) {
-                            return;
-                        }
-                        var ex_k = new Int32Array(newCapacity);
-                        if (this._k != null) {
-                            java.lang.System.arraycopy(this._k, 0, ex_k, 0, this._capacity);
-                        }
-                        this._k = ex_k;
-                        var ex_v = new Array(newCapacity);
-                        if (this._v != null) {
-                            java.lang.System.arraycopy(this._v, 0, ex_v, 0, this._capacity);
-                        }
-                        this._v = ex_v;
-                        var ex_type = new Int8Array(newCapacity);
-                        if (this._type != null) {
-                            java.lang.System.arraycopy(this._type, 0, ex_type, 0, this._capacity);
-                        }
-                        this._type = ex_type;
-                        this._capacity = newCapacity;
-                        this._next_hash = new Int32Array(this._capacity * 3);
-                        java.util.Arrays.fill(this._next_hash, 0, this._capacity * 3, -1);
-                        var double_capacity = this._capacity * 2;
-                        for (var i = 0; i < this._size; i++) {
-                            var keyHash = this._k[i] % double_capacity;
-                            if (keyHash < 0) {
-                                keyHash = keyHash * -1;
-                            }
-                            this._next_hash[i] = this._next_hash[this._capacity + keyHash];
-                            this._next_hash[this._capacity + keyHash] = i;
-                        }
-                    };
-                    HeapENode.prototype.internal_find = function (p_key) {
-                        if (this._size == 0) {
-                            return -1;
-                        }
-                        var hashIndex = p_key % (this._capacity * 2);
-                        if (hashIndex < 0) {
-                            hashIndex = hashIndex * -1;
-                        }
-                        var m = this._next_hash[this._capacity + hashIndex];
-                        while (m >= 0) {
-                            if (p_key == this._k[m]) {
-                                return m;
-                            }
-                            else {
-                                m = this._next_hash[m];
-                            }
-                        }
-                        return -1;
-                    };
-                    HeapENode.prototype.internal_get = function (p_key) {
-                        if (this._size == 0) {
-                            return null;
-                        }
-                        var found = this.internal_find(p_key);
-                        if (found != -1) {
-                            return this._v[found];
-                        }
-                        return null;
-                    };
-                    HeapENode.prototype.internal_set = function (p_key, p_type, p_unsafe_elem, replaceIfPresent, initial) {
-                        var param_elem = null;
-                        if (p_unsafe_elem != null) {
-                            try {
-                                switch (p_type) {
-                                    case greycat.Type.BOOL:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.DOUBLE:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.LONG:
-                                        if (p_unsafe_elem instanceof Number) {
-                                            var preCasting = p_unsafe_elem;
-                                            param_elem = preCasting;
-                                        }
-                                        else {
-                                            param_elem = p_unsafe_elem;
-                                        }
-                                        break;
-                                    case greycat.Type.INT:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.STRING:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.DMATRIX:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.LMATRIX:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.RELATION:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.ERELATION:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.ENODE:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.DOUBLE_ARRAY:
-                                        var castedParamDouble = p_unsafe_elem;
-                                        var clonedDoubleArray = new Float64Array(castedParamDouble.length);
-                                        java.lang.System.arraycopy(castedParamDouble, 0, clonedDoubleArray, 0, castedParamDouble.length);
-                                        param_elem = clonedDoubleArray;
-                                        break;
-                                    case greycat.Type.LONG_ARRAY:
-                                        var castedParamLong = p_unsafe_elem;
-                                        var clonedLongArray = new Float64Array(castedParamLong.length);
-                                        java.lang.System.arraycopy(castedParamLong, 0, clonedLongArray, 0, castedParamLong.length);
-                                        param_elem = clonedLongArray;
-                                        break;
-                                    case greycat.Type.INT_ARRAY:
-                                        var castedParamInt = p_unsafe_elem;
-                                        var clonedIntArray = new Int32Array(castedParamInt.length);
-                                        java.lang.System.arraycopy(castedParamInt, 0, clonedIntArray, 0, castedParamInt.length);
-                                        param_elem = clonedIntArray;
-                                        break;
-                                    case greycat.Type.STRING_TO_INT_MAP:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.LONG_TO_LONG_MAP:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.RELATION_INDEXED:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    default:
-                                        throw new Error("Internal Exception, unknown type");
-                                }
-                            }
-                            catch ($ex$) {
-                                if ($ex$ instanceof Error) {
-                                    var e = $ex$;
-                                    {
-                                        throw new Error("mwDB usage error, set method called with type " + greycat.Type.typeName(p_type) + " while param object is " + p_unsafe_elem);
-                                    }
-                                }
-                                else {
-                                    throw $ex$;
-                                }
-                            }
-                        }
-                        if (this._k == null) {
-                            if (param_elem == null) {
-                                return;
-                            }
-                            this._capacity = greycat.Constants.MAP_INITIAL_CAPACITY;
-                            this._k = new Int32Array(this._capacity);
-                            this._v = new Array(this._capacity);
-                            this._type = new Int8Array(this._capacity);
-                            this._next_hash = new Int32Array(this._capacity * 3);
-                            java.util.Arrays.fill(this._next_hash, 0, this._capacity * 3, -1);
-                            this._k[0] = p_key;
-                            this._v[0] = param_elem;
-                            this._type[0] = p_type;
-                            this._size = 1;
-                            var hashIndex_1 = p_key % (this._capacity * 2);
-                            if (hashIndex_1 < 0) {
-                                hashIndex_1 = hashIndex_1 * -1;
-                            }
-                            this._next_hash[this._capacity + hashIndex_1] = 0;
-                            if (!initial) {
-                                this.declareDirty();
-                            }
-                            return;
-                        }
-                        var entry = -1;
-                        var p_entry = -1;
-                        var hashIndex = p_key % (this._capacity * 2);
-                        if (hashIndex < 0) {
-                            hashIndex = hashIndex * -1;
-                        }
-                        var m = this._next_hash[this._capacity + hashIndex];
-                        while (m != -1) {
-                            if (this._k[m] == p_key) {
-                                entry = m;
-                                break;
-                            }
-                            p_entry = m;
-                            m = this._next_hash[m];
-                        }
-                        if (entry != -1) {
-                            if (replaceIfPresent || (p_type != this._type[entry])) {
-                                if (param_elem == null) {
-                                    if (p_entry != -1) {
-                                        this._next_hash[p_entry] = this._next_hash[entry];
-                                    }
-                                    else {
-                                        this._next_hash[this._capacity + hashIndex] = -1;
-                                    }
-                                    var indexVictim = this._size - 1;
-                                    if (entry == indexVictim) {
-                                        this._k[entry] = -1;
-                                        this._v[entry] = null;
-                                        this._type[entry] = -1;
-                                    }
-                                    else {
-                                        this._k[entry] = this._k[indexVictim];
-                                        this._v[entry] = this._v[indexVictim];
-                                        this._type[entry] = this._type[indexVictim];
-                                        this._next_hash[entry] = this._next_hash[indexVictim];
-                                        var victimHash = this._k[entry] % (this._capacity * 2);
-                                        if (victimHash < 0) {
-                                            victimHash = victimHash * -1;
-                                        }
-                                        m = this._next_hash[this._capacity + victimHash];
-                                        if (m == indexVictim) {
-                                            this._next_hash[this._capacity + victimHash] = entry;
-                                        }
-                                        else {
-                                            while (m != -1) {
-                                                if (this._next_hash[m] == indexVictim) {
-                                                    this._next_hash[m] = entry;
-                                                    break;
-                                                }
-                                                m = this._next_hash[m];
-                                            }
-                                        }
-                                        this._k[indexVictim] = -1;
-                                        this._v[indexVictim] = null;
-                                        this._type[indexVictim] = -1;
-                                    }
-                                    this._size--;
-                                }
-                                else {
-                                    this._v[entry] = param_elem;
-                                    if (this._type[entry] != p_type) {
-                                        this._type[entry] = p_type;
-                                    }
-                                }
-                            }
-                            if (!initial) {
-                                this.declareDirty();
-                            }
-                            return;
-                        }
-                        if (this._size < this._capacity) {
-                            this._k[this._size] = p_key;
-                            this._v[this._size] = param_elem;
-                            this._type[this._size] = p_type;
-                            this._next_hash[this._size] = this._next_hash[this._capacity + hashIndex];
-                            this._next_hash[this._capacity + hashIndex] = this._size;
-                            this._size++;
-                            if (!initial) {
-                                this.declareDirty();
-                            }
-                            return;
-                        }
-                        var newCapacity = this._capacity * 2;
-                        var ex_k = new Int32Array(newCapacity);
-                        java.lang.System.arraycopy(this._k, 0, ex_k, 0, this._capacity);
-                        this._k = ex_k;
-                        var ex_v = new Array(newCapacity);
-                        java.lang.System.arraycopy(this._v, 0, ex_v, 0, this._capacity);
-                        this._v = ex_v;
-                        var ex_type = new Int8Array(newCapacity);
-                        java.lang.System.arraycopy(this._type, 0, ex_type, 0, this._capacity);
-                        this._type = ex_type;
-                        this._capacity = newCapacity;
-                        this._k[this._size] = p_key;
-                        this._v[this._size] = param_elem;
-                        this._type[this._size] = p_type;
-                        this._size++;
-                        this._next_hash = new Int32Array(this._capacity * 3);
-                        java.util.Arrays.fill(this._next_hash, 0, this._capacity * 3, -1);
-                        var hashCapacity = this._capacity * 2;
-                        for (var i = 0; i < this._size; i++) {
-                            var keyHash = this._k[i] % hashCapacity;
-                            if (keyHash < 0) {
-                                keyHash = keyHash * -1;
-                            }
-                            this._next_hash[i] = this._next_hash[this._capacity + keyHash];
-                            this._next_hash[this._capacity + keyHash] = i;
-                        }
-                        if (!initial) {
-                            this.declareDirty();
-                        }
-                    };
-                    HeapENode.prototype.set = function (name, type, value) {
-                        this.internal_set(this.egraph.graph().resolver().stringToHash(name, true), type, value, true, false);
-                        return this;
-                    };
-                    HeapENode.prototype.setAt = function (key, type, value) {
-                        this.internal_set(key, type, value, true, false);
-                        return this;
-                    };
-                    HeapENode.prototype.get = function (name) {
-                        return this.internal_get(this.egraph.graph().resolver().stringToHash(name, false));
-                    };
-                    HeapENode.prototype.getAt = function (key) {
-                        return this.internal_get(key);
-                    };
-                    HeapENode.prototype.drop = function () {
-                        this.egraph.drop(this);
-                    };
-                    HeapENode.prototype.graph = function () {
-                        return this.egraph;
-                    };
-                    HeapENode.prototype.getOrCreate = function (key, type) {
-                        var previous = this.get(key);
-                        if (previous != null) {
-                            return previous;
-                        }
-                        else {
-                            return this.getOrCreateAt(this.egraph.graph().resolver().stringToHash(key, true), type);
-                        }
-                    };
-                    HeapENode.prototype.getOrCreateAt = function (key, type) {
-                        var found = this.internal_find(key);
-                        if (found != -1) {
-                            if (this._type[found] == type) {
-                                return this._v[found];
-                            }
-                        }
-                        var toSet = null;
-                        switch (type) {
-                            case greycat.Type.ERELATION:
-                                toSet = new greycat.internal.chunk.heap.HeapERelation(this, null);
-                                break;
-                            case greycat.Type.RELATION:
-                                toSet = new greycat.internal.chunk.heap.HeapRelation(this, null);
-                                break;
-                            case greycat.Type.RELATION_INDEXED:
-                                toSet = new greycat.internal.chunk.heap.HeapRelationIndexed(this, this.egraph.graph());
-                                break;
-                            case greycat.Type.DMATRIX:
-                                toSet = new greycat.internal.chunk.heap.HeapDMatrix(this, null);
-                                break;
-                            case greycat.Type.LMATRIX:
-                                toSet = new greycat.internal.chunk.heap.HeapLMatrix(this, null);
-                                break;
-                            case greycat.Type.STRING_TO_INT_MAP:
-                                toSet = new greycat.internal.chunk.heap.HeapStringIntMap(this);
-                                break;
-                            case greycat.Type.LONG_TO_LONG_MAP:
-                                toSet = new greycat.internal.chunk.heap.HeapLongLongMap(this);
-                                break;
-                            case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
-                                toSet = new greycat.internal.chunk.heap.HeapLongLongArrayMap(this);
-                                break;
-                        }
-                        this.internal_set(key, type, toSet, true, false);
-                        return toSet;
-                    };
-                    HeapENode.prototype.toString = function () {
-                        var builder = new java.lang.StringBuilder();
-                        var isFirst = [true];
-                        var isFirstField = true;
-                        builder.append("{");
-                        var _loop_4 = function (i) {
-                            var elem = this_2._v[i];
-                            var resolver = this_2.egraph.graph().resolver();
-                            var attributeKey = this_2._k[i];
-                            var elemType = this_2._type[i];
-                            if (elem != null) {
-                                if (isFirstField) {
-                                    isFirstField = false;
-                                }
-                                else {
-                                    builder.append(",");
-                                }
-                                var resolveName = resolver.hashToString(attributeKey);
-                                if (resolveName == null) {
-                                    resolveName = attributeKey + "";
-                                }
-                                switch (elemType) {
-                                    case greycat.Type.BOOL: {
-                                        builder.append("\"");
-                                        builder.append(resolveName);
-                                        builder.append("\":");
-                                        if (elem) {
-                                            builder.append("1");
-                                        }
-                                        else {
-                                            builder.append("0");
-                                        }
-                                        break;
-                                    }
-                                    case greycat.Type.STRING: {
-                                        builder.append("\"");
-                                        builder.append(resolveName);
-                                        builder.append("\":");
-                                        builder.append("\"");
-                                        builder.append(elem);
-                                        builder.append("\"");
-                                        break;
-                                    }
-                                    case greycat.Type.LONG: {
-                                        builder.append("\"");
-                                        builder.append(resolveName);
-                                        builder.append("\":");
-                                        builder.append(elem);
-                                        break;
-                                    }
-                                    case greycat.Type.INT: {
-                                        builder.append("\"");
-                                        builder.append(resolveName);
-                                        builder.append("\":");
-                                        builder.append(elem);
-                                        break;
-                                    }
-                                    case greycat.Type.DOUBLE: {
-                                        if (!greycat.base.BaseNode.isNaN(elem)) {
-                                            builder.append("\"");
-                                            builder.append(resolveName);
-                                            builder.append("\":");
-                                            builder.append(elem);
-                                        }
-                                        break;
-                                    }
-                                    case greycat.Type.DOUBLE_ARRAY: {
-                                        builder.append("\"");
-                                        builder.append(resolveName);
-                                        builder.append("\":");
-                                        builder.append("[");
-                                        var castedArr = elem;
-                                        for (var j = 0; j < castedArr.length; j++) {
-                                            if (j != 0) {
-                                                builder.append(",");
-                                            }
-                                            builder.append(castedArr[j]);
-                                        }
-                                        builder.append("]");
-                                        break;
-                                    }
-                                    case greycat.Type.RELATION:
-                                        builder.append("\"");
-                                        builder.append(resolveName);
-                                        builder.append("\":");
-                                        builder.append("[");
-                                        var castedRelArr = elem;
-                                        for (var j = 0; j < castedRelArr.size(); j++) {
-                                            if (j != 0) {
-                                                builder.append(",");
-                                            }
-                                            builder.append(castedRelArr.get(j));
-                                        }
-                                        builder.append("]");
-                                        break;
-                                    case greycat.Type.ERELATION:
-                                        builder.append("\"");
-                                        builder.append(resolveName);
-                                        builder.append("\":");
-                                        builder.append("[");
-                                        var castedERelArr = elem;
-                                        for (var j = 0; j < castedERelArr.size(); j++) {
-                                            if (j != 0) {
-                                                builder.append(",");
-                                            }
-                                            builder.append(castedERelArr.node(j)._id);
-                                        }
-                                        builder.append("]");
-                                        break;
-                                    case greycat.Type.LONG_ARRAY: {
-                                        builder.append("\"");
-                                        builder.append(resolveName);
-                                        builder.append("\":");
-                                        builder.append("[");
-                                        var castedArr2 = elem;
-                                        for (var j = 0; j < castedArr2.length; j++) {
-                                            if (j != 0) {
-                                                builder.append(",");
-                                            }
-                                            builder.append(castedArr2[j]);
-                                        }
-                                        builder.append("]");
-                                        break;
-                                    }
-                                    case greycat.Type.INT_ARRAY: {
-                                        builder.append("\"");
-                                        builder.append(resolveName);
-                                        builder.append("\":");
-                                        builder.append("[");
-                                        var castedArr3 = elem;
-                                        for (var j = 0; j < castedArr3.length; j++) {
-                                            if (j != 0) {
-                                                builder.append(",");
-                                            }
-                                            builder.append(castedArr3[j]);
-                                        }
-                                        builder.append("]");
-                                        break;
-                                    }
-                                    case greycat.Type.LONG_TO_LONG_MAP: {
-                                        builder.append("\"");
-                                        builder.append(resolveName);
-                                        builder.append("\":");
-                                        builder.append("{");
-                                        var castedMapL2L = elem;
-                                        isFirst[0] = true;
-                                        castedMapL2L.each(function (key, value) {
-                                            {
-                                                if (!isFirst[0]) {
-                                                    builder.append(",");
-                                                }
-                                                else {
-                                                    isFirst[0] = false;
-                                                }
-                                                builder.append("\"");
-                                                builder.append(key);
-                                                builder.append("\":");
-                                                builder.append(value);
-                                            }
-                                        });
-                                        builder.append("}");
-                                        break;
-                                    }
-                                    case greycat.Type.RELATION_INDEXED:
-                                    case greycat.Type.LONG_TO_LONG_ARRAY_MAP: {
-                                        builder.append("\"");
-                                        builder.append(resolveName);
-                                        builder.append("\":");
-                                        builder.append("{");
-                                        var castedMapL2LA = elem;
-                                        isFirst[0] = true;
-                                        var keys_3 = new java.util.HashSet();
-                                        castedMapL2LA.each(function (key, value) {
-                                            {
-                                                keys_3.add(key);
-                                            }
-                                        });
-                                        var flatKeys = keys_3.toArray(new Array(keys_3.size()));
-                                        for (var k = 0; k < flatKeys.length; k++) {
-                                            var values = castedMapL2LA.get(flatKeys[k]);
-                                            if (!isFirst[0]) {
-                                                builder.append(",");
-                                            }
-                                            else {
-                                                isFirst[0] = false;
-                                            }
-                                            builder.append("\"");
-                                            builder.append(flatKeys[k]);
-                                            builder.append("\":[");
-                                            for (var j = 0; j < values.length; j++) {
-                                                if (j != 0) {
-                                                    builder.append(",");
-                                                }
-                                                builder.append(values[j]);
-                                            }
-                                            builder.append("]");
-                                        }
-                                        builder.append("}");
-                                        break;
-                                    }
-                                    case greycat.Type.STRING_TO_INT_MAP: {
-                                        builder.append("\"");
-                                        builder.append(resolveName);
-                                        builder.append("\":");
-                                        builder.append("{");
-                                        var castedMapS2L = elem;
-                                        isFirst[0] = true;
-                                        castedMapS2L.each(function (key, value) {
-                                            {
-                                                if (!isFirst[0]) {
-                                                    builder.append(",");
-                                                }
-                                                else {
-                                                    isFirst[0] = false;
-                                                }
-                                                builder.append("\"");
-                                                builder.append(key);
-                                                builder.append("\":");
-                                                builder.append(value);
-                                            }
-                                        });
-                                        builder.append("}");
-                                        break;
-                                    }
-                                }
-                            }
-                        };
-                        var this_2 = this;
-                        for (var i = 0; i < this._size; i++) {
-                            _loop_4(i);
-                        }
-                        builder.append("}");
-                        return builder.toString();
-                    };
-                    HeapENode.prototype.save = function (buffer) {
-                        greycat.utility.Base64.encodeIntToBuffer(this._size, buffer);
-                        for (var i = 0; i < this._size; i++) {
-                            if (this._v[i] != null) {
-                                var loopValue = this._v[i];
-                                if (loopValue != null) {
-                                    buffer.write(greycat.internal.CoreConstants.CHUNK_ESEP);
-                                    greycat.utility.Base64.encodeIntToBuffer(this._type[i], buffer);
-                                    buffer.write(greycat.internal.CoreConstants.CHUNK_ESEP);
-                                    greycat.utility.Base64.encodeIntToBuffer(this._k[i], buffer);
-                                    buffer.write(greycat.internal.CoreConstants.CHUNK_ESEP);
-                                    switch (this._type[i]) {
-                                        case greycat.Type.ENODE:
-                                            greycat.utility.Base64.encodeIntToBuffer(loopValue._id, buffer);
-                                            break;
-                                        case greycat.Type.ERELATION:
-                                            var castedLongArrERel = loopValue;
-                                            greycat.utility.Base64.encodeIntToBuffer(castedLongArrERel.size(), buffer);
-                                            for (var j = 0; j < castedLongArrERel.size(); j++) {
-                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                greycat.utility.Base64.encodeIntToBuffer(castedLongArrERel.node(j)._id, buffer);
-                                            }
-                                            break;
-                                        case greycat.Type.STRING:
-                                            greycat.utility.Base64.encodeStringToBuffer(loopValue, buffer);
-                                            break;
-                                        case greycat.Type.BOOL:
-                                            if (this._v[i]) {
-                                                greycat.utility.Base64.encodeIntToBuffer(greycat.internal.CoreConstants.BOOL_TRUE, buffer);
-                                            }
-                                            else {
-                                                greycat.utility.Base64.encodeIntToBuffer(greycat.internal.CoreConstants.BOOL_FALSE, buffer);
-                                            }
-                                            break;
-                                        case greycat.Type.LONG:
-                                            greycat.utility.Base64.encodeLongToBuffer(loopValue, buffer);
-                                            break;
-                                        case greycat.Type.DOUBLE:
-                                            greycat.utility.Base64.encodeDoubleToBuffer(loopValue, buffer);
-                                            break;
-                                        case greycat.Type.INT:
-                                            greycat.utility.Base64.encodeIntToBuffer(loopValue, buffer);
-                                            break;
-                                        case greycat.Type.DOUBLE_ARRAY:
-                                            var castedDoubleArr = loopValue;
-                                            greycat.utility.Base64.encodeIntToBuffer(castedDoubleArr.length, buffer);
-                                            for (var j = 0; j < castedDoubleArr.length; j++) {
-                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                greycat.utility.Base64.encodeDoubleToBuffer(castedDoubleArr[j], buffer);
-                                            }
-                                            break;
-                                        case greycat.Type.RELATION:
-                                            var castedLongArrRel = loopValue;
-                                            greycat.utility.Base64.encodeIntToBuffer(castedLongArrRel.size(), buffer);
-                                            for (var j = 0; j < castedLongArrRel.size(); j++) {
-                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                greycat.utility.Base64.encodeLongToBuffer(castedLongArrRel.unsafe_get(j), buffer);
-                                            }
-                                            break;
-                                        case greycat.Type.LONG_ARRAY:
-                                            var castedLongArr = loopValue;
-                                            greycat.utility.Base64.encodeIntToBuffer(castedLongArr.length, buffer);
-                                            for (var j = 0; j < castedLongArr.length; j++) {
-                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                greycat.utility.Base64.encodeLongToBuffer(castedLongArr[j], buffer);
-                                            }
-                                            break;
-                                        case greycat.Type.INT_ARRAY:
-                                            var castedIntArr = loopValue;
-                                            greycat.utility.Base64.encodeIntToBuffer(castedIntArr.length, buffer);
-                                            for (var j = 0; j < castedIntArr.length; j++) {
-                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                greycat.utility.Base64.encodeIntToBuffer(castedIntArr[j], buffer);
-                                            }
-                                            break;
-                                        case greycat.Type.DMATRIX:
-                                            var castedMatrix = loopValue;
-                                            var unsafeContent = castedMatrix.unsafe_data();
-                                            if (unsafeContent != null) {
-                                                greycat.utility.Base64.encodeIntToBuffer(unsafeContent.length, buffer);
-                                                for (var j = 0; j < unsafeContent.length; j++) {
-                                                    buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                    greycat.utility.Base64.encodeDoubleToBuffer(unsafeContent[j], buffer);
-                                                }
-                                            }
-                                            break;
-                                        case greycat.Type.LMATRIX:
-                                            var castedLMatrix = loopValue;
-                                            var unsafeLContent = castedLMatrix.unsafe_data();
-                                            if (unsafeLContent != null) {
-                                                greycat.utility.Base64.encodeIntToBuffer(unsafeLContent.length, buffer);
-                                                for (var j = 0; j < unsafeLContent.length; j++) {
-                                                    buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                    greycat.utility.Base64.encodeLongToBuffer(unsafeLContent[j], buffer);
-                                                }
-                                            }
-                                            break;
-                                        case greycat.Type.STRING_TO_INT_MAP:
-                                            var castedStringLongMap = loopValue;
-                                            greycat.utility.Base64.encodeIntToBuffer(castedStringLongMap.size(), buffer);
-                                            castedStringLongMap.unsafe_each(function (key, value) {
-                                                {
-                                                    buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                    greycat.utility.Base64.encodeStringToBuffer(key, buffer);
-                                                    buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                    greycat.utility.Base64.encodeLongToBuffer(value, buffer);
-                                                }
-                                            });
-                                            break;
-                                        case greycat.Type.LONG_TO_LONG_MAP:
-                                            var castedLongLongMap = loopValue;
-                                            greycat.utility.Base64.encodeIntToBuffer(castedLongLongMap.size(), buffer);
-                                            castedLongLongMap.unsafe_each(function (key, value) {
-                                                {
-                                                    buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                    greycat.utility.Base64.encodeLongToBuffer(key, buffer);
-                                                    buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                    greycat.utility.Base64.encodeLongToBuffer(value, buffer);
-                                                }
-                                            });
-                                            break;
-                                        case greycat.Type.RELATION_INDEXED:
-                                        case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
-                                            var castedLongLongArrayMap = loopValue;
-                                            greycat.utility.Base64.encodeIntToBuffer(castedLongLongArrayMap.size(), buffer);
-                                            castedLongLongArrayMap.unsafe_each(function (key, value) {
-                                                {
-                                                    buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                    greycat.utility.Base64.encodeLongToBuffer(key, buffer);
-                                                    buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                    greycat.utility.Base64.encodeLongToBuffer(value, buffer);
-                                                }
-                                            });
-                                            break;
-                                        default:
-                                            break;
-                                    }
-                                }
-                            }
-                        }
-                        this._dirty = false;
-                    };
-                    HeapENode.prototype.load = function (buffer, currentCursor, graph) {
-                        var initial = this._k == null;
-                        var payloadSize = buffer.length();
-                        var cursor = currentCursor;
-                        var previous = cursor;
-                        var state = HeapENode.LOAD_WAITING_ALLOC;
-                        var read_type = -1;
-                        var read_key = -1;
-                        while (cursor < payloadSize) {
-                            var current = buffer.read(cursor);
-                            if (current == greycat.Constants.CHUNK_ENODE_SEP || current == greycat.Constants.CHUNK_SEP) {
-                                break;
-                            }
-                            else if (current == greycat.Constants.CHUNK_ESEP) {
-                                switch (state) {
-                                    case HeapENode.LOAD_WAITING_ALLOC:
-                                        var closePowerOfTwo = Math.pow(2, Math.ceil(Math.log(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor)) / Math.log(2)));
-                                        this.allocate(closePowerOfTwo);
-                                        state = HeapENode.LOAD_WAITING_TYPE;
-                                        cursor++;
-                                        previous = cursor;
-                                        break;
-                                    case HeapENode.LOAD_WAITING_TYPE:
-                                        read_type = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                                        state = HeapENode.LOAD_WAITING_KEY;
-                                        cursor++;
-                                        previous = cursor;
-                                        break;
-                                    case HeapENode.LOAD_WAITING_KEY:
-                                        read_key = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                                        switch (read_type) {
-                                            case greycat.Type.BOOL:
-                                            case greycat.Type.INT:
-                                            case greycat.Type.DOUBLE:
-                                            case greycat.Type.LONG:
-                                            case greycat.Type.STRING:
-                                            case greycat.Type.ENODE:
-                                                state = HeapENode.LOAD_WAITING_VALUE;
-                                                cursor++;
-                                                previous = cursor;
-                                                break;
-                                            case greycat.Type.DOUBLE_ARRAY:
-                                                var doubleArrayLoaded = null;
-                                                var doubleArrayIndex = 0;
-                                                cursor++;
-                                                previous = cursor;
-                                                current = buffer.read(cursor);
-                                                while (cursor < payloadSize && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
-                                                    if (current == greycat.Constants.CHUNK_VAL_SEP) {
-                                                        if (doubleArrayLoaded == null) {
-                                                            doubleArrayLoaded = new Float64Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                                                        }
-                                                        else {
-                                                            doubleArrayLoaded[doubleArrayIndex] = greycat.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
-                                                            doubleArrayIndex++;
-                                                        }
-                                                        previous = cursor + 1;
-                                                    }
-                                                    cursor++;
-                                                    if (cursor < payloadSize) {
-                                                        current = buffer.read(cursor);
-                                                    }
-                                                }
-                                                if (doubleArrayLoaded == null) {
-                                                    doubleArrayLoaded = new Float64Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                                                }
-                                                else {
-                                                    doubleArrayLoaded[doubleArrayIndex] = greycat.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
-                                                }
-                                                this.internal_set(read_key, read_type, doubleArrayLoaded, true, initial);
-                                                if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
-                                                    state = HeapENode.LOAD_WAITING_TYPE;
-                                                    cursor++;
-                                                    previous = cursor;
-                                                }
-                                                break;
-                                            case greycat.Type.LONG_ARRAY:
-                                                var longArrayLoaded = null;
-                                                var longArrayIndex = 0;
-                                                cursor++;
-                                                previous = cursor;
-                                                current = buffer.read(cursor);
-                                                while (cursor < payloadSize && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
-                                                    if (current == greycat.Constants.CHUNK_VAL_SEP) {
-                                                        if (longArrayLoaded == null) {
-                                                            longArrayLoaded = new Float64Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                                                        }
-                                                        else {
-                                                            longArrayLoaded[longArrayIndex] = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                                                            longArrayIndex++;
-                                                        }
-                                                        previous = cursor + 1;
-                                                    }
-                                                    cursor++;
-                                                    if (cursor < payloadSize) {
-                                                        current = buffer.read(cursor);
-                                                    }
-                                                }
-                                                if (longArrayLoaded == null) {
-                                                    longArrayLoaded = new Float64Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                                                }
-                                                else {
-                                                    longArrayLoaded[longArrayIndex] = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                                                }
-                                                this.internal_set(read_key, read_type, longArrayLoaded, true, initial);
-                                                if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
-                                                    state = HeapENode.LOAD_WAITING_TYPE;
-                                                    cursor++;
-                                                    previous = cursor;
-                                                }
-                                                break;
-                                            case greycat.Type.INT_ARRAY:
-                                                var intArrayLoaded = null;
-                                                var intArrayIndex = 0;
-                                                cursor++;
-                                                previous = cursor;
-                                                current = buffer.read(cursor);
-                                                while (cursor < payloadSize && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
-                                                    if (current == greycat.Constants.CHUNK_VAL_SEP) {
-                                                        if (intArrayLoaded == null) {
-                                                            intArrayLoaded = new Int32Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                                                        }
-                                                        else {
-                                                            intArrayLoaded[intArrayIndex] = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                                                            intArrayIndex++;
-                                                        }
-                                                        previous = cursor + 1;
-                                                    }
-                                                    cursor++;
-                                                    if (cursor < payloadSize) {
-                                                        current = buffer.read(cursor);
-                                                    }
-                                                }
-                                                if (intArrayLoaded == null) {
-                                                    intArrayLoaded = new Int32Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                                                }
-                                                else {
-                                                    intArrayLoaded[intArrayIndex] = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                                                }
-                                                this.internal_set(read_key, read_type, intArrayLoaded, true, initial);
-                                                if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
-                                                    state = HeapENode.LOAD_WAITING_TYPE;
-                                                    cursor++;
-                                                    previous = cursor;
-                                                }
-                                                break;
-                                            case greycat.Type.RELATION:
-                                                var relation = new greycat.internal.chunk.heap.HeapRelation(this, null);
-                                                cursor++;
-                                                cursor = relation.load(buffer, cursor, payloadSize);
-                                                this.internal_set(read_key, read_type, relation, true, initial);
-                                                if (cursor < payloadSize) {
-                                                    current = buffer.read(cursor);
-                                                    if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
-                                                        state = HeapENode.LOAD_WAITING_TYPE;
-                                                        cursor++;
-                                                        previous = cursor;
-                                                    }
-                                                }
-                                                break;
-                                            case greycat.Type.DMATRIX:
-                                                var matrix = new greycat.internal.chunk.heap.HeapDMatrix(this, null);
-                                                cursor++;
-                                                cursor = matrix.load(buffer, cursor, payloadSize);
-                                                this.internal_set(read_key, read_type, matrix, true, initial);
-                                                if (cursor < payloadSize) {
-                                                    current = buffer.read(cursor);
-                                                    if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
-                                                        state = HeapENode.LOAD_WAITING_TYPE;
-                                                        cursor++;
-                                                        previous = cursor;
-                                                    }
-                                                }
-                                                break;
-                                            case greycat.Type.LMATRIX:
-                                                var lmatrix = new greycat.internal.chunk.heap.HeapLMatrix(this, null);
-                                                cursor++;
-                                                cursor = lmatrix.load(buffer, cursor, payloadSize);
-                                                this.internal_set(read_key, read_type, lmatrix, true, initial);
-                                                if (cursor < payloadSize) {
-                                                    current = buffer.read(cursor);
-                                                    if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
-                                                        state = HeapENode.LOAD_WAITING_TYPE;
-                                                        cursor++;
-                                                        previous = cursor;
-                                                    }
-                                                }
-                                                break;
-                                            case greycat.Type.LONG_TO_LONG_MAP:
-                                                var l2lmap = new greycat.internal.chunk.heap.HeapLongLongMap(this);
-                                                cursor++;
-                                                cursor = l2lmap.load(buffer, cursor, payloadSize);
-                                                this.internal_set(read_key, read_type, l2lmap, true, initial);
-                                                if (cursor < payloadSize) {
-                                                    current = buffer.read(cursor);
-                                                    if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
-                                                        state = HeapENode.LOAD_WAITING_TYPE;
-                                                        cursor++;
-                                                        previous = cursor;
-                                                    }
-                                                }
-                                                break;
-                                            case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
-                                                var l2lrmap = new greycat.internal.chunk.heap.HeapLongLongArrayMap(this);
-                                                cursor++;
-                                                cursor = l2lrmap.load(buffer, cursor, payloadSize);
-                                                this.internal_set(read_key, read_type, l2lrmap, true, initial);
-                                                if (cursor < payloadSize) {
-                                                    current = buffer.read(cursor);
-                                                    if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
-                                                        state = HeapENode.LOAD_WAITING_TYPE;
-                                                        cursor++;
-                                                        previous = cursor;
-                                                    }
-                                                }
-                                                break;
-                                            case greycat.Type.RELATION_INDEXED:
-                                                var relationIndexed = new greycat.internal.chunk.heap.HeapRelationIndexed(this, graph);
-                                                cursor++;
-                                                cursor = relationIndexed.load(buffer, cursor, payloadSize);
-                                                this.internal_set(read_key, read_type, relationIndexed, true, initial);
-                                                if (cursor < payloadSize) {
-                                                    current = buffer.read(cursor);
-                                                    if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
-                                                        state = HeapENode.LOAD_WAITING_TYPE;
-                                                        cursor++;
-                                                        previous = cursor;
-                                                    }
-                                                }
-                                                break;
-                                            case greycat.Type.STRING_TO_INT_MAP:
-                                                var s2lmap = new greycat.internal.chunk.heap.HeapStringIntMap(this);
-                                                cursor++;
-                                                cursor = s2lmap.load(buffer, cursor, payloadSize);
-                                                this.internal_set(read_key, read_type, s2lmap, true, initial);
-                                                if (cursor < payloadSize) {
-                                                    current = buffer.read(cursor);
-                                                    if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
-                                                        state = HeapENode.LOAD_WAITING_TYPE;
-                                                        cursor++;
-                                                        previous = cursor;
-                                                    }
-                                                }
-                                                break;
-                                            case greycat.Type.ERELATION:
-                                                var eRelation = null;
-                                                cursor++;
-                                                previous = cursor;
-                                                current = buffer.read(cursor);
-                                                while (cursor < payloadSize && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
-                                                    if (current == greycat.Constants.CHUNK_VAL_SEP) {
-                                                        if (eRelation == null) {
-                                                            eRelation = new greycat.internal.chunk.heap.HeapERelation(this, null);
-                                                            eRelation.allocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                                                        }
-                                                        else {
-                                                            eRelation.add(this.egraph.nodeByIndex(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor), true));
-                                                        }
-                                                        previous = cursor + 1;
-                                                    }
-                                                    cursor++;
-                                                    if (cursor < payloadSize) {
-                                                        current = buffer.read(cursor);
-                                                    }
-                                                }
-                                                if (eRelation == null) {
-                                                    eRelation = new greycat.internal.chunk.heap.HeapERelation(this, null);
-                                                    eRelation.allocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                                                }
-                                                else {
-                                                    eRelation.add(this.egraph.nodeByIndex(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor), true));
-                                                }
-                                                this.internal_set(read_key, read_type, eRelation, true, initial);
-                                                if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
-                                                    state = HeapENode.LOAD_WAITING_TYPE;
-                                                    cursor++;
-                                                    previous = cursor;
-                                                }
-                                                break;
-                                            default:
-                                                throw new Error("Not implemented yet!!!");
-                                        }
-                                        break;
-                                    case HeapENode.LOAD_WAITING_VALUE:
-                                        this.load_primitive(read_key, read_type, buffer, previous, cursor, initial);
-                                        state = HeapENode.LOAD_WAITING_TYPE;
-                                        cursor++;
-                                        previous = cursor;
-                                        break;
-                                }
-                            }
-                            else {
-                                cursor++;
-                            }
-                        }
-                        if (state == HeapENode.LOAD_WAITING_VALUE) {
-                            this.load_primitive(read_key, read_type, buffer, previous, cursor, initial);
-                        }
-                        return cursor;
-                    };
-                    HeapENode.prototype.load_primitive = function (read_key, read_type, buffer, previous, cursor, initial) {
-                        switch (read_type) {
-                            case greycat.Type.BOOL:
-                                this.internal_set(read_key, read_type, (greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor) == greycat.internal.CoreConstants.BOOL_TRUE), true, initial);
-                                break;
-                            case greycat.Type.INT:
-                                this.internal_set(read_key, read_type, greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor), true, initial);
-                                break;
-                            case greycat.Type.DOUBLE:
-                                this.internal_set(read_key, read_type, greycat.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor), true, initial);
-                                break;
-                            case greycat.Type.LONG:
-                                this.internal_set(read_key, read_type, greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor), true, initial);
-                                break;
-                            case greycat.Type.STRING:
-                                this.internal_set(read_key, read_type, greycat.utility.Base64.decodeToStringWithBounds(buffer, previous, cursor), true, initial);
-                                break;
-                            case greycat.Type.ENODE:
-                                this.internal_set(read_key, read_type, this.egraph.nodeByIndex(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor), true), true, initial);
-                                break;
-                        }
-                    };
-                    HeapENode.prototype.each = function (callBack) {
-                        for (var i = 0; i < this._size; i++) {
-                            if (this._v[i] != null) {
-                                callBack(this._k[i], this._type[i], this._v[i]);
-                            }
-                        }
-                    };
-                    return HeapENode;
-                }());
-                HeapENode.LOAD_WAITING_ALLOC = 0;
-                HeapENode.LOAD_WAITING_TYPE = 1;
-                HeapENode.LOAD_WAITING_KEY = 2;
-                HeapENode.LOAD_WAITING_VALUE = 3;
-                heap.HeapENode = HeapENode;
-                var HeapERelation = (function () {
-                    function HeapERelation(p_parent, origin) {
-                        this.parent = p_parent;
-                        if (origin != null) {
-                            this._back = new Array(origin._capacity);
-                            java.lang.System.arraycopy(origin._back, 0, this._back, 0, origin._capacity);
-                            this._size = origin._size;
-                            this._capacity = origin._capacity;
-                        }
-                        else {
-                            this._back = null;
-                            this._size = 0;
-                            this._capacity = 0;
-                        }
-                    }
-                    HeapERelation.prototype.rebase = function (newGraph) {
-                        for (var i = 0; i < this._size; i++) {
-                            var previous = this._back[i];
-                            this._back[i] = newGraph._nodes[previous._id];
-                        }
-                    };
-                    HeapERelation.prototype.size = function () {
-                        return this._size;
-                    };
-                    HeapERelation.prototype.nodes = function () {
-                        var copy = new Array(this._size);
-                        java.lang.System.arraycopy(this._back, 0, copy, 0, this._size);
-                        return copy;
-                    };
-                    HeapERelation.prototype.node = function (index) {
-                        return this._back[index];
-                    };
-                    HeapERelation.prototype.add = function (eNode) {
-                        if (this._capacity == this._size) {
-                            if (this._capacity == 0) {
-                                this.allocate(greycat.Constants.MAP_INITIAL_CAPACITY);
-                            }
-                            else {
-                                this.allocate(this._capacity * 2);
-                            }
-                        }
-                        this._back[this._size] = eNode;
-                        this._size++;
-                        if (this.parent != null) {
-                            this.parent.declareDirty();
-                        }
-                        return this;
-                    };
-                    HeapERelation.prototype.addAll = function (eNodes) {
-                        this.allocate(eNodes.length + this._size);
-                        java.lang.System.arraycopy(eNodes, 0, this._back, this._size, eNodes.length);
-                        if (this.parent != null) {
-                            this.parent.declareDirty();
-                        }
-                        return this;
-                    };
-                    HeapERelation.prototype.clear = function () {
-                        this._size = 0;
-                        this._back = null;
-                        if (this.parent != null) {
-                            this.parent.declareDirty();
-                        }
-                        return this;
-                    };
-                    HeapERelation.prototype.toString = function () {
-                        var buffer = new java.lang.StringBuilder();
-                        buffer.append("[");
-                        for (var i = 0; i < this._size; i++) {
-                            if (i != 0) {
-                                buffer.append(",");
-                            }
-                            buffer.append(this._back[i]._id);
-                        }
-                        buffer.append("]");
-                        return buffer.toString();
-                    };
-                    HeapERelation.prototype.allocate = function (newCapacity) {
-                        var closePowerOfTwo = Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
-                        if (closePowerOfTwo > this._capacity) {
-                            var new_back = new Array(closePowerOfTwo);
-                            if (this._back != null) {
-                                java.lang.System.arraycopy(this._back, 0, new_back, 0, this._size);
-                            }
-                            this._back = new_back;
-                            this._capacity = closePowerOfTwo;
-                        }
-                    };
-                    return HeapERelation;
-                }());
-                heap.HeapERelation = HeapERelation;
-                var HeapFixedStack = (function () {
-                    function HeapFixedStack(capacity, fill) {
-                        this._capacity = capacity;
-                        this._next = new Int32Array(capacity);
-                        this._prev = new Int32Array(capacity);
-                        this._first = -1;
-                        this._last = -1;
-                        java.util.Arrays.fill(this._next, 0, capacity, -1);
-                        java.util.Arrays.fill(this._prev, 0, capacity, -1);
-                        if (fill) {
-                            for (var i = 0; i < capacity; i++) {
-                                var l = this._last;
-                                this._prev[i] = l;
-                                this._last = i;
-                                if (this._first == -1) {
-                                    this._first = i;
-                                }
-                                else {
-                                    this._next[l] = i;
-                                }
-                            }
-                            this._count = capacity;
-                        }
-                        else {
-                            this._count = 0;
-                        }
-                    }
-                    HeapFixedStack.prototype.enqueue = function (index) {
-                        if (this._count >= this._capacity) {
-                            return false;
-                        }
-                        var castedIndex = index;
-                        if (this._first == castedIndex || this._last == castedIndex) {
-                            return false;
-                        }
-                        if (this._prev[castedIndex] != -1 || this._next[castedIndex] != -1) {
-                            return false;
-                        }
-                        var l = this._last;
-                        this._prev[castedIndex] = l;
-                        this._last = castedIndex;
-                        if (this._first == -1) {
-                            this._first = castedIndex;
-                        }
-                        else {
-                            this._next[l] = castedIndex;
-                        }
-                        this._count++;
-                        return true;
-                    };
-                    HeapFixedStack.prototype.dequeueTail = function () {
-                        var f = this._first;
-                        if (f == -1) {
-                            return -1;
-                        }
-                        var n = this._next[f];
-                        this._next[f] = -1;
-                        this._prev[f] = -1;
-                        this._first = n;
-                        if (n == -1) {
-                            this._last = -1;
-                        }
-                        else {
-                            this._prev[n] = -1;
-                        }
-                        this._count--;
-                        return f;
-                    };
-                    HeapFixedStack.prototype.dequeue = function (index) {
-                        var castedIndex = index;
-                        var p = this._prev[castedIndex];
-                        var n = this._next[castedIndex];
-                        if (p == -1 && n == -1) {
-                            return false;
-                        }
-                        if (p == -1) {
-                            var f = this._first;
-                            if (f == -1) {
-                                return false;
-                            }
-                            var n2 = this._next[f];
-                            this._next[f] = -1;
-                            this._prev[f] = -1;
-                            this._first = n2;
-                            if (n2 == -1) {
-                                this._last = -1;
-                            }
-                            else {
-                                this._prev[n2] = -1;
-                            }
-                            --this._count;
-                        }
-                        else if (n == -1) {
-                            var l = this._last;
-                            if (l == -1) {
-                                return false;
-                            }
-                            var p2 = this._prev[l];
-                            this._prev[l] = -1;
-                            this._next[l] = -1;
-                            this._last = p2;
-                            if (p2 == -1) {
-                                this._first = -1;
-                            }
-                            else {
-                                this._next[p2] = -1;
-                            }
-                            --this._count;
-                        }
-                        else {
-                            this._next[p] = n;
-                            this._prev[n] = p;
-                            this._prev[castedIndex] = -1;
-                            this._next[castedIndex] = -1;
-                            this._count--;
-                        }
-                        return true;
-                    };
-                    HeapFixedStack.prototype.free = function () { };
-                    HeapFixedStack.prototype.size = function () {
-                        return this._count;
-                    };
-                    return HeapFixedStack;
-                }());
-                heap.HeapFixedStack = HeapFixedStack;
-                var HeapGenChunk = (function () {
-                    function HeapGenChunk(p_space, p_id, p_index) {
-                        this._index = p_index;
-                        this._space = p_space;
-                        this._prefix = Long.fromNumber(p_id).shiftLeft((Constants.LONG_SIZE - Constants.PREFIX_SIZE));
-                        this._seed = -1;
-                    }
-                    HeapGenChunk.prototype.save = function (buffer) {
-                        greycat.utility.Base64.encodeLongToBuffer(this._seed, buffer);
-                        this._dirty = false;
-                    };
-                    HeapGenChunk.prototype.saveDiff = function (buffer) {
-                        greycat.utility.Base64.encodeLongToBuffer(this._seed, buffer);
-                        this._dirty = false;
-                    };
-                    HeapGenChunk.prototype.load = function (buffer) {
-                        this.internal_load(buffer, false);
-                    };
-                    HeapGenChunk.prototype.loadDiff = function (buffer) {
-                        this.internal_load(buffer, true);
-                    };
-                    HeapGenChunk.prototype.internal_load = function (buffer, diff) {
-                        if (buffer == null || buffer.length() == 0) {
-                            return;
-                        }
-                        var loaded = greycat.utility.Base64.decodeToLongWithBounds(buffer, 0, buffer.length());
-                        var previousSeed = this._seed;
-                        this._seed = loaded;
-                        if (previousSeed != -1 && previousSeed != this._seed) {
-                            if (this._space != null && !this._dirty && diff) {
-                                this._dirty = true;
-                                this._space.notifyUpdate(this._index);
-                            }
-                        }
-                    };
-                    HeapGenChunk.prototype.newKey = function () {
-                        if (this._seed == Constants.KEY_PREFIX_MASK) {
-                            throw new Error("Object Index could not be created because it exceeded the capacity of the current prefix. Ask for a new prefix.");
-                        }
-                        if (this._seed == -1) {
-                            this._seed = 0;
-                        }
-                        this._seed++;
-                        var nextIndex = this._seed;
-                        if (this._space) {
-                            this._space.notifyUpdate(this._index);
-                        }
-                        var objectKey = this._prefix.add(this._seed).toNumber();
-                        if (objectKey >= Constants.NULL_LONG) {
-                            throw new Error("Object Index exceeds the maximum JavaScript number capacity. (2^" + Constants.LONG_SIZE + ")");
-                        }
-                        return objectKey;
-                    };
-                    HeapGenChunk.prototype.index = function () {
-                        return this._index;
-                    };
-                    HeapGenChunk.prototype.world = function () {
-                        return this._space.worldByIndex(this._index);
-                    };
-                    HeapGenChunk.prototype.time = function () {
-                        return this._space.timeByIndex(this._index);
-                    };
-                    HeapGenChunk.prototype.id = function () {
-                        return this._space.idByIndex(this._index);
-                    };
-                    HeapGenChunk.prototype.chunkType = function () {
-                        return greycat.chunk.ChunkType.GEN_CHUNK;
-                    };
-                    return HeapGenChunk;
-                }());
-                heap.HeapGenChunk = HeapGenChunk;
-                var HeapLMatrix = (function () {
-                    function HeapLMatrix(p_parent, origin) {
-                        this.backend = null;
-                        this.aligned = true;
-                        this.parent = p_parent;
-                        if (origin != null) {
-                            this.aligned = false;
-                            this.backend = origin.backend;
-                        }
-                    }
-                    HeapLMatrix.prototype.init = function (rows, columns) {
-                        {
-                            this.internal_init(rows, columns);
-                        }
-                        this.parent.declareDirty();
-                        return this;
-                    };
-                    HeapLMatrix.prototype.internal_init = function (rows, columns) {
-                        this.backend = new Float64Array(rows * columns + HeapLMatrix.INDEX_OFFSET);
-                        this.backend[HeapLMatrix.INDEX_ROWS] = rows;
-                        this.backend[HeapLMatrix.INDEX_COLUMNS] = columns;
-                        this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = columns;
-                        this.aligned = true;
-                    };
-                    HeapLMatrix.prototype.appendColumn = function (newColumn) {
-                        {
-                            this.internal_appendColumn(newColumn);
-                            this.parent.declareDirty();
-                        }
-                        return this;
-                    };
-                    HeapLMatrix.prototype.internal_appendColumn = function (newColumn) {
-                        var nbRows;
-                        var nbColumns;
-                        var nbMaxColumn;
-                        if (this.backend == null) {
-                            nbRows = newColumn.length;
-                            nbColumns = greycat.Constants.MAP_INITIAL_CAPACITY;
-                            nbMaxColumn = 0;
-                            this.backend = new Float64Array(nbRows * nbColumns + HeapLMatrix.INDEX_OFFSET);
-                            this.backend[HeapLMatrix.INDEX_ROWS] = nbRows;
-                            this.backend[HeapLMatrix.INDEX_COLUMNS] = nbColumns;
-                            this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = nbMaxColumn;
-                        }
-                        else {
-                            nbColumns = this.backend[HeapLMatrix.INDEX_COLUMNS];
-                            nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
-                            nbMaxColumn = this.backend[HeapLMatrix.INDEX_MAX_COLUMN];
-                        }
-                        if (!this.aligned || nbMaxColumn == nbColumns) {
-                            if (nbMaxColumn == nbColumns) {
-                                nbColumns = nbColumns * 2;
-                                this.backend[HeapLMatrix.INDEX_COLUMNS] = nbColumns;
-                                var newLength = nbColumns * nbRows + HeapLMatrix.INDEX_OFFSET;
-                                var next_backend = new Float64Array(newLength);
-                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                this.backend = next_backend;
-                                this.aligned = true;
-                            }
-                            else {
-                                var next_backend = new Float64Array(this.backend.length);
-                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                this.backend = next_backend;
-                                this.aligned = true;
-                            }
-                        }
-                        java.lang.System.arraycopy(newColumn, 0, this.backend, (nbMaxColumn * nbRows) + HeapLMatrix.INDEX_OFFSET, newColumn.length);
-                        this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = nbMaxColumn + 1;
-                    };
-                    HeapLMatrix.prototype.fill = function (value) {
-                        {
-                            this.internal_fill(value);
-                        }
-                        return this;
-                    };
-                    HeapLMatrix.prototype.internal_fill = function (value) {
-                        if (this.backend != null) {
-                            if (!this.aligned) {
-                                var next_backend = new Float64Array(this.backend.length);
-                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                this.backend = next_backend;
-                                this.aligned = true;
-                            }
-                            java.util.Arrays.fill(this.backend, HeapLMatrix.INDEX_OFFSET, this.backend.length - HeapLMatrix.INDEX_OFFSET, value);
-                            this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = this.backend[HeapLMatrix.INDEX_COLUMNS];
-                            this.parent.declareDirty();
-                        }
-                    };
-                    HeapLMatrix.prototype.fillWith = function (values) {
-                        {
-                            this.internal_fillWith(values);
-                        }
-                        return this;
-                    };
-                    HeapLMatrix.prototype.internal_fillWith = function (values) {
-                        if (this.backend != null) {
-                            if (!this.aligned) {
-                                var next_backend = new Float64Array(this.backend.length);
-                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                this.backend = next_backend;
-                                this.aligned = true;
-                            }
-                            java.lang.System.arraycopy(values, 0, this.backend, HeapLMatrix.INDEX_OFFSET, values.length);
-                            this.parent.declareDirty();
-                        }
-                    };
-                    HeapLMatrix.prototype.fillWithRandom = function (min, max, seed) {
-                        {
-                            this.internal_fillWithRandom(min, max, seed);
-                        }
-                        return this;
-                    };
-                    HeapLMatrix.prototype.internal_fillWithRandom = function (min, max, seed) {
-                        var rand = new java.util.Random();
-                        rand.setSeed(seed);
-                        if (this.backend != null) {
-                            if (!this.aligned) {
-                                var next_backend = new Float64Array(this.backend.length);
-                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                this.backend = next_backend;
-                                this.aligned = true;
-                            }
-                            for (var i = 0; i < this.backend[HeapLMatrix.INDEX_ROWS] * this.backend[HeapLMatrix.INDEX_COLUMNS]; i++) {
-                                this.backend[i + HeapLMatrix.INDEX_OFFSET] = rand.nextInt() * (max - min) + min;
-                            }
-                            this.parent.declareDirty();
-                        }
-                    };
-                    HeapLMatrix.prototype.rows = function () {
-                        var result = 0;
-                        {
-                            if (this.backend != null) {
-                                result = this.backend[HeapLMatrix.INDEX_ROWS];
-                            }
-                        }
-                        return result;
-                    };
-                    HeapLMatrix.prototype.columns = function () {
-                        var result = 0;
-                        {
-                            if (this.backend != null) {
-                                result = this.backend[HeapLMatrix.INDEX_MAX_COLUMN];
-                            }
-                        }
-                        return result;
-                    };
-                    HeapLMatrix.prototype.column = function (index) {
-                        var result;
-                        {
-                            var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
-                            result = new Float64Array(nbRows);
-                            java.lang.System.arraycopy(this.backend, HeapLMatrix.INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
-                        }
-                        return result;
-                    };
-                    HeapLMatrix.prototype.get = function (rowIndex, columnIndex) {
-                        var result = 0;
-                        {
-                            if (this.backend != null) {
-                                var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
-                                result = this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
-                            }
-                        }
-                        return result;
-                    };
-                    HeapLMatrix.prototype.set = function (rowIndex, columnIndex, value) {
-                        {
-                            this.internal_set(rowIndex, columnIndex, value);
-                        }
-                        return this;
-                    };
-                    HeapLMatrix.prototype.internal_set = function (rowIndex, columnIndex, value) {
-                        if (this.backend != null) {
-                            if (!this.aligned) {
-                                var next_backend = new Float64Array(this.backend.length);
-                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                this.backend = next_backend;
-                                this.aligned = true;
-                            }
-                            var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
-                            this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
-                            this.parent.declareDirty();
-                        }
-                    };
-                    HeapLMatrix.prototype.add = function (rowIndex, columnIndex, value) {
-                        {
-                            this.internal_add(rowIndex, columnIndex, value);
-                        }
-                        return this;
-                    };
-                    HeapLMatrix.prototype.internal_add = function (rowIndex, columnIndex, value) {
-                        if (this.backend != null) {
-                            if (!this.aligned) {
-                                var next_backend = new Float64Array(this.backend.length);
-                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                this.backend = next_backend;
-                                this.aligned = true;
-                            }
-                            var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
-                            this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
-                            this.parent.declareDirty();
-                        }
-                    };
-                    HeapLMatrix.prototype.data = function () {
-                        var copy = null;
-                        {
-                            if (this.backend != null) {
-                                copy = new Float64Array(this.backend.length - HeapLMatrix.INDEX_OFFSET);
-                                java.lang.System.arraycopy(this.backend, HeapLMatrix.INDEX_OFFSET, copy, 0, this.backend.length - HeapLMatrix.INDEX_OFFSET);
-                            }
-                        }
-                        return copy;
-                    };
-                    HeapLMatrix.prototype.leadingDimension = function () {
-                        if (this.backend == null) {
-                            return 0;
-                        }
-                        return Math.max(this.backend[HeapLMatrix.INDEX_COLUMNS], this.backend[HeapLMatrix.INDEX_ROWS]);
-                    };
-                    HeapLMatrix.prototype.unsafeGet = function (index) {
-                        var result = 0;
-                        {
-                            if (this.backend != null) {
-                                result = this.backend[HeapLMatrix.INDEX_OFFSET + index];
-                            }
-                        }
-                        return result;
-                    };
-                    HeapLMatrix.prototype.unsafeSet = function (index, value) {
-                        {
-                            this.internal_unsafeSet(index, value);
-                        }
-                        return this;
-                    };
-                    HeapLMatrix.prototype.internal_unsafeSet = function (index, value) {
-                        if (this.backend != null) {
-                            if (!this.aligned) {
-                                var next_backend = new Float64Array(this.backend.length);
-                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
-                                this.backend = next_backend;
-                                this.aligned = true;
-                            }
-                            this.backend[HeapLMatrix.INDEX_OFFSET + index] = value;
-                            this.parent.declareDirty();
-                        }
-                    };
-                    HeapLMatrix.prototype.unsafe_data = function () {
-                        return this.backend;
-                    };
-                    HeapLMatrix.prototype.unsafe_init = function (size) {
-                        this.backend = new Float64Array(size);
-                        this.backend[HeapLMatrix.INDEX_ROWS] = 0;
-                        this.backend[HeapLMatrix.INDEX_COLUMNS] = 0;
-                        this.aligned = true;
-                    };
-                    HeapLMatrix.prototype.unsafe_set = function (index, value) {
-                        this.backend[index] = value;
-                    };
-                    HeapLMatrix.prototype.load = function (buffer, offset, max) {
-                        var cursor = offset;
-                        var current = buffer.read(cursor);
-                        var isFirst = true;
-                        var previous = offset;
-                        var elemIndex = 0;
-                        while (cursor < max && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
-                            if (current == greycat.Constants.CHUNK_VAL_SEP) {
-                                if (isFirst) {
-                                    this.unsafe_init(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                                    isFirst = false;
-                                }
-                                else {
-                                    this.unsafe_set(elemIndex, greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                                    elemIndex++;
-                                }
-                                previous = cursor + 1;
-                            }
-                            cursor++;
-                            if (cursor < max) {
-                                current = buffer.read(cursor);
-                            }
-                        }
-                        if (isFirst) {
-                            this.unsafe_init(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                        }
-                        else {
-                            this.unsafe_set(elemIndex, greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                        }
-                        return cursor;
-                    };
-                    return HeapLMatrix;
-                }());
-                HeapLMatrix.INDEX_ROWS = 0;
-                HeapLMatrix.INDEX_COLUMNS = 1;
-                HeapLMatrix.INDEX_MAX_COLUMN = 2;
-                HeapLMatrix.INDEX_OFFSET = 3;
-                heap.HeapLMatrix = HeapLMatrix;
-                var HeapLongLongArrayMap = (function () {
-                    function HeapLongLongArrayMap(p_listener) {
-                        this.mapSize = 0;
-                        this.capacity = 0;
-                        this.keys = null;
-                        this.values = null;
-                        this.nexts = null;
-                        this.hashs = null;
-                        this.parent = p_listener;
-                    }
-                    HeapLongLongArrayMap.prototype.key = function (i) {
-                        return this.keys[i];
-                    };
-                    HeapLongLongArrayMap.prototype.setKey = function (i, newValue) {
-                        this.keys[i] = newValue;
-                    };
-                    HeapLongLongArrayMap.prototype.value = function (i) {
-                        return this.values[i];
-                    };
-                    HeapLongLongArrayMap.prototype.setValue = function (i, newValue) {
-                        this.values[i] = newValue;
-                    };
-                    HeapLongLongArrayMap.prototype.next = function (i) {
-                        return this.nexts[i];
-                    };
-                    HeapLongLongArrayMap.prototype.setNext = function (i, newValue) {
-                        this.nexts[i] = newValue;
-                    };
-                    HeapLongLongArrayMap.prototype.hash = function (i) {
-                        return this.hashs[i];
-                    };
-                    HeapLongLongArrayMap.prototype.setHash = function (i, newValue) {
-                        this.hashs[i] = newValue;
-                    };
-                    HeapLongLongArrayMap.prototype.reallocate = function (newCapacity) {
-                        if (newCapacity > this.capacity) {
-                            var new_keys = new Float64Array(newCapacity);
-                            if (this.keys != null) {
-                                java.lang.System.arraycopy(this.keys, 0, new_keys, 0, this.capacity);
-                            }
-                            this.keys = new_keys;
-                            var new_values = new Float64Array(newCapacity);
-                            if (this.values != null) {
-                                java.lang.System.arraycopy(this.values, 0, new_values, 0, this.capacity);
-                            }
-                            this.values = new_values;
-                            var new_nexts = new Int32Array(newCapacity);
-                            var new_hashes = new Int32Array(newCapacity * 2);
-                            java.util.Arrays.fill(new_nexts, 0, newCapacity, -1);
-                            java.util.Arrays.fill(new_hashes, 0, (newCapacity * 2), -1);
-                            this.hashs = new_hashes;
-                            this.nexts = new_nexts;
-                            for (var i = 0; i < this.mapSize; i++) {
-                                var new_key_hash = greycat.utility.HashHelper.longHash(this.key(i), newCapacity * 2);
-                                this.setNext(i, this.hash(new_key_hash));
-                                this.setHash(new_key_hash, i);
-                            }
-                            this.capacity = newCapacity;
-                        }
-                    };
-                    HeapLongLongArrayMap.prototype.cloneFor = function (newParent) {
-                        var cloned = new greycat.internal.chunk.heap.HeapLongLongArrayMap(newParent);
-                        cloned.mapSize = this.mapSize;
-                        cloned.capacity = this.capacity;
-                        if (this.keys != null) {
-                            var cloned_keys = new Float64Array(this.capacity);
-                            java.lang.System.arraycopy(this.keys, 0, cloned_keys, 0, this.capacity);
-                            cloned.keys = cloned_keys;
-                        }
-                        if (this.values != null) {
-                            var cloned_values = new Float64Array(this.capacity);
-                            java.lang.System.arraycopy(this.values, 0, cloned_values, 0, this.capacity);
-                            cloned.values = cloned_values;
-                        }
-                        if (this.nexts != null) {
-                            var cloned_nexts = new Int32Array(this.capacity);
-                            java.lang.System.arraycopy(this.nexts, 0, cloned_nexts, 0, this.capacity);
-                            cloned.nexts = cloned_nexts;
-                        }
-                        if (this.hashs != null) {
-                            var cloned_hashs = new Int32Array(this.capacity * 2);
-                            java.lang.System.arraycopy(this.hashs, 0, cloned_hashs, 0, this.capacity * 2);
-                            cloned.hashs = cloned_hashs;
-                        }
-                        return cloned;
-                    };
-                    HeapLongLongArrayMap.prototype.get = function (requestKey) {
-                        var result = new Float64Array(0);
-                        {
-                            if (this.keys != null) {
-                                var hashIndex = greycat.utility.HashHelper.longHash(requestKey, this.capacity * 2);
-                                var resultCapacity = 0;
-                                var resultIndex = 0;
-                                var m = this.hash(hashIndex);
-                                while (m >= 0) {
-                                    if (requestKey == this.key(m)) {
-                                        if (resultIndex == resultCapacity) {
-                                            var newCapacity = void 0;
-                                            if (resultCapacity == 0) {
-                                                newCapacity = 1;
-                                            }
-                                            else {
-                                                newCapacity = resultCapacity * 2;
-                                            }
-                                            var tempResult = new Float64Array(newCapacity);
-                                            java.lang.System.arraycopy(result, 0, tempResult, 0, result.length);
-                                            result = tempResult;
-                                            resultCapacity = newCapacity;
-                                        }
-                                        result[resultIndex] = this.value(m);
-                                        resultIndex++;
-                                    }
-                                    m = this.next(m);
-                                }
-                                if (resultIndex != resultCapacity) {
-                                    var shrinkedResult = new Float64Array(resultIndex);
-                                    java.lang.System.arraycopy(result, 0, shrinkedResult, 0, resultIndex);
-                                    result = shrinkedResult;
-                                }
-                            }
-                        }
-                        return result;
-                    };
-                    HeapLongLongArrayMap.prototype.contains = function (requestKey, requestValue) {
-                        var result = false;
-                        {
-                            if (this.keys != null) {
-                                var hashIndex = greycat.utility.HashHelper.longHash(requestKey, this.capacity * 2);
-                                var m = this.hash(hashIndex);
-                                while (m >= 0 && !result) {
-                                    if (requestKey == this.key(m) && requestValue == this.value(m)) {
-                                        result = true;
-                                    }
-                                    m = this.next(m);
-                                }
-                            }
-                        }
-                        return result;
-                    };
-                    HeapLongLongArrayMap.prototype.each = function (callback) {
-                        {
-                            this.unsafe_each(callback);
-                        }
-                    };
-                    HeapLongLongArrayMap.prototype.unsafe_each = function (callback) {
-                        for (var i = 0; i < this.mapSize; i++) {
-                            callback(this.key(i), this.value(i));
-                        }
-                    };
-                    HeapLongLongArrayMap.prototype.size = function () {
-                        var result;
-                        {
-                            result = this.mapSize;
-                        }
-                        return result;
-                    };
-                    HeapLongLongArrayMap.prototype.delete = function (requestKey, requestValue) {
-                        {
-                            if (this.keys != null && this.mapSize != 0) {
-                                var hashCapacity = this.capacity * 2;
-                                var hashIndex = greycat.utility.HashHelper.longHash(requestKey, hashCapacity);
-                                var m = this.hash(hashIndex);
-                                var found = -1;
-                                while (m >= 0) {
-                                    if (requestKey == this.key(m) && requestValue == this.value(m)) {
-                                        found = m;
-                                        break;
-                                    }
-                                    m = this.next(m);
-                                }
-                                if (found != -1) {
-                                    var toRemoveHash = greycat.utility.HashHelper.longHash(requestKey, hashCapacity);
-                                    m = this.hash(toRemoveHash);
-                                    if (m == found) {
-                                        this.setHash(toRemoveHash, this.next(m));
-                                    }
-                                    else {
-                                        while (m != -1) {
-                                            var next_of_m = this.next(m);
-                                            if (next_of_m == found) {
-                                                this.setNext(m, this.next(next_of_m));
-                                                break;
-                                            }
-                                            m = next_of_m;
-                                        }
-                                    }
-                                    var lastIndex = this.mapSize - 1;
-                                    if (lastIndex == found) {
-                                        this.mapSize--;
-                                    }
-                                    else {
-                                        var lastKey = this.key(lastIndex);
-                                        this.setKey(found, lastKey);
-                                        this.setValue(found, this.value(lastIndex));
-                                        this.setNext(found, this.next(lastIndex));
-                                        var victimHash = greycat.utility.HashHelper.longHash(lastKey, hashCapacity);
-                                        m = this.hash(victimHash);
-                                        if (m == lastIndex) {
-                                            this.setHash(victimHash, found);
-                                        }
-                                        else {
-                                            while (m != -1) {
-                                                var next_of_m = this.next(m);
-                                                if (next_of_m == lastIndex) {
-                                                    this.setNext(m, found);
-                                                    break;
-                                                }
-                                                m = next_of_m;
-                                            }
-                                        }
-                                        this.mapSize--;
-                                    }
-                                    this.parent.declareDirty();
-                                }
-                            }
-                        }
-                    };
-                    HeapLongLongArrayMap.prototype.put = function (insertKey, insertValue) {
-                        {
-                            if (this.keys == null) {
-                                this.reallocate(greycat.Constants.MAP_INITIAL_CAPACITY);
-                                this.setKey(0, insertKey);
-                                this.setValue(0, insertValue);
-                                this.setHash(greycat.utility.HashHelper.longHash(insertKey, this.capacity * 2), 0);
-                                this.setNext(0, -1);
-                                this.mapSize++;
-                                this.parent.declareDirty();
-                            }
-                            else {
-                                var hashCapacity = this.capacity * 2;
-                                var insertKeyHash = greycat.utility.HashHelper.longHash(insertKey, hashCapacity);
-                                var currentHash = this.hash(insertKeyHash);
-                                var m = currentHash;
-                                var found = -1;
-                                while (m >= 0) {
-                                    if (insertKey == this.key(m) && insertValue == this.value(m)) {
-                                        found = m;
-                                        break;
-                                    }
-                                    m = this.next(m);
-                                }
-                                if (found == -1) {
-                                    var lastIndex = this.mapSize;
-                                    if (lastIndex == this.capacity) {
-                                        this.reallocate(this.capacity * 2);
-                                        hashCapacity = this.capacity * 2;
-                                        insertKeyHash = greycat.utility.HashHelper.longHash(insertKey, hashCapacity);
-                                        currentHash = this.hash(insertKeyHash);
-                                    }
-                                    this.setKey(lastIndex, insertKey);
-                                    this.setValue(lastIndex, insertValue);
-                                    this.setHash(greycat.utility.HashHelper.longHash(insertKey, this.capacity * 2), lastIndex);
-                                    this.setNext(lastIndex, currentHash);
-                                    this.mapSize++;
-                                    this.parent.declareDirty();
-                                }
-                            }
-                        }
-                    };
-                    HeapLongLongArrayMap.prototype.load = function (buffer, offset, max) {
-                        var cursor = offset;
-                        var current = buffer.read(cursor);
-                        var isFirst = true;
-                        var previous = offset;
-                        var previousKey = -1;
-                        var waitingVal = false;
-                        while (cursor < max && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
-                            if (current == greycat.Constants.CHUNK_VAL_SEP) {
-                                if (isFirst) {
-                                    this.reallocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                                    isFirst = false;
-                                }
-                                else {
-                                    if (!waitingVal) {
-                                        previousKey = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                                        waitingVal = true;
-                                    }
-                                    else {
-                                        waitingVal = false;
-                                        this.put(previousKey, greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                                    }
-                                }
-                                previous = cursor + 1;
-                            }
-                            cursor++;
-                            if (cursor < max) {
-                                current = buffer.read(cursor);
-                            }
-                        }
-                        if (isFirst) {
-                            this.reallocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                        }
-                        else {
-                            if (waitingVal) {
-                                this.put(previousKey, greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                            }
-                        }
-                        return cursor;
-                    };
-                    return HeapLongLongArrayMap;
-                }());
-                heap.HeapLongLongArrayMap = HeapLongLongArrayMap;
-                var HeapLongLongMap = (function () {
-                    function HeapLongLongMap(p_listener) {
-                        this.mapSize = 0;
-                        this.capacity = 0;
-                        this.keys = null;
-                        this.values = null;
-                        this.nexts = null;
-                        this.hashs = null;
-                        this.parent = p_listener;
-                    }
-                    HeapLongLongMap.prototype.key = function (i) {
-                        return this.keys[i];
-                    };
-                    HeapLongLongMap.prototype.setKey = function (i, newValue) {
-                        this.keys[i] = newValue;
-                    };
-                    HeapLongLongMap.prototype.value = function (i) {
-                        return this.values[i];
-                    };
-                    HeapLongLongMap.prototype.setValue = function (i, newValue) {
-                        this.values[i] = newValue;
-                    };
-                    HeapLongLongMap.prototype.next = function (i) {
-                        return this.nexts[i];
-                    };
-                    HeapLongLongMap.prototype.setNext = function (i, newValue) {
-                        this.nexts[i] = newValue;
-                    };
-                    HeapLongLongMap.prototype.hash = function (i) {
-                        return this.hashs[i];
-                    };
-                    HeapLongLongMap.prototype.setHash = function (i, newValue) {
-                        this.hashs[i] = newValue;
-                    };
-                    HeapLongLongMap.prototype.reallocate = function (newCapacity) {
-                        if (newCapacity > this.capacity) {
-                            var new_keys = new Float64Array(newCapacity);
-                            if (this.keys != null) {
-                                java.lang.System.arraycopy(this.keys, 0, new_keys, 0, this.capacity);
-                            }
-                            this.keys = new_keys;
-                            var new_values = new Float64Array(newCapacity);
-                            if (this.values != null) {
-                                java.lang.System.arraycopy(this.values, 0, new_values, 0, this.capacity);
-                            }
-                            this.values = new_values;
-                            var new_nexts = new Int32Array(newCapacity);
-                            var new_hashes = new Int32Array(newCapacity * 2);
-                            java.util.Arrays.fill(new_nexts, 0, newCapacity, -1);
-                            java.util.Arrays.fill(new_hashes, 0, (newCapacity * 2), -1);
-                            this.hashs = new_hashes;
-                            this.nexts = new_nexts;
-                            for (var i = 0; i < this.mapSize; i++) {
-                                var new_key_hash = greycat.utility.HashHelper.longHash(this.key(i), newCapacity * 2);
-                                this.setNext(i, this.hash(new_key_hash));
-                                this.setHash(new_key_hash, i);
-                            }
-                            this.capacity = newCapacity;
-                        }
-                    };
-                    HeapLongLongMap.prototype.cloneFor = function (newParent) {
-                        var cloned = new greycat.internal.chunk.heap.HeapLongLongMap(newParent);
-                        cloned.mapSize = this.mapSize;
-                        cloned.capacity = this.capacity;
-                        if (this.keys != null) {
-                            var cloned_keys = new Float64Array(this.capacity);
-                            java.lang.System.arraycopy(this.keys, 0, cloned_keys, 0, this.capacity);
-                            cloned.keys = cloned_keys;
-                        }
-                        if (this.values != null) {
-                            var cloned_values = new Float64Array(this.capacity);
-                            java.lang.System.arraycopy(this.values, 0, cloned_values, 0, this.capacity);
-                            cloned.values = cloned_values;
-                        }
-                        if (this.nexts != null) {
-                            var cloned_nexts = new Int32Array(this.capacity);
-                            java.lang.System.arraycopy(this.nexts, 0, cloned_nexts, 0, this.capacity);
-                            cloned.nexts = cloned_nexts;
-                        }
-                        if (this.hashs != null) {
-                            var cloned_hashs = new Int32Array(this.capacity * 2);
-                            java.lang.System.arraycopy(this.hashs, 0, cloned_hashs, 0, this.capacity * 2);
-                            cloned.hashs = cloned_hashs;
-                        }
-                        return cloned;
-                    };
-                    HeapLongLongMap.prototype.get = function (requestKey) {
-                        var result = greycat.Constants.NULL_LONG;
-                        {
-                            if (this.keys != null) {
-                                var hashIndex = greycat.utility.HashHelper.longHash(requestKey, this.capacity * 2);
-                                var m = this.hash(hashIndex);
-                                while (m >= 0) {
-                                    if (requestKey == this.key(m)) {
-                                        result = this.value(m);
-                                        break;
-                                    }
-                                    m = this.next(m);
-                                }
-                            }
-                        }
-                        return result;
-                    };
-                    HeapLongLongMap.prototype.each = function (callback) {
-                        {
-                            this.unsafe_each(callback);
-                        }
-                    };
-                    HeapLongLongMap.prototype.unsafe_each = function (callback) {
-                        for (var i = 0; i < this.mapSize; i++) {
-                            callback(this.key(i), this.value(i));
-                        }
-                    };
-                    HeapLongLongMap.prototype.size = function () {
-                        var result;
-                        {
-                            result = this.mapSize;
-                        }
-                        return result;
-                    };
-                    HeapLongLongMap.prototype.remove = function (requestKey) {
-                        {
-                            if (this.keys != null && this.mapSize != 0) {
-                                var hashCapacity = this.capacity * 2;
-                                var hashIndex = greycat.utility.HashHelper.longHash(requestKey, hashCapacity);
-                                var m = this.hash(hashIndex);
-                                var found = -1;
-                                while (m >= 0) {
-                                    if (requestKey == this.key(m)) {
-                                        found = m;
-                                        break;
-                                    }
-                                    m = this.next(m);
-                                }
-                                if (found != -1) {
-                                    var toRemoveHash = greycat.utility.HashHelper.longHash(requestKey, hashCapacity);
-                                    m = this.hash(toRemoveHash);
-                                    if (m == found) {
-                                        this.setHash(toRemoveHash, this.next(m));
-                                    }
-                                    else {
-                                        while (m != -1) {
-                                            var next_of_m = this.next(m);
-                                            if (next_of_m == found) {
-                                                this.setNext(m, this.next(next_of_m));
-                                                break;
-                                            }
-                                            m = next_of_m;
-                                        }
-                                    }
-                                    var lastIndex = this.mapSize - 1;
-                                    if (lastIndex == found) {
-                                        this.mapSize--;
-                                    }
-                                    else {
-                                        var lastKey = this.key(lastIndex);
-                                        this.setKey(found, lastKey);
-                                        this.setValue(found, this.value(lastIndex));
-                                        this.setNext(found, this.next(lastIndex));
-                                        var victimHash = greycat.utility.HashHelper.longHash(lastKey, hashCapacity);
-                                        m = this.hash(victimHash);
-                                        if (m == lastIndex) {
-                                            this.setHash(victimHash, found);
-                                        }
-                                        else {
-                                            while (m != -1) {
-                                                var next_of_m = this.next(m);
-                                                if (next_of_m == lastIndex) {
-                                                    this.setNext(m, found);
-                                                    break;
-                                                }
-                                                m = next_of_m;
-                                            }
-                                        }
-                                        this.mapSize--;
-                                    }
-                                    this.parent.declareDirty();
-                                }
-                            }
-                        }
-                    };
-                    HeapLongLongMap.prototype.put = function (insertKey, insertValue) {
-                        {
-                            if (this.keys == null) {
-                                this.reallocate(greycat.Constants.MAP_INITIAL_CAPACITY);
-                                this.setKey(0, insertKey);
-                                this.setValue(0, insertValue);
-                                this.setHash(greycat.utility.HashHelper.longHash(insertKey, this.capacity * 2), 0);
-                                this.setNext(0, -1);
-                                this.mapSize++;
-                            }
-                            else {
-                                var hashCapacity = this.capacity * 2;
-                                var insertKeyHash = greycat.utility.HashHelper.longHash(insertKey, hashCapacity);
-                                var currentHash = this.hash(insertKeyHash);
-                                var m = currentHash;
-                                var found = -1;
-                                while (m >= 0) {
-                                    if (insertKey == this.key(m)) {
-                                        found = m;
-                                        break;
-                                    }
-                                    m = this.next(m);
-                                }
-                                if (found == -1) {
-                                    var lastIndex = this.mapSize;
-                                    if (lastIndex == this.capacity) {
-                                        this.reallocate(this.capacity * 2);
-                                        hashCapacity = this.capacity * 2;
-                                        insertKeyHash = greycat.utility.HashHelper.longHash(insertKey, hashCapacity);
-                                        currentHash = this.hash(insertKeyHash);
-                                    }
-                                    this.setKey(lastIndex, insertKey);
-                                    this.setValue(lastIndex, insertValue);
-                                    this.setHash(greycat.utility.HashHelper.longHash(insertKey, this.capacity * 2), lastIndex);
-                                    this.setNext(lastIndex, currentHash);
-                                    this.mapSize++;
-                                    this.parent.declareDirty();
-                                }
-                                else {
-                                    if (this.value(found) != insertValue) {
-                                        this.setValue(found, insertValue);
-                                        this.parent.declareDirty();
-                                    }
-                                }
-                            }
-                        }
-                    };
-                    HeapLongLongMap.prototype.load = function (buffer, offset, max) {
-                        var cursor = offset;
-                        var current = buffer.read(cursor);
-                        var isFirst = true;
-                        var previous = offset;
-                        var previousKey = -1;
-                        var waitingVal = false;
-                        while (cursor < max && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
-                            if (current == greycat.Constants.CHUNK_VAL_SEP) {
-                                if (isFirst) {
-                                    this.reallocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                                    isFirst = false;
-                                }
-                                else {
-                                    if (!waitingVal) {
-                                        previousKey = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                                        waitingVal = true;
-                                    }
-                                    else {
-                                        waitingVal = false;
-                                        this.put(previousKey, greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                                    }
-                                }
-                                previous = cursor + 1;
-                            }
-                            cursor++;
-                            if (cursor < max) {
-                                current = buffer.read(cursor);
-                            }
-                        }
-                        if (isFirst) {
-                            this.reallocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                        }
-                        else {
-                            if (waitingVal) {
-                                this.put(previousKey, greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                            }
-                        }
-                        return cursor;
-                    };
-                    return HeapLongLongMap;
-                }());
-                heap.HeapLongLongMap = HeapLongLongMap;
-                var HeapRelation = (function () {
-                    function HeapRelation(p_parent, origin) {
-                        this.aligned = true;
-                        this.parent = p_parent;
-                        if (origin != null) {
-                            this.aligned = false;
-                            this._back = origin._back;
-                            this._size = origin._size;
-                        }
-                        else {
-                            this._back = null;
-                            this._size = 0;
-                        }
-                    }
-                    HeapRelation.prototype.allocate = function (_capacity) {
-                        var new_back = new Float64Array(_capacity);
-                        if (this._back != null) {
-                            java.lang.System.arraycopy(this._back, 0, new_back, 0, this._back.length);
-                        }
-                        this._back = new_back;
-                        this.aligned = true;
-                    };
-                    HeapRelation.prototype.all = function () {
-                        var ids;
-                        {
-                            if (this._back == null) {
-                                ids = new Float64Array(0);
-                            }
-                            else {
-                                var relSize = this._back.length;
-                                ids = new Float64Array(relSize);
-                                for (var i = 0; i < relSize; i++) {
-                                    ids[i] = this._back[i];
-                                }
-                            }
-                        }
-                        return ids;
-                    };
-                    HeapRelation.prototype.size = function () {
-                        return this._size;
-                    };
-                    HeapRelation.prototype.get = function (index) {
-                        var result;
-                        {
-                            result = this._back[index];
-                        }
-                        return result;
-                    };
-                    HeapRelation.prototype.set = function (index, value) {
-                        {
-                            this._back[index] = value;
-                        }
-                    };
-                    HeapRelation.prototype.unsafe_get = function (index) {
-                        return this._back[index];
-                    };
-                    HeapRelation.prototype.addNode = function (node) {
-                        return this.add(node.id());
-                    };
-                    HeapRelation.prototype.add = function (newValue) {
-                        {
-                            if (this._back == null) {
-                                this.aligned = true;
-                                this._back = new Float64Array(greycat.Constants.MAP_INITIAL_CAPACITY);
-                                this._back[0] = newValue;
-                                this._size = 1;
-                            }
-                            else if (this._size == this._back.length) {
-                                var ex_back = new Float64Array(this._back.length * 2);
-                                java.lang.System.arraycopy(this._back, 0, ex_back, 0, this._size);
-                                this._back = ex_back;
-                                this._back[this._size] = newValue;
-                                this.aligned = true;
-                                this._size++;
-                            }
-                            else {
-                                if (!this.aligned) {
-                                    var temp_back = new Float64Array(this._back.length);
-                                    java.lang.System.arraycopy(this._back, 0, temp_back, 0, this._back.length);
-                                    this._back = temp_back;
-                                    this.aligned = true;
-                                }
-                                this._back[this._size] = newValue;
-                                this._size++;
-                            }
-                            this.parent.declareDirty();
-                        }
-                        return this;
-                    };
-                    HeapRelation.prototype.addAll = function (newValues) {
-                        {
-                            var nextSize = newValues.length + this._size;
-                            var closePowerOfTwo = Math.pow(2, Math.ceil(Math.log(nextSize) / Math.log(2)));
-                            this.allocate(closePowerOfTwo);
-                            java.lang.System.arraycopy(newValues, 0, this._back, this._size, newValues.length);
-                            this.parent.declareDirty();
-                        }
-                        return this;
-                    };
-                    HeapRelation.prototype.insert = function (targetIndex, newValue) {
-                        {
-                            if (this._back == null) {
-                                if (targetIndex != 0) {
-                                    throw new Error("Bad API usage ! index out of bounds: " + targetIndex);
-                                }
-                                this._back = new Float64Array(greycat.Constants.MAP_INITIAL_CAPACITY);
-                                this._back[0] = newValue;
-                                this._size = 1;
-                                this.aligned = true;
-                            }
-                            else if (this._size == this._back.length) {
-                                if (targetIndex > this._size) {
-                                    throw new Error("Bad API usage ! index out of bounds: " + targetIndex);
-                                }
-                                var ex_back = new Float64Array(this._back.length * 2);
-                                if (this._size == targetIndex) {
-                                    java.lang.System.arraycopy(this._back, 0, ex_back, 0, this._size);
-                                    this._back = ex_back;
-                                    this._back[this._size] = newValue;
-                                    this._size++;
-                                }
-                                else {
-                                    java.lang.System.arraycopy(this._back, 0, ex_back, 0, targetIndex);
-                                    ex_back[targetIndex] = newValue;
-                                    java.lang.System.arraycopy(this._back, targetIndex, ex_back, targetIndex + 1, (this._size - targetIndex));
-                                    this._back = ex_back;
-                                    this._size++;
-                                }
-                                this.aligned = true;
-                            }
-                            else {
-                                if (targetIndex > this._size) {
-                                    throw new Error("Bad API usage ! index out of bounds: " + targetIndex);
-                                }
-                                if (!this.aligned) {
-                                    var temp_back = new Float64Array(this._back.length);
-                                    java.lang.System.arraycopy(this._back, 0, temp_back, 0, this._back.length);
-                                    this._back = temp_back;
-                                    this.aligned = true;
-                                }
-                                var afterIndexSize = this._size - targetIndex;
-                                var temp = new Float64Array(afterIndexSize);
-                                java.lang.System.arraycopy(this._back, targetIndex, temp, 0, afterIndexSize);
-                                this._back[targetIndex] = newValue;
-                                java.lang.System.arraycopy(temp, 0, this._back, targetIndex + 1, afterIndexSize);
-                                this._size++;
-                            }
-                            this.parent.declareDirty();
-                        }
-                        return this;
-                    };
-                    HeapRelation.prototype.remove = function (oldValue) {
-                        {
-                            var indexToRemove = -1;
-                            for (var i = 0; i < this._size; i++) {
-                                if (this._back[i] == oldValue) {
-                                    indexToRemove = i;
-                                    break;
-                                }
-                            }
-                            if (indexToRemove != -1) {
-                                if (!this.aligned) {
-                                    var temp_back = new Float64Array(this._back.length);
-                                    java.lang.System.arraycopy(this._back, 0, temp_back, 0, this._back.length);
-                                    this._back = temp_back;
-                                    this.aligned = true;
-                                }
-                                java.lang.System.arraycopy(this._back, indexToRemove + 1, this._back, indexToRemove, this._size - indexToRemove - 1);
-                                this._size--;
-                            }
-                        }
-                        return this;
-                    };
-                    HeapRelation.prototype.delete = function (toRemoveIndex) {
-                        {
-                            if (toRemoveIndex != -1) {
-                                if (!this.aligned) {
-                                    var temp_back = new Float64Array(this._back.length);
-                                    java.lang.System.arraycopy(this._back, 0, temp_back, 0, this._back.length);
-                                    this._back = temp_back;
-                                    this.aligned = true;
-                                }
-                                java.lang.System.arraycopy(this._back, toRemoveIndex + 1, this._back, toRemoveIndex, this._size - toRemoveIndex - 1);
-                                this._size--;
-                            }
-                        }
-                        return this;
-                    };
-                    HeapRelation.prototype.clear = function () {
-                        {
-                            this._size = 0;
-                        }
-                        return this;
-                    };
-                    HeapRelation.prototype.toString = function () {
-                        var buffer = new java.lang.StringBuilder();
-                        buffer.append("[");
-                        for (var i = 0; i < this._size; i++) {
-                            if (i != 0) {
-                                buffer.append(",");
-                            }
-                            buffer.append(this._back[i]);
-                        }
-                        buffer.append("]");
-                        return buffer.toString();
-                    };
-                    HeapRelation.prototype.load = function (buffer, offset, max) {
-                        var cursor = offset;
-                        var current = buffer.read(cursor);
-                        var isFirst = true;
-                        var previous = offset;
-                        while (cursor < max && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
-                            if (current == greycat.Constants.CHUNK_VAL_SEP) {
-                                if (isFirst) {
-                                    this.allocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                                    isFirst = false;
-                                }
-                                else {
-                                    this.add(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                                }
-                                previous = cursor + 1;
-                            }
-                            cursor++;
-                            if (cursor < max) {
-                                current = buffer.read(cursor);
-                            }
-                        }
-                        if (isFirst) {
-                            this.allocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                        }
-                        else {
-                            this.add(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                        }
-                        return cursor;
-                    };
-                    return HeapRelation;
-                }());
-                heap.HeapRelation = HeapRelation;
-                var HeapRelationIndexed = (function (_super) {
-                    __extends(HeapRelationIndexed, _super);
-                    function HeapRelationIndexed(p_listener, graph) {
-                        var _this = _super.call(this, p_listener) || this;
-                        _this._graph = graph;
-                        return _this;
-                    }
-                    HeapRelationIndexed.prototype.add = function (node) {
-                        var attributeNames = [];
-                        for (var _i = 1; _i < arguments.length; _i++) {
-                            attributeNames[_i - 1] = arguments[_i];
-                        }
-                        this.internal_add_remove.apply(this, [true, node].concat(attributeNames));
-                        return this;
-                    };
-                    HeapRelationIndexed.prototype.remove = function (node) {
-                        var attributeNames = [];
-                        for (var _i = 1; _i < arguments.length; _i++) {
-                            attributeNames[_i - 1] = arguments[_i];
-                        }
-                        this.internal_add_remove.apply(this, [false, node].concat(attributeNames));
-                        return this;
-                    };
-                    HeapRelationIndexed.prototype.internal_add_remove = function (isIndex, node) {
-                        var attributeNames = [];
-                        for (var _i = 2; _i < arguments.length; _i++) {
-                            attributeNames[_i - 2] = arguments[_i];
-                        }
-                        var flatQuery = node.graph().newQuery();
-                        var toIndexNodeState = node.graph().resolver().resolveState(node);
-                        for (var i = 0; i < attributeNames.length; i++) {
-                            var attKey = attributeNames[i];
-                            var attValue = toIndexNodeState.getFromKey(attKey);
-                            if (attValue != null) {
-                                flatQuery.add(attKey, attValue.toString());
-                            }
-                            else {
-                                flatQuery.add(attKey, null);
-                            }
-                        }
-                        if (isIndex) {
-                            this.put(flatQuery.hash(), node.id());
-                        }
-                        else {
-                            this.delete(flatQuery.hash(), node.id());
-                        }
-                    };
-                    HeapRelationIndexed.prototype.clear = function () {
-                        return this;
-                    };
-                    HeapRelationIndexed.prototype.find = function (callback, world, time) {
-                        var params = [];
-                        for (var _i = 3; _i < arguments.length; _i++) {
-                            params[_i - 3] = arguments[_i];
-                        }
-                        var queryObj = this._graph.newQuery();
-                        queryObj.setWorld(world);
-                        queryObj.setTime(time);
-                        var previous = null;
-                        for (var i = 0; i < params.length; i++) {
-                            if (previous != null) {
-                                queryObj.add(previous, params[i]);
-                                previous = null;
-                            }
-                            else {
-                                previous = params[i];
-                            }
-                        }
-                        this.findByQuery(queryObj, callback);
-                    };
-                    HeapRelationIndexed.prototype.findByQuery = function (query, callback) {
-                        var _this = this;
-                        var foundIds = this.get(query.hash());
-                        if (foundIds == null) {
-                            callback(new Array(0));
-                        }
-                        else {
-                            this._graph.resolver().lookupAll(query.world(), query.time(), foundIds, function (resolved) {
-                                {
-                                    var resultSet = new Array(foundIds.length);
-                                    var resultSetIndex = 0;
-                                    for (var i = 0; i < resultSet.length; i++) {
-                                        var resolvedNode = resolved[i];
-                                        if (resolvedNode != null) {
-                                            var resolvedState = _this._graph.resolver().resolveState(resolvedNode);
-                                            var exact = true;
-                                            for (var j = 0; j < query.attributes().length; j++) {
-                                                var obj = resolvedState.get(query.attributes()[j]);
-                                                if (query.values()[j] == null) {
-                                                    if (obj != null) {
-                                                        exact = false;
-                                                        break;
-                                                    }
-                                                }
-                                                else {
-                                                    if (obj == null) {
-                                                        exact = false;
-                                                        break;
-                                                    }
-                                                    else {
-                                                        if (obj instanceof Float64Array) {
-                                                            if (query.values()[j] instanceof Float64Array) {
-                                                                if (!greycat.Constants.longArrayEquals(query.values()[j], obj)) {
-                                                                    exact = false;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            else {
-                                                                exact = false;
-                                                                break;
-                                                            }
-                                                        }
-                                                        else {
-                                                            if (!greycat.Constants.equals(query.values()[j].toString(), obj.toString())) {
-                                                                exact = false;
-                                                                break;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            if (exact) {
-                                                resultSet[resultSetIndex] = resolvedNode;
-                                                resultSetIndex++;
-                                            }
-                                        }
-                                    }
-                                    if (resultSet.length == resultSetIndex) {
-                                        callback(resultSet);
-                                    }
-                                    else {
-                                        var trimmedResultSet = new Array(resultSetIndex);
-                                        java.lang.System.arraycopy(resultSet, 0, trimmedResultSet, 0, resultSetIndex);
-                                        callback(trimmedResultSet);
-                                    }
-                                }
-                            });
-                        }
-                    };
-                    HeapRelationIndexed.prototype.all = function () {
-                        var flat = new Float64Array(this.size());
-                        var i = new Int32Array([0]);
-                        this.each(function (key, value) {
-                            {
-                                flat[i[0]] = value;
-                                i[0]++;
-                            }
-                        });
-                        return flat;
-                    };
-                    HeapRelationIndexed.prototype.cloneIRelFor = function (newParent, graph) {
-                        var cloned = new greycat.internal.chunk.heap.HeapRelationIndexed(newParent, graph);
-                        cloned.mapSize = this.mapSize;
-                        cloned.capacity = this.capacity;
-                        if (this.keys != null) {
-                            var cloned_keys = new Float64Array(this.capacity);
-                            java.lang.System.arraycopy(this.keys, 0, cloned_keys, 0, this.capacity);
-                            cloned.keys = cloned_keys;
-                        }
-                        if (this.values != null) {
-                            var cloned_values = new Float64Array(this.capacity);
-                            java.lang.System.arraycopy(this.values, 0, cloned_values, 0, this.capacity);
-                            cloned.values = cloned_values;
-                        }
-                        if (this.nexts != null) {
-                            var cloned_nexts = new Int32Array(this.capacity);
-                            java.lang.System.arraycopy(this.nexts, 0, cloned_nexts, 0, this.capacity);
-                            cloned.nexts = cloned_nexts;
-                        }
-                        if (this.hashs != null) {
-                            var cloned_hashs = new Int32Array(this.capacity * 2);
-                            java.lang.System.arraycopy(this.hashs, 0, cloned_hashs, 0, this.capacity * 2);
-                            cloned.hashs = cloned_hashs;
-                        }
-                        return cloned;
-                    };
-                    return HeapRelationIndexed;
-                }(greycat.internal.chunk.heap.HeapLongLongArrayMap));
-                heap.HeapRelationIndexed = HeapRelationIndexed;
-                var HeapStateChunk = (function () {
-                    function HeapStateChunk(p_space, p_index) {
-                        this._space = p_space;
-                        this._index = p_index;
-                        this.next_and_hash = null;
-                        this._type = null;
-                        this._size = 0;
-                        this._capacity = 0;
-                        this._dirty = false;
-                    }
-                    HeapStateChunk.prototype.graph = function () {
-                        return this._space.graph();
-                    };
-                    HeapStateChunk.prototype.world = function () {
-                        return this._space.worldByIndex(this._index);
-                    };
-                    HeapStateChunk.prototype.time = function () {
-                        return this._space.timeByIndex(this._index);
-                    };
-                    HeapStateChunk.prototype.id = function () {
-                        return this._space.idByIndex(this._index);
-                    };
-                    HeapStateChunk.prototype.chunkType = function () {
-                        return greycat.chunk.ChunkType.STATE_CHUNK;
-                    };
-                    HeapStateChunk.prototype.index = function () {
-                        return this._index;
-                    };
-                    HeapStateChunk.prototype.get = function (p_key) {
-                        return this.internal_get(p_key);
-                    };
-                    HeapStateChunk.prototype.internal_find = function (p_key) {
-                        if (this._size == 0) {
-                            return -1;
-                        }
-                        else if (this.next_and_hash == null) {
-                            for (var i = 0; i < this._size; i++) {
-                                if (this._k[i] == p_key) {
-                                    return i;
-                                }
-                            }
-                            return -1;
-                        }
-                        else {
-                            var hashIndex = p_key % (this._capacity * 2);
-                            if (hashIndex < 0) {
-                                hashIndex = hashIndex * -1;
-                            }
-                            var m = this.next_and_hash[this._capacity + hashIndex];
-                            while (m >= 0) {
-                                if (p_key == this._k[m]) {
-                                    return m;
-                                }
-                                else {
-                                    m = this.next_and_hash[m];
-                                }
-                            }
-                            return -1;
-                        }
-                    };
-                    HeapStateChunk.prototype.internal_get = function (p_key) {
-                        if (this._size == 0) {
-                            return null;
-                        }
-                        var found = this.internal_find(p_key);
-                        var result;
-                        if (found != -1) {
-                            result = this._v[found];
-                            if (result != null) {
-                                switch (this._type[found]) {
-                                    case greycat.Type.DOUBLE_ARRAY:
-                                        var castedResultD = result;
-                                        var copyD = new Float64Array(castedResultD.length);
-                                        java.lang.System.arraycopy(castedResultD, 0, copyD, 0, castedResultD.length);
-                                        return copyD;
-                                    case greycat.Type.LONG_ARRAY:
-                                        var castedResultL = result;
-                                        var copyL = new Float64Array(castedResultL.length);
-                                        java.lang.System.arraycopy(castedResultL, 0, copyL, 0, castedResultL.length);
-                                        return copyL;
-                                    case greycat.Type.INT_ARRAY:
-                                        var castedResultI = result;
-                                        var copyI = new Int32Array(castedResultI.length);
-                                        java.lang.System.arraycopy(castedResultI, 0, copyI, 0, castedResultI.length);
-                                        return copyI;
-                                    default:
-                                        return result;
-                                }
-                            }
-                        }
-                        return null;
-                    };
-                    HeapStateChunk.prototype.set = function (p_elementIndex, p_elemType, p_unsafe_elem) {
-                        if (p_unsafe_elem != null) {
-                            if (p_elemType == Type.STRING) {
-                                if (!(typeof p_unsafe_elem === 'string')) {
-                                    throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
-                                }
-                            }
-                            if (p_elemType == Type.BOOL) {
-                                if (!(typeof p_unsafe_elem === 'boolean')) {
-                                    throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
-                                }
-                            }
-                            if (p_elemType == Type.DOUBLE || p_elemType == Type.LONG || p_elemType == Type.INT) {
-                                if (!(typeof p_unsafe_elem === 'number')) {
-                                    throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
-                                }
-                            }
-                            if (p_elemType == Type.DOUBLE_ARRAY) {
-                                if (!(p_unsafe_elem instanceof Float64Array)) {
-                                    throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
-                                }
-                            }
-                            if (p_elemType == Type.LONG_ARRAY) {
-                                if (!(p_unsafe_elem instanceof Float64Array)) {
-                                    throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
-                                }
-                            }
-                            if (p_elemType == Type.INT_ARRAY) {
-                                if (!(p_unsafe_elem instanceof Int32Array)) {
-                                    throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
-                                }
-                            }
-                            if (p_elemType == Type.STRING_TO_INT_MAP) {
-                                if (!(typeof p_unsafe_elem === 'object')) {
-                                    throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
-                                }
-                            }
-                            if (p_elemType == Type.LONG_TO_LONG_MAP) {
-                                if (!(typeof p_unsafe_elem === 'boolean')) {
-                                    throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
-                                }
-                            }
-                            if (p_elemType == Type.LONG_TO_LONG_ARRAY_MAP) {
-                                if (!(typeof p_unsafe_elem === 'boolean')) {
-                                    throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
-                                }
-                            }
-                        }
-                        this.internal_set(p_elementIndex, p_elemType, p_unsafe_elem, true, false);
-                    };
-                    HeapStateChunk.prototype.setFromKey = function (key, p_elemType, p_unsafe_elem) {
-                        this.internal_set(this._space.graph().resolver().stringToHash(key, true), p_elemType, p_unsafe_elem, true, false);
-                    };
-                    HeapStateChunk.prototype.getFromKey = function (key) {
-                        return this.internal_get(this._space.graph().resolver().stringToHash(key, false));
-                    };
-                    HeapStateChunk.prototype.getFromKeyWithDefault = function (key, defaultValue) {
-                        var result = this.getFromKey(key);
-                        if (result == null) {
-                            return defaultValue;
-                        }
-                        else {
-                            return result;
-                        }
-                    };
-                    HeapStateChunk.prototype.getWithDefault = function (key, defaultValue) {
-                        var result = this.get(key);
-                        if (result == null) {
-                            return defaultValue;
-                        }
-                        else {
-                            return result;
-                        }
-                    };
-                    HeapStateChunk.prototype.getType = function (p_key) {
-                        var found_index = this.internal_find(p_key);
-                        if (found_index != -1) {
-                            return this._type[found_index];
-                        }
-                        else {
-                            return -1;
-                        }
-                    };
-                    HeapStateChunk.prototype.getTypeFromKey = function (key) {
-                        return this.getType(this._space.graph().resolver().stringToHash(key, false));
-                    };
-                    HeapStateChunk.prototype.getOrCreate = function (p_key, p_type) {
-                        var found = this.internal_find(p_key);
-                        if (found != -1) {
-                            if (this._type[found] == p_type) {
-                                return this._v[found];
-                            }
-                        }
-                        var toSet = null;
-                        switch (p_type) {
-                            case greycat.Type.RELATION:
-                                toSet = new greycat.internal.chunk.heap.HeapRelation(this, null);
-                                break;
-                            case greycat.Type.RELATION_INDEXED:
-                                toSet = new greycat.internal.chunk.heap.HeapRelationIndexed(this, this._space.graph());
-                                break;
-                            case greycat.Type.DMATRIX:
-                                toSet = new greycat.internal.chunk.heap.HeapDMatrix(this, null);
-                                break;
-                            case greycat.Type.LMATRIX:
-                                toSet = new greycat.internal.chunk.heap.HeapLMatrix(this, null);
-                                break;
-                            case greycat.Type.EGRAPH:
-                                toSet = new greycat.internal.chunk.heap.HeapEGraph(this, null, this._space.graph());
-                                break;
-                            case greycat.Type.STRING_TO_INT_MAP:
-                                toSet = new greycat.internal.chunk.heap.HeapStringIntMap(this);
-                                break;
-                            case greycat.Type.LONG_TO_LONG_MAP:
-                                toSet = new greycat.internal.chunk.heap.HeapLongLongMap(this);
-                                break;
-                            case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
-                                toSet = new greycat.internal.chunk.heap.HeapLongLongArrayMap(this);
-                                break;
-                        }
-                        this.internal_set(p_key, p_type, toSet, true, false);
-                        return toSet;
-                    };
-                    HeapStateChunk.prototype.getOrCreateFromKey = function (key, elemType) {
-                        return this.getOrCreate(this._space.graph().resolver().stringToHash(key, true), elemType);
-                    };
-                    HeapStateChunk.prototype.declareDirty = function () {
-                        if (this._space != null && !this._dirty) {
-                            this._dirty = true;
-                            this._space.notifyUpdate(this._index);
-                        }
-                    };
-                    HeapStateChunk.prototype.save = function (buffer) {
-                        greycat.utility.Base64.encodeIntToBuffer(this._size, buffer);
-                        for (var i = 0; i < this._size; i++) {
-                            var loopValue = this._v[i];
-                            if (loopValue != null) {
-                                buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
-                                greycat.utility.Base64.encodeIntToBuffer(this._type[i], buffer);
-                                buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
-                                greycat.utility.Base64.encodeIntToBuffer(this._k[i], buffer);
-                                buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
-                                switch (this._type[i]) {
-                                    case greycat.Type.STRING:
-                                        greycat.utility.Base64.encodeStringToBuffer(loopValue, buffer);
-                                        break;
-                                    case greycat.Type.BOOL:
-                                        if (this._v[i]) {
-                                            greycat.utility.Base64.encodeIntToBuffer(greycat.internal.CoreConstants.BOOL_TRUE, buffer);
-                                        }
-                                        else {
-                                            greycat.utility.Base64.encodeIntToBuffer(greycat.internal.CoreConstants.BOOL_FALSE, buffer);
-                                        }
-                                        break;
-                                    case greycat.Type.LONG:
-                                        greycat.utility.Base64.encodeLongToBuffer(loopValue, buffer);
-                                        break;
-                                    case greycat.Type.DOUBLE:
-                                        greycat.utility.Base64.encodeDoubleToBuffer(loopValue, buffer);
-                                        break;
-                                    case greycat.Type.INT:
-                                        greycat.utility.Base64.encodeIntToBuffer(loopValue, buffer);
-                                        break;
-                                    case greycat.Type.DOUBLE_ARRAY:
-                                        var castedDoubleArr = loopValue;
-                                        greycat.utility.Base64.encodeIntToBuffer(castedDoubleArr.length, buffer);
-                                        for (var j = 0; j < castedDoubleArr.length; j++) {
-                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                            greycat.utility.Base64.encodeDoubleToBuffer(castedDoubleArr[j], buffer);
-                                        }
-                                        break;
-                                    case greycat.Type.LONG_ARRAY:
-                                        var castedLongArr = loopValue;
-                                        greycat.utility.Base64.encodeIntToBuffer(castedLongArr.length, buffer);
-                                        for (var j = 0; j < castedLongArr.length; j++) {
-                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                            greycat.utility.Base64.encodeLongToBuffer(castedLongArr[j], buffer);
-                                        }
-                                        break;
-                                    case greycat.Type.INT_ARRAY:
-                                        var castedIntArr = loopValue;
-                                        greycat.utility.Base64.encodeIntToBuffer(castedIntArr.length, buffer);
-                                        for (var j = 0; j < castedIntArr.length; j++) {
-                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                            greycat.utility.Base64.encodeIntToBuffer(castedIntArr[j], buffer);
-                                        }
-                                        break;
-                                    case greycat.Type.RELATION:
-                                        var castedLongArrRel = loopValue;
-                                        greycat.utility.Base64.encodeIntToBuffer(castedLongArrRel.size(), buffer);
-                                        for (var j = 0; j < castedLongArrRel.size(); j++) {
-                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                            greycat.utility.Base64.encodeLongToBuffer(castedLongArrRel.unsafe_get(j), buffer);
-                                        }
-                                        break;
-                                    case greycat.Type.DMATRIX:
-                                        var castedMatrix = loopValue;
-                                        var unsafeContent = castedMatrix.unsafe_data();
-                                        if (unsafeContent != null) {
-                                            greycat.utility.Base64.encodeIntToBuffer(unsafeContent.length, buffer);
-                                            for (var j = 0; j < unsafeContent.length; j++) {
-                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                greycat.utility.Base64.encodeDoubleToBuffer(unsafeContent[j], buffer);
-                                            }
-                                        }
-                                        break;
-                                    case greycat.Type.LMATRIX:
-                                        var castedLMatrix = loopValue;
-                                        var unsafeLContent = castedLMatrix.unsafe_data();
-                                        if (unsafeLContent != null) {
-                                            greycat.utility.Base64.encodeIntToBuffer(unsafeLContent.length, buffer);
-                                            for (var j = 0; j < unsafeLContent.length; j++) {
-                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                greycat.utility.Base64.encodeLongToBuffer(unsafeLContent[j], buffer);
-                                            }
-                                        }
-                                        break;
-                                    case greycat.Type.STRING_TO_INT_MAP:
-                                        var castedStringLongMap = loopValue;
-                                        greycat.utility.Base64.encodeIntToBuffer(castedStringLongMap.size(), buffer);
-                                        castedStringLongMap.unsafe_each(function (key, value) {
-                                            {
-                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                greycat.utility.Base64.encodeStringToBuffer(key, buffer);
-                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                greycat.utility.Base64.encodeLongToBuffer(value, buffer);
-                                            }
-                                        });
-                                        break;
-                                    case greycat.Type.LONG_TO_LONG_MAP:
-                                        var castedLongLongMap = loopValue;
-                                        greycat.utility.Base64.encodeIntToBuffer(castedLongLongMap.size(), buffer);
-                                        castedLongLongMap.unsafe_each(function (key, value) {
-                                            {
-                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                greycat.utility.Base64.encodeLongToBuffer(key, buffer);
-                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                greycat.utility.Base64.encodeLongToBuffer(value, buffer);
-                                            }
-                                        });
-                                        break;
-                                    case greycat.Type.RELATION_INDEXED:
-                                    case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
-                                        var castedLongLongArrayMap = loopValue;
-                                        greycat.utility.Base64.encodeIntToBuffer(castedLongLongArrayMap.size(), buffer);
-                                        castedLongLongArrayMap.unsafe_each(function (key, value) {
-                                            {
-                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                greycat.utility.Base64.encodeLongToBuffer(key, buffer);
-                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                                greycat.utility.Base64.encodeLongToBuffer(value, buffer);
-                                            }
-                                        });
-                                        break;
-                                    case greycat.Type.EGRAPH:
-                                        var castedEGraph = loopValue;
-                                        var eNodes = castedEGraph._nodes;
-                                        var eGSize = castedEGraph.size();
-                                        greycat.utility.Base64.encodeIntToBuffer(eGSize, buffer);
-                                        for (var j = 0; j < eGSize; j++) {
-                                            buffer.write(greycat.internal.CoreConstants.CHUNK_ENODE_SEP);
-                                            eNodes[j].save(buffer);
-                                        }
-                                        castedEGraph._dirty = false;
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            }
-                        }
-                        this._dirty = false;
-                    };
-                    HeapStateChunk.prototype.saveDiff = function (buffer) { };
-                    HeapStateChunk.prototype.each = function (callBack) {
-                        for (var i = 0; i < this._size; i++) {
-                            if (this._v[i] != null) {
-                                callBack(this._k[i], this._type[i], this._v[i]);
-                            }
-                        }
-                    };
-                    HeapStateChunk.prototype.loadFrom = function (origin) {
-                        if (origin == null) {
-                            return;
-                        }
-                        var casted = origin;
-                        this._capacity = casted._capacity;
-                        this._size = casted._size;
-                        if (casted._k != null) {
-                            var cloned_k = new Int32Array(this._capacity);
-                            java.lang.System.arraycopy(casted._k, 0, cloned_k, 0, this._capacity);
-                            this._k = cloned_k;
-                        }
-                        if (casted._type != null) {
-                            var cloned_type = new Int8Array(this._capacity);
-                            java.lang.System.arraycopy(casted._type, 0, cloned_type, 0, this._capacity);
-                            this._type = cloned_type;
-                        }
-                        if (casted.next_and_hash != null) {
-                            var cloned_hash = new Int32Array(this._capacity * 3);
-                            java.lang.System.arraycopy(casted.next_and_hash, 0, cloned_hash, 0, this._capacity * 3);
-                            this.next_and_hash = cloned_hash;
-                        }
-                        if (casted._v != null) {
-                            this._v = new Array(this._capacity);
-                            for (var i = 0; i < this._size; i++) {
-                                switch (casted._type[i]) {
-                                    case greycat.Type.LONG_TO_LONG_MAP:
-                                        if (casted._v[i] != null) {
-                                            this._v[i] = casted._v[i].cloneFor(this);
-                                        }
-                                        break;
-                                    case greycat.Type.RELATION_INDEXED:
-                                        if (casted._v[i] != null) {
-                                            this._v[i] = casted._v[i].cloneIRelFor(this, casted.graph());
-                                        }
-                                        break;
-                                    case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
-                                        if (casted._v[i] != null) {
-                                            this._v[i] = casted._v[i].cloneFor(this);
-                                        }
-                                        break;
-                                    case greycat.Type.STRING_TO_INT_MAP:
-                                        if (casted._v[i] != null) {
-                                            this._v[i] = casted._v[i].cloneFor(this);
-                                        }
-                                        break;
-                                    case greycat.Type.RELATION:
-                                        if (casted._v[i] != null) {
-                                            this._v[i] = new greycat.internal.chunk.heap.HeapRelation(this, casted._v[i]);
-                                        }
-                                        break;
-                                    case greycat.Type.DMATRIX:
-                                        if (casted._v[i] != null) {
-                                            this._v[i] = new greycat.internal.chunk.heap.HeapDMatrix(this, casted._v[i]);
-                                        }
-                                        break;
-                                    case greycat.Type.LMATRIX:
-                                        if (casted._v[i] != null) {
-                                            this._v[i] = new greycat.internal.chunk.heap.HeapLMatrix(this, casted._v[i]);
-                                        }
-                                        break;
-                                    case greycat.Type.EGRAPH:
-                                        if (casted._v[i] != null) {
-                                            this._v[i] = new greycat.internal.chunk.heap.HeapEGraph(this, casted._v[i], this._space.graph());
-                                        }
-                                        break;
-                                    default:
-                                        this._v[i] = casted._v[i];
-                                        break;
-                                }
-                            }
-                        }
-                    };
-                    HeapStateChunk.prototype.internal_set = function (p_key, p_type, p_unsafe_elem, replaceIfPresent, initial) {
-                        var param_elem = null;
-                        if (p_unsafe_elem != null) {
-                            try {
-                                switch (p_type) {
-                                    case greycat.Type.BOOL:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.INT:
-                                        if (p_unsafe_elem instanceof Number) {
-                                            param_elem = p_unsafe_elem;
-                                        }
-                                        else if (p_unsafe_elem instanceof Number) {
-                                            var preCasting = p_unsafe_elem;
-                                            param_elem = preCasting;
-                                        }
-                                        else if (p_unsafe_elem instanceof Number) {
-                                            var preCastingLong = p_unsafe_elem;
-                                            param_elem = preCastingLong;
-                                        }
-                                        else if (p_unsafe_elem instanceof Number) {
-                                            var preCastingLong = p_unsafe_elem;
-                                            param_elem = preCastingLong;
-                                        }
-                                        else if (p_unsafe_elem instanceof Number) {
-                                            var preCastingLong = p_unsafe_elem;
-                                            param_elem = preCastingLong;
-                                        }
-                                        else {
-                                            param_elem = p_unsafe_elem;
-                                        }
-                                        break;
-                                    case greycat.Type.DOUBLE:
-                                        if (p_unsafe_elem instanceof Number) {
-                                            param_elem = p_unsafe_elem;
-                                        }
-                                        else if (p_unsafe_elem instanceof Number) {
-                                            var preCasting = p_unsafe_elem;
-                                            param_elem = preCasting;
-                                        }
-                                        else if (p_unsafe_elem instanceof Number) {
-                                            var preCastingLong = p_unsafe_elem;
-                                            param_elem = preCastingLong;
-                                        }
-                                        else if (p_unsafe_elem instanceof Number) {
-                                            var preCastingLong = p_unsafe_elem;
-                                            param_elem = preCastingLong;
-                                        }
-                                        else if (p_unsafe_elem instanceof Number) {
-                                            var preCastingLong = p_unsafe_elem;
-                                            param_elem = preCastingLong;
-                                        }
-                                        else {
-                                            param_elem = p_unsafe_elem;
-                                        }
-                                        break;
-                                    case greycat.Type.LONG:
-                                        if (p_unsafe_elem instanceof Number) {
-                                            param_elem = p_unsafe_elem;
-                                        }
-                                        else if (p_unsafe_elem instanceof Number) {
-                                            var preCasting = p_unsafe_elem;
-                                            param_elem = preCasting;
-                                        }
-                                        else if (p_unsafe_elem instanceof Number) {
-                                            var preCastingLong = p_unsafe_elem;
-                                            param_elem = preCastingLong;
-                                        }
-                                        else if (p_unsafe_elem instanceof Number) {
-                                            var preCastingLong = p_unsafe_elem;
-                                            param_elem = preCastingLong;
-                                        }
-                                        else if (p_unsafe_elem instanceof Number) {
-                                            var preCastingLong = p_unsafe_elem;
-                                            param_elem = preCastingLong;
-                                        }
-                                        else {
-                                            param_elem = p_unsafe_elem;
-                                        }
-                                        break;
-                                    case greycat.Type.STRING:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.DMATRIX:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.LMATRIX:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.RELATION:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.DOUBLE_ARRAY:
-                                        var castedParamDouble = p_unsafe_elem;
-                                        var clonedDoubleArray = new Float64Array(castedParamDouble.length);
-                                        java.lang.System.arraycopy(castedParamDouble, 0, clonedDoubleArray, 0, castedParamDouble.length);
-                                        param_elem = clonedDoubleArray;
-                                        break;
-                                    case greycat.Type.LONG_ARRAY:
-                                        var castedParamLong = p_unsafe_elem;
-                                        var clonedLongArray = new Float64Array(castedParamLong.length);
-                                        java.lang.System.arraycopy(castedParamLong, 0, clonedLongArray, 0, castedParamLong.length);
-                                        param_elem = clonedLongArray;
-                                        break;
-                                    case greycat.Type.INT_ARRAY:
-                                        var castedParamInt = p_unsafe_elem;
-                                        var clonedIntArray = new Int32Array(castedParamInt.length);
-                                        java.lang.System.arraycopy(castedParamInt, 0, clonedIntArray, 0, castedParamInt.length);
-                                        param_elem = clonedIntArray;
-                                        break;
-                                    case greycat.Type.STRING_TO_INT_MAP:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.LONG_TO_LONG_MAP:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.RELATION_INDEXED:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    case greycat.Type.EGRAPH:
-                                        param_elem = p_unsafe_elem;
-                                        break;
-                                    default:
-                                        throw new Error("Internal Exception, unknown type");
-                                }
-                            }
-                            catch ($ex$) {
-                                if ($ex$ instanceof Error) {
-                                    var e = $ex$;
-                                    {
-                                        throw new Error("mwDB usage error, set method called with type " + greycat.Type.typeName(p_type) + " while param object is " + p_unsafe_elem);
-                                    }
-                                }
-                                else {
-                                    throw $ex$;
-                                }
-                            }
-                        }
-                        if (this._k == null) {
-                            if (param_elem == null) {
-                                return;
-                            }
-                            this._capacity = greycat.Constants.MAP_INITIAL_CAPACITY;
-                            this._k = new Int32Array(this._capacity);
-                            this._v = new Array(this._capacity);
-                            this._type = new Int8Array(this._capacity);
-                            this._k[0] = p_key;
-                            this._v[0] = param_elem;
-                            this._type[0] = p_type;
-                            this._size = 1;
-                            if (!initial) {
-                                this.declareDirty();
-                            }
-                            return;
-                        }
-                        var entry = -1;
-                        var p_entry = -1;
-                        var hashIndex = -1;
-                        if (this.next_and_hash == null) {
-                            for (var i = 0; i < this._size; i++) {
-                                if (this._k[i] == p_key) {
-                                    entry = i;
-                                    break;
-                                }
-                            }
-                        }
-                        else {
-                            hashIndex = p_key % (this._capacity * 2);
-                            if (hashIndex < 0) {
-                                hashIndex = hashIndex * -1;
-                            }
-                            var m = this.next_and_hash[this._capacity + hashIndex];
-                            while (m != -1) {
-                                if (this._k[m] == p_key) {
-                                    entry = m;
-                                    break;
-                                }
-                                p_entry = m;
-                                m = this.next_and_hash[m];
-                            }
-                        }
-                        if (entry != -1) {
-                            if (replaceIfPresent || (p_type != this._type[entry])) {
-                                if (param_elem == null) {
-                                    if (this.next_and_hash != null) {
-                                        if (p_entry != -1) {
-                                            this.next_and_hash[p_entry] = this.next_and_hash[entry];
-                                        }
-                                        else {
-                                            this.next_and_hash[this._capacity + hashIndex] = -1;
-                                        }
-                                    }
-                                    var indexVictim = this._size - 1;
-                                    if (entry == indexVictim) {
-                                        this._k[entry] = -1;
-                                        this._v[entry] = null;
-                                        this._type[entry] = -1;
-                                    }
-                                    else {
-                                        this._k[entry] = this._k[indexVictim];
-                                        this._v[entry] = this._v[indexVictim];
-                                        this._type[entry] = this._type[indexVictim];
-                                        if (this.next_and_hash != null) {
-                                            this.next_and_hash[entry] = this.next_and_hash[indexVictim];
-                                            var victimHash = this._k[entry] % (this._capacity * 2);
-                                            if (victimHash < 0) {
-                                                victimHash = victimHash * -1;
-                                            }
-                                            var m = this.next_and_hash[this._capacity + victimHash];
-                                            if (m == indexVictim) {
-                                                this.next_and_hash[this._capacity + victimHash] = entry;
-                                            }
-                                            else {
-                                                while (m != -1) {
-                                                    if (this.next_and_hash[m] == indexVictim) {
-                                                        this.next_and_hash[m] = entry;
-                                                        break;
-                                                    }
-                                                    m = this.next_and_hash[m];
-                                                }
-                                            }
-                                        }
-                                        this._k[indexVictim] = -1;
-                                        this._v[indexVictim] = null;
-                                        this._type[indexVictim] = -1;
-                                    }
-                                    this._size--;
-                                }
-                                else {
-                                    this._v[entry] = param_elem;
-                                    if (this._type[entry] != p_type) {
-                                        this._type[entry] = p_type;
-                                    }
-                                }
-                            }
-                            if (!initial) {
-                                this.declareDirty();
-                            }
-                            return;
-                        }
-                        if (this._size < this._capacity) {
-                            this._k[this._size] = p_key;
-                            this._v[this._size] = param_elem;
-                            this._type[this._size] = p_type;
-                            if (this.next_and_hash != null) {
-                                this.next_and_hash[this._size] = this.next_and_hash[this._capacity + hashIndex];
-                                this.next_and_hash[this._capacity + hashIndex] = this._size;
-                            }
-                            this._size++;
-                            this.declareDirty();
-                            return;
-                        }
-                        var newCapacity = this._capacity * 2;
-                        var ex_k = new Int32Array(newCapacity);
-                        java.lang.System.arraycopy(this._k, 0, ex_k, 0, this._capacity);
-                        this._k = ex_k;
-                        var ex_v = new Array(newCapacity);
-                        java.lang.System.arraycopy(this._v, 0, ex_v, 0, this._capacity);
-                        this._v = ex_v;
-                        var ex_type = new Int8Array(newCapacity);
-                        java.lang.System.arraycopy(this._type, 0, ex_type, 0, this._capacity);
-                        this._type = ex_type;
-                        this._capacity = newCapacity;
-                        this._k[this._size] = p_key;
-                        this._v[this._size] = param_elem;
-                        this._type[this._size] = p_type;
-                        this._size++;
-                        this.next_and_hash = new Int32Array(this._capacity * 3);
-                        java.util.Arrays.fill(this.next_and_hash, 0, this._capacity * 3, -1);
-                        var double_capacity = this._capacity * 2;
-                        for (var i = 0; i < this._size; i++) {
-                            var keyHash = this._k[i] % double_capacity;
-                            if (keyHash < 0) {
-                                keyHash = keyHash * -1;
-                            }
-                            this.next_and_hash[i] = this.next_and_hash[this._capacity + keyHash];
-                            this.next_and_hash[this._capacity + keyHash] = i;
-                        }
-                        if (!initial) {
-                            this.declareDirty();
-                        }
-                    };
-                    HeapStateChunk.prototype.allocate = function (newCapacity) {
-                        if (newCapacity <= this._capacity) {
-                            return;
-                        }
-                        var ex_k = new Int32Array(newCapacity);
-                        if (this._k != null) {
-                            java.lang.System.arraycopy(this._k, 0, ex_k, 0, this._capacity);
-                        }
-                        this._k = ex_k;
-                        var ex_v = new Array(newCapacity);
-                        if (this._v != null) {
-                            java.lang.System.arraycopy(this._v, 0, ex_v, 0, this._capacity);
-                        }
-                        this._v = ex_v;
-                        var ex_type = new Int8Array(newCapacity);
-                        if (this._type != null) {
-                            java.lang.System.arraycopy(this._type, 0, ex_type, 0, this._capacity);
-                        }
-                        this._type = ex_type;
-                        this._capacity = newCapacity;
-                        this.next_and_hash = new Int32Array(this._capacity * 3);
-                        java.util.Arrays.fill(this.next_and_hash, 0, this._capacity * 3, -1);
-                        for (var i = 0; i < this._size; i++) {
-                            var keyHash = this._k[i] % (this._capacity * 2);
-                            if (keyHash < 0) {
-                                keyHash = keyHash * -1;
-                            }
-                            this.next_and_hash[i] = this.next_and_hash[this._capacity + keyHash];
-                            this.next_and_hash[this._capacity + keyHash] = i;
-                        }
-                    };
-                    HeapStateChunk.prototype.load = function (buffer) {
-                        if (buffer != null && buffer.length() > 0) {
-                            var initial = this._k == null;
-                            var payloadSize = buffer.length();
-                            var previous = 0;
-                            var cursor = 0;
-                            var state = HeapStateChunk.LOAD_WAITING_ALLOC;
-                            var read_type = -1;
-                            var read_key = -1;
-                            while (cursor < payloadSize) {
-                                var current = buffer.read(cursor);
-                                if (current == greycat.Constants.CHUNK_SEP) {
-                                    switch (state) {
-                                        case HeapStateChunk.LOAD_WAITING_ALLOC:
-                                            this.allocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                                            state = HeapStateChunk.LOAD_WAITING_TYPE;
-                                            cursor++;
-                                            previous = cursor;
-                                            break;
-                                        case HeapStateChunk.LOAD_WAITING_TYPE:
-                                            read_type = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                                            state = HeapStateChunk.LOAD_WAITING_KEY;
-                                            cursor++;
-                                            previous = cursor;
-                                            break;
-                                        case HeapStateChunk.LOAD_WAITING_KEY:
-                                            read_key = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                                            switch (read_type) {
-                                                case greycat.Type.BOOL:
-                                                case greycat.Type.INT:
-                                                case greycat.Type.DOUBLE:
-                                                case greycat.Type.LONG:
-                                                case greycat.Type.STRING:
-                                                    state = HeapStateChunk.LOAD_WAITING_VALUE;
-                                                    cursor++;
-                                                    previous = cursor;
-                                                    break;
-                                                case greycat.Type.DOUBLE_ARRAY:
-                                                    var doubleArrayLoaded = null;
-                                                    var doubleArrayIndex = 0;
-                                                    cursor++;
-                                                    previous = cursor;
-                                                    current = buffer.read(cursor);
-                                                    while (cursor < payloadSize && current != greycat.Constants.CHUNK_SEP) {
-                                                        if (current == greycat.Constants.CHUNK_VAL_SEP) {
-                                                            if (doubleArrayLoaded == null) {
-                                                                doubleArrayLoaded = new Float64Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                                                            }
-                                                            else {
-                                                                doubleArrayLoaded[doubleArrayIndex] = greycat.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
-                                                                doubleArrayIndex++;
-                                                            }
-                                                            previous = cursor + 1;
-                                                        }
-                                                        cursor++;
-                                                        if (cursor < payloadSize) {
-                                                            current = buffer.read(cursor);
-                                                        }
-                                                    }
-                                                    if (doubleArrayLoaded == null) {
-                                                        doubleArrayLoaded = new Float64Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                                                    }
-                                                    else {
-                                                        doubleArrayLoaded[doubleArrayIndex] = greycat.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
-                                                    }
-                                                    this.internal_set(read_key, read_type, doubleArrayLoaded, true, initial);
-                                                    state = HeapStateChunk.LOAD_WAITING_TYPE;
-                                                    cursor++;
-                                                    previous = cursor;
-                                                    break;
-                                                case greycat.Type.LONG_ARRAY:
-                                                    var longArrayLoaded = null;
-                                                    var longArrayIndex = 0;
-                                                    cursor++;
-                                                    previous = cursor;
-                                                    current = buffer.read(cursor);
-                                                    while (cursor < payloadSize && current != greycat.Constants.CHUNK_SEP) {
-                                                        if (current == greycat.Constants.CHUNK_VAL_SEP) {
-                                                            if (longArrayLoaded == null) {
-                                                                longArrayLoaded = new Float64Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                                                            }
-                                                            else {
-                                                                longArrayLoaded[longArrayIndex] = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                                                                longArrayIndex++;
-                                                            }
-                                                            previous = cursor + 1;
-                                                        }
-                                                        cursor++;
-                                                        if (cursor < payloadSize) {
-                                                            current = buffer.read(cursor);
-                                                        }
-                                                    }
-                                                    if (longArrayLoaded == null) {
-                                                        longArrayLoaded = new Float64Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                                                    }
-                                                    else {
-                                                        longArrayLoaded[longArrayIndex] = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                                                    }
-                                                    this.internal_set(read_key, read_type, longArrayLoaded, true, initial);
-                                                    state = HeapStateChunk.LOAD_WAITING_TYPE;
-                                                    cursor++;
-                                                    previous = cursor;
-                                                    break;
-                                                case greycat.Type.INT_ARRAY:
-                                                    var intArrayLoaded = null;
-                                                    var intArrayIndex = 0;
-                                                    cursor++;
-                                                    previous = cursor;
-                                                    current = buffer.read(cursor);
-                                                    while (cursor < payloadSize && current != greycat.Constants.CHUNK_SEP) {
-                                                        if (current == greycat.Constants.CHUNK_VAL_SEP) {
-                                                            if (intArrayLoaded == null) {
-                                                                intArrayLoaded = new Int32Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                                                            }
-                                                            else {
-                                                                intArrayLoaded[intArrayIndex] = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                                                                intArrayIndex++;
-                                                            }
-                                                            previous = cursor + 1;
-                                                        }
-                                                        cursor++;
-                                                        if (cursor < payloadSize) {
-                                                            current = buffer.read(cursor);
-                                                        }
-                                                    }
-                                                    if (intArrayLoaded == null) {
-                                                        intArrayLoaded = new Int32Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
-                                                    }
-                                                    else {
-                                                        intArrayLoaded[intArrayIndex] = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                                                    }
-                                                    this.internal_set(read_key, read_type, intArrayLoaded, true, initial);
-                                                    state = HeapStateChunk.LOAD_WAITING_TYPE;
-                                                    cursor++;
-                                                    previous = cursor;
-                                                    break;
-                                                case greycat.Type.RELATION:
-                                                    var relation = new greycat.internal.chunk.heap.HeapRelation(this, null);
-                                                    cursor++;
-                                                    cursor = relation.load(buffer, cursor, payloadSize);
-                                                    this.internal_set(read_key, read_type, relation, true, initial);
-                                                    if (cursor < payloadSize) {
-                                                        current = buffer.read(cursor);
-                                                        if (current == greycat.Constants.CHUNK_SEP && cursor < payloadSize) {
-                                                            state = HeapStateChunk.LOAD_WAITING_TYPE;
-                                                            cursor++;
-                                                            previous = cursor;
-                                                        }
-                                                    }
-                                                    break;
-                                                case greycat.Type.DMATRIX:
-                                                    var matrix = new greycat.internal.chunk.heap.HeapDMatrix(this, null);
-                                                    cursor++;
-                                                    cursor = matrix.load(buffer, cursor, payloadSize);
-                                                    this.internal_set(read_key, read_type, matrix, true, initial);
-                                                    if (cursor < payloadSize) {
-                                                        current = buffer.read(cursor);
-                                                        if (current == greycat.Constants.CHUNK_SEP && cursor < payloadSize) {
-                                                            state = HeapStateChunk.LOAD_WAITING_TYPE;
-                                                            cursor++;
-                                                            previous = cursor;
-                                                        }
-                                                    }
-                                                    break;
-                                                case greycat.Type.LMATRIX:
-                                                    var lmatrix = new greycat.internal.chunk.heap.HeapLMatrix(this, null);
-                                                    cursor++;
-                                                    cursor = lmatrix.load(buffer, cursor, payloadSize);
-                                                    this.internal_set(read_key, read_type, lmatrix, true, initial);
-                                                    if (cursor < payloadSize) {
-                                                        current = buffer.read(cursor);
-                                                        if (current == greycat.Constants.CHUNK_SEP && cursor < payloadSize) {
-                                                            state = HeapStateChunk.LOAD_WAITING_TYPE;
-                                                            cursor++;
-                                                            previous = cursor;
-                                                        }
-                                                    }
-                                                    break;
-                                                case greycat.Type.LONG_TO_LONG_MAP:
-                                                    var l2lmap = new greycat.internal.chunk.heap.HeapLongLongMap(this);
-                                                    cursor++;
-                                                    cursor = l2lmap.load(buffer, cursor, payloadSize);
-                                                    this.internal_set(read_key, read_type, l2lmap, true, initial);
-                                                    if (cursor < payloadSize) {
-                                                        current = buffer.read(cursor);
-                                                        if (current == greycat.Constants.CHUNK_SEP && cursor < payloadSize) {
-                                                            state = HeapStateChunk.LOAD_WAITING_TYPE;
-                                                            cursor++;
-                                                            previous = cursor;
-                                                        }
-                                                    }
-                                                    break;
-                                                case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
-                                                    var l2lrmap = new greycat.internal.chunk.heap.HeapLongLongArrayMap(this);
-                                                    cursor++;
-                                                    cursor = l2lrmap.load(buffer, cursor, payloadSize);
-                                                    this.internal_set(read_key, read_type, l2lrmap, true, initial);
-                                                    if (cursor < payloadSize) {
-                                                        current = buffer.read(cursor);
-                                                        if (current == greycat.Constants.CHUNK_SEP && cursor < payloadSize) {
-                                                            state = HeapStateChunk.LOAD_WAITING_TYPE;
-                                                            cursor++;
-                                                            previous = cursor;
-                                                        }
-                                                    }
-                                                    break;
-                                                case greycat.Type.RELATION_INDEXED:
-                                                    var relationIndexed = new greycat.internal.chunk.heap.HeapRelationIndexed(this, this._space.graph());
-                                                    cursor++;
-                                                    cursor = relationIndexed.load(buffer, cursor, payloadSize);
-                                                    this.internal_set(read_key, read_type, relationIndexed, true, initial);
-                                                    if (cursor < payloadSize) {
-                                                        current = buffer.read(cursor);
-                                                        if (current == greycat.Constants.CHUNK_SEP && cursor < payloadSize) {
-                                                            state = HeapStateChunk.LOAD_WAITING_TYPE;
-                                                            cursor++;
-                                                            previous = cursor;
-                                                        }
-                                                    }
-                                                    break;
-                                                case greycat.Type.STRING_TO_INT_MAP:
-                                                    var s2lmap = new greycat.internal.chunk.heap.HeapStringIntMap(this);
-                                                    cursor++;
-                                                    cursor = s2lmap.load(buffer, cursor, payloadSize);
-                                                    this.internal_set(read_key, read_type, s2lmap, true, initial);
-                                                    if (cursor < payloadSize) {
-                                                        current = buffer.read(cursor);
-                                                        if (current == greycat.Constants.CHUNK_SEP && cursor < payloadSize) {
-                                                            state = HeapStateChunk.LOAD_WAITING_TYPE;
-                                                            cursor++;
-                                                            previous = cursor;
-                                                        }
-                                                    }
-                                                    break;
-                                                case greycat.Type.EGRAPH:
-                                                    var eGraph = new greycat.internal.chunk.heap.HeapEGraph(this, null, this.graph());
-                                                    cursor++;
-                                                    cursor = eGraph.load(buffer, cursor, payloadSize);
-                                                    this.internal_set(read_key, read_type, eGraph, true, initial);
-                                                    if (cursor < payloadSize) {
-                                                        current = buffer.read(cursor);
-                                                        if (current == greycat.Constants.CHUNK_SEP && cursor < payloadSize) {
-                                                            state = HeapStateChunk.LOAD_WAITING_TYPE;
-                                                            cursor++;
-                                                            previous = cursor;
-                                                        }
-                                                    }
-                                                    break;
-                                                default:
-                                                    throw new Error("Not implemented yet!!!");
-                                            }
-                                            break;
-                                        case HeapStateChunk.LOAD_WAITING_VALUE:
-                                            this.load_primitive(read_key, read_type, buffer, previous, cursor, initial);
-                                            state = HeapStateChunk.LOAD_WAITING_TYPE;
-                                            cursor++;
-                                            previous = cursor;
-                                            break;
-                                    }
-                                }
-                                else {
-                                    cursor++;
-                                }
-                            }
-                            if (state == HeapStateChunk.LOAD_WAITING_VALUE) {
-                                this.load_primitive(read_key, read_type, buffer, previous, cursor, initial);
-                            }
-                        }
-                    };
-                    HeapStateChunk.prototype.load_primitive = function (read_key, read_type, buffer, previous, cursor, initial) {
-                        switch (read_type) {
-                            case greycat.Type.BOOL:
-                                this.internal_set(read_key, read_type, (greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor) == greycat.internal.CoreConstants.BOOL_TRUE), true, initial);
-                                break;
-                            case greycat.Type.INT:
-                                this.internal_set(read_key, read_type, greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor), true, initial);
-                                break;
-                            case greycat.Type.DOUBLE:
-                                this.internal_set(read_key, read_type, greycat.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor), true, initial);
-                                break;
-                            case greycat.Type.LONG:
-                                this.internal_set(read_key, read_type, greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor), true, initial);
-                                break;
-                            case greycat.Type.STRING:
-                                this.internal_set(read_key, read_type, greycat.utility.Base64.decodeToStringWithBounds(buffer, previous, cursor), true, initial);
-                                break;
-                        }
-                    };
-                    HeapStateChunk.prototype.loadDiff = function (buffer) { };
-                    return HeapStateChunk;
-                }());
-                HeapStateChunk.LOAD_WAITING_ALLOC = 0;
-                HeapStateChunk.LOAD_WAITING_TYPE = 1;
-                HeapStateChunk.LOAD_WAITING_KEY = 2;
-                HeapStateChunk.LOAD_WAITING_VALUE = 3;
-                heap.HeapStateChunk = HeapStateChunk;
-                var HeapStringIntMap = (function () {
-                    function HeapStringIntMap(p_parent) {
-                        this.mapSize = 0;
-                        this.capacity = 0;
-                        this.keys = null;
-                        this.keysH = null;
-                        this.values = null;
-                        this.nexts = null;
-                        this.hashs = null;
-                        this.parent = p_parent;
-                    }
-                    HeapStringIntMap.prototype.key = function (i) {
-                        return this.keys[i];
-                    };
-                    HeapStringIntMap.prototype.setKey = function (i, newValue) {
-                        this.keys[i] = newValue;
-                    };
-                    HeapStringIntMap.prototype.keyH = function (i) {
-                        return this.keysH[i];
-                    };
-                    HeapStringIntMap.prototype.setKeyH = function (i, newValue) {
-                        this.keysH[i] = newValue;
-                    };
-                    HeapStringIntMap.prototype.value = function (i) {
-                        return this.values[i];
-                    };
-                    HeapStringIntMap.prototype.setValue = function (i, newValue) {
-                        this.values[i] = newValue;
-                    };
-                    HeapStringIntMap.prototype.next = function (i) {
-                        return this.nexts[i];
-                    };
-                    HeapStringIntMap.prototype.setNext = function (i, newValue) {
-                        this.nexts[i] = newValue;
-                    };
-                    HeapStringIntMap.prototype.hash = function (i) {
-                        return this.hashs[i];
-                    };
-                    HeapStringIntMap.prototype.setHash = function (i, newValue) {
-                        this.hashs[i] = newValue;
-                    };
-                    HeapStringIntMap.prototype.reallocate = function (newCapacity) {
-                        if (newCapacity > this.capacity) {
-                            var new_keys = new Array(newCapacity);
-                            if (this.keys != null) {
-                                java.lang.System.arraycopy(this.keys, 0, new_keys, 0, this.capacity);
-                            }
-                            this.keys = new_keys;
-                            var new_keysH = new Int32Array(newCapacity);
-                            if (this.keysH != null) {
-                                java.lang.System.arraycopy(this.keysH, 0, new_keysH, 0, this.capacity);
-                            }
-                            this.keysH = new_keysH;
-                            var new_values = new Int32Array(newCapacity);
-                            if (this.values != null) {
-                                java.lang.System.arraycopy(this.values, 0, new_values, 0, this.capacity);
-                            }
-                            this.values = new_values;
-                            var new_nexts = new Int32Array(newCapacity);
-                            var new_hashes = new Int32Array(newCapacity * 2);
-                            java.util.Arrays.fill(new_nexts, 0, newCapacity, -1);
-                            java.util.Arrays.fill(new_hashes, 0, newCapacity * 2, -1);
-                            this.hashs = new_hashes;
-                            this.nexts = new_nexts;
-                            var double_capacity = this.capacity * 2;
-                            for (var i = 0; i < this.mapSize; i++) {
-                                var new_key_hash = this.keyH(i) % double_capacity;
-                                if (new_key_hash < 0) {
-                                    new_key_hash = new_key_hash * -1;
-                                }
-                                this.setNext(i, this.hash(new_key_hash));
-                                this.setHash(new_key_hash, i);
-                            }
-                            this.capacity = newCapacity;
-                        }
-                    };
-                    HeapStringIntMap.prototype.cloneFor = function (newContainer) {
-                        var cloned = new greycat.internal.chunk.heap.HeapStringIntMap(newContainer);
-                        cloned.mapSize = this.mapSize;
-                        cloned.capacity = this.capacity;
-                        if (this.keys != null) {
-                            var cloned_keys = new Array(this.capacity);
-                            java.lang.System.arraycopy(this.keys, 0, cloned_keys, 0, this.capacity);
-                            cloned.keys = cloned_keys;
-                        }
-                        if (this.keysH != null) {
-                            var cloned_keysH = new Int32Array(this.capacity);
-                            java.lang.System.arraycopy(this.keysH, 0, cloned_keysH, 0, this.capacity);
-                            cloned.keysH = cloned_keysH;
-                        }
-                        if (this.values != null) {
-                            var cloned_values = new Int32Array(this.capacity);
-                            java.lang.System.arraycopy(this.values, 0, cloned_values, 0, this.capacity);
-                            cloned.values = cloned_values;
-                        }
-                        if (this.nexts != null) {
-                            var cloned_nexts = new Int32Array(this.capacity);
-                            java.lang.System.arraycopy(this.nexts, 0, cloned_nexts, 0, this.capacity);
-                            cloned.nexts = cloned_nexts;
-                        }
-                        if (this.hashs != null) {
-                            var cloned_hashs = new Int32Array(this.capacity * 2);
-                            java.lang.System.arraycopy(this.hashs, 0, cloned_hashs, 0, this.capacity * 2);
-                            cloned.hashs = cloned_hashs;
-                        }
-                        return cloned;
-                    };
-                    HeapStringIntMap.prototype.getValue = function (requestString) {
-                        var result = -1;
-                        {
-                            if (this.keys != null) {
-                                var keyHash = greycat.utility.HashHelper.hash(requestString);
-                                var hashIndex = keyHash % (this.capacity * 2);
-                                if (hashIndex < 0) {
-                                    hashIndex = hashIndex * -1;
-                                }
-                                var m = this.hash(hashIndex);
-                                while (m >= 0) {
-                                    if (keyHash == this.keyH(m)) {
-                                        result = this.value(m);
-                                        break;
-                                    }
-                                    m = this.next(m);
-                                }
-                            }
-                        }
-                        return result;
-                    };
-                    HeapStringIntMap.prototype.getByHash = function (keyHash) {
-                        var result = null;
-                        {
-                            if (this.keys != null) {
-                                var hashIndex = keyHash % (this.capacity * 2);
-                                if (hashIndex < 0) {
-                                    hashIndex = hashIndex * -1;
-                                }
-                                var m = this.hash(hashIndex);
-                                while (m >= 0) {
-                                    if (keyHash == this.keyH(m)) {
-                                        result = this.key(m);
-                                        break;
-                                    }
-                                    m = this.next(m);
-                                }
-                            }
-                        }
-                        return result;
-                    };
-                    HeapStringIntMap.prototype.containsHash = function (keyHash) {
-                        var result = false;
-                        {
-                            if (this.keys != null) {
-                                var hashIndex = keyHash % (this.capacity * 2);
-                                if (hashIndex < 0) {
-                                    hashIndex = hashIndex * -1;
-                                }
-                                var m = this.hash(hashIndex);
-                                while (m >= 0) {
-                                    if (keyHash == this.keyH(m)) {
-                                        result = true;
-                                        break;
-                                    }
-                                    m = this.next(m);
-                                }
-                            }
-                        }
-                        return result;
-                    };
-                    HeapStringIntMap.prototype.each = function (callback) {
-                        {
-                            this.unsafe_each(callback);
-                        }
-                    };
-                    HeapStringIntMap.prototype.unsafe_each = function (callback) {
-                        for (var i = 0; i < this.mapSize; i++) {
-                            callback(this.key(i), this.value(i));
-                        }
-                    };
-                    HeapStringIntMap.prototype.size = function () {
-                        var result;
-                        {
-                            result = this.mapSize;
-                        }
-                        return result;
-                    };
-                    HeapStringIntMap.prototype.remove = function (requestKey) {
-                        {
-                            if (this.keys != null && this.mapSize != 0) {
-                                var keyHash = greycat.utility.HashHelper.hash(requestKey);
-                                var hashCapacity = this.capacity * 2;
-                                var hashIndex = keyHash % hashCapacity;
-                                if (hashIndex < 0) {
-                                    hashIndex = hashIndex * -1;
-                                }
-                                var m = this.hash(hashIndex);
-                                var found = -1;
-                                while (m >= 0) {
-                                    if (keyHash == this.keyH(m)) {
-                                        found = m;
-                                        break;
-                                    }
-                                    m = this.next(m);
-                                }
-                                if (found != -1) {
-                                    var toRemoveHash = keyHash % hashCapacity;
-                                    if (toRemoveHash < 0) {
-                                        toRemoveHash = toRemoveHash * -1;
-                                    }
-                                    m = this.hash(toRemoveHash);
-                                    if (m == found) {
-                                        this.setHash(toRemoveHash, this.next(m));
-                                    }
-                                    else {
-                                        while (m != -1) {
-                                            var next_of_m = this.next(m);
-                                            if (next_of_m == found) {
-                                                this.setNext(m, this.next(next_of_m));
-                                                break;
-                                            }
-                                            m = next_of_m;
-                                        }
-                                    }
-                                    var lastIndex = this.mapSize - 1;
-                                    if (lastIndex == found) {
-                                        this.mapSize--;
-                                    }
-                                    else {
-                                        var lastKey = this.key(lastIndex);
-                                        var lastKeyH = this.keyH(lastIndex);
-                                        this.setKey(found, lastKey);
-                                        this.setKeyH(found, lastKeyH);
-                                        this.setValue(found, this.value(lastIndex));
-                                        this.setNext(found, this.next(lastIndex));
-                                        var victimHash = lastKeyH % hashCapacity;
-                                        if (victimHash < 0) {
-                                            victimHash = victimHash * -1;
-                                        }
-                                        m = this.hash(victimHash);
-                                        if (m == lastIndex) {
-                                            this.setHash(victimHash, found);
-                                        }
-                                        else {
-                                            while (m != -1) {
-                                                var next_of_m = this.next(m);
-                                                if (next_of_m == lastIndex) {
-                                                    this.setNext(m, found);
-                                                    break;
-                                                }
-                                                m = next_of_m;
-                                            }
-                                        }
-                                        this.mapSize--;
-                                    }
-                                    this.parent.declareDirty();
-                                }
-                            }
-                        }
-                    };
-                    HeapStringIntMap.prototype.put = function (insertKey, insertValue) {
-                        {
-                            var keyHash = greycat.utility.HashHelper.hash(insertKey);
-                            if (this.keys == null) {
-                                this.reallocate(greycat.Constants.MAP_INITIAL_CAPACITY);
-                                this.setKey(0, insertKey);
-                                this.setKeyH(0, keyHash);
-                                this.setValue(0, insertValue);
-                                var hashIndex = keyHash % (this.capacity * 2);
-                                if (hashIndex < 0) {
-                                    hashIndex = hashIndex * -1;
-                                }
-                                this.setHash(hashIndex, 0);
-                                this.setNext(0, -1);
-                                this.mapSize++;
-                            }
-                            else {
-                                var hashCapacity = this.capacity * 2;
-                                var insertKeyHash = keyHash % hashCapacity;
-                                if (insertKeyHash < 0) {
-                                    insertKeyHash = insertKeyHash * -1;
-                                }
-                                var currentHash = this.hash(insertKeyHash);
-                                var m = currentHash;
-                                var found = -1;
-                                while (m >= 0) {
-                                    if (keyHash == this.keyH(m)) {
-                                        if (!(insertKey === this.key(m))) {
-                                            throw new Error("Lotteries Winner !!! hashing conflict between " + this.key(m) + " and " + insertKey);
-                                        }
-                                        found = m;
-                                        break;
-                                    }
-                                    m = this.next(m);
-                                }
-                                if (found == -1) {
-                                    var lastIndex = this.mapSize;
-                                    if (lastIndex == this.capacity) {
-                                        this.reallocate(this.capacity * 2);
-                                    }
-                                    this.setKey(lastIndex, insertKey);
-                                    this.setKeyH(lastIndex, keyHash);
-                                    this.setValue(lastIndex, insertValue);
-                                    var hashIndex = keyHash % (this.capacity * 2);
-                                    if (hashIndex < 0) {
-                                        hashIndex = hashIndex * -1;
-                                    }
-                                    this.setHash(hashIndex, lastIndex);
-                                    this.setNext(lastIndex, currentHash);
-                                    this.mapSize++;
-                                    this.parent.declareDirty();
-                                }
-                                else {
-                                    if (this.value(found) != insertValue) {
-                                        this.setValue(found, insertValue);
-                                        this.parent.declareDirty();
-                                    }
-                                }
-                            }
-                        }
-                    };
-                    HeapStringIntMap.prototype.load = function (buffer, offset, max) {
-                        var cursor = offset;
-                        var current = buffer.read(cursor);
-                        var isFirst = true;
-                        var previous = offset;
-                        var previousKey = null;
-                        while (cursor < max && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
-                            if (current == greycat.Constants.CHUNK_VAL_SEP) {
-                                if (isFirst) {
-                                    this.reallocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                                    isFirst = false;
-                                }
-                                else {
-                                    if (previousKey == null) {
-                                        previousKey = greycat.utility.Base64.decodeToStringWithBounds(buffer, previous, cursor);
-                                    }
-                                    else {
-                                        this.put(previousKey, greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                                        previousKey = null;
-                                    }
-                                }
-                                previous = cursor + 1;
-                            }
-                            cursor++;
-                            if (cursor < max) {
-                                current = buffer.read(cursor);
-                            }
-                        }
-                        if (isFirst) {
-                            this.reallocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                        }
-                        else {
-                            if (previousKey != null) {
-                                this.put(previousKey, greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
-                            }
-                        }
-                        return cursor;
-                    };
-                    return HeapStringIntMap;
-                }());
-                heap.HeapStringIntMap = HeapStringIntMap;
-                var HeapTimeTreeChunk = (function () {
-                    function HeapTimeTreeChunk(p_space, p_index) {
-                        this._root = -1;
-                        this._size = 0;
-                        this._space = p_space;
-                        this._index = p_index;
-                        this._magic = 0;
-                        this._dirty = false;
-                        this._extra = 0;
-                        this._extra2 = 0;
-                    }
-                    HeapTimeTreeChunk.prototype.extra = function () {
-                        return this._extra;
-                    };
-                    HeapTimeTreeChunk.prototype.setExtra = function (extraValue) {
-                        this._extra = extraValue;
-                    };
-                    HeapTimeTreeChunk.prototype.extra2 = function () {
-                        return this._extra2;
-                    };
-                    HeapTimeTreeChunk.prototype.setExtra2 = function (extraValue) {
-                        this._extra2 = extraValue;
-                    };
-                    HeapTimeTreeChunk.prototype.world = function () {
-                        return this._space.worldByIndex(this._index);
-                    };
-                    HeapTimeTreeChunk.prototype.time = function () {
-                        return this._space.timeByIndex(this._index);
-                    };
-                    HeapTimeTreeChunk.prototype.id = function () {
-                        return this._space.idByIndex(this._index);
-                    };
-                    HeapTimeTreeChunk.prototype.size = function () {
-                        return this._size;
-                    };
-                    HeapTimeTreeChunk.prototype.range = function (startKey, endKey, maxElements, walker) {
-                        var nbElements = 0;
-                        var indexEnd = this.internal_previousOrEqual_index(endKey);
-                        while (indexEnd != -1 && this.key(indexEnd) >= startKey && nbElements < maxElements) {
-                            walker(this.key(indexEnd));
-                            nbElements++;
-                            indexEnd = this.internal_previous(indexEnd);
-                        }
-                    };
-                    HeapTimeTreeChunk.prototype.save = function (buffer) {
-                        if (this._extra != greycat.internal.CoreConstants.NULL_LONG && this._extra != 0) {
-                            greycat.utility.Base64.encodeLongToBuffer(this._extra, buffer);
-                            buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
-                        }
-                        if (this._extra2 != greycat.internal.CoreConstants.NULL_LONG && this._extra2 != 0) {
-                            greycat.utility.Base64.encodeLongToBuffer(this._extra2, buffer);
-                            buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
-                        }
-                        greycat.utility.Base64.encodeIntToBuffer(this._size, buffer);
-                        for (var i = 0; i < this._size; i++) {
-                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                            greycat.utility.Base64.encodeLongToBuffer(this._k[i], buffer);
-                        }
-                        this._dirty = false;
-                        if (this._diff != null) {
-                            greycat.internal.CoreConstants.fillBooleanArray(this._diff, false);
-                        }
-                    };
-                    HeapTimeTreeChunk.prototype.saveDiff = function (buffer) {
-                        if (this._dirty) {
-                            if (this._extra != greycat.internal.CoreConstants.NULL_LONG && this._extra != 0) {
-                                greycat.utility.Base64.encodeLongToBuffer(this._extra, buffer);
-                                buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
-                            }
-                            if (this._extra2 != greycat.internal.CoreConstants.NULL_LONG && this._extra2 != 0) {
-                                greycat.utility.Base64.encodeLongToBuffer(this._extra2, buffer);
-                                buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
-                            }
-                            greycat.utility.Base64.encodeIntToBuffer(this._size, buffer);
-                            for (var i = 0; i < this._size; i++) {
-                                if (this._diff[i]) {
-                                    buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                    greycat.utility.Base64.encodeLongToBuffer(this._k[i], buffer);
-                                }
-                            }
-                            this._dirty = false;
-                            greycat.internal.CoreConstants.fillBooleanArray(this._diff, false);
-                        }
-                    };
-                    HeapTimeTreeChunk.prototype.load = function (buffer) {
-                        this.internal_load(buffer, true);
-                    };
-                    HeapTimeTreeChunk.prototype.loadDiff = function (buffer) {
-                        if (this.internal_load(buffer, false) && !this._dirty) {
-                            this._dirty = true;
-                            if (this._space != null) {
-                                this._space.notifyUpdate(this._index);
-                            }
-                        }
-                    };
-                    HeapTimeTreeChunk.prototype.internal_load = function (buffer, initial) {
-                        if (buffer == null || buffer.length() == 0) {
-                            return false;
-                        }
-                        var isDirty = false;
-                        var cursor = 0;
-                        var previous = 0;
-                        var payloadSize = buffer.length();
-                        var isFirst = true;
-                        var isFirstExtra = true;
-                        while (cursor < payloadSize) {
-                            var current = buffer.read(cursor);
-                            switch (current) {
-                                case greycat.Constants.CHUNK_SEP:
-                                    if (isFirstExtra) {
-                                        this._extra = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                                        previous = cursor + 1;
-                                        isFirstExtra = false;
-                                    }
-                                    else {
-                                        this._extra2 = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                                        previous = cursor + 1;
-                                    }
-                                    break;
-                                case greycat.Constants.CHUNK_VAL_SEP:
-                                    if (isFirst) {
-                                        var treeSize = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                                        var closePowerOfTwo = Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
-                                        this.reallocate(closePowerOfTwo);
-                                        previous = cursor + 1;
-                                        isFirst = false;
-                                    }
-                                    else {
-                                        var insertResult_1 = this.internal_insert(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
-                                        isDirty = isDirty || insertResult_1;
-                                        previous = cursor + 1;
-                                    }
-                                    break;
-                            }
-                            cursor++;
-                        }
-                        var insertResult = this.internal_insert(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
-                        isDirty = isDirty || insertResult;
-                        return isDirty;
-                    };
-                    HeapTimeTreeChunk.prototype.index = function () {
-                        return this._index;
-                    };
-                    HeapTimeTreeChunk.prototype.previous = function (key) {
-                        var resultKey;
-                        var result = this.internal_previous_index(key);
-                        if (result != -1) {
-                            resultKey = this.key(result);
-                        }
-                        else {
-                            resultKey = greycat.internal.CoreConstants.NULL_LONG;
-                        }
-                        return resultKey;
-                    };
-                    HeapTimeTreeChunk.prototype.next = function (key) {
-                        var resultKey;
-                        var result = this.internal_previousOrEqual_index(key);
-                        if (result != -1) {
-                            result = this.internal_next(result);
-                        }
-                        if (result != -1) {
-                            resultKey = this.key(result);
-                        }
-                        else {
-                            resultKey = greycat.internal.CoreConstants.NULL_LONG;
-                        }
-                        return resultKey;
-                    };
-                    HeapTimeTreeChunk.prototype.previousOrEqual = function (key) {
-                        var resultKey;
-                        var result = this.internal_previousOrEqual_index(key);
-                        if (result != -1) {
-                            resultKey = this.key(result);
-                        }
-                        else {
-                            resultKey = greycat.internal.CoreConstants.NULL_LONG;
-                        }
-                        return resultKey;
-                    };
-                    HeapTimeTreeChunk.prototype.magic = function () {
-                        return this._magic;
-                    };
-                    HeapTimeTreeChunk.prototype.insert = function (p_key) {
-                        if (this.internal_insert(p_key, false)) {
-                            this.internal_set_dirty();
-                        }
-                    };
-                    HeapTimeTreeChunk.prototype.unsafe_insert = function (p_key) {
-                        this.internal_insert(p_key, false);
-                    };
-                    HeapTimeTreeChunk.prototype.chunkType = function () {
-                        return greycat.chunk.ChunkType.TIME_TREE_CHUNK;
-                    };
-                    HeapTimeTreeChunk.prototype.clearAt = function (max) {
-                        var previousValue = this._k;
-                        this._k = new Float64Array(this._k.length);
-                        this._back_meta = new Int32Array(this._k.length * HeapTimeTreeChunk.META_SIZE);
-                        this._colors = [];
-                        this._diff = [];
-                        greycat.internal.CoreConstants.fillBooleanArray(this._diff, false);
-                        this._root = -1;
-                        var _previousSize = this._size;
-                        this._size = 0;
-                        for (var i = 0; i < _previousSize; i++) {
-                            if (previousValue[i] != greycat.internal.CoreConstants.NULL_LONG && previousValue[i] < max) {
-                                this.internal_insert(previousValue[i], false);
-                            }
-                        }
-                        this.internal_set_dirty();
-                    };
-                    HeapTimeTreeChunk.prototype.reallocate = function (newCapacity) {
-                        if (this._k != null && newCapacity <= this._k.length) {
-                            return;
-                        }
-                        var new_back_kv = new Float64Array(newCapacity);
-                        if (this._k != null) {
-                            java.lang.System.arraycopy(this._k, 0, new_back_kv, 0, this._size);
-                        }
-                        var new_back_diff = [];
-                        greycat.internal.CoreConstants.fillBooleanArray(new_back_diff, false);
-                        if (this._diff != null) {
-                            java.lang.System.arraycopy(this._diff, 0, new_back_diff, 0, this._size);
-                        }
-                        var new_back_colors = [];
-                        if (this._colors != null) {
-                            java.lang.System.arraycopy(this._colors, 0, new_back_colors, 0, this._size);
-                            for (var i = this._size; i < newCapacity; i++) {
-                                new_back_colors[i] = false;
-                            }
-                        }
-                        var new_back_meta = new Int32Array(newCapacity * HeapTimeTreeChunk.META_SIZE);
-                        if (this._back_meta != null) {
-                            java.lang.System.arraycopy(this._back_meta, 0, new_back_meta, 0, this._size * HeapTimeTreeChunk.META_SIZE);
-                            for (var i = this._size * HeapTimeTreeChunk.META_SIZE; i < newCapacity * HeapTimeTreeChunk.META_SIZE; i++) {
-                                new_back_meta[i] = -1;
-                            }
-                        }
-                        this._back_meta = new_back_meta;
-                        this._k = new_back_kv;
-                        this._colors = new_back_colors;
-                        this._diff = new_back_diff;
-                    };
-                    HeapTimeTreeChunk.prototype.key = function (p_currentIndex) {
-                        if (p_currentIndex == -1) {
-                            return -1;
-                        }
-                        return this._k[p_currentIndex];
-                    };
-                    HeapTimeTreeChunk.prototype.setKey = function (p_currentIndex, p_paramIndex, initial) {
-                        this._k[p_currentIndex] = p_paramIndex;
-                        if (!initial) {
-                            this._diff[p_currentIndex] = true;
-                        }
-                    };
-                    HeapTimeTreeChunk.prototype.left = function (p_currentIndex) {
-                        if (p_currentIndex == -1) {
-                            return -1;
-                        }
-                        return this._back_meta[p_currentIndex * HeapTimeTreeChunk.META_SIZE];
-                    };
-                    HeapTimeTreeChunk.prototype.setLeft = function (p_currentIndex, p_paramIndex) {
-                        this._back_meta[p_currentIndex * HeapTimeTreeChunk.META_SIZE] = p_paramIndex;
-                    };
-                    HeapTimeTreeChunk.prototype.right = function (p_currentIndex) {
-                        if (p_currentIndex == -1) {
-                            return -1;
-                        }
-                        return this._back_meta[(p_currentIndex * HeapTimeTreeChunk.META_SIZE) + 1];
-                    };
-                    HeapTimeTreeChunk.prototype.setRight = function (p_currentIndex, p_paramIndex) {
-                        this._back_meta[(p_currentIndex * HeapTimeTreeChunk.META_SIZE) + 1] = p_paramIndex;
-                    };
-                    HeapTimeTreeChunk.prototype.parent = function (p_currentIndex) {
-                        if (p_currentIndex == -1) {
-                            return -1;
-                        }
-                        return this._back_meta[(p_currentIndex * HeapTimeTreeChunk.META_SIZE) + 2];
-                    };
-                    HeapTimeTreeChunk.prototype.setParent = function (p_currentIndex, p_paramIndex) {
-                        this._back_meta[(p_currentIndex * HeapTimeTreeChunk.META_SIZE) + 2] = p_paramIndex;
-                    };
-                    HeapTimeTreeChunk.prototype.color = function (p_currentIndex) {
-                        if (p_currentIndex == -1) {
-                            return true;
-                        }
-                        return this._colors[p_currentIndex];
-                    };
-                    HeapTimeTreeChunk.prototype.setColor = function (p_currentIndex, p_paramIndex) {
-                        this._colors[p_currentIndex] = p_paramIndex;
-                    };
-                    HeapTimeTreeChunk.prototype.grandParent = function (p_currentIndex) {
-                        if (p_currentIndex == -1) {
-                            return -1;
-                        }
-                        if (this.parent(p_currentIndex) != -1) {
-                            return this.parent(this.parent(p_currentIndex));
-                        }
-                        else {
-                            return -1;
-                        }
-                    };
-                    HeapTimeTreeChunk.prototype.sibling = function (p_currentIndex) {
-                        if (this.parent(p_currentIndex) == -1) {
-                            return -1;
-                        }
-                        else {
-                            if (p_currentIndex == this.left(this.parent(p_currentIndex))) {
-                                return this.right(this.parent(p_currentIndex));
-                            }
-                            else {
-                                return this.left(this.parent(p_currentIndex));
-                            }
-                        }
-                    };
-                    HeapTimeTreeChunk.prototype.uncle = function (p_currentIndex) {
-                        if (this.parent(p_currentIndex) != -1) {
-                            return this.sibling(this.parent(p_currentIndex));
-                        }
-                        else {
-                            return -1;
-                        }
-                    };
-                    HeapTimeTreeChunk.prototype.internal_previous = function (p_index) {
-                        var p = p_index;
-                        if (this.left(p) != -1) {
-                            p = this.left(p);
-                            while (this.right(p) != -1) {
-                                p = this.right(p);
-                            }
-                            return p;
-                        }
-                        else {
-                            if (this.parent(p) != -1) {
-                                if (p == this.right(this.parent(p))) {
-                                    return this.parent(p);
-                                }
-                                else {
-                                    while (this.parent(p) != -1 && p == this.left(this.parent(p))) {
-                                        p = this.parent(p);
-                                    }
-                                    return this.parent(p);
-                                }
-                            }
-                            else {
-                                return -1;
-                            }
-                        }
-                    };
-                    HeapTimeTreeChunk.prototype.internal_next = function (p_index) {
-                        var p = p_index;
-                        if (this.right(p) != -1) {
-                            p = this.right(p);
-                            while (this.left(p) != -1) {
-                                p = this.left(p);
-                            }
-                            return p;
-                        }
-                        else {
-                            if (this.parent(p) != -1) {
-                                if (p == this.left(this.parent(p))) {
-                                    return this.parent(p);
-                                }
-                                else {
-                                    while (this.parent(p) != -1 && p == this.right(this.parent(p))) {
-                                        p = this.parent(p);
-                                    }
-                                    return this.parent(p);
-                                }
-                            }
-                            else {
-                                return -1;
-                            }
-                        }
-                    };
-                    HeapTimeTreeChunk.prototype.internal_previousOrEqual_index = function (p_key) {
-                        var p = this._root;
-                        if (p == -1) {
-                            return p;
-                        }
-                        while (p != -1) {
-                            if (p_key == this.key(p)) {
-                                return p;
-                            }
-                            if (p_key > this.key(p)) {
-                                if (this.right(p) != -1) {
-                                    p = this.right(p);
-                                }
-                                else {
-                                    return p;
-                                }
-                            }
-                            else {
-                                if (this.left(p) != -1) {
-                                    p = this.left(p);
-                                }
-                                else {
-                                    var parent_1 = this.parent(p);
-                                    var ch = p;
-                                    while (parent_1 != -1 && ch == this.left(parent_1)) {
-                                        ch = parent_1;
-                                        parent_1 = this.parent(parent_1);
-                                    }
-                                    return parent_1;
-                                }
-                            }
-                        }
-                        return -1;
-                    };
-                    HeapTimeTreeChunk.prototype.internal_previous_index = function (p_key) {
-                        var p = this._root;
-                        if (p == -1) {
-                            return p;
-                        }
-                        while (p != -1) {
-                            if (p_key > this.key(p)) {
-                                if (this.right(p) != -1) {
-                                    p = this.right(p);
-                                }
-                                else {
-                                    return p;
-                                }
-                            }
-                            else {
-                                if (this.left(p) != -1) {
-                                    p = this.left(p);
-                                }
-                                else {
-                                    var parent_2 = this.parent(p);
-                                    var ch = p;
-                                    while (parent_2 != -1 && ch == this.left(parent_2)) {
-                                        ch = parent_2;
-                                        parent_2 = this.parent(parent_2);
-                                    }
-                                    return parent_2;
-                                }
-                            }
-                        }
-                        return -1;
-                    };
-                    HeapTimeTreeChunk.prototype.rotateLeft = function (n) {
-                        var r = this.right(n);
-                        this.replaceNode(n, r);
-                        this.setRight(n, this.left(r));
-                        if (this.left(r) != -1) {
-                            this.setParent(this.left(r), n);
-                        }
-                        this.setLeft(r, n);
-                        this.setParent(n, r);
-                    };
-                    HeapTimeTreeChunk.prototype.rotateRight = function (n) {
-                        var l = this.left(n);
-                        this.replaceNode(n, l);
-                        this.setLeft(n, this.right(l));
-                        if (this.right(l) != -1) {
-                            this.setParent(this.right(l), n);
-                        }
-                        this.setRight(l, n);
-                        this.setParent(n, l);
-                    };
-                    HeapTimeTreeChunk.prototype.replaceNode = function (oldn, newn) {
-                        if (this.parent(oldn) == -1) {
-                            this._root = newn;
-                        }
-                        else {
-                            if (oldn == this.left(this.parent(oldn))) {
-                                this.setLeft(this.parent(oldn), newn);
-                            }
-                            else {
-                                this.setRight(this.parent(oldn), newn);
-                            }
-                        }
-                        if (newn != -1) {
-                            this.setParent(newn, this.parent(oldn));
-                        }
-                    };
-                    HeapTimeTreeChunk.prototype.insertCase1 = function (n) {
-                        if (this.parent(n) == -1) {
-                            this.setColor(n, true);
-                        }
-                        else {
-                            this.insertCase2(n);
-                        }
-                    };
-                    HeapTimeTreeChunk.prototype.insertCase2 = function (n) {
-                        if (!this.color(this.parent(n))) {
-                            this.insertCase3(n);
-                        }
-                    };
-                    HeapTimeTreeChunk.prototype.insertCase3 = function (n) {
-                        if (!this.color(this.uncle(n))) {
-                            this.setColor(this.parent(n), true);
-                            this.setColor(this.uncle(n), true);
-                            this.setColor(this.grandParent(n), false);
-                            this.insertCase1(this.grandParent(n));
-                        }
-                        else {
-                            this.insertCase4(n);
-                        }
-                    };
-                    HeapTimeTreeChunk.prototype.insertCase4 = function (n_n) {
-                        var n = n_n;
-                        if (n == this.right(this.parent(n)) && this.parent(n) == this.left(this.grandParent(n))) {
-                            this.rotateLeft(this.parent(n));
-                            n = this.left(n);
-                        }
-                        else {
-                            if (n == this.left(this.parent(n)) && this.parent(n) == this.right(this.grandParent(n))) {
-                                this.rotateRight(this.parent(n));
-                                n = this.right(n);
-                            }
-                        }
-                        this.insertCase5(n);
-                    };
-                    HeapTimeTreeChunk.prototype.insertCase5 = function (n) {
-                        this.setColor(this.parent(n), true);
-                        this.setColor(this.grandParent(n), false);
-                        if (n == this.left(this.parent(n)) && this.parent(n) == this.left(this.grandParent(n))) {
-                            this.rotateRight(this.grandParent(n));
-                        }
-                        else {
-                            this.rotateLeft(this.grandParent(n));
-                        }
-                    };
-                    HeapTimeTreeChunk.prototype.internal_insert = function (p_key, initial) {
-                        if (this._k == null || this._k.length == this._size) {
-                            var length_1 = this._size;
-                            if (length_1 == 0) {
-                                length_1 = greycat.Constants.MAP_INITIAL_CAPACITY;
-                            }
-                            else {
-                                length_1 = length_1 * 2;
-                            }
-                            this.reallocate(length_1);
-                        }
-                        var newIndex = this._size;
-                        if (newIndex == 0) {
-                            this.setKey(newIndex, p_key, initial);
-                            this.setColor(newIndex, false);
-                            this.setLeft(newIndex, -1);
-                            this.setRight(newIndex, -1);
-                            this.setParent(newIndex, -1);
-                            this._root = newIndex;
-                            this._size = 1;
-                        }
-                        else {
-                            var n = this._root;
-                            while (true) {
-                                if (p_key == this.key(n)) {
-                                    return false;
-                                }
-                                else if (p_key < this.key(n)) {
-                                    if (this.left(n) == -1) {
-                                        this.setKey(newIndex, p_key, initial);
-                                        this.setColor(newIndex, false);
-                                        this.setLeft(newIndex, -1);
-                                        this.setRight(newIndex, -1);
-                                        this.setParent(newIndex, -1);
-                                        this.setLeft(n, newIndex);
-                                        this._size++;
-                                        break;
-                                    }
-                                    else {
-                                        n = this.left(n);
-                                    }
-                                }
-                                else {
-                                    if (this.right(n) == -1) {
-                                        this.setKey(newIndex, p_key, initial);
-                                        this.setColor(newIndex, false);
-                                        this.setLeft(newIndex, -1);
-                                        this.setRight(newIndex, -1);
-                                        this.setParent(newIndex, -1);
-                                        this.setRight(n, newIndex);
-                                        this._size++;
-                                        break;
-                                    }
-                                    else {
-                                        n = this.right(n);
-                                    }
-                                }
-                            }
-                            this.setParent(newIndex, n);
-                        }
-                        this.insertCase1(newIndex);
-                        return true;
-                    };
-                    HeapTimeTreeChunk.prototype.internal_set_dirty = function () {
-                        this._magic = this._magic + 1;
-                        if (this._space != null && !this._dirty) {
-                            this._dirty = true;
-                            this._space.notifyUpdate(this._index);
-                        }
-                    };
-                    return HeapTimeTreeChunk;
-                }());
-                HeapTimeTreeChunk.META_SIZE = 3;
-                heap.HeapTimeTreeChunk = HeapTimeTreeChunk;
-                var HeapWorldOrderChunk = (function () {
-                    function HeapWorldOrderChunk(p_space, p_index) {
-                        this._index = p_index;
-                        this._space = p_space;
-                        this._lock = 0;
-                        this._magic = 0;
-                        this._extra = greycat.internal.CoreConstants.NULL_LONG;
-                        this._size = 0;
-                        this._capacity = 0;
-                        this._kv = null;
-                        this._next = null;
-                        this._diff = null;
-                        this._hash = null;
-                        this._dirty = false;
-                    }
-                    HeapWorldOrderChunk.prototype.world = function () {
-                        return this._space.worldByIndex(this._index);
-                    };
-                    HeapWorldOrderChunk.prototype.time = function () {
-                        return this._space.timeByIndex(this._index);
-                    };
-                    HeapWorldOrderChunk.prototype.id = function () {
-                        return this._space.idByIndex(this._index);
-                    };
-                    HeapWorldOrderChunk.prototype.extra = function () {
-                        return this._extra;
-                    };
-                    HeapWorldOrderChunk.prototype.setExtra = function (extraValue) {
-                        this._extra = extraValue;
-                    };
-                    HeapWorldOrderChunk.prototype.lock = function () {
-                    };
-                    HeapWorldOrderChunk.prototype.unlock = function () {
-                    };
-                    HeapWorldOrderChunk.prototype.externalLock = function () {
-                    };
-                    HeapWorldOrderChunk.prototype.externalUnlock = function () {
-                    };
-                    HeapWorldOrderChunk.prototype.magic = function () {
-                        return this._magic;
-                    };
-                    HeapWorldOrderChunk.prototype.each = function (callback) {
-                        for (var i = 0; i < this._size; i++) {
-                            callback(this._kv[i * 2], this._kv[i * 2 + 1]);
-                        }
-                    };
-                    HeapWorldOrderChunk.prototype.get = function (key) {
-                        if (this._size > 0) {
-                            var index = greycat.utility.HashHelper.longHash(key, this._capacity * 2);
-                            var m = this._hash[index];
-                            while (m >= 0) {
-                                if (key == this._kv[m * 2]) {
-                                    return this._kv[(m * 2) + 1];
-                                }
-                                else {
-                                    m = this._next[m];
-                                }
-                            }
-                        }
-                        return greycat.internal.CoreConstants.NULL_LONG;
-                    };
-                    HeapWorldOrderChunk.prototype.put = function (key, value) {
-                        this.internal_put(key, value, true);
-                    };
-                    HeapWorldOrderChunk.prototype.internal_put = function (key, value, notifyUpdate) {
-                        if (this._capacity > 0) {
-                            var hashIndex = greycat.utility.HashHelper.longHash(key, this._capacity * 2);
-                            var m = this._hash[hashIndex];
-                            var found = -1;
-                            while (m >= 0) {
-                                if (key == this._kv[m * 2]) {
-                                    found = m;
-                                    break;
-                                }
-                                m = this._next[m];
-                            }
-                            if (found == -1) {
-                                if (this._capacity == this._size) {
-                                    this.resize(this._capacity * 2);
-                                    hashIndex = greycat.utility.HashHelper.longHash(key, this._capacity * 2);
-                                }
-                                this._kv[this._size * 2] = key;
-                                this._kv[this._size * 2 + 1] = value;
-                                if (notifyUpdate) {
-                                    this._diff[this._size] = true;
-                                }
-                                this._next[this._size] = this._hash[hashIndex];
-                                this._hash[hashIndex] = this._size;
-                                this._size++;
-                                this._magic = this._magic + 1;
-                                if (notifyUpdate && !this._dirty) {
-                                    this._dirty = true;
-                                    if (this._space != null) {
-                                        this._space.notifyUpdate(this._index);
-                                    }
-                                }
-                            }
-                            else {
-                                if (this._kv[found * 2 + 1] != value) {
-                                    this._kv[found * 2 + 1] = value;
-                                    if (notifyUpdate) {
-                                        this._diff[found] = true;
-                                    }
-                                    this._magic = this._magic + 1;
-                                    if (notifyUpdate && !this._dirty) {
-                                        this._dirty = true;
-                                        if (this._space != null) {
-                                            this._space.notifyUpdate(this._index);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        else {
-                            this._capacity = greycat.Constants.MAP_INITIAL_CAPACITY;
-                            this._next = new Int32Array(this._capacity);
-                            java.util.Arrays.fill(this._next, 0, this._capacity, -1);
-                            this._diff = [];
-                            greycat.internal.CoreConstants.fillBooleanArray(this._diff, false);
-                            this._hash = new Int32Array(this._capacity * 2);
-                            java.util.Arrays.fill(this._hash, 0, this._capacity * 2, -1);
-                            this._kv = new Float64Array(this._capacity * 2);
-                            this._size = 1;
-                            this._kv[0] = key;
-                            this._kv[1] = value;
-                            if (notifyUpdate) {
-                                this._diff[0] = true;
-                            }
-                            this._hash[greycat.utility.HashHelper.longHash(key, this._capacity * 2)] = 0;
-                            if (notifyUpdate && !this._dirty) {
-                                this._dirty = true;
-                                if (this._space != null) {
-                                    this._space.notifyUpdate(this._index);
-                                }
-                            }
-                        }
-                    };
-                    HeapWorldOrderChunk.prototype.resize = function (newCapacity) {
-                        if (newCapacity > this._capacity) {
-                            if (this._kv == null) {
-                                this._kv = new Float64Array(newCapacity * 2);
-                                this._hash = new Int32Array(newCapacity * 2);
-                                this._next = new Int32Array(newCapacity);
-                                this._diff = [];
-                                this._capacity = newCapacity;
-                                java.util.Arrays.fill(this._next, 0, newCapacity, -1);
-                                greycat.internal.CoreConstants.fillBooleanArray(this._diff, false);
-                                java.util.Arrays.fill(this._hash, 0, newCapacity * 2, -1);
-                                return true;
-                            }
-                            else {
-                                var temp_kv = new Float64Array(newCapacity * 2);
-                                java.lang.System.arraycopy(this._kv, 0, temp_kv, 0, this._size * 2);
-                                var temp_diff = [];
-                                greycat.internal.CoreConstants.fillBooleanArray(temp_diff, false);
-                                java.lang.System.arraycopy(this._diff, 0, temp_diff, 0, this._size);
-                                var temp_next = new Int32Array(newCapacity);
-                                var temp_hash = new Int32Array(newCapacity * 2);
-                                java.util.Arrays.fill(temp_next, 0, newCapacity, -1);
-                                java.util.Arrays.fill(temp_hash, 0, newCapacity * 2, -1);
-                                for (var i = 0; i < this._size; i++) {
-                                    var loopIndex = greycat.utility.HashHelper.longHash(temp_kv[i * 2], newCapacity * 2);
-                                    temp_next[i] = temp_hash[loopIndex];
-                                    temp_hash[loopIndex] = i;
-                                }
-                                this._capacity = newCapacity;
-                                this._hash = temp_hash;
-                                this._next = temp_next;
-                                this._kv = temp_kv;
-                                this._diff = temp_diff;
-                                return true;
-                            }
-                        }
-                        else {
-                            return false;
-                        }
-                    };
-                    HeapWorldOrderChunk.prototype.load = function (buffer) {
-                        this.internal_load(true, buffer);
-                    };
-                    HeapWorldOrderChunk.prototype.loadDiff = function (buffer) {
-                        this.internal_load(false, buffer);
-                    };
-                    HeapWorldOrderChunk.prototype.internal_load = function (initial, buffer) {
-                        if (buffer != null && buffer.length() > 0) {
-                            var cursor = 0;
-                            var bufferSize = buffer.length();
-                            var initDone = false;
-                            var previousStart = 0;
-                            var loopKey = greycat.internal.CoreConstants.NULL_LONG;
-                            while (cursor < bufferSize) {
-                                var current = buffer.read(cursor);
-                                switch (current) {
-                                    case greycat.Constants.CHUNK_SEP:
-                                        this._extra = greycat.utility.Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                                        previousStart = cursor + 1;
-                                        break;
-                                    case greycat.Constants.CHUNK_VAL_SEP:
-                                        if (!initDone) {
-                                            this.resize(greycat.utility.Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
-                                            initDone = true;
-                                        }
-                                        else if (loopKey == greycat.internal.CoreConstants.NULL_LONG) {
-                                            loopKey = greycat.utility.Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                                        }
-                                        else {
-                                            var loopValue = greycat.utility.Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                                            this.internal_put(loopKey, loopValue, !initial);
-                                            loopKey = greycat.internal.CoreConstants.NULL_LONG;
-                                        }
-                                        previousStart = cursor + 1;
-                                        break;
-                                }
-                                cursor++;
-                            }
-                            if (!initDone) {
-                                this.resize(greycat.utility.Base64.decodeToLongWithBounds(buffer, 0, cursor));
-                            }
-                            else {
-                                if (loopKey != greycat.internal.CoreConstants.NULL_LONG) {
-                                    var loopValue = greycat.utility.Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                                    this.internal_put(loopKey, loopValue, !initial);
-                                }
-                            }
-                        }
-                    };
-                    HeapWorldOrderChunk.prototype.index = function () {
-                        return this._index;
-                    };
-                    HeapWorldOrderChunk.prototype.remove = function (key) {
-                        throw new Error("Not implemented yet!!!");
-                    };
-                    HeapWorldOrderChunk.prototype.size = function () {
-                        return this._size;
-                    };
-                    HeapWorldOrderChunk.prototype.chunkType = function () {
-                        return greycat.chunk.ChunkType.WORLD_ORDER_CHUNK;
-                    };
-                    HeapWorldOrderChunk.prototype.save = function (buffer) {
-                        if (this._extra != greycat.internal.CoreConstants.NULL_LONG) {
-                            greycat.utility.Base64.encodeLongToBuffer(this._extra, buffer);
-                            buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
-                        }
-                        greycat.utility.Base64.encodeIntToBuffer(this._size, buffer);
-                        for (var i = 0; i < this._size; i++) {
-                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                            greycat.utility.Base64.encodeLongToBuffer(this._kv[i * 2], buffer);
-                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                            greycat.utility.Base64.encodeLongToBuffer(this._kv[i * 2 + 1], buffer);
-                        }
-                        this._dirty = false;
-                    };
-                    HeapWorldOrderChunk.prototype.saveDiff = function (buffer) {
-                        if (this._dirty) {
-                            if (this._extra != greycat.internal.CoreConstants.NULL_LONG) {
-                                greycat.utility.Base64.encodeLongToBuffer(this._extra, buffer);
-                                buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
-                            }
-                            greycat.utility.Base64.encodeIntToBuffer(this._size, buffer);
-                            for (var i = 0; i < this._size; i++) {
-                                if (this._diff[i]) {
-                                    buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                    greycat.utility.Base64.encodeLongToBuffer(this._kv[i * 2], buffer);
-                                    buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
-                                    greycat.utility.Base64.encodeLongToBuffer(this._kv[i * 2 + 1], buffer);
-                                }
-                            }
-                            this._dirty = false;
-                        }
-                    };
-                    return HeapWorldOrderChunk;
-                }());
-                heap.HeapWorldOrderChunk = HeapWorldOrderChunk;
-            })(heap = chunk_2.heap || (chunk_2.heap = {}));
-        })(chunk = internal.chunk || (internal.chunk = {}));
-        var memory;
-        (function (memory) {
+        var ReadOnlyStorage = (function () {
+            function ReadOnlyStorage(toWrap) {
+                this.wrapped = toWrap;
+            }
+            ReadOnlyStorage.prototype.get = function (keys, callback) {
+                this.wrapped.get(keys, callback);
+            };
+            ReadOnlyStorage.prototype.put = function (stream, callback) {
+                console.error("WARNING: PUT TO A READ ONLY STORAGE");
+            };
+            ReadOnlyStorage.prototype.remove = function (keys, callback) {
+                console.error("WARNING: REMOVE TO A READ ONLY STORAGE");
+            };
+            ReadOnlyStorage.prototype.connect = function (graph, callback) {
+                this.wrapped.connect(graph, callback);
+            };
+            ReadOnlyStorage.prototype.disconnect = function (callback) {
+                this.wrapped.disconnect(callback);
+            };
+            ReadOnlyStorage.prototype.lock = function (callback) {
+                this.wrapped.lock(callback);
+            };
+            ReadOnlyStorage.prototype.unlock = function (previousLock, callback) {
+                this.wrapped.unlock(previousLock, callback);
+            };
+            return ReadOnlyStorage;
+        }());
+        internal.ReadOnlyStorage = ReadOnlyStorage;
+        var heap;
+        (function (heap) {
+            var HeapAtomicByteArray = (function () {
+                function HeapAtomicByteArray(initialSize) {
+                    this._back = new Int8Array(initialSize);
+                }
+                HeapAtomicByteArray.prototype.get = function (index) {
+                    return this._back[index];
+                };
+                HeapAtomicByteArray.prototype.set = function (index, value) {
+                    this._back[index] = value;
+                };
+                return HeapAtomicByteArray;
+            }());
+            heap.HeapAtomicByteArray = HeapAtomicByteArray;
             var HeapBuffer = (function () {
                 function HeapBuffer() {
                 }
@@ -10034,95 +4374,5882 @@ var greycat;
                 };
                 return HeapBuffer;
             }());
-            memory.HeapBuffer = HeapBuffer;
+            heap.HeapBuffer = HeapBuffer;
+            var HeapChunkSpace = (function () {
+                function HeapChunkSpace(initialCapacity, p_graph, deepWorldPriority) {
+                    this._deep_priority = deepWorldPriority;
+                    this._graph = p_graph;
+                    this._maxEntries = initialCapacity;
+                    this._hashEntries = initialCapacity * HeapChunkSpace.HASH_LOAD_FACTOR;
+                    this._lru = new greycat.internal.heap.HeapFixedStack(initialCapacity, true);
+                    this._dirtiesStack = new greycat.internal.heap.HeapFixedStack(initialCapacity, false);
+                    this._hashNext = new java.util.concurrent.atomic.AtomicIntegerArray(initialCapacity);
+                    this._hash = new java.util.concurrent.atomic.AtomicIntegerArray(this._hashEntries);
+                    for (var i = 0; i < initialCapacity; i++) {
+                        this._hashNext.set(i, -1);
+                    }
+                    for (var i = 0; i < this._hashEntries; i++) {
+                        this._hash.set(i, -1);
+                    }
+                    this._chunkValues = new java.util.concurrent.atomic.AtomicReferenceArray(initialCapacity);
+                    this._chunkWorlds = new java.util.concurrent.atomic.AtomicLongArray(this._maxEntries);
+                    this._chunkTimes = new java.util.concurrent.atomic.AtomicLongArray(this._maxEntries);
+                    this._chunkIds = new java.util.concurrent.atomic.AtomicLongArray(this._maxEntries);
+                    this._chunkTypes = new greycat.internal.heap.HeapAtomicByteArray(this._maxEntries);
+                    this._chunkMarks = new java.util.concurrent.atomic.AtomicLongArray(this._maxEntries);
+                    for (var i = 0; i < this._maxEntries; i++) {
+                        this._chunkMarks.set(i, 0);
+                    }
+                }
+                HeapChunkSpace.prototype.graph = function () {
+                    return this._graph;
+                };
+                HeapChunkSpace.prototype.worldByIndex = function (index) {
+                    return this._chunkWorlds.get(index);
+                };
+                HeapChunkSpace.prototype.timeByIndex = function (index) {
+                    return this._chunkTimes.get(index);
+                };
+                HeapChunkSpace.prototype.idByIndex = function (index) {
+                    return this._chunkIds.get(index);
+                };
+                HeapChunkSpace.prototype.getAndMark = function (type, world, time, id) {
+                    var index;
+                    if (this._deep_priority) {
+                        index = greycat.utility.HashHelper.tripleHash(type, world, time, id, this._hashEntries);
+                    }
+                    else {
+                        index = greycat.utility.HashHelper.simpleTripleHash(type, world, time, id, this._hashEntries);
+                    }
+                    var m = this._hash.get(index);
+                    var found = -1;
+                    while (m != -1) {
+                        if (this._chunkTypes.get(m) == type && this._chunkWorlds.get(m) == world && this._chunkTimes.get(m) == time && this._chunkIds.get(m) == id) {
+                            if (this.mark(m) > 0) {
+                                found = m;
+                            }
+                            break;
+                        }
+                        else {
+                            m = this._hashNext.get(m);
+                        }
+                    }
+                    if (found != -1) {
+                        return this._chunkValues.get(found);
+                    }
+                    else {
+                        return null;
+                    }
+                };
+                HeapChunkSpace.prototype.get = function (index) {
+                    return this._chunkValues.get(index);
+                };
+                HeapChunkSpace.prototype.getOrLoadAndMark = function (type, world, time, id, callback) {
+                    var _this = this;
+                    var fromMemory = this.getAndMark(type, world, time, id);
+                    if (fromMemory != null) {
+                        callback(fromMemory);
+                    }
+                    else {
+                        var keys_2 = this.graph().newBuffer();
+                        greycat.utility.KeyHelper.keyToBuffer(keys_2, type, world, time, id);
+                        this.graph().storage().get(keys_2, function (result) {
+                            {
+                                if (result != null && result.length() > 0) {
+                                    var loadedChunk = _this.createAndMark(type, world, time, id);
+                                    loadedChunk.load(result);
+                                    result.free();
+                                    callback(loadedChunk);
+                                }
+                                else {
+                                    keys_2.free();
+                                    callback(null);
+                                }
+                            }
+                        });
+                    }
+                };
+                HeapChunkSpace.prototype.getOrLoadAndMarkAll = function (keys, callback) {
+                    var _this = this;
+                    var querySize = keys.length / greycat.Constants.KEY_SIZE;
+                    var finalResult = new Array(querySize);
+                    var reverse = null;
+                    var reverseIndex = 0;
+                    var toLoadKeys = null;
+                    for (var i = 0; i < querySize; i++) {
+                        var offset = i * greycat.Constants.KEY_SIZE;
+                        var loopType = keys[offset];
+                        if (loopType != -1) {
+                            var fromMemory = this.getAndMark(keys[offset], keys[offset + 1], keys[offset + 2], keys[offset + 3]);
+                            if (fromMemory != null) {
+                                finalResult[i] = fromMemory;
+                            }
+                            else {
+                                if (reverse == null) {
+                                    reverse = new Int32Array(querySize);
+                                    toLoadKeys = this.graph().newBuffer();
+                                }
+                                reverse[reverseIndex] = i;
+                                if (reverseIndex != 0) {
+                                    toLoadKeys.write(greycat.Constants.BUFFER_SEP);
+                                }
+                                greycat.utility.KeyHelper.keyToBuffer(toLoadKeys, keys[offset], keys[offset + 1], keys[offset + 2], keys[offset + 3]);
+                                reverseIndex++;
+                            }
+                        }
+                        else {
+                            finalResult[i] = null;
+                        }
+                    }
+                    if (reverse != null) {
+                        var finalReverse_1 = reverse;
+                        this.graph().storage().get(toLoadKeys, function (loadAllResult) {
+                            {
+                                var it = loadAllResult.iterator();
+                                var i = 0;
+                                while (it.hasNext()) {
+                                    var view = it.next();
+                                    var reversedIndex = finalReverse_1[i];
+                                    var reversedOffset = reversedIndex * greycat.Constants.KEY_SIZE;
+                                    if (view.length() > 0) {
+                                        var loadedChunk = _this.createAndMark(keys[reversedOffset], keys[reversedOffset + 1], keys[reversedOffset + 2], keys[reversedOffset + 3]);
+                                        loadedChunk.load(view);
+                                        finalResult[reversedIndex] = loadedChunk;
+                                    }
+                                    else {
+                                        finalResult[reversedIndex] = null;
+                                    }
+                                    i++;
+                                }
+                                loadAllResult.free();
+                                callback(finalResult);
+                            }
+                        });
+                    }
+                    else {
+                        callback(finalResult);
+                    }
+                };
+                HeapChunkSpace.prototype.mark = function (index) {
+                    var castedIndex = index;
+                    var before;
+                    var after;
+                    do {
+                        before = this._chunkMarks.get(castedIndex);
+                        if (before != -1) {
+                            after = before + 1;
+                        }
+                        else {
+                            after = before;
+                        }
+                    } while (!this._chunkMarks.compareAndSet(castedIndex, before, after));
+                    if (before == 0 && after == 1) {
+                        this._lru.dequeue(index);
+                    }
+                    return after;
+                };
+                HeapChunkSpace.prototype.unmark = function (index) {
+                    var castedIndex = index;
+                    var before;
+                    var after;
+                    do {
+                        before = this._chunkMarks.get(castedIndex);
+                        if (before > 0) {
+                            after = before - 1;
+                        }
+                        else {
+                            console.error("WARNING: DOUBLE UNMARK");
+                            after = before;
+                        }
+                    } while (!this._chunkMarks.compareAndSet(castedIndex, before, after));
+                    if (before == 1 && after == 0) {
+                        this._lru.enqueue(index);
+                    }
+                };
+                HeapChunkSpace.prototype.free = function (chunk) { };
+                HeapChunkSpace.prototype.createAndMark = function (type, world, time, id) {
+                    var entry = -1;
+                    var hashIndex;
+                    if (this._deep_priority) {
+                        hashIndex = greycat.utility.HashHelper.tripleHash(type, world, time, id, this._hashEntries);
+                    }
+                    else {
+                        hashIndex = greycat.utility.HashHelper.simpleTripleHash(type, world, time, id, this._hashEntries);
+                    }
+                    var m = this._hash.get(hashIndex);
+                    while (m >= 0) {
+                        if (type == this._chunkTypes.get(m) && world == this._chunkWorlds.get(m) && time == this._chunkTimes.get(m) && id == this._chunkIds.get(m)) {
+                            entry = m;
+                            break;
+                        }
+                        m = this._hashNext.get(m);
+                    }
+                    if (entry != -1) {
+                        var previous = void 0;
+                        var after = void 0;
+                        do {
+                            previous = this._chunkMarks.get(entry);
+                            if (previous != -1) {
+                                after = previous + 1;
+                            }
+                            else {
+                                after = previous;
+                            }
+                        } while (!this._chunkMarks.compareAndSet(entry, previous, after));
+                        if (after == (previous + 1)) {
+                            return this._chunkValues.get(entry);
+                        }
+                    }
+                    var currentVictimIndex = -1;
+                    while (currentVictimIndex == -1) {
+                        var temp_victim = this._lru.dequeueTail();
+                        if (temp_victim == -1) {
+                            break;
+                        }
+                        else {
+                            if (this._chunkMarks.compareAndSet(temp_victim, 0, -1)) {
+                                currentVictimIndex = temp_victim;
+                            }
+                        }
+                    }
+                    if (currentVictimIndex == -1) {
+                        throw new Error("mwDB crashed, cache is full, please avoid to much retention of nodes or augment cache capacity! available:" + this.available());
+                    }
+                    var toInsert = null;
+                    switch (type) {
+                        case greycat.chunk.ChunkType.STATE_CHUNK:
+                            toInsert = new greycat.internal.heap.HeapStateChunk(this, currentVictimIndex);
+                            break;
+                        case greycat.chunk.ChunkType.WORLD_ORDER_CHUNK:
+                            toInsert = new greycat.internal.heap.HeapWorldOrderChunk(this, currentVictimIndex);
+                            break;
+                        case greycat.chunk.ChunkType.TIME_TREE_CHUNK:
+                            toInsert = new greycat.internal.heap.HeapTimeTreeChunk(this, currentVictimIndex);
+                            break;
+                        case greycat.chunk.ChunkType.GEN_CHUNK:
+                            toInsert = new greycat.internal.heap.HeapGenChunk(this, id, currentVictimIndex);
+                            break;
+                    }
+                    if (this._chunkValues.get(currentVictimIndex) != null) {
+                        var victimWorld = this._chunkWorlds.get(currentVictimIndex);
+                        var victimTime = this._chunkTimes.get(currentVictimIndex);
+                        var victimObj = this._chunkIds.get(currentVictimIndex);
+                        var victimType = this._chunkTypes.get(currentVictimIndex);
+                        var indexVictim = void 0;
+                        if (this._deep_priority) {
+                            indexVictim = greycat.utility.HashHelper.tripleHash(victimType, victimWorld, victimTime, victimObj, this._hashEntries);
+                        }
+                        else {
+                            indexVictim = greycat.utility.HashHelper.simpleTripleHash(victimType, victimWorld, victimTime, victimObj, this._hashEntries);
+                        }
+                        m = this._hash.get(indexVictim);
+                        var last = -1;
+                        while (m >= 0) {
+                            if (victimType == this._chunkTypes.get(m) && victimWorld == this._chunkWorlds.get(m) && victimTime == this._chunkTimes.get(m) && victimObj == this._chunkIds.get(m)) {
+                                break;
+                            }
+                            last = m;
+                            m = this._hashNext.get(m);
+                        }
+                        if (last == -1) {
+                            var previousNext = this._hashNext.get(m);
+                            this._hash.set(indexVictim, previousNext);
+                        }
+                        else {
+                            if (m == -1) {
+                                this._hashNext.set(last, -1);
+                            }
+                            else {
+                                this._hashNext.set(last, this._hashNext.get(m));
+                            }
+                        }
+                        this._hashNext.set(m, -1);
+                    }
+                    this._chunkValues.set(currentVictimIndex, toInsert);
+                    this._chunkMarks.set(currentVictimIndex, 1);
+                    this._chunkTypes.set(currentVictimIndex, type);
+                    this._chunkWorlds.set(currentVictimIndex, world);
+                    this._chunkTimes.set(currentVictimIndex, time);
+                    this._chunkIds.set(currentVictimIndex, id);
+                    this._hashNext.set(currentVictimIndex, this._hash.get(hashIndex));
+                    this._hash.set(hashIndex, currentVictimIndex);
+                    return toInsert;
+                };
+                HeapChunkSpace.prototype.notifyUpdate = function (index) {
+                    if (this._dirtiesStack.enqueue(index)) {
+                        this.mark(index);
+                    }
+                };
+                HeapChunkSpace.prototype.save = function (callback) {
+                    var stream = this._graph.newBuffer();
+                    var isFirst = true;
+                    while (this._dirtiesStack.size() != 0) {
+                        var tail = this._dirtiesStack.dequeueTail();
+                        var loopChunk = this._chunkValues.get(tail);
+                        if (isFirst) {
+                            isFirst = false;
+                        }
+                        else {
+                            stream.write(greycat.Constants.BUFFER_SEP);
+                        }
+                        greycat.utility.KeyHelper.keyToBuffer(stream, this._chunkTypes.get(tail), this._chunkWorlds.get(tail), this._chunkTimes.get(tail), this._chunkIds.get(tail));
+                        stream.write(greycat.Constants.BUFFER_SEP);
+                        try {
+                            loopChunk.save(stream);
+                            this.unmark(tail);
+                        }
+                        catch ($ex$) {
+                            if ($ex$ instanceof Error) {
+                                var e = $ex$;
+                                {
+                                    console.error(e);
+                                }
+                            }
+                            else {
+                                throw $ex$;
+                            }
+                        }
+                    }
+                    this.graph().storage().put(stream, function (result) {
+                        {
+                            stream.free();
+                            if (callback != null) {
+                                callback(result);
+                            }
+                        }
+                    });
+                };
+                HeapChunkSpace.prototype.clear = function () { };
+                HeapChunkSpace.prototype.freeAll = function () { };
+                HeapChunkSpace.prototype.available = function () {
+                    return this._lru.size();
+                };
+                HeapChunkSpace.prototype.newVolatileGraph = function () {
+                    return new greycat.internal.heap.HeapEGraph(null, null, this._graph);
+                };
+                HeapChunkSpace.prototype.printMarked = function () {
+                    for (var i = 0; i < this._chunkValues.length(); i++) {
+                        if (this._chunkValues.get(i) != null) {
+                            if (this._chunkMarks.get(i) != 0) {
+                                switch (this._chunkTypes.get(i)) {
+                                    case greycat.chunk.ChunkType.STATE_CHUNK:
+                                        console.log("STATE(" + this._chunkWorlds.get(i) + "," + this._chunkTimes.get(i) + "," + this._chunkIds.get(i) + ")->marks->" + this._chunkMarks.get(i));
+                                        break;
+                                    case greycat.chunk.ChunkType.TIME_TREE_CHUNK:
+                                        console.log("TIME_TREE(" + this._chunkWorlds.get(i) + "," + this._chunkTimes.get(i) + "," + this._chunkIds.get(i) + ")->marks->" + this._chunkMarks.get(i));
+                                        break;
+                                    case greycat.chunk.ChunkType.WORLD_ORDER_CHUNK:
+                                        console.log("WORLD_ORDER(" + this._chunkWorlds.get(i) + "," + this._chunkTimes.get(i) + "," + this._chunkIds.get(i) + ")->marks->" + this._chunkMarks.get(i));
+                                        break;
+                                    case greycat.chunk.ChunkType.GEN_CHUNK:
+                                        console.log("GENERATOR(" + this._chunkWorlds.get(i) + "," + this._chunkTimes.get(i) + "," + this._chunkIds.get(i) + ")->marks->" + this._chunkMarks.get(i));
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                };
+                return HeapChunkSpace;
+            }());
+            HeapChunkSpace.HASH_LOAD_FACTOR = 4;
+            heap.HeapChunkSpace = HeapChunkSpace;
+            var HeapDMatrix = (function () {
+                function HeapDMatrix(p_parent, origin) {
+                    this.backend = null;
+                    this.aligned = true;
+                    this.parent = p_parent;
+                    if (origin != null) {
+                        this.aligned = false;
+                        this.backend = origin.backend;
+                    }
+                }
+                HeapDMatrix.prototype.init = function (rows, columns) {
+                    {
+                        this.internal_init(rows, columns);
+                    }
+                    this.parent.declareDirty();
+                    return this;
+                };
+                HeapDMatrix.prototype.internal_init = function (rows, columns) {
+                    this.backend = new Float64Array(rows * columns + HeapDMatrix.INDEX_OFFSET);
+                    this.backend[HeapDMatrix.INDEX_ROWS] = rows;
+                    this.backend[HeapDMatrix.INDEX_COLUMNS] = columns;
+                    this.backend[HeapDMatrix.INDEX_MAX_COLUMN] = columns;
+                    this.aligned = true;
+                };
+                HeapDMatrix.prototype.appendColumn = function (newColumn) {
+                    {
+                        this.internal_appendColumn(newColumn);
+                        this.parent.declareDirty();
+                    }
+                    return this;
+                };
+                HeapDMatrix.prototype.internal_appendColumn = function (newColumn) {
+                    var nbRows;
+                    var nbColumns;
+                    var nbMaxColumn;
+                    if (this.backend == null) {
+                        nbRows = newColumn.length;
+                        nbColumns = greycat.Constants.MAP_INITIAL_CAPACITY;
+                        nbMaxColumn = 0;
+                        this.backend = new Float64Array(nbRows * nbColumns + HeapDMatrix.INDEX_OFFSET);
+                        this.backend[HeapDMatrix.INDEX_ROWS] = nbRows;
+                        this.backend[HeapDMatrix.INDEX_COLUMNS] = nbColumns;
+                        this.backend[HeapDMatrix.INDEX_MAX_COLUMN] = nbMaxColumn;
+                    }
+                    else {
+                        nbColumns = this.backend[HeapDMatrix.INDEX_COLUMNS];
+                        nbRows = this.backend[HeapDMatrix.INDEX_ROWS];
+                        nbMaxColumn = this.backend[HeapDMatrix.INDEX_MAX_COLUMN];
+                    }
+                    if (!this.aligned || nbMaxColumn == nbColumns) {
+                        if (nbMaxColumn == nbColumns) {
+                            nbColumns = nbColumns * 2;
+                            this.backend[HeapDMatrix.INDEX_COLUMNS] = nbColumns;
+                            var newLength = nbColumns * nbRows + HeapDMatrix.INDEX_OFFSET;
+                            var next_backend = new Float64Array(newLength);
+                            java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                            this.backend = next_backend;
+                            this.aligned = true;
+                        }
+                        else {
+                            var next_backend = new Float64Array(this.backend.length);
+                            java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                            this.backend = next_backend;
+                            this.aligned = true;
+                        }
+                    }
+                    java.lang.System.arraycopy(newColumn, 0, this.backend, (nbMaxColumn * nbRows) + HeapDMatrix.INDEX_OFFSET, newColumn.length);
+                    this.backend[HeapDMatrix.INDEX_MAX_COLUMN] = nbMaxColumn + 1;
+                };
+                HeapDMatrix.prototype.fill = function (value) {
+                    {
+                        this.internal_fill(value);
+                    }
+                    return this;
+                };
+                HeapDMatrix.prototype.internal_fill = function (value) {
+                    if (this.backend != null) {
+                        if (!this.aligned) {
+                            var next_backend = new Float64Array(this.backend.length);
+                            java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                            this.backend = next_backend;
+                            this.aligned = true;
+                        }
+                        java.util.Arrays.fill(this.backend, HeapDMatrix.INDEX_OFFSET, this.backend.length - HeapDMatrix.INDEX_OFFSET, value);
+                        this.backend[HeapDMatrix.INDEX_MAX_COLUMN] = this.backend[HeapDMatrix.INDEX_COLUMNS];
+                        this.parent.declareDirty();
+                    }
+                };
+                HeapDMatrix.prototype.fillWith = function (values) {
+                    {
+                        this.internal_fillWith(values);
+                    }
+                    return this;
+                };
+                HeapDMatrix.prototype.fillWithRandom = function (random, min, max) {
+                    {
+                        if (this.backend != null) {
+                            if (!this.aligned) {
+                                var next_backend = new Float64Array(this.backend.length);
+                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                this.backend = next_backend;
+                                this.aligned = true;
+                            }
+                            for (var i = 0; i < this.backend[HeapDMatrix.INDEX_ROWS] * this.backend[HeapDMatrix.INDEX_COLUMNS]; i++) {
+                                this.backend[i + HeapDMatrix.INDEX_OFFSET] = random.nextInt() * (max - min) + min;
+                            }
+                            this.parent.declareDirty();
+                        }
+                    }
+                    return this;
+                };
+                HeapDMatrix.prototype.fillWithRandomStd = function (random, std) {
+                    {
+                        if (this.backend != null) {
+                            if (!this.aligned) {
+                                var next_backend = new Float64Array(this.backend.length);
+                                java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                                this.backend = next_backend;
+                                this.aligned = true;
+                            }
+                            for (var i = 0; i < this.backend[HeapDMatrix.INDEX_ROWS] * this.backend[HeapDMatrix.INDEX_COLUMNS]; i++) {
+                                this.backend[i + HeapDMatrix.INDEX_OFFSET] = random.nextGaussian() * std;
+                            }
+                            this.parent.declareDirty();
+                        }
+                    }
+                    return this;
+                };
+                HeapDMatrix.prototype.internal_fillWith = function (values) {
+                    if (this.backend != null) {
+                        if (!this.aligned) {
+                            var next_backend = new Float64Array(this.backend.length);
+                            java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                            this.backend = next_backend;
+                            this.aligned = true;
+                        }
+                        java.lang.System.arraycopy(values, 0, this.backend, HeapDMatrix.INDEX_OFFSET, values.length);
+                        this.parent.declareDirty();
+                    }
+                };
+                HeapDMatrix.prototype.rows = function () {
+                    var result = 0;
+                    {
+                        if (this.backend != null) {
+                            result = this.backend[HeapDMatrix.INDEX_ROWS];
+                        }
+                    }
+                    return result;
+                };
+                HeapDMatrix.prototype.columns = function () {
+                    var result = 0;
+                    {
+                        if (this.backend != null) {
+                            result = this.backend[HeapDMatrix.INDEX_MAX_COLUMN];
+                        }
+                    }
+                    return result;
+                };
+                HeapDMatrix.prototype.column = function (index) {
+                    var result;
+                    {
+                        var nbRows = this.backend[HeapDMatrix.INDEX_ROWS];
+                        result = new Float64Array(nbRows);
+                        java.lang.System.arraycopy(this.backend, HeapDMatrix.INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
+                    }
+                    return result;
+                };
+                HeapDMatrix.prototype.get = function (rowIndex, columnIndex) {
+                    var result = 0;
+                    {
+                        if (this.backend != null) {
+                            var nbRows = this.backend[HeapDMatrix.INDEX_ROWS];
+                            result = this.backend[HeapDMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+                        }
+                    }
+                    return result;
+                };
+                HeapDMatrix.prototype.set = function (rowIndex, columnIndex, value) {
+                    {
+                        this.internal_set(rowIndex, columnIndex, value);
+                    }
+                    return this;
+                };
+                HeapDMatrix.prototype.internal_set = function (rowIndex, columnIndex, value) {
+                    if (this.backend != null) {
+                        if (!this.aligned) {
+                            var next_backend = new Float64Array(this.backend.length);
+                            java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                            this.backend = next_backend;
+                            this.aligned = true;
+                        }
+                        var nbRows = this.backend[HeapDMatrix.INDEX_ROWS];
+                        this.backend[HeapDMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
+                        this.parent.declareDirty();
+                    }
+                };
+                HeapDMatrix.prototype.add = function (rowIndex, columnIndex, value) {
+                    {
+                        this.internal_add(rowIndex, columnIndex, value);
+                    }
+                    return this;
+                };
+                HeapDMatrix.prototype.internal_add = function (rowIndex, columnIndex, value) {
+                    if (this.backend != null) {
+                        if (!this.aligned) {
+                            var next_backend = new Float64Array(this.backend.length);
+                            java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                            this.backend = next_backend;
+                            this.aligned = true;
+                        }
+                        var nbRows = this.backend[HeapDMatrix.INDEX_ROWS];
+                        this.backend[HeapDMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + this.backend[HeapDMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+                        this.parent.declareDirty();
+                    }
+                };
+                HeapDMatrix.prototype.data = function () {
+                    var copy = null;
+                    {
+                        if (this.backend != null) {
+                            copy = new Float64Array(this.backend.length - HeapDMatrix.INDEX_OFFSET);
+                            java.lang.System.arraycopy(this.backend, HeapDMatrix.INDEX_OFFSET, copy, 0, this.backend.length - HeapDMatrix.INDEX_OFFSET);
+                        }
+                    }
+                    return copy;
+                };
+                HeapDMatrix.prototype.leadingDimension = function () {
+                    if (this.backend == null) {
+                        return 0;
+                    }
+                    return Math.max(this.backend[HeapDMatrix.INDEX_COLUMNS], this.backend[HeapDMatrix.INDEX_ROWS]);
+                };
+                HeapDMatrix.prototype.unsafeGet = function (index) {
+                    var result = 0;
+                    {
+                        if (this.backend != null) {
+                            result = this.backend[HeapDMatrix.INDEX_OFFSET + index];
+                        }
+                    }
+                    return result;
+                };
+                HeapDMatrix.prototype.unsafeSet = function (index, value) {
+                    {
+                        this.internal_unsafeSet(index, value);
+                    }
+                    return this;
+                };
+                HeapDMatrix.prototype.internal_unsafeSet = function (index, value) {
+                    if (this.backend != null) {
+                        if (!this.aligned) {
+                            var next_backend = new Float64Array(this.backend.length);
+                            java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                            this.backend = next_backend;
+                            this.aligned = true;
+                        }
+                        this.backend[HeapDMatrix.INDEX_OFFSET + index] = value;
+                        this.parent.declareDirty();
+                    }
+                };
+                HeapDMatrix.prototype.unsafe_data = function () {
+                    return this.backend;
+                };
+                HeapDMatrix.prototype.unsafe_init = function (size) {
+                    this.backend = new Float64Array(size);
+                    this.backend[HeapDMatrix.INDEX_ROWS] = 0;
+                    this.backend[HeapDMatrix.INDEX_COLUMNS] = 0;
+                    this.aligned = true;
+                };
+                HeapDMatrix.prototype.unsafe_set = function (index, value) {
+                    this.backend[index] = value;
+                };
+                HeapDMatrix.prototype.load = function (buffer, offset, max) {
+                    var cursor = offset;
+                    var current = buffer.read(cursor);
+                    var isFirst = true;
+                    var previous = offset;
+                    var elemIndex = 0;
+                    while (cursor < max && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
+                        if (current == greycat.Constants.CHUNK_VAL_SEP) {
+                            if (isFirst) {
+                                this.unsafe_init(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                isFirst = false;
+                            }
+                            else {
+                                this.unsafe_set(elemIndex, greycat.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor));
+                                elemIndex++;
+                            }
+                            previous = cursor + 1;
+                        }
+                        cursor++;
+                        if (cursor < max) {
+                            current = buffer.read(cursor);
+                        }
+                    }
+                    if (isFirst) {
+                        this.unsafe_init(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                    }
+                    else {
+                        this.unsafe_set(elemIndex, greycat.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor));
+                    }
+                    return cursor;
+                };
+                return HeapDMatrix;
+            }());
+            HeapDMatrix.INDEX_ROWS = 0;
+            HeapDMatrix.INDEX_COLUMNS = 1;
+            HeapDMatrix.INDEX_MAX_COLUMN = 2;
+            HeapDMatrix.INDEX_OFFSET = 3;
+            heap.HeapDMatrix = HeapDMatrix;
+            var HeapEGraph = (function () {
+                function HeapEGraph(p_parent, origin, p_graph) {
+                    this._nodes = null;
+                    this._nodes_capacity = 0;
+                    this._nodes_index = 0;
+                    this.parent = p_parent;
+                    this._graph = p_graph;
+                    if (origin != null) {
+                        this._nodes_index = origin._nodes_index;
+                        this._nodes_capacity = origin._nodes_capacity;
+                        this._nodes = new Array(this._nodes_capacity);
+                        for (var i = 0; i < this._nodes_index; i++) {
+                            this._nodes[i] = new greycat.internal.heap.HeapENode(this, i, origin._nodes[i]);
+                        }
+                        for (var i = 0; i < this._nodes_index; i++) {
+                            this._nodes[i].rebase();
+                        }
+                    }
+                }
+                HeapEGraph.prototype.size = function () {
+                    return this._nodes_index;
+                };
+                HeapEGraph.prototype.free = function () {
+                    this._nodes = null;
+                    this._nodes_capacity = 0;
+                    this._nodes_index = 0;
+                };
+                HeapEGraph.prototype.graph = function () {
+                    return this._graph;
+                };
+                HeapEGraph.prototype.allocate = function (newCapacity) {
+                    var closePowerOfTwo = Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
+                    if (closePowerOfTwo > this._nodes_capacity) {
+                        var new_back = new Array(closePowerOfTwo);
+                        if (this._nodes != null) {
+                            java.lang.System.arraycopy(this._nodes, 0, new_back, 0, this._nodes_index);
+                        }
+                        this._nodes = new_back;
+                        this._nodes_capacity = closePowerOfTwo;
+                    }
+                };
+                HeapEGraph.prototype.nodeByIndex = function (index, createIfAbsent) {
+                    if (index < this._nodes_capacity) {
+                        if (index >= this._nodes_index) {
+                            this._nodes_index = index + 1;
+                        }
+                        var elem = this._nodes[index];
+                        if (elem == null && createIfAbsent) {
+                            elem = new greycat.internal.heap.HeapENode(this, index, null);
+                            this._nodes[index] = elem;
+                        }
+                        return elem;
+                    }
+                    else {
+                        throw new Error("bad API usage");
+                    }
+                };
+                HeapEGraph.prototype.declareDirty = function () {
+                    if (!this._dirty) {
+                        this._dirty = true;
+                        if (this.parent != null) {
+                            this.parent.declareDirty();
+                        }
+                    }
+                };
+                HeapEGraph.prototype.newNode = function () {
+                    if (this._nodes_index == this._nodes_capacity) {
+                        var newCapacity = this._nodes_capacity * 2;
+                        if (newCapacity == 0) {
+                            newCapacity = greycat.Constants.MAP_INITIAL_CAPACITY;
+                        }
+                        var newNodes = new Array(newCapacity);
+                        if (this._nodes != null) {
+                            java.lang.System.arraycopy(this._nodes, 0, newNodes, 0, this._nodes_capacity);
+                        }
+                        this._nodes_capacity = newCapacity;
+                        this._nodes = newNodes;
+                    }
+                    var newNode = new greycat.internal.heap.HeapENode(this, this._nodes_index, null);
+                    this._nodes[this._nodes_index] = newNode;
+                    this._nodes_index++;
+                    return newNode;
+                };
+                HeapEGraph.prototype.root = function () {
+                    if (this._nodes_index > 0) {
+                        return this._nodes[0];
+                    }
+                    return null;
+                };
+                HeapEGraph.prototype.setRoot = function (eNode) {
+                    var casted = eNode;
+                    var previousID = casted._id;
+                    if (previousID != 0) {
+                        var previousRoot = this._nodes[0];
+                        this._nodes[previousID] = previousRoot;
+                        previousRoot._id = previousID;
+                        this._nodes[0] = casted;
+                        casted._id = 0;
+                    }
+                    return this;
+                };
+                HeapEGraph.prototype.drop = function (eNode) {
+                    var casted = eNode;
+                    var previousId = casted._id;
+                    if (previousId == this._nodes_index - 1) {
+                        this._nodes[previousId] = null;
+                        this._nodes_index--;
+                    }
+                    else {
+                        this._nodes[previousId] = this._nodes[this._nodes_index - 1];
+                        this._nodes[previousId]._id = previousId;
+                        this._nodes_index--;
+                    }
+                    return this;
+                };
+                HeapEGraph.prototype.toString = function () {
+                    var builder = new java.lang.StringBuilder();
+                    builder.append("{\"nodes\":[");
+                    for (var i = 0; i < this._nodes_index; i++) {
+                        if (i != 0) {
+                            builder.append(",");
+                        }
+                        builder.append(this._nodes[i].toString());
+                    }
+                    builder.append("]}");
+                    return builder.toString();
+                };
+                HeapEGraph.prototype.load = function (buffer, offset, max) {
+                    var cursor = offset;
+                    var current = buffer.read(cursor);
+                    var isFirst = true;
+                    var insertIndex = 0;
+                    while (cursor < max && current != greycat.Constants.CHUNK_SEP) {
+                        if (current == greycat.Constants.CHUNK_ENODE_SEP) {
+                            if (isFirst) {
+                                this.allocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, offset, cursor));
+                                isFirst = false;
+                            }
+                            cursor++;
+                            var eNode = this.nodeByIndex(insertIndex, true);
+                            cursor = eNode.load(buffer, cursor, this._graph);
+                            insertIndex++;
+                        }
+                        else {
+                            cursor++;
+                        }
+                        current = buffer.read(cursor);
+                    }
+                    return cursor;
+                };
+                return HeapEGraph;
+            }());
+            heap.HeapEGraph = HeapEGraph;
+            var HeapENode = (function () {
+                function HeapENode(p_egraph, p_id, origin) {
+                    this.egraph = p_egraph;
+                    this._id = p_id;
+                    if (origin != null) {
+                        this._capacity = origin._capacity;
+                        this._size = origin._size;
+                        if (origin._k != null) {
+                            var cloned_k = new Int32Array(this._capacity);
+                            java.lang.System.arraycopy(origin._k, 0, cloned_k, 0, this._capacity);
+                            this._k = cloned_k;
+                        }
+                        if (origin._type != null) {
+                            var cloned_type = new Int8Array(this._capacity);
+                            java.lang.System.arraycopy(origin._type, 0, cloned_type, 0, this._capacity);
+                            this._type = cloned_type;
+                        }
+                        if (origin._next_hash != null) {
+                            var cloned_hash = new Int32Array(this._capacity * 3);
+                            java.lang.System.arraycopy(origin._next_hash, 0, cloned_hash, 0, this._capacity * 3);
+                            this._next_hash = cloned_hash;
+                        }
+                        if (origin._v != null) {
+                            this._v = new Array(this._capacity);
+                            for (var i = 0; i < this._size; i++) {
+                                switch (origin._type[i]) {
+                                    case greycat.Type.LONG_TO_LONG_MAP:
+                                        if (origin._v[i] != null) {
+                                            this._v[i] = origin._v[i].cloneFor(this);
+                                        }
+                                        break;
+                                    case greycat.Type.RELATION_INDEXED:
+                                        if (origin._v[i] != null) {
+                                            this._v[i] = origin._v[i].cloneIRelFor(this, this.egraph.graph());
+                                        }
+                                        break;
+                                    case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
+                                        if (origin._v[i] != null) {
+                                            this._v[i] = origin._v[i].cloneFor(this);
+                                        }
+                                        break;
+                                    case greycat.Type.STRING_TO_INT_MAP:
+                                        if (origin._v[i] != null) {
+                                            this._v[i] = origin._v[i].cloneFor(this);
+                                        }
+                                        break;
+                                    case greycat.Type.RELATION:
+                                        if (origin._v[i] != null) {
+                                            this._v[i] = new greycat.internal.heap.HeapRelation(this, origin._v[i]);
+                                        }
+                                        break;
+                                    case greycat.Type.DMATRIX:
+                                        if (origin._v[i] != null) {
+                                            this._v[i] = new greycat.internal.heap.HeapDMatrix(this, origin._v[i]);
+                                        }
+                                        break;
+                                    case greycat.Type.LMATRIX:
+                                        if (origin._v[i] != null) {
+                                            this._v[i] = new greycat.internal.heap.HeapLMatrix(this, origin._v[i]);
+                                        }
+                                        break;
+                                    default:
+                                        this._v[i] = origin._v[i];
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        this._capacity = 0;
+                        this._size = 0;
+                    }
+                }
+                HeapENode.prototype.clear = function () {
+                    this._capacity = 0;
+                    this._size = 0;
+                    this._k = null;
+                    this._v = null;
+                    this._next_hash = null;
+                    this._type = null;
+                    return this;
+                };
+                HeapENode.prototype.declareDirty = function () {
+                    if (!this._dirty) {
+                        this._dirty = true;
+                        this.egraph.declareDirty();
+                    }
+                };
+                HeapENode.prototype.rebase = function () {
+                    for (var i = 0; i < this._size; i++) {
+                        switch (this._type[i]) {
+                            case greycat.Type.ERELATION:
+                                var previousERel = this._v[i];
+                                previousERel.rebase(this.egraph);
+                                break;
+                            case greycat.Type.ENODE:
+                                var previous = this._v[i];
+                                this._v[i] = this.egraph._nodes[previous._id];
+                                break;
+                        }
+                    }
+                };
+                HeapENode.prototype.allocate = function (newCapacity) {
+                    if (newCapacity <= this._capacity) {
+                        return;
+                    }
+                    var ex_k = new Int32Array(newCapacity);
+                    if (this._k != null) {
+                        java.lang.System.arraycopy(this._k, 0, ex_k, 0, this._capacity);
+                    }
+                    this._k = ex_k;
+                    var ex_v = new Array(newCapacity);
+                    if (this._v != null) {
+                        java.lang.System.arraycopy(this._v, 0, ex_v, 0, this._capacity);
+                    }
+                    this._v = ex_v;
+                    var ex_type = new Int8Array(newCapacity);
+                    if (this._type != null) {
+                        java.lang.System.arraycopy(this._type, 0, ex_type, 0, this._capacity);
+                    }
+                    this._type = ex_type;
+                    this._capacity = newCapacity;
+                    this._next_hash = new Int32Array(this._capacity * 3);
+                    java.util.Arrays.fill(this._next_hash, 0, this._capacity * 3, -1);
+                    var double_capacity = this._capacity * 2;
+                    for (var i = 0; i < this._size; i++) {
+                        var keyHash = this._k[i] % double_capacity;
+                        if (keyHash < 0) {
+                            keyHash = keyHash * -1;
+                        }
+                        this._next_hash[i] = this._next_hash[this._capacity + keyHash];
+                        this._next_hash[this._capacity + keyHash] = i;
+                    }
+                };
+                HeapENode.prototype.internal_find = function (p_key) {
+                    if (this._size == 0) {
+                        return -1;
+                    }
+                    var hashIndex = p_key % (this._capacity * 2);
+                    if (hashIndex < 0) {
+                        hashIndex = hashIndex * -1;
+                    }
+                    var m = this._next_hash[this._capacity + hashIndex];
+                    while (m >= 0) {
+                        if (p_key == this._k[m]) {
+                            return m;
+                        }
+                        else {
+                            m = this._next_hash[m];
+                        }
+                    }
+                    return -1;
+                };
+                HeapENode.prototype.internal_get = function (p_key) {
+                    if (this._size == 0) {
+                        return null;
+                    }
+                    var found = this.internal_find(p_key);
+                    if (found != -1) {
+                        return this._v[found];
+                    }
+                    return null;
+                };
+                HeapENode.prototype.internal_set = function (p_key, p_type, p_unsafe_elem, replaceIfPresent, initial) {
+                    var param_elem = null;
+                    if (p_unsafe_elem != null) {
+                        try {
+                            switch (p_type) {
+                                case greycat.Type.BOOL:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.DOUBLE:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.LONG:
+                                    if (p_unsafe_elem instanceof Number) {
+                                        var preCasting = p_unsafe_elem;
+                                        param_elem = preCasting;
+                                    }
+                                    else {
+                                        param_elem = p_unsafe_elem;
+                                    }
+                                    break;
+                                case greycat.Type.INT:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.STRING:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.DMATRIX:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.LMATRIX:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.RELATION:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.ERELATION:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.ENODE:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.DOUBLE_ARRAY:
+                                    var castedParamDouble = p_unsafe_elem;
+                                    var clonedDoubleArray = new Float64Array(castedParamDouble.length);
+                                    java.lang.System.arraycopy(castedParamDouble, 0, clonedDoubleArray, 0, castedParamDouble.length);
+                                    param_elem = clonedDoubleArray;
+                                    break;
+                                case greycat.Type.LONG_ARRAY:
+                                    var castedParamLong = p_unsafe_elem;
+                                    var clonedLongArray = new Float64Array(castedParamLong.length);
+                                    java.lang.System.arraycopy(castedParamLong, 0, clonedLongArray, 0, castedParamLong.length);
+                                    param_elem = clonedLongArray;
+                                    break;
+                                case greycat.Type.INT_ARRAY:
+                                    var castedParamInt = p_unsafe_elem;
+                                    var clonedIntArray = new Int32Array(castedParamInt.length);
+                                    java.lang.System.arraycopy(castedParamInt, 0, clonedIntArray, 0, castedParamInt.length);
+                                    param_elem = clonedIntArray;
+                                    break;
+                                case greycat.Type.STRING_TO_INT_MAP:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.LONG_TO_LONG_MAP:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.RELATION_INDEXED:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                default:
+                                    throw new Error("Internal Exception, unknown type");
+                            }
+                        }
+                        catch ($ex$) {
+                            if ($ex$ instanceof Error) {
+                                var e = $ex$;
+                                {
+                                    throw new Error("mwDB usage error, set method called with type " + greycat.Type.typeName(p_type) + " while param object is " + p_unsafe_elem);
+                                }
+                            }
+                            else {
+                                throw $ex$;
+                            }
+                        }
+                    }
+                    if (this._k == null) {
+                        if (param_elem == null) {
+                            return;
+                        }
+                        this._capacity = greycat.Constants.MAP_INITIAL_CAPACITY;
+                        this._k = new Int32Array(this._capacity);
+                        this._v = new Array(this._capacity);
+                        this._type = new Int8Array(this._capacity);
+                        this._next_hash = new Int32Array(this._capacity * 3);
+                        java.util.Arrays.fill(this._next_hash, 0, this._capacity * 3, -1);
+                        this._k[0] = p_key;
+                        this._v[0] = param_elem;
+                        this._type[0] = p_type;
+                        this._size = 1;
+                        var hashIndex_1 = p_key % (this._capacity * 2);
+                        if (hashIndex_1 < 0) {
+                            hashIndex_1 = hashIndex_1 * -1;
+                        }
+                        this._next_hash[this._capacity + hashIndex_1] = 0;
+                        if (!initial) {
+                            this.declareDirty();
+                        }
+                        return;
+                    }
+                    var entry = -1;
+                    var p_entry = -1;
+                    var hashIndex = p_key % (this._capacity * 2);
+                    if (hashIndex < 0) {
+                        hashIndex = hashIndex * -1;
+                    }
+                    var m = this._next_hash[this._capacity + hashIndex];
+                    while (m != -1) {
+                        if (this._k[m] == p_key) {
+                            entry = m;
+                            break;
+                        }
+                        p_entry = m;
+                        m = this._next_hash[m];
+                    }
+                    if (entry != -1) {
+                        if (replaceIfPresent || (p_type != this._type[entry])) {
+                            if (param_elem == null) {
+                                if (p_entry != -1) {
+                                    this._next_hash[p_entry] = this._next_hash[entry];
+                                }
+                                else {
+                                    this._next_hash[this._capacity + hashIndex] = -1;
+                                }
+                                var indexVictim = this._size - 1;
+                                if (entry == indexVictim) {
+                                    this._k[entry] = -1;
+                                    this._v[entry] = null;
+                                    this._type[entry] = -1;
+                                }
+                                else {
+                                    this._k[entry] = this._k[indexVictim];
+                                    this._v[entry] = this._v[indexVictim];
+                                    this._type[entry] = this._type[indexVictim];
+                                    this._next_hash[entry] = this._next_hash[indexVictim];
+                                    var victimHash = this._k[entry] % (this._capacity * 2);
+                                    if (victimHash < 0) {
+                                        victimHash = victimHash * -1;
+                                    }
+                                    m = this._next_hash[this._capacity + victimHash];
+                                    if (m == indexVictim) {
+                                        this._next_hash[this._capacity + victimHash] = entry;
+                                    }
+                                    else {
+                                        while (m != -1) {
+                                            if (this._next_hash[m] == indexVictim) {
+                                                this._next_hash[m] = entry;
+                                                break;
+                                            }
+                                            m = this._next_hash[m];
+                                        }
+                                    }
+                                    this._k[indexVictim] = -1;
+                                    this._v[indexVictim] = null;
+                                    this._type[indexVictim] = -1;
+                                }
+                                this._size--;
+                            }
+                            else {
+                                this._v[entry] = param_elem;
+                                if (this._type[entry] != p_type) {
+                                    this._type[entry] = p_type;
+                                }
+                            }
+                        }
+                        if (!initial) {
+                            this.declareDirty();
+                        }
+                        return;
+                    }
+                    if (this._size < this._capacity) {
+                        this._k[this._size] = p_key;
+                        this._v[this._size] = param_elem;
+                        this._type[this._size] = p_type;
+                        this._next_hash[this._size] = this._next_hash[this._capacity + hashIndex];
+                        this._next_hash[this._capacity + hashIndex] = this._size;
+                        this._size++;
+                        if (!initial) {
+                            this.declareDirty();
+                        }
+                        return;
+                    }
+                    var newCapacity = this._capacity * 2;
+                    var ex_k = new Int32Array(newCapacity);
+                    java.lang.System.arraycopy(this._k, 0, ex_k, 0, this._capacity);
+                    this._k = ex_k;
+                    var ex_v = new Array(newCapacity);
+                    java.lang.System.arraycopy(this._v, 0, ex_v, 0, this._capacity);
+                    this._v = ex_v;
+                    var ex_type = new Int8Array(newCapacity);
+                    java.lang.System.arraycopy(this._type, 0, ex_type, 0, this._capacity);
+                    this._type = ex_type;
+                    this._capacity = newCapacity;
+                    this._k[this._size] = p_key;
+                    this._v[this._size] = param_elem;
+                    this._type[this._size] = p_type;
+                    this._size++;
+                    this._next_hash = new Int32Array(this._capacity * 3);
+                    java.util.Arrays.fill(this._next_hash, 0, this._capacity * 3, -1);
+                    var hashCapacity = this._capacity * 2;
+                    for (var i = 0; i < this._size; i++) {
+                        var keyHash = this._k[i] % hashCapacity;
+                        if (keyHash < 0) {
+                            keyHash = keyHash * -1;
+                        }
+                        this._next_hash[i] = this._next_hash[this._capacity + keyHash];
+                        this._next_hash[this._capacity + keyHash] = i;
+                    }
+                    if (!initial) {
+                        this.declareDirty();
+                    }
+                };
+                HeapENode.prototype.set = function (name, type, value) {
+                    this.internal_set(this.egraph.graph().resolver().stringToHash(name, true), type, value, true, false);
+                    return this;
+                };
+                HeapENode.prototype.setAt = function (key, type, value) {
+                    this.internal_set(key, type, value, true, false);
+                    return this;
+                };
+                HeapENode.prototype.get = function (name) {
+                    return this.internal_get(this.egraph.graph().resolver().stringToHash(name, false));
+                };
+                HeapENode.prototype.getAt = function (key) {
+                    return this.internal_get(key);
+                };
+                HeapENode.prototype.drop = function () {
+                    this.egraph.drop(this);
+                };
+                HeapENode.prototype.graph = function () {
+                    return this.egraph;
+                };
+                HeapENode.prototype.getOrCreate = function (key, type) {
+                    var previous = this.get(key);
+                    if (previous != null) {
+                        return previous;
+                    }
+                    else {
+                        return this.getOrCreateAt(this.egraph.graph().resolver().stringToHash(key, true), type);
+                    }
+                };
+                HeapENode.prototype.getOrCreateAt = function (key, type) {
+                    var found = this.internal_find(key);
+                    if (found != -1) {
+                        if (this._type[found] == type) {
+                            return this._v[found];
+                        }
+                    }
+                    var toSet = null;
+                    switch (type) {
+                        case greycat.Type.ERELATION:
+                            toSet = new greycat.internal.heap.HeapERelation(this, null);
+                            break;
+                        case greycat.Type.RELATION:
+                            toSet = new greycat.internal.heap.HeapRelation(this, null);
+                            break;
+                        case greycat.Type.RELATION_INDEXED:
+                            toSet = new greycat.internal.heap.HeapRelationIndexed(this, this.egraph.graph());
+                            break;
+                        case greycat.Type.DMATRIX:
+                            toSet = new greycat.internal.heap.HeapDMatrix(this, null);
+                            break;
+                        case greycat.Type.LMATRIX:
+                            toSet = new greycat.internal.heap.HeapLMatrix(this, null);
+                            break;
+                        case greycat.Type.STRING_TO_INT_MAP:
+                            toSet = new greycat.internal.heap.HeapStringIntMap(this);
+                            break;
+                        case greycat.Type.LONG_TO_LONG_MAP:
+                            toSet = new greycat.internal.heap.HeapLongLongMap(this);
+                            break;
+                        case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
+                            toSet = new greycat.internal.heap.HeapLongLongArrayMap(this);
+                            break;
+                    }
+                    this.internal_set(key, type, toSet, true, false);
+                    return toSet;
+                };
+                HeapENode.prototype.toString = function () {
+                    var builder = new java.lang.StringBuilder();
+                    var isFirst = [true];
+                    var isFirstField = true;
+                    builder.append("{");
+                    var _loop_4 = function (i) {
+                        var elem = this_2._v[i];
+                        var resolver = this_2.egraph.graph().resolver();
+                        var attributeKey = this_2._k[i];
+                        var elemType = this_2._type[i];
+                        if (elem != null) {
+                            if (isFirstField) {
+                                isFirstField = false;
+                            }
+                            else {
+                                builder.append(",");
+                            }
+                            var resolveName = resolver.hashToString(attributeKey);
+                            if (resolveName == null) {
+                                resolveName = attributeKey + "";
+                            }
+                            switch (elemType) {
+                                case greycat.Type.BOOL: {
+                                    builder.append("\"");
+                                    builder.append(resolveName);
+                                    builder.append("\":");
+                                    if (elem) {
+                                        builder.append("1");
+                                    }
+                                    else {
+                                        builder.append("0");
+                                    }
+                                    break;
+                                }
+                                case greycat.Type.STRING: {
+                                    builder.append("\"");
+                                    builder.append(resolveName);
+                                    builder.append("\":");
+                                    builder.append("\"");
+                                    builder.append(elem);
+                                    builder.append("\"");
+                                    break;
+                                }
+                                case greycat.Type.LONG: {
+                                    builder.append("\"");
+                                    builder.append(resolveName);
+                                    builder.append("\":");
+                                    builder.append(elem);
+                                    break;
+                                }
+                                case greycat.Type.INT: {
+                                    builder.append("\"");
+                                    builder.append(resolveName);
+                                    builder.append("\":");
+                                    builder.append(elem);
+                                    break;
+                                }
+                                case greycat.Type.DOUBLE: {
+                                    if (!greycat.base.BaseNode.isNaN(elem)) {
+                                        builder.append("\"");
+                                        builder.append(resolveName);
+                                        builder.append("\":");
+                                        builder.append(elem);
+                                    }
+                                    break;
+                                }
+                                case greycat.Type.DOUBLE_ARRAY: {
+                                    builder.append("\"");
+                                    builder.append(resolveName);
+                                    builder.append("\":");
+                                    builder.append("[");
+                                    var castedArr = elem;
+                                    for (var j = 0; j < castedArr.length; j++) {
+                                        if (j != 0) {
+                                            builder.append(",");
+                                        }
+                                        builder.append(castedArr[j]);
+                                    }
+                                    builder.append("]");
+                                    break;
+                                }
+                                case greycat.Type.RELATION:
+                                    builder.append("\"");
+                                    builder.append(resolveName);
+                                    builder.append("\":");
+                                    builder.append("[");
+                                    var castedRelArr = elem;
+                                    for (var j = 0; j < castedRelArr.size(); j++) {
+                                        if (j != 0) {
+                                            builder.append(",");
+                                        }
+                                        builder.append(castedRelArr.get(j));
+                                    }
+                                    builder.append("]");
+                                    break;
+                                case greycat.Type.ERELATION:
+                                    builder.append("\"");
+                                    builder.append(resolveName);
+                                    builder.append("\":");
+                                    builder.append("[");
+                                    var castedERelArr = elem;
+                                    for (var j = 0; j < castedERelArr.size(); j++) {
+                                        if (j != 0) {
+                                            builder.append(",");
+                                        }
+                                        builder.append(castedERelArr.node(j)._id);
+                                    }
+                                    builder.append("]");
+                                    break;
+                                case greycat.Type.LONG_ARRAY: {
+                                    builder.append("\"");
+                                    builder.append(resolveName);
+                                    builder.append("\":");
+                                    builder.append("[");
+                                    var castedArr2 = elem;
+                                    for (var j = 0; j < castedArr2.length; j++) {
+                                        if (j != 0) {
+                                            builder.append(",");
+                                        }
+                                        builder.append(castedArr2[j]);
+                                    }
+                                    builder.append("]");
+                                    break;
+                                }
+                                case greycat.Type.INT_ARRAY: {
+                                    builder.append("\"");
+                                    builder.append(resolveName);
+                                    builder.append("\":");
+                                    builder.append("[");
+                                    var castedArr3 = elem;
+                                    for (var j = 0; j < castedArr3.length; j++) {
+                                        if (j != 0) {
+                                            builder.append(",");
+                                        }
+                                        builder.append(castedArr3[j]);
+                                    }
+                                    builder.append("]");
+                                    break;
+                                }
+                                case greycat.Type.LONG_TO_LONG_MAP: {
+                                    builder.append("\"");
+                                    builder.append(resolveName);
+                                    builder.append("\":");
+                                    builder.append("{");
+                                    var castedMapL2L = elem;
+                                    isFirst[0] = true;
+                                    castedMapL2L.each(function (key, value) {
+                                        {
+                                            if (!isFirst[0]) {
+                                                builder.append(",");
+                                            }
+                                            else {
+                                                isFirst[0] = false;
+                                            }
+                                            builder.append("\"");
+                                            builder.append(key);
+                                            builder.append("\":");
+                                            builder.append(value);
+                                        }
+                                    });
+                                    builder.append("}");
+                                    break;
+                                }
+                                case greycat.Type.RELATION_INDEXED:
+                                case greycat.Type.LONG_TO_LONG_ARRAY_MAP: {
+                                    builder.append("\"");
+                                    builder.append(resolveName);
+                                    builder.append("\":");
+                                    builder.append("{");
+                                    var castedMapL2LA = elem;
+                                    isFirst[0] = true;
+                                    var keys_3 = new java.util.HashSet();
+                                    castedMapL2LA.each(function (key, value) {
+                                        {
+                                            keys_3.add(key);
+                                        }
+                                    });
+                                    var flatKeys = keys_3.toArray(new Array(keys_3.size()));
+                                    for (var k = 0; k < flatKeys.length; k++) {
+                                        var values = castedMapL2LA.get(flatKeys[k]);
+                                        if (!isFirst[0]) {
+                                            builder.append(",");
+                                        }
+                                        else {
+                                            isFirst[0] = false;
+                                        }
+                                        builder.append("\"");
+                                        builder.append(flatKeys[k]);
+                                        builder.append("\":[");
+                                        for (var j = 0; j < values.length; j++) {
+                                            if (j != 0) {
+                                                builder.append(",");
+                                            }
+                                            builder.append(values[j]);
+                                        }
+                                        builder.append("]");
+                                    }
+                                    builder.append("}");
+                                    break;
+                                }
+                                case greycat.Type.STRING_TO_INT_MAP: {
+                                    builder.append("\"");
+                                    builder.append(resolveName);
+                                    builder.append("\":");
+                                    builder.append("{");
+                                    var castedMapS2L = elem;
+                                    isFirst[0] = true;
+                                    castedMapS2L.each(function (key, value) {
+                                        {
+                                            if (!isFirst[0]) {
+                                                builder.append(",");
+                                            }
+                                            else {
+                                                isFirst[0] = false;
+                                            }
+                                            builder.append("\"");
+                                            builder.append(key);
+                                            builder.append("\":");
+                                            builder.append(value);
+                                        }
+                                    });
+                                    builder.append("}");
+                                    break;
+                                }
+                            }
+                        }
+                    };
+                    var this_2 = this;
+                    for (var i = 0; i < this._size; i++) {
+                        _loop_4(i);
+                    }
+                    builder.append("}");
+                    return builder.toString();
+                };
+                HeapENode.prototype.save = function (buffer) {
+                    greycat.utility.Base64.encodeIntToBuffer(this._size, buffer);
+                    for (var i = 0; i < this._size; i++) {
+                        if (this._v[i] != null) {
+                            var loopValue = this._v[i];
+                            if (loopValue != null) {
+                                buffer.write(greycat.internal.CoreConstants.CHUNK_ESEP);
+                                greycat.utility.Base64.encodeIntToBuffer(this._type[i], buffer);
+                                buffer.write(greycat.internal.CoreConstants.CHUNK_ESEP);
+                                greycat.utility.Base64.encodeIntToBuffer(this._k[i], buffer);
+                                buffer.write(greycat.internal.CoreConstants.CHUNK_ESEP);
+                                switch (this._type[i]) {
+                                    case greycat.Type.ENODE:
+                                        greycat.utility.Base64.encodeIntToBuffer(loopValue._id, buffer);
+                                        break;
+                                    case greycat.Type.ERELATION:
+                                        var castedLongArrERel = loopValue;
+                                        greycat.utility.Base64.encodeIntToBuffer(castedLongArrERel.size(), buffer);
+                                        for (var j = 0; j < castedLongArrERel.size(); j++) {
+                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                            greycat.utility.Base64.encodeIntToBuffer(castedLongArrERel.node(j)._id, buffer);
+                                        }
+                                        break;
+                                    case greycat.Type.STRING:
+                                        greycat.utility.Base64.encodeStringToBuffer(loopValue, buffer);
+                                        break;
+                                    case greycat.Type.BOOL:
+                                        if (this._v[i]) {
+                                            greycat.utility.Base64.encodeIntToBuffer(greycat.internal.CoreConstants.BOOL_TRUE, buffer);
+                                        }
+                                        else {
+                                            greycat.utility.Base64.encodeIntToBuffer(greycat.internal.CoreConstants.BOOL_FALSE, buffer);
+                                        }
+                                        break;
+                                    case greycat.Type.LONG:
+                                        greycat.utility.Base64.encodeLongToBuffer(loopValue, buffer);
+                                        break;
+                                    case greycat.Type.DOUBLE:
+                                        greycat.utility.Base64.encodeDoubleToBuffer(loopValue, buffer);
+                                        break;
+                                    case greycat.Type.INT:
+                                        greycat.utility.Base64.encodeIntToBuffer(loopValue, buffer);
+                                        break;
+                                    case greycat.Type.DOUBLE_ARRAY:
+                                        var castedDoubleArr = loopValue;
+                                        greycat.utility.Base64.encodeIntToBuffer(castedDoubleArr.length, buffer);
+                                        for (var j = 0; j < castedDoubleArr.length; j++) {
+                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                            greycat.utility.Base64.encodeDoubleToBuffer(castedDoubleArr[j], buffer);
+                                        }
+                                        break;
+                                    case greycat.Type.RELATION:
+                                        var castedLongArrRel = loopValue;
+                                        greycat.utility.Base64.encodeIntToBuffer(castedLongArrRel.size(), buffer);
+                                        for (var j = 0; j < castedLongArrRel.size(); j++) {
+                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                            greycat.utility.Base64.encodeLongToBuffer(castedLongArrRel.unsafe_get(j), buffer);
+                                        }
+                                        break;
+                                    case greycat.Type.LONG_ARRAY:
+                                        var castedLongArr = loopValue;
+                                        greycat.utility.Base64.encodeIntToBuffer(castedLongArr.length, buffer);
+                                        for (var j = 0; j < castedLongArr.length; j++) {
+                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                            greycat.utility.Base64.encodeLongToBuffer(castedLongArr[j], buffer);
+                                        }
+                                        break;
+                                    case greycat.Type.INT_ARRAY:
+                                        var castedIntArr = loopValue;
+                                        greycat.utility.Base64.encodeIntToBuffer(castedIntArr.length, buffer);
+                                        for (var j = 0; j < castedIntArr.length; j++) {
+                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                            greycat.utility.Base64.encodeIntToBuffer(castedIntArr[j], buffer);
+                                        }
+                                        break;
+                                    case greycat.Type.DMATRIX:
+                                        var castedMatrix = loopValue;
+                                        var unsafeContent = castedMatrix.unsafe_data();
+                                        if (unsafeContent != null) {
+                                            greycat.utility.Base64.encodeIntToBuffer(unsafeContent.length, buffer);
+                                            for (var j = 0; j < unsafeContent.length; j++) {
+                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                                greycat.utility.Base64.encodeDoubleToBuffer(unsafeContent[j], buffer);
+                                            }
+                                        }
+                                        break;
+                                    case greycat.Type.LMATRIX:
+                                        var castedLMatrix = loopValue;
+                                        var unsafeLContent = castedLMatrix.unsafe_data();
+                                        if (unsafeLContent != null) {
+                                            greycat.utility.Base64.encodeIntToBuffer(unsafeLContent.length, buffer);
+                                            for (var j = 0; j < unsafeLContent.length; j++) {
+                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                                greycat.utility.Base64.encodeLongToBuffer(unsafeLContent[j], buffer);
+                                            }
+                                        }
+                                        break;
+                                    case greycat.Type.STRING_TO_INT_MAP:
+                                        var castedStringLongMap = loopValue;
+                                        greycat.utility.Base64.encodeIntToBuffer(castedStringLongMap.size(), buffer);
+                                        castedStringLongMap.unsafe_each(function (key, value) {
+                                            {
+                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                                greycat.utility.Base64.encodeStringToBuffer(key, buffer);
+                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                                greycat.utility.Base64.encodeLongToBuffer(value, buffer);
+                                            }
+                                        });
+                                        break;
+                                    case greycat.Type.LONG_TO_LONG_MAP:
+                                        var castedLongLongMap = loopValue;
+                                        greycat.utility.Base64.encodeIntToBuffer(castedLongLongMap.size(), buffer);
+                                        castedLongLongMap.unsafe_each(function (key, value) {
+                                            {
+                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                                greycat.utility.Base64.encodeLongToBuffer(key, buffer);
+                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                                greycat.utility.Base64.encodeLongToBuffer(value, buffer);
+                                            }
+                                        });
+                                        break;
+                                    case greycat.Type.RELATION_INDEXED:
+                                    case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
+                                        var castedLongLongArrayMap = loopValue;
+                                        greycat.utility.Base64.encodeIntToBuffer(castedLongLongArrayMap.size(), buffer);
+                                        castedLongLongArrayMap.unsafe_each(function (key, value) {
+                                            {
+                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                                greycat.utility.Base64.encodeLongToBuffer(key, buffer);
+                                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                                greycat.utility.Base64.encodeLongToBuffer(value, buffer);
+                                            }
+                                        });
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                    this._dirty = false;
+                };
+                HeapENode.prototype.load = function (buffer, currentCursor, graph) {
+                    var initial = this._k == null;
+                    var payloadSize = buffer.length();
+                    var cursor = currentCursor;
+                    var previous = cursor;
+                    var state = HeapENode.LOAD_WAITING_ALLOC;
+                    var read_type = -1;
+                    var read_key = -1;
+                    while (cursor < payloadSize) {
+                        var current = buffer.read(cursor);
+                        if (current == greycat.Constants.CHUNK_ENODE_SEP || current == greycat.Constants.CHUNK_SEP) {
+                            break;
+                        }
+                        else if (current == greycat.Constants.CHUNK_ESEP) {
+                            switch (state) {
+                                case HeapENode.LOAD_WAITING_ALLOC:
+                                    var closePowerOfTwo = Math.pow(2, Math.ceil(Math.log(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor)) / Math.log(2)));
+                                    this.allocate(closePowerOfTwo);
+                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                    cursor++;
+                                    previous = cursor;
+                                    break;
+                                case HeapENode.LOAD_WAITING_TYPE:
+                                    read_type = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                                    state = HeapENode.LOAD_WAITING_KEY;
+                                    cursor++;
+                                    previous = cursor;
+                                    break;
+                                case HeapENode.LOAD_WAITING_KEY:
+                                    read_key = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                                    switch (read_type) {
+                                        case greycat.Type.BOOL:
+                                        case greycat.Type.INT:
+                                        case greycat.Type.DOUBLE:
+                                        case greycat.Type.LONG:
+                                        case greycat.Type.STRING:
+                                        case greycat.Type.ENODE:
+                                            state = HeapENode.LOAD_WAITING_VALUE;
+                                            cursor++;
+                                            previous = cursor;
+                                            break;
+                                        case greycat.Type.DOUBLE_ARRAY:
+                                            var doubleArrayLoaded = null;
+                                            var doubleArrayIndex = 0;
+                                            cursor++;
+                                            previous = cursor;
+                                            current = buffer.read(cursor);
+                                            while (cursor < payloadSize && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
+                                                if (current == greycat.Constants.CHUNK_VAL_SEP) {
+                                                    if (doubleArrayLoaded == null) {
+                                                        doubleArrayLoaded = new Float64Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                                    }
+                                                    else {
+                                                        doubleArrayLoaded[doubleArrayIndex] = greycat.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
+                                                        doubleArrayIndex++;
+                                                    }
+                                                    previous = cursor + 1;
+                                                }
+                                                cursor++;
+                                                if (cursor < payloadSize) {
+                                                    current = buffer.read(cursor);
+                                                }
+                                            }
+                                            if (doubleArrayLoaded == null) {
+                                                doubleArrayLoaded = new Float64Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                            }
+                                            else {
+                                                doubleArrayLoaded[doubleArrayIndex] = greycat.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
+                                            }
+                                            this.internal_set(read_key, read_type, doubleArrayLoaded, true, initial);
+                                            if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                state = HeapENode.LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                            }
+                                            break;
+                                        case greycat.Type.LONG_ARRAY:
+                                            var longArrayLoaded = null;
+                                            var longArrayIndex = 0;
+                                            cursor++;
+                                            previous = cursor;
+                                            current = buffer.read(cursor);
+                                            while (cursor < payloadSize && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
+                                                if (current == greycat.Constants.CHUNK_VAL_SEP) {
+                                                    if (longArrayLoaded == null) {
+                                                        longArrayLoaded = new Float64Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                                    }
+                                                    else {
+                                                        longArrayLoaded[longArrayIndex] = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                                        longArrayIndex++;
+                                                    }
+                                                    previous = cursor + 1;
+                                                }
+                                                cursor++;
+                                                if (cursor < payloadSize) {
+                                                    current = buffer.read(cursor);
+                                                }
+                                            }
+                                            if (longArrayLoaded == null) {
+                                                longArrayLoaded = new Float64Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                            }
+                                            else {
+                                                longArrayLoaded[longArrayIndex] = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                            }
+                                            this.internal_set(read_key, read_type, longArrayLoaded, true, initial);
+                                            if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                state = HeapENode.LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                            }
+                                            break;
+                                        case greycat.Type.INT_ARRAY:
+                                            var intArrayLoaded = null;
+                                            var intArrayIndex = 0;
+                                            cursor++;
+                                            previous = cursor;
+                                            current = buffer.read(cursor);
+                                            while (cursor < payloadSize && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
+                                                if (current == greycat.Constants.CHUNK_VAL_SEP) {
+                                                    if (intArrayLoaded == null) {
+                                                        intArrayLoaded = new Int32Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                                    }
+                                                    else {
+                                                        intArrayLoaded[intArrayIndex] = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                                                        intArrayIndex++;
+                                                    }
+                                                    previous = cursor + 1;
+                                                }
+                                                cursor++;
+                                                if (cursor < payloadSize) {
+                                                    current = buffer.read(cursor);
+                                                }
+                                            }
+                                            if (intArrayLoaded == null) {
+                                                intArrayLoaded = new Int32Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                            }
+                                            else {
+                                                intArrayLoaded[intArrayIndex] = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                                            }
+                                            this.internal_set(read_key, read_type, intArrayLoaded, true, initial);
+                                            if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                state = HeapENode.LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                            }
+                                            break;
+                                        case greycat.Type.RELATION:
+                                            var relation = new greycat.internal.heap.HeapRelation(this, null);
+                                            cursor++;
+                                            cursor = relation.load(buffer, cursor, payloadSize);
+                                            this.internal_set(read_key, read_type, relation, true, initial);
+                                            if (cursor < payloadSize) {
+                                                current = buffer.read(cursor);
+                                                if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                                    cursor++;
+                                                    previous = cursor;
+                                                }
+                                            }
+                                            break;
+                                        case greycat.Type.DMATRIX:
+                                            var matrix = new greycat.internal.heap.HeapDMatrix(this, null);
+                                            cursor++;
+                                            cursor = matrix.load(buffer, cursor, payloadSize);
+                                            this.internal_set(read_key, read_type, matrix, true, initial);
+                                            if (cursor < payloadSize) {
+                                                current = buffer.read(cursor);
+                                                if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                                    cursor++;
+                                                    previous = cursor;
+                                                }
+                                            }
+                                            break;
+                                        case greycat.Type.LMATRIX:
+                                            var lmatrix = new greycat.internal.heap.HeapLMatrix(this, null);
+                                            cursor++;
+                                            cursor = lmatrix.load(buffer, cursor, payloadSize);
+                                            this.internal_set(read_key, read_type, lmatrix, true, initial);
+                                            if (cursor < payloadSize) {
+                                                current = buffer.read(cursor);
+                                                if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                                    cursor++;
+                                                    previous = cursor;
+                                                }
+                                            }
+                                            break;
+                                        case greycat.Type.LONG_TO_LONG_MAP:
+                                            var l2lmap = new greycat.internal.heap.HeapLongLongMap(this);
+                                            cursor++;
+                                            cursor = l2lmap.load(buffer, cursor, payloadSize);
+                                            this.internal_set(read_key, read_type, l2lmap, true, initial);
+                                            if (cursor < payloadSize) {
+                                                current = buffer.read(cursor);
+                                                if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                                    cursor++;
+                                                    previous = cursor;
+                                                }
+                                            }
+                                            break;
+                                        case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
+                                            var l2lrmap = new greycat.internal.heap.HeapLongLongArrayMap(this);
+                                            cursor++;
+                                            cursor = l2lrmap.load(buffer, cursor, payloadSize);
+                                            this.internal_set(read_key, read_type, l2lrmap, true, initial);
+                                            if (cursor < payloadSize) {
+                                                current = buffer.read(cursor);
+                                                if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                                    cursor++;
+                                                    previous = cursor;
+                                                }
+                                            }
+                                            break;
+                                        case greycat.Type.RELATION_INDEXED:
+                                            var relationIndexed = new greycat.internal.heap.HeapRelationIndexed(this, graph);
+                                            cursor++;
+                                            cursor = relationIndexed.load(buffer, cursor, payloadSize);
+                                            this.internal_set(read_key, read_type, relationIndexed, true, initial);
+                                            if (cursor < payloadSize) {
+                                                current = buffer.read(cursor);
+                                                if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                                    cursor++;
+                                                    previous = cursor;
+                                                }
+                                            }
+                                            break;
+                                        case greycat.Type.STRING_TO_INT_MAP:
+                                            var s2lmap = new greycat.internal.heap.HeapStringIntMap(this);
+                                            cursor++;
+                                            cursor = s2lmap.load(buffer, cursor, payloadSize);
+                                            this.internal_set(read_key, read_type, s2lmap, true, initial);
+                                            if (cursor < payloadSize) {
+                                                current = buffer.read(cursor);
+                                                if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                                    cursor++;
+                                                    previous = cursor;
+                                                }
+                                            }
+                                            break;
+                                        case greycat.Type.ERELATION:
+                                            var eRelation = null;
+                                            cursor++;
+                                            previous = cursor;
+                                            current = buffer.read(cursor);
+                                            while (cursor < payloadSize && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
+                                                if (current == greycat.Constants.CHUNK_VAL_SEP) {
+                                                    if (eRelation == null) {
+                                                        eRelation = new greycat.internal.heap.HeapERelation(this, null);
+                                                        eRelation.allocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                                    }
+                                                    else {
+                                                        eRelation.add(this.egraph.nodeByIndex(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor), true));
+                                                    }
+                                                    previous = cursor + 1;
+                                                }
+                                                cursor++;
+                                                if (cursor < payloadSize) {
+                                                    current = buffer.read(cursor);
+                                                }
+                                            }
+                                            if (eRelation == null) {
+                                                eRelation = new greycat.internal.heap.HeapERelation(this, null);
+                                                eRelation.allocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                            }
+                                            else {
+                                                eRelation.add(this.egraph.nodeByIndex(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor), true));
+                                            }
+                                            this.internal_set(read_key, read_type, eRelation, true, initial);
+                                            if (current == greycat.Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                                state = HeapENode.LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                            }
+                                            break;
+                                        default:
+                                            throw new Error("Not implemented yet!!!");
+                                    }
+                                    break;
+                                case HeapENode.LOAD_WAITING_VALUE:
+                                    this.load_primitive(read_key, read_type, buffer, previous, cursor, initial);
+                                    state = HeapENode.LOAD_WAITING_TYPE;
+                                    cursor++;
+                                    previous = cursor;
+                                    break;
+                            }
+                        }
+                        else {
+                            cursor++;
+                        }
+                    }
+                    if (state == HeapENode.LOAD_WAITING_VALUE) {
+                        this.load_primitive(read_key, read_type, buffer, previous, cursor, initial);
+                    }
+                    return cursor;
+                };
+                HeapENode.prototype.load_primitive = function (read_key, read_type, buffer, previous, cursor, initial) {
+                    switch (read_type) {
+                        case greycat.Type.BOOL:
+                            this.internal_set(read_key, read_type, (greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor) == greycat.internal.CoreConstants.BOOL_TRUE), true, initial);
+                            break;
+                        case greycat.Type.INT:
+                            this.internal_set(read_key, read_type, greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor), true, initial);
+                            break;
+                        case greycat.Type.DOUBLE:
+                            this.internal_set(read_key, read_type, greycat.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor), true, initial);
+                            break;
+                        case greycat.Type.LONG:
+                            this.internal_set(read_key, read_type, greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor), true, initial);
+                            break;
+                        case greycat.Type.STRING:
+                            this.internal_set(read_key, read_type, greycat.utility.Base64.decodeToStringWithBounds(buffer, previous, cursor), true, initial);
+                            break;
+                        case greycat.Type.ENODE:
+                            this.internal_set(read_key, read_type, this.egraph.nodeByIndex(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor), true), true, initial);
+                            break;
+                    }
+                };
+                HeapENode.prototype.each = function (callBack) {
+                    for (var i = 0; i < this._size; i++) {
+                        if (this._v[i] != null) {
+                            callBack(this._k[i], this._type[i], this._v[i]);
+                        }
+                    }
+                };
+                return HeapENode;
+            }());
+            HeapENode.LOAD_WAITING_ALLOC = 0;
+            HeapENode.LOAD_WAITING_TYPE = 1;
+            HeapENode.LOAD_WAITING_KEY = 2;
+            HeapENode.LOAD_WAITING_VALUE = 3;
+            heap.HeapENode = HeapENode;
+            var HeapERelation = (function () {
+                function HeapERelation(p_parent, origin) {
+                    this.parent = p_parent;
+                    if (origin != null) {
+                        this._back = new Array(origin._capacity);
+                        java.lang.System.arraycopy(origin._back, 0, this._back, 0, origin._capacity);
+                        this._size = origin._size;
+                        this._capacity = origin._capacity;
+                    }
+                    else {
+                        this._back = null;
+                        this._size = 0;
+                        this._capacity = 0;
+                    }
+                }
+                HeapERelation.prototype.rebase = function (newGraph) {
+                    for (var i = 0; i < this._size; i++) {
+                        var previous = this._back[i];
+                        this._back[i] = newGraph._nodes[previous._id];
+                    }
+                };
+                HeapERelation.prototype.size = function () {
+                    return this._size;
+                };
+                HeapERelation.prototype.nodes = function () {
+                    var copy = new Array(this._size);
+                    java.lang.System.arraycopy(this._back, 0, copy, 0, this._size);
+                    return copy;
+                };
+                HeapERelation.prototype.node = function (index) {
+                    return this._back[index];
+                };
+                HeapERelation.prototype.add = function (eNode) {
+                    if (this._capacity == this._size) {
+                        if (this._capacity == 0) {
+                            this.allocate(greycat.Constants.MAP_INITIAL_CAPACITY);
+                        }
+                        else {
+                            this.allocate(this._capacity * 2);
+                        }
+                    }
+                    this._back[this._size] = eNode;
+                    this._size++;
+                    if (this.parent != null) {
+                        this.parent.declareDirty();
+                    }
+                    return this;
+                };
+                HeapERelation.prototype.addAll = function (eNodes) {
+                    this.allocate(eNodes.length + this._size);
+                    java.lang.System.arraycopy(eNodes, 0, this._back, this._size, eNodes.length);
+                    if (this.parent != null) {
+                        this.parent.declareDirty();
+                    }
+                    return this;
+                };
+                HeapERelation.prototype.clear = function () {
+                    this._size = 0;
+                    this._back = null;
+                    if (this.parent != null) {
+                        this.parent.declareDirty();
+                    }
+                    return this;
+                };
+                HeapERelation.prototype.toString = function () {
+                    var buffer = new java.lang.StringBuilder();
+                    buffer.append("[");
+                    for (var i = 0; i < this._size; i++) {
+                        if (i != 0) {
+                            buffer.append(",");
+                        }
+                        buffer.append(this._back[i]._id);
+                    }
+                    buffer.append("]");
+                    return buffer.toString();
+                };
+                HeapERelation.prototype.allocate = function (newCapacity) {
+                    var closePowerOfTwo = Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
+                    if (closePowerOfTwo > this._capacity) {
+                        var new_back = new Array(closePowerOfTwo);
+                        if (this._back != null) {
+                            java.lang.System.arraycopy(this._back, 0, new_back, 0, this._size);
+                        }
+                        this._back = new_back;
+                        this._capacity = closePowerOfTwo;
+                    }
+                };
+                return HeapERelation;
+            }());
+            heap.HeapERelation = HeapERelation;
+            var HeapFixedStack = (function () {
+                function HeapFixedStack(capacity, fill) {
+                    this._capacity = capacity;
+                    this._next = new Int32Array(capacity);
+                    this._prev = new Int32Array(capacity);
+                    this._first = -1;
+                    this._last = -1;
+                    java.util.Arrays.fill(this._next, 0, capacity, -1);
+                    java.util.Arrays.fill(this._prev, 0, capacity, -1);
+                    if (fill) {
+                        for (var i = 0; i < capacity; i++) {
+                            var l = this._last;
+                            this._prev[i] = l;
+                            this._last = i;
+                            if (this._first == -1) {
+                                this._first = i;
+                            }
+                            else {
+                                this._next[l] = i;
+                            }
+                        }
+                        this._count = capacity;
+                    }
+                    else {
+                        this._count = 0;
+                    }
+                }
+                HeapFixedStack.prototype.enqueue = function (index) {
+                    if (this._count >= this._capacity) {
+                        return false;
+                    }
+                    var castedIndex = index;
+                    if (this._first == castedIndex || this._last == castedIndex) {
+                        return false;
+                    }
+                    if (this._prev[castedIndex] != -1 || this._next[castedIndex] != -1) {
+                        return false;
+                    }
+                    var l = this._last;
+                    this._prev[castedIndex] = l;
+                    this._last = castedIndex;
+                    if (this._first == -1) {
+                        this._first = castedIndex;
+                    }
+                    else {
+                        this._next[l] = castedIndex;
+                    }
+                    this._count++;
+                    return true;
+                };
+                HeapFixedStack.prototype.dequeueTail = function () {
+                    var f = this._first;
+                    if (f == -1) {
+                        return -1;
+                    }
+                    var n = this._next[f];
+                    this._next[f] = -1;
+                    this._prev[f] = -1;
+                    this._first = n;
+                    if (n == -1) {
+                        this._last = -1;
+                    }
+                    else {
+                        this._prev[n] = -1;
+                    }
+                    this._count--;
+                    return f;
+                };
+                HeapFixedStack.prototype.dequeue = function (index) {
+                    var castedIndex = index;
+                    var p = this._prev[castedIndex];
+                    var n = this._next[castedIndex];
+                    if (p == -1 && n == -1) {
+                        return false;
+                    }
+                    if (p == -1) {
+                        var f = this._first;
+                        if (f == -1) {
+                            return false;
+                        }
+                        var n2 = this._next[f];
+                        this._next[f] = -1;
+                        this._prev[f] = -1;
+                        this._first = n2;
+                        if (n2 == -1) {
+                            this._last = -1;
+                        }
+                        else {
+                            this._prev[n2] = -1;
+                        }
+                        --this._count;
+                    }
+                    else if (n == -1) {
+                        var l = this._last;
+                        if (l == -1) {
+                            return false;
+                        }
+                        var p2 = this._prev[l];
+                        this._prev[l] = -1;
+                        this._next[l] = -1;
+                        this._last = p2;
+                        if (p2 == -1) {
+                            this._first = -1;
+                        }
+                        else {
+                            this._next[p2] = -1;
+                        }
+                        --this._count;
+                    }
+                    else {
+                        this._next[p] = n;
+                        this._prev[n] = p;
+                        this._prev[castedIndex] = -1;
+                        this._next[castedIndex] = -1;
+                        this._count--;
+                    }
+                    return true;
+                };
+                HeapFixedStack.prototype.free = function () { };
+                HeapFixedStack.prototype.size = function () {
+                    return this._count;
+                };
+                return HeapFixedStack;
+            }());
+            heap.HeapFixedStack = HeapFixedStack;
+            var HeapGenChunk = (function () {
+                function HeapGenChunk(p_space, p_id, p_index) {
+                    this._index = p_index;
+                    this._space = p_space;
+                    this._prefix = Long.fromNumber(p_id).shiftLeft((Constants.LONG_SIZE - Constants.PREFIX_SIZE));
+                    this._seed = -1;
+                }
+                HeapGenChunk.prototype.save = function (buffer) {
+                    greycat.utility.Base64.encodeLongToBuffer(this._seed, buffer);
+                    this._dirty = false;
+                };
+                HeapGenChunk.prototype.saveDiff = function (buffer) {
+                    greycat.utility.Base64.encodeLongToBuffer(this._seed, buffer);
+                    this._dirty = false;
+                };
+                HeapGenChunk.prototype.load = function (buffer) {
+                    this.internal_load(buffer, false);
+                };
+                HeapGenChunk.prototype.loadDiff = function (buffer) {
+                    this.internal_load(buffer, true);
+                };
+                HeapGenChunk.prototype.internal_load = function (buffer, diff) {
+                    if (buffer == null || buffer.length() == 0) {
+                        return;
+                    }
+                    var loaded = greycat.utility.Base64.decodeToLongWithBounds(buffer, 0, buffer.length());
+                    var previousSeed = this._seed;
+                    this._seed = loaded;
+                    if (previousSeed != -1 && previousSeed != this._seed) {
+                        if (this._space != null && !this._dirty && diff) {
+                            this._dirty = true;
+                            this._space.notifyUpdate(this._index);
+                        }
+                    }
+                };
+                HeapGenChunk.prototype.newKey = function () {
+                    if (this._seed == Constants.KEY_PREFIX_MASK) {
+                        throw new Error("Object Index could not be created because it exceeded the capacity of the current prefix. Ask for a new prefix.");
+                    }
+                    if (this._seed == -1) {
+                        this._seed = 0;
+                    }
+                    this._seed++;
+                    var nextIndex = this._seed;
+                    if (this._space) {
+                        this._space.notifyUpdate(this._index);
+                    }
+                    var objectKey = this._prefix.add(this._seed).toNumber();
+                    if (objectKey >= Constants.NULL_LONG) {
+                        throw new Error("Object Index exceeds the maximum JavaScript number capacity. (2^" + Constants.LONG_SIZE + ")");
+                    }
+                    return objectKey;
+                };
+                HeapGenChunk.prototype.index = function () {
+                    return this._index;
+                };
+                HeapGenChunk.prototype.world = function () {
+                    return this._space.worldByIndex(this._index);
+                };
+                HeapGenChunk.prototype.time = function () {
+                    return this._space.timeByIndex(this._index);
+                };
+                HeapGenChunk.prototype.id = function () {
+                    return this._space.idByIndex(this._index);
+                };
+                HeapGenChunk.prototype.chunkType = function () {
+                    return greycat.chunk.ChunkType.GEN_CHUNK;
+                };
+                return HeapGenChunk;
+            }());
+            heap.HeapGenChunk = HeapGenChunk;
+            var HeapLMatrix = (function () {
+                function HeapLMatrix(p_parent, origin) {
+                    this.backend = null;
+                    this.aligned = true;
+                    this.parent = p_parent;
+                    if (origin != null) {
+                        this.aligned = false;
+                        this.backend = origin.backend;
+                    }
+                }
+                HeapLMatrix.prototype.init = function (rows, columns) {
+                    {
+                        this.internal_init(rows, columns);
+                    }
+                    this.parent.declareDirty();
+                    return this;
+                };
+                HeapLMatrix.prototype.internal_init = function (rows, columns) {
+                    this.backend = new Float64Array(rows * columns + HeapLMatrix.INDEX_OFFSET);
+                    this.backend[HeapLMatrix.INDEX_ROWS] = rows;
+                    this.backend[HeapLMatrix.INDEX_COLUMNS] = columns;
+                    this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = columns;
+                    this.aligned = true;
+                };
+                HeapLMatrix.prototype.appendColumn = function (newColumn) {
+                    {
+                        this.internal_appendColumn(newColumn);
+                        this.parent.declareDirty();
+                    }
+                    return this;
+                };
+                HeapLMatrix.prototype.internal_appendColumn = function (newColumn) {
+                    var nbRows;
+                    var nbColumns;
+                    var nbMaxColumn;
+                    if (this.backend == null) {
+                        nbRows = newColumn.length;
+                        nbColumns = greycat.Constants.MAP_INITIAL_CAPACITY;
+                        nbMaxColumn = 0;
+                        this.backend = new Float64Array(nbRows * nbColumns + HeapLMatrix.INDEX_OFFSET);
+                        this.backend[HeapLMatrix.INDEX_ROWS] = nbRows;
+                        this.backend[HeapLMatrix.INDEX_COLUMNS] = nbColumns;
+                        this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = nbMaxColumn;
+                    }
+                    else {
+                        nbColumns = this.backend[HeapLMatrix.INDEX_COLUMNS];
+                        nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
+                        nbMaxColumn = this.backend[HeapLMatrix.INDEX_MAX_COLUMN];
+                    }
+                    if (!this.aligned || nbMaxColumn == nbColumns) {
+                        if (nbMaxColumn == nbColumns) {
+                            nbColumns = nbColumns * 2;
+                            this.backend[HeapLMatrix.INDEX_COLUMNS] = nbColumns;
+                            var newLength = nbColumns * nbRows + HeapLMatrix.INDEX_OFFSET;
+                            var next_backend = new Float64Array(newLength);
+                            java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                            this.backend = next_backend;
+                            this.aligned = true;
+                        }
+                        else {
+                            var next_backend = new Float64Array(this.backend.length);
+                            java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                            this.backend = next_backend;
+                            this.aligned = true;
+                        }
+                    }
+                    java.lang.System.arraycopy(newColumn, 0, this.backend, (nbMaxColumn * nbRows) + HeapLMatrix.INDEX_OFFSET, newColumn.length);
+                    this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = nbMaxColumn + 1;
+                };
+                HeapLMatrix.prototype.fill = function (value) {
+                    {
+                        this.internal_fill(value);
+                    }
+                    return this;
+                };
+                HeapLMatrix.prototype.internal_fill = function (value) {
+                    if (this.backend != null) {
+                        if (!this.aligned) {
+                            var next_backend = new Float64Array(this.backend.length);
+                            java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                            this.backend = next_backend;
+                            this.aligned = true;
+                        }
+                        java.util.Arrays.fill(this.backend, HeapLMatrix.INDEX_OFFSET, this.backend.length - HeapLMatrix.INDEX_OFFSET, value);
+                        this.backend[HeapLMatrix.INDEX_MAX_COLUMN] = this.backend[HeapLMatrix.INDEX_COLUMNS];
+                        this.parent.declareDirty();
+                    }
+                };
+                HeapLMatrix.prototype.fillWith = function (values) {
+                    {
+                        this.internal_fillWith(values);
+                    }
+                    return this;
+                };
+                HeapLMatrix.prototype.internal_fillWith = function (values) {
+                    if (this.backend != null) {
+                        if (!this.aligned) {
+                            var next_backend = new Float64Array(this.backend.length);
+                            java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                            this.backend = next_backend;
+                            this.aligned = true;
+                        }
+                        java.lang.System.arraycopy(values, 0, this.backend, HeapLMatrix.INDEX_OFFSET, values.length);
+                        this.parent.declareDirty();
+                    }
+                };
+                HeapLMatrix.prototype.fillWithRandom = function (min, max, seed) {
+                    {
+                        this.internal_fillWithRandom(min, max, seed);
+                    }
+                    return this;
+                };
+                HeapLMatrix.prototype.internal_fillWithRandom = function (min, max, seed) {
+                    var rand = new java.util.Random();
+                    rand.setSeed(seed);
+                    if (this.backend != null) {
+                        if (!this.aligned) {
+                            var next_backend = new Float64Array(this.backend.length);
+                            java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                            this.backend = next_backend;
+                            this.aligned = true;
+                        }
+                        for (var i = 0; i < this.backend[HeapLMatrix.INDEX_ROWS] * this.backend[HeapLMatrix.INDEX_COLUMNS]; i++) {
+                            this.backend[i + HeapLMatrix.INDEX_OFFSET] = rand.nextInt() * (max - min) + min;
+                        }
+                        this.parent.declareDirty();
+                    }
+                };
+                HeapLMatrix.prototype.rows = function () {
+                    var result = 0;
+                    {
+                        if (this.backend != null) {
+                            result = this.backend[HeapLMatrix.INDEX_ROWS];
+                        }
+                    }
+                    return result;
+                };
+                HeapLMatrix.prototype.columns = function () {
+                    var result = 0;
+                    {
+                        if (this.backend != null) {
+                            result = this.backend[HeapLMatrix.INDEX_MAX_COLUMN];
+                        }
+                    }
+                    return result;
+                };
+                HeapLMatrix.prototype.column = function (index) {
+                    var result;
+                    {
+                        var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
+                        result = new Float64Array(nbRows);
+                        java.lang.System.arraycopy(this.backend, HeapLMatrix.INDEX_OFFSET + (index * nbRows), result, 0, nbRows);
+                    }
+                    return result;
+                };
+                HeapLMatrix.prototype.get = function (rowIndex, columnIndex) {
+                    var result = 0;
+                    {
+                        if (this.backend != null) {
+                            var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
+                            result = this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+                        }
+                    }
+                    return result;
+                };
+                HeapLMatrix.prototype.set = function (rowIndex, columnIndex, value) {
+                    {
+                        this.internal_set(rowIndex, columnIndex, value);
+                    }
+                    return this;
+                };
+                HeapLMatrix.prototype.internal_set = function (rowIndex, columnIndex, value) {
+                    if (this.backend != null) {
+                        if (!this.aligned) {
+                            var next_backend = new Float64Array(this.backend.length);
+                            java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                            this.backend = next_backend;
+                            this.aligned = true;
+                        }
+                        var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
+                        this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value;
+                        this.parent.declareDirty();
+                    }
+                };
+                HeapLMatrix.prototype.add = function (rowIndex, columnIndex, value) {
+                    {
+                        this.internal_add(rowIndex, columnIndex, value);
+                    }
+                    return this;
+                };
+                HeapLMatrix.prototype.internal_add = function (rowIndex, columnIndex, value) {
+                    if (this.backend != null) {
+                        if (!this.aligned) {
+                            var next_backend = new Float64Array(this.backend.length);
+                            java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                            this.backend = next_backend;
+                            this.aligned = true;
+                        }
+                        var nbRows = this.backend[HeapLMatrix.INDEX_ROWS];
+                        this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows] = value + this.backend[HeapLMatrix.INDEX_OFFSET + rowIndex + columnIndex * nbRows];
+                        this.parent.declareDirty();
+                    }
+                };
+                HeapLMatrix.prototype.data = function () {
+                    var copy = null;
+                    {
+                        if (this.backend != null) {
+                            copy = new Float64Array(this.backend.length - HeapLMatrix.INDEX_OFFSET);
+                            java.lang.System.arraycopy(this.backend, HeapLMatrix.INDEX_OFFSET, copy, 0, this.backend.length - HeapLMatrix.INDEX_OFFSET);
+                        }
+                    }
+                    return copy;
+                };
+                HeapLMatrix.prototype.leadingDimension = function () {
+                    if (this.backend == null) {
+                        return 0;
+                    }
+                    return Math.max(this.backend[HeapLMatrix.INDEX_COLUMNS], this.backend[HeapLMatrix.INDEX_ROWS]);
+                };
+                HeapLMatrix.prototype.unsafeGet = function (index) {
+                    var result = 0;
+                    {
+                        if (this.backend != null) {
+                            result = this.backend[HeapLMatrix.INDEX_OFFSET + index];
+                        }
+                    }
+                    return result;
+                };
+                HeapLMatrix.prototype.unsafeSet = function (index, value) {
+                    {
+                        this.internal_unsafeSet(index, value);
+                    }
+                    return this;
+                };
+                HeapLMatrix.prototype.internal_unsafeSet = function (index, value) {
+                    if (this.backend != null) {
+                        if (!this.aligned) {
+                            var next_backend = new Float64Array(this.backend.length);
+                            java.lang.System.arraycopy(this.backend, 0, next_backend, 0, this.backend.length);
+                            this.backend = next_backend;
+                            this.aligned = true;
+                        }
+                        this.backend[HeapLMatrix.INDEX_OFFSET + index] = value;
+                        this.parent.declareDirty();
+                    }
+                };
+                HeapLMatrix.prototype.unsafe_data = function () {
+                    return this.backend;
+                };
+                HeapLMatrix.prototype.unsafe_init = function (size) {
+                    this.backend = new Float64Array(size);
+                    this.backend[HeapLMatrix.INDEX_ROWS] = 0;
+                    this.backend[HeapLMatrix.INDEX_COLUMNS] = 0;
+                    this.aligned = true;
+                };
+                HeapLMatrix.prototype.unsafe_set = function (index, value) {
+                    this.backend[index] = value;
+                };
+                HeapLMatrix.prototype.load = function (buffer, offset, max) {
+                    var cursor = offset;
+                    var current = buffer.read(cursor);
+                    var isFirst = true;
+                    var previous = offset;
+                    var elemIndex = 0;
+                    while (cursor < max && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
+                        if (current == greycat.Constants.CHUNK_VAL_SEP) {
+                            if (isFirst) {
+                                this.unsafe_init(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                isFirst = false;
+                            }
+                            else {
+                                this.unsafe_set(elemIndex, greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                elemIndex++;
+                            }
+                            previous = cursor + 1;
+                        }
+                        cursor++;
+                        if (cursor < max) {
+                            current = buffer.read(cursor);
+                        }
+                    }
+                    if (isFirst) {
+                        this.unsafe_init(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                    }
+                    else {
+                        this.unsafe_set(elemIndex, greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    }
+                    return cursor;
+                };
+                return HeapLMatrix;
+            }());
+            HeapLMatrix.INDEX_ROWS = 0;
+            HeapLMatrix.INDEX_COLUMNS = 1;
+            HeapLMatrix.INDEX_MAX_COLUMN = 2;
+            HeapLMatrix.INDEX_OFFSET = 3;
+            heap.HeapLMatrix = HeapLMatrix;
+            var HeapLongLongArrayMap = (function () {
+                function HeapLongLongArrayMap(p_listener) {
+                    this.mapSize = 0;
+                    this.capacity = 0;
+                    this.keys = null;
+                    this.values = null;
+                    this.nexts = null;
+                    this.hashs = null;
+                    this.parent = p_listener;
+                }
+                HeapLongLongArrayMap.prototype.key = function (i) {
+                    return this.keys[i];
+                };
+                HeapLongLongArrayMap.prototype.setKey = function (i, newValue) {
+                    this.keys[i] = newValue;
+                };
+                HeapLongLongArrayMap.prototype.value = function (i) {
+                    return this.values[i];
+                };
+                HeapLongLongArrayMap.prototype.setValue = function (i, newValue) {
+                    this.values[i] = newValue;
+                };
+                HeapLongLongArrayMap.prototype.next = function (i) {
+                    return this.nexts[i];
+                };
+                HeapLongLongArrayMap.prototype.setNext = function (i, newValue) {
+                    this.nexts[i] = newValue;
+                };
+                HeapLongLongArrayMap.prototype.hash = function (i) {
+                    return this.hashs[i];
+                };
+                HeapLongLongArrayMap.prototype.setHash = function (i, newValue) {
+                    this.hashs[i] = newValue;
+                };
+                HeapLongLongArrayMap.prototype.reallocate = function (newCapacity) {
+                    if (newCapacity > this.capacity) {
+                        var new_keys = new Float64Array(newCapacity);
+                        if (this.keys != null) {
+                            java.lang.System.arraycopy(this.keys, 0, new_keys, 0, this.capacity);
+                        }
+                        this.keys = new_keys;
+                        var new_values = new Float64Array(newCapacity);
+                        if (this.values != null) {
+                            java.lang.System.arraycopy(this.values, 0, new_values, 0, this.capacity);
+                        }
+                        this.values = new_values;
+                        var new_nexts = new Int32Array(newCapacity);
+                        var new_hashes = new Int32Array(newCapacity * 2);
+                        java.util.Arrays.fill(new_nexts, 0, newCapacity, -1);
+                        java.util.Arrays.fill(new_hashes, 0, (newCapacity * 2), -1);
+                        this.hashs = new_hashes;
+                        this.nexts = new_nexts;
+                        for (var i = 0; i < this.mapSize; i++) {
+                            var new_key_hash = greycat.utility.HashHelper.longHash(this.key(i), newCapacity * 2);
+                            this.setNext(i, this.hash(new_key_hash));
+                            this.setHash(new_key_hash, i);
+                        }
+                        this.capacity = newCapacity;
+                    }
+                };
+                HeapLongLongArrayMap.prototype.cloneFor = function (newParent) {
+                    var cloned = new greycat.internal.heap.HeapLongLongArrayMap(newParent);
+                    cloned.mapSize = this.mapSize;
+                    cloned.capacity = this.capacity;
+                    if (this.keys != null) {
+                        var cloned_keys = new Float64Array(this.capacity);
+                        java.lang.System.arraycopy(this.keys, 0, cloned_keys, 0, this.capacity);
+                        cloned.keys = cloned_keys;
+                    }
+                    if (this.values != null) {
+                        var cloned_values = new Float64Array(this.capacity);
+                        java.lang.System.arraycopy(this.values, 0, cloned_values, 0, this.capacity);
+                        cloned.values = cloned_values;
+                    }
+                    if (this.nexts != null) {
+                        var cloned_nexts = new Int32Array(this.capacity);
+                        java.lang.System.arraycopy(this.nexts, 0, cloned_nexts, 0, this.capacity);
+                        cloned.nexts = cloned_nexts;
+                    }
+                    if (this.hashs != null) {
+                        var cloned_hashs = new Int32Array(this.capacity * 2);
+                        java.lang.System.arraycopy(this.hashs, 0, cloned_hashs, 0, this.capacity * 2);
+                        cloned.hashs = cloned_hashs;
+                    }
+                    return cloned;
+                };
+                HeapLongLongArrayMap.prototype.get = function (requestKey) {
+                    var result = new Float64Array(0);
+                    {
+                        if (this.keys != null) {
+                            var hashIndex = greycat.utility.HashHelper.longHash(requestKey, this.capacity * 2);
+                            var resultCapacity = 0;
+                            var resultIndex = 0;
+                            var m = this.hash(hashIndex);
+                            while (m >= 0) {
+                                if (requestKey == this.key(m)) {
+                                    if (resultIndex == resultCapacity) {
+                                        var newCapacity = void 0;
+                                        if (resultCapacity == 0) {
+                                            newCapacity = 1;
+                                        }
+                                        else {
+                                            newCapacity = resultCapacity * 2;
+                                        }
+                                        var tempResult = new Float64Array(newCapacity);
+                                        java.lang.System.arraycopy(result, 0, tempResult, 0, result.length);
+                                        result = tempResult;
+                                        resultCapacity = newCapacity;
+                                    }
+                                    result[resultIndex] = this.value(m);
+                                    resultIndex++;
+                                }
+                                m = this.next(m);
+                            }
+                            if (resultIndex != resultCapacity) {
+                                var shrinkedResult = new Float64Array(resultIndex);
+                                java.lang.System.arraycopy(result, 0, shrinkedResult, 0, resultIndex);
+                                result = shrinkedResult;
+                            }
+                        }
+                    }
+                    return result;
+                };
+                HeapLongLongArrayMap.prototype.contains = function (requestKey, requestValue) {
+                    var result = false;
+                    {
+                        if (this.keys != null) {
+                            var hashIndex = greycat.utility.HashHelper.longHash(requestKey, this.capacity * 2);
+                            var m = this.hash(hashIndex);
+                            while (m >= 0 && !result) {
+                                if (requestKey == this.key(m) && requestValue == this.value(m)) {
+                                    result = true;
+                                }
+                                m = this.next(m);
+                            }
+                        }
+                    }
+                    return result;
+                };
+                HeapLongLongArrayMap.prototype.each = function (callback) {
+                    {
+                        this.unsafe_each(callback);
+                    }
+                };
+                HeapLongLongArrayMap.prototype.unsafe_each = function (callback) {
+                    for (var i = 0; i < this.mapSize; i++) {
+                        callback(this.key(i), this.value(i));
+                    }
+                };
+                HeapLongLongArrayMap.prototype.size = function () {
+                    var result;
+                    {
+                        result = this.mapSize;
+                    }
+                    return result;
+                };
+                HeapLongLongArrayMap.prototype.delete = function (requestKey, requestValue) {
+                    {
+                        if (this.keys != null && this.mapSize != 0) {
+                            var hashCapacity = this.capacity * 2;
+                            var hashIndex = greycat.utility.HashHelper.longHash(requestKey, hashCapacity);
+                            var m = this.hash(hashIndex);
+                            var found = -1;
+                            while (m >= 0) {
+                                if (requestKey == this.key(m) && requestValue == this.value(m)) {
+                                    found = m;
+                                    break;
+                                }
+                                m = this.next(m);
+                            }
+                            if (found != -1) {
+                                var toRemoveHash = greycat.utility.HashHelper.longHash(requestKey, hashCapacity);
+                                m = this.hash(toRemoveHash);
+                                if (m == found) {
+                                    this.setHash(toRemoveHash, this.next(m));
+                                }
+                                else {
+                                    while (m != -1) {
+                                        var next_of_m = this.next(m);
+                                        if (next_of_m == found) {
+                                            this.setNext(m, this.next(next_of_m));
+                                            break;
+                                        }
+                                        m = next_of_m;
+                                    }
+                                }
+                                var lastIndex = this.mapSize - 1;
+                                if (lastIndex == found) {
+                                    this.mapSize--;
+                                }
+                                else {
+                                    var lastKey = this.key(lastIndex);
+                                    this.setKey(found, lastKey);
+                                    this.setValue(found, this.value(lastIndex));
+                                    this.setNext(found, this.next(lastIndex));
+                                    var victimHash = greycat.utility.HashHelper.longHash(lastKey, hashCapacity);
+                                    m = this.hash(victimHash);
+                                    if (m == lastIndex) {
+                                        this.setHash(victimHash, found);
+                                    }
+                                    else {
+                                        while (m != -1) {
+                                            var next_of_m = this.next(m);
+                                            if (next_of_m == lastIndex) {
+                                                this.setNext(m, found);
+                                                break;
+                                            }
+                                            m = next_of_m;
+                                        }
+                                    }
+                                    this.mapSize--;
+                                }
+                                this.parent.declareDirty();
+                            }
+                        }
+                    }
+                };
+                HeapLongLongArrayMap.prototype.put = function (insertKey, insertValue) {
+                    {
+                        if (this.keys == null) {
+                            this.reallocate(greycat.Constants.MAP_INITIAL_CAPACITY);
+                            this.setKey(0, insertKey);
+                            this.setValue(0, insertValue);
+                            this.setHash(greycat.utility.HashHelper.longHash(insertKey, this.capacity * 2), 0);
+                            this.setNext(0, -1);
+                            this.mapSize++;
+                            this.parent.declareDirty();
+                        }
+                        else {
+                            var hashCapacity = this.capacity * 2;
+                            var insertKeyHash = greycat.utility.HashHelper.longHash(insertKey, hashCapacity);
+                            var currentHash = this.hash(insertKeyHash);
+                            var m = currentHash;
+                            var found = -1;
+                            while (m >= 0) {
+                                if (insertKey == this.key(m) && insertValue == this.value(m)) {
+                                    found = m;
+                                    break;
+                                }
+                                m = this.next(m);
+                            }
+                            if (found == -1) {
+                                var lastIndex = this.mapSize;
+                                if (lastIndex == this.capacity) {
+                                    this.reallocate(this.capacity * 2);
+                                    hashCapacity = this.capacity * 2;
+                                    insertKeyHash = greycat.utility.HashHelper.longHash(insertKey, hashCapacity);
+                                    currentHash = this.hash(insertKeyHash);
+                                }
+                                this.setKey(lastIndex, insertKey);
+                                this.setValue(lastIndex, insertValue);
+                                this.setHash(greycat.utility.HashHelper.longHash(insertKey, this.capacity * 2), lastIndex);
+                                this.setNext(lastIndex, currentHash);
+                                this.mapSize++;
+                                this.parent.declareDirty();
+                            }
+                        }
+                    }
+                };
+                HeapLongLongArrayMap.prototype.load = function (buffer, offset, max) {
+                    var cursor = offset;
+                    var current = buffer.read(cursor);
+                    var isFirst = true;
+                    var previous = offset;
+                    var previousKey = -1;
+                    var waitingVal = false;
+                    while (cursor < max && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
+                        if (current == greycat.Constants.CHUNK_VAL_SEP) {
+                            if (isFirst) {
+                                this.reallocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                isFirst = false;
+                            }
+                            else {
+                                if (!waitingVal) {
+                                    previousKey = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                    waitingVal = true;
+                                }
+                                else {
+                                    waitingVal = false;
+                                    this.put(previousKey, greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                }
+                            }
+                            previous = cursor + 1;
+                        }
+                        cursor++;
+                        if (cursor < max) {
+                            current = buffer.read(cursor);
+                        }
+                    }
+                    if (isFirst) {
+                        this.reallocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                    }
+                    else {
+                        if (waitingVal) {
+                            this.put(previousKey, greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                        }
+                    }
+                    return cursor;
+                };
+                return HeapLongLongArrayMap;
+            }());
+            heap.HeapLongLongArrayMap = HeapLongLongArrayMap;
+            var HeapLongLongMap = (function () {
+                function HeapLongLongMap(p_listener) {
+                    this.mapSize = 0;
+                    this.capacity = 0;
+                    this.keys = null;
+                    this.values = null;
+                    this.nexts = null;
+                    this.hashs = null;
+                    this.parent = p_listener;
+                }
+                HeapLongLongMap.prototype.key = function (i) {
+                    return this.keys[i];
+                };
+                HeapLongLongMap.prototype.setKey = function (i, newValue) {
+                    this.keys[i] = newValue;
+                };
+                HeapLongLongMap.prototype.value = function (i) {
+                    return this.values[i];
+                };
+                HeapLongLongMap.prototype.setValue = function (i, newValue) {
+                    this.values[i] = newValue;
+                };
+                HeapLongLongMap.prototype.next = function (i) {
+                    return this.nexts[i];
+                };
+                HeapLongLongMap.prototype.setNext = function (i, newValue) {
+                    this.nexts[i] = newValue;
+                };
+                HeapLongLongMap.prototype.hash = function (i) {
+                    return this.hashs[i];
+                };
+                HeapLongLongMap.prototype.setHash = function (i, newValue) {
+                    this.hashs[i] = newValue;
+                };
+                HeapLongLongMap.prototype.reallocate = function (newCapacity) {
+                    if (newCapacity > this.capacity) {
+                        var new_keys = new Float64Array(newCapacity);
+                        if (this.keys != null) {
+                            java.lang.System.arraycopy(this.keys, 0, new_keys, 0, this.capacity);
+                        }
+                        this.keys = new_keys;
+                        var new_values = new Float64Array(newCapacity);
+                        if (this.values != null) {
+                            java.lang.System.arraycopy(this.values, 0, new_values, 0, this.capacity);
+                        }
+                        this.values = new_values;
+                        var new_nexts = new Int32Array(newCapacity);
+                        var new_hashes = new Int32Array(newCapacity * 2);
+                        java.util.Arrays.fill(new_nexts, 0, newCapacity, -1);
+                        java.util.Arrays.fill(new_hashes, 0, (newCapacity * 2), -1);
+                        this.hashs = new_hashes;
+                        this.nexts = new_nexts;
+                        for (var i = 0; i < this.mapSize; i++) {
+                            var new_key_hash = greycat.utility.HashHelper.longHash(this.key(i), newCapacity * 2);
+                            this.setNext(i, this.hash(new_key_hash));
+                            this.setHash(new_key_hash, i);
+                        }
+                        this.capacity = newCapacity;
+                    }
+                };
+                HeapLongLongMap.prototype.cloneFor = function (newParent) {
+                    var cloned = new greycat.internal.heap.HeapLongLongMap(newParent);
+                    cloned.mapSize = this.mapSize;
+                    cloned.capacity = this.capacity;
+                    if (this.keys != null) {
+                        var cloned_keys = new Float64Array(this.capacity);
+                        java.lang.System.arraycopy(this.keys, 0, cloned_keys, 0, this.capacity);
+                        cloned.keys = cloned_keys;
+                    }
+                    if (this.values != null) {
+                        var cloned_values = new Float64Array(this.capacity);
+                        java.lang.System.arraycopy(this.values, 0, cloned_values, 0, this.capacity);
+                        cloned.values = cloned_values;
+                    }
+                    if (this.nexts != null) {
+                        var cloned_nexts = new Int32Array(this.capacity);
+                        java.lang.System.arraycopy(this.nexts, 0, cloned_nexts, 0, this.capacity);
+                        cloned.nexts = cloned_nexts;
+                    }
+                    if (this.hashs != null) {
+                        var cloned_hashs = new Int32Array(this.capacity * 2);
+                        java.lang.System.arraycopy(this.hashs, 0, cloned_hashs, 0, this.capacity * 2);
+                        cloned.hashs = cloned_hashs;
+                    }
+                    return cloned;
+                };
+                HeapLongLongMap.prototype.get = function (requestKey) {
+                    var result = greycat.Constants.NULL_LONG;
+                    {
+                        if (this.keys != null) {
+                            var hashIndex = greycat.utility.HashHelper.longHash(requestKey, this.capacity * 2);
+                            var m = this.hash(hashIndex);
+                            while (m >= 0) {
+                                if (requestKey == this.key(m)) {
+                                    result = this.value(m);
+                                    break;
+                                }
+                                m = this.next(m);
+                            }
+                        }
+                    }
+                    return result;
+                };
+                HeapLongLongMap.prototype.each = function (callback) {
+                    {
+                        this.unsafe_each(callback);
+                    }
+                };
+                HeapLongLongMap.prototype.unsafe_each = function (callback) {
+                    for (var i = 0; i < this.mapSize; i++) {
+                        callback(this.key(i), this.value(i));
+                    }
+                };
+                HeapLongLongMap.prototype.size = function () {
+                    var result;
+                    {
+                        result = this.mapSize;
+                    }
+                    return result;
+                };
+                HeapLongLongMap.prototype.remove = function (requestKey) {
+                    {
+                        if (this.keys != null && this.mapSize != 0) {
+                            var hashCapacity = this.capacity * 2;
+                            var hashIndex = greycat.utility.HashHelper.longHash(requestKey, hashCapacity);
+                            var m = this.hash(hashIndex);
+                            var found = -1;
+                            while (m >= 0) {
+                                if (requestKey == this.key(m)) {
+                                    found = m;
+                                    break;
+                                }
+                                m = this.next(m);
+                            }
+                            if (found != -1) {
+                                var toRemoveHash = greycat.utility.HashHelper.longHash(requestKey, hashCapacity);
+                                m = this.hash(toRemoveHash);
+                                if (m == found) {
+                                    this.setHash(toRemoveHash, this.next(m));
+                                }
+                                else {
+                                    while (m != -1) {
+                                        var next_of_m = this.next(m);
+                                        if (next_of_m == found) {
+                                            this.setNext(m, this.next(next_of_m));
+                                            break;
+                                        }
+                                        m = next_of_m;
+                                    }
+                                }
+                                var lastIndex = this.mapSize - 1;
+                                if (lastIndex == found) {
+                                    this.mapSize--;
+                                }
+                                else {
+                                    var lastKey = this.key(lastIndex);
+                                    this.setKey(found, lastKey);
+                                    this.setValue(found, this.value(lastIndex));
+                                    this.setNext(found, this.next(lastIndex));
+                                    var victimHash = greycat.utility.HashHelper.longHash(lastKey, hashCapacity);
+                                    m = this.hash(victimHash);
+                                    if (m == lastIndex) {
+                                        this.setHash(victimHash, found);
+                                    }
+                                    else {
+                                        while (m != -1) {
+                                            var next_of_m = this.next(m);
+                                            if (next_of_m == lastIndex) {
+                                                this.setNext(m, found);
+                                                break;
+                                            }
+                                            m = next_of_m;
+                                        }
+                                    }
+                                    this.mapSize--;
+                                }
+                                this.parent.declareDirty();
+                            }
+                        }
+                    }
+                };
+                HeapLongLongMap.prototype.put = function (insertKey, insertValue) {
+                    {
+                        if (this.keys == null) {
+                            this.reallocate(greycat.Constants.MAP_INITIAL_CAPACITY);
+                            this.setKey(0, insertKey);
+                            this.setValue(0, insertValue);
+                            this.setHash(greycat.utility.HashHelper.longHash(insertKey, this.capacity * 2), 0);
+                            this.setNext(0, -1);
+                            this.mapSize++;
+                        }
+                        else {
+                            var hashCapacity = this.capacity * 2;
+                            var insertKeyHash = greycat.utility.HashHelper.longHash(insertKey, hashCapacity);
+                            var currentHash = this.hash(insertKeyHash);
+                            var m = currentHash;
+                            var found = -1;
+                            while (m >= 0) {
+                                if (insertKey == this.key(m)) {
+                                    found = m;
+                                    break;
+                                }
+                                m = this.next(m);
+                            }
+                            if (found == -1) {
+                                var lastIndex = this.mapSize;
+                                if (lastIndex == this.capacity) {
+                                    this.reallocate(this.capacity * 2);
+                                    hashCapacity = this.capacity * 2;
+                                    insertKeyHash = greycat.utility.HashHelper.longHash(insertKey, hashCapacity);
+                                    currentHash = this.hash(insertKeyHash);
+                                }
+                                this.setKey(lastIndex, insertKey);
+                                this.setValue(lastIndex, insertValue);
+                                this.setHash(greycat.utility.HashHelper.longHash(insertKey, this.capacity * 2), lastIndex);
+                                this.setNext(lastIndex, currentHash);
+                                this.mapSize++;
+                                this.parent.declareDirty();
+                            }
+                            else {
+                                if (this.value(found) != insertValue) {
+                                    this.setValue(found, insertValue);
+                                    this.parent.declareDirty();
+                                }
+                            }
+                        }
+                    }
+                };
+                HeapLongLongMap.prototype.load = function (buffer, offset, max) {
+                    var cursor = offset;
+                    var current = buffer.read(cursor);
+                    var isFirst = true;
+                    var previous = offset;
+                    var previousKey = -1;
+                    var waitingVal = false;
+                    while (cursor < max && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
+                        if (current == greycat.Constants.CHUNK_VAL_SEP) {
+                            if (isFirst) {
+                                this.reallocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                isFirst = false;
+                            }
+                            else {
+                                if (!waitingVal) {
+                                    previousKey = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                    waitingVal = true;
+                                }
+                                else {
+                                    waitingVal = false;
+                                    this.put(previousKey, greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                }
+                            }
+                            previous = cursor + 1;
+                        }
+                        cursor++;
+                        if (cursor < max) {
+                            current = buffer.read(cursor);
+                        }
+                    }
+                    if (isFirst) {
+                        this.reallocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                    }
+                    else {
+                        if (waitingVal) {
+                            this.put(previousKey, greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                        }
+                    }
+                    return cursor;
+                };
+                return HeapLongLongMap;
+            }());
+            heap.HeapLongLongMap = HeapLongLongMap;
             var HeapMemoryFactory = (function () {
                 function HeapMemoryFactory() {
                 }
                 HeapMemoryFactory.prototype.newSpace = function (memorySize, graph, deepWorld) {
-                    return new greycat.internal.chunk.heap.HeapChunkSpace(memorySize, graph, deepWorld);
+                    return new greycat.internal.heap.HeapChunkSpace(memorySize, graph, deepWorld);
                 };
                 HeapMemoryFactory.prototype.newBuffer = function () {
-                    return new greycat.internal.memory.HeapBuffer();
+                    return new greycat.internal.heap.HeapBuffer();
                 };
                 return HeapMemoryFactory;
             }());
-            memory.HeapMemoryFactory = HeapMemoryFactory;
-        })(memory = internal.memory || (internal.memory = {}));
-        var scheduler;
-        (function (scheduler) {
-            var JobQueue = (function () {
-                function JobQueue() {
-                    this.first = null;
-                    this.last = null;
-                }
-                JobQueue.prototype.add = function (item) {
-                    var elem = new greycat.internal.scheduler.JobQueue.JobQueueElem(item, null);
-                    if (this.first == null) {
-                        this.first = elem;
-                        this.last = elem;
+            heap.HeapMemoryFactory = HeapMemoryFactory;
+            var HeapRelation = (function () {
+                function HeapRelation(p_parent, origin) {
+                    this.aligned = true;
+                    this.parent = p_parent;
+                    if (origin != null) {
+                        this.aligned = false;
+                        this._back = origin._back;
+                        this._size = origin._size;
                     }
                     else {
-                        this.last._next = elem;
-                        this.last = elem;
+                        this._back = null;
+                        this._size = 0;
                     }
-                };
-                JobQueue.prototype.poll = function () {
-                    var value = this.first;
-                    this.first = this.first._next;
-                    return value._ptr;
-                };
-                return JobQueue;
-            }());
-            scheduler.JobQueue = JobQueue;
-            (function (JobQueue) {
-                var JobQueueElem = (function () {
-                    function JobQueueElem(ptr, next) {
-                        this._ptr = ptr;
-                        this._next = next;
+                }
+                HeapRelation.prototype.allocate = function (_capacity) {
+                    var new_back = new Float64Array(_capacity);
+                    if (this._back != null) {
+                        java.lang.System.arraycopy(this._back, 0, new_back, 0, this._back.length);
                     }
-                    return JobQueueElem;
-                }());
-                JobQueue.JobQueueElem = JobQueueElem;
-            })(JobQueue = scheduler.JobQueue || (scheduler.JobQueue = {}));
-            var NoopScheduler = (function () {
-                function NoopScheduler() {
-                }
-                NoopScheduler.prototype.dispatch = function (affinity, job) {
-                    job();
+                    this._back = new_back;
+                    this.aligned = true;
                 };
-                NoopScheduler.prototype.start = function () { };
-                NoopScheduler.prototype.stop = function () { };
-                NoopScheduler.prototype.workers = function () {
-                    return 1;
-                };
-                return NoopScheduler;
-            }());
-            scheduler.NoopScheduler = NoopScheduler;
-            var TrampolineScheduler = (function () {
-                function TrampolineScheduler() {
-                    this.queue = new JobQueue();
-                    this.wip = new java.util.concurrent.atomic.AtomicInteger(0);
-                }
-                TrampolineScheduler.prototype.dispatch = function (affinity, job) {
-                    this.queue.add(job);
-                    if (this.wip.getAndIncrement() == 0) {
-                        do {
-                            var polled = this.queue.poll();
-                            if (polled != null) {
-                                polled();
+                HeapRelation.prototype.all = function () {
+                    var ids;
+                    {
+                        if (this._back == null) {
+                            ids = new Float64Array(0);
+                        }
+                        else {
+                            var relSize = this._back.length;
+                            ids = new Float64Array(relSize);
+                            for (var i = 0; i < relSize; i++) {
+                                ids[i] = this._back[i];
                             }
-                        } while (this.wip.decrementAndGet() > 0);
+                        }
+                    }
+                    return ids;
+                };
+                HeapRelation.prototype.size = function () {
+                    return this._size;
+                };
+                HeapRelation.prototype.get = function (index) {
+                    var result;
+                    {
+                        result = this._back[index];
+                    }
+                    return result;
+                };
+                HeapRelation.prototype.set = function (index, value) {
+                    {
+                        this._back[index] = value;
                     }
                 };
-                TrampolineScheduler.prototype.start = function () { };
-                TrampolineScheduler.prototype.stop = function () { };
-                TrampolineScheduler.prototype.workers = function () {
-                    return 1;
+                HeapRelation.prototype.unsafe_get = function (index) {
+                    return this._back[index];
                 };
-                return TrampolineScheduler;
+                HeapRelation.prototype.addNode = function (node) {
+                    return this.add(node.id());
+                };
+                HeapRelation.prototype.add = function (newValue) {
+                    {
+                        if (this._back == null) {
+                            this.aligned = true;
+                            this._back = new Float64Array(greycat.Constants.MAP_INITIAL_CAPACITY);
+                            this._back[0] = newValue;
+                            this._size = 1;
+                        }
+                        else if (this._size == this._back.length) {
+                            var ex_back = new Float64Array(this._back.length * 2);
+                            java.lang.System.arraycopy(this._back, 0, ex_back, 0, this._size);
+                            this._back = ex_back;
+                            this._back[this._size] = newValue;
+                            this.aligned = true;
+                            this._size++;
+                        }
+                        else {
+                            if (!this.aligned) {
+                                var temp_back = new Float64Array(this._back.length);
+                                java.lang.System.arraycopy(this._back, 0, temp_back, 0, this._back.length);
+                                this._back = temp_back;
+                                this.aligned = true;
+                            }
+                            this._back[this._size] = newValue;
+                            this._size++;
+                        }
+                        this.parent.declareDirty();
+                    }
+                    return this;
+                };
+                HeapRelation.prototype.addAll = function (newValues) {
+                    {
+                        var nextSize = newValues.length + this._size;
+                        var closePowerOfTwo = Math.pow(2, Math.ceil(Math.log(nextSize) / Math.log(2)));
+                        this.allocate(closePowerOfTwo);
+                        java.lang.System.arraycopy(newValues, 0, this._back, this._size, newValues.length);
+                        this.parent.declareDirty();
+                    }
+                    return this;
+                };
+                HeapRelation.prototype.insert = function (targetIndex, newValue) {
+                    {
+                        if (this._back == null) {
+                            if (targetIndex != 0) {
+                                throw new Error("Bad API usage ! index out of bounds: " + targetIndex);
+                            }
+                            this._back = new Float64Array(greycat.Constants.MAP_INITIAL_CAPACITY);
+                            this._back[0] = newValue;
+                            this._size = 1;
+                            this.aligned = true;
+                        }
+                        else if (this._size == this._back.length) {
+                            if (targetIndex > this._size) {
+                                throw new Error("Bad API usage ! index out of bounds: " + targetIndex);
+                            }
+                            var ex_back = new Float64Array(this._back.length * 2);
+                            if (this._size == targetIndex) {
+                                java.lang.System.arraycopy(this._back, 0, ex_back, 0, this._size);
+                                this._back = ex_back;
+                                this._back[this._size] = newValue;
+                                this._size++;
+                            }
+                            else {
+                                java.lang.System.arraycopy(this._back, 0, ex_back, 0, targetIndex);
+                                ex_back[targetIndex] = newValue;
+                                java.lang.System.arraycopy(this._back, targetIndex, ex_back, targetIndex + 1, (this._size - targetIndex));
+                                this._back = ex_back;
+                                this._size++;
+                            }
+                            this.aligned = true;
+                        }
+                        else {
+                            if (targetIndex > this._size) {
+                                throw new Error("Bad API usage ! index out of bounds: " + targetIndex);
+                            }
+                            if (!this.aligned) {
+                                var temp_back = new Float64Array(this._back.length);
+                                java.lang.System.arraycopy(this._back, 0, temp_back, 0, this._back.length);
+                                this._back = temp_back;
+                                this.aligned = true;
+                            }
+                            var afterIndexSize = this._size - targetIndex;
+                            var temp = new Float64Array(afterIndexSize);
+                            java.lang.System.arraycopy(this._back, targetIndex, temp, 0, afterIndexSize);
+                            this._back[targetIndex] = newValue;
+                            java.lang.System.arraycopy(temp, 0, this._back, targetIndex + 1, afterIndexSize);
+                            this._size++;
+                        }
+                        this.parent.declareDirty();
+                    }
+                    return this;
+                };
+                HeapRelation.prototype.remove = function (oldValue) {
+                    {
+                        var indexToRemove = -1;
+                        for (var i = 0; i < this._size; i++) {
+                            if (this._back[i] == oldValue) {
+                                indexToRemove = i;
+                                break;
+                            }
+                        }
+                        if (indexToRemove != -1) {
+                            if (!this.aligned) {
+                                var temp_back = new Float64Array(this._back.length);
+                                java.lang.System.arraycopy(this._back, 0, temp_back, 0, this._back.length);
+                                this._back = temp_back;
+                                this.aligned = true;
+                            }
+                            java.lang.System.arraycopy(this._back, indexToRemove + 1, this._back, indexToRemove, this._size - indexToRemove - 1);
+                            this._size--;
+                        }
+                    }
+                    return this;
+                };
+                HeapRelation.prototype.delete = function (toRemoveIndex) {
+                    {
+                        if (toRemoveIndex != -1) {
+                            if (!this.aligned) {
+                                var temp_back = new Float64Array(this._back.length);
+                                java.lang.System.arraycopy(this._back, 0, temp_back, 0, this._back.length);
+                                this._back = temp_back;
+                                this.aligned = true;
+                            }
+                            java.lang.System.arraycopy(this._back, toRemoveIndex + 1, this._back, toRemoveIndex, this._size - toRemoveIndex - 1);
+                            this._size--;
+                        }
+                    }
+                    return this;
+                };
+                HeapRelation.prototype.clear = function () {
+                    {
+                        this._size = 0;
+                    }
+                    return this;
+                };
+                HeapRelation.prototype.toString = function () {
+                    var buffer = new java.lang.StringBuilder();
+                    buffer.append("[");
+                    for (var i = 0; i < this._size; i++) {
+                        if (i != 0) {
+                            buffer.append(",");
+                        }
+                        buffer.append(this._back[i]);
+                    }
+                    buffer.append("]");
+                    return buffer.toString();
+                };
+                HeapRelation.prototype.load = function (buffer, offset, max) {
+                    var cursor = offset;
+                    var current = buffer.read(cursor);
+                    var isFirst = true;
+                    var previous = offset;
+                    while (cursor < max && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
+                        if (current == greycat.Constants.CHUNK_VAL_SEP) {
+                            if (isFirst) {
+                                this.allocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                isFirst = false;
+                            }
+                            else {
+                                this.add(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                            }
+                            previous = cursor + 1;
+                        }
+                        cursor++;
+                        if (cursor < max) {
+                            current = buffer.read(cursor);
+                        }
+                    }
+                    if (isFirst) {
+                        this.allocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                    }
+                    else {
+                        this.add(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    }
+                    return cursor;
+                };
+                return HeapRelation;
             }());
-            scheduler.TrampolineScheduler = TrampolineScheduler;
-        })(scheduler = internal.scheduler || (internal.scheduler = {}));
+            heap.HeapRelation = HeapRelation;
+            var HeapRelationIndexed = (function (_super) {
+                __extends(HeapRelationIndexed, _super);
+                function HeapRelationIndexed(p_listener, graph) {
+                    var _this = _super.call(this, p_listener) || this;
+                    _this._graph = graph;
+                    return _this;
+                }
+                HeapRelationIndexed.prototype.add = function (node) {
+                    var attributeNames = [];
+                    for (var _i = 1; _i < arguments.length; _i++) {
+                        attributeNames[_i - 1] = arguments[_i];
+                    }
+                    this.internal_add_remove.apply(this, [true, node].concat(attributeNames));
+                    return this;
+                };
+                HeapRelationIndexed.prototype.remove = function (node) {
+                    var attributeNames = [];
+                    for (var _i = 1; _i < arguments.length; _i++) {
+                        attributeNames[_i - 1] = arguments[_i];
+                    }
+                    this.internal_add_remove.apply(this, [false, node].concat(attributeNames));
+                    return this;
+                };
+                HeapRelationIndexed.prototype.internal_add_remove = function (isIndex, node) {
+                    var attributeNames = [];
+                    for (var _i = 2; _i < arguments.length; _i++) {
+                        attributeNames[_i - 2] = arguments[_i];
+                    }
+                    var flatQuery = node.graph().newQuery();
+                    var toIndexNodeState = node.graph().resolver().resolveState(node);
+                    for (var i = 0; i < attributeNames.length; i++) {
+                        var attKey = attributeNames[i];
+                        var attValue = toIndexNodeState.getFromKey(attKey);
+                        if (attValue != null) {
+                            flatQuery.add(attKey, attValue.toString());
+                        }
+                        else {
+                            flatQuery.add(attKey, null);
+                        }
+                    }
+                    if (isIndex) {
+                        this.put(flatQuery.hash(), node.id());
+                    }
+                    else {
+                        this.delete(flatQuery.hash(), node.id());
+                    }
+                };
+                HeapRelationIndexed.prototype.clear = function () {
+                    return this;
+                };
+                HeapRelationIndexed.prototype.find = function (callback, world, time) {
+                    var params = [];
+                    for (var _i = 3; _i < arguments.length; _i++) {
+                        params[_i - 3] = arguments[_i];
+                    }
+                    var queryObj = this._graph.newQuery();
+                    queryObj.setWorld(world);
+                    queryObj.setTime(time);
+                    var previous = null;
+                    for (var i = 0; i < params.length; i++) {
+                        if (previous != null) {
+                            queryObj.add(previous, params[i]);
+                            previous = null;
+                        }
+                        else {
+                            previous = params[i];
+                        }
+                    }
+                    this.findByQuery(queryObj, callback);
+                };
+                HeapRelationIndexed.prototype.findByQuery = function (query, callback) {
+                    var _this = this;
+                    var foundIds = this.get(query.hash());
+                    if (foundIds == null) {
+                        callback(new Array(0));
+                    }
+                    else {
+                        this._graph.resolver().lookupAll(query.world(), query.time(), foundIds, function (resolved) {
+                            {
+                                var resultSet = new Array(foundIds.length);
+                                var resultSetIndex = 0;
+                                for (var i = 0; i < resultSet.length; i++) {
+                                    var resolvedNode = resolved[i];
+                                    if (resolvedNode != null) {
+                                        var resolvedState = _this._graph.resolver().resolveState(resolvedNode);
+                                        var exact = true;
+                                        for (var j = 0; j < query.attributes().length; j++) {
+                                            var obj = resolvedState.get(query.attributes()[j]);
+                                            if (query.values()[j] == null) {
+                                                if (obj != null) {
+                                                    exact = false;
+                                                    break;
+                                                }
+                                            }
+                                            else {
+                                                if (obj == null) {
+                                                    exact = false;
+                                                    break;
+                                                }
+                                                else {
+                                                    if (obj instanceof Float64Array) {
+                                                        if (query.values()[j] instanceof Float64Array) {
+                                                            if (!greycat.Constants.longArrayEquals(query.values()[j], obj)) {
+                                                                exact = false;
+                                                                break;
+                                                            }
+                                                        }
+                                                        else {
+                                                            exact = false;
+                                                            break;
+                                                        }
+                                                    }
+                                                    else {
+                                                        if (!greycat.Constants.equals(query.values()[j].toString(), obj.toString())) {
+                                                            exact = false;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (exact) {
+                                            resultSet[resultSetIndex] = resolvedNode;
+                                            resultSetIndex++;
+                                        }
+                                    }
+                                }
+                                if (resultSet.length == resultSetIndex) {
+                                    callback(resultSet);
+                                }
+                                else {
+                                    var trimmedResultSet = new Array(resultSetIndex);
+                                    java.lang.System.arraycopy(resultSet, 0, trimmedResultSet, 0, resultSetIndex);
+                                    callback(trimmedResultSet);
+                                }
+                            }
+                        });
+                    }
+                };
+                HeapRelationIndexed.prototype.all = function () {
+                    var flat = new Float64Array(this.size());
+                    var i = new Int32Array([0]);
+                    this.each(function (key, value) {
+                        {
+                            flat[i[0]] = value;
+                            i[0]++;
+                        }
+                    });
+                    return flat;
+                };
+                HeapRelationIndexed.prototype.cloneIRelFor = function (newParent, graph) {
+                    var cloned = new greycat.internal.heap.HeapRelationIndexed(newParent, graph);
+                    cloned.mapSize = this.mapSize;
+                    cloned.capacity = this.capacity;
+                    if (this.keys != null) {
+                        var cloned_keys = new Float64Array(this.capacity);
+                        java.lang.System.arraycopy(this.keys, 0, cloned_keys, 0, this.capacity);
+                        cloned.keys = cloned_keys;
+                    }
+                    if (this.values != null) {
+                        var cloned_values = new Float64Array(this.capacity);
+                        java.lang.System.arraycopy(this.values, 0, cloned_values, 0, this.capacity);
+                        cloned.values = cloned_values;
+                    }
+                    if (this.nexts != null) {
+                        var cloned_nexts = new Int32Array(this.capacity);
+                        java.lang.System.arraycopy(this.nexts, 0, cloned_nexts, 0, this.capacity);
+                        cloned.nexts = cloned_nexts;
+                    }
+                    if (this.hashs != null) {
+                        var cloned_hashs = new Int32Array(this.capacity * 2);
+                        java.lang.System.arraycopy(this.hashs, 0, cloned_hashs, 0, this.capacity * 2);
+                        cloned.hashs = cloned_hashs;
+                    }
+                    return cloned;
+                };
+                return HeapRelationIndexed;
+            }(greycat.internal.heap.HeapLongLongArrayMap));
+            heap.HeapRelationIndexed = HeapRelationIndexed;
+            var HeapStateChunk = (function () {
+                function HeapStateChunk(p_space, p_index) {
+                    this._space = p_space;
+                    this._index = p_index;
+                    this.next_and_hash = null;
+                    this._type = null;
+                    this._size = 0;
+                    this._capacity = 0;
+                    this._dirty = false;
+                }
+                HeapStateChunk.prototype.graph = function () {
+                    return this._space.graph();
+                };
+                HeapStateChunk.prototype.world = function () {
+                    return this._space.worldByIndex(this._index);
+                };
+                HeapStateChunk.prototype.time = function () {
+                    return this._space.timeByIndex(this._index);
+                };
+                HeapStateChunk.prototype.id = function () {
+                    return this._space.idByIndex(this._index);
+                };
+                HeapStateChunk.prototype.chunkType = function () {
+                    return greycat.chunk.ChunkType.STATE_CHUNK;
+                };
+                HeapStateChunk.prototype.index = function () {
+                    return this._index;
+                };
+                HeapStateChunk.prototype.get = function (p_key) {
+                    return this.internal_get(p_key);
+                };
+                HeapStateChunk.prototype.internal_find = function (p_key) {
+                    if (this._size == 0) {
+                        return -1;
+                    }
+                    else if (this.next_and_hash == null) {
+                        for (var i = 0; i < this._size; i++) {
+                            if (this._k[i] == p_key) {
+                                return i;
+                            }
+                        }
+                        return -1;
+                    }
+                    else {
+                        var hashIndex = p_key % (this._capacity * 2);
+                        if (hashIndex < 0) {
+                            hashIndex = hashIndex * -1;
+                        }
+                        var m = this.next_and_hash[this._capacity + hashIndex];
+                        while (m >= 0) {
+                            if (p_key == this._k[m]) {
+                                return m;
+                            }
+                            else {
+                                m = this.next_and_hash[m];
+                            }
+                        }
+                        return -1;
+                    }
+                };
+                HeapStateChunk.prototype.internal_get = function (p_key) {
+                    if (this._size == 0) {
+                        return null;
+                    }
+                    var found = this.internal_find(p_key);
+                    var result;
+                    if (found != -1) {
+                        result = this._v[found];
+                        if (result != null) {
+                            switch (this._type[found]) {
+                                case greycat.Type.DOUBLE_ARRAY:
+                                    var castedResultD = result;
+                                    var copyD = new Float64Array(castedResultD.length);
+                                    java.lang.System.arraycopy(castedResultD, 0, copyD, 0, castedResultD.length);
+                                    return copyD;
+                                case greycat.Type.LONG_ARRAY:
+                                    var castedResultL = result;
+                                    var copyL = new Float64Array(castedResultL.length);
+                                    java.lang.System.arraycopy(castedResultL, 0, copyL, 0, castedResultL.length);
+                                    return copyL;
+                                case greycat.Type.INT_ARRAY:
+                                    var castedResultI = result;
+                                    var copyI = new Int32Array(castedResultI.length);
+                                    java.lang.System.arraycopy(castedResultI, 0, copyI, 0, castedResultI.length);
+                                    return copyI;
+                                default:
+                                    return result;
+                            }
+                        }
+                    }
+                    return null;
+                };
+                HeapStateChunk.prototype.set = function (p_elementIndex, p_elemType, p_unsafe_elem) {
+                    if (p_unsafe_elem != null) {
+                        if (p_elemType == Type.STRING) {
+                            if (!(typeof p_unsafe_elem === 'string')) {
+                                throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
+                            }
+                        }
+                        if (p_elemType == Type.BOOL) {
+                            if (!(typeof p_unsafe_elem === 'boolean')) {
+                                throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
+                            }
+                        }
+                        if (p_elemType == Type.DOUBLE || p_elemType == Type.LONG || p_elemType == Type.INT) {
+                            if (!(typeof p_unsafe_elem === 'number')) {
+                                throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
+                            }
+                        }
+                        if (p_elemType == Type.DOUBLE_ARRAY) {
+                            if (!(p_unsafe_elem instanceof Float64Array)) {
+                                throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
+                            }
+                        }
+                        if (p_elemType == Type.LONG_ARRAY) {
+                            if (!(p_unsafe_elem instanceof Float64Array)) {
+                                throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
+                            }
+                        }
+                        if (p_elemType == Type.INT_ARRAY) {
+                            if (!(p_unsafe_elem instanceof Int32Array)) {
+                                throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
+                            }
+                        }
+                        if (p_elemType == Type.STRING_TO_INT_MAP) {
+                            if (!(typeof p_unsafe_elem === 'object')) {
+                                throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
+                            }
+                        }
+                        if (p_elemType == Type.LONG_TO_LONG_MAP) {
+                            if (!(typeof p_unsafe_elem === 'boolean')) {
+                                throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
+                            }
+                        }
+                        if (p_elemType == Type.LONG_TO_LONG_ARRAY_MAP) {
+                            if (!(typeof p_unsafe_elem === 'boolean')) {
+                                throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem);
+                            }
+                        }
+                    }
+                    this.internal_set(p_elementIndex, p_elemType, p_unsafe_elem, true, false);
+                };
+                HeapStateChunk.prototype.setFromKey = function (key, p_elemType, p_unsafe_elem) {
+                    this.internal_set(this._space.graph().resolver().stringToHash(key, true), p_elemType, p_unsafe_elem, true, false);
+                };
+                HeapStateChunk.prototype.getFromKey = function (key) {
+                    return this.internal_get(this._space.graph().resolver().stringToHash(key, false));
+                };
+                HeapStateChunk.prototype.getFromKeyWithDefault = function (key, defaultValue) {
+                    var result = this.getFromKey(key);
+                    if (result == null) {
+                        return defaultValue;
+                    }
+                    else {
+                        return result;
+                    }
+                };
+                HeapStateChunk.prototype.getWithDefault = function (key, defaultValue) {
+                    var result = this.get(key);
+                    if (result == null) {
+                        return defaultValue;
+                    }
+                    else {
+                        return result;
+                    }
+                };
+                HeapStateChunk.prototype.getType = function (p_key) {
+                    var found_index = this.internal_find(p_key);
+                    if (found_index != -1) {
+                        return this._type[found_index];
+                    }
+                    else {
+                        return -1;
+                    }
+                };
+                HeapStateChunk.prototype.getTypeFromKey = function (key) {
+                    return this.getType(this._space.graph().resolver().stringToHash(key, false));
+                };
+                HeapStateChunk.prototype.getOrCreate = function (p_key, p_type) {
+                    var found = this.internal_find(p_key);
+                    if (found != -1) {
+                        if (this._type[found] == p_type) {
+                            return this._v[found];
+                        }
+                    }
+                    var toSet = null;
+                    switch (p_type) {
+                        case greycat.Type.RELATION:
+                            toSet = new greycat.internal.heap.HeapRelation(this, null);
+                            break;
+                        case greycat.Type.RELATION_INDEXED:
+                            toSet = new greycat.internal.heap.HeapRelationIndexed(this, this._space.graph());
+                            break;
+                        case greycat.Type.DMATRIX:
+                            toSet = new greycat.internal.heap.HeapDMatrix(this, null);
+                            break;
+                        case greycat.Type.LMATRIX:
+                            toSet = new greycat.internal.heap.HeapLMatrix(this, null);
+                            break;
+                        case greycat.Type.EGRAPH:
+                            toSet = new greycat.internal.heap.HeapEGraph(this, null, this._space.graph());
+                            break;
+                        case greycat.Type.STRING_TO_INT_MAP:
+                            toSet = new greycat.internal.heap.HeapStringIntMap(this);
+                            break;
+                        case greycat.Type.LONG_TO_LONG_MAP:
+                            toSet = new greycat.internal.heap.HeapLongLongMap(this);
+                            break;
+                        case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
+                            toSet = new greycat.internal.heap.HeapLongLongArrayMap(this);
+                            break;
+                    }
+                    this.internal_set(p_key, p_type, toSet, true, false);
+                    return toSet;
+                };
+                HeapStateChunk.prototype.getOrCreateFromKey = function (key, elemType) {
+                    return this.getOrCreate(this._space.graph().resolver().stringToHash(key, true), elemType);
+                };
+                HeapStateChunk.prototype.declareDirty = function () {
+                    if (this._space != null && !this._dirty) {
+                        this._dirty = true;
+                        this._space.notifyUpdate(this._index);
+                    }
+                };
+                HeapStateChunk.prototype.save = function (buffer) {
+                    greycat.utility.Base64.encodeIntToBuffer(this._size, buffer);
+                    for (var i = 0; i < this._size; i++) {
+                        var loopValue = this._v[i];
+                        if (loopValue != null) {
+                            buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
+                            greycat.utility.Base64.encodeIntToBuffer(this._type[i], buffer);
+                            buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
+                            greycat.utility.Base64.encodeIntToBuffer(this._k[i], buffer);
+                            buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
+                            switch (this._type[i]) {
+                                case greycat.Type.STRING:
+                                    greycat.utility.Base64.encodeStringToBuffer(loopValue, buffer);
+                                    break;
+                                case greycat.Type.BOOL:
+                                    if (this._v[i]) {
+                                        greycat.utility.Base64.encodeIntToBuffer(greycat.internal.CoreConstants.BOOL_TRUE, buffer);
+                                    }
+                                    else {
+                                        greycat.utility.Base64.encodeIntToBuffer(greycat.internal.CoreConstants.BOOL_FALSE, buffer);
+                                    }
+                                    break;
+                                case greycat.Type.LONG:
+                                    greycat.utility.Base64.encodeLongToBuffer(loopValue, buffer);
+                                    break;
+                                case greycat.Type.DOUBLE:
+                                    greycat.utility.Base64.encodeDoubleToBuffer(loopValue, buffer);
+                                    break;
+                                case greycat.Type.INT:
+                                    greycat.utility.Base64.encodeIntToBuffer(loopValue, buffer);
+                                    break;
+                                case greycat.Type.DOUBLE_ARRAY:
+                                    var castedDoubleArr = loopValue;
+                                    greycat.utility.Base64.encodeIntToBuffer(castedDoubleArr.length, buffer);
+                                    for (var j = 0; j < castedDoubleArr.length; j++) {
+                                        buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                        greycat.utility.Base64.encodeDoubleToBuffer(castedDoubleArr[j], buffer);
+                                    }
+                                    break;
+                                case greycat.Type.LONG_ARRAY:
+                                    var castedLongArr = loopValue;
+                                    greycat.utility.Base64.encodeIntToBuffer(castedLongArr.length, buffer);
+                                    for (var j = 0; j < castedLongArr.length; j++) {
+                                        buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                        greycat.utility.Base64.encodeLongToBuffer(castedLongArr[j], buffer);
+                                    }
+                                    break;
+                                case greycat.Type.INT_ARRAY:
+                                    var castedIntArr = loopValue;
+                                    greycat.utility.Base64.encodeIntToBuffer(castedIntArr.length, buffer);
+                                    for (var j = 0; j < castedIntArr.length; j++) {
+                                        buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                        greycat.utility.Base64.encodeIntToBuffer(castedIntArr[j], buffer);
+                                    }
+                                    break;
+                                case greycat.Type.RELATION:
+                                    var castedLongArrRel = loopValue;
+                                    greycat.utility.Base64.encodeIntToBuffer(castedLongArrRel.size(), buffer);
+                                    for (var j = 0; j < castedLongArrRel.size(); j++) {
+                                        buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                        greycat.utility.Base64.encodeLongToBuffer(castedLongArrRel.unsafe_get(j), buffer);
+                                    }
+                                    break;
+                                case greycat.Type.DMATRIX:
+                                    var castedMatrix = loopValue;
+                                    var unsafeContent = castedMatrix.unsafe_data();
+                                    if (unsafeContent != null) {
+                                        greycat.utility.Base64.encodeIntToBuffer(unsafeContent.length, buffer);
+                                        for (var j = 0; j < unsafeContent.length; j++) {
+                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                            greycat.utility.Base64.encodeDoubleToBuffer(unsafeContent[j], buffer);
+                                        }
+                                    }
+                                    break;
+                                case greycat.Type.LMATRIX:
+                                    var castedLMatrix = loopValue;
+                                    var unsafeLContent = castedLMatrix.unsafe_data();
+                                    if (unsafeLContent != null) {
+                                        greycat.utility.Base64.encodeIntToBuffer(unsafeLContent.length, buffer);
+                                        for (var j = 0; j < unsafeLContent.length; j++) {
+                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                            greycat.utility.Base64.encodeLongToBuffer(unsafeLContent[j], buffer);
+                                        }
+                                    }
+                                    break;
+                                case greycat.Type.STRING_TO_INT_MAP:
+                                    var castedStringLongMap = loopValue;
+                                    greycat.utility.Base64.encodeIntToBuffer(castedStringLongMap.size(), buffer);
+                                    castedStringLongMap.unsafe_each(function (key, value) {
+                                        {
+                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                            greycat.utility.Base64.encodeStringToBuffer(key, buffer);
+                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                            greycat.utility.Base64.encodeLongToBuffer(value, buffer);
+                                        }
+                                    });
+                                    break;
+                                case greycat.Type.LONG_TO_LONG_MAP:
+                                    var castedLongLongMap = loopValue;
+                                    greycat.utility.Base64.encodeIntToBuffer(castedLongLongMap.size(), buffer);
+                                    castedLongLongMap.unsafe_each(function (key, value) {
+                                        {
+                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                            greycat.utility.Base64.encodeLongToBuffer(key, buffer);
+                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                            greycat.utility.Base64.encodeLongToBuffer(value, buffer);
+                                        }
+                                    });
+                                    break;
+                                case greycat.Type.RELATION_INDEXED:
+                                case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
+                                    var castedLongLongArrayMap = loopValue;
+                                    greycat.utility.Base64.encodeIntToBuffer(castedLongLongArrayMap.size(), buffer);
+                                    castedLongLongArrayMap.unsafe_each(function (key, value) {
+                                        {
+                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                            greycat.utility.Base64.encodeLongToBuffer(key, buffer);
+                                            buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                            greycat.utility.Base64.encodeLongToBuffer(value, buffer);
+                                        }
+                                    });
+                                    break;
+                                case greycat.Type.EGRAPH:
+                                    var castedEGraph = loopValue;
+                                    var eNodes = castedEGraph._nodes;
+                                    var eGSize = castedEGraph.size();
+                                    greycat.utility.Base64.encodeIntToBuffer(eGSize, buffer);
+                                    for (var j = 0; j < eGSize; j++) {
+                                        buffer.write(greycat.internal.CoreConstants.CHUNK_ENODE_SEP);
+                                        eNodes[j].save(buffer);
+                                    }
+                                    castedEGraph._dirty = false;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                    this._dirty = false;
+                };
+                HeapStateChunk.prototype.saveDiff = function (buffer) { };
+                HeapStateChunk.prototype.each = function (callBack) {
+                    for (var i = 0; i < this._size; i++) {
+                        if (this._v[i] != null) {
+                            callBack(this._k[i], this._type[i], this._v[i]);
+                        }
+                    }
+                };
+                HeapStateChunk.prototype.loadFrom = function (origin) {
+                    if (origin == null) {
+                        return;
+                    }
+                    var casted = origin;
+                    this._capacity = casted._capacity;
+                    this._size = casted._size;
+                    if (casted._k != null) {
+                        var cloned_k = new Int32Array(this._capacity);
+                        java.lang.System.arraycopy(casted._k, 0, cloned_k, 0, this._capacity);
+                        this._k = cloned_k;
+                    }
+                    if (casted._type != null) {
+                        var cloned_type = new Int8Array(this._capacity);
+                        java.lang.System.arraycopy(casted._type, 0, cloned_type, 0, this._capacity);
+                        this._type = cloned_type;
+                    }
+                    if (casted.next_and_hash != null) {
+                        var cloned_hash = new Int32Array(this._capacity * 3);
+                        java.lang.System.arraycopy(casted.next_and_hash, 0, cloned_hash, 0, this._capacity * 3);
+                        this.next_and_hash = cloned_hash;
+                    }
+                    if (casted._v != null) {
+                        this._v = new Array(this._capacity);
+                        for (var i = 0; i < this._size; i++) {
+                            switch (casted._type[i]) {
+                                case greycat.Type.LONG_TO_LONG_MAP:
+                                    if (casted._v[i] != null) {
+                                        this._v[i] = casted._v[i].cloneFor(this);
+                                    }
+                                    break;
+                                case greycat.Type.RELATION_INDEXED:
+                                    if (casted._v[i] != null) {
+                                        this._v[i] = casted._v[i].cloneIRelFor(this, casted.graph());
+                                    }
+                                    break;
+                                case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
+                                    if (casted._v[i] != null) {
+                                        this._v[i] = casted._v[i].cloneFor(this);
+                                    }
+                                    break;
+                                case greycat.Type.STRING_TO_INT_MAP:
+                                    if (casted._v[i] != null) {
+                                        this._v[i] = casted._v[i].cloneFor(this);
+                                    }
+                                    break;
+                                case greycat.Type.RELATION:
+                                    if (casted._v[i] != null) {
+                                        this._v[i] = new greycat.internal.heap.HeapRelation(this, casted._v[i]);
+                                    }
+                                    break;
+                                case greycat.Type.DMATRIX:
+                                    if (casted._v[i] != null) {
+                                        this._v[i] = new greycat.internal.heap.HeapDMatrix(this, casted._v[i]);
+                                    }
+                                    break;
+                                case greycat.Type.LMATRIX:
+                                    if (casted._v[i] != null) {
+                                        this._v[i] = new greycat.internal.heap.HeapLMatrix(this, casted._v[i]);
+                                    }
+                                    break;
+                                case greycat.Type.EGRAPH:
+                                    if (casted._v[i] != null) {
+                                        this._v[i] = new greycat.internal.heap.HeapEGraph(this, casted._v[i], this._space.graph());
+                                    }
+                                    break;
+                                default:
+                                    this._v[i] = casted._v[i];
+                                    break;
+                            }
+                        }
+                    }
+                };
+                HeapStateChunk.prototype.internal_set = function (p_key, p_type, p_unsafe_elem, replaceIfPresent, initial) {
+                    var param_elem = null;
+                    if (p_unsafe_elem != null) {
+                        try {
+                            switch (p_type) {
+                                case greycat.Type.BOOL:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.INT:
+                                    if (p_unsafe_elem instanceof Number) {
+                                        param_elem = p_unsafe_elem;
+                                    }
+                                    else if (p_unsafe_elem instanceof Number) {
+                                        var preCasting = p_unsafe_elem;
+                                        param_elem = preCasting;
+                                    }
+                                    else if (p_unsafe_elem instanceof Number) {
+                                        var preCastingLong = p_unsafe_elem;
+                                        param_elem = preCastingLong;
+                                    }
+                                    else if (p_unsafe_elem instanceof Number) {
+                                        var preCastingLong = p_unsafe_elem;
+                                        param_elem = preCastingLong;
+                                    }
+                                    else if (p_unsafe_elem instanceof Number) {
+                                        var preCastingLong = p_unsafe_elem;
+                                        param_elem = preCastingLong;
+                                    }
+                                    else {
+                                        param_elem = p_unsafe_elem;
+                                    }
+                                    break;
+                                case greycat.Type.DOUBLE:
+                                    if (p_unsafe_elem instanceof Number) {
+                                        param_elem = p_unsafe_elem;
+                                    }
+                                    else if (p_unsafe_elem instanceof Number) {
+                                        var preCasting = p_unsafe_elem;
+                                        param_elem = preCasting;
+                                    }
+                                    else if (p_unsafe_elem instanceof Number) {
+                                        var preCastingLong = p_unsafe_elem;
+                                        param_elem = preCastingLong;
+                                    }
+                                    else if (p_unsafe_elem instanceof Number) {
+                                        var preCastingLong = p_unsafe_elem;
+                                        param_elem = preCastingLong;
+                                    }
+                                    else if (p_unsafe_elem instanceof Number) {
+                                        var preCastingLong = p_unsafe_elem;
+                                        param_elem = preCastingLong;
+                                    }
+                                    else {
+                                        param_elem = p_unsafe_elem;
+                                    }
+                                    break;
+                                case greycat.Type.LONG:
+                                    if (p_unsafe_elem instanceof Number) {
+                                        param_elem = p_unsafe_elem;
+                                    }
+                                    else if (p_unsafe_elem instanceof Number) {
+                                        var preCasting = p_unsafe_elem;
+                                        param_elem = preCasting;
+                                    }
+                                    else if (p_unsafe_elem instanceof Number) {
+                                        var preCastingLong = p_unsafe_elem;
+                                        param_elem = preCastingLong;
+                                    }
+                                    else if (p_unsafe_elem instanceof Number) {
+                                        var preCastingLong = p_unsafe_elem;
+                                        param_elem = preCastingLong;
+                                    }
+                                    else if (p_unsafe_elem instanceof Number) {
+                                        var preCastingLong = p_unsafe_elem;
+                                        param_elem = preCastingLong;
+                                    }
+                                    else {
+                                        param_elem = p_unsafe_elem;
+                                    }
+                                    break;
+                                case greycat.Type.STRING:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.DMATRIX:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.LMATRIX:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.RELATION:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.DOUBLE_ARRAY:
+                                    var castedParamDouble = p_unsafe_elem;
+                                    var clonedDoubleArray = new Float64Array(castedParamDouble.length);
+                                    java.lang.System.arraycopy(castedParamDouble, 0, clonedDoubleArray, 0, castedParamDouble.length);
+                                    param_elem = clonedDoubleArray;
+                                    break;
+                                case greycat.Type.LONG_ARRAY:
+                                    var castedParamLong = p_unsafe_elem;
+                                    var clonedLongArray = new Float64Array(castedParamLong.length);
+                                    java.lang.System.arraycopy(castedParamLong, 0, clonedLongArray, 0, castedParamLong.length);
+                                    param_elem = clonedLongArray;
+                                    break;
+                                case greycat.Type.INT_ARRAY:
+                                    var castedParamInt = p_unsafe_elem;
+                                    var clonedIntArray = new Int32Array(castedParamInt.length);
+                                    java.lang.System.arraycopy(castedParamInt, 0, clonedIntArray, 0, castedParamInt.length);
+                                    param_elem = clonedIntArray;
+                                    break;
+                                case greycat.Type.STRING_TO_INT_MAP:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.LONG_TO_LONG_MAP:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.RELATION_INDEXED:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                case greycat.Type.EGRAPH:
+                                    param_elem = p_unsafe_elem;
+                                    break;
+                                default:
+                                    throw new Error("Internal Exception, unknown type");
+                            }
+                        }
+                        catch ($ex$) {
+                            if ($ex$ instanceof Error) {
+                                var e = $ex$;
+                                {
+                                    throw new Error("mwDB usage error, set method called with type " + greycat.Type.typeName(p_type) + " while param object is " + p_unsafe_elem);
+                                }
+                            }
+                            else {
+                                throw $ex$;
+                            }
+                        }
+                    }
+                    if (this._k == null) {
+                        if (param_elem == null) {
+                            return;
+                        }
+                        this._capacity = greycat.Constants.MAP_INITIAL_CAPACITY;
+                        this._k = new Int32Array(this._capacity);
+                        this._v = new Array(this._capacity);
+                        this._type = new Int8Array(this._capacity);
+                        this._k[0] = p_key;
+                        this._v[0] = param_elem;
+                        this._type[0] = p_type;
+                        this._size = 1;
+                        if (!initial) {
+                            this.declareDirty();
+                        }
+                        return;
+                    }
+                    var entry = -1;
+                    var p_entry = -1;
+                    var hashIndex = -1;
+                    if (this.next_and_hash == null) {
+                        for (var i = 0; i < this._size; i++) {
+                            if (this._k[i] == p_key) {
+                                entry = i;
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        hashIndex = p_key % (this._capacity * 2);
+                        if (hashIndex < 0) {
+                            hashIndex = hashIndex * -1;
+                        }
+                        var m = this.next_and_hash[this._capacity + hashIndex];
+                        while (m != -1) {
+                            if (this._k[m] == p_key) {
+                                entry = m;
+                                break;
+                            }
+                            p_entry = m;
+                            m = this.next_and_hash[m];
+                        }
+                    }
+                    if (entry != -1) {
+                        if (replaceIfPresent || (p_type != this._type[entry])) {
+                            if (param_elem == null) {
+                                if (this.next_and_hash != null) {
+                                    if (p_entry != -1) {
+                                        this.next_and_hash[p_entry] = this.next_and_hash[entry];
+                                    }
+                                    else {
+                                        this.next_and_hash[this._capacity + hashIndex] = -1;
+                                    }
+                                }
+                                var indexVictim = this._size - 1;
+                                if (entry == indexVictim) {
+                                    this._k[entry] = -1;
+                                    this._v[entry] = null;
+                                    this._type[entry] = -1;
+                                }
+                                else {
+                                    this._k[entry] = this._k[indexVictim];
+                                    this._v[entry] = this._v[indexVictim];
+                                    this._type[entry] = this._type[indexVictim];
+                                    if (this.next_and_hash != null) {
+                                        this.next_and_hash[entry] = this.next_and_hash[indexVictim];
+                                        var victimHash = this._k[entry] % (this._capacity * 2);
+                                        if (victimHash < 0) {
+                                            victimHash = victimHash * -1;
+                                        }
+                                        var m = this.next_and_hash[this._capacity + victimHash];
+                                        if (m == indexVictim) {
+                                            this.next_and_hash[this._capacity + victimHash] = entry;
+                                        }
+                                        else {
+                                            while (m != -1) {
+                                                if (this.next_and_hash[m] == indexVictim) {
+                                                    this.next_and_hash[m] = entry;
+                                                    break;
+                                                }
+                                                m = this.next_and_hash[m];
+                                            }
+                                        }
+                                    }
+                                    this._k[indexVictim] = -1;
+                                    this._v[indexVictim] = null;
+                                    this._type[indexVictim] = -1;
+                                }
+                                this._size--;
+                            }
+                            else {
+                                this._v[entry] = param_elem;
+                                if (this._type[entry] != p_type) {
+                                    this._type[entry] = p_type;
+                                }
+                            }
+                        }
+                        if (!initial) {
+                            this.declareDirty();
+                        }
+                        return;
+                    }
+                    if (this._size < this._capacity) {
+                        this._k[this._size] = p_key;
+                        this._v[this._size] = param_elem;
+                        this._type[this._size] = p_type;
+                        if (this.next_and_hash != null) {
+                            this.next_and_hash[this._size] = this.next_and_hash[this._capacity + hashIndex];
+                            this.next_and_hash[this._capacity + hashIndex] = this._size;
+                        }
+                        this._size++;
+                        this.declareDirty();
+                        return;
+                    }
+                    var newCapacity = this._capacity * 2;
+                    var ex_k = new Int32Array(newCapacity);
+                    java.lang.System.arraycopy(this._k, 0, ex_k, 0, this._capacity);
+                    this._k = ex_k;
+                    var ex_v = new Array(newCapacity);
+                    java.lang.System.arraycopy(this._v, 0, ex_v, 0, this._capacity);
+                    this._v = ex_v;
+                    var ex_type = new Int8Array(newCapacity);
+                    java.lang.System.arraycopy(this._type, 0, ex_type, 0, this._capacity);
+                    this._type = ex_type;
+                    this._capacity = newCapacity;
+                    this._k[this._size] = p_key;
+                    this._v[this._size] = param_elem;
+                    this._type[this._size] = p_type;
+                    this._size++;
+                    this.next_and_hash = new Int32Array(this._capacity * 3);
+                    java.util.Arrays.fill(this.next_and_hash, 0, this._capacity * 3, -1);
+                    var double_capacity = this._capacity * 2;
+                    for (var i = 0; i < this._size; i++) {
+                        var keyHash = this._k[i] % double_capacity;
+                        if (keyHash < 0) {
+                            keyHash = keyHash * -1;
+                        }
+                        this.next_and_hash[i] = this.next_and_hash[this._capacity + keyHash];
+                        this.next_and_hash[this._capacity + keyHash] = i;
+                    }
+                    if (!initial) {
+                        this.declareDirty();
+                    }
+                };
+                HeapStateChunk.prototype.allocate = function (newCapacity) {
+                    if (newCapacity <= this._capacity) {
+                        return;
+                    }
+                    var ex_k = new Int32Array(newCapacity);
+                    if (this._k != null) {
+                        java.lang.System.arraycopy(this._k, 0, ex_k, 0, this._capacity);
+                    }
+                    this._k = ex_k;
+                    var ex_v = new Array(newCapacity);
+                    if (this._v != null) {
+                        java.lang.System.arraycopy(this._v, 0, ex_v, 0, this._capacity);
+                    }
+                    this._v = ex_v;
+                    var ex_type = new Int8Array(newCapacity);
+                    if (this._type != null) {
+                        java.lang.System.arraycopy(this._type, 0, ex_type, 0, this._capacity);
+                    }
+                    this._type = ex_type;
+                    this._capacity = newCapacity;
+                    this.next_and_hash = new Int32Array(this._capacity * 3);
+                    java.util.Arrays.fill(this.next_and_hash, 0, this._capacity * 3, -1);
+                    for (var i = 0; i < this._size; i++) {
+                        var keyHash = this._k[i] % (this._capacity * 2);
+                        if (keyHash < 0) {
+                            keyHash = keyHash * -1;
+                        }
+                        this.next_and_hash[i] = this.next_and_hash[this._capacity + keyHash];
+                        this.next_and_hash[this._capacity + keyHash] = i;
+                    }
+                };
+                HeapStateChunk.prototype.load = function (buffer) {
+                    if (buffer != null && buffer.length() > 0) {
+                        var initial = this._k == null;
+                        var payloadSize = buffer.length();
+                        var previous = 0;
+                        var cursor = 0;
+                        var state = HeapStateChunk.LOAD_WAITING_ALLOC;
+                        var read_type = -1;
+                        var read_key = -1;
+                        while (cursor < payloadSize) {
+                            var current = buffer.read(cursor);
+                            if (current == greycat.Constants.CHUNK_SEP) {
+                                switch (state) {
+                                    case HeapStateChunk.LOAD_WAITING_ALLOC:
+                                        this.allocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                        break;
+                                    case HeapStateChunk.LOAD_WAITING_TYPE:
+                                        read_type = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                                        state = HeapStateChunk.LOAD_WAITING_KEY;
+                                        cursor++;
+                                        previous = cursor;
+                                        break;
+                                    case HeapStateChunk.LOAD_WAITING_KEY:
+                                        read_key = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                                        switch (read_type) {
+                                            case greycat.Type.BOOL:
+                                            case greycat.Type.INT:
+                                            case greycat.Type.DOUBLE:
+                                            case greycat.Type.LONG:
+                                            case greycat.Type.STRING:
+                                                state = HeapStateChunk.LOAD_WAITING_VALUE;
+                                                cursor++;
+                                                previous = cursor;
+                                                break;
+                                            case greycat.Type.DOUBLE_ARRAY:
+                                                var doubleArrayLoaded = null;
+                                                var doubleArrayIndex = 0;
+                                                cursor++;
+                                                previous = cursor;
+                                                current = buffer.read(cursor);
+                                                while (cursor < payloadSize && current != greycat.Constants.CHUNK_SEP) {
+                                                    if (current == greycat.Constants.CHUNK_VAL_SEP) {
+                                                        if (doubleArrayLoaded == null) {
+                                                            doubleArrayLoaded = new Float64Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                                        }
+                                                        else {
+                                                            doubleArrayLoaded[doubleArrayIndex] = greycat.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
+                                                            doubleArrayIndex++;
+                                                        }
+                                                        previous = cursor + 1;
+                                                    }
+                                                    cursor++;
+                                                    if (cursor < payloadSize) {
+                                                        current = buffer.read(cursor);
+                                                    }
+                                                }
+                                                if (doubleArrayLoaded == null) {
+                                                    doubleArrayLoaded = new Float64Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                                }
+                                                else {
+                                                    doubleArrayLoaded[doubleArrayIndex] = greycat.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
+                                                }
+                                                this.internal_set(read_key, read_type, doubleArrayLoaded, true, initial);
+                                                state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                                break;
+                                            case greycat.Type.LONG_ARRAY:
+                                                var longArrayLoaded = null;
+                                                var longArrayIndex = 0;
+                                                cursor++;
+                                                previous = cursor;
+                                                current = buffer.read(cursor);
+                                                while (cursor < payloadSize && current != greycat.Constants.CHUNK_SEP) {
+                                                    if (current == greycat.Constants.CHUNK_VAL_SEP) {
+                                                        if (longArrayLoaded == null) {
+                                                            longArrayLoaded = new Float64Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                                        }
+                                                        else {
+                                                            longArrayLoaded[longArrayIndex] = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                                            longArrayIndex++;
+                                                        }
+                                                        previous = cursor + 1;
+                                                    }
+                                                    cursor++;
+                                                    if (cursor < payloadSize) {
+                                                        current = buffer.read(cursor);
+                                                    }
+                                                }
+                                                if (longArrayLoaded == null) {
+                                                    longArrayLoaded = new Float64Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                                }
+                                                else {
+                                                    longArrayLoaded[longArrayIndex] = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                                }
+                                                this.internal_set(read_key, read_type, longArrayLoaded, true, initial);
+                                                state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                                break;
+                                            case greycat.Type.INT_ARRAY:
+                                                var intArrayLoaded = null;
+                                                var intArrayIndex = 0;
+                                                cursor++;
+                                                previous = cursor;
+                                                current = buffer.read(cursor);
+                                                while (cursor < payloadSize && current != greycat.Constants.CHUNK_SEP) {
+                                                    if (current == greycat.Constants.CHUNK_VAL_SEP) {
+                                                        if (intArrayLoaded == null) {
+                                                            intArrayLoaded = new Int32Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                                        }
+                                                        else {
+                                                            intArrayLoaded[intArrayIndex] = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                                                            intArrayIndex++;
+                                                        }
+                                                        previous = cursor + 1;
+                                                    }
+                                                    cursor++;
+                                                    if (cursor < payloadSize) {
+                                                        current = buffer.read(cursor);
+                                                    }
+                                                }
+                                                if (intArrayLoaded == null) {
+                                                    intArrayLoaded = new Int32Array(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                                                }
+                                                else {
+                                                    intArrayLoaded[intArrayIndex] = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                                                }
+                                                this.internal_set(read_key, read_type, intArrayLoaded, true, initial);
+                                                state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                                break;
+                                            case greycat.Type.RELATION:
+                                                var relation = new greycat.internal.heap.HeapRelation(this, null);
+                                                cursor++;
+                                                cursor = relation.load(buffer, cursor, payloadSize);
+                                                this.internal_set(read_key, read_type, relation, true, initial);
+                                                if (cursor < payloadSize) {
+                                                    current = buffer.read(cursor);
+                                                    if (current == greycat.Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                        cursor++;
+                                                        previous = cursor;
+                                                    }
+                                                }
+                                                break;
+                                            case greycat.Type.DMATRIX:
+                                                var matrix = new greycat.internal.heap.HeapDMatrix(this, null);
+                                                cursor++;
+                                                cursor = matrix.load(buffer, cursor, payloadSize);
+                                                this.internal_set(read_key, read_type, matrix, true, initial);
+                                                if (cursor < payloadSize) {
+                                                    current = buffer.read(cursor);
+                                                    if (current == greycat.Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                        cursor++;
+                                                        previous = cursor;
+                                                    }
+                                                }
+                                                break;
+                                            case greycat.Type.LMATRIX:
+                                                var lmatrix = new greycat.internal.heap.HeapLMatrix(this, null);
+                                                cursor++;
+                                                cursor = lmatrix.load(buffer, cursor, payloadSize);
+                                                this.internal_set(read_key, read_type, lmatrix, true, initial);
+                                                if (cursor < payloadSize) {
+                                                    current = buffer.read(cursor);
+                                                    if (current == greycat.Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                        cursor++;
+                                                        previous = cursor;
+                                                    }
+                                                }
+                                                break;
+                                            case greycat.Type.LONG_TO_LONG_MAP:
+                                                var l2lmap = new greycat.internal.heap.HeapLongLongMap(this);
+                                                cursor++;
+                                                cursor = l2lmap.load(buffer, cursor, payloadSize);
+                                                this.internal_set(read_key, read_type, l2lmap, true, initial);
+                                                if (cursor < payloadSize) {
+                                                    current = buffer.read(cursor);
+                                                    if (current == greycat.Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                        cursor++;
+                                                        previous = cursor;
+                                                    }
+                                                }
+                                                break;
+                                            case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
+                                                var l2lrmap = new greycat.internal.heap.HeapLongLongArrayMap(this);
+                                                cursor++;
+                                                cursor = l2lrmap.load(buffer, cursor, payloadSize);
+                                                this.internal_set(read_key, read_type, l2lrmap, true, initial);
+                                                if (cursor < payloadSize) {
+                                                    current = buffer.read(cursor);
+                                                    if (current == greycat.Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                        cursor++;
+                                                        previous = cursor;
+                                                    }
+                                                }
+                                                break;
+                                            case greycat.Type.RELATION_INDEXED:
+                                                var relationIndexed = new greycat.internal.heap.HeapRelationIndexed(this, this._space.graph());
+                                                cursor++;
+                                                cursor = relationIndexed.load(buffer, cursor, payloadSize);
+                                                this.internal_set(read_key, read_type, relationIndexed, true, initial);
+                                                if (cursor < payloadSize) {
+                                                    current = buffer.read(cursor);
+                                                    if (current == greycat.Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                        cursor++;
+                                                        previous = cursor;
+                                                    }
+                                                }
+                                                break;
+                                            case greycat.Type.STRING_TO_INT_MAP:
+                                                var s2lmap = new greycat.internal.heap.HeapStringIntMap(this);
+                                                cursor++;
+                                                cursor = s2lmap.load(buffer, cursor, payloadSize);
+                                                this.internal_set(read_key, read_type, s2lmap, true, initial);
+                                                if (cursor < payloadSize) {
+                                                    current = buffer.read(cursor);
+                                                    if (current == greycat.Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                        cursor++;
+                                                        previous = cursor;
+                                                    }
+                                                }
+                                                break;
+                                            case greycat.Type.EGRAPH:
+                                                var eGraph = new greycat.internal.heap.HeapEGraph(this, null, this.graph());
+                                                cursor++;
+                                                cursor = eGraph.load(buffer, cursor, payloadSize);
+                                                this.internal_set(read_key, read_type, eGraph, true, initial);
+                                                if (cursor < payloadSize) {
+                                                    current = buffer.read(cursor);
+                                                    if (current == greycat.Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                                        cursor++;
+                                                        previous = cursor;
+                                                    }
+                                                }
+                                                break;
+                                            default:
+                                                throw new Error("Not implemented yet!!!");
+                                        }
+                                        break;
+                                    case HeapStateChunk.LOAD_WAITING_VALUE:
+                                        this.load_primitive(read_key, read_type, buffer, previous, cursor, initial);
+                                        state = HeapStateChunk.LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                        break;
+                                }
+                            }
+                            else {
+                                cursor++;
+                            }
+                        }
+                        if (state == HeapStateChunk.LOAD_WAITING_VALUE) {
+                            this.load_primitive(read_key, read_type, buffer, previous, cursor, initial);
+                        }
+                    }
+                };
+                HeapStateChunk.prototype.load_primitive = function (read_key, read_type, buffer, previous, cursor, initial) {
+                    switch (read_type) {
+                        case greycat.Type.BOOL:
+                            this.internal_set(read_key, read_type, (greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor) == greycat.internal.CoreConstants.BOOL_TRUE), true, initial);
+                            break;
+                        case greycat.Type.INT:
+                            this.internal_set(read_key, read_type, greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor), true, initial);
+                            break;
+                        case greycat.Type.DOUBLE:
+                            this.internal_set(read_key, read_type, greycat.utility.Base64.decodeToDoubleWithBounds(buffer, previous, cursor), true, initial);
+                            break;
+                        case greycat.Type.LONG:
+                            this.internal_set(read_key, read_type, greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor), true, initial);
+                            break;
+                        case greycat.Type.STRING:
+                            this.internal_set(read_key, read_type, greycat.utility.Base64.decodeToStringWithBounds(buffer, previous, cursor), true, initial);
+                            break;
+                    }
+                };
+                HeapStateChunk.prototype.loadDiff = function (buffer) { };
+                return HeapStateChunk;
+            }());
+            HeapStateChunk.LOAD_WAITING_ALLOC = 0;
+            HeapStateChunk.LOAD_WAITING_TYPE = 1;
+            HeapStateChunk.LOAD_WAITING_KEY = 2;
+            HeapStateChunk.LOAD_WAITING_VALUE = 3;
+            heap.HeapStateChunk = HeapStateChunk;
+            var HeapStringIntMap = (function () {
+                function HeapStringIntMap(p_parent) {
+                    this.mapSize = 0;
+                    this.capacity = 0;
+                    this.keys = null;
+                    this.keysH = null;
+                    this.values = null;
+                    this.nexts = null;
+                    this.hashs = null;
+                    this.parent = p_parent;
+                }
+                HeapStringIntMap.prototype.key = function (i) {
+                    return this.keys[i];
+                };
+                HeapStringIntMap.prototype.setKey = function (i, newValue) {
+                    this.keys[i] = newValue;
+                };
+                HeapStringIntMap.prototype.keyH = function (i) {
+                    return this.keysH[i];
+                };
+                HeapStringIntMap.prototype.setKeyH = function (i, newValue) {
+                    this.keysH[i] = newValue;
+                };
+                HeapStringIntMap.prototype.value = function (i) {
+                    return this.values[i];
+                };
+                HeapStringIntMap.prototype.setValue = function (i, newValue) {
+                    this.values[i] = newValue;
+                };
+                HeapStringIntMap.prototype.next = function (i) {
+                    return this.nexts[i];
+                };
+                HeapStringIntMap.prototype.setNext = function (i, newValue) {
+                    this.nexts[i] = newValue;
+                };
+                HeapStringIntMap.prototype.hash = function (i) {
+                    return this.hashs[i];
+                };
+                HeapStringIntMap.prototype.setHash = function (i, newValue) {
+                    this.hashs[i] = newValue;
+                };
+                HeapStringIntMap.prototype.reallocate = function (newCapacity) {
+                    if (newCapacity > this.capacity) {
+                        var new_keys = new Array(newCapacity);
+                        if (this.keys != null) {
+                            java.lang.System.arraycopy(this.keys, 0, new_keys, 0, this.capacity);
+                        }
+                        this.keys = new_keys;
+                        var new_keysH = new Int32Array(newCapacity);
+                        if (this.keysH != null) {
+                            java.lang.System.arraycopy(this.keysH, 0, new_keysH, 0, this.capacity);
+                        }
+                        this.keysH = new_keysH;
+                        var new_values = new Int32Array(newCapacity);
+                        if (this.values != null) {
+                            java.lang.System.arraycopy(this.values, 0, new_values, 0, this.capacity);
+                        }
+                        this.values = new_values;
+                        var new_nexts = new Int32Array(newCapacity);
+                        var new_hashes = new Int32Array(newCapacity * 2);
+                        java.util.Arrays.fill(new_nexts, 0, newCapacity, -1);
+                        java.util.Arrays.fill(new_hashes, 0, newCapacity * 2, -1);
+                        this.hashs = new_hashes;
+                        this.nexts = new_nexts;
+                        var double_capacity = this.capacity * 2;
+                        for (var i = 0; i < this.mapSize; i++) {
+                            var new_key_hash = this.keyH(i) % double_capacity;
+                            if (new_key_hash < 0) {
+                                new_key_hash = new_key_hash * -1;
+                            }
+                            this.setNext(i, this.hash(new_key_hash));
+                            this.setHash(new_key_hash, i);
+                        }
+                        this.capacity = newCapacity;
+                    }
+                };
+                HeapStringIntMap.prototype.cloneFor = function (newContainer) {
+                    var cloned = new greycat.internal.heap.HeapStringIntMap(newContainer);
+                    cloned.mapSize = this.mapSize;
+                    cloned.capacity = this.capacity;
+                    if (this.keys != null) {
+                        var cloned_keys = new Array(this.capacity);
+                        java.lang.System.arraycopy(this.keys, 0, cloned_keys, 0, this.capacity);
+                        cloned.keys = cloned_keys;
+                    }
+                    if (this.keysH != null) {
+                        var cloned_keysH = new Int32Array(this.capacity);
+                        java.lang.System.arraycopy(this.keysH, 0, cloned_keysH, 0, this.capacity);
+                        cloned.keysH = cloned_keysH;
+                    }
+                    if (this.values != null) {
+                        var cloned_values = new Int32Array(this.capacity);
+                        java.lang.System.arraycopy(this.values, 0, cloned_values, 0, this.capacity);
+                        cloned.values = cloned_values;
+                    }
+                    if (this.nexts != null) {
+                        var cloned_nexts = new Int32Array(this.capacity);
+                        java.lang.System.arraycopy(this.nexts, 0, cloned_nexts, 0, this.capacity);
+                        cloned.nexts = cloned_nexts;
+                    }
+                    if (this.hashs != null) {
+                        var cloned_hashs = new Int32Array(this.capacity * 2);
+                        java.lang.System.arraycopy(this.hashs, 0, cloned_hashs, 0, this.capacity * 2);
+                        cloned.hashs = cloned_hashs;
+                    }
+                    return cloned;
+                };
+                HeapStringIntMap.prototype.getValue = function (requestString) {
+                    var result = -1;
+                    {
+                        if (this.keys != null) {
+                            var keyHash = greycat.utility.HashHelper.hash(requestString);
+                            var hashIndex = keyHash % (this.capacity * 2);
+                            if (hashIndex < 0) {
+                                hashIndex = hashIndex * -1;
+                            }
+                            var m = this.hash(hashIndex);
+                            while (m >= 0) {
+                                if (keyHash == this.keyH(m)) {
+                                    result = this.value(m);
+                                    break;
+                                }
+                                m = this.next(m);
+                            }
+                        }
+                    }
+                    return result;
+                };
+                HeapStringIntMap.prototype.getByHash = function (keyHash) {
+                    var result = null;
+                    {
+                        if (this.keys != null) {
+                            var hashIndex = keyHash % (this.capacity * 2);
+                            if (hashIndex < 0) {
+                                hashIndex = hashIndex * -1;
+                            }
+                            var m = this.hash(hashIndex);
+                            while (m >= 0) {
+                                if (keyHash == this.keyH(m)) {
+                                    result = this.key(m);
+                                    break;
+                                }
+                                m = this.next(m);
+                            }
+                        }
+                    }
+                    return result;
+                };
+                HeapStringIntMap.prototype.containsHash = function (keyHash) {
+                    var result = false;
+                    {
+                        if (this.keys != null) {
+                            var hashIndex = keyHash % (this.capacity * 2);
+                            if (hashIndex < 0) {
+                                hashIndex = hashIndex * -1;
+                            }
+                            var m = this.hash(hashIndex);
+                            while (m >= 0) {
+                                if (keyHash == this.keyH(m)) {
+                                    result = true;
+                                    break;
+                                }
+                                m = this.next(m);
+                            }
+                        }
+                    }
+                    return result;
+                };
+                HeapStringIntMap.prototype.each = function (callback) {
+                    {
+                        this.unsafe_each(callback);
+                    }
+                };
+                HeapStringIntMap.prototype.unsafe_each = function (callback) {
+                    for (var i = 0; i < this.mapSize; i++) {
+                        callback(this.key(i), this.value(i));
+                    }
+                };
+                HeapStringIntMap.prototype.size = function () {
+                    var result;
+                    {
+                        result = this.mapSize;
+                    }
+                    return result;
+                };
+                HeapStringIntMap.prototype.remove = function (requestKey) {
+                    {
+                        if (this.keys != null && this.mapSize != 0) {
+                            var keyHash = greycat.utility.HashHelper.hash(requestKey);
+                            var hashCapacity = this.capacity * 2;
+                            var hashIndex = keyHash % hashCapacity;
+                            if (hashIndex < 0) {
+                                hashIndex = hashIndex * -1;
+                            }
+                            var m = this.hash(hashIndex);
+                            var found = -1;
+                            while (m >= 0) {
+                                if (keyHash == this.keyH(m)) {
+                                    found = m;
+                                    break;
+                                }
+                                m = this.next(m);
+                            }
+                            if (found != -1) {
+                                var toRemoveHash = keyHash % hashCapacity;
+                                if (toRemoveHash < 0) {
+                                    toRemoveHash = toRemoveHash * -1;
+                                }
+                                m = this.hash(toRemoveHash);
+                                if (m == found) {
+                                    this.setHash(toRemoveHash, this.next(m));
+                                }
+                                else {
+                                    while (m != -1) {
+                                        var next_of_m = this.next(m);
+                                        if (next_of_m == found) {
+                                            this.setNext(m, this.next(next_of_m));
+                                            break;
+                                        }
+                                        m = next_of_m;
+                                    }
+                                }
+                                var lastIndex = this.mapSize - 1;
+                                if (lastIndex == found) {
+                                    this.mapSize--;
+                                }
+                                else {
+                                    var lastKey = this.key(lastIndex);
+                                    var lastKeyH = this.keyH(lastIndex);
+                                    this.setKey(found, lastKey);
+                                    this.setKeyH(found, lastKeyH);
+                                    this.setValue(found, this.value(lastIndex));
+                                    this.setNext(found, this.next(lastIndex));
+                                    var victimHash = lastKeyH % hashCapacity;
+                                    if (victimHash < 0) {
+                                        victimHash = victimHash * -1;
+                                    }
+                                    m = this.hash(victimHash);
+                                    if (m == lastIndex) {
+                                        this.setHash(victimHash, found);
+                                    }
+                                    else {
+                                        while (m != -1) {
+                                            var next_of_m = this.next(m);
+                                            if (next_of_m == lastIndex) {
+                                                this.setNext(m, found);
+                                                break;
+                                            }
+                                            m = next_of_m;
+                                        }
+                                    }
+                                    this.mapSize--;
+                                }
+                                this.parent.declareDirty();
+                            }
+                        }
+                    }
+                };
+                HeapStringIntMap.prototype.put = function (insertKey, insertValue) {
+                    {
+                        var keyHash = greycat.utility.HashHelper.hash(insertKey);
+                        if (this.keys == null) {
+                            this.reallocate(greycat.Constants.MAP_INITIAL_CAPACITY);
+                            this.setKey(0, insertKey);
+                            this.setKeyH(0, keyHash);
+                            this.setValue(0, insertValue);
+                            var hashIndex = keyHash % (this.capacity * 2);
+                            if (hashIndex < 0) {
+                                hashIndex = hashIndex * -1;
+                            }
+                            this.setHash(hashIndex, 0);
+                            this.setNext(0, -1);
+                            this.mapSize++;
+                        }
+                        else {
+                            var hashCapacity = this.capacity * 2;
+                            var insertKeyHash = keyHash % hashCapacity;
+                            if (insertKeyHash < 0) {
+                                insertKeyHash = insertKeyHash * -1;
+                            }
+                            var currentHash = this.hash(insertKeyHash);
+                            var m = currentHash;
+                            var found = -1;
+                            while (m >= 0) {
+                                if (keyHash == this.keyH(m)) {
+                                    if (!(insertKey === this.key(m))) {
+                                        throw new Error("Lotteries Winner !!! hashing conflict between " + this.key(m) + " and " + insertKey);
+                                    }
+                                    found = m;
+                                    break;
+                                }
+                                m = this.next(m);
+                            }
+                            if (found == -1) {
+                                var lastIndex = this.mapSize;
+                                if (lastIndex == this.capacity) {
+                                    this.reallocate(this.capacity * 2);
+                                }
+                                this.setKey(lastIndex, insertKey);
+                                this.setKeyH(lastIndex, keyHash);
+                                this.setValue(lastIndex, insertValue);
+                                var hashIndex = keyHash % (this.capacity * 2);
+                                if (hashIndex < 0) {
+                                    hashIndex = hashIndex * -1;
+                                }
+                                this.setHash(hashIndex, lastIndex);
+                                this.setNext(lastIndex, currentHash);
+                                this.mapSize++;
+                                this.parent.declareDirty();
+                            }
+                            else {
+                                if (this.value(found) != insertValue) {
+                                    this.setValue(found, insertValue);
+                                    this.parent.declareDirty();
+                                }
+                            }
+                        }
+                    }
+                };
+                HeapStringIntMap.prototype.load = function (buffer, offset, max) {
+                    var cursor = offset;
+                    var current = buffer.read(cursor);
+                    var isFirst = true;
+                    var previous = offset;
+                    var previousKey = null;
+                    while (cursor < max && current != greycat.Constants.CHUNK_SEP && current != greycat.Constants.CHUNK_ENODE_SEP && current != greycat.Constants.CHUNK_ESEP) {
+                        if (current == greycat.Constants.CHUNK_VAL_SEP) {
+                            if (isFirst) {
+                                this.reallocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                isFirst = false;
+                            }
+                            else {
+                                if (previousKey == null) {
+                                    previousKey = greycat.utility.Base64.decodeToStringWithBounds(buffer, previous, cursor);
+                                }
+                                else {
+                                    this.put(previousKey, greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                                    previousKey = null;
+                                }
+                            }
+                            previous = cursor + 1;
+                        }
+                        cursor++;
+                        if (cursor < max) {
+                            current = buffer.read(cursor);
+                        }
+                    }
+                    if (isFirst) {
+                        this.reallocate(greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                    }
+                    else {
+                        if (previousKey != null) {
+                            this.put(previousKey, greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                        }
+                    }
+                    return cursor;
+                };
+                return HeapStringIntMap;
+            }());
+            heap.HeapStringIntMap = HeapStringIntMap;
+            var HeapTimeTreeChunk = (function () {
+                function HeapTimeTreeChunk(p_space, p_index) {
+                    this._root = -1;
+                    this._size = 0;
+                    this._space = p_space;
+                    this._index = p_index;
+                    this._magic = 0;
+                    this._dirty = false;
+                    this._extra = 0;
+                    this._extra2 = 0;
+                }
+                HeapTimeTreeChunk.prototype.extra = function () {
+                    return this._extra;
+                };
+                HeapTimeTreeChunk.prototype.setExtra = function (extraValue) {
+                    this._extra = extraValue;
+                };
+                HeapTimeTreeChunk.prototype.extra2 = function () {
+                    return this._extra2;
+                };
+                HeapTimeTreeChunk.prototype.setExtra2 = function (extraValue) {
+                    this._extra2 = extraValue;
+                };
+                HeapTimeTreeChunk.prototype.world = function () {
+                    return this._space.worldByIndex(this._index);
+                };
+                HeapTimeTreeChunk.prototype.time = function () {
+                    return this._space.timeByIndex(this._index);
+                };
+                HeapTimeTreeChunk.prototype.id = function () {
+                    return this._space.idByIndex(this._index);
+                };
+                HeapTimeTreeChunk.prototype.size = function () {
+                    return this._size;
+                };
+                HeapTimeTreeChunk.prototype.range = function (startKey, endKey, maxElements, walker) {
+                    var nbElements = 0;
+                    var indexEnd = this.internal_previousOrEqual_index(endKey);
+                    while (indexEnd != -1 && this.key(indexEnd) >= startKey && nbElements < maxElements) {
+                        walker(this.key(indexEnd));
+                        nbElements++;
+                        indexEnd = this.internal_previous(indexEnd);
+                    }
+                };
+                HeapTimeTreeChunk.prototype.save = function (buffer) {
+                    if (this._extra != greycat.internal.CoreConstants.NULL_LONG && this._extra != 0) {
+                        greycat.utility.Base64.encodeLongToBuffer(this._extra, buffer);
+                        buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
+                    }
+                    if (this._extra2 != greycat.internal.CoreConstants.NULL_LONG && this._extra2 != 0) {
+                        greycat.utility.Base64.encodeLongToBuffer(this._extra2, buffer);
+                        buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
+                    }
+                    greycat.utility.Base64.encodeIntToBuffer(this._size, buffer);
+                    for (var i = 0; i < this._size; i++) {
+                        buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                        greycat.utility.Base64.encodeLongToBuffer(this._k[i], buffer);
+                    }
+                    this._dirty = false;
+                    if (this._diff != null) {
+                        greycat.internal.CoreConstants.fillBooleanArray(this._diff, false);
+                    }
+                };
+                HeapTimeTreeChunk.prototype.saveDiff = function (buffer) {
+                    if (this._dirty) {
+                        if (this._extra != greycat.internal.CoreConstants.NULL_LONG && this._extra != 0) {
+                            greycat.utility.Base64.encodeLongToBuffer(this._extra, buffer);
+                            buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
+                        }
+                        if (this._extra2 != greycat.internal.CoreConstants.NULL_LONG && this._extra2 != 0) {
+                            greycat.utility.Base64.encodeLongToBuffer(this._extra2, buffer);
+                            buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
+                        }
+                        greycat.utility.Base64.encodeIntToBuffer(this._size, buffer);
+                        for (var i = 0; i < this._size; i++) {
+                            if (this._diff[i]) {
+                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                greycat.utility.Base64.encodeLongToBuffer(this._k[i], buffer);
+                            }
+                        }
+                        this._dirty = false;
+                        greycat.internal.CoreConstants.fillBooleanArray(this._diff, false);
+                    }
+                };
+                HeapTimeTreeChunk.prototype.load = function (buffer) {
+                    this.internal_load(buffer, true);
+                };
+                HeapTimeTreeChunk.prototype.loadDiff = function (buffer) {
+                    if (this.internal_load(buffer, false) && !this._dirty) {
+                        this._dirty = true;
+                        if (this._space != null) {
+                            this._space.notifyUpdate(this._index);
+                        }
+                    }
+                };
+                HeapTimeTreeChunk.prototype.internal_load = function (buffer, initial) {
+                    if (buffer == null || buffer.length() == 0) {
+                        return false;
+                    }
+                    var isDirty = false;
+                    var cursor = 0;
+                    var previous = 0;
+                    var payloadSize = buffer.length();
+                    var isFirst = true;
+                    var isFirstExtra = true;
+                    while (cursor < payloadSize) {
+                        var current = buffer.read(cursor);
+                        switch (current) {
+                            case greycat.Constants.CHUNK_SEP:
+                                if (isFirstExtra) {
+                                    this._extra = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                    previous = cursor + 1;
+                                    isFirstExtra = false;
+                                }
+                                else {
+                                    this._extra2 = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                                    previous = cursor + 1;
+                                }
+                                break;
+                            case greycat.Constants.CHUNK_VAL_SEP:
+                                if (isFirst) {
+                                    var treeSize = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                                    var closePowerOfTwo = Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
+                                    this.reallocate(closePowerOfTwo);
+                                    previous = cursor + 1;
+                                    isFirst = false;
+                                }
+                                else {
+                                    var insertResult_1 = this.internal_insert(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
+                                    isDirty = isDirty || insertResult_1;
+                                    previous = cursor + 1;
+                                }
+                                break;
+                        }
+                        cursor++;
+                    }
+                    var insertResult = this.internal_insert(greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
+                    isDirty = isDirty || insertResult;
+                    return isDirty;
+                };
+                HeapTimeTreeChunk.prototype.index = function () {
+                    return this._index;
+                };
+                HeapTimeTreeChunk.prototype.previous = function (key) {
+                    var resultKey;
+                    var result = this.internal_previous_index(key);
+                    if (result != -1) {
+                        resultKey = this.key(result);
+                    }
+                    else {
+                        resultKey = greycat.internal.CoreConstants.NULL_LONG;
+                    }
+                    return resultKey;
+                };
+                HeapTimeTreeChunk.prototype.next = function (key) {
+                    var resultKey;
+                    var result = this.internal_previousOrEqual_index(key);
+                    if (result != -1) {
+                        result = this.internal_next(result);
+                    }
+                    if (result != -1) {
+                        resultKey = this.key(result);
+                    }
+                    else {
+                        resultKey = greycat.internal.CoreConstants.NULL_LONG;
+                    }
+                    return resultKey;
+                };
+                HeapTimeTreeChunk.prototype.previousOrEqual = function (key) {
+                    var resultKey;
+                    var result = this.internal_previousOrEqual_index(key);
+                    if (result != -1) {
+                        resultKey = this.key(result);
+                    }
+                    else {
+                        resultKey = greycat.internal.CoreConstants.NULL_LONG;
+                    }
+                    return resultKey;
+                };
+                HeapTimeTreeChunk.prototype.magic = function () {
+                    return this._magic;
+                };
+                HeapTimeTreeChunk.prototype.insert = function (p_key) {
+                    if (this.internal_insert(p_key, false)) {
+                        this.internal_set_dirty();
+                    }
+                };
+                HeapTimeTreeChunk.prototype.unsafe_insert = function (p_key) {
+                    this.internal_insert(p_key, false);
+                };
+                HeapTimeTreeChunk.prototype.chunkType = function () {
+                    return greycat.chunk.ChunkType.TIME_TREE_CHUNK;
+                };
+                HeapTimeTreeChunk.prototype.clearAt = function (max) {
+                    var previousValue = this._k;
+                    this._k = new Float64Array(this._k.length);
+                    this._back_meta = new Int32Array(this._k.length * HeapTimeTreeChunk.META_SIZE);
+                    this._colors = [];
+                    this._diff = [];
+                    greycat.internal.CoreConstants.fillBooleanArray(this._diff, false);
+                    this._root = -1;
+                    var _previousSize = this._size;
+                    this._size = 0;
+                    for (var i = 0; i < _previousSize; i++) {
+                        if (previousValue[i] != greycat.internal.CoreConstants.NULL_LONG && previousValue[i] < max) {
+                            this.internal_insert(previousValue[i], false);
+                        }
+                    }
+                    this.internal_set_dirty();
+                };
+                HeapTimeTreeChunk.prototype.reallocate = function (newCapacity) {
+                    if (this._k != null && newCapacity <= this._k.length) {
+                        return;
+                    }
+                    var new_back_kv = new Float64Array(newCapacity);
+                    if (this._k != null) {
+                        java.lang.System.arraycopy(this._k, 0, new_back_kv, 0, this._size);
+                    }
+                    var new_back_diff = [];
+                    greycat.internal.CoreConstants.fillBooleanArray(new_back_diff, false);
+                    if (this._diff != null) {
+                        java.lang.System.arraycopy(this._diff, 0, new_back_diff, 0, this._size);
+                    }
+                    var new_back_colors = [];
+                    if (this._colors != null) {
+                        java.lang.System.arraycopy(this._colors, 0, new_back_colors, 0, this._size);
+                        for (var i = this._size; i < newCapacity; i++) {
+                            new_back_colors[i] = false;
+                        }
+                    }
+                    var new_back_meta = new Int32Array(newCapacity * HeapTimeTreeChunk.META_SIZE);
+                    if (this._back_meta != null) {
+                        java.lang.System.arraycopy(this._back_meta, 0, new_back_meta, 0, this._size * HeapTimeTreeChunk.META_SIZE);
+                        for (var i = this._size * HeapTimeTreeChunk.META_SIZE; i < newCapacity * HeapTimeTreeChunk.META_SIZE; i++) {
+                            new_back_meta[i] = -1;
+                        }
+                    }
+                    this._back_meta = new_back_meta;
+                    this._k = new_back_kv;
+                    this._colors = new_back_colors;
+                    this._diff = new_back_diff;
+                };
+                HeapTimeTreeChunk.prototype.key = function (p_currentIndex) {
+                    if (p_currentIndex == -1) {
+                        return -1;
+                    }
+                    return this._k[p_currentIndex];
+                };
+                HeapTimeTreeChunk.prototype.setKey = function (p_currentIndex, p_paramIndex, initial) {
+                    this._k[p_currentIndex] = p_paramIndex;
+                    if (!initial) {
+                        this._diff[p_currentIndex] = true;
+                    }
+                };
+                HeapTimeTreeChunk.prototype.left = function (p_currentIndex) {
+                    if (p_currentIndex == -1) {
+                        return -1;
+                    }
+                    return this._back_meta[p_currentIndex * HeapTimeTreeChunk.META_SIZE];
+                };
+                HeapTimeTreeChunk.prototype.setLeft = function (p_currentIndex, p_paramIndex) {
+                    this._back_meta[p_currentIndex * HeapTimeTreeChunk.META_SIZE] = p_paramIndex;
+                };
+                HeapTimeTreeChunk.prototype.right = function (p_currentIndex) {
+                    if (p_currentIndex == -1) {
+                        return -1;
+                    }
+                    return this._back_meta[(p_currentIndex * HeapTimeTreeChunk.META_SIZE) + 1];
+                };
+                HeapTimeTreeChunk.prototype.setRight = function (p_currentIndex, p_paramIndex) {
+                    this._back_meta[(p_currentIndex * HeapTimeTreeChunk.META_SIZE) + 1] = p_paramIndex;
+                };
+                HeapTimeTreeChunk.prototype.parent = function (p_currentIndex) {
+                    if (p_currentIndex == -1) {
+                        return -1;
+                    }
+                    return this._back_meta[(p_currentIndex * HeapTimeTreeChunk.META_SIZE) + 2];
+                };
+                HeapTimeTreeChunk.prototype.setParent = function (p_currentIndex, p_paramIndex) {
+                    this._back_meta[(p_currentIndex * HeapTimeTreeChunk.META_SIZE) + 2] = p_paramIndex;
+                };
+                HeapTimeTreeChunk.prototype.color = function (p_currentIndex) {
+                    if (p_currentIndex == -1) {
+                        return true;
+                    }
+                    return this._colors[p_currentIndex];
+                };
+                HeapTimeTreeChunk.prototype.setColor = function (p_currentIndex, p_paramIndex) {
+                    this._colors[p_currentIndex] = p_paramIndex;
+                };
+                HeapTimeTreeChunk.prototype.grandParent = function (p_currentIndex) {
+                    if (p_currentIndex == -1) {
+                        return -1;
+                    }
+                    if (this.parent(p_currentIndex) != -1) {
+                        return this.parent(this.parent(p_currentIndex));
+                    }
+                    else {
+                        return -1;
+                    }
+                };
+                HeapTimeTreeChunk.prototype.sibling = function (p_currentIndex) {
+                    if (this.parent(p_currentIndex) == -1) {
+                        return -1;
+                    }
+                    else {
+                        if (p_currentIndex == this.left(this.parent(p_currentIndex))) {
+                            return this.right(this.parent(p_currentIndex));
+                        }
+                        else {
+                            return this.left(this.parent(p_currentIndex));
+                        }
+                    }
+                };
+                HeapTimeTreeChunk.prototype.uncle = function (p_currentIndex) {
+                    if (this.parent(p_currentIndex) != -1) {
+                        return this.sibling(this.parent(p_currentIndex));
+                    }
+                    else {
+                        return -1;
+                    }
+                };
+                HeapTimeTreeChunk.prototype.internal_previous = function (p_index) {
+                    var p = p_index;
+                    if (this.left(p) != -1) {
+                        p = this.left(p);
+                        while (this.right(p) != -1) {
+                            p = this.right(p);
+                        }
+                        return p;
+                    }
+                    else {
+                        if (this.parent(p) != -1) {
+                            if (p == this.right(this.parent(p))) {
+                                return this.parent(p);
+                            }
+                            else {
+                                while (this.parent(p) != -1 && p == this.left(this.parent(p))) {
+                                    p = this.parent(p);
+                                }
+                                return this.parent(p);
+                            }
+                        }
+                        else {
+                            return -1;
+                        }
+                    }
+                };
+                HeapTimeTreeChunk.prototype.internal_next = function (p_index) {
+                    var p = p_index;
+                    if (this.right(p) != -1) {
+                        p = this.right(p);
+                        while (this.left(p) != -1) {
+                            p = this.left(p);
+                        }
+                        return p;
+                    }
+                    else {
+                        if (this.parent(p) != -1) {
+                            if (p == this.left(this.parent(p))) {
+                                return this.parent(p);
+                            }
+                            else {
+                                while (this.parent(p) != -1 && p == this.right(this.parent(p))) {
+                                    p = this.parent(p);
+                                }
+                                return this.parent(p);
+                            }
+                        }
+                        else {
+                            return -1;
+                        }
+                    }
+                };
+                HeapTimeTreeChunk.prototype.internal_previousOrEqual_index = function (p_key) {
+                    var p = this._root;
+                    if (p == -1) {
+                        return p;
+                    }
+                    while (p != -1) {
+                        if (p_key == this.key(p)) {
+                            return p;
+                        }
+                        if (p_key > this.key(p)) {
+                            if (this.right(p) != -1) {
+                                p = this.right(p);
+                            }
+                            else {
+                                return p;
+                            }
+                        }
+                        else {
+                            if (this.left(p) != -1) {
+                                p = this.left(p);
+                            }
+                            else {
+                                var parent_1 = this.parent(p);
+                                var ch = p;
+                                while (parent_1 != -1 && ch == this.left(parent_1)) {
+                                    ch = parent_1;
+                                    parent_1 = this.parent(parent_1);
+                                }
+                                return parent_1;
+                            }
+                        }
+                    }
+                    return -1;
+                };
+                HeapTimeTreeChunk.prototype.internal_previous_index = function (p_key) {
+                    var p = this._root;
+                    if (p == -1) {
+                        return p;
+                    }
+                    while (p != -1) {
+                        if (p_key > this.key(p)) {
+                            if (this.right(p) != -1) {
+                                p = this.right(p);
+                            }
+                            else {
+                                return p;
+                            }
+                        }
+                        else {
+                            if (this.left(p) != -1) {
+                                p = this.left(p);
+                            }
+                            else {
+                                var parent_2 = this.parent(p);
+                                var ch = p;
+                                while (parent_2 != -1 && ch == this.left(parent_2)) {
+                                    ch = parent_2;
+                                    parent_2 = this.parent(parent_2);
+                                }
+                                return parent_2;
+                            }
+                        }
+                    }
+                    return -1;
+                };
+                HeapTimeTreeChunk.prototype.rotateLeft = function (n) {
+                    var r = this.right(n);
+                    this.replaceNode(n, r);
+                    this.setRight(n, this.left(r));
+                    if (this.left(r) != -1) {
+                        this.setParent(this.left(r), n);
+                    }
+                    this.setLeft(r, n);
+                    this.setParent(n, r);
+                };
+                HeapTimeTreeChunk.prototype.rotateRight = function (n) {
+                    var l = this.left(n);
+                    this.replaceNode(n, l);
+                    this.setLeft(n, this.right(l));
+                    if (this.right(l) != -1) {
+                        this.setParent(this.right(l), n);
+                    }
+                    this.setRight(l, n);
+                    this.setParent(n, l);
+                };
+                HeapTimeTreeChunk.prototype.replaceNode = function (oldn, newn) {
+                    if (this.parent(oldn) == -1) {
+                        this._root = newn;
+                    }
+                    else {
+                        if (oldn == this.left(this.parent(oldn))) {
+                            this.setLeft(this.parent(oldn), newn);
+                        }
+                        else {
+                            this.setRight(this.parent(oldn), newn);
+                        }
+                    }
+                    if (newn != -1) {
+                        this.setParent(newn, this.parent(oldn));
+                    }
+                };
+                HeapTimeTreeChunk.prototype.insertCase1 = function (n) {
+                    if (this.parent(n) == -1) {
+                        this.setColor(n, true);
+                    }
+                    else {
+                        this.insertCase2(n);
+                    }
+                };
+                HeapTimeTreeChunk.prototype.insertCase2 = function (n) {
+                    if (!this.color(this.parent(n))) {
+                        this.insertCase3(n);
+                    }
+                };
+                HeapTimeTreeChunk.prototype.insertCase3 = function (n) {
+                    if (!this.color(this.uncle(n))) {
+                        this.setColor(this.parent(n), true);
+                        this.setColor(this.uncle(n), true);
+                        this.setColor(this.grandParent(n), false);
+                        this.insertCase1(this.grandParent(n));
+                    }
+                    else {
+                        this.insertCase4(n);
+                    }
+                };
+                HeapTimeTreeChunk.prototype.insertCase4 = function (n_n) {
+                    var n = n_n;
+                    if (n == this.right(this.parent(n)) && this.parent(n) == this.left(this.grandParent(n))) {
+                        this.rotateLeft(this.parent(n));
+                        n = this.left(n);
+                    }
+                    else {
+                        if (n == this.left(this.parent(n)) && this.parent(n) == this.right(this.grandParent(n))) {
+                            this.rotateRight(this.parent(n));
+                            n = this.right(n);
+                        }
+                    }
+                    this.insertCase5(n);
+                };
+                HeapTimeTreeChunk.prototype.insertCase5 = function (n) {
+                    this.setColor(this.parent(n), true);
+                    this.setColor(this.grandParent(n), false);
+                    if (n == this.left(this.parent(n)) && this.parent(n) == this.left(this.grandParent(n))) {
+                        this.rotateRight(this.grandParent(n));
+                    }
+                    else {
+                        this.rotateLeft(this.grandParent(n));
+                    }
+                };
+                HeapTimeTreeChunk.prototype.internal_insert = function (p_key, initial) {
+                    if (this._k == null || this._k.length == this._size) {
+                        var length_1 = this._size;
+                        if (length_1 == 0) {
+                            length_1 = greycat.Constants.MAP_INITIAL_CAPACITY;
+                        }
+                        else {
+                            length_1 = length_1 * 2;
+                        }
+                        this.reallocate(length_1);
+                    }
+                    var newIndex = this._size;
+                    if (newIndex == 0) {
+                        this.setKey(newIndex, p_key, initial);
+                        this.setColor(newIndex, false);
+                        this.setLeft(newIndex, -1);
+                        this.setRight(newIndex, -1);
+                        this.setParent(newIndex, -1);
+                        this._root = newIndex;
+                        this._size = 1;
+                    }
+                    else {
+                        var n = this._root;
+                        while (true) {
+                            if (p_key == this.key(n)) {
+                                return false;
+                            }
+                            else if (p_key < this.key(n)) {
+                                if (this.left(n) == -1) {
+                                    this.setKey(newIndex, p_key, initial);
+                                    this.setColor(newIndex, false);
+                                    this.setLeft(newIndex, -1);
+                                    this.setRight(newIndex, -1);
+                                    this.setParent(newIndex, -1);
+                                    this.setLeft(n, newIndex);
+                                    this._size++;
+                                    break;
+                                }
+                                else {
+                                    n = this.left(n);
+                                }
+                            }
+                            else {
+                                if (this.right(n) == -1) {
+                                    this.setKey(newIndex, p_key, initial);
+                                    this.setColor(newIndex, false);
+                                    this.setLeft(newIndex, -1);
+                                    this.setRight(newIndex, -1);
+                                    this.setParent(newIndex, -1);
+                                    this.setRight(n, newIndex);
+                                    this._size++;
+                                    break;
+                                }
+                                else {
+                                    n = this.right(n);
+                                }
+                            }
+                        }
+                        this.setParent(newIndex, n);
+                    }
+                    this.insertCase1(newIndex);
+                    return true;
+                };
+                HeapTimeTreeChunk.prototype.internal_set_dirty = function () {
+                    this._magic = this._magic + 1;
+                    if (this._space != null && !this._dirty) {
+                        this._dirty = true;
+                        this._space.notifyUpdate(this._index);
+                    }
+                };
+                return HeapTimeTreeChunk;
+            }());
+            HeapTimeTreeChunk.META_SIZE = 3;
+            heap.HeapTimeTreeChunk = HeapTimeTreeChunk;
+            var HeapWorldOrderChunk = (function () {
+                function HeapWorldOrderChunk(p_space, p_index) {
+                    this._index = p_index;
+                    this._space = p_space;
+                    this._lock = 0;
+                    this._magic = 0;
+                    this._extra = greycat.internal.CoreConstants.NULL_LONG;
+                    this._size = 0;
+                    this._capacity = 0;
+                    this._kv = null;
+                    this._next = null;
+                    this._diff = null;
+                    this._hash = null;
+                    this._dirty = false;
+                }
+                HeapWorldOrderChunk.prototype.world = function () {
+                    return this._space.worldByIndex(this._index);
+                };
+                HeapWorldOrderChunk.prototype.time = function () {
+                    return this._space.timeByIndex(this._index);
+                };
+                HeapWorldOrderChunk.prototype.id = function () {
+                    return this._space.idByIndex(this._index);
+                };
+                HeapWorldOrderChunk.prototype.extra = function () {
+                    return this._extra;
+                };
+                HeapWorldOrderChunk.prototype.setExtra = function (extraValue) {
+                    this._extra = extraValue;
+                };
+                HeapWorldOrderChunk.prototype.lock = function () {
+                };
+                HeapWorldOrderChunk.prototype.unlock = function () {
+                };
+                HeapWorldOrderChunk.prototype.externalLock = function () {
+                };
+                HeapWorldOrderChunk.prototype.externalUnlock = function () {
+                };
+                HeapWorldOrderChunk.prototype.magic = function () {
+                    return this._magic;
+                };
+                HeapWorldOrderChunk.prototype.each = function (callback) {
+                    for (var i = 0; i < this._size; i++) {
+                        callback(this._kv[i * 2], this._kv[i * 2 + 1]);
+                    }
+                };
+                HeapWorldOrderChunk.prototype.get = function (key) {
+                    if (this._size > 0) {
+                        var index = greycat.utility.HashHelper.longHash(key, this._capacity * 2);
+                        var m = this._hash[index];
+                        while (m >= 0) {
+                            if (key == this._kv[m * 2]) {
+                                return this._kv[(m * 2) + 1];
+                            }
+                            else {
+                                m = this._next[m];
+                            }
+                        }
+                    }
+                    return greycat.internal.CoreConstants.NULL_LONG;
+                };
+                HeapWorldOrderChunk.prototype.put = function (key, value) {
+                    this.internal_put(key, value, true);
+                };
+                HeapWorldOrderChunk.prototype.internal_put = function (key, value, notifyUpdate) {
+                    if (this._capacity > 0) {
+                        var hashIndex = greycat.utility.HashHelper.longHash(key, this._capacity * 2);
+                        var m = this._hash[hashIndex];
+                        var found = -1;
+                        while (m >= 0) {
+                            if (key == this._kv[m * 2]) {
+                                found = m;
+                                break;
+                            }
+                            m = this._next[m];
+                        }
+                        if (found == -1) {
+                            if (this._capacity == this._size) {
+                                this.resize(this._capacity * 2);
+                                hashIndex = greycat.utility.HashHelper.longHash(key, this._capacity * 2);
+                            }
+                            this._kv[this._size * 2] = key;
+                            this._kv[this._size * 2 + 1] = value;
+                            if (notifyUpdate) {
+                                this._diff[this._size] = true;
+                            }
+                            this._next[this._size] = this._hash[hashIndex];
+                            this._hash[hashIndex] = this._size;
+                            this._size++;
+                            this._magic = this._magic + 1;
+                            if (notifyUpdate && !this._dirty) {
+                                this._dirty = true;
+                                if (this._space != null) {
+                                    this._space.notifyUpdate(this._index);
+                                }
+                            }
+                        }
+                        else {
+                            if (this._kv[found * 2 + 1] != value) {
+                                this._kv[found * 2 + 1] = value;
+                                if (notifyUpdate) {
+                                    this._diff[found] = true;
+                                }
+                                this._magic = this._magic + 1;
+                                if (notifyUpdate && !this._dirty) {
+                                    this._dirty = true;
+                                    if (this._space != null) {
+                                        this._space.notifyUpdate(this._index);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        this._capacity = greycat.Constants.MAP_INITIAL_CAPACITY;
+                        this._next = new Int32Array(this._capacity);
+                        java.util.Arrays.fill(this._next, 0, this._capacity, -1);
+                        this._diff = [];
+                        greycat.internal.CoreConstants.fillBooleanArray(this._diff, false);
+                        this._hash = new Int32Array(this._capacity * 2);
+                        java.util.Arrays.fill(this._hash, 0, this._capacity * 2, -1);
+                        this._kv = new Float64Array(this._capacity * 2);
+                        this._size = 1;
+                        this._kv[0] = key;
+                        this._kv[1] = value;
+                        if (notifyUpdate) {
+                            this._diff[0] = true;
+                        }
+                        this._hash[greycat.utility.HashHelper.longHash(key, this._capacity * 2)] = 0;
+                        if (notifyUpdate && !this._dirty) {
+                            this._dirty = true;
+                            if (this._space != null) {
+                                this._space.notifyUpdate(this._index);
+                            }
+                        }
+                    }
+                };
+                HeapWorldOrderChunk.prototype.resize = function (newCapacity) {
+                    if (newCapacity > this._capacity) {
+                        if (this._kv == null) {
+                            this._kv = new Float64Array(newCapacity * 2);
+                            this._hash = new Int32Array(newCapacity * 2);
+                            this._next = new Int32Array(newCapacity);
+                            this._diff = [];
+                            this._capacity = newCapacity;
+                            java.util.Arrays.fill(this._next, 0, newCapacity, -1);
+                            greycat.internal.CoreConstants.fillBooleanArray(this._diff, false);
+                            java.util.Arrays.fill(this._hash, 0, newCapacity * 2, -1);
+                            return true;
+                        }
+                        else {
+                            var temp_kv = new Float64Array(newCapacity * 2);
+                            java.lang.System.arraycopy(this._kv, 0, temp_kv, 0, this._size * 2);
+                            var temp_diff = [];
+                            greycat.internal.CoreConstants.fillBooleanArray(temp_diff, false);
+                            java.lang.System.arraycopy(this._diff, 0, temp_diff, 0, this._size);
+                            var temp_next = new Int32Array(newCapacity);
+                            var temp_hash = new Int32Array(newCapacity * 2);
+                            java.util.Arrays.fill(temp_next, 0, newCapacity, -1);
+                            java.util.Arrays.fill(temp_hash, 0, newCapacity * 2, -1);
+                            for (var i = 0; i < this._size; i++) {
+                                var loopIndex = greycat.utility.HashHelper.longHash(temp_kv[i * 2], newCapacity * 2);
+                                temp_next[i] = temp_hash[loopIndex];
+                                temp_hash[loopIndex] = i;
+                            }
+                            this._capacity = newCapacity;
+                            this._hash = temp_hash;
+                            this._next = temp_next;
+                            this._kv = temp_kv;
+                            this._diff = temp_diff;
+                            return true;
+                        }
+                    }
+                    else {
+                        return false;
+                    }
+                };
+                HeapWorldOrderChunk.prototype.load = function (buffer) {
+                    this.internal_load(true, buffer);
+                };
+                HeapWorldOrderChunk.prototype.loadDiff = function (buffer) {
+                    this.internal_load(false, buffer);
+                };
+                HeapWorldOrderChunk.prototype.internal_load = function (initial, buffer) {
+                    if (buffer != null && buffer.length() > 0) {
+                        var cursor = 0;
+                        var bufferSize = buffer.length();
+                        var initDone = false;
+                        var previousStart = 0;
+                        var loopKey = greycat.internal.CoreConstants.NULL_LONG;
+                        while (cursor < bufferSize) {
+                            var current = buffer.read(cursor);
+                            switch (current) {
+                                case greycat.Constants.CHUNK_SEP:
+                                    this._extra = greycat.utility.Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                                    previousStart = cursor + 1;
+                                    break;
+                                case greycat.Constants.CHUNK_VAL_SEP:
+                                    if (!initDone) {
+                                        this.resize(greycat.utility.Base64.decodeToIntWithBounds(buffer, previousStart, cursor));
+                                        initDone = true;
+                                    }
+                                    else if (loopKey == greycat.internal.CoreConstants.NULL_LONG) {
+                                        loopKey = greycat.utility.Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                                    }
+                                    else {
+                                        var loopValue = greycat.utility.Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                                        this.internal_put(loopKey, loopValue, !initial);
+                                        loopKey = greycat.internal.CoreConstants.NULL_LONG;
+                                    }
+                                    previousStart = cursor + 1;
+                                    break;
+                            }
+                            cursor++;
+                        }
+                        if (!initDone) {
+                            this.resize(greycat.utility.Base64.decodeToLongWithBounds(buffer, 0, cursor));
+                        }
+                        else {
+                            if (loopKey != greycat.internal.CoreConstants.NULL_LONG) {
+                                var loopValue = greycat.utility.Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
+                                this.internal_put(loopKey, loopValue, !initial);
+                            }
+                        }
+                    }
+                };
+                HeapWorldOrderChunk.prototype.index = function () {
+                    return this._index;
+                };
+                HeapWorldOrderChunk.prototype.remove = function (key) {
+                    throw new Error("Not implemented yet!!!");
+                };
+                HeapWorldOrderChunk.prototype.size = function () {
+                    return this._size;
+                };
+                HeapWorldOrderChunk.prototype.chunkType = function () {
+                    return greycat.chunk.ChunkType.WORLD_ORDER_CHUNK;
+                };
+                HeapWorldOrderChunk.prototype.save = function (buffer) {
+                    if (this._extra != greycat.internal.CoreConstants.NULL_LONG) {
+                        greycat.utility.Base64.encodeLongToBuffer(this._extra, buffer);
+                        buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
+                    }
+                    greycat.utility.Base64.encodeIntToBuffer(this._size, buffer);
+                    for (var i = 0; i < this._size; i++) {
+                        buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                        greycat.utility.Base64.encodeLongToBuffer(this._kv[i * 2], buffer);
+                        buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                        greycat.utility.Base64.encodeLongToBuffer(this._kv[i * 2 + 1], buffer);
+                    }
+                    this._dirty = false;
+                };
+                HeapWorldOrderChunk.prototype.saveDiff = function (buffer) {
+                    if (this._dirty) {
+                        if (this._extra != greycat.internal.CoreConstants.NULL_LONG) {
+                            greycat.utility.Base64.encodeLongToBuffer(this._extra, buffer);
+                            buffer.write(greycat.internal.CoreConstants.CHUNK_SEP);
+                        }
+                        greycat.utility.Base64.encodeIntToBuffer(this._size, buffer);
+                        for (var i = 0; i < this._size; i++) {
+                            if (this._diff[i]) {
+                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                greycat.utility.Base64.encodeLongToBuffer(this._kv[i * 2], buffer);
+                                buffer.write(greycat.internal.CoreConstants.CHUNK_VAL_SEP);
+                                greycat.utility.Base64.encodeLongToBuffer(this._kv[i * 2 + 1], buffer);
+                            }
+                        }
+                        this._dirty = false;
+                    }
+                };
+                return HeapWorldOrderChunk;
+            }());
+            heap.HeapWorldOrderChunk = HeapWorldOrderChunk;
+        })(heap = internal.heap || (internal.heap = {}));
         var task;
         (function (task_1) {
             var ActionAddRemoveToGlobalIndex = (function () {
@@ -10141,7 +10268,7 @@ var greycat;
                     var previousResult = ctx.result();
                     var templatedIndexName = ctx.template(this._name);
                     var templatedAttributes = ctx.templates(this._attributes);
-                    var counter = new greycat.internal.utility.CoreDeferCounter(previousResult.size());
+                    var counter = new greycat.internal.CoreDeferCounter(previousResult.size());
                     var _loop_5 = function (i) {
                         var loop = previousResult.get(i);
                         if (loop instanceof greycat.base.BaseNode) {
@@ -10413,7 +10540,7 @@ var greycat;
                 }
                 ActionDeclareVar.prototype.eval = function (ctx) {
                     if (this._isGlobal) {
-                        ctx.setGlobalVariable(ctx.template(this._name), greycat.task.Tasks.emptyResult());
+                        ctx.setGlobalVariable(ctx.template(this._name), greycat.Tasks.emptyResult());
                     }
                     else {
                         ctx.declareVariable(ctx.template(this._name));
@@ -11331,7 +11458,7 @@ var greycat;
                     }
                     var next = ctx.newResult();
                     if (previous != null) {
-                        var defer_1 = new greycat.internal.utility.CoreDeferCounter(previous.size());
+                        var defer_1 = new greycat.internal.CoreDeferCounter(previous.size());
                         var _loop_6 = function (i) {
                             if (previous.get(i) instanceof greycat.base.BaseNode) {
                                 var casted_1 = previous.get(i);
@@ -11397,7 +11524,7 @@ var greycat;
                     }
                     ctx.setTime(parsedTime);
                     var previous = ctx.result();
-                    var defer = new greycat.internal.utility.CoreDeferCounter(previous.size());
+                    var defer = new greycat.internal.CoreDeferCounter(previous.size());
                     var previousSize = previous.size();
                     var _loop_7 = function (i) {
                         var loopObj = previous.get(i);
@@ -11463,7 +11590,7 @@ var greycat;
                     }
                     ctx.setWorld(parsedWorld);
                     var previous = ctx.result();
-                    var defer = new greycat.internal.utility.CoreDeferCounter(previous.size());
+                    var defer = new greycat.internal.CoreDeferCounter(previous.size());
                     var previousSize = previous.size();
                     var _loop_8 = function (i) {
                         var loopObj = previous.get(i);
@@ -13409,7 +13536,7 @@ var greycat;
                     }
                     else {
                         if (callback != null) {
-                            callback(greycat.task.Tasks.emptyResult());
+                            callback(greycat.Tasks.emptyResult());
                         }
                     }
                 };
@@ -13434,7 +13561,7 @@ var greycat;
                     else {
                         var casted = preparedContext;
                         if (casted._callback != null) {
-                            casted._callback(greycat.task.Tasks.emptyResult());
+                            casted._callback(greycat.Tasks.emptyResult());
                         }
                     }
                 };
@@ -13464,7 +13591,7 @@ var greycat;
                     }
                     else {
                         if (callback != null) {
-                            callback(greycat.task.Tasks.emptyResult());
+                            callback(greycat.Tasks.emptyResult());
                         }
                     }
                 };
@@ -13497,7 +13624,7 @@ var greycat;
                     }
                     else {
                         if (callback != null) {
-                            callback(greycat.task.Tasks.emptyResult());
+                            callback(greycat.Tasks.emptyResult());
                         }
                     }
                 };
@@ -15765,119 +15892,6 @@ var greycat;
                 math.MathOperation = MathOperation;
             })(math = task_1.math || (task_1.math = {}));
         })(task = internal.task || (internal.task = {}));
-        var utility;
-        (function (utility) {
-            var CoreDeferCounter = (function () {
-                function CoreDeferCounter(nb) {
-                    this._counter = nb;
-                    this._nb_down = new java.util.concurrent.atomic.AtomicInteger(0);
-                }
-                CoreDeferCounter.prototype.count = function () {
-                    var previous;
-                    var next;
-                    do {
-                        previous = this._nb_down.get();
-                        next = previous + 1;
-                    } while (!this._nb_down.compareAndSet(previous, next));
-                    if (next == this._counter) {
-                        if (this._end != null) {
-                            this._end();
-                        }
-                    }
-                };
-                CoreDeferCounter.prototype.getCount = function () {
-                    return this._nb_down.get();
-                };
-                CoreDeferCounter.prototype.then = function (p_callback) {
-                    this._end = p_callback;
-                    if (this._nb_down.get() == this._counter) {
-                        if (p_callback != null) {
-                            p_callback();
-                        }
-                    }
-                };
-                CoreDeferCounter.prototype.wrap = function () {
-                    var _this = this;
-                    return function (result) {
-                        {
-                            _this.count();
-                        }
-                    };
-                };
-                return CoreDeferCounter;
-            }());
-            utility.CoreDeferCounter = CoreDeferCounter;
-            var CoreDeferCounterSync = (function () {
-                function CoreDeferCounterSync(nb) {
-                    this._result = null;
-                    this._counter = nb;
-                    this._nb_down = new java.util.concurrent.atomic.AtomicInteger(0);
-                }
-                CoreDeferCounterSync.prototype.count = function () {
-                    this._nb_down.set(this._nb_down.get() + 1);
-                    if (this._nb_down.get() == this._counter) {
-                        if (this._end != null) {
-                            this._end();
-                        }
-                    }
-                };
-                CoreDeferCounterSync.prototype.getCount = function () {
-                    return this._nb_down.get();
-                };
-                CoreDeferCounterSync.prototype.then = function (p_callback) {
-                    this._end = p_callback;
-                    if (this._nb_down.get() == this._counter) {
-                        if (p_callback != null) {
-                            p_callback();
-                        }
-                    }
-                };
-                CoreDeferCounterSync.prototype.wrap = function () {
-                    var _this = this;
-                    return function (result) {
-                        {
-                            _this._result = result;
-                            _this.count();
-                        }
-                    };
-                };
-                CoreDeferCounterSync.prototype.waitResult = function () {
-                    while (this._nb_down.get() != this._counter) {
-                    }
-                    return this._result;
-                };
-                return CoreDeferCounterSync;
-            }());
-            utility.CoreDeferCounterSync = CoreDeferCounterSync;
-            var ReadOnlyStorage = (function () {
-                function ReadOnlyStorage(toWrap) {
-                    this.wrapped = toWrap;
-                }
-                ReadOnlyStorage.prototype.get = function (keys, callback) {
-                    this.wrapped.get(keys, callback);
-                };
-                ReadOnlyStorage.prototype.put = function (stream, callback) {
-                    console.error("WARNING: PUT TO A READ ONLY STORAGE");
-                };
-                ReadOnlyStorage.prototype.remove = function (keys, callback) {
-                    console.error("WARNING: REMOVE TO A READ ONLY STORAGE");
-                };
-                ReadOnlyStorage.prototype.connect = function (graph, callback) {
-                    this.wrapped.connect(graph, callback);
-                };
-                ReadOnlyStorage.prototype.disconnect = function (callback) {
-                    this.wrapped.disconnect(callback);
-                };
-                ReadOnlyStorage.prototype.lock = function (callback) {
-                    this.wrapped.lock(callback);
-                };
-                ReadOnlyStorage.prototype.unlock = function (previousLock, callback) {
-                    this.wrapped.unlock(previousLock, callback);
-                };
-                return ReadOnlyStorage;
-            }());
-            utility.ReadOnlyStorage = ReadOnlyStorage;
-        })(utility = internal.utility || (internal.utility = {}));
     })(internal = greycat.internal || (greycat.internal = {}));
     var plugin;
     (function (plugin) {
@@ -15892,107 +15906,81 @@ var greycat;
         SchedulerAffinity.ANY_REMOTE_THREAD = 3;
         plugin.SchedulerAffinity = SchedulerAffinity;
     })(plugin = greycat.plugin || (greycat.plugin = {}));
-    var task;
-    (function (task_2) {
-        var Tasks = (function () {
-            function Tasks() {
+    var scheduler;
+    (function (scheduler) {
+        var JobQueue = (function () {
+            function JobQueue() {
+                this.first = null;
+                this.last = null;
             }
-            Tasks.cond = function (mathExpression) {
-                return new greycat.internal.task.math.MathConditional(mathExpression).conditional();
-            };
-            Tasks.newTask = function () {
-                return new greycat.internal.task.CoreTask();
-            };
-            Tasks.emptyResult = function () {
-                return new greycat.base.BaseTaskResult(null, false);
-            };
-            Tasks.then = function (action) {
-                return greycat.task.Tasks.newTask().then(action);
-            };
-            Tasks.thenDo = function (actionFunction) {
-                return greycat.task.Tasks.newTask().thenDo(actionFunction);
-            };
-            Tasks.loop = function (from, to, subTask) {
-                return greycat.task.Tasks.newTask().loop(from, to, subTask);
-            };
-            Tasks.loopPar = function (from, to, subTask) {
-                return greycat.task.Tasks.newTask().loopPar(from, to, subTask);
-            };
-            Tasks.forEach = function (subTask) {
-                return greycat.task.Tasks.newTask().forEach(subTask);
-            };
-            Tasks.forEachPar = function (subTask) {
-                return greycat.task.Tasks.newTask().forEachPar(subTask);
-            };
-            Tasks.map = function (subTask) {
-                return greycat.task.Tasks.newTask().map(subTask);
-            };
-            Tasks.mapPar = function (subTask) {
-                return greycat.task.Tasks.newTask().mapPar(subTask);
-            };
-            Tasks.ifThen = function (cond, then) {
-                return greycat.task.Tasks.newTask().ifThen(cond, then);
-            };
-            Tasks.ifThenScript = function (condScript, then) {
-                return greycat.task.Tasks.newTask().ifThenScript(condScript, then);
-            };
-            Tasks.ifThenElse = function (cond, thenSub, elseSub) {
-                return greycat.task.Tasks.newTask().ifThenElse(cond, thenSub, elseSub);
-            };
-            Tasks.ifThenElseScript = function (condScript, thenSub, elseSub) {
-                return greycat.task.Tasks.newTask().ifThenElseScript(condScript, thenSub, elseSub);
-            };
-            Tasks.doWhile = function (task, cond) {
-                return greycat.task.Tasks.newTask().doWhile(task, cond);
-            };
-            Tasks.doWhileScript = function (task, condScript) {
-                return greycat.task.Tasks.newTask().doWhileScript(task, condScript);
-            };
-            Tasks.whileDo = function (cond, task) {
-                return greycat.task.Tasks.newTask().whileDo(cond, task);
-            };
-            Tasks.whileDoScript = function (condScript, task) {
-                return greycat.task.Tasks.newTask().whileDoScript(condScript, task);
-            };
-            Tasks.pipe = function () {
-                var subTasks = [];
-                for (var _i = 0; _i < arguments.length; _i++) {
-                    subTasks[_i] = arguments[_i];
+            JobQueue.prototype.add = function (item) {
+                var elem = new greycat.scheduler.JobQueue.JobQueueElem(item, null);
+                if (this.first == null) {
+                    this.first = elem;
+                    this.last = elem;
                 }
-                return (_a = greycat.task.Tasks.newTask()).pipe.apply(_a, subTasks);
-                var _a;
-            };
-            Tasks.pipePar = function () {
-                var subTasks = [];
-                for (var _i = 0; _i < arguments.length; _i++) {
-                    subTasks[_i] = arguments[_i];
+                else {
+                    this.last._next = elem;
+                    this.last = elem;
                 }
-                return (_a = greycat.task.Tasks.newTask()).pipePar.apply(_a, subTasks);
-                var _a;
             };
-            Tasks.pipeTo = function (subTask) {
-                var vars = [];
-                for (var _i = 1; _i < arguments.length; _i++) {
-                    vars[_i - 1] = arguments[_i];
-                }
-                return (_a = greycat.task.Tasks.newTask()).pipeTo.apply(_a, [subTask].concat(vars));
-                var _a;
+            JobQueue.prototype.poll = function () {
+                var value = this.first;
+                this.first = this.first._next;
+                return value._ptr;
             };
-            Tasks.atomic = function (protectedTask) {
-                var variablesToLock = [];
-                for (var _i = 1; _i < arguments.length; _i++) {
-                    variablesToLock[_i - 1] = arguments[_i];
-                }
-                return (_a = greycat.task.Tasks.newTask()).atomic.apply(_a, [protectedTask].concat(variablesToLock));
-                var _a;
-            };
-            Tasks.parse = function (flat, graph) {
-                return greycat.task.Tasks.newTask().parse(flat, graph);
-            };
-            return Tasks;
+            return JobQueue;
         }());
-        task_2.Tasks = Tasks;
-    })(task = greycat.task || (greycat.task = {}));
+        scheduler.JobQueue = JobQueue;
+        (function (JobQueue) {
+            var JobQueueElem = (function () {
+                function JobQueueElem(ptr, next) {
+                    this._ptr = ptr;
+                    this._next = next;
+                }
+                return JobQueueElem;
+            }());
+            JobQueue.JobQueueElem = JobQueueElem;
+        })(JobQueue = scheduler.JobQueue || (scheduler.JobQueue = {}));
+        var NoopScheduler = (function () {
+            function NoopScheduler() {
+            }
+            NoopScheduler.prototype.dispatch = function (affinity, job) {
+                job();
+            };
+            NoopScheduler.prototype.start = function () { };
+            NoopScheduler.prototype.stop = function () { };
+            NoopScheduler.prototype.workers = function () {
+                return 1;
+            };
+            return NoopScheduler;
+        }());
+        scheduler.NoopScheduler = NoopScheduler;
+        var TrampolineScheduler = (function () {
+            function TrampolineScheduler() {
+                this.queue = new JobQueue();
+                this.wip = new java.util.concurrent.atomic.AtomicInteger(0);
+            }
+            TrampolineScheduler.prototype.dispatch = function (affinity, job) {
+                this.queue.add(job);
+                if (this.wip.getAndIncrement() == 0) {
+                    do {
+                        var polled = this.queue.poll();
+                        if (polled != null) {
+                            polled();
+                        }
+                    } while (this.wip.decrementAndGet() > 0);
+                }
+            };
+            TrampolineScheduler.prototype.start = function () { };
+            TrampolineScheduler.prototype.stop = function () { };
+            TrampolineScheduler.prototype.workers = function () {
+                return 1;
+            };
+            return TrampolineScheduler;
+        }());
+        scheduler.TrampolineScheduler = TrampolineScheduler;
+    })(scheduler = greycat.scheduler || (greycat.scheduler = {}));
     var utility;
     (function (utility) {
         var Base64 = (function () {

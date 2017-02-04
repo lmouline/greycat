@@ -18,12 +18,12 @@ package greycat.ml.algorithm.regression.actions;
 import greycat.Constants;
 import greycat.Type;
 import greycat.internal.task.TaskHelper;
-import greycat.task.Action;
-import greycat.task.Task;
+import greycat.Action;
+import greycat.Task;
 import greycat.Callback;
 import greycat.ml.algorithm.regression.PolynomialNode;
-import greycat.task.TaskContext;
-import greycat.task.TaskResult;
+import greycat.TaskContext;
+import greycat.TaskResult;
 
 import static greycat.internal.task.CoreActions.*;
 import static greycat.Tasks.newTask;

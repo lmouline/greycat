@@ -15,7 +15,7 @@
  */
 package greycat.importer;
 
-import greycat.task.Action;
+import greycat.Action;
 
 public class ImporterActions {
 

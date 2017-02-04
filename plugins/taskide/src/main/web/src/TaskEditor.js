@@ -21,7 +21,7 @@ class TaskEditor extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            code: 'readGlobalIndex(nodes)',
+            code: 'readGlobalIndex(nodes)\n.forEach({\n\tprintln("{{result}}")\n})\n',
             actions: []
         };
         global.context.code = this.state.code;

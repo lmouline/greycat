@@ -23,7 +23,7 @@ import greycat.ml.neuralnet.FlatNeuralNode;
 import greycat.ml.neuralnet.NeuralNodeEmpty;
 import greycat.plugin.ActionFactory;
 import greycat.plugin.NodeFactory;
-import greycat.task.Action;
+import greycat.Action;
 import greycat.Type;
 import greycat.ml.algorithm.anomalydetector.InterquartileRangeOutlierDetectorNode;
 import greycat.ml.algorithm.profiling.GaussianMixtureNode;

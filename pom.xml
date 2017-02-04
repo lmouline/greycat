@@ -18,14 +18,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.datathings.greycat</groupId>
-    <artifactId>greycat</artifactId>
+    <groupId>com.datathings</groupId>
+    <artifactId>greycat-parent</artifactId>
     <packaging>pom</packaging>
     <version>12-SNAPSHOT</version>
-    <name>greycat</name>
+    <name>greycat-parent</name>
 
     <url>https://github.com/datathings/greycat</url>
-    <description>greycat</description>
+    <description>The GreyCat project</description>
 
     <scm>
         <connection>scm:git:git@github.com:datathings/greycat.git</connection>
@@ -49,6 +49,7 @@
     <properties>
         <java2typescript.plugin.version>82</java2typescript.plugin.version>
         <header.path>${basedir}/HEADER</header.path>
+        <undertow.version>1.4.10.Final</undertow.version>
     </properties>
 
     <developers>
@@ -95,7 +96,7 @@
     </developers>
 
     <modules>
-        <module>core</module>
+        <module>greycat</module>
 
         <module>plugins/importer</module>
         <module>plugins/leveldb</module>
@@ -183,7 +184,7 @@
                         <exclude>HEADER</exclude>
                         <exclude>LICENSE</exclude>
                         <exclude>NOTICE</exclude>
-                        <exclude>plugins/visualizer/**</exclude>
+                        <exclude>**/visualizer/**</exclude>
                         <exclude>**/node_modules/**</exclude>
                         <exclude>**/public/*.ts</exclude>
                         <exclude>**/public/*.js</exclude>
@@ -267,5 +268,14 @@
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
 </project>

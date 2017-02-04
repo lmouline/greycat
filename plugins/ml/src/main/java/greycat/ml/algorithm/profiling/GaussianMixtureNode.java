@@ -15,15 +15,11 @@
  */
 package greycat.ml.algorithm.profiling;
 
-import greycat.Graph;
-import greycat.Node;
-import greycat.Type;
+import greycat.*;
 import greycat.ml.ProfilingNode;
 import greycat.ml.common.matrix.operation.MultivariateNormalDistribution;
 import greycat.struct.Relation;
-import greycat.task.*;
 import greycat.utility.Enforcer;
-import greycat.Callback;
 import greycat.ml.BaseMLNode;
 import greycat.ml.actions.ActionTraverseOrKeep;
 import greycat.ml.common.NDimentionalArray;

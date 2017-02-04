@@ -15,9 +15,6 @@
  */
 package greycat;
 
-import greycat.task.ActionFunction;
-import greycat.task.Task;
-import greycat.task.TaskContext;
 import org.junit.Assert;
 import org.junit.Test;
 import greycat.importer.ImporterActions;

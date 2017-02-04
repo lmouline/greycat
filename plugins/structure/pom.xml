@@ -19,30 +19,22 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.datathings.greycat.plugins</groupId>
-    <artifactId>structure</artifactId>
+    <artifactId>greycat-structure</artifactId>
     <version>12-SNAPSHOT</version>
-    <name>greycat :: Plugins :: Structure</name>
+    <name>greycat-structure</name>
 
     <parent>
-        <artifactId>greycat</artifactId>
-        <groupId>com.datathings.greycat</groupId>
+        <artifactId>greycat-parent</artifactId>
+        <groupId>com.datathings</groupId>
         <version>12-SNAPSHOT</version>
         <relativePath>../..</relativePath>
     </parent>
 
     <dependencies>
         <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>core</artifactId>
+            <groupId>com.datathings</groupId>
+            <artifactId>greycat</artifactId>
             <version>${project.parent.version}</version>
-        </dependency>
-        <!-- Test -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -119,7 +111,7 @@
                         <configuration>
                             <target>
                                 <echo message="Compile Java to TypeScript"/>
-                                <copy file="${basedir}/../../core/target/classes-js/greycat.d.ts"
+                                <copy file="${basedir}/../../greycat/target/classes-js/greycat.d.ts"
                                       todir="${basedir}/target/generated-sources/"/>
                                 <copy file="${basedir}/../../share/package.json" todir="${basedir}/target"/>
                                 <exec executable="npm" dir="${basedir}/target" failonerror="true">
@@ -173,14 +165,14 @@
                                     <arg value="${basedir}/target/test-classes/greycat.test.js"/>
                                 </exec>
                                 <concat destfile="${basedir}/target/test-classes/test.all.js" force="no">
-                                    <filelist dir="${basedir}/../../core/target/classes-js" files="greycat.js"/>
+                                    <filelist dir="${basedir}/../../greycat/target/classes-js" files="greycat.js"/>
                                     <filelist dir="${basedir}/../../share/" files="spacer.js"/>
                                     <filelist dir="${basedir}/target/test-classes" files="greycat.test.js"/>
                                     <filelist dir="${basedir}/../../share/" files="spacer.js"/>
                                     <filelist dir="${basedir}/target/generated-test-sources/" files="testsRunner.js"/>
                                 </concat>
                                 <concat destfile="${basedir}/target/test-classes/test.all.dev.js" force="no">
-                                    <filelist dir="${basedir}/../../core/target/classes-js" files="greycat.js"/>
+                                    <filelist dir="${basedir}/../../greycat/target/classes-js" files="greycat.js"/>
                                     <filelist dir="${basedir}/../../share/" files="spacer.js"/>
                                     <filelist dir="${basedir}/target/test-classes" files="greycat.test.js"/>
                                     <filelist dir="${basedir}/../../share/" files="spacer.js"/>

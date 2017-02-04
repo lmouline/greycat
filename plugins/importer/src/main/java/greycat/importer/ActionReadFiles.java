@@ -17,9 +17,9 @@ package greycat.importer;
 
 import greycat.Constants;
 import greycat.internal.task.TaskHelper;
-import greycat.task.Action;
-import greycat.task.TaskResult;
-import greycat.task.TaskContext;
+import greycat.Action;
+import greycat.TaskResult;
+import greycat.TaskContext;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
