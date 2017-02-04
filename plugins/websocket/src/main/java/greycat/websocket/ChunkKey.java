@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat;
+package greycat.websocket;
 
+import greycat.Constants;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
 

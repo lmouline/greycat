@@ -18,7 +18,7 @@
 ///<reference path='reconnecting-websocket.ts'/>
 
 module greycat {
-    export module plugin {
+    export module websocket {
         export class WSClient implements greycat.plugin.Storage {
 
             private url: string;

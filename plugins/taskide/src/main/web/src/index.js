@@ -28,9 +28,10 @@ global.context = {};
 //let defaultPORT = 4000;
 let defaultPORT = window.location.port;
 let defaultURL = "ws://" + window.location.hostname + ":" + defaultPORT + "/ws";
+let greycat = global.greycat;
 
-global.context.ws = new global.greycat.plugin.WSClient(defaultURL);
-global.context.graph = global.greycat.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
+global.context.ws = new greycat.websocket.WSClient(defaultURL);
+global.context.graph = greycat.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
 global.context.actions = [];
 global.context.graph.connect(null);
 
@@ -38,8 +39,8 @@ global.context.url = function (val) {
     if (global.context.graph !== undefined) {
         global.context.graph.disconnect(null);
     }
-    global.context.ws = new global.geycat.plugin.WSClient(val);
-    global.context.graph = global.greycat.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
+    global.context.ws = new geycat.websocket.WSClient(val);
+    global.context.graph = greycat.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
     global.context.graph.connect(null);
     console.log('change url to ' + val);
 };

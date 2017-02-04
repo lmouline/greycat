@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat;
+package greycat.websocket;
 
+import greycat.Callback;
+import greycat.Constants;
+import greycat.Graph;
+import greycat.Task;
 import greycat.plugin.TaskExecutor;
 import greycat.struct.BufferIterator;
 import io.undertow.connector.ByteBufferPool;

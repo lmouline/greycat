@@ -13,41 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat;
+package greycat.leveldb;
 
+import greycat.Callback;
+import greycat.Constants;
+import greycat.Graph;
 import greycat.plugin.Storage;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
 import greycat.utility.Base64;
-import org.rocksdb.*;
+import org.fusesource.leveldbjni.JniDBFactory;
+import org.iq80.leveldb.CompressionType;
+import org.iq80.leveldb.DB;
+import org.iq80.leveldb.Options;
+import org.iq80.leveldb.WriteBatch;
+import org.iq80.leveldb.impl.Iq80DBFactory;
 
 import java.io.File;
 
-public class RocksDBStorage implements Storage {
-
-    private Options _options;
-
-    private RocksDB _db;
-
-    private Graph _graph;
+public class LevelDBStorage implements Storage {
 
     private static final String _connectedError = "PLEASE CONNECT YOUR DATABASE FIRST";
+    private static final byte[] prefixKey = "prefix".getBytes();
 
-    private boolean _isConnected = false;
+    private final String storagePath;
 
-    private final String _storagePath;
+    private DB db;
+    private boolean isConnected;
+    private Graph graph;
+    private boolean useNative = true;
 
-    public RocksDBStorage(String storagePath) {
-        RocksDB.loadLibrary();
-        this._storagePath = storagePath;
+    public LevelDBStorage(String storagePath) {
+        this.isConnected = false;
+        this.storagePath = storagePath;
+    }
+
+    public LevelDBStorage useNative(boolean p_useNative) {
+        this.useNative = p_useNative;
+        return this;
     }
 
     @Override
     public void get(Buffer keys, Callback<Buffer> callback) {
-        if (!_isConnected) {
+        if (!isConnected) {
             throw new RuntimeException(_connectedError);
         }
-        Buffer result = _graph.newBuffer();
+        Buffer result = graph.newBuffer();
         BufferIterator it = keys.iterator();
         boolean isFirst = true;
         while (it.hasNext()) {
@@ -58,7 +69,7 @@ public class RocksDBStorage implements Storage {
                 } else {
                     isFirst = false;
                 }
-                byte[] res = _db.get(view.data());
+                byte[] res = db.get(view.data());
                 if (res != null) {
                     result.writeAll(res);
                 }
@@ -72,44 +83,43 @@ public class RocksDBStorage implements Storage {
     }
 
     @Override
-    public void put(Buffer stream, Callback<Boolean> p_callback) {
-        if (!_isConnected) {
+    public void put(Buffer stream, Callback<Boolean> callback) {
+        if (!isConnected) {
             throw new RuntimeException(_connectedError);
         }
-        WriteBatch batch = new WriteBatch();
-        BufferIterator it = stream.iterator();
-        while (it.hasNext()) {
-            Buffer keyView = it.next();
-            Buffer valueView = it.next();
-            if (valueView != null) {
-                batch.put(keyView.data(), valueView.data());
-            }
-        }
-        WriteOptions options = new WriteOptions();
-        options.setSync(false);
         try {
-            _db.write(options, batch);
-            if (p_callback != null) {
-                p_callback.on(true);
+            WriteBatch batch = db.createWriteBatch();
+            BufferIterator it = stream.iterator();
+            while (it.hasNext()) {
+                Buffer keyView = it.next();
+                Buffer valueView = it.next();
+                if (valueView != null) {
+                    batch.put(keyView.data(), valueView.data());
+                }
             }
-        } catch (RocksDBException e) {
+            db.write(batch);
+            if (callback != null) {
+                callback.on(true);
+            }
+        } catch (Exception e) {
             e.printStackTrace();
-            if (p_callback != null) {
-                p_callback.on(false);
+            if (callback != null) {
+                callback.on(false);
             }
         }
     }
 
+
     @Override
     public void remove(Buffer keys, Callback<Boolean> callback) {
-        if (!_isConnected) {
+        if (!isConnected) {
             throw new RuntimeException(_connectedError);
         }
         try {
             BufferIterator it = keys.iterator();
             while (it.hasNext()) {
                 Buffer view = it.next();
-                _db.remove(view.data());
+                db.delete(view.data());
             }
             if (callback != null) {
                 callback.on(null);
@@ -124,16 +134,10 @@ public class RocksDBStorage implements Storage {
 
     @Override
     public void disconnect(Callback<Boolean> callback) {
-        //TODO write the prefix
         try {
-            WriteOptions options = new WriteOptions();
-            options.sync();
-            _db.write(options, new WriteBatch());
-            _db.close();
-            _options.dispose();
-            _options = null;
-            _db = null;
-            _isConnected = false;
+            db.close();
+            db = null;
+            isConnected = false;
             if (callback != null) {
                 callback.on(true);
             }
@@ -145,56 +149,36 @@ public class RocksDBStorage implements Storage {
         }
     }
 
-    private static final byte[] prefixKey = "prefix".getBytes();
-
     @Override
     public void connect(Graph graph, Callback<Boolean> callback) {
-        if (_isConnected) {
+        if (isConnected) {
             if (callback != null) {
-                callback.on(true);
+                callback.on(null);
             }
             return;
         }
-        _graph = graph;
+        this.graph = graph;
         //by default activate snappy compression of bytes
-        _options = new Options()
-                .setCreateIfMissing(true)
-                .setCompressionType(CompressionType.SNAPPY_COMPRESSION);
-        File location = new File(_storagePath);
+        Options options = new Options()
+                .createIfMissing(true)
+                .compressionType(CompressionType.SNAPPY);
+        File location = new File(storagePath);
         if (!location.exists()) {
             location.mkdirs();
         }
         File targetDB = new File(location, "data");
         targetDB.mkdirs();
         try {
-            _db = RocksDB.open(_options, targetDB.getAbsolutePath());
-            _isConnected = true;
+            if (useNative) {
+                db = JniDBFactory.factory.open(targetDB, options);
+            } else {
+                db = Iq80DBFactory.factory.open(targetDB, options);
+            }
+            isConnected = true;
             if (callback != null) {
                 callback.on(true);
             }
-        } catch (RocksDBException e) {
-            e.printStackTrace();
-            if (callback != null) {
-                callback.on(false);
-            }
-        }
-    }
-
-    @Override
-    public void lock(Callback<Buffer> callback) {
-        try {
-            byte[] current = _db.get(prefixKey);
-            if (current == null) {
-                current = new String("0").getBytes();
-            }
-            Short currentPrefix = Short.parseShort(new String(current));
-            _db.put(prefixKey, ((currentPrefix + 1) + "").getBytes());
-            if (callback != null) {
-                Buffer newBuf = _graph.newBuffer();
-                Base64.encodeIntToBuffer(currentPrefix,newBuf);
-                callback.on(newBuf);
-            }
-        } catch (RocksDBException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             if (callback != null) {
                 callback.on(null);
@@ -203,8 +187,28 @@ public class RocksDBStorage implements Storage {
     }
 
     @Override
+    public void lock(Callback<Buffer> callback) {
+        if (!isConnected) {
+            throw new RuntimeException(_connectedError);
+        }
+        byte[] current = db.get(prefixKey);
+        if (current == null) {
+            current = new String("0").getBytes();
+        }
+        Short currentPrefix = Short.parseShort(new String(current));
+        db.put(prefixKey, ((currentPrefix + 1) + "").getBytes());
+        if (callback != null) {
+            Buffer newBuf = graph.newBuffer();
+            Base64.encodeIntToBuffer(currentPrefix, newBuf);
+            callback.on(newBuf);
+        }
+    }
+
+    @Override
     public void unlock(Buffer previousLock, Callback<Boolean> callback) {
-        //noop
+        if (!isConnected) {
+            throw new RuntimeException(_connectedError);
+        }
         callback.on(true);
     }
 }

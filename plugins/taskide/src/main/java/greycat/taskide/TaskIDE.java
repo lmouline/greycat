@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat;
+package greycat.taskide;
 
+import greycat.Graph;
+import greycat.Type;
+import greycat.websocket.WSServer;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;

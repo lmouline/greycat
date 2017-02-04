@@ -15,6 +15,9 @@
  */
 package greycat;
 
+import greycat.taskide.TaskIDE;
+import greycat.websocket.WSServer;
+
 public class TaskServerTest {
 
     public static void main(String[] args) {

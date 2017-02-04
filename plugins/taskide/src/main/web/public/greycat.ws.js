@@ -214,8 +214,8 @@ var WebSocketHelper;
 ///<reference path='reconnecting-websocket.ts'/>
 var greycat;
 (function (greycat) {
-    var plugin;
-    (function (plugin) {
+    var websocket;
+    (function (websocket) {
         var WSClient = (function () {
             function WSClient(p_url) {
                 this.ws = null;
@@ -359,7 +359,7 @@ var greycat;
             };
             return WSClient;
         }());
-        plugin.WSClient = WSClient;
-    })(plugin = greycat.plugin || (greycat.plugin = {}));
+        websocket.WSClient = WSClient;
+    })(websocket = greycat.websocket || (greycat.websocket = {}));
 })(greycat || (greycat = {}));
 //# sourceMappingURL=greycat.ws.js.map

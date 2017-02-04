@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat;
+package greycat.websocket;
 
+import greycat.*;
 import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
