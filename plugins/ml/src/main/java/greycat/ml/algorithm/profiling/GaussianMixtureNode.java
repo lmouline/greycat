@@ -33,7 +33,7 @@ import greycat.struct.DMatrix;
 
 import static greycat.internal.task.CoreActions.defineAsGlobalVar;
 import static greycat.internal.task.CoreActions.traverse;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
 

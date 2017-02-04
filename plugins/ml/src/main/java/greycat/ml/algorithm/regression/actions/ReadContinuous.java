@@ -17,10 +17,10 @@ package greycat.ml.algorithm.regression.actions;
 
 import greycat.Callback;
 import greycat.Constants;
+import greycat.Tasks;
 import greycat.internal.task.CoreActions;
 import greycat.internal.task.TaskHelper;
 import greycat.ml.algorithm.regression.PolynomialNode;
-import greycat.task.*;
 import greycat.task.Action;
 import greycat.task.Task;
 import greycat.task.TaskContext;

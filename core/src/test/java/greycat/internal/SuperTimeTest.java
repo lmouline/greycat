@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import greycat.chunk.ChunkSpace;
 import greycat.chunk.TimeTreeChunk;
-import greycat.internal.scheduler.NoopScheduler;
+import greycat.scheduler.NoopScheduler;
 
 public class SuperTimeTest {
 

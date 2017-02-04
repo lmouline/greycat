@@ -17,14 +17,14 @@ package greycat.internal;
 
 import greycat.Graph;
 import greycat.Type;
-import greycat.internal.scheduler.HybridScheduler;
+import greycat.scheduler.HybridScheduler;
 import greycat.Callback;
 import greycat.GraphBuilder;
 import greycat.task.TaskResult;
 
 import static greycat.internal.task.CoreActions.*;
-import static greycat.task.Tasks.cond;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.cond;
+import static greycat.Tasks.newTask;
 
 /**
  * @ignore ts

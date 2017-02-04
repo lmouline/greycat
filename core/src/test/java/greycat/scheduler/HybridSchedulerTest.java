@@ -13,37 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.internal.scheduler;
+package greycat.scheduler;
 
 import greycat.Callback;
 import greycat.Graph;
-import greycat.GraphBuilder;
 import greycat.task.TaskResult;
+import greycat.GraphBuilder;
 
-import static greycat.internal.task.CoreActions.print;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
+import static greycat.internal.task.CoreActions.*;
 
 /**
  * @ignore ts
  */
-public class TrampolineSchedulerTest {
+public class HybridSchedulerTest {
 
-    //  @Test
+  //  @Test
     public void test() {
-        Graph g = new GraphBuilder().withScheduler(new TrampolineScheduler()).build();
+        Graph g = new GraphBuilder().withScheduler(new HybridScheduler()).build();
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                newTask().loopPar("0", "99",
-                        newTask().then(print("{{result}}"))
-                ).execute(g, new Callback<TaskResult>() {
+                newTask().loopPar("0","99", newTask().loop("0","99", newTask().then(print("{{result}}")))).execute(g, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
                         System.out.println();
+
                     }
                 });
             }
         });
+
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 
 }

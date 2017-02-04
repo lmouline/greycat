@@ -20,7 +20,7 @@ import greycat.Node;
 import greycat.Type;
 import greycat.chunk.ChunkType;
 import greycat.chunk.StateChunk;
-import greycat.internal.scheduler.NoopScheduler;
+import greycat.scheduler.NoopScheduler;
 import greycat.utility.HashHelper;
 import greycat.GraphBuilder;
 import greycat.chunk.Chunk;

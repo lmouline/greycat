@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import static greycat.internal.task.CoreActions.readGlobalIndex;
 import static greycat.internal.task.CoreActions.traverse;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 public class ActionTraverseOrAttributeTest extends AbstractActionTest {
 

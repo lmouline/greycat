@@ -15,7 +15,7 @@
  */
 package greycat;
 
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 public class TaskServerTest {
 

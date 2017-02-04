@@ -21,7 +21,7 @@ import greycat.Type;
 import greycat.task.ActionFunction;
 import greycat.task.TaskContext;
 import greycat.task.TaskResult;
-import greycat.task.Tasks;
+import greycat.Tasks;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import greycat.Callback;
 
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 import static greycat.internal.task.CoreActions.*;
 
 public class ActionWhileDoTest extends AbstractActionTest {

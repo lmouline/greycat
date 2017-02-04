@@ -27,7 +27,7 @@ import greycat.struct.RelationIndexed;
 import static greycat.internal.task.CoreActions.readGlobalIndex;
 import static greycat.internal.task.CoreActions.attributes;
 import static greycat.internal.task.CoreActions.attributesWithTypes;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 public class ActionPropertiesTest {
     private Graph graph;

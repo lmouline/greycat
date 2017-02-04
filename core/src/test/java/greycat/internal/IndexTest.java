@@ -19,10 +19,10 @@ import greycat.*;
 import greycat.task.ActionFunction;
 import org.junit.Assert;
 import org.junit.Test;
-import greycat.internal.scheduler.NoopScheduler;
+import greycat.scheduler.NoopScheduler;
 import greycat.struct.RelationIndexed;
 import greycat.task.TaskContext;
-import greycat.task.Tasks;
+import greycat.Tasks;
 
 public class IndexTest {
 

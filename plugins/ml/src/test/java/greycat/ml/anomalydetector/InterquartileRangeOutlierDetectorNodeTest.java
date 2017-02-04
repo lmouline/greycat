@@ -17,7 +17,7 @@ package greycat.ml.anomalydetector;
 
 import greycat.Graph;
 import greycat.Type;
-import greycat.internal.scheduler.NoopScheduler;
+import greycat.scheduler.NoopScheduler;
 import greycat.ml.MLPlugin;
 import greycat.ml.algorithm.anomalydetector.InterquartileRangeOutlierDetectorNode;
 import org.junit.Test;

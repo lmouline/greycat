@@ -25,7 +25,7 @@ import greycat.task.TaskResult;
 import java.util.ArrayList;
 import java.util.List;
 
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 import static greycat.internal.task.CoreActions.*;
 
 public class ActionForeachParTest extends AbstractActionTest {

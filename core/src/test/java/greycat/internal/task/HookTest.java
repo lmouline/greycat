@@ -23,7 +23,7 @@ import org.junit.Test;
 import greycat.GraphBuilder;
 import greycat.task.TaskContext;
 
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 import static greycat.internal.task.CoreActions.*;
 
 public class HookTest {

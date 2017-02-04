@@ -13,13 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.task;
+package greycat.scheduler;
 
-import java.util.Map;
+import greycat.plugin.Job;
+import greycat.plugin.Scheduler;
 
-@FunctionalInterface
-public interface TaskActionFactory {
+public class NoopScheduler implements Scheduler {
 
-    Action create(String[] params, Map<Integer, Task> contextTasks);
+    @Override
+    public void dispatch(byte affinity, Job job) {
+        job.run();
+    }
+
+    @Override
+    public void start() {
+        //noop
+    }
+
+    @Override
+    public void stop() {
+        //noop
+    }
+
+    @Override
+    public int workers() {
+        return 1;
+    }
 
 }

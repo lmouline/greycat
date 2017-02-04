@@ -17,7 +17,7 @@ package rocksdb;
 
 import greycat.*;
 import org.junit.Test;
-import greycat.internal.scheduler.NoopScheduler;
+import greycat.scheduler.NoopScheduler;
 
 import java.io.IOException;
 import java.nio.file.*;

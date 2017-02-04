@@ -22,9 +22,9 @@ import greycat.Callback;
 import greycat.Graph;
 import greycat.GraphBuilder;
 import greycat.Node;
-import greycat.internal.scheduler.NoopScheduler;
+import greycat.scheduler.NoopScheduler;
 
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 import static greycat.internal.task.CoreActions.*;
 
 public class FlagTest {

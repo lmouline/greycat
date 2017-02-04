@@ -18,11 +18,11 @@ package greycat.internal;
 import greycat.Callback;
 import greycat.Graph;
 import greycat.GraphBuilder;
-import greycat.internal.scheduler.ExecutorScheduler;
+import greycat.scheduler.ExecutorScheduler;
 import greycat.task.ActionFunction;
 import greycat.task.TaskContext;
 import greycat.task.TaskResult;
-import greycat.task.Tasks;
+import greycat.Tasks;
 
 import java.util.Random;
 

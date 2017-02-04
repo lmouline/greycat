@@ -23,7 +23,7 @@ import greycat.Callback;
 import greycat.GraphBuilder;
 import greycat.task.TaskContext;
 
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 import static greycat.internal.task.CoreActions.*;
 
 public class CoreTaskContextTests {

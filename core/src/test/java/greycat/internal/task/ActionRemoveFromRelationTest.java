@@ -24,7 +24,7 @@ import greycat.Callback;
 import greycat.task.TaskContext;
 import greycat.task.TaskResult;
 
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 import static greycat.internal.task.CoreActions.*;
 
 public class ActionRemoveFromRelationTest extends AbstractActionTest {

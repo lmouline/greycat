@@ -16,7 +16,7 @@
 package greycat.internal;
 
 import greycat.*;
-import greycat.internal.scheduler.NoopScheduler;
+import greycat.scheduler.NoopScheduler;
 import greycat.plugin.Job;
 
 /**

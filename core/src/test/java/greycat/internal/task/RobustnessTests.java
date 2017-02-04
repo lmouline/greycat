@@ -24,7 +24,7 @@ import greycat.task.TaskContext;
 import greycat.task.ConditionalFunction;
 
 import static greycat.internal.task.CoreActions.*;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 
 public class RobustnessTests {

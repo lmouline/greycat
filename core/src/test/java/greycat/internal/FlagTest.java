@@ -16,7 +16,7 @@
 package greycat.internal;
 
 import greycat.*;
-import greycat.internal.scheduler.NoopScheduler;
+import greycat.scheduler.NoopScheduler;
 import org.junit.Assert;
 import org.junit.Test;
 

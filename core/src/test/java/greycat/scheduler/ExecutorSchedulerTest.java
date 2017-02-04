@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.internal.scheduler;
+package greycat.scheduler;
 
 import greycat.Callback;
 import greycat.DeferCounterSync;
@@ -22,7 +22,7 @@ import greycat.GraphBuilder;
 import greycat.task.TaskResult;
 
 import static greycat.internal.task.CoreActions.print;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 /**
  * @ignore ts

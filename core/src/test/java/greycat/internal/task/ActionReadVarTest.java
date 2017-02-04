@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import static greycat.internal.task.CoreActions.*;
-import static greycat.task.Tasks.*;
+import static greycat.Tasks.*;
 
 public class ActionReadVarTest extends AbstractActionTest {
 

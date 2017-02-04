@@ -22,7 +22,7 @@ import greycat.task.TaskContext;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 import static greycat.internal.task.CoreActions.*;
 
 public class ActionIfThenTest extends AbstractActionTest {

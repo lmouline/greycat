@@ -17,7 +17,7 @@ package greycat;
 
 import greycat.internal.BlackHoleStorage;
 import greycat.internal.CoreGraph;
-import greycat.internal.scheduler.TrampolineScheduler;
+import greycat.scheduler.TrampolineScheduler;
 import greycat.internal.utility.ReadOnlyStorage;
 import greycat.plugin.Plugin;
 import greycat.plugin.Scheduler;

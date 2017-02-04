@@ -13,52 +13,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.internal.scheduler;
+package greycat.scheduler;
 
 import greycat.plugin.Job;
 import greycat.plugin.Scheduler;
 
-import java.util.Deque;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
- * boing,boing,boing....
+ * @ignore ts
  */
-public class TrampolineScheduler implements Scheduler {
+public class ExecutorScheduler implements Scheduler {
 
-    /**
-     * @native ts
-     * private queue = new JobQueue();
-     */
-    private final Deque<Job> queue = new ConcurrentLinkedDeque<Job>();
-    private final AtomicInteger wip = new AtomicInteger(0);
+    private ExecutorService service;
+    private int _workers = -1;
 
     @Override
-    public void dispatch(final byte affinity, Job job) {
-        queue.add(job);
-        if (wip.getAndIncrement() == 0) {
-            do {
-                final Job polled = queue.poll();
-                if (polled != null) {
-                    polled.run();
+    public void dispatch(final byte affinity, final Job job) {
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    job.run();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } while (wip.decrementAndGet() > 0);
-        }
+            }
+        });
     }
 
     @Override
     public void start() {
+        if (_workers == -1) {
+            this.service = Executors.newCachedThreadPool();
+        } else {
+            this.service = Executors.newWorkStealingPool(_workers);
+        }
     }
 
     @Override
     public void stop() {
-
+        this.service.shutdown();
+        this.service = null;
     }
 
     @Override
     public int workers() {
-        return 1;
+        return _workers;
     }
 
 }

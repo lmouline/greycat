@@ -22,7 +22,7 @@ import greycat.task.TaskContext;
 
 import static greycat.internal.task.CoreActions.readGlobalIndex;
 import static greycat.internal.task.CoreActions.selectWithout;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 public class ActionWithoutTest extends AbstractActionTest {
 

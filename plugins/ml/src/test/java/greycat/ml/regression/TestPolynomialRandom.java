@@ -18,7 +18,7 @@ package greycat.ml.regression;
 import greycat.*;
 import org.junit.Assert;
 import org.junit.Test;
-import greycat.internal.scheduler.NoopScheduler;
+import greycat.scheduler.NoopScheduler;
 import greycat.ml.MLPlugin;
 import greycat.ml.algorithm.regression.PolynomialNode;
 

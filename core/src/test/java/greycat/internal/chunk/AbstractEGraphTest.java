@@ -27,7 +27,7 @@ import greycat.GraphBuilder;
 import greycat.Type;
 import greycat.chunk.ChunkSpace;
 import greycat.internal.MockStorage;
-import greycat.internal.scheduler.NoopScheduler;
+import greycat.scheduler.NoopScheduler;
 
 public abstract class AbstractEGraphTest {
 

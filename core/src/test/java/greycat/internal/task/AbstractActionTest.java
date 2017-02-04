@@ -17,7 +17,7 @@ package greycat.internal.task;
 
 import greycat.*;
 import org.junit.Assert;
-import greycat.internal.scheduler.NoopScheduler;
+import greycat.scheduler.NoopScheduler;
 
 public abstract class AbstractActionTest {
 

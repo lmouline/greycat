@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.task;
+package greycat;
 
-import greycat.Graph;
 import greycat.base.BaseTaskResult;
 import greycat.internal.task.CoreTask;
 import greycat.internal.task.math.MathConditional;
+import greycat.task.*;
 
 public class Tasks {
 

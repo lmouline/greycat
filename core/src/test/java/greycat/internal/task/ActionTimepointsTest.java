@@ -19,7 +19,7 @@ import greycat.*;
 import org.junit.Assert;
 import org.junit.Test;
 import greycat.task.TaskResult;
-import greycat.task.Tasks;
+import greycat.Tasks;
 
 import static greycat.internal.task.CoreActions.timepoints;
 

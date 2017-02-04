@@ -23,7 +23,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import greycat.Callback;
 import greycat.GraphBuilder;
-import greycat.internal.scheduler.NoopScheduler;
+import greycat.scheduler.NoopScheduler;
 import greycat.base.BaseNode;
 
 public class NodeFactoryTest {

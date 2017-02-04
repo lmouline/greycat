@@ -23,8 +23,8 @@ import greycat.task.TaskResult;
 
 import static greycat.internal.task.CoreActions.readVar;
 import static greycat.internal.task.CoreActions.setAsVar;
-import static greycat.task.Tasks.emptyResult;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.emptyResult;
+import static greycat.Tasks.newTask;
 
 public class DFSTest {
 

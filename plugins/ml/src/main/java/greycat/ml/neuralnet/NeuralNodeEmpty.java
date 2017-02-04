@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import static greycat.internal.task.CoreActions.setAsVar;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 public class NeuralNodeEmpty extends BaseNode {
     public static String NAME = "NeuralNodeEmpty";

@@ -25,7 +25,7 @@ import greycat.task.TaskContext;
 
 import static greycat.internal.task.CoreActions.readGlobalIndex;
 import static greycat.internal.task.CoreActions.select;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 public class ActionSelectTest extends AbstractActionTest {
 

@@ -27,7 +27,7 @@ import java.util.Map;
 
 import static greycat.internal.task.CoreActions.defineAsGlobalVar;
 import static greycat.internal.task.CoreActions.inject;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 public class MathEngineTest {
     @Test

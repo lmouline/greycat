@@ -37,8 +37,8 @@ import static greycat.importer.ImporterActions.readLines;
 import static greycat.internal.task.CoreActions.action;
 import static greycat.internal.task.CoreActions.defineAsGlobalVar;
 import static greycat.internal.task.CoreActions.inject;
-import static greycat.task.Tasks.newTask;
-import static greycat.task.Tasks.then;
+import static greycat.Tasks.newTask;
+import static greycat.Tasks.then;
 
 public class ImporterTest {
 

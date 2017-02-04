@@ -23,7 +23,7 @@ import greycat.task.TaskContext;
 import greycat.task.TaskResult;
 
 import static greycat.internal.task.CoreActions.*;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 public class ActionLookupTest extends AbstractActionTest {
 

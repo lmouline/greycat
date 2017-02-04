@@ -19,7 +19,7 @@ import greycat.task.Task;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 public class ParseTest extends AbstractActionTest {
 

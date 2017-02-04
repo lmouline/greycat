@@ -18,7 +18,7 @@ package greycat.internal.task;
 import greycat.Constants;
 import greycat.task.Action;
 import greycat.task.TaskContext;
-import greycat.task.Tasks;
+import greycat.Tasks;
 
 class ActionDeclareVar implements Action {
 

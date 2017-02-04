@@ -18,7 +18,7 @@ package greycat.internal.task;
 import greycat.task.ActionFunction;
 import greycat.task.TaskContext;
 import greycat.task.TaskFunctionSelectObject;
-import greycat.task.Tasks;
+import greycat.Tasks;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -25,7 +25,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import static greycat.internal.task.CoreActions.*;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 public class ActionRemoveFromRelationPropertyTest extends AbstractActionTest {
 

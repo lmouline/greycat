@@ -20,7 +20,7 @@ import org.junit.Test;
 import greycat.Callback;
 import greycat.Graph;
 import greycat.GraphBuilder;
-import greycat.internal.scheduler.NoopScheduler;
+import greycat.scheduler.NoopScheduler;
 import greycat.ml.MLPlugin;
 import greycat.ml.algorithm.profiling.GaussianMixtureNode;
 import greycat.ml.common.matrix.VolatileDMatrix;

@@ -20,7 +20,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import greycat.task.TaskContext;
 
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 import static greycat.internal.task.CoreActions.travelInWorld;
 
 public class ActionSetWorldTest extends AbstractActionTest {

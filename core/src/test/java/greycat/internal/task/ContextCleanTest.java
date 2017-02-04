@@ -18,7 +18,7 @@ package greycat.internal.task;
 import greycat.Callback;
 import greycat.Graph;
 import greycat.Node;
-import greycat.internal.scheduler.NoopScheduler;
+import greycat.scheduler.NoopScheduler;
 import greycat.task.ActionFunction;
 import greycat.task.TaskContext;
 import org.junit.Assert;
@@ -26,7 +26,7 @@ import greycat.GraphBuilder;
 
 import static greycat.internal.task.CoreActions.inject;
 import static greycat.internal.task.CoreActions.select;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 public class ContextCleanTest {
 

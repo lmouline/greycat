@@ -22,7 +22,7 @@ import greycat.utility.VerbosePlugin;
 import greycat.GraphBuilder;
 
 import static greycat.internal.task.CoreActions.*;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 public class MicroWorldTest {
 

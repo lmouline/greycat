@@ -33,7 +33,7 @@ import java.util.Map;
 
 import static greycat.internal.task.CoreActions.lookup;
 import static greycat.internal.task.CoreActions.readVar;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 class BioInputNeuralNode extends BaseNode {
 

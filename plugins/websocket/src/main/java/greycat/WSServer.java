@@ -28,7 +28,6 @@ import io.undertow.websockets.WebSocketConnectionCallback;
 import io.undertow.websockets.core.*;
 import io.undertow.websockets.spi.WebSocketHttpExchange;
 import greycat.chunk.Chunk;
-import greycat.task.Tasks;
 import greycat.utility.KeyHelper;
 
 import java.io.IOException;

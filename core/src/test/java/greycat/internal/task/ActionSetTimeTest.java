@@ -23,7 +23,7 @@ import greycat.task.TaskContext;
 import static greycat.internal.task.CoreActions.defineAsGlobalVar;
 import static greycat.internal.task.CoreActions.inject;
 import static greycat.internal.task.CoreActions.travelInTime;
-import static greycat.task.Tasks.newTask;
+import static greycat.Tasks.newTask;
 
 public class ActionSetTimeTest extends AbstractActionTest {
 
