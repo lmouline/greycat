@@ -262,6 +262,11 @@ public class GaussianMixtureNode extends BaseMLNode implements ProfilingNode {
 
     }
 
+    @Override
+    public void predictWith(double[] features, Callback<double[]> callback) {
+
+    }
+
 
     public int getLevel() {
         return this._resolver.resolveState(this).getFromKeyWithDefault(LEVEL, LEVEL_DEF);

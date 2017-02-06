@@ -184,6 +184,11 @@ public class GaussianNode extends BaseMLNode implements ProfilingNode {
 
     }
 
+    @Override
+    public void predictWith(double[] features, Callback<double[]> callback) {
+        //TODO
+    }
+
 
     @Override
     public String toString() {

@@ -136,6 +136,11 @@ public class GaussianSlotNode extends BaseMLNode implements ProfilingNode {
         callback.on(result);
     }
 
+    @Override
+    public void predictWith(double[] features, Callback<double[]> callback) {
+        //TODO
+    }
+
     //Machine Learning Properties and their default values with _DEF
 
     public static final String SLOTS_NUMBER = "SLOTS_NUMBER"; //Number of slots to create in the profile, default is 1

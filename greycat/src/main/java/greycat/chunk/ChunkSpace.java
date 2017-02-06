@@ -103,6 +103,10 @@ public interface ChunkSpace {
 
     long available();
 
+    /**
+     * Create a temporary EGraph object, not related to the main Graph and without the purpose to be serialized. This object has to be free at end.
+     * @return the newly created EGraph.
+     */
     EGraph newVolatileGraph();
 
 }

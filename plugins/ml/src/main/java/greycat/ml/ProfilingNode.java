@@ -27,7 +27,7 @@ public interface ProfilingNode extends Node {
      */
     void learn(Callback<Boolean> callback);
 
-    void learnWith(double[] values);
+    void learnWith(double[] features);
 
     /**
      * Main infer function to give a cluster ID,
@@ -36,4 +36,7 @@ public interface ProfilingNode extends Node {
      * @param callback Called when the infer is completed with the result of the predictions
      */
     void predict(Callback<double[]> callback);
+
+    void predictWith(double[] features, Callback<double[]> callback);
+
 }

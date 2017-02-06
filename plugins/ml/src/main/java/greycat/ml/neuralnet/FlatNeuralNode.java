@@ -75,7 +75,7 @@ public class FlatNeuralNode extends BaseNode {
             DMatrix biases = layerBias(state, i);
             weights.init(previousDim, nextDim);
             biases.init(1, nextDim);
-            weights.fillWithRandom(rand,-1.0, 1.0 );
+            weights.fillWithRandom(rand, -1.0, 1.0);
             biases.fillWithRandom(rand, -1.0, 1.0);
 
             //initialize randomly here
@@ -89,7 +89,7 @@ public class FlatNeuralNode extends BaseNode {
         weights.init(previousDim, nextDim);
         biases.init(1, nextDim);
         weights.fillWithRandom(rand, -1.0, 1.0);
-        biases.fillWithRandom(rand,-1.0, 1.0);
+        biases.fillWithRandom(rand, -1.0, 1.0);
 
         return this;
     }

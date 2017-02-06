@@ -64,24 +64,23 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
 
     //Override default Abstract node default setters and getters
     @Override
-    public Node set(String propertyName, byte propertyType, Object propertyValue) {
+    public final Node set(String propertyName, byte propertyType, Object propertyValue) {
         if (propertyName.equals(VALUE)) {
             learn(Double.parseDouble(propertyValue.toString()), null);
         } else if (propertyName.equals(PRECISION)) {
             enforcer.check(propertyName, propertyType, propertyValue);
             super.set(propertyName, Type.DOUBLE, propertyValue);
-        } else if (propertyName.equals(MAX_DEGREE)){
+        } else if (propertyName.equals(MAX_DEGREE)) {
             degenforcer.check(propertyName, propertyType, propertyValue);
             super.set(propertyName, Type.INT, (int) propertyValue);
-        }
-        else {
+        } else {
             throw new RuntimeException(NOT_MANAGED_ATT_ERROR);
         }
         return this;
     }
 
     @Override
-    public Object get(String propertyName) {
+    public final Object get(String propertyName) {
         if (propertyName.equals(VALUE)) {
             final Double[] res = {null};
             //ToDo fix callback - return
@@ -98,7 +97,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     }
 
     @Override
-    public void learn(double value, Callback<Boolean> callback) {
+    public final void learn(double value, Callback<Boolean> callback) {
         NodeState previousState = unphasedState(); //past state, not cloned
 
         long timeOrigin = previousState.time();
@@ -260,7 +259,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     }
 
     @Override
-    public void extrapolate(Callback<Double> callback) {
+    public final void extrapolate(Callback<Double> callback) {
         long time = time();
         NodeState state = unphasedState();
         long timeOrigin = state.time();
@@ -314,7 +313,7 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("{\"world\":");
         builder.append(world());
@@ -324,64 +323,56 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         builder.append(id());
         final NodeState state = unphasedState();
         long timeOrigin = state.time();
-        long step=state.getFromKeyWithDefault(INTERNAL_STEP_KEY,1l);
-
-        if (state != null) {
-            double[] weight = (double[]) state.getFromKey(INTERNAL_WEIGHT_KEY);
-            if (weight != null) {
-                builder.append("\"polynomial\":\"");
-                for (int i = 0; i < weight.length; i++) {
-                    if (i != 0) {
-                        builder.append("+(");
-                    }
-                    builder.append(weight[i]);
-                    if (i == 1) {
-                        if(timeOrigin==0) {
-                            if(step==1) {
-                                builder.append("*t");
-                            }
-                            else{
-                                builder.append("*t/"+step);
-                            }
+        long step = state.getFromKeyWithDefault(INTERNAL_STEP_KEY, 1l);
+        double[] weight = (double[]) state.getFromKey(INTERNAL_WEIGHT_KEY);
+        if (weight != null) {
+            builder.append("\"polynomial\":\"");
+            for (int i = 0; i < weight.length; i++) {
+                if (i != 0) {
+                    builder.append("+(");
+                }
+                builder.append(weight[i]);
+                if (i == 1) {
+                    if (timeOrigin == 0) {
+                        if (step == 1) {
+                            builder.append("*t");
+                        } else {
+                            builder.append("*t/").append(step);
                         }
-                        else {
-                            if(step==1) {
-                                builder.append("*(t-"+timeOrigin+")");
-                            }
-                            else{
-                                builder.append("*(t-"+timeOrigin+")/"+step);
-                            }
-                        }
-                    } else if (i > 1) {
-                        if(timeOrigin==0) {
-                            if(step==1) {
-                                builder.append("*t^");
-                                builder.append(i);
-                            }
-                            else{
-                                builder.append("*(t/"+step+")^");
-                                builder.append(i);
-                            }
-                        }
-                        else {
-                            if(step==1) {
-                                builder.append("*(t-"+timeOrigin+")^");
-                                builder.append(i);
-                            }
-                            else{
-                                builder.append("*((t-"+timeOrigin+")/"+step+")^");
-                                builder.append(i);
-                            }
+                    } else {
+                        if (step == 1) {
+                            builder.append("*(t-").append(timeOrigin).append(")");
+                        } else {
+                            builder.append("*(t-").append(timeOrigin).append(")/").append(step);
                         }
                     }
-                    if (i != 0) {
-                        builder.append(")");
+                } else if (i > 1) {
+                    if (timeOrigin == 0) {
+                        if (step == 1) {
+                            builder.append("*t^");
+                            builder.append(i);
+                        } else {
+                            builder.append("*(t/").append(step).append(")^");
+                            builder.append(i);
+                        }
+                    } else {
+                        if (step == 1) {
+                            builder.append("*(t-").append(timeOrigin).append(")^");
+                            builder.append(i);
+                        } else {
+                            builder.append("*((t-").append(timeOrigin).append(")/").append(step).append(")^");
+                            builder.append(i);
+                        }
                     }
                 }
-                builder.append("\"");
+                if (i != 0) {
+                    builder.append(")");
+                }
             }
-            builder.append("}");
+            builder.append("\"");
         }
+        builder.append("}");
         return builder.toString();
     }
+
 }

@@ -39,7 +39,7 @@ global.context.url = function (val) {
     if (global.context.graph !== undefined) {
         global.context.graph.disconnect(null);
     }
-    global.context.ws = new geycat.websocket.WSClient(val);
+    global.context.ws = new greycat.websocket.WSClient(val);
     global.context.graph = greycat.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
     global.context.graph.connect(null);
     console.log('change url to ' + val);
