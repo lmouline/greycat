@@ -15,25 +15,25 @@
  */
 package greycat.structure;
 
-
-import greycat.Type;
-import greycat.struct.ENode;
-
 public interface Tree {
-
 
     //Settings param
     void setDistance(int distanceType);
 
     void setResolution(double[] resolution);
 
-
     void setMinBound(double[] min);
 
     void setMaxBound(double[] max);
 
-
     //Insert functions
+
+    /**
+     * Insert a value in the tree referenced by keys composed by the vector
+     *
+     * @param keys  vector of double composing the key
+     * @param value value to be inserted (can be a node id to create a reference)
+     */
     void insert(final double[] keys, final long value);
 
     void profile(final double[] keys, final long occurrence);

@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.structure.distance;
+package greycat.structure;
+
+import greycat.structure.distance.*;
 
 public class Distances {
 
@@ -23,13 +25,16 @@ public class Distances {
     public static final int PEARSON = 3;
     public static final int DEFAULT = EUCLIDEAN;
 
-
     public static Distance getDistance(int distance) {
-        switch (distance){
-            case EUCLIDEAN: return EuclideanDistance.instance();
-            case GEODISTANCE: return GeoDistance.instance();
-            case COSINE: return CosineDistance.instance();
-            case PEARSON: return PearsonDistance.instance();
+        switch (distance) {
+            case EUCLIDEAN:
+                return EuclideanDistance.instance();
+            case GEODISTANCE:
+                return GeoDistance.instance();
+            case COSINE:
+                return CosineDistance.instance();
+            case PEARSON:
+                return PearsonDistance.instance();
         }
         return getDistance(DEFAULT);
     }

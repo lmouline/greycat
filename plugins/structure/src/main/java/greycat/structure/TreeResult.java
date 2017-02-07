@@ -17,8 +17,6 @@ package greycat.structure;
 
 public interface TreeResult {
 
-    int size();
-
     boolean insert(double[] key, long value, double distance);
 
     double[] keys(int index);
@@ -26,13 +24,15 @@ public interface TreeResult {
     long value(int index);
 
     double distance(int index);
-
+    
     double getWorstDistance();
-
-    void free();
 
     boolean isCapacityReached();
 
     void sort(boolean ascending);
-    
+
+    void free();
+
+    int size();
+
 }

@@ -25,7 +25,7 @@ import greycat.struct.LMatrix;
 import greycat.structure.Tree;
 import greycat.structure.TreeResult;
 import greycat.structure.distance.Distance;
-import greycat.structure.distance.Distances;
+import greycat.structure.Distances;
 import greycat.structure.util.TreeHelper;
 import greycat.structure.util.VolatileResult;
 
@@ -366,7 +366,7 @@ public class NDTree implements Tree {
         int buffersize = root.getAtWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
         //Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
 
-        if (root.getAtWithDefault(E_TOTAL,0l) == 0) {
+        if (root.getAtWithDefault(E_TOTAL, 0l) == 0) {
             root.setAt(STRATEGY, Type.INT, IndexStrategy.INDEX);
             root.setAt(E_TOTAL, Type.LONG, 0);
             root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
@@ -390,7 +390,7 @@ public class NDTree implements Tree {
         int buffersize = root.getAtWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
         //Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
 
-        if (root.getAtWithDefault(E_TOTAL,0l) == 0) {
+        if (root.getAtWithDefault(E_TOTAL, 0l) == 0) {
             root.setAt(STRATEGY, Type.INT, IndexStrategy.PROFILE);
             root.setAt(E_TOTAL, Type.LONG, 0);
             root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
@@ -415,7 +415,7 @@ public class NDTree implements Tree {
     @Override
     public TreeResult nearestNWithinRadius(double[] keys, int nbElem, double radius) {
         ENode root = eGraph.root();
-        if (root.getAtWithDefault(E_TOTAL,0l) == 0) {
+        if (root.getAtWithDefault(E_TOTAL, 0l) == 0) {
             return null;
         }
 
@@ -438,7 +438,7 @@ public class NDTree implements Tree {
     @Override
     public TreeResult query(double[] min, double[] max) {
         ENode root = eGraph.root();
-        if (root.getAtWithDefault(E_TOTAL,0l) == 0) {
+        if (root.getAtWithDefault(E_TOTAL, 0l) == 0) {
             return null;
         }
 
@@ -465,13 +465,13 @@ public class NDTree implements Tree {
     @Override
     public long size() {
         ENode root = eGraph.root();
-        return root.getAtWithDefault(E_TOTAL,0l);
+        return root.getAtWithDefault(E_TOTAL, 0l);
     }
 
     @Override
     public long numberOfNodes() {
         ENode root = eGraph.root();
-        return root.getAtWithDefault(E_TOTAL_SUBNODES,0);
+        return root.getAtWithDefault(E_TOTAL_SUBNODES, 0);
     }
 
 
@@ -490,7 +490,7 @@ public class NDTree implements Tree {
 
     private static void reccursiveTraverse(final ENode node, final EGraph calcZone, final VolatileResult nnl, final int strategyType, final Distance distance, final double[] target, final double[] targetmin, final double[] targetmax, final double[] targetcenter, final double radius) {
 
-        if (node.getAtWithDefault(E_SUBNODES,0l) == 0) {
+        if (node.getAtWithDefault(E_SUBNODES, 0l) == 0) {
             //Leave node
             DMatrix buffer = (DMatrix) node.getAt(E_BUFFER_KEYS);
             LMatrix bufferValue = (LMatrix) node.getAt(E_BUFFER_VALUES);
@@ -553,7 +553,6 @@ public class NDTree implements Tree {
             final double[] boundMax = (double[]) node.getAt(E_MAX);
             final double[] boundMin = (double[]) node.getAt(E_MIN);
             final double worst = nnl.getWorstDistance();
-
             if (targetmin == null || targetmax == null) {
                 if (!nnl.isCapacityReached() || TreeHelper.getclosestDistance(target, boundMin, boundMax, distance) <= worst) {
                     final ENode tempList = calcZone.newNode();

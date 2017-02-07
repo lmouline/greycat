@@ -15,20 +15,28 @@
  */
 package greycat.structure.trees;
 
-import greycat.Graph;
 import greycat.Type;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
 import greycat.structure.Tree;
 import greycat.structure.TreeResult;
 import greycat.structure.distance.Distance;
-import greycat.structure.distance.Distances;
+import greycat.structure.Distances;
 import greycat.structure.util.HRect;
 import greycat.structure.util.VolatileResult;
 
 public class KDTree implements Tree {
 
-    public static int DISTANCE_DEF = Distances.DEFAULT;
+    /**
+     * public configuration elements
+     */
+    public static int RESOLUTION = 10;
+    public static int DISTANCE = 11;
+
+    /**
+     * private keys
+     */
+    private static int DISTANCE_DEF = Distances.DEFAULT;
     private static int E_SUBTREE_NODES = 0;
     private static int E_KEY = 1;
     private static int E_SUM_KEY = 2;
@@ -36,23 +44,17 @@ public class KDTree implements Tree {
     private static int E_SUBTREE_VALUES = 4;
     private static int E_RIGHT = 5;
     private static int E_LEFT = 6;
-
-    public static int RESOLUTION = 10;
-    public static int DISTANCE = 11;
     private static int STRATEGY = 12;
     private static int DIM = 13;
 
+    private final EGraph eGraph;
 
-    private EGraph eGraph;
-    private Graph graph;
-
-    public KDTree(EGraph eGraph, Graph graph) {
+    public KDTree(final EGraph eGraph) {
         if (eGraph.root() == null) {
             ENode root = eGraph.newNode();
             eGraph.setRoot(root);
         }
         this.eGraph = eGraph;
-        this.graph = graph;
     }
 
     private static boolean checkCreateLevels(double[] key1, double[] key2, double[] resolutions) {
@@ -72,8 +74,8 @@ public class KDTree implements Tree {
         return false;
     }
 
-    // Method rsearch translated from 352.range.c of Gonnet & Baeza-Yates
-    protected static void rangeSearch(final double[] lowk, final double[] uppk, final double[] center, final Distance distance, final ENode node, final int lev, final int dim, final VolatileResult nnl) {
+    // Method rangeSearch translated from 352.range.c of Gonnet & Baeza-Yates
+    private static void rangeSearch(final double[] lowk, final double[] uppk, final double[] center, final Distance distance, final ENode node, final int lev, final int dim, final VolatileResult nnl) {
 
         if (node == null)
             return;
@@ -97,27 +99,19 @@ public class KDTree implements Tree {
         }
     }
 
-
-    private static void reccursiveTraverse(final ENode node, final VolatileResult nnl, final Distance distance, final double[] target, HRect hr, final int lev, final int dim, double max_dist_sqd, final double radius) {
-
+    private static void recursiveTraverse(final ENode node, final VolatileResult nnl, final Distance distance, final double[] target, HRect hr, final int lev, final int dim, double max_dist_sqd, final double radius) {
         // 1. if kd is empty exit.
         if (node == null) {
             return;
         }
-
         double[] pivot = (double[]) node.getAt(E_KEY);
         if (pivot == null) {
             throw new RuntimeException("Key can't be null");
         }
-
-
         // 2. s := split field of kd
         int s = lev % dim;
-
         // 3. pivot := dom-elt field of kd
-
         double pivot_to_target = distance.measure(pivot, target);
-
         // 4. Cut hr into to sub-hyperrectangles left-hr and right-hr.
         // The cut plane is through pivot and perpendicular to the s
         // dimension.
@@ -125,15 +119,12 @@ public class KDTree implements Tree {
         HRect right_hr = (HRect) hr.clone();
         left_hr.max[s] = pivot[s];
         right_hr.min[s] = pivot[s];
-
         // 5. target-in-left := target_s <= pivot_s
         boolean target_in_left = target[s] < pivot[s];
-
         ENode nearer_kd;
         HRect nearer_hr;
         ENode further_kd;
         HRect further_hr;
-
         // 6. if target-in-left then
         // 6.1. nearer-kd := left field of kd and nearer-hr := left-hr
         // 6.2. further-kd := right field of kd and further-hr := right-hr
@@ -153,37 +144,28 @@ public class KDTree implements Tree {
             further_kd = (ENode) node.getAt(E_LEFT);
             further_hr = left_hr;
         }
-
         // 8. Recursively call Nearest Neighbor with paramters
         // (nearer-kd, target, nearer-hr, max-dist-sqd), storing the
         // results in nearest and dist-sqd
         //nnbr(nearer_kd, target, nearer_hr, max_dist_sqd, lev + 1, K, nnl);
-        reccursiveTraverse(nearer_kd, nnl, distance, target, nearer_hr, lev + 1, dim, max_dist_sqd, radius);
-
-
+        recursiveTraverse(nearer_kd, nnl, distance, target, nearer_hr, lev + 1, dim, max_dist_sqd, radius);
         double dist_sqd;
-
         if (!nnl.isCapacityReached()) {
             dist_sqd = Double.MAX_VALUE;
         } else {
             dist_sqd = nnl.getWorstDistance();
         }
-
         // 9. max-dist-sqd := minimum of max-dist-sqd and dist-sqd
         max_dist_sqd = Math.min(max_dist_sqd, dist_sqd);
-
         // 10. A nearer point could only lie in further-kd if there were some
         // part of further-hr within distance sqrt(max-dist-sqd) of
         // target. If this is the case then
         double[] closest = further_hr.closest(target);
         if (distance.measure(closest, target) < max_dist_sqd) {
-
             // 10.1 if (pivot-target)^2 < dist-sqd then
             if (pivot_to_target < dist_sqd) {
-
                 // 10.1.2 dist-sqd = (pivot-target)^2
                 dist_sqd = pivot_to_target;
-
                 if (radius > 0) {
                     if (dist_sqd < radius) {
                         nnl.insert(pivot, (Long) node.getAt(E_VALUE), dist_sqd);
@@ -191,8 +173,6 @@ public class KDTree implements Tree {
                 } else {
                     nnl.insert(pivot, (Long) node.getAt(E_VALUE), dist_sqd);
                 }
-
-
                 // 10.1.3 max-dist-sqd = dist-sqd
                 // max_dist_sqd = dist_sqd;
                 if (nnl.isCapacityReached()) {
@@ -201,12 +181,11 @@ public class KDTree implements Tree {
                     max_dist_sqd = Double.MAX_VALUE;
                 }
             }
-
             // 10.2 Recursively call Nearest Neighbor with parameters
             // (further-kd, target, further-hr, max-dist_sqd),
             // storing results in temp-nearest and temp-dist-sqd
             //nnbr(further_kd, target, further_hr, max_dist_sqd, lev + 1, K, nnl);
-            reccursiveTraverse(further_kd, nnl, distance, target, further_hr, lev + 1, dim, max_dist_sqd, radius);
+            recursiveTraverse(further_kd, nnl, distance, target, further_hr, lev + 1, dim, max_dist_sqd, radius);
         }
     }
 
@@ -255,13 +234,11 @@ public class KDTree implements Tree {
                     child = createNode(node, false);
                 }
             }
-
             if (internalInsert(child, key, value, strategyType, (lev + 1) % key.length, resolution)) {
-                //update parents reccursively
+                //update parents recursively
                 if (strategyType == IndexStrategy.PROFILE) {
                     node.setAt(E_SUBTREE_VALUES, Type.LONG, (long) node.getAt(E_SUBTREE_VALUES) + value);
                 }
-
                 node.setAt(E_SUBTREE_NODES, Type.LONG, (long) node.getAt(E_SUBTREE_NODES) + 1);
                 return true;
             } else {
@@ -271,7 +248,6 @@ public class KDTree implements Tree {
                 return false;
             }
         }
-
     }
 
     private static ENode createNode(ENode parent, boolean right) {
@@ -285,116 +261,97 @@ public class KDTree implements Tree {
         return child;
     }
 
-
-
     @Override
-    public void setDistance(int distanceType) {
+    public final void setDistance(int distanceType) {
         eGraph.root().setAt(DISTANCE, Type.INT, distanceType);
     }
 
     @Override
-    public void setResolution(double[] resolution) {
-        eGraph.root().setAt(RESOLUTION,Type.DOUBLE_ARRAY,resolution);
+    public final void setResolution(double[] resolution) {
+        eGraph.root().setAt(RESOLUTION, Type.DOUBLE_ARRAY, resolution);
     }
 
     @Override
-    public void setMinBound(double[] min) {
+    public final void setMinBound(double[] min) {
         //Not needed
     }
 
     @Override
-    public void setMaxBound(double[] max) {
+    public final void setMaxBound(double[] max) {
         //Not needed
     }
 
-
     @Override
-    public void insert(double[] keys, long value) {
+    public final void insert(final double[] keys, final long value) {
         ENode root = eGraph.root();
-
         int strategy = IndexStrategy.INDEX;
-
         if (root.getAt(E_KEY) == null) {
             root.setAt(STRATEGY, Type.INT, strategy);
             root.setAt(DIM, Type.INT, keys.length);
         } else {
-            if (keys.length != (int)root.getAt(DIM)) {
+            if (keys.length != (int) root.getAt(DIM)) {
                 throw new RuntimeException("Keys should always be the same length");
             }
         }
         internalInsert(root, keys, value, strategy, 0, (double[]) root.getAt(RESOLUTION));
     }
 
-
     @Override
-    public void profile(double[] keys, long occurrence) {
-
+    public void profile(final double[] keys, final long occurrence) {
         int strategy = IndexStrategy.PROFILE;
-            ENode root = eGraph.root();
-            if (root.getAt(E_KEY) == null) {
-                 root.setAt(STRATEGY, Type.INT, strategy);
-                root.setAt(DIM, Type.INT, keys.length);
-            } else {
-                if (keys.length != (int) root.getAt(DIM)) {
-                    throw new RuntimeException("Keys should always be the same length");
-                }
+        ENode root = eGraph.root();
+        if (root.getAt(E_KEY) == null) {
+            root.setAt(STRATEGY, Type.INT, strategy);
+            root.setAt(DIM, Type.INT, keys.length);
+        } else {
+            if (keys.length != (int) root.getAt(DIM)) {
+                throw new RuntimeException("Keys should always be the same length");
             }
-            internalInsert(root, keys, occurrence, strategy, 0, (double[]) root.getAt(RESOLUTION));
-
+        }
+        internalInsert(root, keys, occurrence, strategy, 0, (double[]) root.getAt(RESOLUTION));
     }
 
     @Override
-    public TreeResult nearestN(double[] keys, int nbElem) {
+    public final TreeResult nearestN(double[] keys, int nbElem) {
         return nearestNWithinRadius(keys, -1, -1);
     }
 
     @Override
-    public TreeResult nearestWithinRadius(double[] keys, double radius) {
+    public final TreeResult nearestWithinRadius(double[] keys, double radius) {
         return nearestNWithinRadius(keys, -1, radius);
     }
 
     @Override
-    public TreeResult nearestNWithinRadius(double[] keys, int nbElem, double radius) {
-
-        ENode root = eGraph.root();
+    public final TreeResult nearestNWithinRadius(double[] keys, int nbElem, double radius) {
+        final ENode root = eGraph.root();
         if (root.getAt(E_KEY) == null) {
             return null;
         }
-
         final Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, DISTANCE_DEF));
-
         if (keys.length != ((double[]) root.getAt(E_KEY)).length) {
             throw new RuntimeException("Keys are not of the same size");
         }
-
-        EGraph calcZone = graph.space().newVolatileGraph();
+        EGraph calcZone = eGraph.graph().space().newVolatileGraph();
         VolatileResult nnl = new VolatileResult(calcZone.newNode(), nbElem);
-        reccursiveTraverse(root, nnl, distance, keys, HRect.infiniteHRect(keys.length), 0, keys.length, Double.MAX_VALUE, radius);
+        recursiveTraverse(root, nnl, distance, keys, HRect.infiniteHRect(keys.length), 0, keys.length, Double.MAX_VALUE, radius);
         nnl.sort(true);
         return nnl;
     }
 
     @Override
-    public TreeResult query(double[] min, double[] max) {
-
+    public final TreeResult query(double[] min, double[] max) {
         ENode root = eGraph.root();
         if (root.getAt(E_KEY) == null) {
             return null;
         }
-
         final Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, DISTANCE_DEF));
-
-
         final double[] center = new double[max.length];
-
         for (int i = 0; i < center.length; i++) {
             center[i] = (min[i] + max[i]) / 2;
         }
-
-        EGraph calcZone = graph.space().newVolatileGraph();
+        EGraph calcZone = eGraph.graph().space().newVolatileGraph();
         VolatileResult nnl = new VolatileResult(calcZone.newNode(), -1);
         rangeSearch(min, max, center, distance, root, 0, min.length, nnl);
-
         nnl.sort(true);
         return nnl;
     }
