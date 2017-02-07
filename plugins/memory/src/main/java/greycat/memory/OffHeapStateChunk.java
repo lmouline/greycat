@@ -326,7 +326,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
 
     @Override
     public final byte getType(final int p_key) {
-        byte result = -1;
+        byte result = (byte) -1;
         lock();
         try {
             final long addr = space.addrByIndex(index);
@@ -425,7 +425,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                             int eGSize = castedEGraph.size();
                             Base64.encodeIntToBuffer(eGSize, buffer);
                             for (int j = 0; j < eGSize; j++) {
-                                OffHeapENode eNode = new OffHeapENode(castedEGraph, space.graph(), j, castedEGraph.nodeAddrAt(rawValue, j));
+                                OffHeapENode eNode = new OffHeapENode(j, castedEGraph, space.graph());
                                 buffer.write(CoreConstants.CHUNK_ENODE_SEP);
                                 eNode.save(buffer);
                             }
@@ -578,9 +578,6 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                         break;
                     case Type.INT_ARRAY:
                         param_elem = OffHeapIntArray.fromObject((int[]) p_unsafe_elem);
-                        break;
-                    case Type.ENODE:
-                        param_elem = ((OffHeapENode) p_unsafe_elem).getAddr();
                         break;
                     case Type.RELATION:
                     case Type.DMATRIX:

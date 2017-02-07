@@ -22,43 +22,48 @@ import greycat.struct.ENode;
 import greycat.struct.ERelation;
 
 public class OffHeapERelation implements ERelation {
-    private final OffHeapEGraph eGraph;
-    private final Graph graph;
-    private final long index;
-    private final OffHeapContainer container;
 
     private static final int SIZE = 0;
     private static final int CAPACITY = 1;
     private static final int OFFSET = 2;
 
-    public OffHeapERelation(OffHeapContainer container, OffHeapEGraph eGraph, Graph graph, long p_index) {
+    private final long index;
+    private final OffHeapContainer container;
+    private final OffHeapEGraph eGraph;
+    private final Graph graph;
+
+    OffHeapERelation(final OffHeapContainer p_container, final long p_index, OffHeapEGraph eGraph, Graph graph) {
+        container = p_container;
+        index = p_index;
         this.eGraph = eGraph;
         this.graph = graph;
-        this.index = p_index;
-        this.container = container;
-        allocate(Constants.MAP_INITIAL_CAPACITY);
     }
 
-    final void allocate(long newCapacity) {
-        long addr = OffHeapConstants.NULL_PTR;
-        if (index != -1) {
-            addr = container.addrByIndex(index);
-        }
-
-        final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
+    final long allocate(long newCapacity) {
+        long addr = container.addrByIndex(index);
         if (addr != OffHeapConstants.NULL_PTR) {
-            addr = OffHeapLongArray.reallocate(addr, OFFSET + closePowerOfTwo);
-            OffHeapLongArray.fillByte(addr, OFFSET + size(), OFFSET + newCapacity, (byte) OffHeapConstants.NULL_PTR);
+            final long capacity = OffHeapLongArray.get(addr, CAPACITY);
+            if (capacity < newCapacity) {
+                final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
+                addr = OffHeapLongArray.reallocate(addr, OFFSET + closePowerOfTwo);
+                container.setAddrByIndex(index, addr);
+            }
         } else {
-            // allocate memory
+            final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
             addr = OffHeapLongArray.allocate(OFFSET + closePowerOfTwo);
             OffHeapLongArray.set(addr, SIZE, 0);
             OffHeapLongArray.set(addr, CAPACITY, closePowerOfTwo);
-        }
-
-        if (index != -1) {
             container.setAddrByIndex(index, addr);
         }
+        return addr;
+    }
+
+    static long clone(final long addr) {
+        if (addr == OffHeapConstants.NULL_PTR) {
+            return OffHeapConstants.NULL_PTR;
+        }
+        final long capacity = OffHeapLongArray.get(addr, CAPACITY);
+        return OffHeapLongArray.cloneArray(addr, capacity + OFFSET);
     }
 
     @Override
@@ -67,20 +72,14 @@ public class OffHeapERelation implements ERelation {
         int size = (int) OffHeapLongArray.get(addr, SIZE);
         ENode[] nodes = new ENode[size];
         for (int i = 0; i < size; i++) {
-            long nodeAddr = nodeAddrAt(addr, i);
-            long nodeId = OffHeapENode.getId(nodeAddr);
-            OffHeapENode eNode = new OffHeapENode(eGraph, graph, nodeId, nodeAddr);
-            nodes[i] = eNode;
+            nodes[i] = new OffHeapENode(nodeIndexAt(addr, i), eGraph, graph);
         }
         return nodes;
     }
 
     @Override
-    public ENode node(int index) {
-        long addr = container.addrByIndex(index);
-        long nodeAddr = nodeAddrAt(addr, index);
-        long nodeId = OffHeapENode.getId(nodeAddr);
-        return new OffHeapENode(eGraph, graph, nodeId, nodeAddr);
+    public ENode node(int nodeIndex) {
+        return new OffHeapENode(nodeIndex, eGraph, graph);
     }
 
     @Override
@@ -101,7 +100,7 @@ public class OffHeapERelation implements ERelation {
                 allocate(capacity * 2);
             }
         }
-        setNodeAddrAt(addr, size, ((OffHeapENode) eNode).getAddr());
+        setNodeIndexAt(addr, size, ((OffHeapENode) eNode).index);
         OffHeapLongArray.set(addr, SIZE, size + 1);
         eGraph.declareDirty();
         return this;
@@ -115,12 +114,10 @@ public class OffHeapERelation implements ERelation {
         long neededCapacity = eNodes.length + size;
         if (neededCapacity > capacity) {
             final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(neededCapacity) / Math.log(2)));
-            allocate(OFFSET + closePowerOfTwo);
+            addr = allocate(OFFSET + closePowerOfTwo);
         }
         for (int i = 0; i < eNodes.length; i++) {
-            long currentAddr = container.addrByIndex(index);
-            OffHeapENode eNode = (OffHeapENode) eNodes[i];
-            setNodeAddrAt(currentAddr, size + i, eNode.getAddr());
+            setNodeIndexAt(addr, size + i, ((OffHeapENode) eNodes[i]).index);
         }
         eGraph.declareDirty();
         return this;
@@ -129,16 +126,12 @@ public class OffHeapERelation implements ERelation {
     @Override
     public ERelation clear() {
         long addr = container.addrByIndex(index);
-        long size = OffHeapLongArray.get(addr, SIZE);
         OffHeapLongArray.set(addr, SIZE, 0);
-        for (long i = 0; i < size; i++) {
-            long currentAddr = container.addrByIndex(index);
-            setNodeAddrAt(currentAddr, i, OffHeapConstants.NULL_PTR);
-        }
         eGraph.declareDirty();
         return this;
     }
 
+    /*
     static void rebase(long addr, long newEGraphAddr) {
         long size = OffHeapLongArray.get(addr, SIZE);
 
@@ -149,17 +142,17 @@ public class OffHeapERelation implements ERelation {
             long newNodeAddr = OffHeapEGraph.nodeAddrAt(newEGraphAddr, previousNodeId);
             setNodeAddrAt(addr, i, newNodeAddr);
         }
-    }
+    }*/
 
     static void free(long addr) {
         OffHeapLongArray.free(addr);
     }
 
-    static long nodeAddrAt(long addr, long index) {
+    static long nodeIndexAt(long addr, long index) {
         return OffHeapLongArray.get(addr, OFFSET + index);
     }
 
-    static void setNodeAddrAt(long addr, long index, long value) {
+    static void setNodeIndexAt(long addr, long index, long value) {
         OffHeapLongArray.set(addr, OFFSET + index, value);
     }
 
@@ -173,9 +166,7 @@ public class OffHeapERelation implements ERelation {
             if (i != 0) {
                 buffer.append(",");
             }
-            long nodeAddr = nodeAddrAt(addr, i);
-            long nodeId = OffHeapENode.getId(nodeAddr);
-            buffer.append(nodeId);
+            buffer.append(nodeIndexAt(addr, i));
         }
         buffer.append("]");
         return buffer.toString();

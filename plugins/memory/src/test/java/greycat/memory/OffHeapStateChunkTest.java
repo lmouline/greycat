@@ -66,10 +66,7 @@ public class OffHeapStateChunkTest extends AbstractStateChunkTest {
         buffer.free();
 
         g.disconnect(null);
-
-        /**/
-
-
+        
     }
 
 
