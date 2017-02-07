@@ -13,27 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mwg.memory.offheap;
+package greycat.memory;
 
-import greycat.memory.OffHeapConstants;
-import greycat.memory.OffHeapFixedStack;
+import greycat.internal.chunk.AbstractStateChunkTest;
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Test;
-import org.mwg.chunk.Stack;
-import org.mwg.internal.chunk.AbstractFixedStackTest;
 
-public class OffHeapFixedStackTest extends AbstractFixedStackTest {
+public class OffHeapStateChunkTest extends AbstractStateChunkTest {
 
-    @Test
-    public void offHeapFixedStackTest() {
-        Stack stack = new OffHeapFixedStack(CAPACITY, true);
-        test(stack);
-        stack.free();
+    public OffHeapStateChunkTest() {
+        super(new OffHeapMemoryFactory());
+    }
 
+    @After
+    public void tearDown() throws Exception {
         if (OffHeapConstants.DEBUG_MODE) {
             Assert.assertEquals(OffHeapConstants.SEGMENTS.size(), 0);
         }
-
     }
 
 }

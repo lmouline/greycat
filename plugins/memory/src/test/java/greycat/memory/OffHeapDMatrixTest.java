@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mwg.memory.offheap;
+package greycat.memory;
 
-import greycat.memory.OffHeapConstants;
-import greycat.memory.OffHeapMemoryFactory;
+import greycat.internal.chunk.AbstractMatrixTest;
 import org.junit.After;
 import org.junit.Assert;
-import org.mwg.internal.memory.AbstractBufferTest;
 
-public class OffHeapBufferTest extends AbstractBufferTest {
+public class OffHeapDMatrixTest extends AbstractMatrixTest {
 
-    public OffHeapBufferTest() {
+    public OffHeapDMatrixTest() {
         super(new OffHeapMemoryFactory());
     }
 
     @After
     public void tearDown() throws Exception {
         if (OffHeapConstants.DEBUG_MODE) {
-            Assert.assertEquals(OffHeapConstants.SEGMENTS.size(),0);
+            Assert.assertEquals(OffHeapConstants.SEGMENTS.size(), 0);
         }
     }
 

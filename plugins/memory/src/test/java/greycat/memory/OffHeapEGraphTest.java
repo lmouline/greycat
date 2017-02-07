@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mwg.memory.offheap;
+package greycat.memory;
 
-import greycat.memory.OffHeapConstants;
-import greycat.memory.OffHeapMemoryFactory;
+import greycat.internal.chunk.AbstractEGraphTest;
 import org.junit.After;
 import org.junit.Assert;
-import org.mwg.internal.chunk.AbstractStringIntMapTest;
 
-public class OffHeapStringIntMapTest extends AbstractStringIntMapTest {
+public class OffHeapEGraphTest extends AbstractEGraphTest {
 
-    public OffHeapStringIntMapTest() {
+    public OffHeapEGraphTest() {
         super(new OffHeapMemoryFactory());
     }
 
@@ -33,5 +31,4 @@ public class OffHeapStringIntMapTest extends AbstractStringIntMapTest {
             Assert.assertEquals(OffHeapConstants.SEGMENTS.size(), 0);
         }
     }
-
 }

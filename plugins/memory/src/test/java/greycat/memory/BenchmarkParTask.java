@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mwg.memory.offheap;
+package greycat.memory;
 
-import greycat.memory.OffHeapMemoryPlugin;
-import org.mwg.Callback;
-import org.mwg.Graph;
-import org.mwg.GraphBuilder;
-import org.mwg.Type;
-import org.mwg.internal.scheduler.HybridScheduler;
-import org.mwg.task.TaskResult;
+import greycat.*;
+import greycat.scheduler.HybridScheduler;
 
-import static org.mwg.task.Tasks.cond;
-import static org.mwg.task.Tasks.newTask;
+import static greycat.Tasks.cond;
+import static greycat.Tasks.newTask;
 
 @SuppressWarnings("Duplicates")
 public class BenchmarkParTask {

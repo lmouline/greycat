@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mwg.memory.offheap;
+package greycat.memory;
 
-import greycat.memory.OffHeapConstants;
-import greycat.memory.OffHeapMemoryFactory;
+import greycat.internal.chunk.AbstractTimeTreeTest;
 import org.junit.After;
 import org.junit.Assert;
-import org.mwg.internal.chunk.AbstractChunkSpaceTest;
 
-public class OffHeapChunkSpaceTest extends AbstractChunkSpaceTest {
+public class OffHeapTimeTreeChunkTest extends AbstractTimeTreeTest {
 
-    public OffHeapChunkSpaceTest() {
+    public OffHeapTimeTreeChunkTest() {
         super(new OffHeapMemoryFactory());
     }
 
     @After
     public void tearDown() throws Exception {
         if (OffHeapConstants.DEBUG_MODE) {
-            Assert.assertEquals(OffHeapConstants.SEGMENTS.size(),0);
+            Assert.assertEquals(OffHeapConstants.SEGMENTS.size(), 0);
         }
     }
 

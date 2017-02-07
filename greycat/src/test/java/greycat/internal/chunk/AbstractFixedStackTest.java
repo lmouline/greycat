@@ -20,9 +20,9 @@ import org.junit.Assert;
 
 public class AbstractFixedStackTest {
 
-    protected static final int CAPACITY = 15;
+    static public final int CAPACITY = 15;
 
-    protected void test(Stack stack) {
+    public void test(Stack stack) {
         // stack is initially full, dequeue until empty
         for (int i = 0; i < CAPACITY; i++) {
             Assert.assertTrue(stack.dequeueTail() == i);

@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mwg.memory.offheap;
+package greycat.memory;
 
-import greycat.memory.OffHeapChunkSpace;
-import org.mwg.chunk.Chunk;
-import org.mwg.chunk.ChunkType;
+import greycat.chunk.Chunk;
+import greycat.chunk.ChunkType;
 
 public class BenchmarkChunk {
 

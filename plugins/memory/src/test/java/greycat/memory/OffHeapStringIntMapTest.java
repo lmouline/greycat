@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mwg.memory.offheap;
+package greycat.memory;
 
-import greycat.memory.OffHeapConstants;
-import greycat.memory.OffHeapMemoryFactory;
+import greycat.internal.chunk.AbstractStringIntMapTest;
 import org.junit.After;
 import org.junit.Assert;
-import org.mwg.internal.chunk.AbstractLongLongMapTest;
 
-public class OffHeapLongLongMapTest extends AbstractLongLongMapTest {
+public class OffHeapStringIntMapTest extends AbstractStringIntMapTest {
 
-    public OffHeapLongLongMapTest() {
+    public OffHeapStringIntMapTest() {
         super(new OffHeapMemoryFactory());
     }
 
     @After
     public void tearDown() throws Exception {
         if (OffHeapConstants.DEBUG_MODE) {
-            Assert.assertEquals(OffHeapConstants.SEGMENTS.size(),0);
+            Assert.assertEquals(OffHeapConstants.SEGMENTS.size(), 0);
         }
     }
 

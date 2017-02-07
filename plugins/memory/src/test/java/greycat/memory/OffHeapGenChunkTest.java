@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mwg.memory.offheap;
+package greycat.memory;
 
-import greycat.memory.OffHeapConstants;
-import greycat.memory.OffHeapMemoryFactory;
+import greycat.internal.chunk.AbstractGenChunkTest;
 import org.junit.After;
 import org.junit.Assert;
-import org.mwg.internal.chunk.AbstractLongLongArrayMapTest;
 
-public class OffHeapLongLongArrayMapTest extends AbstractLongLongArrayMapTest {
+public class OffHeapGenChunkTest extends AbstractGenChunkTest {
 
-    public OffHeapLongLongArrayMapTest() {
+    public OffHeapGenChunkTest() {
         super(new OffHeapMemoryFactory());
     }
 
