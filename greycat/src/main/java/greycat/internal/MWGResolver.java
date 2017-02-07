@@ -56,6 +56,16 @@ final class MWGResolver implements Resolver {
     }
 
     @Override
+    public final void free() {
+        if(dictionary != null){
+            _space.free(dictionary);
+        }
+        if(globalWorldOrderChunk != null){
+            _space.free(globalWorldOrderChunk);
+        }
+    }
+
+    @Override
     public final int typeCode(Node node) {
         final BaseNode casted = (BaseNode) node;
         final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.get(casted._index_worldOrder);

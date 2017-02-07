@@ -28,6 +28,8 @@ public interface Resolver {
      */
     void init();
 
+    void free();
+
     /**
      * Initializes backend structures for the newly created node passed as parameter
      *

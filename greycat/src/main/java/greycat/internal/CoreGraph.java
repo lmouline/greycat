@@ -166,7 +166,7 @@ public class CoreGraph implements Graph {
         }
     }
 
-    public NodeFactory factoryByCode(int code) {
+    NodeFactory factoryByCode(int code) {
         NodeDeclaration declaration = _nodeRegistry.declarationByHash(code);
         if (declaration != null) {
             return declaration.factory();
@@ -367,7 +367,11 @@ public class CoreGraph implements Graph {
             save(new Callback<Boolean>() {
                 @Override
                 public void on(Boolean result) {
-                    selfPointer._space.freeAll();
+                    final ChunkSpace space = selfPointer._space;
+                    space.free(_nodeKeyCalculator);
+                    space.free(_worldKeyCalculator);
+                    selfPointer._resolver.free();
+                    space.freeAll();
                     if (selfPointer._storage != null) {
                         final Buffer prefixBuf = selfPointer.newBuffer();
                         Base64.encodeIntToBuffer(selfPointer._prefix, prefixBuf);

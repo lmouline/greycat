@@ -1335,7 +1335,8 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                 internal_set(read_key, read_type, Base64.decodeToStringWithBounds(buffer, previous, cursor), true, initial);
                 break;
             case Type.ENODE:
-                internal_set(read_key, read_type, Base64.decodeToIntWithBounds(buffer, previous, cursor), true, initial);
+                final OffHeapENode eNode = egraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true);
+                internal_set(read_key, read_type, eNode, true, initial);
                 break;
         }
     }
@@ -1359,4 +1360,5 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     public void unlock() {
         // no locking for OffHeapENode
     }
+    
 }

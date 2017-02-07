@@ -62,6 +62,11 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
+    public void free() {
+
+    }
+
+    @Override
     public void initNode(Node node, long typeCode) {
 
     }
