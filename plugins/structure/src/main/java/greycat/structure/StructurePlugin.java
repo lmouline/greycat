@@ -21,10 +21,8 @@ import greycat.Type;
 import greycat.plugin.ActionFactory;
 import greycat.plugin.NodeFactory;
 import greycat.plugin.Plugin;
-import greycat.structure.action.NearestNWithinRadius;
-import greycat.structure.trees.KDTree;
+import greycat.structure.action.QueryBoundedRadius;
 import greycat.structure.trees.KDTreeNode;
-import greycat.structure.trees.NDTree;
 import greycat.Action;
 import greycat.structure.trees.NDTreeNode;
 
@@ -33,12 +31,12 @@ public class StructurePlugin implements Plugin {
     @Override
     public void start(Graph graph) {
         graph.actionRegistry()
-                .declaration(NearestNWithinRadius.NAME)
+                .declaration(QueryBoundedRadius.NAME)
                 .setParams(Type.INT, Type.DOUBLE, Type.DOUBLE_ARRAY)
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        return new NearestNWithinRadius((int) params[0], (double) params[1], (double[]) params[2], (boolean) params[3]);
+                        return new QueryBoundedRadius((int) params[0], (double) params[1], (double[]) params[2], (boolean) params[3]);
                     }
                 });
         graph.nodeRegistry().declaration(KDTreeNode.NAME).setFactory(new NodeFactory() {

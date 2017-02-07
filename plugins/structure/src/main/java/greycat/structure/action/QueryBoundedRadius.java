@@ -26,16 +26,16 @@ import greycat.TaskContext;
 import greycat.TaskResult;
 import greycat.TaskResultIterator;
 
-public class NearestNWithinRadius implements Action {
+public class QueryBoundedRadius implements Action {
 
-    public static String NAME = "NearestNWithinRadius";
+    public static String NAME = "QueryBoundedRadius";
 
     private final double[] _key;
     private final int _n;
     private final double _radius;
     private final boolean _fetchNodes;
 
-    public NearestNWithinRadius(final int n, final double radius, final double[] key, final boolean fetchNodes) {
+    public QueryBoundedRadius(final int n, final double radius, final double[] key, final boolean fetchNodes) {
         this._key = key;
         this._n = n;
         this._radius = radius;
@@ -103,7 +103,7 @@ public class NearestNWithinRadius implements Action {
 
     @Override
     public String toString() {
-        return "NearestNWithinRadius(\'" + "\')";
+        return "QueryBoundedRadius(\'" + "\')";
     }
 
 }
