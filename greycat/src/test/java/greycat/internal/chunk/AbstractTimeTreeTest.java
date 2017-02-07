@@ -27,7 +27,7 @@ import greycat.plugin.MemoryFactory;
 
 public abstract class AbstractTimeTreeTest {
 
-    private MemoryFactory factory;
+    protected MemoryFactory factory;
 
     public AbstractTimeTreeTest(MemoryFactory factory) {
         this.factory = factory;
