@@ -13,7 +13,6 @@ buildNumber.properties
 .settings/
 .classpath
 .project
-*.csv
 /tempStorage/
 /fullTempStorage/
 /fullTempStorage2/
