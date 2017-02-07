@@ -92,8 +92,8 @@ class OffHeapDMatrix implements DMatrix {
                 container.setAddrByIndex(index, addr);
                 container.declareDirty();
             }
+            long base = nbMaxColumn * nbRows + INDEX_OFFSET;
             for (int i = 0; i < newColumn.length; i++) {
-                long base = nbMaxColumn * nbRows + INDEX_OFFSET;
                 OffHeapDoubleArray.set(addr, i + base, newColumn[i]);
             }
             OffHeapDoubleArray.set(addr, INDEX_MAX_COLUMN, nbMaxColumn + 1);
@@ -163,7 +163,7 @@ class OffHeapDMatrix implements DMatrix {
             if (addr != OffHeapConstants.NULL_PTR) {
                 final int nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
                 final int nbColumns = (int) OffHeapDoubleArray.get(addr, INDEX_COLUMNS);
-                   for (int i = 0; i < nbColumns * nbRows; i++) {
+                for (int i = 0; i < nbColumns * nbRows; i++) {
                     OffHeapDoubleArray.set(addr, INDEX_OFFSET + i, random.nextDouble() * (max - min) + min);
                 }
                 container.declareDirty();
@@ -192,7 +192,6 @@ class OffHeapDMatrix implements DMatrix {
         }
         return this;
     }
-
 
 
     @Override

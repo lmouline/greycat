@@ -91,8 +91,9 @@ class OffHeapLMatrix implements LMatrix {
                 container.setAddrByIndex(index, addr);
                 container.declareDirty();
             }
+
+            long base = nbMaxColumn * nbRows + INDEX_OFFSET;
             for (int i = 0; i < newColumn.length; i++) {
-                long base = nbMaxColumn * nbRows + INDEX_OFFSET;
                 OffHeapLongArray.set(addr, i + base, newColumn[i]);
             }
             OffHeapLongArray.set(addr, INDEX_MAX_COLUMN, nbMaxColumn + 1);
