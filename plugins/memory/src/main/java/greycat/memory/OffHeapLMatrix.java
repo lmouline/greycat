@@ -16,6 +16,7 @@
 package greycat.memory;
 
 import greycat.Constants;
+import greycat.memory.primary.OffHeapDoubleArray;
 import greycat.memory.primary.OffHeapLongArray;
 import greycat.struct.Buffer;
 import greycat.struct.LMatrix;
@@ -78,7 +79,6 @@ class OffHeapLMatrix implements LMatrix {
                 OffHeapLongArray.set(addr, INDEX_COLUMNS, nbColumns);
                 OffHeapLongArray.set(addr, INDEX_MAX_COLUMN, nbMaxColumn);
                 container.setAddrByIndex(index, addr);
-                container.declareDirty();
             } else {
                 nbRows = (int) OffHeapLongArray.get(addr, INDEX_ROWS);
                 nbColumns = (int) OffHeapLongArray.get(addr, INDEX_COLUMNS);
@@ -88,8 +88,8 @@ class OffHeapLMatrix implements LMatrix {
                 nbColumns = nbColumns * 2;
                 final long newLength = nbColumns * nbRows + INDEX_OFFSET;
                 addr = OffHeapLongArray.reallocate(addr, newLength);
+                OffHeapLongArray.set(addr, INDEX_COLUMNS, nbColumns);
                 container.setAddrByIndex(index, addr);
-                container.declareDirty();
             }
 
             long base = nbMaxColumn * nbRows + INDEX_OFFSET;
@@ -98,6 +98,7 @@ class OffHeapLMatrix implements LMatrix {
             }
             OffHeapLongArray.set(addr, INDEX_MAX_COLUMN, nbMaxColumn + 1);
         } finally {
+            container.declareDirty();
             container.unlock();
         }
         return this;
