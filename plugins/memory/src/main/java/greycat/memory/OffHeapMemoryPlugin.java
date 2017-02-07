@@ -13,26 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mwg.memory.offheap;
+package greycat.memory;
 
-import greycat.memory.OffHeapConstants;
-import greycat.memory.OffHeapFixedStack;
-import org.junit.Assert;
-import org.junit.Test;
-import org.mwg.chunk.Stack;
-import org.mwg.internal.chunk.AbstractFixedStackTest;
+import greycat.Graph;
+import greycat.plugin.Plugin;
 
-public class OffHeapFixedStackTest extends AbstractFixedStackTest {
+public class OffHeapMemoryPlugin implements Plugin {
 
-    @Test
-    public void offHeapFixedStackTest() {
-        Stack stack = new OffHeapFixedStack(CAPACITY, true);
-        test(stack);
-        stack.free();
+    @Override
+    public void start(Graph graph) {
+        graph.setMemoryFactory(new OffHeapMemoryFactory());
+    }
 
-        if (OffHeapConstants.DEBUG_MODE) {
-            Assert.assertEquals(OffHeapConstants.SEGMENTS.size(), 0);
-        }
+    @Override
+    public void stop() {
 
     }
 

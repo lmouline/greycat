@@ -15,6 +15,7 @@
  */
 package org.mwg.memory.offheap;
 
+import greycat.memory.OffHeapChunkSpace;
 import org.mwg.chunk.Chunk;
 import org.mwg.chunk.ChunkType;
 

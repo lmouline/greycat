@@ -106,6 +106,7 @@
 
         <module>plugins/structure</module>
         <module>plugins/ml</module>
+        <module>plugins/memory</module>
 
         <!--
         <module>plugins/model</module>
@@ -113,7 +114,6 @@
         <!-- Plugins Java & JS -->
 
         <!--
-        <module>plugins/memory</module>
         <module>plugins/rest</module>
         <module>plugins/storage/dyno</module>
         <module>plugins/storage/nats</module>

@@ -16,10 +16,11 @@
 package org.mwg.memory.offheap;
 
 
+import greycat.memory.OffHeapConstants;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mwg.memory.offheap.primary.OffHeapByteArray;
+import greycat.memory.primary.OffHeapByteArray;
 
 import java.nio.ByteBuffer;
 

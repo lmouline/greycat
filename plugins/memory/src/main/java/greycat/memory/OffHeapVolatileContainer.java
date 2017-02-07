@@ -13,27 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mwg.memory.offheap;
+package greycat.memory;
 
-import greycat.memory.OffHeapConstants;
-import greycat.memory.OffHeapFixedStack;
-import org.junit.Assert;
-import org.junit.Test;
-import org.mwg.chunk.Stack;
-import org.mwg.internal.chunk.AbstractFixedStackTest;
+public class OffHeapVolatileContainer implements OffHeapContainer {
+    private long indexedAddr;
 
-public class OffHeapFixedStackTest extends AbstractFixedStackTest {
-
-    @Test
-    public void offHeapFixedStackTest() {
-        Stack stack = new OffHeapFixedStack(CAPACITY, true);
-        test(stack);
-        stack.free();
-
-        if (OffHeapConstants.DEBUG_MODE) {
-            Assert.assertEquals(OffHeapConstants.SEGMENTS.size(), 0);
-        }
-
+    public OffHeapVolatileContainer() {
+        indexedAddr = OffHeapConstants.NULL_PTR;
     }
 
+    @Override
+    public long addrByIndex(long elemIndex) {
+        return indexedAddr;
+    }
+
+    @Override
+    public void setAddrByIndex(long elemIndex, long newAddr) {
+        indexedAddr = newAddr;
+    }
+
+    @Override
+    public void lock() {
+        // do nothing
+    }
+
+    @Override
+    public void unlock() {
+        // do nothing
+    }
+
+    @Override
+    public void declareDirty() {
+        // do nothing
+    }
 }

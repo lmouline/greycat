@@ -15,6 +15,7 @@
  */
 package org.mwg.memory.offheap;
 
+import greycat.memory.OffHeapMemoryPlugin;
 import org.mwg.Callback;
 import org.mwg.Graph;
 import org.mwg.GraphBuilder;

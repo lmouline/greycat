@@ -15,6 +15,8 @@
  */
 package org.mwg.memory.offheap;
 
+import greycat.memory.OffHeapConstants;
+import greycat.memory.OffHeapMemoryFactory;
 import org.junit.After;
 import org.junit.Assert;
 import org.mwg.internal.chunk.AbstractTimeTreeTest;
