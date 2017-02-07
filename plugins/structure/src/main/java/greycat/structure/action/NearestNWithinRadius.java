@@ -39,7 +39,7 @@ public class NearestNWithinRadius implements Action {
         this._key = key;
         this._n = n;
         this._radius = radius;
-        this._fetchNodes=fetchNodes;
+        this._fetchNodes = fetchNodes;
     }
 
     @Override
@@ -51,15 +51,13 @@ public class NearestNWithinRadius implements Action {
             final TaskResultIterator previousResultIt = previousResult.iterator();
             Object iter = previousResultIt.next();
             while (iter != null) {
-            if (iter instanceof NDTree || iter instanceof KDTree) {
-                    TreeResult tr = ((Tree) iter).nearestNWithinRadius(_key, _n, _radius);
-
-                    if(_fetchNodes){
+                if (iter instanceof NDTree || iter instanceof KDTree) {
+                    TreeResult tr = ((Tree) iter).queryBoundedRadius(_key, _radius, _n);
+                    if (_fetchNodes) {
                         long[] nodeIds = new long[tr.size()];
                         for (int i = 0; i < tr.size(); i++) {
                             nodeIds[i] = tr.value(i);
                         }
-
                         ctx.graph().lookupAll(ctx.world(), ctx.time(), nodeIds, result -> {
                             for (int j = 0; j < result.length; j++) {
                                 TaskResult<Object> line = ctx.newResult();
@@ -71,8 +69,7 @@ public class NearestNWithinRadius implements Action {
                             tr.free();
                             defer.count();
                         });
-                    }
-                    else{
+                    } else {
                         for (int i = 0; i < tr.size(); i++) {
                             TaskResult<Object> line = ctx.newResult();
                             line.add(tr.keys(i));

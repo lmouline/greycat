@@ -1,3 +1,18 @@
+/**
+ * Copyright 2017 The GreyCat Authors.  All rights reserved.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package greycat.structure.trees;
 
 import greycat.Graph;
@@ -8,15 +23,12 @@ import greycat.struct.EGraph;
 import greycat.structure.Tree;
 import greycat.structure.TreeResult;
 
-/**
- * Created by assaad on 07/02/2017.
- */
 public class KDTreeNode extends BaseNode implements Tree {
 
     public static String NAME = "KDTreeNode";
-    public static String BOUND_MIN="bound_min";
-    public static String BOUND_MAX="bound_max";
-    public static String RESOLUTION="resolution";
+    public static String BOUND_MIN = "bound_min";
+    public static String BOUND_MAX = "bound_max";
+    public static String RESOLUTION = "resolution";
 
     private static String E_GRAPH = "kdtree";
 
@@ -30,25 +42,21 @@ public class KDTreeNode extends BaseNode implements Tree {
     private KDTree getTree() {
         if (_kdTree == null) {
             EGraph egraph = (EGraph) getOrCreate(E_GRAPH, Type.EGRAPH);
-            _kdTree = new KDTree(egraph, graph());
+            _kdTree = new KDTree(egraph);
         }
         return _kdTree;
     }
 
-
     @Override
     public Node set(String name, byte type, Object value) {
-        if(name.equals(BOUND_MIN)){
+        if (name.equals(BOUND_MIN)) {
             setMinBound((double[]) value);
-        }
-        else if(name.equals(BOUND_MAX)){
+        } else if (name.equals(BOUND_MAX)) {
             setMaxBound((double[]) value);
-        }
-        else if(name.equals(RESOLUTION)){
+        } else if (name.equals(RESOLUTION)) {
             setResolution((double[]) value);
-        }
-        else {
-            super.set(name,type,value);
+        } else {
+            super.set(name, type, value);
         }
         return this;
     }
@@ -75,32 +83,32 @@ public class KDTreeNode extends BaseNode implements Tree {
 
     @Override
     public void insert(double[] keys, long value) {
-        getTree().insert(keys,value);
+        getTree().insert(keys, value);
     }
 
     @Override
     public void profile(double[] keys, long occurrence) {
-        getTree().profile(keys,occurrence);
+        getTree().profile(keys, occurrence);
     }
 
     @Override
-    public TreeResult nearestN(double[] keys, int nbElem) {
-        return getTree().nearestN(keys,nbElem);
+    public TreeResult queryAround(double[] keys, int max) {
+        return getTree().queryAround(keys, max);
     }
 
     @Override
-    public TreeResult nearestWithinRadius(double[] keys, double radius) {
-        return getTree().nearestWithinRadius(keys,radius);
+    public TreeResult queryRadius(double[] keys, double radius) {
+        return getTree().queryRadius(keys, radius);
     }
 
     @Override
-    public TreeResult nearestNWithinRadius(double[] keys, int nbElem, double radius) {
-        return getTree().nearestNWithinRadius(keys,nbElem,radius);
+    public TreeResult queryBoundedRadius(double[] keys, double radius, int max) {
+        return getTree().queryBoundedRadius(keys, radius, max);
     }
 
     @Override
-    public TreeResult query(double[] min, double[] max) {
-        return getTree().query(min,max);
+    public TreeResult queryArea(double[] min, double[] max) {
+        return getTree().queryArea(min, max);
     }
 
     @Override
@@ -109,7 +117,7 @@ public class KDTreeNode extends BaseNode implements Tree {
     }
 
     @Override
-    public long numberOfNodes() {
-        return getTree().numberOfNodes();
+    public long treeSize() {
+        return getTree().treeSize();
     }
 }

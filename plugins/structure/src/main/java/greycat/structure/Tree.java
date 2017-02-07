@@ -17,16 +17,33 @@ package greycat.structure;
 
 public interface Tree {
 
-    //Settings param
-    void setDistance(int distanceType);
+    /**
+     * Configure the function to compute the distance between two multi-dimensional keys
+     *
+     * @param distanceType integer value from the Dimensions static object
+     */
+    void setDistance(final int distanceType);
 
-    void setResolution(double[] resolution);
+    /**
+     * Configure the minimum resolution for each dimensions of keys.
+     *
+     * @param resolution vector of double which should have exactly the same size than the previous inserted key
+     */
+    void setResolution(final double[] resolution);
 
-    void setMinBound(double[] min);
+    /**
+     * Configure the minimum value for each dimensions of keys.
+     *
+     * @param min vector of double which should have exactly the same size than the previous inserted key
+     */
+    void setMinBound(final double[] min);
 
-    void setMaxBound(double[] max);
-
-    //Insert functions
+    /**
+     * Configure the maximum value for each dimensions of keys.
+     *
+     * @param max vector of double which should have exactly the same size than the previous inserted key
+     */
+    void setMaxBound(final double[] max);
 
     /**
      * Insert a value in the tree referenced by keys composed by the vector
@@ -36,21 +53,34 @@ public interface Tree {
      */
     void insert(final double[] keys, final long value);
 
+    /**
+     * Update a profile for the zone identified by keys vector with an accumulation of occurrence parameter.
+     *
+     * @param keys       vector of double composing the key
+     * @param occurrence increment to be added to the profile identified the key
+     */
     void profile(final double[] keys, final long occurrence);
 
-    //Retrieve functions
-    TreeResult nearestN(final double[] keys, final int nbElem);
+    TreeResult queryAround(final double[] keys, final int max);
 
-    TreeResult nearestWithinRadius(final double[] keys, final double radius);
+    TreeResult queryRadius(final double[] keys, final double radius);
 
-    TreeResult nearestNWithinRadius(final double[] keys, final int nbElem, final double radius);
+    TreeResult queryBoundedRadius(final double[] keys, final double radius, final int max);
 
-    TreeResult query(final double[] min, final double[] max);
+    TreeResult queryArea(final double[] min, final double[] max);
 
-    //Tree properties
+    /**
+     * Get the number of keys
+     *
+     * @return the number of keys encoded in the tree
+     */
     long size();
 
-    long numberOfNodes();
-
+    /**
+     * Get the size of the tree
+     *
+     * @return the number of nodes within the tree
+     */
+    long treeSize();
 
 }

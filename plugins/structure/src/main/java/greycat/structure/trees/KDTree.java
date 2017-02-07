@@ -250,7 +250,7 @@ public class KDTree implements Tree {
         }
     }
 
-    private static ENode createNode(ENode parent, boolean right) {
+    private static ENode createNode(final ENode parent, final boolean right) {
         ENode child = parent.graph().newNode();
         if (right) {
             parent.setAt(E_RIGHT, Type.ENODE, child);
@@ -262,22 +262,22 @@ public class KDTree implements Tree {
     }
 
     @Override
-    public final void setDistance(int distanceType) {
+    public final void setDistance(final int distanceType) {
         eGraph.root().setAt(DISTANCE, Type.INT, distanceType);
     }
 
     @Override
-    public final void setResolution(double[] resolution) {
+    public final void setResolution(final double[] resolution) {
         eGraph.root().setAt(RESOLUTION, Type.DOUBLE_ARRAY, resolution);
     }
 
     @Override
-    public final void setMinBound(double[] min) {
+    public final void setMinBound(final double[] min) {
         //Not needed
     }
 
     @Override
-    public final void setMaxBound(double[] max) {
+    public final void setMaxBound(final double[] max) {
         //Not needed
     }
 
@@ -297,7 +297,7 @@ public class KDTree implements Tree {
     }
 
     @Override
-    public void profile(final double[] keys, final long occurrence) {
+    public final void profile(final double[] keys, final long occurrence) {
         int strategy = IndexStrategy.PROFILE;
         ENode root = eGraph.root();
         if (root.getAt(E_KEY) == null) {
@@ -312,17 +312,17 @@ public class KDTree implements Tree {
     }
 
     @Override
-    public final TreeResult nearestN(double[] keys, int nbElem) {
-        return nearestNWithinRadius(keys, -1, -1);
+    public final TreeResult queryAround(final double[] keys, final int max) {
+        return queryBoundedRadius(keys, -1, max);
     }
 
     @Override
-    public final TreeResult nearestWithinRadius(double[] keys, double radius) {
-        return nearestNWithinRadius(keys, -1, radius);
+    public final TreeResult queryRadius(final double[] keys, final double radius) {
+        return queryBoundedRadius(keys, radius, -1);
     }
 
     @Override
-    public final TreeResult nearestNWithinRadius(double[] keys, int nbElem, double radius) {
+    public final TreeResult queryBoundedRadius(final double[] keys, final double radius, final int max) {
         final ENode root = eGraph.root();
         if (root.getAt(E_KEY) == null) {
             return null;
@@ -332,14 +332,14 @@ public class KDTree implements Tree {
             throw new RuntimeException("Keys are not of the same size");
         }
         EGraph calcZone = eGraph.graph().space().newVolatileGraph();
-        VolatileResult nnl = new VolatileResult(calcZone.newNode(), nbElem);
+        VolatileResult nnl = new VolatileResult(calcZone.newNode(), max);
         recursiveTraverse(root, nnl, distance, keys, HRect.infiniteHRect(keys.length), 0, keys.length, Double.MAX_VALUE, radius);
         nnl.sort(true);
         return nnl;
     }
 
     @Override
-    public final TreeResult query(double[] min, double[] max) {
+    public final TreeResult queryArea(double[] min, double[] max) {
         ENode root = eGraph.root();
         if (root.getAt(E_KEY) == null) {
             return null;
@@ -357,12 +357,14 @@ public class KDTree implements Tree {
     }
 
     @Override
-    public long size() {
+    public final long size() {
+        //TODO
         return 0;
     }
 
     @Override
-    public long numberOfNodes() {
+    public final long treeSize() {
+        //TODO
         return 0;
     }
 }

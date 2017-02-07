@@ -100,7 +100,7 @@ public class NDTreeTest {
                 long[][] temp = new long[test][nsearch];
                 ts = System.currentTimeMillis();
                 for (int i = 0; i < test; i++) {
-                    TreeResult res = ndTree.nearestN(keysTest[i], nsearch);
+                    TreeResult res = ndTree.queryAround(keysTest[i], nsearch);
                     for (int j = 0; j < nsearch; j++) {
                         temp[i][j] = res.value(j);
                     }
@@ -112,7 +112,7 @@ public class NDTreeTest {
                 long[][] tempkdtree = new long[test][nsearch];
                 ts = System.currentTimeMillis();
                 for (int i = 0; i < test; i++) {
-                    TreeResult res = kdTree.nearestN(keysTest[i], nsearch);
+                    TreeResult res = kdTree.queryAround(keysTest[i], nsearch);
                     for (int j = 0; j < nsearch; j++) {
                         tempkdtree[i][j] = res.value(j);
                     }
@@ -139,12 +139,12 @@ public class NDTreeTest {
                 }
 
                 ts = System.currentTimeMillis();
-                TreeResult trangeND= ndTree.query(mins,maxs);
+                TreeResult trangeND= ndTree.queryArea(mins,maxs);
                 te = System.currentTimeMillis() - ts;
                 System.out.println("NDtree range: " + te + " ms");
 
                 ts = System.currentTimeMillis();
-                TreeResult trangeKD = kdTree.query(mins,maxs);
+                TreeResult trangeKD = kdTree.queryArea(mins,maxs);
                 te = System.currentTimeMillis() - ts;
                 System.out.println("KDTree range: " + te + " ms");
 
