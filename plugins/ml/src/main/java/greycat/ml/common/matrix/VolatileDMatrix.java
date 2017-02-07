@@ -91,7 +91,7 @@ public class VolatileDMatrix implements DMatrix {
 
     @Override
     public DMatrix appendColumn(double[] newColumn) {
-        if (_data == null) {
+        if (_data == null ||_data.length==0) {
             _nbRows = newColumn.length;
             _nbColumns = Constants.MAP_INITIAL_CAPACITY;
             _nbMaxColumn = 0;
@@ -105,7 +105,7 @@ public class VolatileDMatrix implements DMatrix {
             _data = next_backend;
         }
         //just insert
-        System.arraycopy(newColumn, 0, _data, _nbColumns * _nbRows, newColumn.length);
+        System.arraycopy(newColumn, 0, _data, _nbMaxColumn * _nbRows, newColumn.length);
         _nbMaxColumn = _nbMaxColumn + 1;
         return null;
     }
