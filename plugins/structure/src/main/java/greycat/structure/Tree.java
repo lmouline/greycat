@@ -15,12 +15,23 @@
  */
 package greycat.structure;
 
-import greycat.Node;
 
-public interface Tree extends Node {
+import greycat.Type;
+import greycat.struct.ENode;
+
+public interface Tree {
+
 
     //Settings param
     void setDistance(int distanceType);
+
+    void setResolution(double[] resolution);
+
+
+    void setMinBound(double[] min);
+
+    void setMaxBound(double[] max);
+
 
     //Insert functions
     void insert(final double[] keys, final long value);
@@ -38,6 +49,7 @@ public interface Tree extends Node {
 
     //Tree properties
     long size();
+
     long numberOfNodes();
 
 

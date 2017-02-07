@@ -461,6 +461,27 @@ class HeapENode implements ENode, HeapContainer {
     }
 
     @Override
+    public <A> A getWithDefault(String key, A defaultValue) {
+        final Object result = get(key);
+        if (result == null) {
+            return defaultValue;
+        } else {
+            return (A) result;
+        }
+    }
+
+    @Override
+    public <A> A getAtWithDefault(int key, A defaultValue) {
+        final Object result = internal_get(key);
+        if (result == null) {
+            return defaultValue;
+        } else {
+            return (A) result;
+        }
+    }
+
+
+    @Override
     public void drop() {
         egraph.drop(this);
     }

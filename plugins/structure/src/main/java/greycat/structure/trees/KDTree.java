@@ -17,8 +17,6 @@ package greycat.structure.trees;
 
 import greycat.Graph;
 import greycat.Type;
-import greycat.base.BaseNode;
-import greycat.plugin.NodeState;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
 import greycat.structure.Tree;
@@ -28,13 +26,8 @@ import greycat.structure.distance.Distances;
 import greycat.structure.util.HRect;
 import greycat.structure.util.VolatileResult;
 
-public class KDTree extends BaseNode implements Tree {
-    public static String NAME = "KDTree";
-    public static String RESOLUTION = "resolution";
-    public static String DISTANCE = "distance";
-    private static String EGRAPH = "egraph";
-    private static String STRATEGY = "strategy";
-    private static String DIM = "dim";
+public class KDTree implements Tree {
+
     public static int DISTANCE_DEF = Distances.DEFAULT;
     private static int E_SUBTREE_NODES = 0;
     private static int E_KEY = 1;
@@ -44,8 +37,22 @@ public class KDTree extends BaseNode implements Tree {
     private static int E_RIGHT = 5;
     private static int E_LEFT = 6;
 
-    public KDTree(long p_world, long p_time, long p_id, Graph p_graph) {
-        super(p_world, p_time, p_id, p_graph);
+    public static int RESOLUTION = 10;
+    public static int DISTANCE = 11;
+    private static int STRATEGY = 12;
+    private static int DIM = 13;
+
+
+    private EGraph eGraph;
+    private Graph graph;
+
+    public KDTree(EGraph eGraph, Graph graph) {
+        if (eGraph.root() == null) {
+            ENode root = eGraph.newNode();
+            eGraph.setRoot(root);
+        }
+        this.eGraph = eGraph;
+        this.graph = graph;
     }
 
     private static boolean checkCreateLevels(double[] key1, double[] key2, double[] resolutions) {
@@ -279,59 +286,61 @@ public class KDTree extends BaseNode implements Tree {
     }
 
 
+
     @Override
     public void setDistance(int distanceType) {
-        super.set(DISTANCE, Type.INT, distanceType);
+        eGraph.root().setAt(DISTANCE, Type.INT, distanceType);
+    }
+
+    @Override
+    public void setResolution(double[] resolution) {
+        eGraph.root().setAt(RESOLUTION,Type.DOUBLE_ARRAY,resolution);
+    }
+
+    @Override
+    public void setMinBound(double[] min) {
+        //Not needed
+    }
+
+    @Override
+    public void setMaxBound(double[] max) {
+        //Not needed
     }
 
 
     @Override
     public void insert(double[] keys, long value) {
-        final NodeState state = unphasedState();
+        ENode root = eGraph.root();
+
         int strategy = IndexStrategy.INDEX;
 
-        double[] resolution = (double[]) state.getFromKey(RESOLUTION);
-        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
-
-        synchronized (state) { // assumption that NodeState == StateChunk
-            ENode root = graph.root();
-            if (root == null) {
-                root = graph.newNode();
-                state.setFromKey(STRATEGY, Type.INT, strategy);
-                graph.setRoot(root);
-                state.setFromKey(DIM, Type.INT, keys.length);
-            } else {
-                if (keys.length != (int) state.getFromKey(DIM)) {
-                    throw new RuntimeException("Keys should always be the same length");
-                }
+        if (root.getAt(E_KEY) == null) {
+            root.setAt(STRATEGY, Type.INT, strategy);
+            root.setAt(DIM, Type.INT, keys.length);
+        } else {
+            if (keys.length != (int)root.getAt(DIM)) {
+                throw new RuntimeException("Keys should always be the same length");
             }
-            internalInsert(root, keys, value, strategy, 0, resolution);
         }
+        internalInsert(root, keys, value, strategy, 0, (double[]) root.getAt(RESOLUTION));
     }
 
 
     @Override
     public void profile(double[] keys, long occurrence) {
-        final NodeState state = unphasedState();
+
         int strategy = IndexStrategy.PROFILE;
-
-        double[] resolution = (double[]) state.getFromKey(RESOLUTION);
-        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
-
-        synchronized (state) { // assumption that NodeState == StateChunk
-            ENode root = graph.root();
-            if (root == null) {
-                root = graph.newNode();
-                state.setFromKey(STRATEGY, Type.INT, strategy);
-                graph.setRoot(root);
-                state.setFromKey(DIM, Type.INT, keys.length);
+            ENode root = eGraph.root();
+            if (root.getAt(E_KEY) == null) {
+                 root.setAt(STRATEGY, Type.INT, strategy);
+                root.setAt(DIM, Type.INT, keys.length);
             } else {
-                if (keys.length != (int) state.getFromKey(DIM)) {
+                if (keys.length != (int) root.getAt(DIM)) {
                     throw new RuntimeException("Keys should always be the same length");
                 }
             }
-            internalInsert(root, keys, occurrence, strategy, 0, resolution);
-        }
+            internalInsert(root, keys, occurrence, strategy, 0, (double[]) root.getAt(RESOLUTION));
+
     }
 
     @Override
@@ -346,32 +355,35 @@ public class KDTree extends BaseNode implements Tree {
 
     @Override
     public TreeResult nearestNWithinRadius(double[] keys, int nbElem, double radius) {
-        final NodeState state = unphasedState();
-        final EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
-        final Distance distance = Distances.getDistance(state.getFromKeyWithDefault(DISTANCE, DISTANCE_DEF));
-        synchronized (state) {
-            ENode root = graph.root();
-            if (root == null) {
-                return null;
-            }
-            if (keys.length != ((double[]) root.getAt(E_KEY)).length) {
-                throw new RuntimeException("Keys are not of the same size");
-            }
 
-            EGraph calcZone = graph().space().newVolatileGraph();
-            VolatileResult nnl = new VolatileResult(calcZone.newNode(), nbElem);
-            reccursiveTraverse(root, nnl, distance, keys, HRect.infiniteHRect(keys.length), 0, keys.length, Double.MAX_VALUE, radius);
-            nnl.sort(true);
-            return nnl;
+        ENode root = eGraph.root();
+        if (root.getAt(E_KEY) == null) {
+            return null;
         }
+
+        final Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, DISTANCE_DEF));
+
+        if (keys.length != ((double[]) root.getAt(E_KEY)).length) {
+            throw new RuntimeException("Keys are not of the same size");
+        }
+
+        EGraph calcZone = graph.space().newVolatileGraph();
+        VolatileResult nnl = new VolatileResult(calcZone.newNode(), nbElem);
+        reccursiveTraverse(root, nnl, distance, keys, HRect.infiniteHRect(keys.length), 0, keys.length, Double.MAX_VALUE, radius);
+        nnl.sort(true);
+        return nnl;
     }
 
     @Override
     public TreeResult query(double[] min, double[] max) {
-        NodeState state = unphasedState();
 
-        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
-        Distance distance = Distances.getDistance(state.getFromKeyWithDefault(DISTANCE, DISTANCE_DEF));
+        ENode root = eGraph.root();
+        if (root.getAt(E_KEY) == null) {
+            return null;
+        }
+
+        final Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, DISTANCE_DEF));
+
 
         final double[] center = new double[max.length];
 
@@ -379,12 +391,7 @@ public class KDTree extends BaseNode implements Tree {
             center[i] = (min[i] + max[i]) / 2;
         }
 
-        ENode root = graph.root();
-        if (root == null) {
-            return null;
-        }
-
-        EGraph calcZone = graph().space().newVolatileGraph();
+        EGraph calcZone = graph.space().newVolatileGraph();
         VolatileResult nnl = new VolatileResult(calcZone.newNode(), -1);
         rangeSearch(min, max, center, distance, root, 0, min.length, nnl);
 

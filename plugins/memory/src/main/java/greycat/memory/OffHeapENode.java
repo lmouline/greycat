@@ -499,6 +499,26 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     }
 
     @Override
+    public <A> A getWithDefault(String key, A defaultValue) {
+        final Object result = get(key);
+        if (result == null) {
+            return defaultValue;
+        } else {
+            return (A) result;
+        }
+    }
+
+    @Override
+    public <A> A getAtWithDefault(int key, A defaultValue) {
+        final Object result = getAt(key);
+        if (result == null) {
+            return defaultValue;
+        } else {
+            return (A) result;
+        }
+    }
+
+    @Override
     public Object getOrCreate(String key, byte type) {
         Object previous = get(key);
         if (previous != null) {

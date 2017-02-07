@@ -34,8 +34,8 @@ public class NDTreeTest {
             @Override
             public void on(Boolean result) {
 
-                KDTree kdTree = (KDTree) graph.newTypedNode(0, 0, KDTree.NAME);
-                NDTree ndTree = (NDTree) graph.newTypedNode(0, 0, NDTree.NAME);
+                KDTreeNode kdTree = (KDTreeNode) graph.newTypedNode(0, 0, KDTreeNode.NAME);
+                NDTreeNode ndTree = (NDTreeNode) graph.newTypedNode(0, 0, NDTreeNode.NAME);
 
                 int dim = 5;
                 double[] precisions = new double[dim];
@@ -46,9 +46,9 @@ public class NDTreeTest {
                     boundMin[i] = 0;
                     boundMax[i] = 1;
                 }
-                ndTree.set(NDTree.BOUND_MIN, Type.DOUBLE_ARRAY, boundMin);
-                ndTree.set(NDTree.BOUND_MAX, Type.DOUBLE_ARRAY, boundMax);
-                ndTree.set(NDTree.RESOLUTION, Type.DOUBLE_ARRAY, precisions);
+                ndTree.setMinBound(boundMin);
+                ndTree.setMaxBound(boundMax);
+                ndTree.setResolution(precisions);
                 Random random = new Random();
                 random.setSeed(125362l);
                 int ins = 100;

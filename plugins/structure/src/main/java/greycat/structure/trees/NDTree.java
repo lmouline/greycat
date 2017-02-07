@@ -17,8 +17,6 @@ package greycat.structure.trees;
 
 import greycat.Graph;
 import greycat.Type;
-import greycat.base.BaseNode;
-import greycat.plugin.NodeState;
 import greycat.plugin.NodeStateCallback;
 import greycat.struct.DMatrix;
 import greycat.struct.EGraph;
@@ -31,21 +29,13 @@ import greycat.structure.distance.Distances;
 import greycat.structure.util.TreeHelper;
 import greycat.structure.util.VolatileResult;
 
-public class NDTree extends BaseNode implements Tree {
+public class NDTree implements Tree {
 
-    public static String NAME = "NDTree";
-
-    public static String BOUND_MIN = "bound_min";
-    public static String BOUND_MAX = "bound_max";
-    public static String RESOLUTION = "resolution";
-    public static String BUFFER_SIZE = "buffer_size";
-    public static String DISTANCE = "distance";
     public static int BUFFER_SIZE_DEF = 20;
     public static int DISTANCE_DEF = Distances.DEFAULT;
 
     /*Internal parameters */
-    private static String EGRAPH = "egraph";
-    private static String STRATEGY = "strategy";
+
     private static int E_TOTAL = 0;
     private static int E_SUBNODES = 1;
     private static int E_TOTAL_SUBNODES = 2;
@@ -55,10 +45,27 @@ public class NDTree extends BaseNode implements Tree {
     private static int E_BUFFER_VALUES = 6;
     private static int E_VALUE = 7;
     private static int E_PROFILE = 8;
+
+
+    public static int RESOLUTION = 10;
+    public static int BUFFER_SIZE = 11;
+    public static int DISTANCE = 12;
+    private static int STRATEGY = 13;
+
+
     private static int E_OFFSET_REL = 16;
 
-    public NDTree(final long p_world, final long p_time, final long p_id, final Graph p_graph) {
-        super(p_world, p_time, p_id, p_graph);
+
+    private EGraph eGraph;
+    private Graph graph;
+
+    public NDTree(EGraph eGraph, Graph graph) {
+        this.eGraph = eGraph;
+        this.graph = graph;
+        if (eGraph.root() == null) {
+            ENode root = eGraph.newNode();
+            eGraph.setRoot(root);
+        }
     }
 
     private static int getRelationId(double[] centerKey, double[] keyToInsert) {
@@ -330,60 +337,69 @@ public class NDTree extends BaseNode implements Tree {
 
     @Override
     public void setDistance(int distanceType) {
-        super.set(DISTANCE, Type.INT, distanceType);
+        eGraph.root().setAt(DISTANCE, Type.INT, distanceType);
     }
 
 
     @Override
+    public void setResolution(double[] resolution) {
+        eGraph.root().setAt(RESOLUTION, Type.DOUBLE_ARRAY, resolution);
+    }
+
+    @Override
+    public void setMinBound(double[] min) {
+        eGraph.root().setAt(E_MIN, Type.DOUBLE_ARRAY, min);
+    }
+
+    @Override
+    public void setMaxBound(double[] max) {
+        eGraph.root().setAt(E_MAX, Type.DOUBLE_ARRAY, max);
+    }
+
+    @Override
     public void insert(final double[] keys, final long value) {
-        final NodeState state = unphasedState();
-        double[] min = (double[]) state.getFromKey(BOUND_MIN);
-        double[] max = (double[]) state.getFromKey(BOUND_MAX);
+        ENode root = eGraph.root();
+        double[] min = (double[]) root.getAt(E_MIN);
+        double[] max = (double[]) root.getAt(E_MAX);
         check(keys, min, max);
-        double[] resolution = (double[]) state.getFromKey(RESOLUTION);
-        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
-        int buffersize = state.getFromKeyWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
+        double[] resolution = (double[]) root.getAt(RESOLUTION);
+        int buffersize = root.getAtWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
         //Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
-        synchronized (state) { // assumption that NodeState == StateChunk
-            ENode root = graph.root();
-            if (root == null) {
-                root = graph.newNode();
-                state.setFromKey(STRATEGY, Type.INT, IndexStrategy.INDEX);
-                graph.setRoot(root);
-                root.setAt(E_TOTAL, Type.LONG, 0);
-                root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
-                root.setAt(E_SUBNODES, Type.LONG, 0);
-                root.setAt(E_MIN, Type.DOUBLE_ARRAY, min);
-                root.setAt(E_MAX, Type.DOUBLE_ARRAY, max);
-            }
-            internalInsert(root, keys, value, IndexStrategy.INDEX, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
+
+        if (root.getAtWithDefault(E_TOTAL,0l) == 0) {
+            root.setAt(STRATEGY, Type.INT, IndexStrategy.INDEX);
+            root.setAt(E_TOTAL, Type.LONG, 0);
+            root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
+            root.setAt(E_SUBNODES, Type.LONG, 0);
+            root.setAt(E_MIN, Type.DOUBLE_ARRAY, min);
+            root.setAt(E_MAX, Type.DOUBLE_ARRAY, max);
         }
+        internalInsert(root, keys, value, IndexStrategy.INDEX, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
+
     }
 
     @Override
     public void profile(final double[] keys, final long occurrence) {
-        NodeState state = unphasedState();
-        double[] min = (double[]) state.getFromKey(BOUND_MIN);
-        double[] max = (double[]) state.getFromKey(BOUND_MAX);
+        ENode root = eGraph.root();
+
+        double[] min = (double[]) root.getAt(E_MIN);
+        double[] max = (double[]) root.getAt(E_MAX);
         check(keys, min, max);
-        double[] resolution = (double[]) state.getFromKey(RESOLUTION);
-        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
-        int buffersize = state.getFromKeyWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
+        double[] resolution = (double[]) root.getAt(RESOLUTION);
+
+        int buffersize = root.getAtWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
         //Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
-        synchronized (state) {
-            ENode root = graph.root();
-            if (root == null) {
-                root = graph.newNode();
-                state.setFromKey(STRATEGY, Type.INT, IndexStrategy.PROFILE);
-                graph.setRoot(root);
-                root.setAt(E_TOTAL, Type.LONG, 0);
-                root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
-                root.setAt(E_SUBNODES, Type.LONG, 0);
-                root.setAt(E_MIN, Type.DOUBLE_ARRAY, min);
-                root.setAt(E_MAX, Type.DOUBLE_ARRAY, max);
-            }
-            internalInsert(root, keys, occurrence, IndexStrategy.PROFILE, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
+
+        if (root.getAtWithDefault(E_TOTAL,0l) == 0) {
+            root.setAt(STRATEGY, Type.INT, IndexStrategy.PROFILE);
+            root.setAt(E_TOTAL, Type.LONG, 0);
+            root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
+            root.setAt(E_SUBNODES, Type.LONG, 0);
+            root.setAt(E_MIN, Type.DOUBLE_ARRAY, min);
+            root.setAt(E_MAX, Type.DOUBLE_ARRAY, max);
         }
+        internalInsert(root, keys, occurrence, IndexStrategy.PROFILE, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
+
     }
 
     @Override
@@ -398,23 +414,19 @@ public class NDTree extends BaseNode implements Tree {
 
     @Override
     public TreeResult nearestNWithinRadius(double[] keys, int nbElem, double radius) {
-        NodeState state = unphasedState();
-
-        double[] min = (double[]) state.getFromKey(BOUND_MIN);
-        double[] max = (double[]) state.getFromKey(BOUND_MAX);
-        check(keys, min, max);
-
-        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
-        Distance distance = Distances.getDistance(state.getFromKeyWithDefault(DISTANCE, DISTANCE_DEF));
-        int strategyType = (int) state.getFromKey(STRATEGY);
-
-
-        ENode root = graph.root();
-        if (root == null) {
+        ENode root = eGraph.root();
+        if (root.getAtWithDefault(E_TOTAL,0l) == 0) {
             return null;
         }
 
-        EGraph calcZone = graph().space().newVolatileGraph();
+        double[] min = (double[]) root.getAt(E_MIN);
+        double[] max = (double[]) root.getAt(E_MAX);
+        check(keys, min, max);
+        Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, DISTANCE_DEF));
+        int strategyType = (int) root.getAt(STRATEGY);
+
+
+        EGraph calcZone = graph.space().newVolatileGraph();
         VolatileResult nnl = new VolatileResult(calcZone.newNode(), nbElem);
         reccursiveTraverse(root, calcZone, nnl, strategyType, distance, keys, null, null, null, radius);
         nnl.sort(true);
@@ -425,11 +437,14 @@ public class NDTree extends BaseNode implements Tree {
 
     @Override
     public TreeResult query(double[] min, double[] max) {
-        NodeState state = unphasedState();
+        ENode root = eGraph.root();
+        if (root.getAtWithDefault(E_TOTAL,0l) == 0) {
+            return null;
+        }
 
-        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
-        Distance distance = Distances.getDistance(state.getFromKeyWithDefault(DISTANCE, DISTANCE_DEF));
-        int strategyType = (int) state.getFromKey(STRATEGY);
+
+        Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, DISTANCE_DEF));
+        int strategyType = (int) root.getAt(STRATEGY);
 
         final double[] center = new double[max.length];
 
@@ -437,12 +452,8 @@ public class NDTree extends BaseNode implements Tree {
             center[i] = (min[i] + max[i]) / 2;
         }
 
-        ENode root = graph.root();
-        if (root == null) {
-            return null;
-        }
 
-        EGraph calcZone = graph().space().newVolatileGraph();
+        EGraph calcZone = graph.space().newVolatileGraph();
         VolatileResult nnl = new VolatileResult(calcZone.newNode(), -1);
         reccursiveTraverse(root, calcZone, nnl, strategyType, distance, null, min, max, center, -1);
 
@@ -453,26 +464,14 @@ public class NDTree extends BaseNode implements Tree {
 
     @Override
     public long size() {
-        NodeState state = unphasedState();
-        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
-        ENode root = graph.root();
-        if (root == null) {
-            return 0;
-        } else {
-            return (long) root.getAt(E_TOTAL);
-        }
+        ENode root = eGraph.root();
+        return root.getAtWithDefault(E_TOTAL,0l);
     }
 
     @Override
     public long numberOfNodes() {
-        NodeState state = unphasedState();
-        EGraph graph = (EGraph) state.getOrCreateFromKey(EGRAPH, Type.EGRAPH);
-        ENode root = graph.root();
-        if (root == null) {
-            return 0;
-        } else {
-            return (long) root.getAt(E_TOTAL_SUBNODES);
-        }
+        ENode root = eGraph.root();
+        return root.getAtWithDefault(E_TOTAL_SUBNODES,0);
     }
 
 
@@ -491,7 +490,7 @@ public class NDTree extends BaseNode implements Tree {
 
     private static void reccursiveTraverse(final ENode node, final EGraph calcZone, final VolatileResult nnl, final int strategyType, final Distance distance, final double[] target, final double[] targetmin, final double[] targetmax, final double[] targetcenter, final double radius) {
 
-        if ((long) node.getAt(E_SUBNODES) == 0) {
+        if (node.getAtWithDefault(E_SUBNODES,0l) == 0) {
             //Leave node
             DMatrix buffer = (DMatrix) node.getAt(E_BUFFER_KEYS);
             LMatrix bufferValue = (LMatrix) node.getAt(E_BUFFER_VALUES);
@@ -605,6 +604,4 @@ public class NDTree extends BaseNode implements Tree {
             }
         }
     }
-
-
 }

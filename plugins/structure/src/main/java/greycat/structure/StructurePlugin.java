@@ -23,8 +23,10 @@ import greycat.plugin.NodeFactory;
 import greycat.plugin.Plugin;
 import greycat.structure.action.NearestNWithinRadius;
 import greycat.structure.trees.KDTree;
+import greycat.structure.trees.KDTreeNode;
 import greycat.structure.trees.NDTree;
 import greycat.Action;
+import greycat.structure.trees.NDTreeNode;
 
 public class StructurePlugin implements Plugin {
 
@@ -39,16 +41,16 @@ public class StructurePlugin implements Plugin {
                         return new NearestNWithinRadius((int) params[0], (double) params[1], (double[]) params[2], (boolean) params[3]);
                     }
                 });
-        graph.nodeRegistry().declaration(KDTree.NAME).setFactory(new NodeFactory() {
+        graph.nodeRegistry().declaration(KDTreeNode.NAME).setFactory(new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
-                return new KDTree(world, time, id, graph);
+                return new KDTreeNode(world, time, id, graph);
             }
         });
-        graph.nodeRegistry().declaration(NDTree.NAME).setFactory(new NodeFactory() {
+        graph.nodeRegistry().declaration(NDTreeNode.NAME).setFactory(new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
-                return new NDTree(world, time, id, graph);
+                return new NDTreeNode(world, time, id, graph);
             }
         });
     }

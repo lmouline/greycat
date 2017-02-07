@@ -27,6 +27,10 @@ public interface ENode {
 
     Object getAt(int key);
 
+    <A> A getWithDefault(String key, A defaultValue);
+
+    <A> A getAtWithDefault(int key, A defaultValue);
+
     Object getOrCreate(final String key, final byte type);
 
     Object getOrCreateAt(final int key, final byte type);
