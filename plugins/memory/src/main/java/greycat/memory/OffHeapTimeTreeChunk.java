@@ -251,27 +251,6 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         long cursor = 0;
         long previous = 0;
         long payloadSize = buffer.length();
-
-        /*
-        boolean isFirst = true;
-        while (cursor < payloadSize) {
-            byte current = buffer.read(cursor);
-            if (current == Constants.CHUNK_SEP) {
-                if (isFirst) {
-                    final long treeSize = Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                    final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
-                    addr = reallocate(addr, OffHeapLongArray.get(addr, CAPACITY), closePowerOfTwo);
-                    previous = cursor + 1;
-                    isFirst = false;
-                } else {
-                    boolean insertResult = internal_insert(addr, Base64.decodeToLongWithBounds(buffer, previous, cursor), true);
-                    isDirty = isDirty || insertResult;
-                    previous = cursor + 1;
-                }
-            }
-            cursor++;
-        }*/
-
         boolean isFirst = true;
         boolean isFirstExtra = true;
         while (cursor < payloadSize) {
@@ -291,7 +270,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                     if (isFirst) {
                         final int treeSize = Base64.decodeToIntWithBounds(buffer, previous, cursor);
                         final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
-                        reallocate(addr, (int) OffHeapLongArray.get(addr, CAPACITY), closePowerOfTwo);
+                        addr = reallocate(addr, (int) OffHeapLongArray.get(addr, CAPACITY), closePowerOfTwo);
                         previous = cursor + 1;
                         isFirst = false;
                     } else {

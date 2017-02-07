@@ -41,11 +41,9 @@ public class OffHeapTimeTreeChunkTest extends AbstractTimeTreeTest {
     public void nextTest() {
         ChunkSpace space = factory.newSpace(100, null, false);
         TimeTreeChunk tree = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
-
         Buffer buffer = factory.newBuffer();
-        buffer.writeAll("".getBytes());
+        buffer.writeAll("W:////////9:q76Juyg:q7/CVoA:q7/dx+Q:q8APAXQ:q8BNF/w:q8BNdbw:q8BSEWw:q8CrNbw:q8DTxIw:q8D3lng".getBytes());
         tree.load(buffer);
-
         buffer.free();
         space.free(tree);
         space.freeAll();
