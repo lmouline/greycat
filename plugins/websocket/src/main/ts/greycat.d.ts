@@ -1700,6 +1700,17 @@ declare module greycat {
                 serialize(builder: java.lang.StringBuilder): void;
                 toString(): string;
             }
+            class ActionQueryBoundedRadius implements greycat.Action {
+                static NAME: string;
+                private _key;
+                private _n;
+                private _radius;
+                private _fetchNodes;
+                constructor(n: number, radius: number, fetchNodes: boolean, key: Float64Array);
+                eval(ctx: greycat.TaskContext): void;
+                serialize(builder: java.lang.StringBuilder): void;
+                toString(): string;
+            }
             class ActionReadGlobalIndex implements greycat.Action {
                 private _name;
                 private _params;
@@ -2392,7 +2403,7 @@ declare module greycat {
                 static BOUND_MIN: string;
                 static BOUND_MAX: string;
                 static RESOLUTION: string;
-                private static E_GRAPH;
+                private static E_TREE;
                 private _kdTree;
                 constructor(p_world: number, p_time: number, p_id: number, p_graph: greycat.Graph);
                 private getTree();
@@ -2457,7 +2468,7 @@ declare module greycat {
                 static BOUND_MIN: string;
                 static BOUND_MAX: string;
                 static RESOLUTION: string;
-                private static E_GRAPH;
+                private static E_TREE;
                 private _ndTree;
                 constructor(p_world: number, p_time: number, p_id: number, p_graph: greycat.Graph);
                 private getTree();

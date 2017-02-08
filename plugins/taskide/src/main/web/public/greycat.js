@@ -10997,6 +10997,96 @@ var greycat;
                 return ActionPrint;
             }());
             task_1.ActionPrint = ActionPrint;
+            var ActionQueryBoundedRadius = (function () {
+                function ActionQueryBoundedRadius(n, radius, fetchNodes, key) {
+                    this._key = key;
+                    this._n = n;
+                    this._radius = radius;
+                    this._fetchNodes = fetchNodes;
+                }
+                ActionQueryBoundedRadius.prototype.eval = function (ctx) {
+                    var previousResult = ctx.result();
+                    var nextResult = ctx.newResult();
+                    if (previousResult != null) {
+                        var defer_1 = ctx.graph().newCounter(previousResult.size());
+                        var previousResultIt = previousResult.iterator();
+                        var iter = previousResultIt.next();
+                        var _loop_6 = function () {
+                            if (iter instanceof greycat.internal.tree.NDTree || iter instanceof greycat.internal.tree.KDTree) {
+                                var tr_1 = iter.queryBoundedRadius(this_4._key, this_4._radius, this_4._n);
+                                if (this_4._fetchNodes) {
+                                    var nodeIds = new Float64Array(tr_1.size());
+                                    for (var i = 0; i < tr_1.size(); i++) {
+                                        nodeIds[i] = tr_1.value(i);
+                                    }
+                                    ctx.graph().lookupAll(ctx.world(), ctx.time(), nodeIds, function (result) {
+                                        for (var j = 0; j < result.length; j++) {
+                                            var line = ctx.newResult();
+                                            line.add(tr_1.keys(j));
+                                            line.add(result[j]);
+                                            line.add(tr_1.distance(j));
+                                            nextResult.add(line);
+                                        }
+                                        tr_1.free();
+                                        defer_1.count();
+                                    });
+                                }
+                                else {
+                                    for (var i = 0; i < tr_1.size(); i++) {
+                                        var line = ctx.newResult();
+                                        line.add(tr_1.keys(i));
+                                        line.add(tr_1.value(i));
+                                        line.add(tr_1.distance(i));
+                                        nextResult.add(line);
+                                    }
+                                    tr_1.free();
+                                    defer_1.count();
+                                }
+                            }
+                            else {
+                                defer_1.count();
+                            }
+                            iter = previousResultIt.next();
+                        };
+                        var this_4 = this;
+                        while (iter != null) {
+                            _loop_6();
+                        }
+                        defer_1.then(function () {
+                            {
+                                ctx.continueWith(nextResult);
+                            }
+                        });
+                    }
+                    else {
+                        ctx.continueWith(nextResult);
+                    }
+                };
+                ActionQueryBoundedRadius.prototype.serialize = function (builder) {
+                    builder.append(greycat.internal.task.CoreActionNames.READ_GLOBAL_INDEX);
+                    builder.append(greycat.Constants.TASK_PARAM_OPEN);
+                    builder.append(this._n);
+                    builder.append(greycat.Constants.TASK_PARAM_SEP);
+                    builder.append(this._radius);
+                    builder.append(greycat.Constants.TASK_PARAM_SEP);
+                    builder.append(this._fetchNodes);
+                    if (this._key != null && this._key.length > 0) {
+                        for (var i = 0; i < this._key.length; i++) {
+                            builder.append(greycat.Constants.TASK_PARAM_SEP);
+                            builder.append(this._key[i]);
+                        }
+                    }
+                    builder.append(greycat.Constants.TASK_PARAM_CLOSE);
+                };
+                ActionQueryBoundedRadius.prototype.toString = function () {
+                    var res = new java.lang.StringBuilder();
+                    this.serialize(res);
+                    return res.toString();
+                };
+                return ActionQueryBoundedRadius;
+            }());
+            ActionQueryBoundedRadius.NAME = "QueryBoundedRadius";
+            task_1.ActionQueryBoundedRadius = ActionQueryBoundedRadius;
             var ActionReadGlobalIndex = (function () {
                 function ActionReadGlobalIndex(p_indexName) {
                     var p_query = [];
@@ -11523,8 +11613,8 @@ var greycat;
                     }
                     var next = ctx.newResult();
                     if (previous != null) {
-                        var defer_1 = new greycat.internal.CoreDeferCounter(previous.size());
-                        var _loop_6 = function (i) {
+                        var defer_2 = new greycat.internal.CoreDeferCounter(previous.size());
+                        var _loop_7 = function (i) {
                             if (previous.get(i) instanceof greycat.base.BaseNode) {
                                 var casted_1 = previous.get(i);
                                 casted_1.timepoints(parsedFrom, parsedTo, function (result) {
@@ -11533,15 +11623,15 @@ var greycat;
                                             next.add(result[i_1]);
                                         }
                                         casted_1.free();
-                                        defer_1.count();
+                                        defer_2.count();
                                     }
                                 });
                             }
                         };
                         for (var i = 0; i < previous.size(); i++) {
-                            _loop_6(i);
+                            _loop_7(i);
                         }
-                        defer_1.then(function () {
+                        defer_2.then(function () {
                             {
                                 previous.clear();
                                 ctx.continueWith(next);
@@ -11591,7 +11681,7 @@ var greycat;
                     var previous = ctx.result();
                     var defer = new greycat.internal.CoreDeferCounter(previous.size());
                     var previousSize = previous.size();
-                    var _loop_7 = function (i) {
+                    var _loop_8 = function (i) {
                         var loopObj = previous.get(i);
                         if (loopObj instanceof greycat.base.BaseNode) {
                             var castedPreviousNode_1 = loopObj;
@@ -11609,7 +11699,7 @@ var greycat;
                         }
                     };
                     for (var i = 0; i < previousSize; i++) {
-                        _loop_7(i);
+                        _loop_8(i);
                     }
                     defer.then(function () {
                         {
@@ -11657,7 +11747,7 @@ var greycat;
                     var previous = ctx.result();
                     var defer = new greycat.internal.CoreDeferCounter(previous.size());
                     var previousSize = previous.size();
-                    var _loop_8 = function (i) {
+                    var _loop_9 = function (i) {
                         var loopObj = previous.get(i);
                         if (loopObj instanceof greycat.base.BaseNode) {
                             var castedPreviousNode_2 = loopObj;
@@ -11675,7 +11765,7 @@ var greycat;
                         }
                     };
                     for (var i = 0; i < previousSize; i++) {
-                        _loop_8(i);
+                        _loop_9(i);
                     }
                     defer.then(function () {
                         {
@@ -11714,8 +11804,8 @@ var greycat;
                     var previousResult = ctx.result();
                     if (previousResult != null) {
                         var previousSize = previousResult.size();
-                        var defer_2 = ctx.graph().newCounter(previousSize);
-                        var _loop_9 = function (i) {
+                        var defer_3 = ctx.graph().newCounter(previousSize);
+                        var _loop_10 = function (i) {
                             var loop = previousResult.get(i);
                             if (loop instanceof greycat.base.BaseNode) {
                                 var casted_2 = loop;
@@ -11729,15 +11819,15 @@ var greycat;
                                                     }
                                                 }
                                                 casted_2.free();
-                                                defer_2.count();
+                                                defer_3.count();
                                             }
                                         });
                                         break;
                                     case greycat.Type.RELATION_INDEXED:
                                         var relationIndexed = casted_2.get(flatName);
                                         if (relationIndexed != null) {
-                                            if (this_4._params != null && this_4._params.length > 0) {
-                                                var templatedParams = ctx.templates(this_4._params);
+                                            if (this_5._params != null && this_5._params.length > 0) {
+                                                var templatedParams = ctx.templates(this_5._params);
                                                 var query = ctx.graph().newQuery();
                                                 query.setWorld(casted_2.world());
                                                 query.setTime(casted_2.time());
@@ -11761,7 +11851,7 @@ var greycat;
                                                             }
                                                         }
                                                         casted_2.free();
-                                                        defer_2.count();
+                                                        defer_3.count();
                                                     }
                                                 });
                                             }
@@ -11776,13 +11866,13 @@ var greycat;
                                                             }
                                                         }
                                                         casted_2.free();
-                                                        defer_2.count();
+                                                        defer_3.count();
                                                     }
                                                 });
                                             }
                                         }
                                         else {
-                                            defer_2.count();
+                                            defer_3.count();
                                         }
                                         break;
                                     default:
@@ -11791,20 +11881,20 @@ var greycat;
                                             finalResult.add(resolved);
                                         }
                                         casted_2.free();
-                                        defer_2.count();
+                                        defer_3.count();
                                         break;
                                 }
                             }
                             else {
                                 finalResult.add(loop);
-                                defer_2.count();
+                                defer_3.count();
                             }
                         };
-                        var this_4 = this;
+                        var this_5 = this;
                         for (var i = 0; i < previousSize; i++) {
-                            _loop_9(i);
+                            _loop_10(i);
                         }
-                        defer_2.then(function () {
+                        defer_3.then(function () {
                             {
                                 previousResult.clear();
                                 ctx.continueWith(finalResult);
@@ -12549,9 +12639,9 @@ var greycat;
                     exceptionDuringTask[0] = null;
                     if ((upper - lower) > 0) {
                         var waiter_1 = ctx.graph().newCounter((upper - lower) + 1);
-                        var _loop_10 = function (i) {
+                        var _loop_11 = function (i) {
                             var finalI = i;
-                            this_5._subTask.executeFromUsing(ctx, previous, greycat.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (result) {
+                            this_6._subTask.executeFromUsing(ctx, previous, greycat.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (result) {
                                 {
                                     result.defineVariable("i", finalI);
                                 }
@@ -12570,9 +12660,9 @@ var greycat;
                                 }
                             });
                         };
-                        var this_5 = this;
+                        var this_6 = this;
                         for (var i = lower; i <= upper; i++) {
-                            _loop_10(i);
+                            _loop_11(i);
                         }
                         waiter_1.then(function () {
                             {
@@ -12912,9 +13002,9 @@ var greycat;
                     var waiter = ctx.graph().newCounter(subTasksSize);
                     var exceptionDuringTask = new Array(1);
                     exceptionDuringTask[0] = null;
-                    var _loop_11 = function (i) {
+                    var _loop_12 = function (i) {
                         var finalI = i;
-                        this_6._subTasks[i].executeFrom(ctx, previous, greycat.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (subTaskResult) {
+                        this_7._subTasks[i].executeFrom(ctx, previous, greycat.plugin.SchedulerAffinity.ANY_LOCAL_THREAD, function (subTaskResult) {
                             {
                                 if (subTaskResult != null) {
                                     if (subTaskResult.output() != null) {
@@ -12929,9 +13019,9 @@ var greycat;
                             }
                         });
                     };
-                    var this_6 = this;
+                    var this_7 = this;
                     for (var i = 0; i < subTasksSize; i++) {
-                        _loop_11(i);
+                        _loop_12(i);
                     }
                     waiter.then(function () {
                         {
@@ -14125,6 +14215,11 @@ var greycat;
                             return new greycat.internal.task.ActionFlat();
                         }
                     });
+                    registry.declaration(greycat.internal.task.CoreActionNames.SAVE).setParams().setDescription("Save current cache into persistence storage").setFactory(function (params) {
+                        {
+                            return new greycat.internal.task.ActionSave();
+                        }
+                    });
                     registry.declaration(greycat.internal.task.CoreActionNames.EXECUTE_EXPRESSION).setParams(greycat.Type.STRING).setDescription("Executes an expression on all nodes given from the previous step.").setFactory(function (params) {
                         {
                             return new greycat.internal.task.ActionExecuteExpression(params[0]);
@@ -14253,6 +14348,11 @@ var greycat;
                     registry.declaration(greycat.internal.task.CoreActionNames.IF_THEN_ELSE).setParams(greycat.Type.STRING, greycat.Type.TASK, greycat.Type.TASK).setDescription("Executes a sub task if a given condition is evaluated to true, another one otherwise.").setFactory(function (params) {
                         {
                             return new greycat.internal.task.CF_IfThenElse(greycat.internal.task.CoreTask.condFromScript(params[0]), params[1], params[2], params[0]);
+                        }
+                    });
+                    registry.declaration(greycat.internal.task.ActionQueryBoundedRadius.NAME).setParams(greycat.Type.INT, greycat.Type.DOUBLE, greycat.Type.BOOL, greycat.Type.DOUBLE_ARRAY).setFactory(function (params) {
+                        {
+                            return new greycat.internal.task.ActionQueryBoundedRadius(params[0], params[1], params[2], params[3]);
                         }
                     });
                 };
@@ -16265,8 +16365,7 @@ var greycat;
                 }
                 KDTreeNode.prototype.getTree = function () {
                     if (this._kdTree == null) {
-                        var egraph = this.getOrCreate(KDTreeNode.E_GRAPH, greycat.Type.EGRAPH);
-                        this._kdTree = new greycat.internal.tree.KDTree(egraph);
+                        this._kdTree = this.getOrCreate(KDTreeNode.E_TREE, greycat.Type.KDTREE);
                     }
                     return this._kdTree;
                 };
@@ -16324,7 +16423,7 @@ var greycat;
             KDTreeNode.BOUND_MIN = "bound_min";
             KDTreeNode.BOUND_MAX = "bound_max";
             KDTreeNode.RESOLUTION = "resolution";
-            KDTreeNode.E_GRAPH = "kdtree";
+            KDTreeNode.E_TREE = "etree";
             tree.KDTreeNode = KDTreeNode;
             var NDTree = (function () {
                 function NDTree(eGraph) {
@@ -16817,8 +16916,7 @@ var greycat;
                 }
                 NDTreeNode.prototype.getTree = function () {
                     if (this._ndTree == null) {
-                        var egraph = this.getOrCreate(NDTreeNode.E_GRAPH, greycat.Type.EGRAPH);
-                        this._ndTree = new greycat.internal.tree.NDTree(egraph);
+                        this._ndTree = this.getOrCreate(NDTreeNode.E_TREE, greycat.Type.NDTREE);
                     }
                     return this._ndTree;
                 };
@@ -16882,7 +16980,7 @@ var greycat;
             NDTreeNode.BOUND_MIN = "bound_min";
             NDTreeNode.BOUND_MAX = "bound_max";
             NDTreeNode.RESOLUTION = "resolution";
-            NDTreeNode.E_GRAPH = "ndtree";
+            NDTreeNode.E_TREE = "etree";
             tree.NDTreeNode = NDTreeNode;
             var TreeHelper = (function () {
                 function TreeHelper() {
