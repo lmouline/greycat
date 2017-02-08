@@ -106,9 +106,7 @@
 
         <module>plugins/structure</module>
         <module>plugins/ml</module>
-        <!--
         <module>plugins/memory</module>
-        -->
 
         <!--
         <module>plugins/model</module>
