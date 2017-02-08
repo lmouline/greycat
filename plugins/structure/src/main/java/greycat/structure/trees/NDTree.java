@@ -355,7 +355,7 @@ public class NDTree implements Tree {
         double[] resolution = (double[]) root.getAt(RESOLUTION);
         int buffersize = root.getAtWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
         //Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
-        if (root.getAtWithDefault(E_TOTAL, 0l) == 0) {
+        if (root.getAtWithDefault(E_TOTAL, 0L) == 0) {
             root.setAt(STRATEGY, Type.INT, IndexStrategy.INDEX);
             root.setAt(E_TOTAL, Type.LONG, 0);
             root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
@@ -378,7 +378,7 @@ public class NDTree implements Tree {
         int buffersize = root.getAtWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
         //Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
 
-        if (root.getAtWithDefault(E_TOTAL, 0l) == 0) {
+        if (root.getAtWithDefault(E_TOTAL, 0L) == 0) {
             root.setAt(STRATEGY, Type.INT, IndexStrategy.PROFILE);
             root.setAt(E_TOTAL, Type.LONG, 0);
             root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
@@ -421,7 +421,7 @@ public class NDTree implements Tree {
     @Override
     public final TreeResult queryArea(final double[] min, final double[] max) {
         ENode root = eGraph.root();
-        if (root.getAtWithDefault(E_TOTAL, 0l) == 0) {
+        if (root.getAtWithDefault(E_TOTAL, 0L) == 0) {
             return null;
         }
         Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, DISTANCE_DEF));
@@ -440,13 +440,13 @@ public class NDTree implements Tree {
     @Override
     public long size() {
         ENode root = eGraph.root();
-        return root.getAtWithDefault(E_TOTAL, 0l);
+        return root.getAtWithDefault(E_TOTAL, 0L);
     }
 
     @Override
     public long treeSize() {
         ENode root = eGraph.root();
-        return root.getAtWithDefault(E_TOTAL_SUBNODES, 0l);
+        return root.getAtWithDefault(E_TOTAL_SUBNODES, 0L);
     }
 
 
@@ -465,7 +465,7 @@ public class NDTree implements Tree {
 
     private static void reccursiveTraverse(final ENode node, final EGraph calcZone, final VolatileResult nnl, final int strategyType, final Distance distance, final double[] target, final double[] targetmin, final double[] targetmax, final double[] targetcenter, final double radius) {
 
-        if (node.getAtWithDefault(E_SUBNODES, 0l) == 0) {
+        if (node.getAtWithDefault(E_SUBNODES, 0L) == 0) {
             //Leave node
             DMatrix buffer = (DMatrix) node.getAt(E_BUFFER_KEYS);
             LMatrix bufferValue = (LMatrix) node.getAt(E_BUFFER_VALUES);
