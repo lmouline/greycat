@@ -110,12 +110,17 @@ public class OffHeapERelation implements ERelation {
     @Override
     public ERelation addAll(ENode[] eNodes) {
         long addr = container.addrByIndex(index);
-        long size = OffHeapLongArray.get(addr, SIZE);
-        long capacity = OffHeapLongArray.get(addr, CAPACITY);
-        long neededCapacity = eNodes.length + size;
-        if (neededCapacity > capacity) {
-            final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(neededCapacity) / Math.log(2)));
-            addr = allocate(OFFSET + closePowerOfTwo);
+        long size = 0;
+        if (addr == OffHeapConstants.NULL_PTR) {
+            addr = allocate(Constants.MAP_INITIAL_CAPACITY);
+        } else {
+            size = OffHeapLongArray.get(addr, SIZE);
+            long capacity = OffHeapLongArray.get(addr, CAPACITY);
+            long neededCapacity = eNodes.length + size;
+            if (neededCapacity > capacity) {
+                final long closePowerOfTwo = (long) Math.pow(2, Math.ceil(Math.log(neededCapacity) / Math.log(2)));
+                addr = allocate(OFFSET + closePowerOfTwo);
+            }
         }
         for (int i = 0; i < eNodes.length; i++) {
             setNodeIndexAt(addr, size + i, ((OffHeapENode) eNodes[i]).index);
