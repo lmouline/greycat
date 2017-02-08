@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.structure.util;
+package greycat.internal.tree;
 
+import greycat.utility.distance.Distance;
 
-import greycat.ml.common.distance.Distance;
+class TreeHelper {
 
-public class TreeHelper {
-    public static boolean checkBoundsIntersection(final double[] targetmin, final double[] targetmax, final double[] boundMin, final double[] boundMax) {
+    static boolean checkBoundsIntersection(final double[] targetmin, final double[] targetmax, final double[] boundMin, final double[] boundMax) {
         for (int i = 0; i < boundMax.length; i++) {
             if (targetmin[i] > boundMax[i] || targetmax[i] < boundMin[i]) {
                 return false;
@@ -29,7 +29,7 @@ public class TreeHelper {
     }
 
 
-    public static boolean checkKeyInsideBounds(final double[] key, final double[] boundMin, final double[] boundMax) {
+    static boolean checkKeyInsideBounds(final double[] key, final double[] boundMin, final double[] boundMax) {
         for (int i = 0; i < boundMax.length; i++) {
             if (key[i] > boundMax[i] || key[i] < boundMin[i]) {
                 return false;
@@ -38,7 +38,7 @@ public class TreeHelper {
         return true;
     }
 
-    public static double getclosestDistance(double[] target, double[] boundMin, double[] boundMax, Distance distance) {
+    static double getclosestDistance(double[] target, double[] boundMin, double[] boundMax, Distance distance) {
         double[] closest = new double[target.length];
 
         for (int i = 0; i < target.length; i++) {
@@ -53,8 +53,7 @@ public class TreeHelper {
         return distance.measure(closest, target);
     }
 
-
-    public static void filterAndInsert(double[] key, long value, double[] target, double[] targetmin, double[] targetmax, double[] targetcenter, Distance distance, double radius, VolatileTreeResult nnl) {
+    static void filterAndInsert(double[] key, long value, double[] target, double[] targetmin, double[] targetmax, double[] targetcenter, Distance distance, double radius, VolatileTreeResult nnl) {
         if (targetmin != null) {
             if (checkKeyInsideBounds(key, targetmin, targetmax)) {
                 nnl.insert(key, value, distance.measure(key, targetcenter));
@@ -70,4 +69,5 @@ public class TreeHelper {
             }
         }
     }
+
 }

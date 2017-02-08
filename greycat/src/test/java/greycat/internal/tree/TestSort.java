@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.structure.trees;
+package greycat.internal.tree;
 
 import greycat.*;
-import org.junit.Test;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
-import greycat.structure.StructurePlugin;
-import greycat.structure.util.VolatileTreeResult;
+import org.junit.Test;
 
 import java.util.Random;
 
@@ -30,7 +28,6 @@ public class TestSort {
     @Test
     public void testsort() {
         final Graph graph = new GraphBuilder()
-                .withPlugin(new StructurePlugin())
                 .withMemorySize(10000)
                 .build();
         graph.connect(new Callback<Boolean>() {
@@ -40,7 +37,6 @@ public class TestSort {
                 int maxinsert = 200;
                 Random random = new Random();
                 random.setSeed(1234);
-
 
                 for (int i = 0; i < max; i++) {
                     int capacity = i + 50;

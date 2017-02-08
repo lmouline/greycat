@@ -51,6 +51,9 @@ public class Type {
     public static final byte TASK = 20;
     public static final byte TASK_ARRAY = 21;
 
+    public static final byte KDTREE = 22;
+    public static final byte NDTREE = 23;
+
     /**
      * Convert a type that represent a byte to a readable String representation
      *
@@ -104,6 +107,10 @@ public class Type {
                 return "TASK";
             case Type.TASK_ARRAY:
                 return "TASK_ARRAY";
+            case Type.KDTREE:
+                return "KDTREE";
+            case Type.NDTREE:
+                return "NDTREE";
             default:
                 return "unknown";
         }
@@ -153,6 +160,10 @@ public class Type {
                 return Type.TASK;
             case "TASK_ARRAY":
                 return Type.TASK_ARRAY;
+            case "KDTREE":
+                return Type.KDTREE;
+            case "NDTREE":
+                return Type.NDTREE;
             default:
                 return -1;
         }

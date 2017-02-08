@@ -13,22 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.structure.trees;
+package greycat.internal.tree;
 
 import greycat.Type;
-import greycat.ml.common.distance.Distance;
-import greycat.ml.common.distance.Distances;
 import greycat.plugin.NodeStateCallback;
-import greycat.struct.DMatrix;
-import greycat.struct.EGraph;
-import greycat.struct.ENode;
-import greycat.struct.LMatrix;
-import greycat.structure.Tree;
-import greycat.structure.TreeResult;
-import greycat.structure.util.TreeHelper;
-import greycat.structure.util.VolatileTreeResult;
+import greycat.struct.*;
+import greycat.utility.distance.Distance;
+import greycat.utility.distance.Distances;
 
-public class NDTree implements Tree {
+public class NDTree implements Profile {
 
     public static int BUFFER_SIZE_DEF = 20;
     public static int RESOLUTION = 10;
@@ -36,7 +29,6 @@ public class NDTree implements Tree {
     public static int DISTANCE = 12;
     private static int STRATEGY = 13;
 
-    private static int DISTANCE_DEF = Distances.DEFAULT;
     private static int E_TOTAL = 0;
     private static int E_SUBNODES = 1;
     private static int E_TOTAL_SUBNODES = 2;
@@ -158,11 +150,11 @@ public class NDTree implements Tree {
 
         if (res) {
             switch (strategyType) {
-                case IndexStrategy.PROFILE: {
+                case TreeStrategy.PROFILE: {
                     parent.setAt(E_TOTAL, Type.LONG, (long) parent.getAt(E_TOTAL) + (long) value);
                     break;
                 }
-                case IndexStrategy.INDEX: {
+                case TreeStrategy.INDEX: {
                     parent.setAt(E_TOTAL, Type.LONG, (long) parent.getAt(E_TOTAL) + 1);
                     break;
                 }
@@ -187,7 +179,7 @@ public class NDTree implements Tree {
                 for (int i = 0; i < buffer.columns(); i++) {
                     if (compare(key, buffer.column(i), resolution)) {
                         switch (strategyType) {
-                            case IndexStrategy.PROFILE: {
+                            case TreeStrategy.PROFILE: {
                                 DMatrix bufferkeys = (DMatrix) node.getAt(E_PROFILE);
                                 for (int j = 0; j < key.length; j++) {
                                     bufferkeys.set(j, i, bufferkeys.get(j, i) + key[j] * value);
@@ -197,7 +189,7 @@ public class NDTree implements Tree {
                                 node.setAt(E_TOTAL, Type.LONG, (long) node.getAt(E_TOTAL) + value);
                                 return true; //to update parent total
                             }
-                            case IndexStrategy.INDEX: {
+                            case TreeStrategy.INDEX: {
                                 LMatrix bufferValue = (LMatrix) node.getAt(E_BUFFER_VALUES);
                                 bufferValue.set(0, i, value);
                                 return false; //Should not update parent total
@@ -212,7 +204,7 @@ public class NDTree implements Tree {
                 if (buffer.columns() < buffersize) {
                     buffer.appendColumn(key);
                     switch (strategyType) {
-                        case IndexStrategy.PROFILE: {
+                        case TreeStrategy.PROFILE: {
                             DMatrix bufferkeys = (DMatrix) node.getOrCreateAt(E_PROFILE, Type.DMATRIX);
                             bufferkeys.appendColumn(key);
                             LMatrix bufferValue = (LMatrix) node.getOrCreateAt(E_BUFFER_VALUES, Type.LMATRIX);
@@ -221,7 +213,7 @@ public class NDTree implements Tree {
                             return true; //to update parent total
                         }
 
-                        case IndexStrategy.INDEX: {
+                        case TreeStrategy.INDEX: {
                             LMatrix bufferValue = (LMatrix) node.getOrCreateAt(E_BUFFER_VALUES, Type.LMATRIX);
                             bufferValue.appendColumn(new long[]{(long) value});
                             node.setAt(E_TOTAL, Type.LONG, (long) node.getAt(E_TOTAL) + 1);
@@ -235,7 +227,7 @@ public class NDTree implements Tree {
                 //here buffer is full we need to reinsert
                 else {
                     //if it is a profile, get the average of all the keys and update the buffer before reinserting
-                    if (strategyType == IndexStrategy.PROFILE) {
+                    if (strategyType == TreeStrategy.PROFILE) {
                         DMatrix bufferkeys = (DMatrix) node.getAt(E_PROFILE);
                         LMatrix bufferValue = (LMatrix) node.getAt(E_BUFFER_VALUES);
                         for (int i = 0; i < buffer.columns(); i++) {
@@ -271,7 +263,7 @@ public class NDTree implements Tree {
         //Else we reached here last level of the trees, and the array is full, we need to start a profiler
         else {
             switch (strategyType) {
-                case IndexStrategy.PROFILE: {
+                case TreeStrategy.PROFILE: {
                     //todo add the value later
                     double[] profile = (double[]) node.getAt(E_PROFILE);
                     if (profile == null) {
@@ -286,7 +278,7 @@ public class NDTree implements Tree {
                     node.setAt(E_TOTAL, Type.LONG, (long) node.getAt(E_TOTAL) + value);
                     return true; //to update parent total
                 }
-                case IndexStrategy.INDEX: {
+                case TreeStrategy.INDEX: {
                     if ((long) node.getAt(E_TOTAL) == 0) {
                         node.setAt(E_PROFILE, Type.DOUBLE_ARRAY, key);
                         node.setAt(E_VALUE, Type.LONG, value);
@@ -356,37 +348,39 @@ public class NDTree implements Tree {
         int buffersize = root.getAtWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
         //Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
         if (root.getAtWithDefault(E_TOTAL, 0L) == 0) {
-            root.setAt(STRATEGY, Type.INT, IndexStrategy.INDEX);
+            root.setAt(STRATEGY, Type.INT, TreeStrategy.INDEX);
             root.setAt(E_TOTAL, Type.LONG, 0);
             root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
             root.setAt(E_SUBNODES, Type.LONG, 0);
             root.setAt(E_MIN, Type.DOUBLE_ARRAY, min);
             root.setAt(E_MAX, Type.DOUBLE_ARRAY, max);
         }
-        internalInsert(root, keys, value, IndexStrategy.INDEX, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
+        internalInsert(root, keys, value, TreeStrategy.INDEX, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
     }
 
     @Override
-    public void profile(final double[] keys, final long occurrence) {
-        ENode root = eGraph.root();
+    public void profile(final double[] keys) {
+        profileWith(keys, 1);
+    }
 
+    @Override
+    public void profileWith(final double[] keys, final long occurrence) {
+        ENode root = eGraph.root();
         double[] min = (double[]) root.getAt(E_MIN);
         double[] max = (double[]) root.getAt(E_MAX);
         check(keys, min, max);
         double[] resolution = (double[]) root.getAt(RESOLUTION);
-
         int buffersize = root.getAtWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
         //Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
-
         if (root.getAtWithDefault(E_TOTAL, 0L) == 0) {
-            root.setAt(STRATEGY, Type.INT, IndexStrategy.PROFILE);
+            root.setAt(STRATEGY, Type.INT, TreeStrategy.PROFILE);
             root.setAt(E_TOTAL, Type.LONG, 0);
             root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
             root.setAt(E_SUBNODES, Type.LONG, 0);
             root.setAt(E_MIN, Type.DOUBLE_ARRAY, min);
             root.setAt(E_MAX, Type.DOUBLE_ARRAY, max);
         }
-        internalInsert(root, keys, occurrence, IndexStrategy.PROFILE, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
+        internalInsert(root, keys, occurrence, TreeStrategy.PROFILE, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
 
     }
 
@@ -409,7 +403,7 @@ public class NDTree implements Tree {
         double[] emin = (double[]) root.getAt(E_MIN);
         double[] emax = (double[]) root.getAt(E_MAX);
         check(keys, emin, emax);
-        Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, DISTANCE_DEF));
+        Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT));
         int strategyType = (int) root.getAt(STRATEGY);
         EGraph calcZone = eGraph.graph().space().newVolatileGraph();
         VolatileTreeResult nnl = new VolatileTreeResult(calcZone.newNode(), max);
@@ -424,7 +418,7 @@ public class NDTree implements Tree {
         if (root.getAtWithDefault(E_TOTAL, 0L) == 0) {
             return null;
         }
-        Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, DISTANCE_DEF));
+        Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT));
         int strategyType = (int) root.getAt(STRATEGY);
         final double[] center = new double[max.length];
         for (int i = 0; i < center.length; i++) {
@@ -473,7 +467,7 @@ public class NDTree implements Tree {
             if (buffer != null) {
                 //Bufferizing node
                 switch (strategyType) {
-                    case IndexStrategy.PROFILE: {
+                    case TreeStrategy.PROFILE: {
                         double[] tempK = new double[target.length];
 
                         DMatrix bufferkeys = (DMatrix) node.getAt(E_PROFILE);
@@ -486,7 +480,7 @@ public class NDTree implements Tree {
                         }
                         return;
                     }
-                    case IndexStrategy.INDEX: {
+                    case TreeStrategy.INDEX: {
                         for (int i = 0; i < buffer.columns(); i++) {
                             TreeHelper.filterAndInsert(buffer.column(i), bufferValue.get(0, i), target, targetmin, targetmax, targetcenter, distance, radius, nnl);
                         }
@@ -501,7 +495,7 @@ public class NDTree implements Tree {
             } else {
                 //Very End node
                 switch (strategyType) {
-                    case IndexStrategy.PROFILE: {
+                    case TreeStrategy.PROFILE: {
                         double[] keyo = (double[]) node.getAt(E_PROFILE);
                         double[] key = new double[keyo.length];
                         long value = (long) node.getAt(E_TOTAL);
@@ -511,7 +505,7 @@ public class NDTree implements Tree {
                         TreeHelper.filterAndInsert(key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
                         return;
                     }
-                    case IndexStrategy.INDEX: {
+                    case TreeStrategy.INDEX: {
                         double[] key = (double[]) node.getAt(E_PROFILE);
                         long value = (long) node.getAt(E_VALUE);
                         TreeHelper.filterAndInsert(key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl);

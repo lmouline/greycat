@@ -22,7 +22,7 @@ import greycat.struct.LMatrix;
 import greycat.struct.DMatrix;
 import greycat.structure.TreeResult;
 
-public class VolatileResult implements TreeResult {
+public class VolatileTreeResult implements TreeResult {
 
     private static double maxPriority = Double.MAX_VALUE;
     private static int _KEYS = 1;
@@ -38,8 +38,7 @@ public class VolatileResult implements TreeResult {
     private LMatrix _values;
     private DMatrix _distances;
 
-
-    public VolatileResult(ENode node, int capacity) {
+    public VolatileTreeResult(ENode node, int capacity) {
         this.node = node;
         this.count = 0;
         _keys = (DMatrix) node.getOrCreateAt(_KEYS, Type.DMATRIX);

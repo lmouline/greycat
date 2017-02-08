@@ -18,6 +18,9 @@ package greycat.internal;
 import greycat.*;
 import greycat.chunk.*;
 import greycat.internal.heap.HeapMemoryFactory;
+import greycat.internal.tree.KDTree;
+import greycat.internal.tree.KDTreeNode;
+import greycat.internal.tree.NDTreeNode;
 import greycat.plugin.*;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
@@ -82,6 +85,18 @@ public class CoreGraph implements Graph {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
                 return new CoreNodeIndex(world, time, id, graph);
+            }
+        });
+        this._nodeRegistry.declaration(KDTreeNode.NAME).setFactory(new NodeFactory() {
+            @Override
+            public Node create(long world, long time, long id, Graph graph) {
+                return new KDTreeNode(world, time, id, graph);
+            }
+        });
+        this._nodeRegistry.declaration(NDTreeNode.NAME).setFactory(new NodeFactory() {
+            @Override
+            public Node create(long world, long time, long id, Graph graph) {
+                return new NDTreeNode(world, time, id, graph);
             }
         });
         //variables init

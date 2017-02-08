@@ -21,6 +21,8 @@ import greycat.Type;
 import greycat.chunk.ChunkType;
 import greycat.chunk.StateChunk;
 import greycat.internal.CoreConstants;
+import greycat.internal.tree.KDTree;
+import greycat.internal.tree.NDTree;
 import greycat.plugin.NodeStateCallback;
 import greycat.struct.*;
 import greycat.utility.Base64;
@@ -125,6 +127,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             result = _v[found];
             if (result != null) {
                 switch (_type[found]) {
+                    /*
                     case Type.DOUBLE_ARRAY:
                         double[] castedResultD = (double[]) result;
                         double[] copyD = new double[castedResultD.length];
@@ -140,6 +143,11 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         int[] copyI = new int[castedResultI.length];
                         System.arraycopy(castedResultI, 0, copyI, 0, castedResultI.length);
                         return copyI;
+                        */
+                    case Type.NDTREE:
+                        return new NDTree((EGraph) result);
+                    case Type.KDTREE:
+                        return new KDTree((EGraph) result);
                     default:
                         return result;
                 }
@@ -224,34 +232,53 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             }
         }
         Object toSet = null;
+        Object toGet = null;
         switch (p_type) {
             case Type.RELATION:
                 toSet = new HeapRelation(this, null);
+                toGet = toSet;
                 break;
             case Type.RELATION_INDEXED:
                 toSet = new HeapRelationIndexed(this, _space.graph());
+                toGet = toSet;
                 break;
             case Type.DMATRIX:
                 toSet = new HeapDMatrix(this, null);
+                toGet = toSet;
                 break;
             case Type.LMATRIX:
                 toSet = new HeapLMatrix(this, null);
-                break;
-            case Type.EGRAPH:
-                toSet = new HeapEGraph(this, null, _space.graph());
+                toGet = toSet;
                 break;
             case Type.STRING_TO_INT_MAP:
                 toSet = new HeapStringIntMap(this);
+                toGet = toSet;
                 break;
             case Type.LONG_TO_LONG_MAP:
                 toSet = new HeapLongLongMap(this);
+                toGet = toSet;
                 break;
             case Type.LONG_TO_LONG_ARRAY_MAP:
                 toSet = new HeapLongLongArrayMap(this);
+                toGet = toSet;
+                break;
+            case Type.EGRAPH:
+                toSet = new HeapEGraph(this, null, _space.graph());
+                toGet = toSet;
+                break;
+            case Type.KDTREE:
+                EGraph tempKD = new HeapEGraph(this, null, _space.graph());
+                toSet = tempKD;
+                toGet = new KDTree(tempKD);
+                break;
+            case Type.NDTREE:
+                EGraph tempND = new HeapEGraph(this, null, _space.graph());
+                toSet = tempND;
+                toGet = new NDTree(tempND);
                 break;
         }
         internal_set(p_key, p_type, toSet, true, false);
-        return toSet;
+        return toGet;
     }
 
     @Override
@@ -393,6 +420,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             }
                         });
                         break;
+                    case Type.NDTREE:
+                    case Type.KDTREE:
                     case Type.EGRAPH:
                         HeapEGraph castedEGraph = (HeapEGraph) loopValue;
                         HeapENode[] eNodes = castedEGraph._nodes;
@@ -618,6 +647,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                     case Type.RELATION_INDEXED:
                         param_elem = (RelationIndexed) p_unsafe_elem;
                         break;
+                    case Type.NDTREE:
+                    case Type.KDTREE:
                     case Type.EGRAPH:
                         param_elem = (EGraph) p_unsafe_elem;
                         break;
@@ -1048,6 +1079,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                         }
                                     }
                                     break;
+                                case Type.NDTREE:
+                                case Type.KDTREE:
                                 case Type.EGRAPH:
                                     HeapEGraph eGraph = new HeapEGraph(this, null, this.graph());
                                     cursor++;

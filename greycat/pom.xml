@@ -55,8 +55,8 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.kevoree.modeling.j2ts</groupId>
-                <artifactId>mavenplugin</artifactId>
+                <groupId>com.datathings</groupId>
+                <artifactId>j2ts-mavenplugin</artifactId>
                 <version>${java2typescript.plugin.version}</version>
                 <executions>
                     <execution>
