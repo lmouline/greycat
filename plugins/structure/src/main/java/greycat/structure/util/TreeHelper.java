@@ -15,7 +15,8 @@
  */
 package greycat.structure.util;
 
-import greycat.structure.distance.Distance;
+
+import greycat.ml.common.distance.Distance;
 
 public class TreeHelper {
     public static boolean checkBoundsIntersection(final double[] targetmin, final double[] targetmax, final double[] boundMin, final double[] boundMax) {

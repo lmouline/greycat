@@ -16,6 +16,8 @@
 package greycat.structure.trees;
 
 import greycat.Type;
+import greycat.ml.common.distance.Distance;
+import greycat.ml.common.distance.Distances;
 import greycat.plugin.NodeStateCallback;
 import greycat.struct.DMatrix;
 import greycat.struct.EGraph;
@@ -23,8 +25,6 @@ import greycat.struct.ENode;
 import greycat.struct.LMatrix;
 import greycat.structure.Tree;
 import greycat.structure.TreeResult;
-import greycat.structure.distance.Distance;
-import greycat.structure.distance.Distances;
 import greycat.structure.util.TreeHelper;
 import greycat.structure.util.VolatileResult;
 

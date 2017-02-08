@@ -25,13 +25,12 @@ import greycat.ml.regression.actions.ReadContinuous;
 import greycat.ml.regression.actions.SetContinuous;
 import greycat.plugin.ActionFactory;
 import greycat.plugin.NodeFactory;
-import greycat.structure.StructurePlugin;
+import greycat.plugin.Plugin;
 
-public class MLPlugin extends StructurePlugin {
+public class MLPlugin  implements Plugin  {
 
     @Override
     public void start(Graph graph) {
-        super.start(graph);
         graph.actionRegistry()
                 .declaration(greycat.ml.regression.actions.ReadContinuous.NAME)
                 .setParams(Type.STRING)
@@ -67,5 +66,10 @@ public class MLPlugin extends StructurePlugin {
                         return new LiveLinearRegressionNode(world, time, id, graph);
                     }
                 });
+    }
+
+    @Override
+    public void stop() {
+
     }
 }
