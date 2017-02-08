@@ -20,7 +20,6 @@ import greycat.ml.MLPlugin;
 import org.junit.Assert;
 import org.junit.Test;
 import greycat.scheduler.NoopScheduler;
-import greycat.ml.algorithm.regression.PolynomialNode;
 
 public class PolynomialNodeTest {
     private static final int size = 100;

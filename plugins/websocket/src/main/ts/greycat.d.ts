@@ -999,6 +999,7 @@ declare module greycat {
             private static KEY_SIZE;
             constructor(p_storage: greycat.plugin.Storage, p_space: greycat.chunk.ChunkSpace, p_graph: greycat.Graph);
             init(): void;
+            free(): void;
             typeCode(node: greycat.Node): number;
             initNode(node: greycat.Node, codeType: number): void;
             initWorld(parentWorld: number, childWorld: number): void;
@@ -1182,6 +1183,8 @@ declare module greycat {
                 setAt(key: number, type: number, value: any): greycat.struct.ENode;
                 get(name: string): any;
                 getAt(key: number): any;
+                getWithDefault<A>(key: string, defaultValue: A): A;
+                getAtWithDefault<A>(key: number, defaultValue: A): A;
                 drop(): void;
                 graph(): greycat.struct.EGraph;
                 getOrCreate(key: string, type: number): any;
@@ -2402,6 +2405,7 @@ declare module greycat {
         }
         interface Resolver {
             init(): void;
+            free(): void;
             initNode(node: greycat.Node, typeCode: number): void;
             initWorld(parentWorld: number, childWorld: number): void;
             freeNode(node: greycat.Node): void;
@@ -2527,6 +2531,8 @@ declare module greycat {
             setAt(key: number, type: number, value: any): greycat.struct.ENode;
             get(name: string): any;
             getAt(key: number): any;
+            getWithDefault<A>(key: string, defaultValue: A): A;
+            getAtWithDefault<A>(key: number, defaultValue: A): A;
             getOrCreate(key: string, type: number): any;
             getOrCreateAt(key: number, type: number): any;
             drop(): void;

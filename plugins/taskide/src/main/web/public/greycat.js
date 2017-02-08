@@ -2899,6 +2899,7 @@ var greycat;
                     }
             };
             CoreGraph.prototype.disconnect = function (callback) {
+                var _this = this;
                 var _loop_1 = function () {
                     if (this_1._isConnected.compareAndSet(true, false)) {
                         var selfPointer_1 = this_1;
@@ -2910,7 +2911,11 @@ var greycat;
                         }
                         this_1.save(function (result) {
                             {
-                                selfPointer_1._space.freeAll();
+                                var space = selfPointer_1._space;
+                                space.free(_this._nodeKeyCalculator);
+                                space.free(_this._worldKeyCalculator);
+                                selfPointer_1._resolver.free();
+                                space.freeAll();
                                 if (selfPointer_1._storage != null) {
                                     var prefixBuf_1 = selfPointer_1.newBuffer();
                                     greycat.utility.Base64.encodeIntToBuffer(selfPointer_1._prefix, prefixBuf_1);
@@ -3244,6 +3249,14 @@ var greycat;
             MWGResolver.prototype.init = function () {
                 this.dictionary = this._space.getAndMark(greycat.chunk.ChunkType.STATE_CHUNK, greycat.internal.CoreConstants.GLOBAL_DICTIONARY_KEY[0], greycat.internal.CoreConstants.GLOBAL_DICTIONARY_KEY[1], greycat.internal.CoreConstants.GLOBAL_DICTIONARY_KEY[2]);
                 this.globalWorldOrderChunk = this._space.getAndMark(greycat.chunk.ChunkType.WORLD_ORDER_CHUNK, 0, 0, greycat.Constants.NULL_LONG);
+            };
+            MWGResolver.prototype.free = function () {
+                if (this.dictionary != null) {
+                    this._space.free(this.dictionary);
+                }
+                if (this.globalWorldOrderChunk != null) {
+                    this._space.free(this.globalWorldOrderChunk);
+                }
             };
             MWGResolver.prototype.typeCode = function (node) {
                 var casted = node;
@@ -5613,6 +5626,24 @@ var greycat;
                 };
                 HeapENode.prototype.getAt = function (key) {
                     return this.internal_get(key);
+                };
+                HeapENode.prototype.getWithDefault = function (key, defaultValue) {
+                    var result = this.get(key);
+                    if (result == null) {
+                        return defaultValue;
+                    }
+                    else {
+                        return result;
+                    }
+                };
+                HeapENode.prototype.getAtWithDefault = function (key, defaultValue) {
+                    var result = this.internal_get(key);
+                    if (result == null) {
+                        return defaultValue;
+                    }
+                    else {
+                        return result;
+                    }
                 };
                 HeapENode.prototype.drop = function () {
                     this.egraph.drop(this);

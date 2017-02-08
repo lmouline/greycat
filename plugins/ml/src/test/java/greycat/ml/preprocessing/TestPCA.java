@@ -15,7 +15,6 @@
  */
 package greycat.ml.preprocessing;
 
-import greycat.ml.algorithm.preprocessing.PCA;
 import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.struct.DMatrix;
 

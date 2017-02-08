@@ -20,7 +20,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import greycat.scheduler.NoopScheduler;
 import greycat.ml.MLPlugin;
-import greycat.ml.algorithm.regression.PolynomialNode;
 
 import java.util.Random;
 

@@ -41,11 +41,6 @@
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.datathings</groupId>
-            <artifactId>greycat-structure</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
             <!-- WORKAROUND: https://github.com/sbt/sbt/issues/861 -->
             <groupId>net.sourceforge.f2j</groupId>
             <artifactId>arpack_combined_all</artifactId>
