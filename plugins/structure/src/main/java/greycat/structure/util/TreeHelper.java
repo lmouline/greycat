@@ -15,12 +15,8 @@
  */
 package greycat.structure.util;
 
+import greycat.structure.distance.Distance;
 
-import greycat.ml.common.distance.Distance;
-
-/**
- * Created by assaad on 20/01/2017.
- */
 public class TreeHelper {
     public static boolean checkBoundsIntersection(final double[] targetmin, final double[] targetmax, final double[] boundMin, final double[] boundMax) {
         for (int i = 0; i < boundMax.length; i++) {
@@ -55,7 +51,6 @@ public class TreeHelper {
         }
         return distance.measure(closest, target);
     }
-
 
 
     public static void filterAndInsert(double[] key, long value, double[] target, double[] targetmin, double[] targetmax, double[] targetcenter, Distance distance, double radius, VolatileResult nnl) {
