@@ -29,6 +29,11 @@ public interface EGraph {
 
     int size();
 
+    /**
+     * Tag the object to be freed from the memory.
+     * Warning this method is not a clear EGraph and is not supposed to be called manually in case of EGraph attached to a GreyCat Node.
+     * This method is mainly for volatile EGraph usages.
+     */
     void free();
 
     Graph graph();
