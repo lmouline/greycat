@@ -115,7 +115,7 @@
                                     <arg value="-d"/>
                                     <arg value="--sourceMap"/>
                                     <arg value="--target"/>
-                                    <arg value="es6"/>
+                                    <arg value="es5"/>
                                     <arg value="${basedir}/target/generated-sources/greycat.ts"/>
                                     <arg value="--out"/>
                                     <arg value="greycat.js"/>
