@@ -69,13 +69,14 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             } else {
                 OffHeapLongArray.set(new_addr, SUBHASH, OffHeapConstants.NULL_PTR);
             }
+            eGraph.setAddrByIndex(index, new_addr);
             return new_addr;
 
         } else {
             //reallocation or overallocation
             long previousCapacity = OffHeapLongArray.get(addr, CAPACITY);
             if (previousCapacity < newCapacity) {
-                long graphAddr = eGraph.getAddr();
+//                long graphAddr = eGraph.getAddr();
                 final long new_addr = OffHeapLongArray.reallocate(addr, OFFSET + (newCapacity * ELEM_SIZE));
                 OffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
                 long subHash_ptr = OffHeapLongArray.get(new_addr, SUBHASH);
@@ -404,6 +405,10 @@ public class OffHeapENode implements ENode, OffHeapContainer {
 
     private Object internal_get(long p_key) {
         long addr = eGraph.addrByIndex(index);
+        if (addr == OffHeapConstants.NULL_PTR) {
+            addr = allocate(addr, Constants.MAP_INITIAL_CAPACITY);
+        }
+
         long size = OffHeapLongArray.get(addr, SIZE);
         //empty chunk, we return immediately
         if (size == 0) {

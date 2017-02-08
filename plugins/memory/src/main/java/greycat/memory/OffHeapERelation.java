@@ -91,13 +91,14 @@ public class OffHeapERelation implements ERelation {
     @Override
     public ERelation add(ENode eNode) {
         long addr = container.addrByIndex(index);
-        long capacity = OffHeapLongArray.get(addr, CAPACITY);
-        long size = OffHeapLongArray.get(addr, SIZE);
-        if (capacity == size) {
-            if (capacity == 0) {
-                allocate(Constants.MAP_INITIAL_CAPACITY);
-            } else {
-                allocate(capacity * 2);
+        long size = 0;
+        if (addr == OffHeapConstants.NULL_PTR) {
+            addr = allocate(Constants.MAP_INITIAL_CAPACITY);
+        } else {
+            long capacity = OffHeapLongArray.get(addr, CAPACITY);
+            size = OffHeapLongArray.get(addr, SIZE);
+            if (capacity == size) {
+                addr = allocate(capacity * 2);
             }
         }
         setNodeIndexAt(addr, size, ((OffHeapENode) eNode).index);

@@ -132,6 +132,7 @@ public class OffHeapEGraph implements EGraph {
             }
             // reallocate
             addr = OffHeapLongArray.reallocate(addr, OFFSET + newCapacity);
+            OffHeapLongArray.fillByte(addr, OFFSET + nodesCapacity, OFFSET + newCapacity, (byte) OffHeapConstants.NULL_PTR);
             parent.setAddrByIndex(index, addr);
             OffHeapLongArray.set(addr, NODES_CAPACITY, newCapacity);
         }
@@ -290,9 +291,9 @@ public class OffHeapEGraph implements EGraph {
         return newAddr;
     }
 
-    final long getAddr() {
-        return parent.addrByIndex(index);
-    }
+//    final long getAddr() {
+//        return parent.addrByIndex(index);
+//    }
 
     public long addrByIndex(long elemIndex) {
         return OffHeapLongArray.get(parent.addrByIndex(index), elemIndex + OFFSET);
