@@ -821,6 +821,15 @@ public class CoreTask implements Task {
                         return new ActionFlat();
                     }
                 });
+        registry.declaration(CoreActionNames.SAVE)
+                .setParams()
+                .setDescription("Save current cache into persistence storage")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionSave();
+                    }
+                });
         registry.declaration(CoreActionNames.EXECUTE_EXPRESSION)
                 .setParams(Type.STRING)
                 .setDescription("Executes an expression on all nodes given from the previous step.")
@@ -1025,6 +1034,16 @@ public class CoreTask implements Task {
                     @Override
                     public Action create(Object[] params) {
                         return new CF_IfThenElse(condFromScript((String) params[0]), (Task) params[1], (Task) params[2], (String) params[0]);
+                    }
+                });
+        //TODO improve TreeTask API
+        registry
+                .declaration(ActionQueryBoundedRadius.NAME)
+                .setParams(Type.INT, Type.DOUBLE, Type.BOOL, Type.DOUBLE_ARRAY)
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionQueryBoundedRadius((int) params[0], (double) params[1], (boolean) params[2], (double[]) params[3]);
                     }
                 });
     }

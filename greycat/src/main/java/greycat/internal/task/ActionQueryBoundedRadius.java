@@ -13,20 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.structure.action;
+package greycat.internal.task;
 
+import greycat.*;
+import greycat.internal.tree.KDTree;
+import greycat.internal.tree.NDTree;
 import greycat.plugin.Job;
-import greycat.structure.trees.KDTree;
-import greycat.structure.trees.NDTree;
-import greycat.Action;
-import greycat.DeferCounter;
-import greycat.structure.Tree;
-import greycat.structure.TreeResult;
-import greycat.TaskContext;
-import greycat.TaskResult;
-import greycat.TaskResultIterator;
+import greycat.struct.Tree;
+import greycat.struct.TreeResult;
 
-public class QueryBoundedRadius implements Action {
+public class ActionQueryBoundedRadius implements Action {
 
     public static String NAME = "QueryBoundedRadius";
 
@@ -35,7 +31,7 @@ public class QueryBoundedRadius implements Action {
     private final double _radius;
     private final boolean _fetchNodes;
 
-    public QueryBoundedRadius(final int n, final double radius, final double[] key, final boolean fetchNodes) {
+    public ActionQueryBoundedRadius(final int n, final double radius, final boolean fetchNodes, final double[] key) {
         this._key = key;
         this._n = n;
         this._radius = radius;
@@ -95,15 +91,30 @@ public class QueryBoundedRadius implements Action {
             ctx.continueWith(nextResult);
         }
     }
-
+    
     @Override
     public void serialize(StringBuilder builder) {
-        throw new RuntimeException("Not supported yet!");
+        builder.append(CoreActionNames.READ_GLOBAL_INDEX);
+        builder.append(Constants.TASK_PARAM_OPEN);
+        builder.append(_n);
+        builder.append(Constants.TASK_PARAM_SEP);
+        builder.append(_radius);
+        builder.append(Constants.TASK_PARAM_SEP);
+        builder.append(_fetchNodes);
+        if (_key != null && _key.length > 0) {
+            for (int i = 0; i < _key.length; i++) {
+                builder.append(Constants.TASK_PARAM_SEP);
+                builder.append(_key[i]);
+            }
+        }
+        builder.append(Constants.TASK_PARAM_CLOSE);
     }
 
     @Override
     public String toString() {
-        return "QueryBoundedRadius(\'" + "\')";
+        final StringBuilder res = new StringBuilder();
+        serialize(res);
+        return res.toString();
     }
 
 }
