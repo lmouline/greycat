@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.analytics;
+package greycat.ml.preprocessing;
 
+import greycat.Callback;
 import greycat.Graph;
 import greycat.Node;
 import greycat.Type;
-import greycat.Callback;
-import greycat.ml.BaseMLNode;
+import greycat.base.BaseNode;
 import greycat.plugin.NodeState;
 
-public class AttributeNode extends BaseMLNode {
+public class AttributeNode extends BaseNode {
     public final static String NAME = "AttributeNode";
 
     public static final String VALUE = "value"; //ToDo move value to a subnode

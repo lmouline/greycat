@@ -16,12 +16,12 @@
 package greycat.structure.trees;
 
 import greycat.Type;
+import greycat.ml.common.distance.Distance;
+import greycat.ml.common.distance.Distances;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
 import greycat.structure.Tree;
 import greycat.structure.TreeResult;
-import greycat.structure.distance.Distance;
-import greycat.structure.Distances;
 import greycat.structure.util.HRect;
 import greycat.structure.util.VolatileResult;
 

@@ -15,8 +15,6 @@
  */
 package greycat.ml.common.distance;
 
-import greycat.structure.distance.Distance;
-
 public class GaussianDistance implements Distance {
     double[] err;
     public GaussianDistance(double[] covariance){

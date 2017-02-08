@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.algorithm.profiling;
+package greycat.ml.profiling;
 
 import greycat.Callback;
 import greycat.Graph;
 import greycat.Node;
 import greycat.Type;
-import greycat.ml.ProfilingNode;
 import greycat.ml.BaseMLNode;
+import greycat.ml.ProfilingNode;
 import greycat.plugin.NodeState;
 import greycat.utility.Enforcer;
 

@@ -19,9 +19,6 @@ import greycat.*;
 import greycat.base.BaseNode;
 import greycat.internal.task.TaskHelper;
 import greycat.plugin.Job;
-import greycat.Action;
-import greycat.TaskContext;
-import greycat.TaskResult;
 
 public class ActionTraverseOrKeep implements Action {
 

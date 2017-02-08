@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.algorithm.preprocessing;
+package greycat.ml.preprocessing;
 
 import greycat.ml.common.matrix.MatrixOps;
-import greycat.ml.common.matrix.TransposeType;
 import greycat.ml.common.matrix.SVDDecompose;
+import greycat.ml.common.matrix.TransposeType;
 import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.struct.DMatrix;
 

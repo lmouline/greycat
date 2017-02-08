@@ -15,7 +15,8 @@
  */
 package greycat.structure.util;
 
-import greycat.structure.distance.Distance;
+
+import greycat.ml.common.distance.Distance;
 
 /**
  * Created by assaad on 20/01/2017.

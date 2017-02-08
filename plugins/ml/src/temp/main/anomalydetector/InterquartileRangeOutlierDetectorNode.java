@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.algorithm.anomalydetector;
+package greycat.ml.temp.anomalydetector;
 
 import greycat.Graph;
 import greycat.Node;

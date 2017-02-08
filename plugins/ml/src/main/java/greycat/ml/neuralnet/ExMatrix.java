@@ -16,9 +16,9 @@
 package greycat.ml.nn;
 
 import greycat.Type;
-import greycat.struct.ENode;
 import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.struct.DMatrix;
+import greycat.struct.ENode;
 
 import java.util.Random;
 

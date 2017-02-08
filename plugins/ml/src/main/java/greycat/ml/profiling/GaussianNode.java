@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.algorithm.profiling;
+package greycat.ml.profiling;
 
-import greycat.Graph;
-import greycat.ml.ProfilingNode;
-import greycat.ml.common.matrix.operation.MultivariateNormalDistribution;
 import greycat.Callback;
+import greycat.Graph;
 import greycat.Type;
 import greycat.ml.BaseMLNode;
+import greycat.ml.ProfilingNode;
 import greycat.ml.common.matrix.VolatileDMatrix;
+import greycat.ml.common.matrix.operation.MultivariateNormalDistribution;
 import greycat.plugin.NodeState;
 import greycat.struct.DMatrix;
 

@@ -18,8 +18,8 @@ package greycat.ml.common.matrix.blassolver;
 
 import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.common.matrix.TransposeType;
-import greycat.ml.common.matrix.blassolver.blas.Blas;
 import greycat.ml.common.matrix.VolatileDMatrix;
+import greycat.ml.common.matrix.blassolver.blas.Blas;
 import greycat.struct.DMatrix;
 
 class QR {

@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.algorithm.regression;
+package greycat.ml.regression;
 
 import greycat.Callback;
 import greycat.Graph;
 import greycat.Node;
 import greycat.Type;
 import greycat.ml.BaseMLNode;
-import greycat.ml.RegressionNode;
-import greycat.utility.Enforcer;
 import greycat.plugin.NodeState;
+import greycat.utility.Enforcer;
 
 import java.util.Random;
 

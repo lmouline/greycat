@@ -15,24 +15,28 @@
  */
 package greycat.ml;
 
-import greycat.Node;
 import greycat.Callback;
+import greycat.Node;
 
-public interface RegressionNode extends Node {
+public interface ProfilingNode extends Node {
     /**
      * Main training function to learn from the the expected output,
      * The input features are defined through features extractions.
      *
-     * @param output   Expected output of the regression in a supervised manner
      * @param callback Called when the learning is completed with the status of learning true/false
      */
-    void learn(double output, Callback<Boolean> callback);
+    void learn(Callback<Boolean> callback);
+
+    void learnWith(double[] features);
 
     /**
      * Main infer function to give a cluster ID,
      * The input features are defined through features extractions.
      *
-     * @param callback Called when the infer is completed with the result of the extrapolation
+     * @param callback Called when the infer is completed with the result of the predictions
      */
-    void extrapolate(Callback<Double> callback);
+    void predict(Callback<double[]> callback);
+
+    void predictWith(double[] features, Callback<double[]> callback);
+
 }

@@ -13,42 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.algorithm.regression.actions;
+package greycat.ml.regression.actions;
 
-import greycat.Constants;
-import greycat.Type;
+import greycat.*;
+import greycat.internal.task.CoreActions;
 import greycat.internal.task.TaskHelper;
-import greycat.Action;
-import greycat.Task;
-import greycat.Callback;
-import greycat.ml.algorithm.regression.PolynomialNode;
-import greycat.TaskContext;
-import greycat.TaskResult;
+import greycat.ml.regression.PolynomialNode;
 
-import static greycat.internal.task.CoreActions.*;
-import static greycat.Tasks.newTask;
+public class ReadContinuous implements Action {
 
-public class SetContinuous implements Action {
-
-    public final static String NAME = "setContinuous";
+    public final static String NAME = "readContinuous";
     private final Task polyTask;
-
     private final String _relName;
-    private final String _value;
 
-    public SetContinuous(final String relName, final String c_value) {
-        if (relName == null || c_value == null) {
-            throw new RuntimeException("name or value should not be null");
+    public ReadContinuous(final String relName) {
+        if (relName == null) {
+            throw new RuntimeException("name should not be null");
         }
         this._relName = relName;
-        this._value = c_value;
 
-        polyTask = newTask()
-                .then(defineAsVar("origin"))
-                .then(traverse(_relName))
-                .then(setAttribute(PolynomialNode.VALUE, Type.DOUBLE, _value))
-                .then(readVar("origin"));
+        polyTask = Tasks.newTask()
+                .then(CoreActions.traverse(relName))
+                .then(CoreActions.attribute(PolynomialNode.VALUE));
     }
+
 
     @Override
     public void eval(final TaskContext context) {
@@ -59,16 +47,14 @@ public class SetContinuous implements Action {
                 context.continueWith(result);
             }
         });
-
     }
+
 
     @Override
     public void serialize(StringBuilder builder) {
         builder.append(NAME);
         builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_relName, builder,true);
-        builder.append(Constants.TASK_PARAM_SEP);
-        TaskHelper.serializeString(_value, builder,true);
+        TaskHelper.serializeString(_relName, builder, true);
         builder.append(Constants.TASK_PARAM_CLOSE);
     }
 

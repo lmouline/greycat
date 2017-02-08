@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.structure;
-
-import greycat.structure.distance.*;
+package greycat.ml.common.distance;
 
 public class Distances {
+
 
     public static final int EUCLIDEAN = 0;
     public static final int GEODISTANCE = 1;
     public static final int COSINE = 2;
     public static final int PEARSON = 3;
+
     public static final int DEFAULT = EUCLIDEAN;
 
     public static Distance getDistance(int distance) {

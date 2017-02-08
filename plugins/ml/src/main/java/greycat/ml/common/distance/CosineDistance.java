@@ -13,36 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.structure.distance;
+package greycat.ml.common.distance;
 
-public class EuclideanDistance implements Distance {
+public class CosineDistance implements Distance {
 
-    private static EuclideanDistance static_instance = null;
+    private static CosineDistance static_instance = null;
 
-    public static EuclideanDistance instance(){
+    public static CosineDistance instance(){
         if(static_instance == null){
-            static_instance = new EuclideanDistance();
+            static_instance = new CosineDistance();
         }
         return static_instance;
     }
 
-    private EuclideanDistance() {
+    private CosineDistance() {
     }
 
     @Override
     public final double measure(double[] x, double[] y) {
-        double value = 0;
+        double sumTop = 0;
+        double sumOne = 0;
+        double sumTwo = 0;
         for (int i = 0; i < x.length; i++) {
-            value = value + (x[i] - y[i]) * (x[i] - y[i]);
+            sumTop += x[i] * y[i];
+            sumOne += x[i] * x[i];
+            sumTwo += y[i] * y[i];
         }
-        return Math.sqrt(value);
+        double cosSim = sumTop / (Math.sqrt(sumOne) * Math.sqrt(sumTwo));
+        if (cosSim < 0) {
+            cosSim = 0;//This should not happen, but does because of rounding errorsl
+        }
+        return 1 - cosSim;
     }
 
     @Override
     public final boolean compare(double x, double y) {
         return x < y;
     }
-
 
     @Override
     public final double getMinValue() {

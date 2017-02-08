@@ -13,51 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.structure.distance;
+package greycat.ml.common.distance;
 
-public class CosineDistance implements Distance {
+public class PearsonDistance implements Distance {
 
-    private static CosineDistance static_instance = null;
+    private static PearsonDistance static_instance = null;
 
-    public static CosineDistance instance(){
-        if(static_instance == null){
-            static_instance = new CosineDistance();
+    public static PearsonDistance instance() {
+        if (static_instance == null) {
+            static_instance = new PearsonDistance();
         }
         return static_instance;
     }
 
-    private CosineDistance() {
+    private PearsonDistance() {
     }
 
     @Override
-    public final double measure(double[] x, double[] y) {
-        double sumTop = 0;
-        double sumOne = 0;
-        double sumTwo = 0;
-        for (int i = 0; i < x.length; i++) {
-            sumTop += x[i] * y[i];
-            sumOne += x[i] * x[i];
-            sumTwo += y[i] * y[i];
+    public final double measure(double[] a, double[] b) {
+        double xy = 0, x = 0, x2 = 0, y = 0, y2 = 0;
+        for (int i = 0; i < a.length; i++) {
+            xy += a[i] * b[i];
+            x += a[i];
+            y += b[i];
+            x2 += a[i] * a[i];
+            y2 += b[i] * b[i];
         }
-        double cosSim = sumTop / (Math.sqrt(sumOne) * Math.sqrt(sumTwo));
-        if (cosSim < 0) {
-            cosSim = 0;//This should not happen, but does because of rounding errorsl
-        }
-        return 1 - cosSim;
+        int n = a.length;
+        return (xy - (x * y) / n) / Math.sqrt((x2 - (x * x) / n) * (y2 - (y * y) / n));
     }
 
     @Override
     public final boolean compare(double x, double y) {
-        return x < y;
+        return Math.abs(x) > Math.abs(y);
     }
 
     @Override
     public final double getMinValue() {
-        return 0;
+        return 1;
     }
 
     @Override
     public final double getMaxValue() {
-        return Double.MAX_VALUE;
+        return 0;
     }
+
 }

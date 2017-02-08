@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.algorithm.regression.actions;
+package greycat.ml.regression.actions;
 
-import greycat.Constants;
-import greycat.Action;
-import greycat.Task;
-import greycat.Callback;
-import greycat.Type;
+import greycat.*;
 import greycat.internal.task.TaskHelper;
-import greycat.ml.algorithm.regression.PolynomialNode;
-import greycat.TaskContext;
-import greycat.TaskResult;
+import greycat.ml.regression.PolynomialNode;
 
-import static greycat.internal.task.CoreActions.*;
 import static greycat.Tasks.newTask;
+import static greycat.internal.task.CoreActions.*;
 
 public class SetPrecision implements Action {
 

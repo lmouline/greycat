@@ -15,19 +15,14 @@
  */
 package greycat.ml;
 
-import greycat.Callback;
-import greycat.Constants;
-import greycat.DeferCounter;
-import greycat.Graph;
+import greycat.*;
 import greycat.base.BaseNode;
-import greycat.plugin.Job;
-import greycat.Task;
-import greycat.TaskResult;
 import greycat.internal.task.CoreActions;
+import greycat.plugin.Job;
 
-import static greycat.internal.task.CoreActions.travelInWorld;
 import static greycat.Tasks.emptyResult;
 import static greycat.Tasks.newTask;
+import static greycat.internal.task.CoreActions.travelInWorld;
 
 public abstract class BaseMLNode extends BaseNode {
 

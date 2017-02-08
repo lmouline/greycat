@@ -16,8 +16,8 @@
 package greycat.ml.common.matrix.operation;
 
 import greycat.ml.common.matrix.MatrixOps;
-import greycat.ml.common.matrix.TransposeType;
 import greycat.ml.common.matrix.SVDDecompose;
+import greycat.ml.common.matrix.TransposeType;
 import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.struct.DMatrix;
 
