@@ -21,6 +21,8 @@ import greycat.Type;
 import greycat.chunk.ChunkType;
 import greycat.chunk.StateChunk;
 import greycat.internal.CoreConstants;
+import greycat.internal.tree.KDTree;
+import greycat.internal.tree.NDTree;
 import greycat.memory.primary.OffHeapDoubleArray;
 import greycat.memory.primary.OffHeapIntArray;
 import greycat.memory.primary.OffHeapLongArray;
@@ -219,6 +221,10 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                     return new OffHeapLongLongArrayMap(this, index);
                 case Type.RELATION_INDEXED:
                     return new OffHeapRelationIndexed(this, index, space.graph());
+                case Type.NDTREE:
+                    return new NDTree(new OffHeapEGraph(this, index, space.graph()));
+                case Type.KDTREE:
+                    return new KDTree(new OffHeapEGraph(this, index, space.graph()));
                 case Type.EGRAPH:
                     return new OffHeapEGraph(this, index, space.graph());
                 case OffHeapConstants.NULL_PTR:
@@ -420,6 +426,8 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                         case Type.LONG_TO_LONG_ARRAY_MAP:
                             OffHeapLongLongArrayMap.save(rawValue, buffer);
                             break;
+                        case Type.NDTREE:
+                        case Type.KDTREE:
                         case Type.EGRAPH:
                             OffHeapEGraph castedEGraph = new OffHeapEGraph(this, i, space.graph());
                             int eGSize = castedEGraph.size();
@@ -514,6 +522,8 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                             case Type.STRING_TO_INT_MAP:
                                 setValue(addr, i, OffHeapStringIntMap.clone(value(castedAddr, i)));
                                 break;
+                            case Type.KDTREE:
+                            case Type.NDTREE:
                             case Type.EGRAPH:
                                 setValue(addr, i, OffHeapEGraph.clone(value(castedAddr, i)));
                                 break;
@@ -586,6 +596,8 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                     case Type.LONG_TO_LONG_MAP:
                     case Type.RELATION_INDEXED:
                     case Type.LONG_TO_LONG_ARRAY_MAP:
+                    case Type.NDTREE:
+                    case Type.KDTREE:
                     case Type.EGRAPH:
                         param_elem = OffHeapConstants.NULL_PTR; //empty initial ptr
                         break;
@@ -1042,6 +1054,8 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                                             }
                                         }
                                         break;
+                                    case Type.NDTREE:
+                                    case Type.KDTREE:
                                     case Type.EGRAPH:
                                         OffHeapEGraph eGraph = new OffHeapEGraph(this, internal_set(read_key, read_type, null, true, initial), this.graph());
                                         cursor++;
@@ -1151,6 +1165,8 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
             case Type.LONG_TO_LONG_ARRAY_MAP:
                 OffHeapLongLongArrayMap.free(addr);
                 break;
+            case Type.NDTREE:
+            case Type.KDTREE:
             case Type.EGRAPH:
                 OffHeapEGraph.freeByAddr(addr);
 

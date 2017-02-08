@@ -2,7 +2,7 @@ declare module java {
     module lang {
         class System {
             static gc(): void;
-            static arraycopy(src: any[] | Float64Array | Int32Array, srcPos: number, dest: any[] | Float64Array | Int32Array, destPos: number, numElements: number): void;
+            static arraycopy(src: any[] | Float64Array | Int32Array | Int8Array, srcPos: number, dest: any[] | Float64Array | Int32Array | Int8Array, destPos: number, numElements: number): void;
         }
         class StringBuilder {
             private _buffer;
@@ -664,6 +664,8 @@ declare module greycat {
         static ERELATION: number;
         static TASK: number;
         static TASK_ARRAY: number;
+        static KDTREE: number;
+        static NDTREE: number;
         static typeName(p_type: number): string;
         static typeFromName(name: string): number;
     }
@@ -2344,6 +2346,178 @@ declare module greycat {
                 }
             }
         }
+        module tree {
+            class HRect {
+                min: Float64Array;
+                max: Float64Array;
+                constructor(vmin: Float64Array, vmax: Float64Array);
+                clone(): any;
+                closest(t: Float64Array): Float64Array;
+                static infiniteHRect(d: number): greycat.internal.tree.HRect;
+                toString(): string;
+            }
+            class KDTree implements greycat.struct.Tree {
+                static RESOLUTION: number;
+                static DISTANCE: number;
+                private static E_SUBTREE_NODES;
+                private static E_KEY;
+                private static E_SUM_KEY;
+                private static E_VALUE;
+                private static E_SUBTREE_VALUES;
+                private static E_RIGHT;
+                private static E_LEFT;
+                private static STRATEGY;
+                private static DIM;
+                private eGraph;
+                constructor(eGraph: greycat.struct.EGraph);
+                private static checkCreateLevels(key1, key2, resolutions);
+                private static rangeSearch(lowk, uppk, center, distance, node, lev, dim, nnl);
+                private static recursiveTraverse(node, nnl, distance, target, hr, lev, dim, max_dist_sqd, radius);
+                private static internalInsert(node, key, value, strategyType, lev, resolution);
+                private static createNode(parent, right);
+                setDistance(distanceType: number): void;
+                setResolution(resolution: Float64Array): void;
+                setMinBound(min: Float64Array): void;
+                setMaxBound(max: Float64Array): void;
+                insert(keys: Float64Array, value: number): void;
+                queryAround(keys: Float64Array, max: number): greycat.struct.TreeResult;
+                queryRadius(keys: Float64Array, radius: number): greycat.struct.TreeResult;
+                queryBoundedRadius(keys: Float64Array, radius: number, max: number): greycat.struct.TreeResult;
+                queryArea(min: Float64Array, max: Float64Array): greycat.struct.TreeResult;
+                size(): number;
+                treeSize(): number;
+            }
+            class KDTreeNode extends greycat.base.BaseNode implements greycat.struct.Tree {
+                static NAME: string;
+                static BOUND_MIN: string;
+                static BOUND_MAX: string;
+                static RESOLUTION: string;
+                private static E_GRAPH;
+                private _kdTree;
+                constructor(p_world: number, p_time: number, p_id: number, p_graph: greycat.Graph);
+                private getTree();
+                set(name: string, type: number, value: any): greycat.Node;
+                setDistance(distanceType: number): void;
+                setResolution(resolution: Float64Array): void;
+                setMinBound(min: Float64Array): void;
+                setMaxBound(max: Float64Array): void;
+                insert(keys: Float64Array, value: number): void;
+                queryAround(keys: Float64Array, max: number): greycat.struct.TreeResult;
+                queryRadius(keys: Float64Array, radius: number): greycat.struct.TreeResult;
+                queryBoundedRadius(keys: Float64Array, radius: number, max: number): greycat.struct.TreeResult;
+                queryArea(min: Float64Array, max: Float64Array): greycat.struct.TreeResult;
+                size(): number;
+                treeSize(): number;
+            }
+            class NDTree implements greycat.struct.Profile {
+                static BUFFER_SIZE_DEF: number;
+                static RESOLUTION: number;
+                static BUFFER_SIZE: number;
+                static DISTANCE: number;
+                private static STRATEGY;
+                private static E_TOTAL;
+                private static E_SUBNODES;
+                private static E_TOTAL_SUBNODES;
+                private static E_MIN;
+                private static E_MAX;
+                private static E_BUFFER_KEYS;
+                private static E_BUFFER_VALUES;
+                private static E_VALUE;
+                private static E_PROFILE;
+                private static E_OFFSET_REL;
+                private eGraph;
+                constructor(eGraph: greycat.struct.EGraph);
+                private static getRelationId(centerKey, keyToInsert);
+                private static checkCreateLevels(min, max, resolutions);
+                private static getCenterMinMax(min, max);
+                private static getCenter(node);
+                private static check(values, min, max);
+                private static createNewNode(parent, root, index, min, max, center, keyToInsert, buffersize);
+                private static subInsert(parent, key, value, strategyType, min, max, center, resolution, buffersize, root, bufferupdate);
+                private static internalInsert(node, key, value, strategyType, min, max, center, resolution, buffersize, root);
+                private static compare(key1, key2, resolution);
+                setDistance(distanceType: number): void;
+                setResolution(resolution: Float64Array): void;
+                setMinBound(min: Float64Array): void;
+                setMaxBound(max: Float64Array): void;
+                insert(keys: Float64Array, value: number): void;
+                profile(keys: Float64Array): void;
+                profileWith(keys: Float64Array, occurrence: number): void;
+                queryAround(keys: Float64Array, max: number): greycat.struct.TreeResult;
+                queryRadius(keys: Float64Array, radius: number): greycat.struct.TreeResult;
+                queryBoundedRadius(keys: Float64Array, radius: number, max: number): greycat.struct.TreeResult;
+                queryArea(min: Float64Array, max: Float64Array): greycat.struct.TreeResult;
+                size(): number;
+                treeSize(): number;
+                private static binaryFromLong(value, dim);
+                private static reccursiveTraverse(node, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, targetcenter, radius);
+            }
+            class NDTreeNode extends greycat.base.BaseNode implements greycat.struct.Profile {
+                static NAME: string;
+                static BOUND_MIN: string;
+                static BOUND_MAX: string;
+                static RESOLUTION: string;
+                private static E_GRAPH;
+                private _ndTree;
+                constructor(p_world: number, p_time: number, p_id: number, p_graph: greycat.Graph);
+                private getTree();
+                set(name: string, type: number, value: any): greycat.Node;
+                setDistance(distanceType: number): void;
+                setResolution(resolution: Float64Array): void;
+                setMinBound(min: Float64Array): void;
+                setMaxBound(max: Float64Array): void;
+                insert(keys: Float64Array, value: number): void;
+                profile(keys: Float64Array): void;
+                profileWith(keys: Float64Array, occurrence: number): void;
+                queryAround(keys: Float64Array, nbElem: number): greycat.struct.TreeResult;
+                queryRadius(keys: Float64Array, radius: number): greycat.struct.TreeResult;
+                queryBoundedRadius(keys: Float64Array, radius: number, max: number): greycat.struct.TreeResult;
+                queryArea(min: Float64Array, max: Float64Array): greycat.struct.TreeResult;
+                size(): number;
+                treeSize(): number;
+            }
+            class TreeHelper {
+                static checkBoundsIntersection(targetmin: Float64Array, targetmax: Float64Array, boundMin: Float64Array, boundMax: Float64Array): boolean;
+                static checkKeyInsideBounds(key: Float64Array, boundMin: Float64Array, boundMax: Float64Array): boolean;
+                static getclosestDistance(target: Float64Array, boundMin: Float64Array, boundMax: Float64Array, distance: greycat.utility.distance.Distance): number;
+                static filterAndInsert(key: Float64Array, value: number, target: Float64Array, targetmin: Float64Array, targetmax: Float64Array, targetcenter: Float64Array, distance: greycat.utility.distance.Distance, radius: number, nnl: greycat.internal.tree.VolatileTreeResult): void;
+            }
+            class TreeStrategy {
+                static INDEX: number;
+                static PROFILE: number;
+                static DEFAULT: number;
+            }
+            class VolatileTreeResult implements greycat.struct.TreeResult {
+                private static maxPriority;
+                private static _KEYS;
+                private static _VALUES;
+                private static _DISTANCES;
+                private node;
+                private capacity;
+                private count;
+                private worst;
+                private _keys;
+                private _values;
+                private _distances;
+                constructor(node: greycat.struct.ENode, capacity: number);
+                size(): number;
+                insert(key: Float64Array, value: number, distance: number): boolean;
+                private add(key, value, distance, remove);
+                private remove();
+                private bubbleUp(pos);
+                private bubbleDown(pos);
+                keys(index: number): Float64Array;
+                value(index: number): number;
+                distance(index: number): number;
+                getWorstDistance(): number;
+                free(): void;
+                isCapacityReached(): boolean;
+                private swap(i, j);
+                private partition(l, h, ascending);
+                private quickSort(l, h, ascending);
+                sort(ascending: boolean): void;
+            }
+        }
     }
     module plugin {
         interface ActionDeclaration {
@@ -2587,6 +2761,10 @@ declare module greycat {
         interface Map {
             size(): number;
         }
+        interface Profile extends greycat.struct.Tree {
+            profile(keys: Float64Array): void;
+            profileWith(keys: Float64Array, occurrence: number): void;
+        }
         interface Relation {
             all(): Float64Array;
             size(): number;
@@ -2619,6 +2797,30 @@ declare module greycat {
         }
         interface StringLongMapCallBack {
             (key: string, value: number): void;
+        }
+        interface Tree {
+            setDistance(distanceType: number): void;
+            setResolution(resolution: Float64Array): void;
+            setMinBound(min: Float64Array): void;
+            setMaxBound(max: Float64Array): void;
+            insert(keys: Float64Array, value: number): void;
+            queryAround(keys: Float64Array, max: number): greycat.struct.TreeResult;
+            queryRadius(keys: Float64Array, radius: number): greycat.struct.TreeResult;
+            queryBoundedRadius(keys: Float64Array, radius: number, max: number): greycat.struct.TreeResult;
+            queryArea(min: Float64Array, max: Float64Array): greycat.struct.TreeResult;
+            size(): number;
+            treeSize(): number;
+        }
+        interface TreeResult {
+            insert(key: Float64Array, value: number, distance: number): boolean;
+            keys(index: number): Float64Array;
+            value(index: number): number;
+            distance(index: number): number;
+            getWorstDistance(): number;
+            isCapacityReached(): boolean;
+            sort(ascending: boolean): void;
+            free(): void;
+            size(): number;
         }
     }
     module utility {
@@ -2731,6 +2933,67 @@ declare module greycat {
         class VerbosePlugin implements greycat.plugin.Plugin {
             start(graph: greycat.Graph): void;
             stop(): void;
+        }
+        module distance {
+            class CosineDistance implements greycat.utility.distance.Distance {
+                private static static_instance;
+                static instance(): greycat.utility.distance.CosineDistance;
+                constructor();
+                measure(x: Float64Array, y: Float64Array): number;
+                compare(x: number, y: number): boolean;
+                getMinValue(): number;
+                getMaxValue(): number;
+            }
+            interface Distance {
+                measure(x: Float64Array, y: Float64Array): number;
+                compare(x: number, y: number): boolean;
+                getMinValue(): number;
+                getMaxValue(): number;
+            }
+            class Distances {
+                static EUCLIDEAN: number;
+                static GEODISTANCE: number;
+                static COSINE: number;
+                static PEARSON: number;
+                static DEFAULT: number;
+                static getDistance(distance: number): greycat.utility.distance.Distance;
+            }
+            class EuclideanDistance implements greycat.utility.distance.Distance {
+                private static static_instance;
+                static instance(): greycat.utility.distance.EuclideanDistance;
+                constructor();
+                measure(x: Float64Array, y: Float64Array): number;
+                compare(x: number, y: number): boolean;
+                getMinValue(): number;
+                getMaxValue(): number;
+            }
+            class GaussianDistance implements greycat.utility.distance.Distance {
+                err: Float64Array;
+                constructor(covariance: Float64Array);
+                measure(x: Float64Array, y: Float64Array): number;
+                compare(x: number, y: number): boolean;
+                getMinValue(): number;
+                getMaxValue(): number;
+            }
+            class GeoDistance implements greycat.utility.distance.Distance {
+                private static static_instance;
+                static instance(): greycat.utility.distance.GeoDistance;
+                constructor();
+                measure(x: Float64Array, y: Float64Array): number;
+                private static toRadians(angledeg);
+                compare(x: number, y: number): boolean;
+                getMinValue(): number;
+                getMaxValue(): number;
+            }
+            class PearsonDistance implements greycat.utility.distance.Distance {
+                private static static_instance;
+                static instance(): greycat.utility.distance.PearsonDistance;
+                constructor();
+                measure(a: Float64Array, b: Float64Array): number;
+                compare(x: number, y: number): boolean;
+                getMinValue(): number;
+                getMaxValue(): number;
+            }
         }
     }
 }

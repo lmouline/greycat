@@ -51,10 +51,9 @@ public class EmbeddedTreeTest {
                 double[] retrieveKeys = treeResult.keys(0);
                 Assert.assertTrue(12 == retrieveKeys[0]);
                 Assert.assertTrue(500 == retrieveKeys[1]);
-
                 treeResult.free();
-
                 g.disconnect(null);
+
             }
         });
     }

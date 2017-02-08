@@ -13,8 +13,8 @@ var java;
             System.gc = function () {
             };
             System.arraycopy = function (src, srcPos, dest, destPos, numElements) {
-                if ((dest instanceof Float64Array || dest instanceof Int32Array)
-                    && (src instanceof Float64Array || src instanceof Int32Array)) {
+                if ((dest instanceof Float64Array || dest instanceof Int32Array || dest instanceof Int8Array)
+                    && (src instanceof Float64Array || src instanceof Int32Array || src instanceof Int8Array)) {
                     if (numElements == src.length) {
                         dest.set(src, destPos);
                     }
@@ -1522,6 +1522,10 @@ var greycat;
                     return "TASK";
                 case greycat.Type.TASK_ARRAY:
                     return "TASK_ARRAY";
+                case greycat.Type.KDTREE:
+                    return "KDTREE";
+                case greycat.Type.NDTREE:
+                    return "NDTREE";
                 default:
                     return "unknown";
             }
@@ -1570,6 +1574,10 @@ var greycat;
                     return greycat.Type.TASK;
                 case "TASK_ARRAY":
                     return greycat.Type.TASK_ARRAY;
+                case "KDTREE":
+                    return greycat.Type.KDTREE;
+                case "NDTREE":
+                    return greycat.Type.NDTREE;
                 default:
                     return -1;
             }
@@ -1597,6 +1605,8 @@ var greycat;
     Type.ERELATION = 19;
     Type.TASK = 20;
     Type.TASK_ARRAY = 21;
+    Type.KDTREE = 22;
+    Type.NDTREE = 23;
     greycat.Type = Type;
     var base;
     (function (base) {
@@ -2667,6 +2677,16 @@ var greycat;
                 this._nodeRegistry.declaration(greycat.internal.CoreNodeIndex.NAME).setFactory(function (world, time, id, graph) {
                     {
                         return new greycat.internal.CoreNodeIndex(world, time, id, graph);
+                    }
+                });
+                this._nodeRegistry.declaration(greycat.internal.tree.KDTreeNode.NAME).setFactory(function (world, time, id, graph) {
+                    {
+                        return new greycat.internal.tree.KDTreeNode(world, time, id, graph);
+                    }
+                });
+                this._nodeRegistry.declaration(greycat.internal.tree.NDTreeNode.NAME).setFactory(function (world, time, id, graph) {
+                    {
+                        return new greycat.internal.tree.NDTreeNode(world, time, id, graph);
                     }
                 });
             }
@@ -8063,21 +8083,10 @@ var greycat;
                         result = this._v[found];
                         if (result != null) {
                             switch (this._type[found]) {
-                                case greycat.Type.DOUBLE_ARRAY:
-                                    var castedResultD = result;
-                                    var copyD = new Float64Array(castedResultD.length);
-                                    java.lang.System.arraycopy(castedResultD, 0, copyD, 0, castedResultD.length);
-                                    return copyD;
-                                case greycat.Type.LONG_ARRAY:
-                                    var castedResultL = result;
-                                    var copyL = new Float64Array(castedResultL.length);
-                                    java.lang.System.arraycopy(castedResultL, 0, copyL, 0, castedResultL.length);
-                                    return copyL;
-                                case greycat.Type.INT_ARRAY:
-                                    var castedResultI = result;
-                                    var copyI = new Int32Array(castedResultI.length);
-                                    java.lang.System.arraycopy(castedResultI, 0, copyI, 0, castedResultI.length);
-                                    return copyI;
+                                case greycat.Type.NDTREE:
+                                    return new greycat.internal.tree.NDTree(result);
+                                case greycat.Type.KDTREE:
+                                    return new greycat.internal.tree.KDTree(result);
                                 default:
                                     return result;
                             }
@@ -8179,34 +8188,53 @@ var greycat;
                         }
                     }
                     var toSet = null;
+                    var toGet = null;
                     switch (p_type) {
                         case greycat.Type.RELATION:
                             toSet = new greycat.internal.heap.HeapRelation(this, null);
+                            toGet = toSet;
                             break;
                         case greycat.Type.RELATION_INDEXED:
                             toSet = new greycat.internal.heap.HeapRelationIndexed(this, this._space.graph());
+                            toGet = toSet;
                             break;
                         case greycat.Type.DMATRIX:
                             toSet = new greycat.internal.heap.HeapDMatrix(this, null);
+                            toGet = toSet;
                             break;
                         case greycat.Type.LMATRIX:
                             toSet = new greycat.internal.heap.HeapLMatrix(this, null);
-                            break;
-                        case greycat.Type.EGRAPH:
-                            toSet = new greycat.internal.heap.HeapEGraph(this, null, this._space.graph());
+                            toGet = toSet;
                             break;
                         case greycat.Type.STRING_TO_INT_MAP:
                             toSet = new greycat.internal.heap.HeapStringIntMap(this);
+                            toGet = toSet;
                             break;
                         case greycat.Type.LONG_TO_LONG_MAP:
                             toSet = new greycat.internal.heap.HeapLongLongMap(this);
+                            toGet = toSet;
                             break;
                         case greycat.Type.LONG_TO_LONG_ARRAY_MAP:
                             toSet = new greycat.internal.heap.HeapLongLongArrayMap(this);
+                            toGet = toSet;
+                            break;
+                        case greycat.Type.EGRAPH:
+                            toSet = new greycat.internal.heap.HeapEGraph(this, null, this._space.graph());
+                            toGet = toSet;
+                            break;
+                        case greycat.Type.KDTREE:
+                            var tempKD = new greycat.internal.heap.HeapEGraph(this, null, this._space.graph());
+                            toSet = tempKD;
+                            toGet = new greycat.internal.tree.KDTree(tempKD);
+                            break;
+                        case greycat.Type.NDTREE:
+                            var tempND = new greycat.internal.heap.HeapEGraph(this, null, this._space.graph());
+                            toSet = tempND;
+                            toGet = new greycat.internal.tree.NDTree(tempND);
                             break;
                     }
                     this.internal_set(p_key, p_type, toSet, true, false);
-                    return toSet;
+                    return toGet;
                 };
                 HeapStateChunk.prototype.getOrCreateFromKey = function (key, elemType) {
                     return this.getOrCreate(this._space.graph().resolver().stringToHash(key, true), elemType);
@@ -8339,6 +8367,8 @@ var greycat;
                                         }
                                     });
                                     break;
+                                case greycat.Type.NDTREE:
+                                case greycat.Type.KDTREE:
                                 case greycat.Type.EGRAPH:
                                     var castedEGraph = loopValue;
                                     var eNodes = castedEGraph._nodes;
@@ -8560,6 +8590,8 @@ var greycat;
                                 case greycat.Type.RELATION_INDEXED:
                                     param_elem = p_unsafe_elem;
                                     break;
+                                case greycat.Type.NDTREE:
+                                case greycat.Type.KDTREE:
                                 case greycat.Type.EGRAPH:
                                     param_elem = p_unsafe_elem;
                                     break;
@@ -8988,6 +9020,8 @@ var greycat;
                                                     }
                                                 }
                                                 break;
+                                            case greycat.Type.NDTREE:
+                                            case greycat.Type.KDTREE:
                                             case greycat.Type.EGRAPH:
                                                 var eGraph = new greycat.internal.heap.HeapEGraph(this, null, this.graph());
                                                 cursor++;
@@ -15923,6 +15957,1197 @@ var greycat;
                 math.MathOperation = MathOperation;
             })(math = task_1.math || (task_1.math = {}));
         })(task = internal.task || (internal.task = {}));
+        var tree;
+        (function (tree) {
+            var HRect = (function () {
+                function HRect(vmin, vmax) {
+                    this.min = new Float64Array(vmin.length);
+                    this.max = new Float64Array(vmax.length);
+                    java.lang.System.arraycopy(vmin, 0, this.min, 0, vmin.length);
+                    java.lang.System.arraycopy(vmax, 0, this.max, 0, vmax.length);
+                }
+                HRect.prototype.clone = function () {
+                    return new greycat.internal.tree.HRect(this.min, this.max);
+                };
+                HRect.prototype.closest = function (t) {
+                    var p = new Float64Array(t.length);
+                    for (var i = 0; i < t.length; ++i) {
+                        if (t[i] <= this.min[i]) {
+                            p[i] = this.min[i];
+                        }
+                        else if (t[i] >= this.max[i]) {
+                            p[i] = this.max[i];
+                        }
+                        else {
+                            p[i] = t[i];
+                        }
+                    }
+                    return p;
+                };
+                HRect.infiniteHRect = function (d) {
+                    var vmin = new Float64Array(d);
+                    var vmax = new Float64Array(d);
+                    for (var i = 0; i < d; ++i) {
+                        vmin[i] = java.lang.Double.NEGATIVE_INFINITY;
+                        vmax[i] = java.lang.Double.POSITIVE_INFINITY;
+                    }
+                    return new greycat.internal.tree.HRect(vmin, vmax);
+                };
+                HRect.prototype.toString = function () {
+                    return this.min + "\n" + this.max + "\n";
+                };
+                return HRect;
+            }());
+            tree.HRect = HRect;
+            var KDTree = (function () {
+                function KDTree(eGraph) {
+                    if (eGraph.root() == null) {
+                        var root = eGraph.newNode();
+                        eGraph.setRoot(root);
+                    }
+                    this.eGraph = eGraph;
+                }
+                KDTree.checkCreateLevels = function (key1, key2, resolutions) {
+                    if (resolutions != null) {
+                        for (var i = 0; i < key2.length; i++) {
+                            if (Math.abs(key1[i] - key2[i]) > resolutions[i]) {
+                                return true;
+                            }
+                        }
+                    }
+                    else {
+                        for (var i = 0; i < key2.length; i++) {
+                            if ((key1[i] != key2[i])) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                };
+                KDTree.rangeSearch = function (lowk, uppk, center, distance, node, lev, dim, nnl) {
+                    if (node == null)
+                        return;
+                    var key = node.getAt(KDTree.E_KEY);
+                    if (lowk[lev] <= key[lev]) {
+                        greycat.internal.tree.KDTree.rangeSearch(lowk, uppk, center, distance, node.getAt(KDTree.E_LEFT), (lev + 1) % dim, dim, nnl);
+                    }
+                    var j;
+                    j = 0;
+                    while (j < dim && lowk[j] <= key[j] && uppk[j] >= key[j]) {
+                        j++;
+                    }
+                    if (j == dim) {
+                        nnl.insert(key, node.getAt(KDTree.E_VALUE), distance.measure(key, center));
+                    }
+                    if (uppk[lev] > key[lev]) {
+                        greycat.internal.tree.KDTree.rangeSearch(lowk, uppk, center, distance, node.getAt(KDTree.E_RIGHT), (lev + 1) % dim, dim, nnl);
+                    }
+                };
+                KDTree.recursiveTraverse = function (node, nnl, distance, target, hr, lev, dim, max_dist_sqd, radius) {
+                    if (node == null) {
+                        return;
+                    }
+                    var pivot = node.getAt(KDTree.E_KEY);
+                    if (pivot == null) {
+                        throw new Error("Key can't be null");
+                    }
+                    var s = lev % dim;
+                    var pivot_to_target = distance.measure(pivot, target);
+                    var left_hr = hr;
+                    var right_hr = hr.clone();
+                    left_hr.max[s] = pivot[s];
+                    right_hr.min[s] = pivot[s];
+                    var target_in_left = target[s] < pivot[s];
+                    var nearer_kd;
+                    var nearer_hr;
+                    var further_kd;
+                    var further_hr;
+                    if (target_in_left) {
+                        nearer_kd = node.getAt(KDTree.E_LEFT);
+                        nearer_hr = left_hr;
+                        further_kd = node.getAt(KDTree.E_RIGHT);
+                        further_hr = right_hr;
+                    }
+                    else {
+                        nearer_kd = node.getAt(KDTree.E_RIGHT);
+                        nearer_hr = right_hr;
+                        further_kd = node.getAt(KDTree.E_LEFT);
+                        further_hr = left_hr;
+                    }
+                    greycat.internal.tree.KDTree.recursiveTraverse(nearer_kd, nnl, distance, target, nearer_hr, lev + 1, dim, max_dist_sqd, radius);
+                    var dist_sqd;
+                    if (!nnl.isCapacityReached()) {
+                        dist_sqd = java.lang.Double.MAX_VALUE;
+                    }
+                    else {
+                        dist_sqd = nnl.getWorstDistance();
+                    }
+                    max_dist_sqd = Math.min(max_dist_sqd, dist_sqd);
+                    var closest = further_hr.closest(target);
+                    if (distance.measure(closest, target) < max_dist_sqd) {
+                        if (pivot_to_target < dist_sqd) {
+                            dist_sqd = pivot_to_target;
+                            if (radius > 0) {
+                                if (dist_sqd < radius) {
+                                    nnl.insert(pivot, node.getAt(KDTree.E_VALUE), dist_sqd);
+                                }
+                            }
+                            else {
+                                nnl.insert(pivot, node.getAt(KDTree.E_VALUE), dist_sqd);
+                            }
+                            if (nnl.isCapacityReached()) {
+                                max_dist_sqd = nnl.getWorstDistance();
+                            }
+                            else {
+                                max_dist_sqd = java.lang.Double.MAX_VALUE;
+                            }
+                        }
+                        greycat.internal.tree.KDTree.recursiveTraverse(further_kd, nnl, distance, target, further_hr, lev + 1, dim, max_dist_sqd, radius);
+                    }
+                };
+                KDTree.internalInsert = function (node, key, value, strategyType, lev, resolution) {
+                    var pKey = node.getAt(KDTree.E_KEY);
+                    if (pKey == null) {
+                        pKey = new Float64Array(key.length);
+                        java.lang.System.arraycopy(key, 0, pKey, 0, key.length);
+                        node.setAt(KDTree.E_KEY, greycat.Type.DOUBLE_ARRAY, pKey);
+                        node.setAt(KDTree.E_VALUE, greycat.Type.LONG, value);
+                        if (strategyType == greycat.internal.tree.TreeStrategy.PROFILE) {
+                            node.setAt(KDTree.E_SUBTREE_VALUES, greycat.Type.LONG, value);
+                            var sk = new Float64Array(pKey.length);
+                            for (var i = 0; i < key.length; i++) {
+                                sk[i] = pKey[i] * value;
+                            }
+                            node.setAt(KDTree.E_SUM_KEY, greycat.Type.DOUBLE_ARRAY, sk);
+                        }
+                        node.setAt(KDTree.E_SUBTREE_NODES, greycat.Type.LONG, 1);
+                        return true;
+                    }
+                    else if (!greycat.internal.tree.KDTree.checkCreateLevels(key, pKey, resolution)) {
+                        if (strategyType == greycat.internal.tree.TreeStrategy.INDEX) {
+                            node.setAt(KDTree.E_VALUE, greycat.Type.LONG, value);
+                        }
+                        else if (strategyType == greycat.internal.tree.TreeStrategy.PROFILE) {
+                            var sk = node.getAt(KDTree.E_SUM_KEY);
+                            for (var i = 0; i < pKey.length; i++) {
+                                sk[i] = (sk[i] + key[i] * value);
+                            }
+                            node.setAt(KDTree.E_SUM_KEY, greycat.Type.DOUBLE_ARRAY, sk);
+                            node.setAt(KDTree.E_VALUE, greycat.Type.LONG, node.getOrCreateAt(KDTree.E_VALUE, greycat.Type.LONG) + value);
+                            node.setAt(KDTree.E_SUBTREE_VALUES, greycat.Type.LONG, node.getOrCreateAt(KDTree.E_SUBTREE_VALUES, greycat.Type.LONG) + value);
+                        }
+                        return false;
+                    }
+                    else {
+                        var child = void 0;
+                        if (key[lev] > pKey[lev]) {
+                            child = node.getAt(KDTree.E_RIGHT);
+                            if (child == null) {
+                                child = greycat.internal.tree.KDTree.createNode(node, true);
+                            }
+                        }
+                        else {
+                            child = node.getAt(KDTree.E_LEFT);
+                            if (child == null) {
+                                child = greycat.internal.tree.KDTree.createNode(node, false);
+                            }
+                        }
+                        if (greycat.internal.tree.KDTree.internalInsert(child, key, value, strategyType, (lev + 1) % key.length, resolution)) {
+                            if (strategyType == greycat.internal.tree.TreeStrategy.PROFILE) {
+                                node.setAt(KDTree.E_SUBTREE_VALUES, greycat.Type.LONG, node.getAt(KDTree.E_SUBTREE_VALUES) + value);
+                            }
+                            node.setAt(KDTree.E_SUBTREE_NODES, greycat.Type.LONG, node.getAt(KDTree.E_SUBTREE_NODES) + 1);
+                            return true;
+                        }
+                        else {
+                            if (strategyType == greycat.internal.tree.TreeStrategy.PROFILE) {
+                                node.setAt(KDTree.E_SUBTREE_VALUES, greycat.Type.LONG, node.getAt(KDTree.E_SUBTREE_VALUES) + value);
+                            }
+                            return false;
+                        }
+                    }
+                };
+                KDTree.createNode = function (parent, right) {
+                    var child = parent.graph().newNode();
+                    if (right) {
+                        parent.setAt(KDTree.E_RIGHT, greycat.Type.ENODE, child);
+                    }
+                    else {
+                        parent.setAt(KDTree.E_LEFT, greycat.Type.ENODE, child);
+                    }
+                    return child;
+                };
+                KDTree.prototype.setDistance = function (distanceType) {
+                    this.eGraph.root().setAt(KDTree.DISTANCE, greycat.Type.INT, distanceType);
+                };
+                KDTree.prototype.setResolution = function (resolution) {
+                    this.eGraph.root().setAt(KDTree.RESOLUTION, greycat.Type.DOUBLE_ARRAY, resolution);
+                };
+                KDTree.prototype.setMinBound = function (min) { };
+                KDTree.prototype.setMaxBound = function (max) { };
+                KDTree.prototype.insert = function (keys, value) {
+                    var root = this.eGraph.root();
+                    var strategy = greycat.internal.tree.TreeStrategy.INDEX;
+                    if (root.getAt(KDTree.E_KEY) == null) {
+                        root.setAt(KDTree.STRATEGY, greycat.Type.INT, strategy);
+                        root.setAt(KDTree.DIM, greycat.Type.INT, keys.length);
+                    }
+                    else {
+                        if (keys.length != root.getAt(KDTree.DIM)) {
+                            throw new Error("Keys should always be the same length");
+                        }
+                    }
+                    greycat.internal.tree.KDTree.internalInsert(root, keys, value, strategy, 0, root.getAt(KDTree.RESOLUTION));
+                };
+                KDTree.prototype.queryAround = function (keys, max) {
+                    return this.queryBoundedRadius(keys, -1, max);
+                };
+                KDTree.prototype.queryRadius = function (keys, radius) {
+                    return this.queryBoundedRadius(keys, radius, -1);
+                };
+                KDTree.prototype.queryBoundedRadius = function (keys, radius, max) {
+                    var root = this.eGraph.root();
+                    if (root.getAt(KDTree.E_KEY) == null) {
+                        return null;
+                    }
+                    var distance = greycat.utility.distance.Distances.getDistance(root.getAtWithDefault(KDTree.DISTANCE, greycat.utility.distance.Distances.DEFAULT));
+                    if (keys.length != root.getAt(KDTree.E_KEY).length) {
+                        throw new Error("Keys are not of the same size");
+                    }
+                    var calcZone = this.eGraph.graph().space().newVolatileGraph();
+                    var nnl = new greycat.internal.tree.VolatileTreeResult(calcZone.newNode(), max);
+                    greycat.internal.tree.KDTree.recursiveTraverse(root, nnl, distance, keys, greycat.internal.tree.HRect.infiniteHRect(keys.length), 0, keys.length, java.lang.Double.MAX_VALUE, radius);
+                    nnl.sort(true);
+                    return nnl;
+                };
+                KDTree.prototype.queryArea = function (min, max) {
+                    var root = this.eGraph.root();
+                    if (root.getAt(KDTree.E_KEY) == null) {
+                        return null;
+                    }
+                    var distance = greycat.utility.distance.Distances.getDistance(root.getAtWithDefault(KDTree.DISTANCE, greycat.utility.distance.Distances.DEFAULT));
+                    var center = new Float64Array(max.length);
+                    for (var i = 0; i < center.length; i++) {
+                        center[i] = (min[i] + max[i]) / 2;
+                    }
+                    var calcZone = this.eGraph.graph().space().newVolatileGraph();
+                    var nnl = new greycat.internal.tree.VolatileTreeResult(calcZone.newNode(), -1);
+                    greycat.internal.tree.KDTree.rangeSearch(min, max, center, distance, root, 0, min.length, nnl);
+                    nnl.sort(true);
+                    return nnl;
+                };
+                KDTree.prototype.size = function () {
+                    return this.eGraph.root().getAt(KDTree.E_SUBTREE_NODES);
+                };
+                KDTree.prototype.treeSize = function () {
+                    return this.eGraph.root().getAt(KDTree.E_SUBTREE_NODES);
+                };
+                return KDTree;
+            }());
+            KDTree.RESOLUTION = 10;
+            KDTree.DISTANCE = 11;
+            KDTree.E_SUBTREE_NODES = 0;
+            KDTree.E_KEY = 1;
+            KDTree.E_SUM_KEY = 2;
+            KDTree.E_VALUE = 3;
+            KDTree.E_SUBTREE_VALUES = 4;
+            KDTree.E_RIGHT = 5;
+            KDTree.E_LEFT = 6;
+            KDTree.STRATEGY = 12;
+            KDTree.DIM = 13;
+            tree.KDTree = KDTree;
+            var KDTreeNode = (function (_super) {
+                __extends(KDTreeNode, _super);
+                function KDTreeNode(p_world, p_time, p_id, p_graph) {
+                    var _this = _super.call(this, p_world, p_time, p_id, p_graph) || this;
+                    _this._kdTree = null;
+                    return _this;
+                }
+                KDTreeNode.prototype.getTree = function () {
+                    if (this._kdTree == null) {
+                        var egraph = this.getOrCreate(KDTreeNode.E_GRAPH, greycat.Type.EGRAPH);
+                        this._kdTree = new greycat.internal.tree.KDTree(egraph);
+                    }
+                    return this._kdTree;
+                };
+                KDTreeNode.prototype.set = function (name, type, value) {
+                    if (name === KDTreeNode.BOUND_MIN) {
+                        this.setMinBound(value);
+                    }
+                    else if (name === KDTreeNode.BOUND_MAX) {
+                        this.setMaxBound(value);
+                    }
+                    else if (name === KDTreeNode.RESOLUTION) {
+                        this.setResolution(value);
+                    }
+                    else {
+                        _super.prototype.set.call(this, name, type, value);
+                    }
+                    return this;
+                };
+                KDTreeNode.prototype.setDistance = function (distanceType) {
+                    this.getTree().setDistance(distanceType);
+                };
+                KDTreeNode.prototype.setResolution = function (resolution) {
+                    this.getTree().setResolution(resolution);
+                };
+                KDTreeNode.prototype.setMinBound = function (min) {
+                    this.getTree().setMinBound(min);
+                };
+                KDTreeNode.prototype.setMaxBound = function (max) {
+                    this.getTree().setMaxBound(max);
+                };
+                KDTreeNode.prototype.insert = function (keys, value) {
+                    this.getTree().insert(keys, value);
+                };
+                KDTreeNode.prototype.queryAround = function (keys, max) {
+                    return this.getTree().queryAround(keys, max);
+                };
+                KDTreeNode.prototype.queryRadius = function (keys, radius) {
+                    return this.getTree().queryRadius(keys, radius);
+                };
+                KDTreeNode.prototype.queryBoundedRadius = function (keys, radius, max) {
+                    return this.getTree().queryBoundedRadius(keys, radius, max);
+                };
+                KDTreeNode.prototype.queryArea = function (min, max) {
+                    return this.getTree().queryArea(min, max);
+                };
+                KDTreeNode.prototype.size = function () {
+                    return this.getTree().size();
+                };
+                KDTreeNode.prototype.treeSize = function () {
+                    return this.getTree().treeSize();
+                };
+                return KDTreeNode;
+            }(greycat.base.BaseNode));
+            KDTreeNode.NAME = "KDTreeNode";
+            KDTreeNode.BOUND_MIN = "bound_min";
+            KDTreeNode.BOUND_MAX = "bound_max";
+            KDTreeNode.RESOLUTION = "resolution";
+            KDTreeNode.E_GRAPH = "kdtree";
+            tree.KDTreeNode = KDTreeNode;
+            var NDTree = (function () {
+                function NDTree(eGraph) {
+                    this.eGraph = eGraph;
+                    if (eGraph.root() == null) {
+                        var root = eGraph.newNode();
+                        eGraph.setRoot(root);
+                    }
+                }
+                NDTree.getRelationId = function (centerKey, keyToInsert) {
+                    var result = 0;
+                    for (var i = 0; i < centerKey.length; i++) {
+                        if (i != 0) {
+                            result = result << 1;
+                        }
+                        if (keyToInsert[i] > centerKey[i]) {
+                            result += 1;
+                        }
+                    }
+                    return result + NDTree.E_OFFSET_REL;
+                };
+                NDTree.checkCreateLevels = function (min, max, resolutions) {
+                    if (resolutions != null) {
+                        for (var i = 0; i < min.length; i++) {
+                            if ((max[i] - min[i]) > 2 * resolutions[i]) {
+                                return true;
+                            }
+                        }
+                    }
+                    else {
+                        for (var i = 0; i < min.length; i++) {
+                            if ((max[i] > min[i])) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                };
+                NDTree.getCenterMinMax = function (min, max) {
+                    var center = new Float64Array(min.length);
+                    for (var i = 0; i < min.length; i++) {
+                        center[i] = (max[i] + min[i]) / 2;
+                    }
+                    return center;
+                };
+                NDTree.getCenter = function (node) {
+                    var min = node.getAt(NDTree.E_MIN);
+                    var max = node.getAt(NDTree.E_MAX);
+                    return greycat.internal.tree.NDTree.getCenterMinMax(min, max);
+                };
+                NDTree.check = function (values, min, max) {
+                    if (min == null || max == null) {
+                        throw new Error("Please set min and max boundary before inserting in the trees");
+                    }
+                    if (values.length != min.length) {
+                        throw new Error("Values dimension mismatch");
+                    }
+                    for (var i = 0; i < min.length; i++) {
+                        if (values[i] < min[i] || values[i] > max[i]) {
+                            throw new Error("Values should be between min, max!");
+                        }
+                    }
+                };
+                NDTree.createNewNode = function (parent, root, index, min, max, center, keyToInsert, buffersize) {
+                    var node = parent.graph().newNode();
+                    var minChild = new Float64Array(min.length);
+                    var maxChild = new Float64Array(max.length);
+                    for (var i = 0; i < min.length; i++) {
+                        if (keyToInsert[i] <= center[i]) {
+                            minChild[i] = min[i];
+                            maxChild[i] = center[i];
+                        }
+                        else {
+                            minChild[i] = center[i];
+                            maxChild[i] = max[i];
+                        }
+                    }
+                    node.setAt(NDTree.E_SUBNODES, greycat.Type.LONG, 0);
+                    node.setAt(NDTree.E_MIN, greycat.Type.DOUBLE_ARRAY, minChild);
+                    node.setAt(NDTree.E_MAX, greycat.Type.DOUBLE_ARRAY, maxChild);
+                    node.setAt(NDTree.E_TOTAL, greycat.Type.LONG, 0);
+                    root.setAt(NDTree.E_TOTAL_SUBNODES, greycat.Type.LONG, root.getAt(NDTree.E_TOTAL_SUBNODES) + 1);
+                    parent.setAt(NDTree.E_SUBNODES, greycat.Type.LONG, parent.getAt(NDTree.E_SUBNODES) + 1);
+                    parent.setAt(index, greycat.Type.ENODE, node);
+                    return node;
+                };
+                NDTree.subInsert = function (parent, key, value, strategyType, min, max, center, resolution, buffersize, root, bufferupdate) {
+                    var index = greycat.internal.tree.NDTree.getRelationId(center, key);
+                    var child = parent.getAt(index);
+                    if (child == null) {
+                        child = greycat.internal.tree.NDTree.createNewNode(parent, root, index, min, max, center, key, buffersize);
+                    }
+                    var childmin = child.getAt(NDTree.E_MIN);
+                    var childmax = child.getAt(NDTree.E_MAX);
+                    var childcenter = greycat.internal.tree.NDTree.getCenterMinMax(childmin, childmax);
+                    var res = greycat.internal.tree.NDTree.internalInsert(child, key, value, strategyType, childmin, childmax, childcenter, resolution, buffersize, root);
+                    res = res && !bufferupdate;
+                    if (res) {
+                        switch (strategyType) {
+                            case greycat.internal.tree.TreeStrategy.PROFILE: {
+                                parent.setAt(NDTree.E_TOTAL, greycat.Type.LONG, parent.getAt(NDTree.E_TOTAL) + value);
+                                break;
+                            }
+                            case greycat.internal.tree.TreeStrategy.INDEX: {
+                                parent.setAt(NDTree.E_TOTAL, greycat.Type.LONG, parent.getAt(NDTree.E_TOTAL) + 1);
+                                break;
+                            }
+                            default:
+                                {
+                                    throw new Error("Index strategy is wrong!");
+                                }
+                        }
+                    }
+                    return res;
+                };
+                NDTree.internalInsert = function (node, key, value, strategyType, min, max, center, resolution, buffersize, root) {
+                    if (node.getAt(NDTree.E_SUBNODES) != 0) {
+                        return greycat.internal.tree.NDTree.subInsert(node, key, value, strategyType, min, max, center, resolution, buffersize, root, false);
+                    }
+                    else if (greycat.internal.tree.NDTree.checkCreateLevels(min, max, resolution)) {
+                        var buffer = null;
+                        if (buffersize > 0) {
+                            buffer = node.getOrCreateAt(NDTree.E_BUFFER_KEYS, greycat.Type.DMATRIX);
+                        }
+                        if (buffer != null) {
+                            for (var i = 0; i < buffer.columns(); i++) {
+                                if (greycat.internal.tree.NDTree.compare(key, buffer.column(i), resolution)) {
+                                    switch (strategyType) {
+                                        case greycat.internal.tree.TreeStrategy.PROFILE: {
+                                            var bufferkeys = node.getAt(NDTree.E_PROFILE);
+                                            for (var j = 0; j < key.length; j++) {
+                                                bufferkeys.set(j, i, bufferkeys.get(j, i) + key[j] * value);
+                                            }
+                                            var bufferValue = node.getAt(NDTree.E_BUFFER_VALUES);
+                                            bufferValue.set(0, i, bufferValue.get(0, i) + value);
+                                            node.setAt(NDTree.E_TOTAL, greycat.Type.LONG, node.getAt(NDTree.E_TOTAL) + value);
+                                            return true;
+                                        }
+                                        case greycat.internal.tree.TreeStrategy.INDEX: {
+                                            var bufferValue = node.getAt(NDTree.E_BUFFER_VALUES);
+                                            bufferValue.set(0, i, value);
+                                            return false;
+                                        }
+                                        default:
+                                            {
+                                                throw new Error("Index strategy is wrong!");
+                                            }
+                                    }
+                                }
+                            }
+                            if (buffer.columns() < buffersize) {
+                                buffer.appendColumn(key);
+                                switch (strategyType) {
+                                    case greycat.internal.tree.TreeStrategy.PROFILE: {
+                                        var bufferkeys = node.getOrCreateAt(NDTree.E_PROFILE, greycat.Type.DMATRIX);
+                                        bufferkeys.appendColumn(key);
+                                        var bufferValue = node.getOrCreateAt(NDTree.E_BUFFER_VALUES, greycat.Type.LMATRIX);
+                                        bufferValue.appendColumn(new Float64Array([value]));
+                                        node.setAt(NDTree.E_TOTAL, greycat.Type.LONG, node.getAt(NDTree.E_TOTAL) + value);
+                                        return true;
+                                    }
+                                    case greycat.internal.tree.TreeStrategy.INDEX: {
+                                        var bufferValue = node.getOrCreateAt(NDTree.E_BUFFER_VALUES, greycat.Type.LMATRIX);
+                                        bufferValue.appendColumn(new Float64Array([value]));
+                                        node.setAt(NDTree.E_TOTAL, greycat.Type.LONG, node.getAt(NDTree.E_TOTAL) + 1);
+                                        return true;
+                                    }
+                                    default:
+                                        {
+                                            throw new Error("Index strategy is wrong!");
+                                        }
+                                }
+                            }
+                            else {
+                                if (strategyType == greycat.internal.tree.TreeStrategy.PROFILE) {
+                                    var bufferkeys = node.getAt(NDTree.E_PROFILE);
+                                    var bufferValue_1 = node.getAt(NDTree.E_BUFFER_VALUES);
+                                    for (var i = 0; i < buffer.columns(); i++) {
+                                        var t = bufferValue_1.get(0, i);
+                                        for (var j = 0; j < buffer.rows(); j++) {
+                                            buffer.set(j, i, bufferkeys.get(j, i) / t);
+                                        }
+                                    }
+                                    node.setAt(NDTree.E_PROFILE, greycat.Type.DMATRIX, null);
+                                }
+                                var bufferValue = node.getAt(NDTree.E_BUFFER_VALUES);
+                                for (var i = 0; i < buffer.columns(); i++) {
+                                    greycat.internal.tree.NDTree.subInsert(node, buffer.column(i), bufferValue.get(0, i), strategyType, min, max, center, resolution, buffersize, root, true);
+                                }
+                                node.setAt(NDTree.E_BUFFER_VALUES, greycat.Type.LMATRIX, null);
+                                node.setAt(NDTree.E_BUFFER_KEYS, greycat.Type.DMATRIX, null);
+                                return greycat.internal.tree.NDTree.subInsert(node, key, value, strategyType, min, max, center, resolution, buffersize, root, false);
+                            }
+                        }
+                        else {
+                            return greycat.internal.tree.NDTree.subInsert(node, key, value, strategyType, min, max, center, resolution, buffersize, root, false);
+                        }
+                    }
+                    else {
+                        switch (strategyType) {
+                            case greycat.internal.tree.TreeStrategy.PROFILE: {
+                                var profile = node.getAt(NDTree.E_PROFILE);
+                                if (profile == null) {
+                                    profile = new Float64Array(key.length);
+                                    java.lang.System.arraycopy(key, 0, profile, 0, key.length);
+                                }
+                                else {
+                                    for (var i = 0; i < key.length; i++) {
+                                        profile[i] += key[i] * value;
+                                    }
+                                }
+                                node.setAt(NDTree.E_PROFILE, greycat.Type.DOUBLE_ARRAY, profile);
+                                node.setAt(NDTree.E_TOTAL, greycat.Type.LONG, node.getAt(NDTree.E_TOTAL) + value);
+                                return true;
+                            }
+                            case greycat.internal.tree.TreeStrategy.INDEX: {
+                                if (node.getAt(NDTree.E_TOTAL) == 0) {
+                                    node.setAt(NDTree.E_PROFILE, greycat.Type.DOUBLE_ARRAY, key);
+                                    node.setAt(NDTree.E_VALUE, greycat.Type.LONG, value);
+                                    node.setAt(NDTree.E_TOTAL, greycat.Type.LONG, 1);
+                                    return true;
+                                }
+                                else {
+                                    node.setAt(NDTree.E_PROFILE, greycat.Type.DOUBLE_ARRAY, key);
+                                    node.setAt(NDTree.E_VALUE, greycat.Type.LONG, value);
+                                    return false;
+                                }
+                            }
+                            default:
+                                {
+                                    throw new Error("Index strategy is wrong!");
+                                }
+                        }
+                    }
+                };
+                NDTree.compare = function (key1, key2, resolution) {
+                    if (resolution != null) {
+                        for (var i = 0; i < key1.length; i++) {
+                            if (Math.abs(key1[i] - key2[i]) > resolution[i]) {
+                                return false;
+                            }
+                        }
+                    }
+                    else {
+                        for (var i = 0; i < key1.length; i++) {
+                            if (Math.abs(key1[i] - key2[i]) > 0) {
+                                return false;
+                            }
+                        }
+                    }
+                    return true;
+                };
+                NDTree.prototype.setDistance = function (distanceType) {
+                    this.eGraph.root().setAt(NDTree.DISTANCE, greycat.Type.INT, distanceType);
+                };
+                NDTree.prototype.setResolution = function (resolution) {
+                    this.eGraph.root().setAt(NDTree.RESOLUTION, greycat.Type.DOUBLE_ARRAY, resolution);
+                };
+                NDTree.prototype.setMinBound = function (min) {
+                    this.eGraph.root().setAt(NDTree.E_MIN, greycat.Type.DOUBLE_ARRAY, min);
+                };
+                NDTree.prototype.setMaxBound = function (max) {
+                    this.eGraph.root().setAt(NDTree.E_MAX, greycat.Type.DOUBLE_ARRAY, max);
+                };
+                NDTree.prototype.insert = function (keys, value) {
+                    var root = this.eGraph.root();
+                    var min = root.getAt(NDTree.E_MIN);
+                    var max = root.getAt(NDTree.E_MAX);
+                    greycat.internal.tree.NDTree.check(keys, min, max);
+                    var resolution = root.getAt(NDTree.RESOLUTION);
+                    var buffersize = root.getAtWithDefault(NDTree.BUFFER_SIZE, NDTree.BUFFER_SIZE_DEF);
+                    if (root.getAtWithDefault(NDTree.E_TOTAL, 0) == 0) {
+                        root.setAt(NDTree.STRATEGY, greycat.Type.INT, greycat.internal.tree.TreeStrategy.INDEX);
+                        root.setAt(NDTree.E_TOTAL, greycat.Type.LONG, 0);
+                        root.setAt(NDTree.E_TOTAL_SUBNODES, greycat.Type.LONG, 0);
+                        root.setAt(NDTree.E_SUBNODES, greycat.Type.LONG, 0);
+                        root.setAt(NDTree.E_MIN, greycat.Type.DOUBLE_ARRAY, min);
+                        root.setAt(NDTree.E_MAX, greycat.Type.DOUBLE_ARRAY, max);
+                    }
+                    greycat.internal.tree.NDTree.internalInsert(root, keys, value, greycat.internal.tree.TreeStrategy.INDEX, min, max, greycat.internal.tree.NDTree.getCenterMinMax(min, max), resolution, buffersize, root);
+                };
+                NDTree.prototype.profile = function (keys) {
+                    this.profileWith(keys, 1);
+                };
+                NDTree.prototype.profileWith = function (keys, occurrence) {
+                    var root = this.eGraph.root();
+                    var min = root.getAt(NDTree.E_MIN);
+                    var max = root.getAt(NDTree.E_MAX);
+                    greycat.internal.tree.NDTree.check(keys, min, max);
+                    var resolution = root.getAt(NDTree.RESOLUTION);
+                    var buffersize = root.getAtWithDefault(NDTree.BUFFER_SIZE, NDTree.BUFFER_SIZE_DEF);
+                    if (root.getAtWithDefault(NDTree.E_TOTAL, 0) == 0) {
+                        root.setAt(NDTree.STRATEGY, greycat.Type.INT, greycat.internal.tree.TreeStrategy.PROFILE);
+                        root.setAt(NDTree.E_TOTAL, greycat.Type.LONG, 0);
+                        root.setAt(NDTree.E_TOTAL_SUBNODES, greycat.Type.LONG, 0);
+                        root.setAt(NDTree.E_SUBNODES, greycat.Type.LONG, 0);
+                        root.setAt(NDTree.E_MIN, greycat.Type.DOUBLE_ARRAY, min);
+                        root.setAt(NDTree.E_MAX, greycat.Type.DOUBLE_ARRAY, max);
+                    }
+                    greycat.internal.tree.NDTree.internalInsert(root, keys, occurrence, greycat.internal.tree.TreeStrategy.PROFILE, min, max, greycat.internal.tree.NDTree.getCenterMinMax(min, max), resolution, buffersize, root);
+                };
+                NDTree.prototype.queryAround = function (keys, max) {
+                    return this.queryBoundedRadius(keys, -1, max);
+                };
+                NDTree.prototype.queryRadius = function (keys, radius) {
+                    return this.queryBoundedRadius(keys, radius, -1);
+                };
+                NDTree.prototype.queryBoundedRadius = function (keys, radius, max) {
+                    var root = this.eGraph.root();
+                    if (root.getAtWithDefault(NDTree.E_TOTAL, 0) == 0) {
+                        return null;
+                    }
+                    var emin = root.getAt(NDTree.E_MIN);
+                    var emax = root.getAt(NDTree.E_MAX);
+                    greycat.internal.tree.NDTree.check(keys, emin, emax);
+                    var distance = greycat.utility.distance.Distances.getDistance(root.getAtWithDefault(NDTree.DISTANCE, greycat.utility.distance.Distances.DEFAULT));
+                    var strategyType = root.getAt(NDTree.STRATEGY);
+                    var calcZone = this.eGraph.graph().space().newVolatileGraph();
+                    var nnl = new greycat.internal.tree.VolatileTreeResult(calcZone.newNode(), max);
+                    greycat.internal.tree.NDTree.reccursiveTraverse(root, calcZone, nnl, strategyType, distance, keys, null, null, null, radius);
+                    nnl.sort(true);
+                    return nnl;
+                };
+                NDTree.prototype.queryArea = function (min, max) {
+                    var root = this.eGraph.root();
+                    if (root.getAtWithDefault(NDTree.E_TOTAL, 0) == 0) {
+                        return null;
+                    }
+                    var distance = greycat.utility.distance.Distances.getDistance(root.getAtWithDefault(NDTree.DISTANCE, greycat.utility.distance.Distances.DEFAULT));
+                    var strategyType = root.getAt(NDTree.STRATEGY);
+                    var center = new Float64Array(max.length);
+                    for (var i = 0; i < center.length; i++) {
+                        center[i] = (min[i] + max[i]) / 2;
+                    }
+                    var calcZone = this.eGraph.graph().space().newVolatileGraph();
+                    var nnl = new greycat.internal.tree.VolatileTreeResult(calcZone.newNode(), -1);
+                    greycat.internal.tree.NDTree.reccursiveTraverse(root, calcZone, nnl, strategyType, distance, null, min, max, center, -1);
+                    nnl.sort(true);
+                    return nnl;
+                };
+                NDTree.prototype.size = function () {
+                    var root = this.eGraph.root();
+                    return root.getAtWithDefault(NDTree.E_TOTAL, 0);
+                };
+                NDTree.prototype.treeSize = function () {
+                    var root = this.eGraph.root();
+                    return root.getAtWithDefault(NDTree.E_TOTAL_SUBNODES, 0);
+                };
+                NDTree.binaryFromLong = function (value, dim) {
+                    var tempvalue = value - NDTree.E_OFFSET_REL;
+                    var shiftvalue = tempvalue >> 1;
+                    var res = [];
+                    for (var i = 0; i < dim; i++) {
+                        res[dim - i - 1] = ((tempvalue - (shiftvalue << 1)) == 1);
+                        tempvalue = shiftvalue;
+                        shiftvalue = tempvalue >> 1;
+                    }
+                    return res;
+                };
+                NDTree.reccursiveTraverse = function (node, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, targetcenter, radius) {
+                    if (node.getAtWithDefault(NDTree.E_SUBNODES, 0) == 0) {
+                        var buffer = node.getAt(NDTree.E_BUFFER_KEYS);
+                        var bufferValue = node.getAt(NDTree.E_BUFFER_VALUES);
+                        if (buffer != null) {
+                            switch (strategyType) {
+                                case greycat.internal.tree.TreeStrategy.PROFILE: {
+                                    var tempK = new Float64Array(target.length);
+                                    var bufferkeys = node.getAt(NDTree.E_PROFILE);
+                                    for (var i = 0; i < buffer.columns(); i++) {
+                                        var t = bufferValue.get(0, i);
+                                        for (var j = 0; j < buffer.rows(); j++) {
+                                            tempK[j] = bufferkeys.get(j, i) / t;
+                                        }
+                                        greycat.internal.tree.TreeHelper.filterAndInsert(tempK, t, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
+                                    }
+                                    return;
+                                }
+                                case greycat.internal.tree.TreeStrategy.INDEX: {
+                                    for (var i = 0; i < buffer.columns(); i++) {
+                                        greycat.internal.tree.TreeHelper.filterAndInsert(buffer.column(i), bufferValue.get(0, i), target, targetmin, targetmax, targetcenter, distance, radius, nnl);
+                                    }
+                                    return;
+                                }
+                                default:
+                                    {
+                                        throw new Error("Index strategy is wrong!");
+                                    }
+                            }
+                        }
+                        else {
+                            switch (strategyType) {
+                                case greycat.internal.tree.TreeStrategy.PROFILE: {
+                                    var keyo = node.getAt(NDTree.E_PROFILE);
+                                    var key = new Float64Array(keyo.length);
+                                    var value = node.getAt(NDTree.E_TOTAL);
+                                    for (var i = 0; i < keyo.length; i++) {
+                                        key[i] = keyo[i] / value;
+                                    }
+                                    greycat.internal.tree.TreeHelper.filterAndInsert(key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
+                                    return;
+                                }
+                                case greycat.internal.tree.TreeStrategy.INDEX: {
+                                    var key = node.getAt(NDTree.E_PROFILE);
+                                    var value = node.getAt(NDTree.E_VALUE);
+                                    greycat.internal.tree.TreeHelper.filterAndInsert(key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
+                                    return;
+                                }
+                                default:
+                                    {
+                                        throw new Error("Index strategy is wrong!");
+                                    }
+                            }
+                        }
+                    }
+                    else {
+                        var boundMax_1 = node.getAt(NDTree.E_MAX);
+                        var boundMin_1 = node.getAt(NDTree.E_MIN);
+                        var worst = nnl.getWorstDistance();
+                        if (targetmin == null || targetmax == null) {
+                            if (!nnl.isCapacityReached() || greycat.internal.tree.TreeHelper.getclosestDistance(target, boundMin_1, boundMax_1, distance) <= worst) {
+                                var tempList = calcZone.newNode();
+                                var childPriority_1 = new greycat.internal.tree.VolatileTreeResult(tempList, -1);
+                                var dim_1 = boundMax_1.length;
+                                var childMin_1 = new Float64Array(dim_1);
+                                var childMax_1 = new Float64Array(dim_1);
+                                node.each(function (attributeKey, elemType, elem) {
+                                    {
+                                        if (attributeKey >= greycat.internal.tree.NDTree.E_OFFSET_REL) {
+                                            var binaries = greycat.internal.tree.NDTree.binaryFromLong(attributeKey, dim_1);
+                                            for (var i = 0; i < dim_1; i++) {
+                                                if (!binaries[i]) {
+                                                    childMin_1[i] = boundMin_1[i];
+                                                    childMax_1[i] = (boundMax_1[i] + boundMin_1[i]) / 2;
+                                                }
+                                                else {
+                                                    childMin_1[i] = (boundMax_1[i] + boundMin_1[i]) / 2;
+                                                    childMax_1[i] = boundMax_1[i];
+                                                }
+                                            }
+                                            childPriority_1.insert(childMin_1, attributeKey, greycat.internal.tree.TreeHelper.getclosestDistance(target, childMin_1, childMax_1, distance));
+                                        }
+                                    }
+                                });
+                                childPriority_1.sort(true);
+                                for (var i = 0; i < childPriority_1.size(); i++) {
+                                    var child = node.getAt(childPriority_1.value(i));
+                                    greycat.internal.tree.NDTree.reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, targetcenter, radius);
+                                }
+                                childPriority_1.free();
+                            }
+                        }
+                        else {
+                            node.each(function (attributeKey, elemType, elem) {
+                                {
+                                    if (attributeKey >= greycat.internal.tree.NDTree.E_OFFSET_REL) {
+                                        var child = node.getAt(attributeKey);
+                                        if (greycat.internal.tree.TreeHelper.checkBoundsIntersection(targetmin, targetmax, child.getAt(greycat.internal.tree.NDTree.E_MIN), child.getAt(greycat.internal.tree.NDTree.E_MAX))) {
+                                            greycat.internal.tree.NDTree.reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, targetcenter, radius);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+                };
+                return NDTree;
+            }());
+            NDTree.BUFFER_SIZE_DEF = 20;
+            NDTree.RESOLUTION = 10;
+            NDTree.BUFFER_SIZE = 11;
+            NDTree.DISTANCE = 12;
+            NDTree.STRATEGY = 13;
+            NDTree.E_TOTAL = 0;
+            NDTree.E_SUBNODES = 1;
+            NDTree.E_TOTAL_SUBNODES = 2;
+            NDTree.E_MIN = 3;
+            NDTree.E_MAX = 4;
+            NDTree.E_BUFFER_KEYS = 5;
+            NDTree.E_BUFFER_VALUES = 6;
+            NDTree.E_VALUE = 7;
+            NDTree.E_PROFILE = 8;
+            NDTree.E_OFFSET_REL = 16;
+            tree.NDTree = NDTree;
+            var NDTreeNode = (function (_super) {
+                __extends(NDTreeNode, _super);
+                function NDTreeNode(p_world, p_time, p_id, p_graph) {
+                    var _this = _super.call(this, p_world, p_time, p_id, p_graph) || this;
+                    _this._ndTree = null;
+                    return _this;
+                }
+                NDTreeNode.prototype.getTree = function () {
+                    if (this._ndTree == null) {
+                        var egraph = this.getOrCreate(NDTreeNode.E_GRAPH, greycat.Type.EGRAPH);
+                        this._ndTree = new greycat.internal.tree.NDTree(egraph);
+                    }
+                    return this._ndTree;
+                };
+                NDTreeNode.prototype.set = function (name, type, value) {
+                    if (name === NDTreeNode.BOUND_MIN) {
+                        this.setMinBound(value);
+                    }
+                    else if (name === NDTreeNode.BOUND_MAX) {
+                        this.setMaxBound(value);
+                    }
+                    else if (name === NDTreeNode.RESOLUTION) {
+                        this.setResolution(value);
+                    }
+                    else {
+                        _super.prototype.set.call(this, name, type, value);
+                    }
+                    return this;
+                };
+                NDTreeNode.prototype.setDistance = function (distanceType) {
+                    this.getTree().setDistance(distanceType);
+                };
+                NDTreeNode.prototype.setResolution = function (resolution) {
+                    this.getTree().setResolution(resolution);
+                };
+                NDTreeNode.prototype.setMinBound = function (min) {
+                    this.getTree().setMinBound(min);
+                };
+                NDTreeNode.prototype.setMaxBound = function (max) {
+                    this.getTree().setMaxBound(max);
+                };
+                NDTreeNode.prototype.insert = function (keys, value) {
+                    this.getTree().insert(keys, value);
+                };
+                NDTreeNode.prototype.profile = function (keys) {
+                    this.getTree().profile(keys);
+                };
+                NDTreeNode.prototype.profileWith = function (keys, occurrence) {
+                    this.getTree().profileWith(keys, occurrence);
+                };
+                NDTreeNode.prototype.queryAround = function (keys, nbElem) {
+                    return this.getTree().queryAround(keys, nbElem);
+                };
+                NDTreeNode.prototype.queryRadius = function (keys, radius) {
+                    return this.getTree().queryRadius(keys, radius);
+                };
+                NDTreeNode.prototype.queryBoundedRadius = function (keys, radius, max) {
+                    return this.getTree().queryBoundedRadius(keys, radius, max);
+                };
+                NDTreeNode.prototype.queryArea = function (min, max) {
+                    return this.getTree().queryArea(min, max);
+                };
+                NDTreeNode.prototype.size = function () {
+                    return this.getTree().size();
+                };
+                NDTreeNode.prototype.treeSize = function () {
+                    return this.getTree().treeSize();
+                };
+                return NDTreeNode;
+            }(greycat.base.BaseNode));
+            NDTreeNode.NAME = "NDTreeNode";
+            NDTreeNode.BOUND_MIN = "bound_min";
+            NDTreeNode.BOUND_MAX = "bound_max";
+            NDTreeNode.RESOLUTION = "resolution";
+            NDTreeNode.E_GRAPH = "ndtree";
+            tree.NDTreeNode = NDTreeNode;
+            var TreeHelper = (function () {
+                function TreeHelper() {
+                }
+                TreeHelper.checkBoundsIntersection = function (targetmin, targetmax, boundMin, boundMax) {
+                    for (var i = 0; i < boundMax.length; i++) {
+                        if (targetmin[i] > boundMax[i] || targetmax[i] < boundMin[i]) {
+                            return false;
+                        }
+                    }
+                    return true;
+                };
+                TreeHelper.checkKeyInsideBounds = function (key, boundMin, boundMax) {
+                    for (var i = 0; i < boundMax.length; i++) {
+                        if (key[i] > boundMax[i] || key[i] < boundMin[i]) {
+                            return false;
+                        }
+                    }
+                    return true;
+                };
+                TreeHelper.getclosestDistance = function (target, boundMin, boundMax, distance) {
+                    var closest = new Float64Array(target.length);
+                    for (var i = 0; i < target.length; i++) {
+                        if (target[i] >= boundMax[i]) {
+                            closest[i] = boundMax[i];
+                        }
+                        else if (target[i] <= boundMin[i]) {
+                            closest[i] = boundMin[i];
+                        }
+                        else {
+                            closest[i] = target[i];
+                        }
+                    }
+                    return distance.measure(closest, target);
+                };
+                TreeHelper.filterAndInsert = function (key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl) {
+                    if (targetmin != null) {
+                        if (greycat.internal.tree.TreeHelper.checkKeyInsideBounds(key, targetmin, targetmax)) {
+                            nnl.insert(key, value, distance.measure(key, targetcenter));
+                        }
+                    }
+                    else {
+                        var dist = distance.measure(key, target);
+                        if (radius > 0) {
+                            if (dist < radius) {
+                                nnl.insert(key, value, dist);
+                            }
+                        }
+                        else {
+                            nnl.insert(key, value, dist);
+                        }
+                    }
+                };
+                return TreeHelper;
+            }());
+            tree.TreeHelper = TreeHelper;
+            var TreeStrategy = (function () {
+                function TreeStrategy() {
+                }
+                return TreeStrategy;
+            }());
+            TreeStrategy.INDEX = 0;
+            TreeStrategy.PROFILE = 1;
+            TreeStrategy.DEFAULT = TreeStrategy.INDEX;
+            tree.TreeStrategy = TreeStrategy;
+            var VolatileTreeResult = (function () {
+                function VolatileTreeResult(node, capacity) {
+                    this.node = node;
+                    this.count = 0;
+                    this._keys = node.getOrCreateAt(VolatileTreeResult._KEYS, greycat.Type.DMATRIX);
+                    this._values = node.getOrCreateAt(VolatileTreeResult._VALUES, greycat.Type.LMATRIX);
+                    this._distances = node.getOrCreateAt(VolatileTreeResult._DISTANCES, greycat.Type.DMATRIX);
+                    this.capacity = capacity;
+                }
+                VolatileTreeResult.prototype.size = function () {
+                    return this.count;
+                };
+                VolatileTreeResult.prototype.insert = function (key, value, distance) {
+                    if (this.capacity > 0 && this.count == this.capacity) {
+                        this.add(key, value, distance, true);
+                        return true;
+                    }
+                    this.add(key, value, distance, false);
+                    return true;
+                };
+                VolatileTreeResult.prototype.add = function (key, value, distance, remove) {
+                    if (this.count == 0) {
+                        this._keys.appendColumn(new Float64Array(key.length));
+                        this._values.appendColumn(new Float64Array(1));
+                        this._distances.appendColumn(new Float64Array([VolatileTreeResult.maxPriority]));
+                    }
+                    if (remove) {
+                        if (distance > this.getWorstDistance()) {
+                            return;
+                        }
+                        this.remove();
+                        this.count++;
+                        for (var i = 0; i < this._keys.rows(); i++) {
+                            this._keys.set(i, this.count, key[i]);
+                        }
+                        this._values.set(0, this.count, value);
+                        this._distances.set(0, this.count, distance);
+                    }
+                    else {
+                        this.count++;
+                        this._keys.appendColumn(key);
+                        this._values.appendColumn(new Float64Array([value]));
+                        this._distances.appendColumn(new Float64Array([distance]));
+                    }
+                    this.bubbleUp(this.count);
+                    this.worst = this._distances.get(0, 1);
+                };
+                VolatileTreeResult.prototype.remove = function () {
+                    if (this.count == 0)
+                        return;
+                    for (var i = 0; i < this._keys.rows(); i++) {
+                        this._keys.set(i, 1, this._keys.get(i, this.count));
+                        this._keys.set(i, this.count, 0);
+                    }
+                    this._values.set(0, 1, this._values.get(0, this.count));
+                    this._distances.set(0, 1, this._distances.get(0, this.count));
+                    this._values.set(0, this.count, 0);
+                    this._distances.set(0, this.count, 0);
+                    this.count--;
+                    this.bubbleDown(1);
+                };
+                VolatileTreeResult.prototype.bubbleUp = function (pos) {
+                    var okey = this._keys.column(pos);
+                    var element = this._values.column(pos)[0];
+                    var priority = this._distances.column(pos)[0];
+                    var halfpos = Math.floor(pos / 2);
+                    while (this._distances.column(halfpos)[0] < priority) {
+                        this._distances.set(0, pos, this._distances.get(0, halfpos));
+                        this._values.set(0, pos, this._values.get(0, halfpos));
+                        for (var i = 0; i < this._keys.rows(); i++) {
+                            this._keys.set(i, pos, this._keys.get(i, halfpos));
+                        }
+                        pos = Math.floor(pos / 2);
+                        halfpos = Math.floor(pos / 2);
+                    }
+                    this._distances.set(0, pos, priority);
+                    this._values.set(0, pos, element);
+                    for (var i = 0; i < this._keys.rows(); i++) {
+                        this._keys.set(i, pos, okey[i]);
+                    }
+                };
+                VolatileTreeResult.prototype.bubbleDown = function (pos) {
+                    var okey = this._keys.column(pos);
+                    var element = this._values.column(pos)[0];
+                    var priority = this._distances.column(pos)[0];
+                    var child;
+                    for (; pos * 2 <= this.count; pos = child) {
+                        child = pos * 2;
+                        if (child != this.count)
+                            if (this._distances.get(0, child) < this._distances.get(0, child + 1))
+                                child++;
+                        if (priority < this._distances.get(0, child)) {
+                            this._distances.set(0, pos, this._distances.get(0, child));
+                            this._values.set(0, pos, this._values.get(0, child));
+                            for (var i = 0; i < this._keys.rows(); i++) {
+                                this._keys.set(i, pos, this._keys.get(i, child));
+                            }
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    this._distances.set(0, pos, priority);
+                    this._values.set(0, pos, element);
+                    for (var i = 0; i < this._keys.rows(); i++) {
+                        this._keys.set(i, pos, okey[i]);
+                    }
+                };
+                VolatileTreeResult.prototype.keys = function (index) {
+                    return this._keys.column(index + 1);
+                };
+                VolatileTreeResult.prototype.value = function (index) {
+                    return this._values.get(index + 1, 0);
+                };
+                VolatileTreeResult.prototype.distance = function (index) {
+                    return this._distances.get(index + 1, 0);
+                };
+                VolatileTreeResult.prototype.getWorstDistance = function () {
+                    if (this.count == 0) {
+                        return java.lang.Double.POSITIVE_INFINITY;
+                    }
+                    return this.worst;
+                };
+                VolatileTreeResult.prototype.free = function () {
+                    var g = this.node.graph();
+                    this.node.drop();
+                    if (g.size() == 0) {
+                        g.free();
+                    }
+                };
+                VolatileTreeResult.prototype.isCapacityReached = function () {
+                    return this.capacity > 0 && (this.count == this.capacity);
+                };
+                VolatileTreeResult.prototype.swap = function (i, j) {
+                    var tempkey = this._keys.column(i);
+                    var tempvalue = this._values.get(0, i);
+                    var tempdist = this._distances.get(0, i);
+                    this._distances.set(0, i, this._distances.get(0, j));
+                    this._values.set(0, i, this._values.get(0, j));
+                    for (var k = 0; k < this._keys.rows(); k++) {
+                        this._keys.set(k, i, this._keys.get(k, j));
+                    }
+                    this._distances.set(0, j, tempdist);
+                    this._values.set(0, j, tempvalue);
+                    for (var k = 0; k < this._keys.rows(); k++) {
+                        this._keys.set(k, j, tempkey[k]);
+                    }
+                };
+                VolatileTreeResult.prototype.partition = function (l, h, ascending) {
+                    var x = this._distances.get(0, h);
+                    var i = (l - 1);
+                    for (var j = l; j <= h - 1; j++) {
+                        if (ascending) {
+                            if (this._distances.get(0, j) <= x) {
+                                i++;
+                                this.swap(i, j);
+                            }
+                        }
+                        else {
+                            if (this._distances.get(0, j) > x) {
+                                i++;
+                                this.swap(i, j);
+                            }
+                        }
+                    }
+                    this.swap(i + 1, h);
+                    return (i + 1);
+                };
+                VolatileTreeResult.prototype.quickSort = function (l, h, ascending) {
+                    var stack = new Int32Array(h - l + 1);
+                    var top = -1;
+                    stack[++top] = l;
+                    stack[++top] = h;
+                    while (top >= 0) {
+                        h = stack[top--];
+                        l = stack[top--];
+                        var p = this.partition(l, h, ascending);
+                        if (p - 1 > l) {
+                            stack[++top] = l;
+                            stack[++top] = p - 1;
+                        }
+                        if (p + 1 < h) {
+                            stack[++top] = p + 1;
+                            stack[++top] = h;
+                        }
+                    }
+                };
+                VolatileTreeResult.prototype.sort = function (ascending) {
+                    if (this.count > 1) {
+                        this.quickSort(1, this.count, ascending);
+                    }
+                };
+                return VolatileTreeResult;
+            }());
+            VolatileTreeResult.maxPriority = java.lang.Double.MAX_VALUE;
+            VolatileTreeResult._KEYS = 1;
+            VolatileTreeResult._VALUES = 2;
+            VolatileTreeResult._DISTANCES = 3;
+            tree.VolatileTreeResult = VolatileTreeResult;
+        })(tree = internal.tree || (internal.tree = {}));
     })(internal = greycat.internal || (greycat.internal = {}));
     var plugin;
     (function (plugin) {
@@ -16692,6 +17917,193 @@ var greycat;
             return VerbosePlugin;
         }());
         utility.VerbosePlugin = VerbosePlugin;
+        var distance;
+        (function (distance_1) {
+            var CosineDistance = (function () {
+                function CosineDistance() {
+                }
+                CosineDistance.instance = function () {
+                    if (CosineDistance.static_instance == null) {
+                        CosineDistance.static_instance = new greycat.utility.distance.CosineDistance();
+                    }
+                    return CosineDistance.static_instance;
+                };
+                CosineDistance.prototype.measure = function (x, y) {
+                    var sumTop = 0;
+                    var sumOne = 0;
+                    var sumTwo = 0;
+                    for (var i = 0; i < x.length; i++) {
+                        sumTop += x[i] * y[i];
+                        sumOne += x[i] * x[i];
+                        sumTwo += y[i] * y[i];
+                    }
+                    var cosSim = sumTop / (Math.sqrt(sumOne) * Math.sqrt(sumTwo));
+                    if (cosSim < 0) {
+                        cosSim = 0;
+                    }
+                    return 1 - cosSim;
+                };
+                CosineDistance.prototype.compare = function (x, y) {
+                    return x < y;
+                };
+                CosineDistance.prototype.getMinValue = function () {
+                    return 0;
+                };
+                CosineDistance.prototype.getMaxValue = function () {
+                    return java.lang.Double.MAX_VALUE;
+                };
+                return CosineDistance;
+            }());
+            CosineDistance.static_instance = null;
+            distance_1.CosineDistance = CosineDistance;
+            var Distances = (function () {
+                function Distances() {
+                }
+                Distances.getDistance = function (distance) {
+                    switch (distance) {
+                        case Distances.EUCLIDEAN:
+                            return greycat.utility.distance.EuclideanDistance.instance();
+                        case Distances.GEODISTANCE:
+                            return greycat.utility.distance.GeoDistance.instance();
+                        case Distances.COSINE:
+                            return greycat.utility.distance.CosineDistance.instance();
+                        case Distances.PEARSON:
+                            return greycat.utility.distance.PearsonDistance.instance();
+                    }
+                    return greycat.utility.distance.Distances.getDistance(Distances.DEFAULT);
+                };
+                return Distances;
+            }());
+            Distances.EUCLIDEAN = 0;
+            Distances.GEODISTANCE = 1;
+            Distances.COSINE = 2;
+            Distances.PEARSON = 3;
+            Distances.DEFAULT = Distances.EUCLIDEAN;
+            distance_1.Distances = Distances;
+            var EuclideanDistance = (function () {
+                function EuclideanDistance() {
+                }
+                EuclideanDistance.instance = function () {
+                    if (EuclideanDistance.static_instance == null) {
+                        EuclideanDistance.static_instance = new greycat.utility.distance.EuclideanDistance();
+                    }
+                    return EuclideanDistance.static_instance;
+                };
+                EuclideanDistance.prototype.measure = function (x, y) {
+                    var value = 0;
+                    for (var i = 0; i < x.length; i++) {
+                        value = value + (x[i] - y[i]) * (x[i] - y[i]);
+                    }
+                    return Math.sqrt(value);
+                };
+                EuclideanDistance.prototype.compare = function (x, y) {
+                    return x < y;
+                };
+                EuclideanDistance.prototype.getMinValue = function () {
+                    return 0;
+                };
+                EuclideanDistance.prototype.getMaxValue = function () {
+                    return java.lang.Double.MAX_VALUE;
+                };
+                return EuclideanDistance;
+            }());
+            EuclideanDistance.static_instance = null;
+            distance_1.EuclideanDistance = EuclideanDistance;
+            var GaussianDistance = (function () {
+                function GaussianDistance(covariance) {
+                    this.err = covariance;
+                }
+                GaussianDistance.prototype.measure = function (x, y) {
+                    var max = 0;
+                    var temp;
+                    for (var i = 0; i < x.length; i++) {
+                        temp = (x[i] - y[i]) * (x[i] - y[i]) / this.err[i];
+                        if (temp > max) {
+                            max = temp;
+                        }
+                    }
+                    return Math.sqrt(max);
+                };
+                GaussianDistance.prototype.compare = function (x, y) {
+                    return x < y;
+                };
+                GaussianDistance.prototype.getMinValue = function () {
+                    return 0;
+                };
+                GaussianDistance.prototype.getMaxValue = function () {
+                    return java.lang.Double.MAX_VALUE;
+                };
+                return GaussianDistance;
+            }());
+            distance_1.GaussianDistance = GaussianDistance;
+            var GeoDistance = (function () {
+                function GeoDistance() {
+                }
+                GeoDistance.instance = function () {
+                    if (GeoDistance.static_instance == null) {
+                        GeoDistance.static_instance = new greycat.utility.distance.GeoDistance();
+                    }
+                    return GeoDistance.static_instance;
+                };
+                GeoDistance.prototype.measure = function (x, y) {
+                    var earthRadius = 6371000;
+                    var dLat = greycat.utility.distance.GeoDistance.toRadians(y[0] - x[0]);
+                    var dLng = greycat.utility.distance.GeoDistance.toRadians(y[1] - x[1]);
+                    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(greycat.utility.distance.GeoDistance.toRadians(x[0])) * Math.cos(greycat.utility.distance.GeoDistance.toRadians(y[0])) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+                    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                    return earthRadius * c;
+                };
+                GeoDistance.toRadians = function (angledeg) {
+                    return angledeg * Math.PI / 180;
+                };
+                GeoDistance.prototype.compare = function (x, y) {
+                    return x < y;
+                };
+                GeoDistance.prototype.getMinValue = function () {
+                    return 0;
+                };
+                GeoDistance.prototype.getMaxValue = function () {
+                    return java.lang.Double.MAX_VALUE;
+                };
+                return GeoDistance;
+            }());
+            GeoDistance.static_instance = null;
+            distance_1.GeoDistance = GeoDistance;
+            var PearsonDistance = (function () {
+                function PearsonDistance() {
+                }
+                PearsonDistance.instance = function () {
+                    if (PearsonDistance.static_instance == null) {
+                        PearsonDistance.static_instance = new greycat.utility.distance.PearsonDistance();
+                    }
+                    return PearsonDistance.static_instance;
+                };
+                PearsonDistance.prototype.measure = function (a, b) {
+                    var xy = 0, x = 0, x2 = 0, y = 0, y2 = 0;
+                    for (var i = 0; i < a.length; i++) {
+                        xy += a[i] * b[i];
+                        x += a[i];
+                        y += b[i];
+                        x2 += a[i] * a[i];
+                        y2 += b[i] * b[i];
+                    }
+                    var n = a.length;
+                    return (xy - (x * y) / n) / Math.sqrt((x2 - (x * x) / n) * (y2 - (y * y) / n));
+                };
+                PearsonDistance.prototype.compare = function (x, y) {
+                    return Math.abs(x) > Math.abs(y);
+                };
+                PearsonDistance.prototype.getMinValue = function () {
+                    return 1;
+                };
+                PearsonDistance.prototype.getMaxValue = function () {
+                    return 0;
+                };
+                return PearsonDistance;
+            }());
+            PearsonDistance.static_instance = null;
+            distance_1.PearsonDistance = PearsonDistance;
+        })(distance = utility.distance || (utility.distance = {}));
     })(utility = greycat.utility || (greycat.utility = {}));
 })(greycat || (greycat = {}));
 //# sourceMappingURL=greycat.js.map
