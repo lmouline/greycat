@@ -20,6 +20,7 @@ import greycat.Graph;
 import greycat.Node;
 import greycat.Type;
 import greycat.ml.BaseMLNode;
+import greycat.ml.RegressionNode;
 import greycat.plugin.NodeState;
 import greycat.utility.Enforcer;
 

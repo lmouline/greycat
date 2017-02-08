@@ -17,6 +17,7 @@ package greycat.ml.regression;
 
 import greycat.*;
 import greycat.ml.MLPlugin;
+import greycat.ml.RegressionNode;
 
 import java.util.Random;
 

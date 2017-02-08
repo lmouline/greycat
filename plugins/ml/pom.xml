@@ -146,7 +146,7 @@
                 <version>${java2typescript.plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>ts-compile-structure</id>
+                        <id>ts-compile-ml</id>
                         <phase>compile</phase>
                         <goals>
                             <goal>java2ts</goal>
@@ -155,7 +155,6 @@
                             <name>${js.name}</name>
                             <moduleImports>
                                 <moduleImport>greycat.d.ts</moduleImport>
-                                <moduleImport>greycat.structure.d.ts</moduleImport>
                                 <moduleImport>greycat.blas.ts</moduleImport>
                             </moduleImports>
                             <source>${basedir}/src/main/java</source>
@@ -163,7 +162,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>ts-compile-test-structure</id>
+                        <id>ts-compile-test-ml</id>
                         <phase>test-compile</phase>
                         <goals>
                             <goal>java2ts</goal>
@@ -198,7 +197,6 @@
                                 <echo message="Compile Java to TypeScript" />
                                 <!-- Copy greycat dependency -->
                                 <copy file="${basedir}/../../greycat/target/classes-js/greycat.d.ts" todir="${basedir}/target/generated-sources/" />
-                                <copy file="${basedir}/../structure/target/classes-js/greycat.structure.d.ts" todir="${basedir}/target/generated-sources/" />
                                 <copy file="${basedir}/../../share/greycat.blas.ts" todir="${basedir}/target/generated-sources/" />
                                 <!-- Prepare NPM -->
                                 <copy file="${basedir}/../../share/package.json" todir="${basedir}/target" />
@@ -253,8 +251,6 @@
                                     <filelist dir="${basedir}/../../share/" files="spacer.js" />
                                     <filelist dir="${basedir}/../../greycat/target/classes-js" files="greycat.js" />
                                     <filelist dir="${basedir}/../../share/" files="spacer.js" />
-                                    <filelist dir="${basedir}/../structure/target/classes-js" files="greycat.structure.js" />
-                                    <filelist dir="${basedir}/../../share/" files="spacer.js" />
                                     <filelist dir="${basedir}/target/test-classes" files="greycat.test.js" />
                                     <filelist dir="${basedir}/../../share/" files="spacer.js" />
                                     <filelist dir="${basedir}/target/generated-test-sources/" files="testsRunner.js" />
@@ -262,8 +258,6 @@
 
                                 <concat destfile="${basedir}/target/test-classes/test.all.dev.js" force="no">
                                     <filelist dir="${basedir}/../../greycat/target/classes-js" files="greycat.js" />
-                                    <filelist dir="${basedir}/../../share/" files="spacer.js" />
-                                    <filelist dir="${basedir}/../structure/target/classes-js" files="greycat.structure.js" />
                                     <filelist dir="${basedir}/../../share/" files="spacer.js" />
                                     <filelist dir="${basedir}/target/test-classes" files="greycat.test.js" />
                                     <filelist dir="${basedir}/../../share/" files="spacer.js" />

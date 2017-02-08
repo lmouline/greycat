@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.regression;
+package greycat.ml;
 
 import greycat.Callback;
 import greycat.Node;

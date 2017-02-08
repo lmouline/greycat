@@ -39,7 +39,7 @@
         <dependency>
             <groupId>com.datathings</groupId>
             <artifactId>greycat-ml</artifactId>
-            <version>1-SNAPSHOT</version>
+            <version>${project.parent.version}</version>
         </dependency>
     </dependencies>
 
@@ -77,6 +77,7 @@
                             <name>${js.name}</name>
                             <moduleImports>
                                 <moduleImport>greycat.d.ts</moduleImport>
+                                <moduleImport>greycat.ml.d.ts</moduleImport>
                             </moduleImports>
                             <source>${basedir}/src/main/java</source>
                             <target>${basedir}/target/generated-sources</target>
@@ -117,6 +118,8 @@
                             <target>
                                 <echo message="Compile Java to TypeScript"/>
                                 <copy file="${basedir}/../../greycat/target/classes-js/greycat.d.ts"
+                                      todir="${basedir}/target/generated-sources/"/>
+                                <copy file="${basedir}/../../plugins/ml/target/classes-js/greycat.ml.d.ts"
                                       todir="${basedir}/target/generated-sources/"/>
                                 <copy file="${basedir}/../../share/package.json" todir="${basedir}/target"/>
                                 <exec executable="npm" dir="${basedir}/target" failonerror="true">
@@ -172,12 +175,16 @@
                                 <concat destfile="${basedir}/target/test-classes/test.all.js" force="no">
                                     <filelist dir="${basedir}/../../greycat/target/classes-js" files="greycat.js"/>
                                     <filelist dir="${basedir}/../../share/" files="spacer.js"/>
+                                    <filelist dir="${basedir}/../../plugins/ml/target/classes-js" files="greycat.ml.js"/>
+                                    <filelist dir="${basedir}/../../share/" files="spacer.js"/>
                                     <filelist dir="${basedir}/target/test-classes" files="greycat.test.js"/>
                                     <filelist dir="${basedir}/../../share/" files="spacer.js"/>
                                     <filelist dir="${basedir}/target/generated-test-sources/" files="testsRunner.js"/>
                                 </concat>
                                 <concat destfile="${basedir}/target/test-classes/test.all.dev.js" force="no">
                                     <filelist dir="${basedir}/../../greycat/target/classes-js" files="greycat.js"/>
+                                    <filelist dir="${basedir}/../../share/" files="spacer.js"/>
+                                    <filelist dir="${basedir}/../../plugins/ml/target/classes-js" files="greycat.ml.js"/>
                                     <filelist dir="${basedir}/../../share/" files="spacer.js"/>
                                     <filelist dir="${basedir}/target/test-classes" files="greycat.test.js"/>
                                     <filelist dir="${basedir}/../../share/" files="spacer.js"/>
