@@ -47,11 +47,14 @@ public class EmbeddedTreeTest {
                 profile.profile(new double[]{16, 800});
 
                 TreeResult treeResult = profile.queryAround(new double[]{12, 500}, 1);
+
                 Assert.assertEquals(1, treeResult.size());
                 double[] retrieveKeys = treeResult.keys(0);
                 Assert.assertTrue(12 == retrieveKeys[0]);
                 Assert.assertTrue(500 == retrieveKeys[1]);
                 treeResult.free();
+                
+
                 g.disconnect(null);
 
             }

@@ -19,7 +19,6 @@ import greycat.Graph;
 import greycat.Node;
 import greycat.Type;
 import greycat.base.BaseNode;
-import greycat.struct.EGraph;
 import greycat.struct.Tree;
 import greycat.struct.TreeResult;
 
@@ -30,7 +29,7 @@ public class KDTreeNode extends BaseNode implements Tree {
     public static String BOUND_MAX = "bound_max";
     public static String RESOLUTION = "resolution";
 
-    private static String E_GRAPH = "kdtree";
+    private static String E_TREE = "etree";
 
     public KDTreeNode(long p_world, long p_time, long p_id, Graph p_graph) {
         super(p_world, p_time, p_id, p_graph);
@@ -40,14 +39,13 @@ public class KDTreeNode extends BaseNode implements Tree {
 
     private KDTree getTree() {
         if (_kdTree == null) {
-            EGraph egraph = (EGraph) getOrCreate(E_GRAPH, Type.EGRAPH);
-            _kdTree = new KDTree(egraph);
+            _kdTree = (KDTree) getOrCreate(E_TREE, Type.KDTREE);
         }
         return _kdTree;
     }
 
     @Override
-    public Node set(String name, byte type, Object value) {
+    public final Node set(String name, byte type, Object value) {
         if (name.equals(BOUND_MIN)) {
             setMinBound((double[]) value);
         } else if (name.equals(BOUND_MAX)) {
@@ -61,27 +59,27 @@ public class KDTreeNode extends BaseNode implements Tree {
     }
 
     @Override
-    public void setDistance(int distanceType) {
+    public final void setDistance(int distanceType) {
         getTree().setDistance(distanceType);
     }
 
     @Override
-    public void setResolution(double[] resolution) {
+    public final void setResolution(double[] resolution) {
         getTree().setResolution(resolution);
     }
 
     @Override
-    public void setMinBound(double[] min) {
+    public final void setMinBound(double[] min) {
         getTree().setMinBound(min);
     }
 
     @Override
-    public void setMaxBound(double[] max) {
+    public final void setMaxBound(double[] max) {
         getTree().setMaxBound(max);
     }
 
     @Override
-    public void insert(double[] keys, long value) {
+    public final void insert(double[] keys, long value) {
         getTree().insert(keys, value);
     }
 
@@ -92,32 +90,32 @@ public class KDTreeNode extends BaseNode implements Tree {
     }*/
 
     @Override
-    public TreeResult queryAround(double[] keys, int max) {
+    public final TreeResult queryAround(double[] keys, int max) {
         return getTree().queryAround(keys, max);
     }
 
     @Override
-    public TreeResult queryRadius(double[] keys, double radius) {
+    public final TreeResult queryRadius(double[] keys, double radius) {
         return getTree().queryRadius(keys, radius);
     }
 
     @Override
-    public TreeResult queryBoundedRadius(double[] keys, double radius, int max) {
+    public final TreeResult queryBoundedRadius(double[] keys, double radius, int max) {
         return getTree().queryBoundedRadius(keys, radius, max);
     }
 
     @Override
-    public TreeResult queryArea(double[] min, double[] max) {
+    public final TreeResult queryArea(double[] min, double[] max) {
         return getTree().queryArea(min, max);
     }
 
     @Override
-    public long size() {
+    public final long size() {
         return getTree().size();
     }
 
     @Override
-    public long treeSize() {
+    public final long treeSize() {
         return getTree().treeSize();
     }
 }

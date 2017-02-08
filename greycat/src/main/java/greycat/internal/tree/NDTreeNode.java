@@ -19,7 +19,6 @@ import greycat.Graph;
 import greycat.Node;
 import greycat.Type;
 import greycat.base.BaseNode;
-import greycat.struct.EGraph;
 import greycat.struct.Profile;
 import greycat.struct.TreeResult;
 
@@ -30,7 +29,7 @@ public class NDTreeNode extends BaseNode implements Profile {
     public static String BOUND_MAX = "bound_max";
     public static String RESOLUTION = "resolution";
 
-    private static String E_GRAPH = "ndtree";
+    private static String E_TREE = "etree";
 
     public NDTreeNode(long p_world, long p_time, long p_id, Graph p_graph) {
         super(p_world, p_time, p_id, p_graph);
@@ -40,14 +39,13 @@ public class NDTreeNode extends BaseNode implements Profile {
 
     private NDTree getTree() {
         if (_ndTree == null) {
-            EGraph egraph = (EGraph) getOrCreate(E_GRAPH, Type.EGRAPH);
-            _ndTree = new NDTree(egraph);
+            _ndTree = (NDTree) getOrCreate(E_TREE, Type.NDTREE);
         }
         return _ndTree;
     }
 
     @Override
-    public Node set(String name, byte type, Object value) {
+    public final Node set(String name, byte type, Object value) {
         if (name.equals(BOUND_MIN)) {
             setMinBound((double[]) value);
         } else if (name.equals(BOUND_MAX)) {
@@ -61,67 +59,67 @@ public class NDTreeNode extends BaseNode implements Profile {
     }
 
     @Override
-    public void setDistance(int distanceType) {
+    public final void setDistance(final int distanceType) {
         getTree().setDistance(distanceType);
     }
 
     @Override
-    public void setResolution(double[] resolution) {
+    public final void setResolution(final double[] resolution) {
         getTree().setResolution(resolution);
     }
 
     @Override
-    public void setMinBound(double[] min) {
+    public final void setMinBound(final double[] min) {
         getTree().setMinBound(min);
     }
 
     @Override
-    public void setMaxBound(double[] max) {
+    public final void setMaxBound(final double[] max) {
         getTree().setMaxBound(max);
     }
 
     @Override
-    public void insert(double[] keys, long value) {
+    public final void insert(final double[] keys, final long value) {
         getTree().insert(keys, value);
     }
 
     @Override
-    public void profile(double[] keys) {
+    public final void profile(final double[] keys) {
         getTree().profile(keys);
     }
 
     @Override
-    public void profileWith(double[] keys, long occurrence) {
+    public final void profileWith(final double[] keys, final long occurrence) {
         getTree().profileWith(keys, occurrence);
     }
 
     @Override
-    public TreeResult queryAround(double[] keys, int nbElem) {
+    public final TreeResult queryAround(final double[] keys, final int nbElem) {
         return getTree().queryAround(keys, nbElem);
     }
 
     @Override
-    public TreeResult queryRadius(double[] keys, double radius) {
+    public final TreeResult queryRadius(final double[] keys, final double radius) {
         return getTree().queryRadius(keys, radius);
     }
 
     @Override
-    public TreeResult queryBoundedRadius(double[] keys, double radius, int max) {
+    public final TreeResult queryBoundedRadius(final double[] keys, final double radius, final int max) {
         return getTree().queryBoundedRadius(keys, radius, max);
     }
 
     @Override
-    public TreeResult queryArea(double[] min, double[] max) {
+    public final TreeResult queryArea(final double[] min, final double[] max) {
         return getTree().queryArea(min, max);
     }
 
     @Override
-    public long size() {
+    public final long size() {
         return getTree().size();
     }
 
     @Override
-    public long treeSize() {
+    public final long treeSize() {
         return getTree().treeSize();
     }
 }
