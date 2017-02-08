@@ -36,14 +36,14 @@ public class NDTreeNode extends BaseNode implements Tree {
         super(p_world, p_time, p_id, p_graph);
     }
 
-    private NDTree _kdTree = null;
+    private NDTree _ndTree = null;
 
     private NDTree getTree() {
-        if (_kdTree == null) {
+        if (_ndTree == null) {
             EGraph egraph = (EGraph) getOrCreate(E_GRAPH, Type.EGRAPH);
-            _kdTree = new NDTree(egraph);
+            _ndTree = new NDTree(egraph);
         }
-        return _kdTree;
+        return _ndTree;
     }
 
     @Override

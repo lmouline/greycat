@@ -42,13 +42,14 @@ public class NDTreeTest {
                 double[] boundMin = new double[dim];
                 double[] boundMax = new double[dim];
                 for (int i = 0; i < dim; i++) {
-                    precisions[i] = 0.000001;
+                    precisions[i] = 0.001;
                     boundMin[i] = 0;
                     boundMax[i] = 1;
                 }
                 ndTree.setMinBound(boundMin);
                 ndTree.setMaxBound(boundMax);
                 ndTree.setResolution(precisions);
+                kdTree.setResolution(precisions);
                 Random random = new Random();
                 random.setSeed(125362l);
                 int ins = 100;
@@ -121,10 +122,18 @@ public class NDTreeTest {
                 te = System.currentTimeMillis() - ts;
                 System.out.println("KDTree get all: " + te + " ms");
 
+
+//                System.out.println();
+//                System.out.println("KDTree size: "+kdTree.size());
+//                System.out.println("KDTree tree size: "+kdTree.treeSize());
+//                System.out.println("NDTree size: "+ndTree.size());
+//                System.out.println("NDTree tree size: "+ ndTree.treeSize());
+//                System.out.println();
+
                 for (int i = 0; i < test; i++) {
                     for (int j = 0; j < nsearch; j++) {
                         if (temp[i][j] != tempkdtree[i][j]) {
-                            throw new RuntimeException("Error!");
+                            throw new RuntimeException("Error! "+ temp[i][j]+" != "+tempkdtree[i][j]);
                         }
                     }
                 }
@@ -156,6 +165,8 @@ public class NDTreeTest {
                 for(int i=0;i<trangeKD.size();i++){
                     Assert.assertTrue(trangeKD.value(i)==trangeND.value(i));
                 }
+
+
 
                 System.out.println("test pass!");
 

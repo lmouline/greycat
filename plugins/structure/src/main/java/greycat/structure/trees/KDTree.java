@@ -358,13 +358,11 @@ public class KDTree implements Tree {
 
     @Override
     public final long size() {
-        //TODO
-        return 0;
+        return (long) eGraph.root().getAt(E_SUBTREE_NODES);
     }
 
     @Override
     public final long treeSize() {
-        //TODO
-        return 0;
+        return (long) eGraph.root().getAt(E_SUBTREE_NODES);
     }
 }

@@ -446,7 +446,7 @@ public class NDTree implements Tree {
     @Override
     public long treeSize() {
         ENode root = eGraph.root();
-        return root.getAtWithDefault(E_TOTAL_SUBNODES, 0);
+        return root.getAtWithDefault(E_TOTAL_SUBNODES, 0l);
     }
 
 
