@@ -148,9 +148,24 @@
                                       todir="${basedir}/target/classes-npm"/>
                                 <copy file="${basedir}/src/main/resources/package.json"
                                       todir="${basedir}/target/classes-npm"/>
+                                <copy file="${basedir}/src/main/resources/readme.md"
+                                      todir="${basedir}/target/classes-npm"/>
+                                <!-- update to maven version -->
+                                <replace file="${basedir}/target/classes-npm/package.json">
+                                    <replacetoken>GREYCAT_VERSION</replacetoken>
+                                    <replacevalue>${project.version}</replacevalue>
+                                </replace>
+                                <!-- remove snapshot if any -->
+                                <replace file="${basedir}/target/classes-npm/package.json">
+                                    <replacetoken>-SNAPSHOT</replacetoken>
+                                    <replacevalue></replacevalue>
+                                </replace>
                                 <concat append="true" destfile="${basedir}/target/classes-npm/greycat.js">
-                                    ${line.separator}module.exports = org.greycat;
+                                    ${line.separator}greycat.java = java;${line.separator}module.exports = greycat;
                                 </concat>
+                                <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
+                                    <arg value="link"/>
+                                </exec>
                             </target>
                         </configuration>
                     </execution>

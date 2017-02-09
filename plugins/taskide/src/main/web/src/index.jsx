@@ -18,7 +18,10 @@ import ReactDOM from 'react-dom';
 import SplitPane from 'react-split-pane';
 import renderjson from 'renderjson';
 
-import TaskEditor from './TaskEditor.js'
+import TaskEditor from './TaskEditor.jsx'
+
+import greycat from 'greycat';
+import greycatWebSocket from 'greycat-websocket';
 
 import 'bulma/css/bulma.css';
 import './index.css';
@@ -28,9 +31,8 @@ global.context = {};
 //let defaultPORT = 4000;
 let defaultPORT = window.location.port;
 let defaultURL = "ws://" + window.location.hostname + ":" + defaultPORT + "/ws";
-let greycat = global.greycat;
 
-global.context.ws = new greycat.websocket.WSClient(defaultURL);
+global.context.ws = new greycatWebSocket.WSClient(defaultURL);
 global.context.graph = greycat.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
 global.context.actions = [];
 global.context.graph.connect(null);
@@ -39,7 +41,7 @@ global.context.url = function (val) {
     if (global.context.graph !== undefined) {
         global.context.graph.disconnect(null);
     }
-    global.context.ws = new greycat.websocket.WSClient(val);
+    global.context.ws = new greycatWebSocket.WSClient(val);
     global.context.graph = greycat.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
     global.context.graph.connect(null);
     console.log('change url to ' + val);
@@ -71,7 +73,7 @@ const LoadingButton = React.createClass({
     handleClick() {
         let self = this;
         self.setState({isLoading: true});
-        let task = global.greycat.Tasks.newTask();
+        let task = greycat.Tasks.newTask();
         try {
             task.parse(global.context.code, window.context.graph);
             global.context.ws.executeTasks(function (results) {

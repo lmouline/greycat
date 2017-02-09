@@ -16,7 +16,8 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat-taskide</artifactId>
     <version>1-SNAPSHOT</version>
@@ -61,18 +62,25 @@
                         </goals>
                         <configuration>
                             <target>
-                                <copy file="${basedir}/../../greycat/target/classes-js/greycat.js" todir="${basedir}/src/main/web/public" overwrite="true" />
-                                <copy file="${basedir}/../websocket/target/classes-js/greycat.ws.js" todir="${basedir}/src/main/web/public" overwrite="true" />
-                                <echo message="npm install" />
+                                <echo message="npm install"/>
                                 <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
-                                    <arg value="install" />
+                                    <arg value="link"/>
+                                    <arg value="greycat"/>
                                 </exec>
-                                <echo message="static build" />
                                 <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
-                                    <arg value="run" />
-                                    <arg value="build" />
+                                    <arg value="link"/>
+                                    <arg value="greycat-websocket"/>
                                 </exec>
-                                <copydir src="${basedir}/src/main/web/build" dest="${basedir}/target/classes/taskide" forceoverwrite="true" />
+                                <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
+                                    <arg value="install"/>
+                                </exec>
+                                <echo message="static build"/>
+                                <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
+                                    <arg value="run"/>
+                                    <arg value="build"/>
+                                </exec>
+                                <copydir src="${basedir}/src/main/web/build" dest="${basedir}/target/classes/taskide"
+                                         forceoverwrite="true"/>
                             </target>
                         </configuration>
                     </execution>

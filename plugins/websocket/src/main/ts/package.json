@@ -1,6 +1,9 @@
 {
-  "name": "greycat-plugin-ws",
+  "name": "greycat-websocket",
   "version": "1.0.0",
   "main": "greycat.ws.js",
-  "typings": "greycat.ws.d.ts"
+  "typings": "greycat.ws.d.ts",
+  "dependencies": {
+    "greycat":"*"
+  }
 }

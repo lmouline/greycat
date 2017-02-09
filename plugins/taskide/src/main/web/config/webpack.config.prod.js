@@ -23,6 +23,7 @@ var InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
 var url = require('url');
 var paths = require('./paths');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const ClosureCompilerPlugin = require('webpack-closure-compiler');
 var getClientEnvironment = require('./env');
 
 function ensureSlash(path, needsSlash) {
@@ -237,6 +238,7 @@ module.exports = {
         new webpack.optimize.DedupePlugin(),
         // Minify the code.
         new webpack.optimize.UglifyJsPlugin({
+            minimize: true,
             compress: {
                 screw_ie8: true, // React doesn't support IE8
                 warnings: false
@@ -247,7 +249,18 @@ module.exports = {
             output: {
                 comments: false,
                 screw_ie8: true
+            },
+            compressor: {
+                warnings: false
             }
+        }),
+        new ClosureCompilerPlugin({
+            compiler: {
+                language_in: 'ECMASCRIPT6',
+                language_out: 'ECMASCRIPT5',
+                compilation_level: 'SIMPLE'
+            },
+            concurrency: 1
         }),
         // Note: this won't work without ExtractTextPlugin.extract(..) in `loaders`.
         new ExtractTextPlugin('static/css/[name].[contenthash:8].css'),

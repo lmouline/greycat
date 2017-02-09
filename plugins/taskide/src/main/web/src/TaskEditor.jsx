@@ -46,7 +46,7 @@ class TaskEditor extends React.Component {
                         var insertParam = '(';
                         if (params !== undefined && params != null) {
                             for (var j = 0; j < params.length; j++) {
-                                if (j != 0) {
+                                if (j !== 0) {
                                     insertParam += ',';
                                 }
                                 switch (params[j]) {

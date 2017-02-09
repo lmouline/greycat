@@ -1,0 +1,3 @@
+# GreyCat: the { temporal, many-world } database for live analytics
+
+more to come soon...
