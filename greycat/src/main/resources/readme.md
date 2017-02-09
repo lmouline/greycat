@@ -1,3 +1,15 @@
-# GreyCat: the { temporal, many-world } database for live analytics
+# GreyCat: the temporal and many-world database for live analytics.
 
-more to come soon...
+# Usage
+
+```js
+var greycat = require('greycat');
+var graph = greycat.GraphBuilder.newBuilder().build();
+graph.connect(function(){
+    var node = graph.newNode(0,0);
+    node.set("name", greycat.Type.STRING, "myFirstNode");
+    graph.save(null);
+});
+```
+
+more to come...
