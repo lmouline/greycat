@@ -16,6 +16,7 @@
 package greycat.utility.distance;
 
 public class GaussianDistance implements Distance {
+
     double[] err;
     public GaussianDistance(double[] covariance){
         this.err=covariance;

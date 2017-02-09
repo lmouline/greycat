@@ -5,11 +5,7 @@ import greycat.ml.neuralnet.NeuralUnit;
 
 public class RectifiedLinearUnit implements NeuralUnit {
 	private double slope;
-	
-	public RectifiedLinearUnit() {
-		this.slope = 0;
-	}
-	
+
 	public RectifiedLinearUnit(double slope) {
 		this.slope = slope;
 	}
