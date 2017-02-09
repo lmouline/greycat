@@ -15,16 +15,26 @@
  */
 package greycat.ml.neuralnet.functions;
 
-import greycat.ml.neuralnet.NeuralFunction;
+import greycat.ml.neuralnet.NeuralUnit;
 
-public class SigmoidFunction implements NeuralFunction {
-    @Override
-    public double activate(double x) {
-        return 1 / (1 + Math.exp(-x));
+public class LinearUnit implements NeuralUnit {
+
+    private static LinearUnit static_unit= null;
+
+    public static LinearUnit instance() {
+        if (static_unit == null) {
+            static_unit = new LinearUnit();
+        }
+        return static_unit;
     }
 
     @Override
-    public double derivate(double x, double fct) {
-        return fct * (1 - fct);
+    public double forward(double x) {
+        return x;
+    }
+
+    @Override
+    public double backward(double x) {
+        return 1;
     }
 }

@@ -64,7 +64,7 @@ class BioNeuralNode extends BaseNode {
             }
             spikeSumTot = spikeSumTot + loopSpikeNb;
         }
-        //activate capacitor effect
+        //forward capacitor effect
         if ((spikeSumTot >= spikeSum.columns()) && (sigmoid > threshold)) {
             spikeSum.fill(0d);
             spikeNb.fill(0d);

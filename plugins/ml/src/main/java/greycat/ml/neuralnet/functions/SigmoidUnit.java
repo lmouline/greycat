@@ -13,9 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet;
+package greycat.ml.neuralnet.functions;
 
-public interface NeuralFunction {
-    double activate(double x);
-    double derivate(double x, double fct);
+import greycat.ml.neuralnet.NeuralUnit;
+
+public class SigmoidUnit implements NeuralUnit {
+
+    private static SigmoidUnit static_unit= null;
+
+    public static SigmoidUnit instance() {
+        if (static_unit == null) {
+            static_unit = new SigmoidUnit();
+        }
+        return static_unit;
+    }
+
+    @Override
+    public double forward(double x) {
+        return 1 / (1 + Math.exp(-x));
+    }
+
+    @Override
+    public double backward(double x) {
+        double fct = forward(x);
+        return fct * (1 - fct);
+    }
 }

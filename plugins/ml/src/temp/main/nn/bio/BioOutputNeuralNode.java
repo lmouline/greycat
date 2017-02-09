@@ -66,7 +66,7 @@ public class BioOutputNeuralNode extends BaseNode {
                 maxSpikeNb = loopSpikeNb;
             }
         }
-        //activate capacitor effect
+        //forward capacitor effect
         /*
         if ((maxSpikeNb >= (spikeLimit / 2)) && (sigmoid > threshold)) {
             spikeSum.fill(0d);

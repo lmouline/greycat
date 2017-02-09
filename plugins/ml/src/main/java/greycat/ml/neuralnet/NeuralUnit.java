@@ -13,18 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.functions;
+package greycat.ml.neuralnet;
 
-import greycat.ml.neuralnet.NeuralFunction;
-
-public class LinearFunction implements NeuralFunction{
-    @Override
-    public double activate(double x) {
-        return x;
-    }
-
-    @Override
-    public double derivate(double x, double fct) {
-        return 1;
-    }
+public interface NeuralUnit {
+    double forward(double x);
+    double backward(double x);
 }
