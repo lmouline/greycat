@@ -2966,8 +2966,9 @@ declare module greycat {
                 static GEODISTANCE: number;
                 static COSINE: number;
                 static PEARSON: number;
+                static GAUSSIAN: number;
                 static DEFAULT: number;
-                static getDistance(distance: number): greycat.utility.distance.Distance;
+                static getDistance(distance: number, distancearg: Float64Array): greycat.utility.distance.Distance;
             }
             class EuclideanDistance implements greycat.utility.distance.Distance {
                 private static static_instance;

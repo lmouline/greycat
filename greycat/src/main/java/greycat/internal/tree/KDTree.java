@@ -325,7 +325,7 @@ public class KDTree implements Tree {
         if (root.getAt(E_KEY) == null) {
             return null;
         }
-        final Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT));
+        final Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT),null);
         if (keys.length != ((double[]) root.getAt(E_KEY)).length) {
             throw new RuntimeException("Keys are not of the same size");
         }
@@ -342,7 +342,7 @@ public class KDTree implements Tree {
         if (root.getAt(E_KEY) == null) {
             return null;
         }
-        final Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT));
+        final Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT),null);
         final double[] center = new double[max.length];
         for (int i = 0; i < center.length; i++) {
             center[i] = (min[i] + max[i]) / 2;

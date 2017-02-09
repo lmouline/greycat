@@ -403,7 +403,7 @@ public class NDTree implements Profile {
         double[] emin = (double[]) root.getAt(E_MIN);
         double[] emax = (double[]) root.getAt(E_MAX);
         check(keys, emin, emax);
-        Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT));
+        Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT),null);
         int strategyType = (int) root.getAt(STRATEGY);
         EGraph calcZone = eGraph.graph().space().newVolatileGraph();
         VolatileTreeResult nnl = new VolatileTreeResult(calcZone.newNode(), max);
@@ -418,7 +418,7 @@ public class NDTree implements Profile {
         if (root.getAtWithDefault(E_TOTAL, 0L) == 0) {
             return null;
         }
-        Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT));
+        Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT),null);
         int strategyType = (int) root.getAt(STRATEGY);
         final double[] center = new double[max.length];
         for (int i = 0; i < center.length; i++) {

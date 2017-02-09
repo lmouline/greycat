@@ -22,10 +22,11 @@ public class Distances {
     public static final int GEODISTANCE = 1;
     public static final int COSINE = 2;
     public static final int PEARSON = 3;
+    public static final int GAUSSIAN = 4;
 
     public static final int DEFAULT = EUCLIDEAN;
 
-    public static Distance getDistance(int distance) {
+    public static Distance getDistance(int distance, double[] distancearg) {
         switch (distance) {
             case EUCLIDEAN:
                 return EuclideanDistance.instance();
@@ -35,8 +36,10 @@ public class Distances {
                 return CosineDistance.instance();
             case PEARSON:
                 return PearsonDistance.instance();
+            case GAUSSIAN:
+                return new GaussianDistance(distancearg);
         }
-        return getDistance(DEFAULT);
+        return getDistance(DEFAULT,null);
     }
 
 }
