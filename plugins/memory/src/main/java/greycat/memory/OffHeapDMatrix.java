@@ -225,6 +225,21 @@ class OffHeapDMatrix implements DMatrix {
     }
 
     @Override
+    public int length() {
+        container.lock();
+        int result = 0;
+        try {
+            final long addr = container.addrByIndex(index);
+            if (addr != OffHeapConstants.NULL_PTR) {
+                result = ((int) OffHeapDoubleArray.get(addr, INDEX_MAX_COLUMN)) * ((int) OffHeapDoubleArray.get(addr, INDEX_ROWS));
+            }
+        } finally {
+            container.unlock();
+        }
+        return result;
+    }
+
+    @Override
     public double[] column(int columnIndex) {
         double[] result = null;
         container.lock();

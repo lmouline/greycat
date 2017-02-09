@@ -217,6 +217,17 @@ class HeapDMatrix implements DMatrix {
     }
 
     @Override
+    public int length() {
+        int result = 0;
+        synchronized (parent) {
+            if (backend != null) {
+                result = ((int) backend[INDEX_MAX_COLUMN])* ((int) backend[INDEX_ROWS]);
+            }
+        }
+        return result;
+    }
+
+    @Override
     public final double[] column(int index) {
         double[] result;
         synchronized (parent) {

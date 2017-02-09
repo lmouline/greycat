@@ -65,6 +65,11 @@ public class VolatileDMatrix implements DMatrix {
     }
 
     @Override
+    public int length() {
+        return _nbRows * _nbColumns;
+    }
+
+    @Override
     public double[] column(int index) {
         double[] result = new double[_nbRows];
         System.arraycopy(_data, (index * _nbRows), result, 0, _nbRows);
@@ -91,7 +96,7 @@ public class VolatileDMatrix implements DMatrix {
 
     @Override
     public DMatrix appendColumn(double[] newColumn) {
-        if (_data == null ||_data.length==0) {
+        if (_data == null || _data.length == 0) {
             _nbRows = newColumn.length;
             _nbColumns = Constants.MAP_INITIAL_CAPACITY;
             _nbMaxColumn = 0;
@@ -135,7 +140,7 @@ public class VolatileDMatrix implements DMatrix {
     @Override
     public DMatrix fillWithRandomStd(Random random, double std) {
         for (int i = 0; i < _nbRows * _nbColumns; i++) {
-            this._data[i] = random.nextGaussian()*std;
+            this._data[i] = random.nextGaussian() * std;
         }
         return this;
     }
@@ -263,7 +268,7 @@ public class VolatileDMatrix implements DMatrix {
         return res;
     }
 
-    public static DMatrix empty(int rows, int columns) {
+    public static VolatileDMatrix empty(int rows, int columns) {
         return new VolatileDMatrix(null, rows, columns);
     }
 

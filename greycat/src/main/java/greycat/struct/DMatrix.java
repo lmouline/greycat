@@ -33,6 +33,8 @@ public interface DMatrix {
 
     int columns();
 
+    int length();
+
     double[] column(int i);
 
     double get(int rowIndex, int columnIndex);

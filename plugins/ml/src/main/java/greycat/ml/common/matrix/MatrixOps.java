@@ -21,7 +21,7 @@ import greycat.struct.DMatrix;
 public class MatrixOps {
 
     private static MatrixEngine _defaultEngine = null;
-    
+
     public static MatrixEngine defaultEngine() {
         if (_defaultEngine == null) {
             _defaultEngine = new HybridMatrixEngine();
@@ -29,15 +29,15 @@ public class MatrixOps {
         return _defaultEngine;
     }
 
-    public static void setDefaultEngine(MatrixEngine engine){
-        _defaultEngine=engine;
+    public static void setDefaultEngine(MatrixEngine engine) {
+        _defaultEngine = engine;
     }
 
 
     public static void copyMatrix(DMatrix source, DMatrix destination) {
         for (int row = 0; row < source.rows(); row++) {
-            for(int col=0;col<source.columns();col++){
-                destination.set(row,col,source.get(row,col));
+            for (int col = 0; col < source.columns(); col++) {
+                destination.set(row, col, source.get(row, col));
             }
         }
     }
@@ -67,7 +67,6 @@ public class MatrixOps {
     }
 
 
-
     public static void scale(double alpha, VolatileDMatrix matA) {
         if (alpha == 0) {
             matA.fill(0);
@@ -79,7 +78,7 @@ public class MatrixOps {
     }
 
     public static DMatrix transpose(DMatrix matA) {
-        DMatrix result =  VolatileDMatrix.empty(matA.columns(), matA.rows());
+        DMatrix result = VolatileDMatrix.empty(matA.columns(), matA.rows());
         int TRANSPOSE_SWITCH = 375;
         if (matA.columns() == matA.rows()) {
             transposeSquare(matA, result);
@@ -163,26 +162,30 @@ public class MatrixOps {
     }
 
 
+    public static boolean checkDim(DMatrix x, DMatrix y) {
+        return (x.rows() == y.rows() && x.columns() == y.columns());
+    }
+
     public static DMatrix sub(DMatrix matA, DMatrix matB) {
-        if(matA.rows()!=matB.rows()|| matA.columns()!=matB.columns()){
+        if (matA.rows() != matB.rows() || matA.columns() != matB.columns()) {
             throw new RuntimeException("Matrices A and B have different dimensions for the substract operation");
         }
-        DMatrix result= VolatileDMatrix.empty(matA.rows(),matA.columns());
-        int total=matA.rows()*matA.columns();
-        for(int i=0;i<total;i++){
-            result.unsafeSet(i,matA.unsafeGet(i)-matB.unsafeGet(i));
+        DMatrix result = VolatileDMatrix.empty(matA.rows(), matA.columns());
+        int total = matA.rows() * matA.columns();
+        for (int i = 0; i < total; i++) {
+            result.unsafeSet(i, matA.unsafeGet(i) - matB.unsafeGet(i));
         }
         return result;
     }
 
     public static DMatrix add(DMatrix matA, DMatrix matB) {
-        if(matA.rows()!=matB.rows()|| matA.columns()!=matB.columns()){
+        if (matA.rows() != matB.rows() || matA.columns() != matB.columns()) {
             throw new RuntimeException("Matrices A and B have different dimensions for the add operation");
         }
-        DMatrix result= VolatileDMatrix.empty(matA.rows(),matA.columns());
-        int total=matA.rows()*matA.columns();
-        for(int i=0;i<total;i++){
-            result.unsafeSet(i,matA.unsafeGet(i)+matB.unsafeGet(i));
+        DMatrix result = VolatileDMatrix.empty(matA.rows(), matA.columns());
+        int total = matA.rows() * matA.columns();
+        for (int i = 0; i < total; i++) {
+            result.unsafeSet(i, matA.unsafeGet(i) + matB.unsafeGet(i));
         }
         return result;
     }
