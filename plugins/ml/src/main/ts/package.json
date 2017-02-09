@@ -2,8 +2,8 @@
   "name": "greycat-websocket",
   "homepage": "https://github.com/datathings/greycat",
   "version": "GREYCAT_VERSION.0.0",
-  "main": "greycat.ws.js",
-  "typings": "greycat.ws.d.ts",
+  "main": "greycat.ml.js",
+  "typings": "greycat.ml.d.ts",
   "dependencies": {
     "greycat": "^GREYCAT_VERSION.0.0"
   },
