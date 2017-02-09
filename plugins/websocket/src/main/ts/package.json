@@ -1,9 +1,23 @@
 {
   "name": "greycat-websocket",
-  "version": "1.0.0",
+  "homepage": "https://github.com/datathings/greycat",
+  "version": "GREYCAT_VERSION.0.0",
   "main": "greycat.ws.js",
   "typings": "greycat.ws.d.ts",
   "dependencies": {
-    "greycat":"*"
-  }
+    "greycat": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/datathings/greycat.git"
+  },
+  "bugs": {
+    "url": "https://github.com/datathings/greycat/issues"
+  },
+  "licenses": [
+    {
+      "type": "Apache-2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ]
 }
