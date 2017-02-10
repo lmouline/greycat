@@ -22,7 +22,7 @@ import TaskEditor from './TaskEditor.jsx'
 
 import greycat from 'greycat';
 import greycatWS from 'greycat-websocket';
-import greycatML from 'greycat-ml';
+import greycatMLPlugin from 'greycat-ml';
 
 import 'bulma/css/bulma.css';
 import './index.css';
@@ -34,7 +34,7 @@ let defaultPORT = window.location.port;
 let defaultURL = "ws://" + window.location.hostname + ":" + defaultPORT + "/ws";
 
 global.context.ws = new greycatWS.WSClient(defaultURL);
-global.context.graph = greycat.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
+global.context.graph = greycat.GraphBuilder.newBuilder().withPlugin(new greycatMLPlugin()).withStorage(global.context.ws).build();
 global.context.actions = [];
 global.context.graph.connect(null);
 
@@ -42,8 +42,8 @@ global.context.url = function (val) {
     if (global.context.graph !== undefined) {
         global.context.graph.disconnect(null);
     }
-    global.context.ws = new greycatWebSocket.WSClient(val);
-    global.context.graph = greycat.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
+    global.context.ws = new greycatWS.WSClient(val);
+    global.context.graph = greycat.GraphBuilder.newBuilder().withPlugin(new greycatMLPlugin()).withStorage(global.context.ws).build();
     global.context.graph.connect(null);
     console.log('change url to ' + val);
 };
@@ -77,7 +77,7 @@ const LoadingButton = React.createClass({
         let task = greycat.Tasks.newTask();
         try {
             task.parse(global.context.code, window.context.graph);
-            global.context.ws.executeTasks(function (results) {
+            global.context.ws.executeTasks(function on(results) {
                 let targetDomElem = document.getElementById("json_result");
                 while (targetDomElem.firstChild) {
                     targetDomElem.removeChild(targetDomElem.firstChild);

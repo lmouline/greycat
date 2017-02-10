@@ -1,5 +1,5 @@
 {
-  "name": "greycat-websocket",
+  "name": "greycat-ml",
   "homepage": "https://github.com/datathings/greycat",
   "version": "GREYCAT_VERSION.0.0",
   "main": "greycat.ml.js",

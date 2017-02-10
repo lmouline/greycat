@@ -2456,10 +2456,10 @@ declare module greycat {
                 insert(keys: Float64Array, value: number): void;
                 profile(keys: Float64Array): void;
                 profileWith(keys: Float64Array, occurrence: number): void;
-                queryAround(keys: Float64Array, max: number): greycat.struct.TreeResult;
-                queryRadius(keys: Float64Array, radius: number): greycat.struct.TreeResult;
-                queryBoundedRadius(keys: Float64Array, radius: number, max: number): greycat.struct.TreeResult;
-                queryArea(min: Float64Array, max: Float64Array): greycat.struct.TreeResult;
+                queryAround(keys: Float64Array, max: number): greycat.struct.ProfileResult;
+                queryRadius(keys: Float64Array, radius: number): greycat.struct.ProfileResult;
+                queryBoundedRadius(keys: Float64Array, radius: number, max: number): greycat.struct.ProfileResult;
+                queryArea(min: Float64Array, max: Float64Array): greycat.struct.ProfileResult;
                 size(): number;
                 treeSize(): number;
                 private static binaryFromLong(value, dim);
@@ -2483,10 +2483,10 @@ declare module greycat {
                 setBufferSize(bufferSize: number): void;
                 profile(keys: Float64Array): void;
                 profileWith(keys: Float64Array, occurrence: number): void;
-                queryAround(keys: Float64Array, nbElem: number): greycat.struct.TreeResult;
-                queryRadius(keys: Float64Array, radius: number): greycat.struct.TreeResult;
-                queryBoundedRadius(keys: Float64Array, radius: number, max: number): greycat.struct.TreeResult;
-                queryArea(min: Float64Array, max: Float64Array): greycat.struct.TreeResult;
+                queryAround(keys: Float64Array, nbElem: number): greycat.struct.ProfileResult;
+                queryRadius(keys: Float64Array, radius: number): greycat.struct.ProfileResult;
+                queryBoundedRadius(keys: Float64Array, radius: number, max: number): greycat.struct.ProfileResult;
+                queryArea(min: Float64Array, max: Float64Array): greycat.struct.ProfileResult;
                 size(): number;
                 treeSize(): number;
             }
@@ -2501,7 +2501,7 @@ declare module greycat {
                 static PROFILE: number;
                 static DEFAULT: number;
             }
-            class VolatileTreeResult implements greycat.struct.TreeResult {
+            class VolatileTreeResult implements greycat.struct.ProfileResult {
                 private static maxPriority;
                 private static _KEYS;
                 private static _VALUES;
@@ -2781,6 +2781,13 @@ declare module greycat {
             setBufferSize(bufferSize: number): void;
             profile(keys: Float64Array): void;
             profileWith(keys: Float64Array, occurrence: number): void;
+            queryAround(keys: Float64Array, max: number): greycat.struct.ProfileResult;
+            queryRadius(keys: Float64Array, radius: number): greycat.struct.ProfileResult;
+            queryBoundedRadius(keys: Float64Array, radius: number, max: number): greycat.struct.ProfileResult;
+            queryArea(min: Float64Array, max: Float64Array): greycat.struct.ProfileResult;
+        }
+        interface ProfileResult extends greycat.struct.TreeResult {
+            groupBy(resolutions: Float64Array): greycat.struct.TreeResult;
         }
         interface Relation {
             all(): Float64Array;
@@ -2838,7 +2845,6 @@ declare module greycat {
             sort(ascending: boolean): void;
             free(): void;
             size(): number;
-            groupBy(resolutions: Float64Array): greycat.struct.TreeResult;
         }
     }
     module utility {

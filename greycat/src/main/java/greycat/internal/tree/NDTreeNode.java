@@ -20,7 +20,7 @@ import greycat.Node;
 import greycat.Type;
 import greycat.base.BaseNode;
 import greycat.struct.Profile;
-import greycat.struct.TreeResult;
+import greycat.struct.ProfileResult;
 
 public class NDTreeNode extends BaseNode implements Profile {
 
@@ -99,22 +99,22 @@ public class NDTreeNode extends BaseNode implements Profile {
     }
 
     @Override
-    public final TreeResult queryAround(final double[] keys, final int nbElem) {
+    public final ProfileResult queryAround(final double[] keys, final int nbElem) {
         return getTree().queryAround(keys, nbElem);
     }
 
     @Override
-    public final TreeResult queryRadius(final double[] keys, final double radius) {
+    public final ProfileResult queryRadius(final double[] keys, final double radius) {
         return getTree().queryRadius(keys, radius);
     }
 
     @Override
-    public final TreeResult queryBoundedRadius(final double[] keys, final double radius, final int max) {
+    public final ProfileResult queryBoundedRadius(final double[] keys, final double radius, final int max) {
         return getTree().queryBoundedRadius(keys, radius, max);
     }
 
     @Override
-    public final TreeResult queryArea(final double[] min, final double[] max) {
+    public final ProfileResult queryArea(final double[] min, final double[] max) {
         return getTree().queryArea(min, max);
     }
 

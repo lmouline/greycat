@@ -4,9 +4,9 @@
 
 ```js
 var greycat = require('greycat');
-var greycatML = require('greycat-ml');
+var greycatMLPlugin = require('greycat-ml');
 var graph = greycat.GraphBuilder.newBuilder()
-    .withPlugin(new greycatML())
+    .withPlugin(new greycatMLPlugin())
     .build();
 graph.connect(function(){
     var node = graph.newNode(0,0);

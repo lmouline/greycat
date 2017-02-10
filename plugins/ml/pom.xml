@@ -229,8 +229,10 @@
                                 <!-- NPM packaging -->
                                 <copy file="${basedir}/target/generated-sources/greycat.ml.d.ts"
                                       todir="${basedir}/target/classes-npm"/>
+                                <!--
                                 <copy file="${basedir}/target/generated-sources/greycat.ml.js"
                                       todir="${basedir}/target/classes-npm"/>
+                                      -->
                                 <copy file="${basedir}/target/generated-sources/greycat.ml.js.map"
                                       todir="${basedir}/target/classes-npm"/>
                                 <copy file="${basedir}/src/main/ts/package.json" todir="${basedir}/target/classes-npm"/>
@@ -244,10 +246,14 @@
                                     <replacetoken>-SNAPSHOT</replacetoken>
                                     <replacevalue></replacevalue>
                                 </replace>
+                                <concat append="false" destfile="${basedir}/target/classes-npm/greycat.ml.js">
+                                    var greycat = {};Object.assign(greycat,require('greycat'));var java=greycat.java;
+                                </concat>
                                 <concat append="true" destfile="${basedir}/target/classes-npm/greycat.ml.js">
-                                    ${line.separator}Object.assign(greycat,require('greycat'));
-                                    ${line.separator}var java=greycat.java;
-                                    ${line.separator}module.exports = greycat.ml;
+                                    <fileset dir="${basedir}/target/generated-sources" includes="greycat.ml.js" />
+                                </concat>
+                                <concat append="true" destfile="${basedir}/target/classes-npm/greycat.ml.js">
+                                    ${line.separator}module.exports = greycat.ml.MLPlugin;
                                 </concat>
                                 <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
                                     <arg value="link"/>

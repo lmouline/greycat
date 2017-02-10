@@ -72,6 +72,10 @@
                                     <arg value="greycat-websocket"/>
                                 </exec>
                                 <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
+                                    <arg value="link"/>
+                                    <arg value="greycat-ml"/>
+                                </exec>
+                                <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
                                     <arg value="install"/>
                                 </exec>
                                 <echo message="static build"/>

@@ -15,30 +15,8 @@
  */
 package greycat.struct;
 
-public interface TreeResult {
+public interface ProfileResult extends TreeResult {
 
-    boolean insert(double[] key, long value, double distance);
-
-    double[] keys(int index);
-
-    long value(int index);
-
-    /**
-     * Distance of keys result from the requested keys
-     *
-     * @param index of the result element
-     * @return distance of the result keys from the requested keys, in case of QueryArea the distance is measured from the area center
-     */
-    double distance(int index);
-
-    double getWorstDistance();
-
-    boolean isCapacityReached();
-
-    void sort(boolean ascending);
-
-    void free();
-
-    int size();
+    TreeResult groupBy(double[] resolutions);
 
 }

@@ -395,17 +395,17 @@ public class NDTree implements Profile {
     }
 
     @Override
-    public final TreeResult queryAround(final double[] keys, final int max) {
+    public final ProfileResult queryAround(final double[] keys, final int max) {
         return queryBoundedRadius(keys, -1, max);
     }
 
     @Override
-    public final TreeResult queryRadius(final double[] keys, final double radius) {
+    public final ProfileResult queryRadius(final double[] keys, final double radius) {
         return queryBoundedRadius(keys, radius, -1);
     }
 
     @Override
-    public final TreeResult queryBoundedRadius(final double[] keys, final double radius, final int max) {
+    public final ProfileResult queryBoundedRadius(final double[] keys, final double radius, final int max) {
         ENode root = eGraph.root();
         if (root.getAtWithDefault(E_TOTAL, 0L) == 0) {
             return null;
@@ -423,7 +423,7 @@ public class NDTree implements Profile {
     }
 
     @Override
-    public final TreeResult queryArea(final double[] min, final double[] max) {
+    public final ProfileResult queryArea(final double[] min, final double[] max) {
         ENode root = eGraph.root();
         if (root.getAtWithDefault(E_TOTAL, 0L) == 0) {
             return null;

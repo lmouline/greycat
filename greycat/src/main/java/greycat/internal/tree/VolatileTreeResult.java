@@ -18,7 +18,7 @@ package greycat.internal.tree;
 import greycat.Type;
 import greycat.struct.*;
 
-class VolatileTreeResult implements TreeResult {
+class VolatileTreeResult implements ProfileResult {
 
     private static double maxPriority = Double.MAX_VALUE;
     private static int _KEYS = 1;
@@ -42,8 +42,7 @@ class VolatileTreeResult implements TreeResult {
         _distances = (DMatrix) node.getOrCreateAt(_DISTANCES, Type.DMATRIX);
         this.capacity = capacity;
     }
-
-
+    
     @Override
     public int size() {
         return count;
@@ -75,14 +74,14 @@ class VolatileTreeResult implements TreeResult {
         System.arraycopy(firstkey, 0, newmax, 0, firstkey.length);
 
         double d = 0;
-        int t=0;
-        int [] indexCollapse=new int[count];
+        int t = 0;
+        int[] indexCollapse = new int[count];
 
         for (int j = 0; j < firstkey.length; j++) {
             if (resolutions[j] < 0) {
                 newmin[j] = 0;
                 newmax[j] = 0;
-                indexCollapse[t]=j;
+                indexCollapse[t] = j;
                 t++;
                 continue;
             }
@@ -104,9 +103,9 @@ class VolatileTreeResult implements TreeResult {
 
         double[] k;
         for (int i = 0; i < count; i++) {
-            k=_keys.column(i);
-            for(t=0;t<count;t++){
-                k[indexCollapse[t]]=0;
+            k = _keys.column(i);
+            for (t = 0; t < count; t++) {
+                k[indexCollapse[t]] = 0;
             }
             tempTree.profileWith(k, _values.get(0, i));
         }
