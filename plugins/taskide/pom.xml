@@ -16,17 +16,16 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat-taskide</artifactId>
-    <version>1-SNAPSHOT</version>
+    <version>1</version>
     <name>greycat-taskide</name>
 
     <parent>
         <artifactId>greycat-parent</artifactId>
         <groupId>com.datathings</groupId>
-        <version>1-SNAPSHOT</version>
+        <version>1</version>
         <relativePath>../..</relativePath>
     </parent>
 
@@ -62,29 +61,28 @@
                         </goals>
                         <configuration>
                             <target>
-                                <echo message="npm install"/>
+                                <echo message="npm install" />
                                 <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
-                                    <arg value="link"/>
-                                    <arg value="greycat"/>
+                                    <arg value="link" />
+                                    <arg value="greycat" />
                                 </exec>
                                 <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
-                                    <arg value="link"/>
-                                    <arg value="greycat-websocket"/>
+                                    <arg value="link" />
+                                    <arg value="greycat-websocket" />
                                 </exec>
                                 <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
-                                    <arg value="link"/>
-                                    <arg value="greycat-ml"/>
+                                    <arg value="link" />
+                                    <arg value="greycat-ml" />
                                 </exec>
                                 <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
-                                    <arg value="install"/>
+                                    <arg value="install" />
                                 </exec>
-                                <echo message="static build"/>
+                                <echo message="static build" />
                                 <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
-                                    <arg value="run"/>
-                                    <arg value="build"/>
+                                    <arg value="run" />
+                                    <arg value="build" />
                                 </exec>
-                                <copydir src="${basedir}/src/main/web/build" dest="${basedir}/target/classes/taskide"
-                                         forceoverwrite="true"/>
+                                <copydir src="${basedir}/src/main/web/build" dest="${basedir}/target/classes/taskide" forceoverwrite="true" />
                             </target>
                         </configuration>
                     </execution>
