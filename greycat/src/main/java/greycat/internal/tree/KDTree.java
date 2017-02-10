@@ -248,7 +248,7 @@ public class KDTree implements Tree {
     }
 
     private static ENode createNode(final ENode parent, final boolean right) {
-        ENode child = parent.graph().newNode();
+        ENode child = parent.egraph().newNode();
         if (right) {
             parent.setAt(E_RIGHT, Type.ENODE, child);
         } else {

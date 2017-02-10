@@ -17,6 +17,8 @@ package greycat.struct;
 
 public interface Profile extends Tree {
 
+    void setBufferSize(int bufferSize);
+
     /**
      * Update profile according to all dimension passed as keys
      *

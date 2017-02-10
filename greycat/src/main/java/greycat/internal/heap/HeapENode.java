@@ -31,11 +31,11 @@ import java.util.Set;
 
 class HeapENode implements ENode, HeapContainer {
 
-    private final HeapEGraph egraph;
+    private final HeapEGraph _eGraph;
     int _id;
 
     HeapENode(final HeapEGraph p_egraph, final int p_id, final HeapENode origin) {
-        egraph = p_egraph;
+        _eGraph = p_egraph;
         _id = p_id;
         if (origin != null) {
             _capacity = origin._capacity;
@@ -69,7 +69,7 @@ class HeapENode implements ENode, HeapContainer {
                             break;
                         case Type.RELATION_INDEXED:
                             if (origin._v[i] != null) {
-                                _v[i] = ((HeapRelationIndexed) origin._v[i]).cloneIRelFor(this, egraph.graph());
+                                _v[i] = ((HeapRelationIndexed) origin._v[i]).cloneIRelFor(this, _eGraph.graph());
                             }
                             break;
                         case Type.LONG_TO_LONG_ARRAY_MAP:
@@ -132,7 +132,7 @@ class HeapENode implements ENode, HeapContainer {
     public final void declareDirty() {
         if (!_dirty) {
             _dirty = true;
-            egraph.declareDirty();
+            _eGraph.declareDirty();
         }
     }
 
@@ -141,11 +141,11 @@ class HeapENode implements ENode, HeapContainer {
             switch (_type[i]) {
                 case Type.ERELATION:
                     final HeapERelation previousERel = (HeapERelation) _v[i];
-                    previousERel.rebase(egraph);
+                    previousERel.rebase(_eGraph);
                     break;
                 case Type.ENODE:
                     final HeapENode previous = (HeapENode) _v[i];
-                    _v[i] = egraph._nodes[previous._id];
+                    _v[i] = _eGraph._nodes[previous._id];
                     break;
             }
         }
@@ -440,7 +440,7 @@ class HeapENode implements ENode, HeapContainer {
 
     @Override
     public ENode set(String name, byte type, Object value) {
-        internal_set(egraph.graph().resolver().stringToHash(name, true), type, value, true, false);
+        internal_set(_eGraph.graph().resolver().stringToHash(name, true), type, value, true, false);
         return this;
     }
 
@@ -452,7 +452,7 @@ class HeapENode implements ENode, HeapContainer {
 
     @Override
     public Object get(String name) {
-        return internal_get(egraph.graph().resolver().stringToHash(name, false));
+        return internal_get(_eGraph.graph().resolver().stringToHash(name, false));
     }
 
     @Override
@@ -483,12 +483,12 @@ class HeapENode implements ENode, HeapContainer {
 
     @Override
     public void drop() {
-        egraph.drop(this);
+        _eGraph.drop(this);
     }
 
     @Override
-    public EGraph graph() {
-        return egraph;
+    public EGraph egraph() {
+        return _eGraph;
     }
 
     @Override
@@ -497,7 +497,7 @@ class HeapENode implements ENode, HeapContainer {
         if (previous != null) {
             return previous;
         } else {
-            return getOrCreateAt(egraph.graph().resolver().stringToHash(key, true), type);
+            return getOrCreateAt(_eGraph.graph().resolver().stringToHash(key, true), type);
         }
     }
 
@@ -518,7 +518,7 @@ class HeapENode implements ENode, HeapContainer {
                 toSet = new HeapRelation(this, null);
                 break;
             case Type.RELATION_INDEXED:
-                toSet = new HeapRelationIndexed(this, egraph.graph());
+                toSet = new HeapRelationIndexed(this, _eGraph.graph());
                 break;
             case Type.DMATRIX:
                 toSet = new HeapDMatrix(this, null);
@@ -548,7 +548,7 @@ class HeapENode implements ENode, HeapContainer {
         builder.append("{");
         for (int i = 0; i < _size; i++) {
             final Object elem = _v[i];
-            final Resolver resolver = egraph.graph().resolver();
+            final Resolver resolver = _eGraph.graph().resolver();
             final int attributeKey = _k[i];
             final byte elemType = _type[i];
             if (elem != null) {
@@ -1176,7 +1176,7 @@ class HeapENode implements ENode, HeapContainer {
                                             eRelation = new HeapERelation(this, null);
                                             eRelation.allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                         } else {
-                                            eRelation.add(egraph.nodeByIndex((int) Base64.decodeToLongWithBounds(buffer, previous, cursor), true));
+                                            eRelation.add(_eGraph.nodeByIndex((int) Base64.decodeToLongWithBounds(buffer, previous, cursor), true));
                                         }
                                         previous = cursor + 1;
                                     }
@@ -1189,7 +1189,7 @@ class HeapENode implements ENode, HeapContainer {
                                     eRelation = new HeapERelation(this, null);
                                     eRelation.allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                                 } else {
-                                    eRelation.add(egraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true));
+                                    eRelation.add(_eGraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true));
                                 }
                                 internal_set(read_key, read_type, eRelation, true, initial);
                                 if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
@@ -1237,7 +1237,7 @@ class HeapENode implements ENode, HeapContainer {
                 internal_set(read_key, read_type, Base64.decodeToStringWithBounds(buffer, previous, cursor), true, initial);
                 break;
             case Type.ENODE:
-                internal_set(read_key, read_type, egraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true), true, initial);
+                internal_set(read_key, read_type, _eGraph.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true), true, initial);
                 break;
         }
     }

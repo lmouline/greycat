@@ -84,6 +84,11 @@ public class NDTreeNode extends BaseNode implements Profile {
     }
 
     @Override
+    public void setBufferSize(int bufferSize) {
+        _ndTree.setBufferSize(bufferSize);
+    }
+
+    @Override
     public final void profile(final double[] keys) {
         getTree().profile(keys);
     }

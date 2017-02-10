@@ -41,4 +41,6 @@ public interface TreeResult {
 
     int size();
 
+    TreeResult groupBy(double[] resolutions);
+
 }

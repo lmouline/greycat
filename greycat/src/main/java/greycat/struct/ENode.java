@@ -37,7 +37,7 @@ public interface ENode {
 
     void drop();
 
-    EGraph graph();
+    EGraph egraph();
 
     void each(final NodeStateCallback callBack);
 

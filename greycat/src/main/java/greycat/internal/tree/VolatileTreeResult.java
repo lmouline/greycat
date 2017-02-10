@@ -50,6 +50,71 @@ class VolatileTreeResult implements TreeResult {
     }
 
     @Override
+    public TreeResult groupBy(double[] resolutions) {
+        if (count == 0) {
+            return null;
+        }
+
+        if ((resolutions.length != _keys.rows())) {
+            throw new RuntimeException("Resolutions and keys are not the same size!");
+        }
+        int count = 0;
+        for (int i = 0; i < resolutions.length; i++) {
+            if (resolutions[i] < 0) {
+                count++;
+            }
+        }
+        if (count == resolutions.length) {
+            throw new RuntimeException("All resolutions can't be negative!");
+        }
+
+        double[] newmin = new double[resolutions.length];
+        double[] newmax = new double[resolutions.length];
+        double[] firstkey = keys(0);
+        System.arraycopy(firstkey, 0, newmin, 0, firstkey.length);
+        System.arraycopy(firstkey, 0, newmax, 0, firstkey.length);
+
+        double d = 0;
+        int t=0;
+        int [] indexCollapse=new int[count];
+
+        for (int j = 0; j < firstkey.length; j++) {
+            if (resolutions[j] < 0) {
+                newmin[j] = 0;
+                newmax[j] = 0;
+                indexCollapse[t]=j;
+                t++;
+                continue;
+            }
+            for (int i = 1; i < count; i++) {
+                d = _keys.get(j, i);
+                if (d > newmax[j]) {
+                    newmax[j] = d;
+                }
+                if (d < newmin[j]) {
+                    newmin[j] = d;
+                }
+            }
+        }
+
+        NDTree tempTree = new NDTree(node.egraph().graph().space().newVolatileGraph());
+        tempTree.setResolution(resolutions);
+        tempTree.setMinBound(newmin);
+        tempTree.setMaxBound(newmax);
+
+        double[] k;
+        for (int i = 0; i < count; i++) {
+            k=_keys.column(i);
+            for(t=0;t<count;t++){
+                k[indexCollapse[t]]=0;
+            }
+            tempTree.profileWith(k, _values.get(0, i));
+        }
+
+        return tempTree.queryArea(newmin, newmax);
+    }
+
+    @Override
     public boolean insert(double[] key, long value, double distance) {
 
         if (capacity > 0 && count == capacity) {
@@ -224,7 +289,7 @@ class VolatileTreeResult implements TreeResult {
 
     @Override
     public void free() {
-        EGraph g = node.graph();
+        EGraph g = node.egraph();
         node.drop();
         if (g.size() == 0) {
             g.free();

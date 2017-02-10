@@ -109,7 +109,7 @@ public class NDTree implements Profile {
     }
 
     private static ENode createNewNode(final ENode parent, final ENode root, final int index, final double[] min, final double[] max, final double[] center, final double[] keyToInsert, final int buffersize) {
-        ENode node = parent.graph().newNode();
+        ENode node = parent.egraph().newNode();
         double[] minChild = new double[min.length];
         double[] maxChild = new double[max.length];
         for (int i = 0; i < min.length; i++) {
@@ -339,6 +339,16 @@ public class NDTree implements Profile {
     }
 
     @Override
+    public void setBufferSize(int bufferSize) {
+        if (bufferSize < 0) {
+            throw new RuntimeException("Buffer size can't be <0");
+        } else {
+            eGraph.root().setAt(BUFFER_SIZE, Type.INT, bufferSize);
+        }
+
+    }
+
+    @Override
     public void insert(final double[] keys, final long value) {
         ENode root = eGraph.root();
         double[] min = (double[]) root.getAt(E_MIN);
@@ -403,7 +413,7 @@ public class NDTree implements Profile {
         double[] emin = (double[]) root.getAt(E_MIN);
         double[] emax = (double[]) root.getAt(E_MAX);
         check(keys, emin, emax);
-        Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT),null);
+        Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT), null);
         int strategyType = (int) root.getAt(STRATEGY);
         EGraph calcZone = eGraph.graph().space().newVolatileGraph();
         VolatileTreeResult nnl = new VolatileTreeResult(calcZone.newNode(), max);
@@ -418,7 +428,7 @@ public class NDTree implements Profile {
         if (root.getAtWithDefault(E_TOTAL, 0L) == 0) {
             return null;
         }
-        Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT),null);
+        Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT), null);
         int strategyType = (int) root.getAt(STRATEGY);
         final double[] center = new double[max.length];
         for (int i = 0; i < center.length; i++) {

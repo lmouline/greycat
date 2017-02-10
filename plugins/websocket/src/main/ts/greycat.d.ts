@@ -1161,7 +1161,7 @@ declare module greycat {
                 load(buffer: greycat.struct.Buffer, offset: number, max: number): number;
             }
             class HeapENode implements greycat.struct.ENode, greycat.internal.heap.HeapContainer {
-                private egraph;
+                private _eGraph;
                 _id: number;
                 private _capacity;
                 private _size;
@@ -1189,7 +1189,7 @@ declare module greycat {
                 getWithDefault<A>(key: string, defaultValue: A): A;
                 getAtWithDefault<A>(key: number, defaultValue: A): A;
                 drop(): void;
-                graph(): greycat.struct.EGraph;
+                egraph(): greycat.struct.EGraph;
                 getOrCreate(key: string, type: number): any;
                 getOrCreateAt(key: number, type: number): any;
                 toString(): string;
@@ -2452,6 +2452,7 @@ declare module greycat {
                 setResolution(resolution: Float64Array): void;
                 setMinBound(min: Float64Array): void;
                 setMaxBound(max: Float64Array): void;
+                setBufferSize(bufferSize: number): void;
                 insert(keys: Float64Array, value: number): void;
                 profile(keys: Float64Array): void;
                 profileWith(keys: Float64Array, occurrence: number): void;
@@ -2479,6 +2480,7 @@ declare module greycat {
                 setMinBound(min: Float64Array): void;
                 setMaxBound(max: Float64Array): void;
                 insert(keys: Float64Array, value: number): void;
+                setBufferSize(bufferSize: number): void;
                 profile(keys: Float64Array): void;
                 profileWith(keys: Float64Array, occurrence: number): void;
                 queryAround(keys: Float64Array, nbElem: number): greycat.struct.TreeResult;
@@ -2513,6 +2515,7 @@ declare module greycat {
                 private _distances;
                 constructor(node: greycat.struct.ENode, capacity: number);
                 size(): number;
+                groupBy(resolutions: Float64Array): greycat.struct.TreeResult;
                 insert(key: Float64Array, value: number, distance: number): boolean;
                 private add(key, value, distance, remove);
                 private remove();
@@ -2723,7 +2726,7 @@ declare module greycat {
             getOrCreate(key: string, type: number): any;
             getOrCreateAt(key: number, type: number): any;
             drop(): void;
-            graph(): greycat.struct.EGraph;
+            egraph(): greycat.struct.EGraph;
             each(callBack: greycat.plugin.NodeStateCallback): void;
             clear(): greycat.struct.ENode;
         }
@@ -2775,6 +2778,7 @@ declare module greycat {
             size(): number;
         }
         interface Profile extends greycat.struct.Tree {
+            setBufferSize(bufferSize: number): void;
             profile(keys: Float64Array): void;
             profileWith(keys: Float64Array, occurrence: number): void;
         }
@@ -2834,6 +2838,7 @@ declare module greycat {
             sort(ascending: boolean): void;
             free(): void;
             size(): number;
+            groupBy(resolutions: Float64Array): greycat.struct.TreeResult;
         }
     }
     module utility {
