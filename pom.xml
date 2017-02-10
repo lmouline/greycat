@@ -179,6 +179,7 @@
                         <exclude>**/*.key</exclude>
                         <exclude>**/*.g4</exclude>
                         <exclude>**/*.mm</exclude>
+                        <exclude>**/*.sh</exclude>
                         <exclude>**/*.dylib</exclude>
                         <exclude>doc/**</exclude>
                         <exclude>AUTHORS</exclude>
