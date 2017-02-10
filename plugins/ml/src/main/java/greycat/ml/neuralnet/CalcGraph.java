@@ -13,28 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.functions;
+package greycat.ml.neuralnet;
 
-import greycat.ml.neuralnet.ActivationUnit;
+/**
+ * Created by assaad on 10/02/2017.
+ */
+public class CalcGraph {
 
-public class LinearUnit implements ActivationUnit {
 
-    private static LinearUnit static_unit= null;
 
-    public static LinearUnit instance() {
-        if (static_unit == null) {
-            static_unit = new LinearUnit();
-        }
-        return static_unit;
+    //Multiply two matrices
+    public ExMatrix mul(ExMatrix matA, ExMatrix matB) {
+        return null;
     }
 
-    @Override
-    public double forward(double x) {
-        return x;
+
+    //Add two matrices
+    public ExMatrix add(ExMatrix matA, ExMatrix matB) {
+        return null;
     }
 
-    @Override
-    public double backward(double x) {
-        return 1;
+
+    //Apply activation function
+    public ExMatrix activate(ActivationUnit activation, ExMatrix input) {
+        return null;
     }
 }

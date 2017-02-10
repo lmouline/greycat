@@ -15,13 +15,12 @@
  */
 package greycat.ml.neuralnet.functions;
 
-import greycat.ml.neuralnet.NeuralUnit;
-import greycat.utility.distance.*;
+import greycat.ml.neuralnet.ActivationUnit;
 
 /**
  * Created by assaad on 09/02/2017.
  */
-public class NeuralUnits {
+public class ActivationUnits {
     public static final int LINEAR = 0;
     public static final int SIGMOID = 1;
     public static final int SINE = 2;
@@ -30,8 +29,8 @@ public class NeuralUnits {
 
     public static final int DEFAULT = LINEAR;
 
-    public static NeuralUnit getUnit(int neuralUnit, double[] unitarg) {
-        switch (neuralUnit) {
+    public static ActivationUnit getUnit(int activationUnit, double[] unitArgs) {
+        switch (activationUnit) {
             case LINEAR:
                 return LinearUnit.instance();
             case SIGMOID:
@@ -41,7 +40,7 @@ public class NeuralUnits {
             case TANH:
                 return TanhUnit.instance();
             case RECTIFIED_LINEAR:
-                return new RectifiedLinearUnit(unitarg[0]);
+                return new RectifiedLinearUnit(unitArgs[0]);
         }
         return getUnit(DEFAULT, null);
     }

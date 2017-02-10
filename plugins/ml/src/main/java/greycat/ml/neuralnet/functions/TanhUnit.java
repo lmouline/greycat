@@ -15,9 +15,9 @@
  */
 package greycat.ml.neuralnet.functions;
 
-import greycat.ml.neuralnet.NeuralUnit;
+import greycat.ml.neuralnet.ActivationUnit;
 
-public class TanhUnit implements NeuralUnit {
+public class TanhUnit implements ActivationUnit {
 
 
     private static TanhUnit static_unit = null;

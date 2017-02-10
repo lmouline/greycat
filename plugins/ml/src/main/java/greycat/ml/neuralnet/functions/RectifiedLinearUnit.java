@@ -16,9 +16,9 @@
 package greycat.ml.neuralnet.functions;
 
 
-import greycat.ml.neuralnet.NeuralUnit;
+import greycat.ml.neuralnet.ActivationUnit;
 
-public class RectifiedLinearUnit implements NeuralUnit {
+public class RectifiedLinearUnit implements ActivationUnit {
 	private double slope;
 
 	public RectifiedLinearUnit(double slope) {

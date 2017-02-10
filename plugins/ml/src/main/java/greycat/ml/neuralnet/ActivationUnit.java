@@ -13,28 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.functions;
+package greycat.ml.neuralnet;
 
-import greycat.ml.neuralnet.ActivationUnit;
-
-public class LinearUnit implements ActivationUnit {
-
-    private static LinearUnit static_unit= null;
-
-    public static LinearUnit instance() {
-        if (static_unit == null) {
-            static_unit = new LinearUnit();
-        }
-        return static_unit;
-    }
-
-    @Override
-    public double forward(double x) {
-        return x;
-    }
-
-    @Override
-    public double backward(double x) {
-        return 1;
-    }
+public interface ActivationUnit {
+    double forward(double x);
+    double backward(double x);
 }

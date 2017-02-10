@@ -15,7 +15,18 @@
  */
 package greycat.ml.neuralnet;
 
-public interface NeuralUnit {
-    double forward(double x);
-    double backward(double x);
+
+import java.util.Random;
+
+public interface Layer {
+
+    void fillWithRandom(Random random, double min, double max);
+
+    void fillWithRandomStd(Random random, double std);
+
+    ExMatrix forward(ExMatrix input, CalcGraph g);
+
+    void resetState();
+
+
 }

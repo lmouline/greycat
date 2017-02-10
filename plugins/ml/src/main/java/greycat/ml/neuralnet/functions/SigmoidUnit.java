@@ -15,9 +15,9 @@
  */
 package greycat.ml.neuralnet.functions;
 
-import greycat.ml.neuralnet.NeuralUnit;
+import greycat.ml.neuralnet.ActivationUnit;
 
-public class SigmoidUnit implements NeuralUnit {
+public class SigmoidUnit implements ActivationUnit {
 
     private static SigmoidUnit static_unit= null;
 
