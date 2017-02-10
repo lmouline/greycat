@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-export JAVA_HOME=$(/usr/libexec/java_home)
 mvn release:clean
 mvn release:prepare
 mvn release:perform
