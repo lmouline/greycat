@@ -177,9 +177,12 @@
                         <exclude>**/*.graffle</exclude>
                         <exclude>**/*.jpeg</exclude>
                         <exclude>**/*.key</exclude>
+                        <exclude>**/*.g4</exclude>
+                        <exclude>**/*.mm</exclude>
                         <exclude>**/*.dylib</exclude>
                         <exclude>doc/**</exclude>
                         <exclude>AUTHORS</exclude>
+                        <exclude>CONTRIBUTORS</exclude>
                         <exclude>HEADER</exclude>
                         <exclude>LICENSE</exclude>
                         <exclude>NOTICE</exclude>
