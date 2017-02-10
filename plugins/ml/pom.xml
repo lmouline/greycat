@@ -233,6 +233,7 @@
                                       -->
                                 <copy file="${basedir}/target/generated-sources/greycat.ml.js.map" todir="${basedir}/target/classes-npm" />
                                 <copy file="${basedir}/src/main/ts/package.json" todir="${basedir}/target/classes-npm" />
+                                <copy file="${basedir}/src/main/ts/readme.md" todir="${basedir}/target/classes-npm" />
                                 <!-- update to maven version -->
                                 <replace file="${basedir}/target/classes-npm/package.json">
                                     <replacetoken>GREYCAT_VERSION</replacetoken>
