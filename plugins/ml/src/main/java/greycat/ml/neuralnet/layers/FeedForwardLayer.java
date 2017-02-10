@@ -38,13 +38,13 @@ public class FeedForwardLayer implements Layer {
 
 
     public FeedForwardLayer(ENode hostnode) {
+        if (hostnode == null) {
+            throw new RuntimeException("Host node can't be null");
+        }
         if (hostnode.get(WEIGHTS) != null) {
             weights = new ExMatrix(hostnode, WEIGHTS);
             bias = new ExMatrix(hostnode, BIAS);
             activation = ActivationUnits.getUnit((int) hostnode.get(ACTIVATION), null);
-        }
-        if (hostnode == null) {
-            throw new RuntimeException("Host node can't be null");
         }
         this.host = hostnode;
     }
