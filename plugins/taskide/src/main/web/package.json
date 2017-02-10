@@ -60,7 +60,8 @@
     "react-split-pane": "0.1.57",
     "renderjson": "1.2.3",
     "greycat": "*",
-    "greycat-websocket": "*"
+    "greycat-websocket": "*",
+    "greycat-ml": "*"
   },
   "scripts": {
     "start": "node scripts/start.js",

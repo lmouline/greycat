@@ -21,7 +21,8 @@ import renderjson from 'renderjson';
 import TaskEditor from './TaskEditor.jsx'
 
 import greycat from 'greycat';
-import greycatWebSocket from 'greycat-websocket';
+import greycatWS from 'greycat-websocket';
+import greycatML from 'greycat-ml';
 
 import 'bulma/css/bulma.css';
 import './index.css';
@@ -32,7 +33,7 @@ global.context = {};
 let defaultPORT = window.location.port;
 let defaultURL = "ws://" + window.location.hostname + ":" + defaultPORT + "/ws";
 
-global.context.ws = new greycatWebSocket.WSClient(defaultURL);
+global.context.ws = new greycatWS.WSClient(defaultURL);
 global.context.graph = greycat.GraphBuilder.newBuilder().withStorage(global.context.ws).build();
 global.context.actions = [];
 global.context.graph.connect(null);

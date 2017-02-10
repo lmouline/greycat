@@ -24,3 +24,7 @@ cd "$basedir"
 cd plugins/websocket/target/classes-npm
 npm publish ./
 cd "$basedir"
+
+cd plugins/ml/target/classes-npm
+npm publish ./
+cd "$basedir"

@@ -66,7 +66,7 @@
         <developer>
             <name>Gregory Nain</name>
             <id>gregory.nain</id>
-            <email>gregory.nain@uni.lu</email>
+            <email>gregory.nain@gmail.com</email>
             <roles>
                 <role>admin</role>
                 <role>developer</role>
@@ -85,8 +85,8 @@
         </developer>
         <developer>
             <name>Assaad MOAWAD</name>
-            <id>assaad.moawad</id>
-            <email>assaad.moawad@uni.lu</email>
+            <id>assaad.mouawad</id>
+            <email>assaadmouawad@gmail.com</email>
             <roles>
                 <role>admin</role>
                 <role>developer</role>
@@ -102,13 +102,10 @@
         <module>plugins/leveldb</module>
         <module>plugins/rocksdb</module>
         <module>plugins/websocket</module>
-        <module>plugins/taskide</module>
-
-        <!--
-        <module>plugins/structure</module>
-        -->
         <module>plugins/ml</module>
         <module>plugins/memory</module>
+        <module>plugins/taskide</module>
+
 
         <!--
         <module>plugins/model</module>
