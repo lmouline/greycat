@@ -13,7 +13,6 @@ public class NeuralNet {
 
     private EGraph backend;
     private Layer[] layers;
-
     private Loss lossUnit;
 
     public NeuralNet(EGraph p_backend) {
@@ -33,14 +32,9 @@ public class NeuralNet {
     public void learn(double[] inputs, double[] outputs) {
         ProcessGraph cg = new ProcessGraph(true);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
-
-
         ExMatrix targetOutput = ExMatrix.createFromW(VolatileDMatrix.wrap(outputs, outputs.length, 1));
         ExMatrix actualOutput = internalForward(cg, input);
-
         cg.applyLoss(lossUnit, actualOutput, targetOutput);
-
-
         cg.backpropagate();
     }
 
@@ -50,7 +44,6 @@ public class NeuralNet {
         ExMatrix actualOutput = internalForward(cg, input);
         return actualOutput.data();
     }
-
 
     ExMatrix internalForward(ProcessGraph cg, ExMatrix input) {
         ExMatrix nextInput = input;
