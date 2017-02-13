@@ -28,7 +28,7 @@ import java.util.List;
 public class CalcGraph {
 
     private boolean applyBackprop;
-    private List<ExecutableStep> backprop = new ArrayList<>();
+    private List<ExecutableStep> backprop = new ArrayList<ExecutableStep>();
 
     public CalcGraph(boolean applyBackprop) {
         this.applyBackprop = applyBackprop;
@@ -73,7 +73,7 @@ public class CalcGraph {
         }
         return out;
     }
-    
+
     //Apply activation function
     public final ExMatrix activate(final ActivationUnit activation, final ExMatrix input) {
         final ExMatrix output = ExMatrix.empty(input.rows(), input.columns());
