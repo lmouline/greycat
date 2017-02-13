@@ -2,6 +2,7 @@ package greycat.ml.neuralnet;
 
 import greycat.ml.neuralnet.layers.Layer;
 import greycat.ml.neuralnet.layers.Registry;
+import greycat.ml.neuralnet.process.CalcGraph;
 import greycat.struct.EGraph;
 
 public class NeuralNet {

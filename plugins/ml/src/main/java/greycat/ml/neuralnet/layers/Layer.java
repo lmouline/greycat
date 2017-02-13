@@ -16,13 +16,13 @@
 package greycat.ml.neuralnet.layers;
 
 
-import greycat.ml.neuralnet.CalcGraph;
+import greycat.ml.neuralnet.process.CalcGraph;
 import greycat.ml.neuralnet.ExMatrix;
 
 import java.util.Random;
 
 public interface Layer {
-    
+
     void fillWithRandom(Random random, double min, double max);
 
     void fillWithRandomStd(Random random, double std);

@@ -18,7 +18,7 @@ package greycat.ml.neuralnet.layers;
 import greycat.Type;
 import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.ActivationUnit;
-import greycat.ml.neuralnet.CalcGraph;
+import greycat.ml.neuralnet.process.CalcGraph;
 import greycat.ml.neuralnet.ExMatrix;
 import greycat.ml.neuralnet.functions.ActivationUnits;
 import greycat.struct.DMatrix;

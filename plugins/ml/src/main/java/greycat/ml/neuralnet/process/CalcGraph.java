@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet;
+package greycat.ml.neuralnet.process;
 
 import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.common.matrix.TransposeType;
+import greycat.ml.neuralnet.ActivationUnit;
+import greycat.ml.neuralnet.ExMatrix;
+import greycat.ml.neuralnet.LossUnit;
 import greycat.struct.DMatrix;
 
 import java.util.ArrayList;
@@ -76,21 +79,17 @@ public class CalcGraph {
     public final ExMatrix activate(final ActivationUnit activation, final ExMatrix input) {
         final ExMatrix output = ExMatrix.empty(input.rows(), input.columns());
         final int len = input.length();
-
         //todo [opt] all activation functions can be vectorized as well
         for (int i = 0; i < len; i++) {
             output.unsafeSet(i, activation.forward(input.unsafeGet(i)));
         }
-
         if (this.applyBackprop) {
             ExecutableStep bp = new ExecutableStep() {
                 public void execute() {
-
                     DMatrix inputDw = input.getDw();
                     DMatrix inputW = input.getW();
                     DMatrix outputDW = output.getDw();
                     DMatrix outputW = output.getW();
-
                     //todo [opt] can be optimized in // or blas using Hadamard product
                     //Backpropa assigned is: inputDw += derivation of activation * outputDw
                     for (int i = 0; i < len; i++) {

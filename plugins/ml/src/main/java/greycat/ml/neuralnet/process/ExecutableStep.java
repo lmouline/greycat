@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet;
+package greycat.ml.neuralnet.process;
 
-/**
- * Created by assaad on 13/02/2017.
- */
 public interface ExecutableStep {
     void execute();
 }

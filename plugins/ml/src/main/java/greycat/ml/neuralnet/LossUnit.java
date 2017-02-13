@@ -15,7 +15,6 @@
  */
 package greycat.ml.neuralnet;
 
-
 public interface LossUnit {
     void backward(ExMatrix actualOutput, ExMatrix targetOutput);
 

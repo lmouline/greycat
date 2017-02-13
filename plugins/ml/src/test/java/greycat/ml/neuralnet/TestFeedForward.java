@@ -20,6 +20,7 @@ import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.functions.ActivationUnits;
 import greycat.ml.neuralnet.layers.FeedForwardLayer;
 import greycat.ml.neuralnet.loss.LossUnits;
+import greycat.ml.neuralnet.process.CalcGraph;
 import greycat.struct.DMatrix;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;

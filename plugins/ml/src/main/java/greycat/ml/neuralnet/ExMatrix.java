@@ -22,15 +22,11 @@ import greycat.struct.ENode;
 
 import java.util.Random;
 
-/**
- * Created by assaad on 27/01/2017.
- */
 public class ExMatrix implements DMatrix {
 
     private static String DW_KEY = "-dw";
     private static String STEPCACHE_KEY = "-sc";
-
-
+    
     private DMatrix w;
     private DMatrix dw;
     private DMatrix stepCache;
