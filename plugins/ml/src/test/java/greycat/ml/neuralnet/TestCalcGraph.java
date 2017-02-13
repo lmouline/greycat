@@ -93,11 +93,6 @@ public class TestCalcGraph {
         double err = g.applyLoss(sumsq, actualOutput, targetOutput);
         testdouble(err,0.2983711087600027);
 
-
-
-        //till here
-
-
         //Now the backpropagation step:
         g.backpropagate();
 
@@ -127,17 +122,15 @@ public class TestCalcGraph {
         testdouble(bias2.get(1,0),0.6190491182582781);
 
 
-
-
     }
 
-    public static double EPS=1e-16;
+    private static double EPS=1e-16;
 
-    public static void testdouble(double d1, double d2){
+    private static void testdouble(double d1, double d2){
         Assert.assertTrue(Math.abs(d1-d2)<EPS);
     }
 
-    public static void applyLearningRate(ExMatrix mat, double learningRate){
+    private static void applyLearningRate(ExMatrix mat, double learningRate){
         int len=mat.length();
         DMatrix dw=mat.getDw();
         for(int i=0;i<len;i++){

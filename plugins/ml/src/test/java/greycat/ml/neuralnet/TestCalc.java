@@ -29,6 +29,7 @@ public class TestCalc {
     public static void main(String[] arg) {
 
         //Simulating example found in: https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
+        //self contained example useful for debug
 
         //input matrix
         DMatrix wi = VolatileDMatrix.empty(2, 1);
@@ -135,7 +136,7 @@ public class TestCalc {
 
     }
 
-    public static void applyLearningRate(ExMatrix mat, double learningRate){
+    private static void applyLearningRate(ExMatrix mat, double learningRate){
         int len=mat.length();
         DMatrix dw=mat.getDw();
         for(int i=0;i<len;i++){
@@ -145,25 +146,25 @@ public class TestCalc {
         dw.fill(0);
     }
 
-    public static ExMatrix mul(ExMatrix matA, ExMatrix matB) {
+    private static ExMatrix mul(ExMatrix matA, ExMatrix matB) {
         ExMatrix out = ExMatrix.createFromW(MatrixOps.multiply(matA, matB));
         return out;
     }
 
 
-    public static ExMatrix add(ExMatrix matA, ExMatrix matB) {
+    private static ExMatrix add(ExMatrix matA, ExMatrix matB) {
         ExMatrix out = ExMatrix.createFromW(MatrixOps.add(matA, matB));
         return out;
     }
 
-    public static void backpropAdd(ExMatrix matA, ExMatrix matB, ExMatrix result) {
+    private static void backpropAdd(ExMatrix matA, ExMatrix matB, ExMatrix result) {
 
         MatrixOps.addtoMatrix(matA.getDw(),result.getDw());
         MatrixOps.addtoMatrix(matB.getDw(),result.getDw());
 
     }
 
-    public static void backpropMult(ExMatrix matA, ExMatrix matB, ExMatrix result) {
+    private static void backpropMult(ExMatrix matA, ExMatrix matB, ExMatrix result) {
         DMatrix dwatemp = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, result.getDw(), TransposeType.TRANSPOSE, matB.getW());
         DMatrix dwbtemp = MatrixOps.multiplyTranspose(TransposeType.TRANSPOSE,  matA.getW() , TransposeType.NOTRANSPOSE, result.getDw());
 
@@ -173,7 +174,7 @@ public class TestCalc {
     }
 
 
-    public static ExMatrix activation(ActivationUnit activation, ExMatrix input) {
+    private static ExMatrix activation(ActivationUnit activation, ExMatrix input) {
         final ExMatrix output = ExMatrix.empty(input.rows(), input.columns());
         final int len = input.length();
 
@@ -198,6 +199,5 @@ public class TestCalc {
             inputDw.unsafeSet(i, inputDw.unsafeGet(i) + (activation.backward(inputW.unsafeGet(i), outputW.unsafeGet(i)) * outputDW.unsafeGet(i)));
         }
     }
-
 
 }
