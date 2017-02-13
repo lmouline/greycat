@@ -23,6 +23,15 @@ import greycat.ml.neuralnet.LossUnit;
 public class LossSoftmax implements LossUnit {
 
 
+    private static LossSoftmax static_unit= null;
+
+    public static LossSoftmax instance() {
+        if (static_unit == null) {
+            static_unit = new LossSoftmax();
+        }
+        return static_unit;
+    }
+
     @Override
     public void backward(ExMatrix logprobs, ExMatrix targetOutput) {
         int targetIndex = getTargetIndex(targetOutput);

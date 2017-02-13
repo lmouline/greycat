@@ -52,7 +52,6 @@ public class NetlibBlas implements Blas {
         intW newint = new intW(paramintW[0]);
         lapack.dgetri(paramInt1, paramArrayOfDouble1, paramInt2, paramInt3, paramArrayOfInt, paramInt4, paramArrayOfDouble2, paramInt5, paramInt6, newint);
         paramintW[0] = newint.val;
-
     }
 
 

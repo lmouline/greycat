@@ -13,22 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet;
+package greycat.ml.neuralnet.loss;
 
 
-import java.util.Random;
+import greycat.ml.neuralnet.LossUnit;
 
-public interface Layer {
+/**
+ * Created by assaad on 13/02/2017.
+ */
+public class LossUnits {
+    public static final int SUM_OF_SQUARES = 0;
+    public static final int SOFTMAX = 1;
+    public static final int DEFAULT = SUM_OF_SQUARES;
 
-    String getName();
-
-    void fillWithRandom(Random random, double min, double max);
-
-    void fillWithRandomStd(Random random, double std);
-
-    ExMatrix forward(ExMatrix input, CalcGraph g);
-
-    void resetState();
-
-
+    public static LossUnit getUnit(int lossUnit, double[] unitArgs) {
+        switch (lossUnit) {
+            case SUM_OF_SQUARES:
+                return LossSumOfSquares.instance();
+            case SOFTMAX:
+                return LossSoftmax.instance();
+        }
+        return getUnit(DEFAULT, null);
+    }
 }

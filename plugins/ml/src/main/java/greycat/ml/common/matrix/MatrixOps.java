@@ -178,6 +178,20 @@ public class MatrixOps {
         return result;
     }
 
+
+    //todo can be vectorized
+    public static void addtoMatrix(DMatrix original, DMatrix values){
+        if (original.rows() != values.rows() || original.columns() != values.columns()) {
+            throw new RuntimeException("Matrices original and values have different dimensions for the add operation");
+        }
+        int total = original.rows() * original.columns();
+        for (int i = 0; i < total; i++) {
+            original.unsafeSet(i, original.unsafeGet(i) + values.unsafeGet(i));
+        }
+    }
+
+
+    //todo can be vectorized
     public static DMatrix add(DMatrix matA, DMatrix matB) {
         if (matA.rows() != matB.rows() || matA.columns() != matB.columns()) {
             throw new RuntimeException("Matrices A and B have different dimensions for the add operation");

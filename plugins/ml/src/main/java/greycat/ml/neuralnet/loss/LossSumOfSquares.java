@@ -22,7 +22,14 @@ import greycat.ml.neuralnet.LossUnit;
 public class LossSumOfSquares implements LossUnit {
 
 
-    private static final long serialVersionUID = 1L;
+    private static LossSumOfSquares static_unit= null;
+
+    public static LossSumOfSquares instance() {
+        if (static_unit == null) {
+            static_unit = new LossSumOfSquares();
+        }
+        return static_unit;
+    }
 
     @Override
     public void backward(ExMatrix actualOutput, ExMatrix targetOutput) {

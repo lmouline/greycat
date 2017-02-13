@@ -45,9 +45,18 @@ public class ExMatrix implements DMatrix {
 
 
     public static ExMatrix empty(int rows, int column) {
-        DMatrix dm = new ExMatrix(null, null);
+        ExMatrix dm = new ExMatrix(null, null);
         dm.init(rows, column);
-        return (ExMatrix) dm;
+        return dm;
+    }
+
+
+    public static ExMatrix createFromW(DMatrix w) {
+        ExMatrix res = new ExMatrix(null, null);
+        res.w = w;
+        res.dw = VolatileDMatrix.empty(w.rows(), w.columns());
+        res.stepCache = VolatileDMatrix.empty(w.rows(), w.columns());
+        return res;
     }
 
     @Override

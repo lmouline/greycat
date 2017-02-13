@@ -34,7 +34,7 @@ public class LinearUnit implements ActivationUnit {
     }
 
     @Override
-    public double backward(double x) {
+    public double backward(double x, double fct) {
         return 1;
     }
 }

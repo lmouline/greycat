@@ -36,7 +36,7 @@ public class RectifiedLinearUnit implements ActivationUnit {
 	}
 
 	@Override
-	public double backward(double x) {
+	public double backward(double x, double fct) {
 		if (x >= 0) {
 			return 1.0;
 		}

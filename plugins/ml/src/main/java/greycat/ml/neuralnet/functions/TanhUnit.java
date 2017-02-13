@@ -17,6 +17,8 @@ package greycat.ml.neuralnet.functions;
 
 import greycat.ml.neuralnet.ActivationUnit;
 
+import java.util.Random;
+
 public class TanhUnit implements ActivationUnit {
 
 
@@ -43,10 +45,8 @@ public class TanhUnit implements ActivationUnit {
     }
 
     @Override
-    public double backward(double x) {
-        double coshx = cosh(x);
-        double denom = (cosh(2 * x) + 1);
-        return 4 * coshx * coshx / (denom * denom);
+    public double backward(double x, double fct) {
+        return 1- fct*fct;
     }
 
     /**
@@ -57,5 +57,23 @@ public class TanhUnit implements ActivationUnit {
     private static double cosh(double x) {
         return Math.cosh(x);
     }
+
+
+//    public static void main(String[] arg){
+//        Random rand = new Random();
+//
+//        for(int i=0;i<10;i++) {
+//            double x = rand.nextDouble();
+//
+//            TanhUnit th = new TanhUnit();
+//            double y = th.forward(x);
+//            double yp = th.backward(x, y);
+//
+//            double temp = (1 - y * y);
+//            System.out.println("yp: " + yp);
+//            System.out.println("temp: " + temp);
+//            System.out.println();
+//        }
+//    }
 
 }

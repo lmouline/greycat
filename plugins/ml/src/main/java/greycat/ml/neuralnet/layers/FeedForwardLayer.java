@@ -26,6 +26,8 @@ import java.util.Random;
 
 
 public class FeedForwardLayer implements Layer {
+
+    public static String NAME="Feedforward layer";
     private static String WEIGHTS = "ff-weights";
     private static String BIAS = "ff-bias";
     private static String ACTIVATION = "ff-activation";
@@ -51,8 +53,6 @@ public class FeedForwardLayer implements Layer {
 
     public FeedForwardLayer create(int inputs, int outputs, int activationUnit, double[] unitArgs) {
 
-        //todo test if not loaded
-
         weights = new ExMatrix(host, WEIGHTS);
         weights.init(outputs, inputs);
         bias = new ExMatrix(host, BIAS);
@@ -62,6 +62,11 @@ public class FeedForwardLayer implements Layer {
         return this;
     }
 
+
+    @Override
+    public String getName() {
+        return NAME;
+    }
 
     @Override
     public void fillWithRandom(Random random, double min, double max) {

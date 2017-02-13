@@ -34,8 +34,7 @@ public class SigmoidUnit implements ActivationUnit {
     }
 
     @Override
-    public double backward(double x) {
-        double fct = forward(x);
+    public double backward(double x, double fct) {
         return fct * (1 - fct);
     }
 }

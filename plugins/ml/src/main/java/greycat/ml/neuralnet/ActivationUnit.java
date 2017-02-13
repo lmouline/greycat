@@ -17,5 +17,5 @@ package greycat.ml.neuralnet;
 
 public interface ActivationUnit {
     double forward(double x);
-    double backward(double x);
+    double backward(double x, double fct);
 }

@@ -20,11 +20,11 @@ import greycat.ml.neuralnet.ActivationUnit;
 
 public class SineUnit implements ActivationUnit {
 
-	private static SigmoidUnit static_unit= null;
+	private static SineUnit static_unit= null;
 
-	public static SigmoidUnit instance() {
+	public static SineUnit instance() {
 		if (static_unit == null) {
-			static_unit = new SigmoidUnit();
+			static_unit = new SineUnit();
 		}
 		return static_unit;
 	}
@@ -35,7 +35,7 @@ public class SineUnit implements ActivationUnit {
 	}
 
 	@Override
-	public double backward(double x) {
+	public double backward(double x, double fct) {
 		return Math.cos(x);
 	}
 }
