@@ -73,8 +73,7 @@ public class CalcGraph {
         }
         return out;
     }
-
-
+    
     //Apply activation function
     public final ExMatrix activate(final ActivationUnit activation, final ExMatrix input) {
         final ExMatrix output = ExMatrix.empty(input.rows(), input.columns());

@@ -26,7 +26,7 @@ public class ExMatrix implements DMatrix {
 
     private static String DW_KEY = "-dw";
     private static String STEPCACHE_KEY = "-sc";
-    
+
     private DMatrix w;
     private DMatrix dw;
     private DMatrix stepCache;
@@ -39,13 +39,11 @@ public class ExMatrix implements DMatrix {
         }
     }
 
-
     public static ExMatrix empty(int rows, int column) {
         ExMatrix dm = new ExMatrix(null, null);
         dm.init(rows, column);
         return dm;
     }
-
 
     public static ExMatrix createFromW(DMatrix w) {
         ExMatrix res = new ExMatrix(null, null);
@@ -93,8 +91,7 @@ public class ExMatrix implements DMatrix {
         w.fillWithRandomStd(random, std);
         return this;
     }
-
-
+    
     @Override
     public int rows() {
         return w.rows();
