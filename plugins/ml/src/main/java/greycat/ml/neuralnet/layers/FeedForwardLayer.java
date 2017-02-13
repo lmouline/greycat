@@ -29,7 +29,6 @@ import java.util.Random;
 
 public class FeedForwardLayer implements Layer {
 
-    final static int TYPE = 0;
     private static String WEIGHTS = "weights";
     private static String BIAS = "bias";
     private static String ACTIVATION = "activation";
@@ -58,7 +57,7 @@ public class FeedForwardLayer implements Layer {
         bias.init(outputs, 1);
         activation = ActivationUnits.getUnit(activationUnit, unitArgs);
         host.set(ACTIVATION, Type.INT, activationUnit);
-        host.set("type", Type.STRING, TYPE);
+        host.set("type", Type.INT, Registry.FeedForwardLayer);
         return this;
     }
 
