@@ -20,7 +20,7 @@ import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.ActivationUnit;
 import greycat.ml.neuralnet.CalcGraph;
 import greycat.ml.neuralnet.ExMatrix;
-import greycat.ml.neuralnet.Layer;
+import greycat.ml.neuralnet.Model;
 import greycat.ml.neuralnet.functions.ActivationUnits;
 import greycat.struct.DMatrix;
 import greycat.struct.ENode;
@@ -28,7 +28,7 @@ import greycat.struct.ENode;
 import java.util.Random;
 
 
-public class FeedForwardLayer implements Layer {
+public class FeedForwardModel implements Model {
 
     public static String NAME = "Feedforward layer";
     private static String WEIGHTS = "ff-weights";
@@ -42,7 +42,7 @@ public class FeedForwardLayer implements Layer {
     private ENode host;
 
 
-    public FeedForwardLayer(ENode hostnode) {
+    public FeedForwardModel(ENode hostnode) {
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }
@@ -54,7 +54,7 @@ public class FeedForwardLayer implements Layer {
         this.host = hostnode;
     }
 
-    public FeedForwardLayer create(int inputs, int outputs, int activationUnit, double[] unitArgs) {
+    public FeedForwardModel create(int inputs, int outputs, int activationUnit, double[] unitArgs) {
 
         weights = new ExMatrix(host, WEIGHTS);
         weights.init(outputs, inputs);
