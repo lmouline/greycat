@@ -21,15 +21,15 @@ public class NeuralNet {
         if (nb > 0) {
             for (int i = 0; i < layers.length; i++) {
                 layers[i] = Layers.toLayer(backend.node(i));
+                if (i == 0) {
+                    //todo load loss unit here
+                    lossUnit = Losses.getUnit(0, null);
+                }
             }
         }
-
-        //todo load loss unit here
-        lossUnit = Losses.getUnit(0, null);
-        //check the init, first name
     }
 
-    public void learn(double[] inputs, double[] outputs) {
+    public final void learn(double[] inputs, double[] outputs) {
         ProcessGraph cg = new ProcessGraph(true);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
         ExMatrix targetOutput = ExMatrix.createFromW(VolatileDMatrix.wrap(outputs, outputs.length, 1));
@@ -38,7 +38,7 @@ public class NeuralNet {
         cg.backpropagate();
     }
 
-    public double[] predict(double[] inputs) {
+    public final double[] predict(double[] inputs) {
         ProcessGraph cg = new ProcessGraph(false);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
         ExMatrix actualOutput = internalForward(cg, input);
