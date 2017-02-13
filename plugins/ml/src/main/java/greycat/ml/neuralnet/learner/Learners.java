@@ -13,20 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.layer;
+package greycat.ml.neuralnet.learner;
 
-import greycat.struct.ENode;
-
-public class Layers {
-
-    final static int FeedForwardLayer = 0;
-
-    public static Layer toLayer(ENode node) {
-        switch ((int) node.get("type")) {
-            case FeedForwardLayer:
-                return new FeedForwardLayer(node);
-        }
-        return null;
-    }
-
+/**
+ * Created by assaad on 13/02/2017.
+ */
+public class Learners {
 }
