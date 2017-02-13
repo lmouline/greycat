@@ -30,7 +30,7 @@ public class NeuralNet {
         //check the init, first name
     }
 
-    void learn(double[] inputs, double[] outputs) {
+    public void learn(double[] inputs, double[] outputs) {
         ProcessGraph cg = new ProcessGraph(true);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
 
@@ -44,7 +44,7 @@ public class NeuralNet {
         cg.backpropagate();
     }
 
-    double[] predict(double[] inputs) {
+    public double[] predict(double[] inputs) {
         ProcessGraph cg = new ProcessGraph(false);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
         ExMatrix actualOutput = internalForward(cg, input);
