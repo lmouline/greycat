@@ -8,17 +8,23 @@ import greycat.struct.EGraph;
 public class NeuralNet {
 
     private EGraph backend;
+    private Layer[] layers;
 
     public NeuralNet(EGraph p_backend) {
         backend = p_backend;
+        int nb = backend.size();
+        if (nb > 0) {
+            for (int i = 0; i < layers.length; i++) {
+                layers[i] = Layers.toLayer(backend.node(i));
+            }
+        }
+        //check the init, first name
     }
 
     void learn(double[] features, double[] outputs) {
         ProcessGraph cg = new ProcessGraph(true);
-        int nb = backend.size();
-        for (int i = 0; i < nb; i++) {
-            final Layer layer = Layers.toLayer(backend.node(i));
-            //layer.forward(null, layer);
+        for (int i = 0; i < layers.length; i++) {
+            layers[i].forward(null, cg);//TODO pass input
         }
         cg.backpropagate();
     }
