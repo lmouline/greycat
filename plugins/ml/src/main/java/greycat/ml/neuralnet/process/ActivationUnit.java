@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet;
+package greycat.ml.neuralnet.process;
 
-public interface LossUnit {
-    void backward(ExMatrix actualOutput, ExMatrix targetOutput);
-
-    double forward(ExMatrix actualOutput, ExMatrix targetOutput);
+public interface ActivationUnit {
+    double forward(double x);
+    double backward(double x, double fct);
 }

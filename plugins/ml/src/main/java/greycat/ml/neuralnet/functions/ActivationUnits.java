@@ -15,7 +15,7 @@
  */
 package greycat.ml.neuralnet.functions;
 
-import greycat.ml.neuralnet.ActivationUnit;
+import greycat.ml.neuralnet.process.ActivationUnit;
 
 /**
  * Created by assaad on 09/02/2017.

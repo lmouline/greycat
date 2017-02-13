@@ -21,6 +21,8 @@ import greycat.ml.neuralnet.functions.ActivationUnits;
 import greycat.ml.neuralnet.layers.FeedForwardLayer;
 import greycat.ml.neuralnet.loss.LossUnits;
 import greycat.ml.neuralnet.process.CalcGraph;
+import greycat.ml.neuralnet.process.ExMatrix;
+import greycat.ml.neuralnet.process.LossUnit;
 import greycat.struct.DMatrix;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;

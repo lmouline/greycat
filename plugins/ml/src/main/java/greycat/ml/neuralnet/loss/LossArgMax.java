@@ -17,8 +17,8 @@ package greycat.ml.neuralnet.loss;
 
 
 import greycat.ml.common.matrix.MatrixOps;
-import greycat.ml.neuralnet.ExMatrix;
-import greycat.ml.neuralnet.LossUnit;
+import greycat.ml.neuralnet.process.ExMatrix;
+import greycat.ml.neuralnet.process.LossUnit;
 
 public class LossArgMax implements LossUnit {
 

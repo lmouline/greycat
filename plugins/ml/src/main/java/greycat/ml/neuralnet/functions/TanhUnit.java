@@ -15,9 +15,7 @@
  */
 package greycat.ml.neuralnet.functions;
 
-import greycat.ml.neuralnet.ActivationUnit;
-
-import java.util.Random;
+import greycat.ml.neuralnet.process.ActivationUnit;
 
 public class TanhUnit implements ActivationUnit {
 

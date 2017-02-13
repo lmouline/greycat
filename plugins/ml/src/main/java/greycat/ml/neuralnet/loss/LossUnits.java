@@ -16,7 +16,7 @@
 package greycat.ml.neuralnet.loss;
 
 
-import greycat.ml.neuralnet.LossUnit;
+import greycat.ml.neuralnet.process.LossUnit;
 
 /**
  * Created by assaad on 13/02/2017.

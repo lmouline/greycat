@@ -20,6 +20,9 @@ import greycat.ml.common.matrix.TransposeType;
 import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.functions.ActivationUnits;
 import greycat.ml.neuralnet.loss.LossUnits;
+import greycat.ml.neuralnet.process.ActivationUnit;
+import greycat.ml.neuralnet.process.ExMatrix;
+import greycat.ml.neuralnet.process.LossUnit;
 import greycat.struct.DMatrix;
 
 /**
