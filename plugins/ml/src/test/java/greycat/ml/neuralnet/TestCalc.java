@@ -157,15 +157,10 @@ public class TestCalc {
     }
 
     public static void backpropAdd(ExMatrix matA, ExMatrix matB, ExMatrix result) {
-        int len = result.length();
-        DMatrix matAdw = matA.getDw();
-        DMatrix matBdw = matB.getDw();
-        DMatrix resdw = result.getDw();
 
-        for (int i = 0; i < len; i++) {
-            matAdw.unsafeSet(i, matAdw.unsafeGet(i) + resdw.unsafeGet(i));
-            matBdw.unsafeSet(i, matBdw.unsafeGet(i) + resdw.unsafeGet(i));
-        }
+        MatrixOps.addtoMatrix(matA.getDw(),result.getDw());
+        MatrixOps.addtoMatrix(matB.getDw(),result.getDw());
+
     }
 
     public static void backpropMult(ExMatrix matA, ExMatrix matB, ExMatrix result) {

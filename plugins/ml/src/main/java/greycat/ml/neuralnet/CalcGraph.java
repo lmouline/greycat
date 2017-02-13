@@ -16,6 +16,12 @@
 package greycat.ml.neuralnet;
 
 import greycat.ml.common.matrix.MatrixOps;
+import greycat.ml.common.matrix.TransposeType;
+import greycat.struct.DMatrix;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by assaad on 10/02/2017.
  */
@@ -23,59 +29,100 @@ public class CalcGraph {
 
 
     private boolean applyBackprop;
-    //private List<Runnable> backprop = new ArrayList<>();
+    private List<ExecutableStep> backprop = new ArrayList<>();
 
 
     public CalcGraph(boolean applyBackprop) {
         this.applyBackprop = applyBackprop;
     }
 
+    public void backpropagate() {
+        for (int i = backprop.size()-1; i >= 0; i--) {
+            backprop.get(i).execute();
+        }
+    }
 
     //Multiply two matrices
-    public ExMatrix mul(ExMatrix matA, ExMatrix matB) {
+    public ExMatrix mul(final ExMatrix matA, final ExMatrix matB) {
 
-        ExMatrix out = ExMatrix.createFromW(MatrixOps.multiply(matA, matB));
+        final ExMatrix out = ExMatrix.createFromW(MatrixOps.multiply(matA, matB));
 
+        if (this.applyBackprop) {
+            ExecutableStep bp = new ExecutableStep() {
+                public void execute() {
+                    DMatrix dwatemp = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, out.getDw(), TransposeType.TRANSPOSE, matB.getW());
+                    DMatrix dwbtemp = MatrixOps.multiplyTranspose(TransposeType.TRANSPOSE, matA.getW(), TransposeType.NOTRANSPOSE, out.getDw());
 
-        return null;
+                    MatrixOps.addtoMatrix(matA.getDw(), dwatemp);
+                    MatrixOps.addtoMatrix(matB.getDw(), dwbtemp);
+                }
+            };
+            backprop.add(bp);
+        }
+        return out;
     }
 
 
     //Add two matrices
-    public ExMatrix add(ExMatrix matA, ExMatrix matB) {
-        return null;
+    public ExMatrix add(final ExMatrix matA, final ExMatrix matB) {
+        final ExMatrix out = ExMatrix.createFromW(MatrixOps.add(matA, matB));
+
+        if (this.applyBackprop) {
+            ExecutableStep bp = new ExecutableStep() {
+                //the derivative is distributive over the add operator
+                public void execute() {
+                    MatrixOps.addtoMatrix(matA.getDw(), out.getDw());
+                    MatrixOps.addtoMatrix(matB.getDw(), out.getDw());
+                }
+            };
+            backprop.add(bp);
+        }
+        return out;
     }
 
 
     //Apply activation function
-    public ExMatrix activate(ActivationUnit activation, ExMatrix input) {
+    public ExMatrix activate(final ActivationUnit activation, final ExMatrix input) {
         final ExMatrix output = ExMatrix.empty(input.rows(), input.columns());
         final int len = input.length();
 
-        //todo all activation functions can be vectorized as well
+        //todo [opt] all activation functions can be vectorized as well
         for (int i = 0; i < len; i++) {
             output.unsafeSet(i, activation.forward(input.unsafeGet(i)));
         }
 
         if (this.applyBackprop) {
-       /*     Runnable bp = new Runnable() {
-                public void run() {
+            ExecutableStep bp = new ExecutableStep() {
+                public void execute() {
+
                     DMatrix inputDw = input.getDw();
                     DMatrix inputW = input.getW();
                     DMatrix outputDW = output.getDw();
                     DMatrix outputW = output.getW();
 
-                    //toDo can be optimized in // or blas using Hadamard product
-                    //Backpropa assigned is: inputDw += derivation of activation
+                    //todo [opt] can be optimized in // or blas using Hadamard product
+                    //Backpropa assigned is: inputDw += derivation of activation * outputDw
                     for (int i = 0; i < len; i++) {
                         inputDw.unsafeSet(i, inputDw.unsafeGet(i) + (activation.backward(inputW.unsafeGet(i), outputW.unsafeGet(i)) * outputDW.unsafeGet(i)));
                     }
                 }
             };
-            backprop.add(bp);*/
+            backprop.add(bp);
+        }
+        return output;
+    }
+
+    public double applyLoss(final LossUnit lossUnit, final ExMatrix actualOutput, final ExMatrix targetOutput){
+        double err = lossUnit.forward(actualOutput, targetOutput);
+        if (this.applyBackprop) {
+            ExecutableStep bp = new ExecutableStep() {
+                public void execute() {
+                    lossUnit.backward(actualOutput,targetOutput);
+                }
+            };
+            backprop.add(bp);
         }
 
-
-        return output;
+        return err;
     }
 }

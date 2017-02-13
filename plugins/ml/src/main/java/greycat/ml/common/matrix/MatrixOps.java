@@ -145,6 +145,8 @@ public class MatrixOps {
     }
 
 
+
+
     public static boolean testDimensionsAB(TransposeType transA, TransposeType transB, DMatrix matA, DMatrix matB) {
         if (transA.equals(TransposeType.NOTRANSPOSE)) {
             if (transB.equals(TransposeType.NOTRANSPOSE)) {
@@ -171,7 +173,7 @@ public class MatrixOps {
             throw new RuntimeException("Matrices A and B have different dimensions for the substract operation");
         }
         DMatrix result = VolatileDMatrix.empty(matA.rows(), matA.columns());
-        int total = matA.rows() * matA.columns();
+        int total = matA.length();
         for (int i = 0; i < total; i++) {
             result.unsafeSet(i, matA.unsafeGet(i) - matB.unsafeGet(i));
         }
@@ -184,7 +186,7 @@ public class MatrixOps {
         if (original.rows() != values.rows() || original.columns() != values.columns()) {
             throw new RuntimeException("Matrices original and values have different dimensions for the add operation");
         }
-        int total = original.rows() * original.columns();
+        int total = original.length();
         for (int i = 0; i < total; i++) {
             original.unsafeSet(i, original.unsafeGet(i) + values.unsafeGet(i));
         }
@@ -197,9 +199,24 @@ public class MatrixOps {
             throw new RuntimeException("Matrices A and B have different dimensions for the add operation");
         }
         DMatrix result = VolatileDMatrix.empty(matA.rows(), matA.columns());
-        int total = matA.rows() * matA.columns();
+        int total = matA.length();
         for (int i = 0; i < total; i++) {
             result.unsafeSet(i, matA.unsafeGet(i) + matB.unsafeGet(i));
+        }
+        return result;
+    }
+
+
+    //todo can be vectorized
+    //Hadamard Multiplication multiply 2 matrices elementwise A=[a,b,c] B=[x,y,z] -> result=[a.x, b.y, c.z]
+    public static DMatrix HadamardMult(DMatrix matA, DMatrix matB){
+        if (matA.rows() != matB.rows() || matA.columns() != matB.columns()) {
+            throw new RuntimeException("Matrices A and B have different dimensions for the add operation");
+        }
+        DMatrix result = VolatileDMatrix.empty(matA.rows(), matA.columns());
+        int total = matA.length();
+        for (int i = 0; i < total; i++) {
+            result.unsafeSet(i, matA.unsafeGet(i) * matB.unsafeGet(i));
         }
         return result;
     }
