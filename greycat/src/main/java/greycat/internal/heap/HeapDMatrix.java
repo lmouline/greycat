@@ -124,7 +124,7 @@ class HeapDMatrix implements DMatrix {
                 backend = next_backend;
                 aligned = true;
             }
-            Arrays.fill(backend, INDEX_OFFSET, backend.length - INDEX_OFFSET, value);
+            Arrays.fill(backend, INDEX_OFFSET, backend.length, value);
             backend[INDEX_MAX_COLUMN] = backend[INDEX_COLUMNS];
             parent.declareDirty();
         }
@@ -191,7 +191,6 @@ class HeapDMatrix implements DMatrix {
     }
 
 
-
     @SuppressWarnings("Duplicates")
     @Override
     public final int rows() {
@@ -221,7 +220,7 @@ class HeapDMatrix implements DMatrix {
         int result = 0;
         synchronized (parent) {
             if (backend != null) {
-                result = ((int) backend[INDEX_MAX_COLUMN])* ((int) backend[INDEX_ROWS]);
+                result = ((int) backend[INDEX_MAX_COLUMN]) * ((int) backend[INDEX_ROWS]);
             }
         }
         return result;

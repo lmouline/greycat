@@ -15,11 +15,14 @@
  */
 package greycat.ml.neuralnet.layers;
 
+import greycat.Type;
+import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.ActivationUnit;
 import greycat.ml.neuralnet.CalcGraph;
 import greycat.ml.neuralnet.ExMatrix;
 import greycat.ml.neuralnet.Layer;
 import greycat.ml.neuralnet.functions.ActivationUnits;
+import greycat.struct.DMatrix;
 import greycat.struct.ENode;
 
 import java.util.Random;
@@ -27,7 +30,7 @@ import java.util.Random;
 
 public class FeedForwardLayer implements Layer {
 
-    public static String NAME="Feedforward layer";
+    public static String NAME = "Feedforward layer";
     private static String WEIGHTS = "ff-weights";
     private static String BIAS = "ff-bias";
     private static String ACTIVATION = "ff-activation";
@@ -58,10 +61,21 @@ public class FeedForwardLayer implements Layer {
         bias = new ExMatrix(host, BIAS);
         bias.init(outputs, 1);
         activation = ActivationUnits.getUnit(activationUnit, unitArgs);
+        host.set(ACTIVATION, Type.INT, activationUnit);
+        host.set("NAME", Type.STRING, NAME);
+
 
         return this;
     }
 
+
+    public void setWeights(DMatrix weights) {
+        MatrixOps.copy(weights, this.weights);
+    }
+
+    public void setBias(DMatrix bias) {
+        MatrixOps.copy(bias, this.bias);
+    }
 
     @Override
     public String getName() {
@@ -89,6 +103,12 @@ public class FeedForwardLayer implements Layer {
 
     @Override
     public void resetState() {
+        weights.getDw().fill(0);
+        bias.getDw().fill(0);
+    }
 
+    @Override
+    public ExMatrix[] getModelParameters() {
+        return new ExMatrix[]{weights, bias};
     }
 }

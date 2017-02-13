@@ -181,6 +181,18 @@ public class MatrixOps {
     }
 
 
+    //todo can be replaced by system array copy if possible
+    public static void copy(DMatrix from, DMatrix to){
+        if (from.rows() != to.rows() || from.columns() != to.columns()) {
+            throw new RuntimeException("Matrices original and values have different dimensions for the add operation");
+        }
+        int total = from.length();
+        for (int i = 0; i < total; i++) {
+            to.unsafeSet(i, from.unsafeGet(i));
+        }
+    }
+
+
     //todo can be vectorized
     public static void addtoMatrix(DMatrix original, DMatrix values){
         if (original.rows() != values.rows() || original.columns() != values.columns()) {

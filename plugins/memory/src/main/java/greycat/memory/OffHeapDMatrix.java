@@ -129,7 +129,7 @@ class OffHeapDMatrix implements DMatrix {
             if (addr != OffHeapConstants.NULL_PTR) {
                 int nbRows = (int) OffHeapDoubleArray.get(addr, INDEX_ROWS);
                 int nbColumns = (int) OffHeapDoubleArray.get(addr, INDEX_COLUMNS);
-                OffHeapDoubleArray.fill(addr, INDEX_OFFSET, (nbRows * nbColumns), value);
+                OffHeapDoubleArray.fill(addr, INDEX_OFFSET, INDEX_OFFSET + (nbRows * nbColumns), value);
                 container.declareDirty();
             }
         } finally {
