@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet;
+package greycat.ml.neuralnet.layers;
 
+
+import greycat.ml.neuralnet.CalcGraph;
+import greycat.ml.neuralnet.ExMatrix;
 
 import java.util.Random;
 
-public interface Model {
-
-    String getName();
-
+public interface Layer {
+    
     void fillWithRandom(Random random, double min, double max);
 
     void fillWithRandomStd(Random random, double std);

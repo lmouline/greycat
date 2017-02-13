@@ -142,6 +142,11 @@ public class OffHeapEGraph implements EGraph {
     }
 
     @Override
+    public ENode node(int nodeIndex) {
+        return nodeByIndex(nodeIndex, false);
+    }
+
+    @Override
     public final EGraph setRoot(ENode eNode) {
        // long addr = parent.addrByIndex(index);
         final OffHeapENode casted = (OffHeapENode) eNode;

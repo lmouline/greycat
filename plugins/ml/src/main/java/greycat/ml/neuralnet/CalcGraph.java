@@ -22,31 +22,24 @@ import greycat.struct.DMatrix;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by assaad on 10/02/2017.
- */
 public class CalcGraph {
-
 
     private boolean applyBackprop;
     private List<ExecutableStep> backprop = new ArrayList<>();
-
 
     public CalcGraph(boolean applyBackprop) {
         this.applyBackprop = applyBackprop;
     }
 
-    public void backpropagate() {
-        for (int i = backprop.size()-1; i >= 0; i--) {
+    public final void backpropagate() {
+        for (int i = backprop.size() - 1; i >= 0; i--) {
             backprop.get(i).execute();
         }
     }
 
     //Multiply two matrices
-    public ExMatrix mul(final ExMatrix matA, final ExMatrix matB) {
-
+    public final ExMatrix mul(final ExMatrix matA, final ExMatrix matB) {
         final ExMatrix out = ExMatrix.createFromW(MatrixOps.multiply(matA, matB));
-
         if (this.applyBackprop) {
             ExecutableStep bp = new ExecutableStep() {
                 public void execute() {
@@ -62,11 +55,9 @@ public class CalcGraph {
         return out;
     }
 
-
     //Add two matrices
-    public ExMatrix add(final ExMatrix matA, final ExMatrix matB) {
+    public final ExMatrix add(final ExMatrix matA, final ExMatrix matB) {
         final ExMatrix out = ExMatrix.createFromW(MatrixOps.add(matA, matB));
-
         if (this.applyBackprop) {
             ExecutableStep bp = new ExecutableStep() {
                 //the derivative is distributive over the add operator
@@ -82,7 +73,7 @@ public class CalcGraph {
 
 
     //Apply activation function
-    public ExMatrix activate(final ActivationUnit activation, final ExMatrix input) {
+    public final ExMatrix activate(final ActivationUnit activation, final ExMatrix input) {
         final ExMatrix output = ExMatrix.empty(input.rows(), input.columns());
         final int len = input.length();
 
@@ -112,12 +103,12 @@ public class CalcGraph {
         return output;
     }
 
-    public double applyLoss(final LossUnit lossUnit, final ExMatrix actualOutput, final ExMatrix targetOutput){
+    public final double applyLoss(final LossUnit lossUnit, final ExMatrix actualOutput, final ExMatrix targetOutput) {
         double err = lossUnit.forward(actualOutput, targetOutput);
         if (this.applyBackprop) {
             ExecutableStep bp = new ExecutableStep() {
                 public void execute() {
-                    lossUnit.backward(actualOutput,targetOutput);
+                    lossUnit.backward(actualOutput, targetOutput);
                 }
             };
             backprop.add(bp);

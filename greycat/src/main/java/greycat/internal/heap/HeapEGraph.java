@@ -126,6 +126,11 @@ class HeapEGraph implements EGraph {
     }
 
     @Override
+    public ENode node(int nodeIndex) {
+        return nodeByIndex(nodeIndex, false);
+    }
+
+    @Override
     public final ENode root() {
         if (_nodes_index > 0) {
             return _nodes[0];

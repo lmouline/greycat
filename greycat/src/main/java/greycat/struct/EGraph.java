@@ -23,6 +23,8 @@ public interface EGraph {
 
     ENode newNode();
 
+    ENode node(int index);
+
     EGraph setRoot(ENode eNode);
 
     EGraph drop(ENode eNode);
