@@ -105,6 +105,7 @@ public class TestCalc {
         backpropAdd(o1temp, bias1, o1);
         backpropMult(weights1, input, o1temp);
 
+        //Let's apply the learning rate: 0.5
         double learningRate=0.5;
 
         applyLearningRate(weights1,learningRate);
@@ -129,10 +130,7 @@ public class TestCalc {
         System.out.println("Bias: ");
         System.out.println("b2-a: "+bias2.get(0,0));
         System.out.println("b2-b: "+bias2.get(1,0));
-        //Let's apply the learning rate: 0.5
 
-
-        int x = 0;
 
 
     }
