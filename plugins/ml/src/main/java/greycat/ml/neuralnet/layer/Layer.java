@@ -13,35 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.functions;
+package greycat.ml.neuralnet.layer;
 
+import greycat.ml.neuralnet.process.ProcessGraph;
+import greycat.ml.neuralnet.process.ExMatrix;
 
-import greycat.ml.neuralnet.process.ActivationUnit;
+import java.util.Random;
 
-public class RectifiedLinearUnit implements ActivationUnit {
-	private double slope;
+public interface Layer {
 
-	public RectifiedLinearUnit(double slope) {
-		this.slope = slope;
-	}
-	
-	@Override
-	public double forward(double x) {
-		if (x >= 0) {
-			return x;
-		}
-		else {
-			return x * slope;
-		}
-	}
+    void fillWithRandom(Random random, double min, double max);
 
-	@Override
-	public double backward(double x, double fct) {
-		if (x >= 0) {
-			return 1.0;
-		}
-		else {
-			return slope;
-		}
-	}
+    void fillWithRandomStd(Random random, double std);
+
+    ExMatrix forward(ExMatrix input, ProcessGraph g);
+
+    void resetState();
+
+    ExMatrix[] getModelParameters();
+
 }

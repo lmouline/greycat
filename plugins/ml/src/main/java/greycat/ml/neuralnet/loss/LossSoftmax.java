@@ -17,10 +17,9 @@ package greycat.ml.neuralnet.loss;
 
 import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.process.ExMatrix;
-import greycat.ml.neuralnet.process.LossUnit;
 
 
-public class LossSoftmax implements LossUnit {
+public class LossSoftmax implements Loss {
 
 
     private static LossSoftmax static_unit= null;

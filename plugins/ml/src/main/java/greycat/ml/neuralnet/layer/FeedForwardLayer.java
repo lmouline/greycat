@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.layers;
+package greycat.ml.neuralnet.layer;
 
 import greycat.Type;
 import greycat.ml.common.matrix.MatrixOps;
-import greycat.ml.neuralnet.process.ActivationUnit;
-import greycat.ml.neuralnet.process.CalcGraph;
+import greycat.ml.neuralnet.activation.Activation;
+import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.ml.neuralnet.process.ExMatrix;
-import greycat.ml.neuralnet.functions.ActivationUnits;
+import greycat.ml.neuralnet.activation.Activations;
 import greycat.struct.DMatrix;
 import greycat.struct.ENode;
 
 import java.util.Random;
-
 
 public class FeedForwardLayer implements Layer {
 
@@ -35,7 +34,7 @@ public class FeedForwardLayer implements Layer {
 
     private ExMatrix weights;
     private ExMatrix bias;
-    private ActivationUnit activation;
+    private Activation activation;
     private ENode host;
 
     public FeedForwardLayer(ENode hostnode) {
@@ -45,7 +44,7 @@ public class FeedForwardLayer implements Layer {
         if (hostnode.get(WEIGHTS) != null) {
             weights = new ExMatrix(hostnode, WEIGHTS);
             bias = new ExMatrix(hostnode, BIAS);
-            activation = ActivationUnits.getUnit((int) hostnode.get(ACTIVATION), null);
+            activation = Activations.getUnit((int) hostnode.get(ACTIVATION), null);
         }
         this.host = hostnode;
     }
@@ -55,9 +54,9 @@ public class FeedForwardLayer implements Layer {
         weights.init(outputs, inputs);
         bias = new ExMatrix(host, BIAS);
         bias.init(outputs, 1);
-        activation = ActivationUnits.getUnit(activationUnit, unitArgs);
+        activation = Activations.getUnit(activationUnit, unitArgs);
         host.set(ACTIVATION, Type.INT, activationUnit);
-        host.set("type", Type.INT, Registry.FeedForwardLayer);
+        host.set("type", Type.INT, Layers.FeedForwardLayer);
         return this;
     }
 
@@ -82,7 +81,7 @@ public class FeedForwardLayer implements Layer {
     }
 
     @Override
-    public ExMatrix forward(ExMatrix input, CalcGraph g) {
+    public ExMatrix forward(ExMatrix input, ProcessGraph g) {
         ExMatrix sum = g.add(g.mul(weights, input), bias);
         ExMatrix out = g.activate(activation, sum);
         return out;

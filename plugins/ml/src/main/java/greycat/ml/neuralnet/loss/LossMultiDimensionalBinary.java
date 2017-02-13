@@ -15,11 +15,9 @@
  */
 package greycat.ml.neuralnet.loss;
 
-
 import greycat.ml.neuralnet.process.ExMatrix;
-import greycat.ml.neuralnet.process.LossUnit;
 
-public class LossMultiDimensionalBinary implements LossUnit {
+public class LossMultiDimensionalBinary implements Loss {
 
     @Override
     public void backward(ExMatrix actualOutput, ExMatrix targetOutput) {
@@ -29,8 +27,8 @@ public class LossMultiDimensionalBinary implements LossUnit {
     @Override
     public double forward(ExMatrix actualOutput, ExMatrix targetOutput) {
 
-        int wlen=actualOutput.length();
-        int tlen=targetOutput.length();
+        int wlen = actualOutput.length();
+        int tlen = targetOutput.length();
 
         if (wlen != tlen) {
             throw new RuntimeException("dimension mismatch");
@@ -40,7 +38,7 @@ public class LossMultiDimensionalBinary implements LossUnit {
             if (targetOutput.unsafeGet(i) >= 0.5 && actualOutput.unsafeGet(i) < 0.5) {
                 return 1;
             }
-            if (targetOutput.unsafeGet(i)  < 0.5 && actualOutput.unsafeGet(i) >= 0.5) {
+            if (targetOutput.unsafeGet(i) < 0.5 && actualOutput.unsafeGet(i) >= 0.5) {
                 return 1;
             }
         }

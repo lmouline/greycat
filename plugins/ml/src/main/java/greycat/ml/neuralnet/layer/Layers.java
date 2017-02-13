@@ -1,8 +1,8 @@
-package greycat.ml.neuralnet.layers;
+package greycat.ml.neuralnet.layer;
 
 import greycat.struct.ENode;
 
-public class Registry {
+public class Layers {
 
     final static int FeedForwardLayer = 0;
 

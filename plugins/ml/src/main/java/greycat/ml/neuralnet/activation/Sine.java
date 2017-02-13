@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.functions;
+package greycat.ml.neuralnet.activation;
 
 
-import greycat.ml.neuralnet.process.ActivationUnit;
+public class Sine implements Activation {
 
-public class SineUnit implements ActivationUnit {
+	private static Sine static_unit= null;
 
-	private static SineUnit static_unit= null;
-
-	public static SineUnit instance() {
+	public static Sine instance() {
 		if (static_unit == null) {
-			static_unit = new SineUnit();
+			static_unit = new Sine();
 		}
 		return static_unit;
 	}

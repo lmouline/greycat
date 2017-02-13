@@ -13,8 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.process;
+package greycat.ml.neuralnet.activation;
 
-public interface ExecutableStep {
-    void execute();
+public class Sigmoid implements Activation {
+
+    private static Sigmoid static_unit= null;
+
+    public static Sigmoid instance() {
+        if (static_unit == null) {
+            static_unit = new Sigmoid();
+        }
+        return static_unit;
+    }
+
+    @Override
+    public double forward(double x) {
+        return 1 / (1 + Math.exp(-x));
+    }
+
+    @Override
+    public double backward(double x, double fct) {
+        return fct * (1 - fct);
+    }
 }

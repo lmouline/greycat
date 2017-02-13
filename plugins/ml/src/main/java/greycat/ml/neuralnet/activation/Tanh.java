@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.functions;
+package greycat.ml.neuralnet.activation;
 
-import greycat.ml.neuralnet.process.ActivationUnit;
+public class Tanh implements Activation {
 
-public class TanhUnit implements ActivationUnit {
+    private static Tanh static_unit = null;
 
-
-    private static TanhUnit static_unit = null;
-
-    public static TanhUnit instance() {
+    public static Tanh instance() {
         if (static_unit == null) {
-            static_unit = new TanhUnit();
+            static_unit = new Tanh();
         }
         return static_unit;
     }
@@ -44,7 +41,7 @@ public class TanhUnit implements ActivationUnit {
 
     @Override
     public double backward(double x, double fct) {
-        return 1- fct*fct;
+        return 1 - fct * fct;
     }
 
     /**
@@ -63,7 +60,7 @@ public class TanhUnit implements ActivationUnit {
 //        for(int i=0;i<10;i++) {
 //            double x = rand.nextDouble();
 //
-//            TanhUnit th = new TanhUnit();
+//            Tanh th = new Tanh();
 //            double y = th.forward(x);
 //            double yp = th.backward(x, y);
 //

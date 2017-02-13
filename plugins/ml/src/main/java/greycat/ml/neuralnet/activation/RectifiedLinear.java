@@ -13,24 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.layers;
+package greycat.ml.neuralnet.activation;
 
 
-import greycat.ml.neuralnet.process.CalcGraph;
-import greycat.ml.neuralnet.process.ExMatrix;
+public class RectifiedLinear implements Activation {
+	private double slope;
 
-import java.util.Random;
+	public RectifiedLinear(double slope) {
+		this.slope = slope;
+	}
+	
+	@Override
+	public double forward(double x) {
+		if (x >= 0) {
+			return x;
+		}
+		else {
+			return x * slope;
+		}
+	}
 
-public interface Layer {
-
-    void fillWithRandom(Random random, double min, double max);
-
-    void fillWithRandomStd(Random random, double std);
-
-    ExMatrix forward(ExMatrix input, CalcGraph g);
-
-    void resetState();
-
-    ExMatrix[] getModelParameters();
-
+	@Override
+	public double backward(double x, double fct) {
+		if (x >= 0) {
+			return 1.0;
+		}
+		else {
+			return slope;
+		}
+	}
 }

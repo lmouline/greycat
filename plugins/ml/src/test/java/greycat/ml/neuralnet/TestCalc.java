@@ -18,11 +18,11 @@ package greycat.ml.neuralnet;
 import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.common.matrix.TransposeType;
 import greycat.ml.common.matrix.VolatileDMatrix;
-import greycat.ml.neuralnet.functions.ActivationUnits;
-import greycat.ml.neuralnet.loss.LossUnits;
-import greycat.ml.neuralnet.process.ActivationUnit;
+import greycat.ml.neuralnet.activation.Activations;
+import greycat.ml.neuralnet.loss.Loss;
+import greycat.ml.neuralnet.loss.Losses;
+import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.process.ExMatrix;
-import greycat.ml.neuralnet.process.LossUnit;
 import greycat.struct.DMatrix;
 
 /**
@@ -75,8 +75,8 @@ public class TestCalc {
         wb2.set(1, 0, 0.6);
         ExMatrix bias2 = ExMatrix.createFromW(wb2);
 
-        LossUnit sumsq = LossUnits.getUnit(LossUnits.SUM_OF_SQUARES, null);
-        ActivationUnit sigmoid = ActivationUnits.getUnit(ActivationUnits.SIGMOID, null);
+        Loss sumsq = Losses.getUnit(Losses.SUM_OF_SQUARES, null);
+        Activation sigmoid = Activations.getUnit(Activations.SIGMOID, null);
 
 
         //The calculation steps are here
@@ -177,7 +177,7 @@ public class TestCalc {
     }
 
 
-    private static ExMatrix activation(ActivationUnit activation, ExMatrix input) {
+    private static ExMatrix activation(Activation activation, ExMatrix input) {
         final ExMatrix output = ExMatrix.empty(input.rows(), input.columns());
         final int len = input.length();
 
@@ -189,7 +189,7 @@ public class TestCalc {
     }
 
 
-    public static void backpropActivation(ActivationUnit activation, ExMatrix input, ExMatrix output) {
+    public static void backpropActivation(Activation activation, ExMatrix input, ExMatrix output) {
         DMatrix inputDw = input.getDw();
         DMatrix inputW = input.getW();
         DMatrix outputDW = output.getDw();

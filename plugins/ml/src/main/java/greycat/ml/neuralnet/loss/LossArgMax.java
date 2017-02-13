@@ -18,9 +18,8 @@ package greycat.ml.neuralnet.loss;
 
 import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.process.ExMatrix;
-import greycat.ml.neuralnet.process.LossUnit;
 
-public class LossArgMax implements LossUnit {
+public class LossArgMax implements Loss {
 
     @Override
     public void backward(ExMatrix actualOutput, ExMatrix targetOutput) {

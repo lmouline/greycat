@@ -82,7 +82,7 @@ public class FlatNeuralNode extends BaseNode {
 
             previousDim = nodesPerLayer;
         }
-        //create output weight and bias after hidden layers index
+        //create output weight and bias after hidden layer index
         nextDim = outputs;
         DMatrix weights = layerWeights(state, hiddenlayers);
         DMatrix biases = layerBias(state, hiddenlayers);

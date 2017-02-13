@@ -13,34 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.functions;
+package greycat.ml.neuralnet.activation;
 
-import greycat.ml.neuralnet.process.ActivationUnit;
-
-/**
- * Created by assaad on 09/02/2017.
- */
-public class ActivationUnits {
+public class Activations {
     public static final int LINEAR = 0;
     public static final int SIGMOID = 1;
     public static final int SINE = 2;
     public static final int TANH = 3;
-    public static final int RECTIFIED_LINEAR=4;
+    public static final int RECTIFIED_LINEAR = 4;
 
     public static final int DEFAULT = LINEAR;
 
-    public static ActivationUnit getUnit(int activationUnit, double[] unitArgs) {
+    public static Activation getUnit(int activationUnit, double[] unitArgs) {
         switch (activationUnit) {
             case LINEAR:
-                return LinearUnit.instance();
+                return Linear.instance();
             case SIGMOID:
-                return SigmoidUnit.instance();
+                return Sigmoid.instance();
             case SINE:
-                return SineUnit.instance();
+                return Sine.instance();
             case TANH:
-                return TanhUnit.instance();
+                return Tanh.instance();
             case RECTIFIED_LINEAR:
-                return new RectifiedLinearUnit(unitArgs[0]);
+                return new RectifiedLinear(unitArgs[0]);
         }
         return getUnit(DEFAULT, null);
     }

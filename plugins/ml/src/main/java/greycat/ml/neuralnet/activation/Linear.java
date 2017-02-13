@@ -13,28 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.functions;
+package greycat.ml.neuralnet.activation;
 
-import greycat.ml.neuralnet.process.ActivationUnit;
+public class Linear implements Activation {
 
-public class SigmoidUnit implements ActivationUnit {
+    private static Linear static_unit= null;
 
-    private static SigmoidUnit static_unit= null;
-
-    public static SigmoidUnit instance() {
+    public static Linear instance() {
         if (static_unit == null) {
-            static_unit = new SigmoidUnit();
+            static_unit = new Linear();
         }
         return static_unit;
     }
 
     @Override
     public double forward(double x) {
-        return 1 / (1 + Math.exp(-x));
+        return x;
     }
 
     @Override
     public double backward(double x, double fct) {
-        return fct * (1 - fct);
+        return 1;
     }
 }

@@ -17,17 +17,19 @@ package greycat.ml.neuralnet.process;
 
 import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.common.matrix.TransposeType;
+import greycat.ml.neuralnet.loss.Loss;
+import greycat.ml.neuralnet.activation.Activation;
 import greycat.struct.DMatrix;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CalcGraph {
+public class ProcessGraph {
 
     private boolean applyBackprop;
-    private List<ExecutableStep> backprop = new ArrayList<ExecutableStep>();
+    private List<ProcessStep> backprop = new ArrayList<ProcessStep>();
 
-    public CalcGraph(boolean applyBackprop) {
+    public ProcessGraph(boolean applyBackprop) {
         this.applyBackprop = applyBackprop;
     }
 
@@ -41,7 +43,7 @@ public class CalcGraph {
     public final ExMatrix mul(final ExMatrix matA, final ExMatrix matB) {
         final ExMatrix out = ExMatrix.createFromW(MatrixOps.multiply(matA, matB));
         if (this.applyBackprop) {
-            ExecutableStep bp = new ExecutableStep() {
+            ProcessStep bp = new ProcessStep() {
                 public void execute() {
                     DMatrix dwatemp = MatrixOps.multiplyTranspose(TransposeType.NOTRANSPOSE, out.getDw(), TransposeType.TRANSPOSE, matB.getW());
                     DMatrix dwbtemp = MatrixOps.multiplyTranspose(TransposeType.TRANSPOSE, matA.getW(), TransposeType.NOTRANSPOSE, out.getDw());
@@ -59,7 +61,7 @@ public class CalcGraph {
     public final ExMatrix add(final ExMatrix matA, final ExMatrix matB) {
         final ExMatrix out = ExMatrix.createFromW(MatrixOps.add(matA, matB));
         if (this.applyBackprop) {
-            ExecutableStep bp = new ExecutableStep() {
+            ProcessStep bp = new ProcessStep() {
                 //the derivative is distributive over the add operator
                 public void execute() {
                     MatrixOps.addtoMatrix(matA.getDw(), out.getDw());
@@ -72,7 +74,7 @@ public class CalcGraph {
     }
 
     //Apply activation function
-    public final ExMatrix activate(final ActivationUnit activation, final ExMatrix input) {
+    public final ExMatrix activate(final Activation activation, final ExMatrix input) {
         final ExMatrix output = ExMatrix.empty(input.rows(), input.columns());
         final int len = input.length();
         //todo [opt] all activation functions can be vectorized as well
@@ -80,7 +82,7 @@ public class CalcGraph {
             output.unsafeSet(i, activation.forward(input.unsafeGet(i)));
         }
         if (this.applyBackprop) {
-            ExecutableStep bp = new ExecutableStep() {
+            ProcessStep bp = new ProcessStep() {
                 public void execute() {
                     DMatrix inputDw = input.getDw();
                     DMatrix inputW = input.getW();
@@ -98,10 +100,10 @@ public class CalcGraph {
         return output;
     }
 
-    public final double applyLoss(final LossUnit lossUnit, final ExMatrix actualOutput, final ExMatrix targetOutput) {
+    public final double applyLoss(final Loss lossUnit, final ExMatrix actualOutput, final ExMatrix targetOutput) {
         double err = lossUnit.forward(actualOutput, targetOutput);
         if (this.applyBackprop) {
-            ExecutableStep bp = new ExecutableStep() {
+            ProcessStep bp = new ProcessStep() {
                 public void execute() {
                     lossUnit.backward(actualOutput, targetOutput);
                 }

@@ -55,7 +55,7 @@ public class NeuralNode extends BaseNode {
         NodeState state = phasedState();
         state.setFromKey(NODE_TYPE, Type.INT, NeuralNodeType.ROOT);
 
-        //create input layers:
+        //create input layer:
         for (int i = 0; i < inputs; i++) {
             NeuralNode inputNode = createNewNode(NeuralNodeType.INPUT);
             this.forwardConnect(inputNode);
@@ -66,7 +66,7 @@ public class NeuralNode extends BaseNode {
         ArrayList<NeuralNode> nextLayer = new ArrayList<NeuralNode>();
 
 
-        //Create hidden layers
+        //Create hidden layer
         for (int i = 0; i < hiddenlayers; i++) {
             for (int j = 0; j < nodesPerLayer; j++) {
                 NeuralNode hidden = createNewNode(NeuralNodeType.HIDDEN);
@@ -82,7 +82,7 @@ public class NeuralNode extends BaseNode {
             nextLayer = new ArrayList<NeuralNode>();
         }
 
-        //Create output layers
+        //Create output layer
         for (int i = 0; i < outputs; i++) {
             NeuralNode output = createNewNode(NeuralNodeType.OUTPUT);
             for (int k = 0; k < previousLayer.size(); k++) {

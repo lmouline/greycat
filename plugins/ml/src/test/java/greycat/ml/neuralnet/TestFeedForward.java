@@ -17,12 +17,12 @@ package greycat.ml.neuralnet;
 
 import greycat.*;
 import greycat.ml.common.matrix.VolatileDMatrix;
-import greycat.ml.neuralnet.functions.ActivationUnits;
-import greycat.ml.neuralnet.layers.FeedForwardLayer;
-import greycat.ml.neuralnet.loss.LossUnits;
-import greycat.ml.neuralnet.process.CalcGraph;
+import greycat.ml.neuralnet.activation.Activations;
+import greycat.ml.neuralnet.layer.FeedForwardLayer;
+import greycat.ml.neuralnet.loss.Loss;
+import greycat.ml.neuralnet.loss.Losses;
+import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.ml.neuralnet.process.ExMatrix;
-import greycat.ml.neuralnet.process.LossUnit;
 import greycat.struct.DMatrix;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
@@ -79,7 +79,7 @@ public class TestFeedForward {
                 bias2.set(0, 0, 0.6);
                 bias2.set(1, 0, 0.6);
 
-                LossUnit sumsq = LossUnits.getUnit(LossUnits.SUM_OF_SQUARES, null);
+                Loss sumsq = Losses.getUnit(Losses.SUM_OF_SQUARES, null);
 
                 Node node = g.newNode(0, 0);
                 EGraph nngraph = (EGraph) node.getOrCreate("nn", Type.EGRAPH);
@@ -87,16 +87,16 @@ public class TestFeedForward {
                 ENode l2node = nngraph.newNode();
 
                 FeedForwardLayer layer1 = new FeedForwardLayer(l1node);
-                layer1.create(2, 2, ActivationUnits.SIGMOID, null);
+                layer1.create(2, 2, Activations.SIGMOID, null);
                 FeedForwardLayer layer2 = new FeedForwardLayer(l2node);
-                layer2.create(2, 2, ActivationUnits.SIGMOID, null);
+                layer2.create(2, 2, Activations.SIGMOID, null);
 
                 layer1.setWeights(weights1);
                 layer1.setBias(bias1);
                 layer2.setWeights(weights2);
                 layer2.setBias(bias2);
 
-                CalcGraph calcgraph = new CalcGraph(true);
+                ProcessGraph calcgraph = new ProcessGraph(true);
                 ExMatrix actualOutput = layer2.forward(layer1.forward(ExMatrix.createFromW(input), calcgraph), calcgraph);
 
 

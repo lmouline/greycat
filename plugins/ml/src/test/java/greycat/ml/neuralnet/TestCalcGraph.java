@@ -16,12 +16,12 @@
 package greycat.ml.neuralnet;
 
 import greycat.ml.common.matrix.VolatileDMatrix;
-import greycat.ml.neuralnet.functions.ActivationUnits;
-import greycat.ml.neuralnet.loss.LossUnits;
-import greycat.ml.neuralnet.process.ActivationUnit;
-import greycat.ml.neuralnet.process.CalcGraph;
+import greycat.ml.neuralnet.activation.Activations;
+import greycat.ml.neuralnet.loss.Loss;
+import greycat.ml.neuralnet.loss.Losses;
+import greycat.ml.neuralnet.activation.Activation;
+import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.ml.neuralnet.process.ExMatrix;
-import greycat.ml.neuralnet.process.LossUnit;
 import greycat.struct.DMatrix;
 import org.junit.Assert;
 import org.junit.Test;
@@ -77,13 +77,13 @@ public class TestCalcGraph {
         wb2.set(1, 0, 0.6);
         ExMatrix bias2 = ExMatrix.createFromW(wb2);
 
-        LossUnit sumsq = LossUnits.getUnit(LossUnits.SUM_OF_SQUARES, null);
-        ActivationUnit sigmoid = ActivationUnits.getUnit(ActivationUnits.SIGMOID, null);
+        Loss sumsq = Losses.getUnit(Losses.SUM_OF_SQUARES, null);
+        Activation sigmoid = Activations.getUnit(Activations.SIGMOID, null);
 
 
         //The calculation steps are here
 
-        CalcGraph g=new CalcGraph(true);
+        ProcessGraph g=new ProcessGraph(true);
 
 
         ExMatrix o1temp = g.mul(weights1, input);

@@ -13,9 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.process;
+package greycat.ml.neuralnet.loss;
 
-public interface ActivationUnit {
-    double forward(double x);
-    double backward(double x, double fct);
+public class Losses {
+    public static final int SUM_OF_SQUARES = 0;
+    public static final int SOFTMAX = 1;
+    public static final int DEFAULT = SUM_OF_SQUARES;
+
+    public static Loss getUnit(int lossUnit, double[] unitArgs) {
+        switch (lossUnit) {
+            case SUM_OF_SQUARES:
+                return LossSumOfSquares.instance();
+            case SOFTMAX:
+                return LossSoftmax.instance();
+        }
+        return getUnit(DEFAULT, null);
+    }
 }

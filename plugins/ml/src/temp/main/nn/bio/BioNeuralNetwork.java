@@ -58,7 +58,7 @@ public class BioNeuralNetwork extends BaseNode {
         Random rand=new Random();
         rand.setSeed(1234);
 
-        //create hidden layers
+        //create hidden layer
         for (int i = 0; i < hiddenlayers; i++) {
             //first hidden layer
             if (i == 0) {
