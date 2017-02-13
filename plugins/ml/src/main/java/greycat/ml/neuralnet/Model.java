@@ -18,7 +18,7 @@ package greycat.ml.neuralnet;
 
 import java.util.Random;
 
-public interface Layer {
+public interface Model {
 
     String getName();
 
@@ -31,6 +31,5 @@ public interface Layer {
     void resetState();
 
     ExMatrix[] getModelParameters();
-
 
 }

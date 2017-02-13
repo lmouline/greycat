@@ -28,12 +28,12 @@ import greycat.struct.ENode;
 import java.util.Random;
 
 
-public class FeedForwardModel implements Model {
+public class FeedForwardLayer implements Model {
 
     public static String NAME = "Feedforward layer";
-    private static String WEIGHTS = "ff-weights";
-    private static String BIAS = "ff-bias";
-    private static String ACTIVATION = "ff-activation";
+    private static String WEIGHTS = "weights";
+    private static String BIAS = "bias";
+    private static String ACTIVATION = "activation";
 
 
     private ExMatrix weights;
@@ -42,7 +42,7 @@ public class FeedForwardModel implements Model {
     private ENode host;
 
 
-    public FeedForwardModel(ENode hostnode) {
+    public FeedForwardLayer(ENode hostnode) {
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }
@@ -54,7 +54,7 @@ public class FeedForwardModel implements Model {
         this.host = hostnode;
     }
 
-    public FeedForwardModel create(int inputs, int outputs, int activationUnit, double[] unitArgs) {
+    public FeedForwardLayer create(int inputs, int outputs, int activationUnit, double[] unitArgs) {
 
         weights = new ExMatrix(host, WEIGHTS);
         weights.init(outputs, inputs);
@@ -63,7 +63,6 @@ public class FeedForwardModel implements Model {
         activation = ActivationUnits.getUnit(activationUnit, unitArgs);
         host.set(ACTIVATION, Type.INT, activationUnit);
         host.set("NAME", Type.STRING, NAME);
-
 
         return this;
     }
