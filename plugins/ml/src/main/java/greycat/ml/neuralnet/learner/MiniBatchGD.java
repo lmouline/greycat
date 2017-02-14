@@ -15,52 +15,42 @@
  */
 package greycat.ml.neuralnet.learner;
 
-
-import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.layer.Layer;
-import greycat.ml.neuralnet.process.ExMatrix;
-import greycat.struct.DMatrix;
 
-public class SGD implements Learner {
+/**
+ * Created by assaad on 14/02/2017.
+ */
+public class MiniBatchGD implements Learner {
     private double learningRate;
     private double regularizationRate;
+    private int batchSize;
+    private int counter;
+
 
     //param[0] => learning rate
     //param[1] => regularization rate
-    public SGD(double[] params) {
+    //param[2] => batch size
+    public MiniBatchGD(double[] params) {
         learningRate = params[0];
         regularizationRate = params[1];
+        batchSize = (int) params[2];
+        if (batchSize <= 0) {
+            throw new RuntimeException("Batch size can't be <0");
+        }
+        counter = 0;
     }
 
     @Override
     public void stepUpdate(Layer[] layers) {
-        update(layers, 1, learningRate, regularizationRate);
+        counter++;
+        if (counter == batchSize) {
+            SGD.update(layers, batchSize, learningRate, regularizationRate);
+            counter = 0;
+        }
     }
 
     @Override
     public void finalUpdate(Layer[] layers) {
 
     }
-
-    public static void update(Layer[] layers, int numberOfSamples, double learningRate, double regularizationRate) {
-        DMatrix w;
-        DMatrix dw;
-
-        double alpha = 1 - learningRate * regularizationRate / numberOfSamples;
-        double beta = -learningRate / numberOfSamples;
-
-        for (int i = 0; i < layers.length; i++) {
-            ExMatrix[] weights = layers[i].getModelParameters();
-            for (int j = 0; j < weights.length; j++) {
-                w = weights[j].getW();
-                dw = weights[j].getDw();
-
-                //w= (1-alpha*Lambda)*w - learningRate * dw ;
-                MatrixOps.addInPlace(w, alpha, dw, beta);
-                dw.fill(0);
-            }
-        }
-
-    }
-
 }

@@ -15,52 +15,33 @@
  */
 package greycat.ml.neuralnet.learner;
 
-
-import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.layer.Layer;
-import greycat.ml.neuralnet.process.ExMatrix;
-import greycat.struct.DMatrix;
 
-public class SGD implements Learner {
+/**
+ * Created by assaad on 14/02/2017.
+ */
+public class BatchGD implements Learner {
     private double learningRate;
     private double regularizationRate;
+    private int counter;
+
 
     //param[0] => learning rate
     //param[1] => regularization rate
-    public SGD(double[] params) {
+    public BatchGD(double[] params) {
         learningRate = params[0];
         regularizationRate = params[1];
+        counter = 0;
     }
 
     @Override
     public void stepUpdate(Layer[] layers) {
-        update(layers, 1, learningRate, regularizationRate);
+        counter++;
     }
 
     @Override
     public void finalUpdate(Layer[] layers) {
-
+        SGD.update(layers, counter, learningRate, regularizationRate);
+        counter = 0;
     }
-
-    public static void update(Layer[] layers, int numberOfSamples, double learningRate, double regularizationRate) {
-        DMatrix w;
-        DMatrix dw;
-
-        double alpha = 1 - learningRate * regularizationRate / numberOfSamples;
-        double beta = -learningRate / numberOfSamples;
-
-        for (int i = 0; i < layers.length; i++) {
-            ExMatrix[] weights = layers[i].getModelParameters();
-            for (int j = 0; j < weights.length; j++) {
-                w = weights[j].getW();
-                dw = weights[j].getDw();
-
-                //w= (1-alpha*Lambda)*w - learningRate * dw ;
-                MatrixOps.addInPlace(w, alpha, dw, beta);
-                dw.fill(0);
-            }
-        }
-
-    }
-
 }

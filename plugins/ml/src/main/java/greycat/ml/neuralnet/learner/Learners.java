@@ -30,11 +30,11 @@ public class Learners {
     public static Learner getUnit(int learnerUnit, double[] learnParams) {
         switch (learnerUnit) {
             case STOCHASTIC_GD:
-                return null;
+                return new SGD(learnParams);
             case MINI_BATCH_GD:
-                return null;
+                return new MiniBatchGD(learnParams);
             case BATCH_GD:
-                return null;
+                return new BatchGD(learnParams);
             case RMSPROP:
                 return null ;
         }
