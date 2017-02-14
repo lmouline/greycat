@@ -19,7 +19,25 @@ package greycat.ml.neuralnet.learner;
  * Created by assaad on 13/02/2017.
  */
 public class Learners {
-    public static Learner getUnit(int learnerUnit) {
-        return null;
+    public static final int STOCHASTIC_GD = 0;
+    public static final int MINI_BATCH_GD = 1;
+    public static final int BATCH_GD = 2;
+    public static final int RMSPROP = 3;
+
+    public static final int DEFAULT = STOCHASTIC_GD;
+
+
+    public static Learner getUnit(int learnerUnit, double[] learnParams) {
+        switch (learnerUnit) {
+            case STOCHASTIC_GD:
+                return null;
+            case MINI_BATCH_GD:
+                return null;
+            case BATCH_GD:
+                return null;
+            case RMSPROP:
+                return null ;
+        }
+        return getUnit(DEFAULT,learnParams);
     }
 }

@@ -81,18 +81,6 @@ public class ExMatrix implements DMatrix {
     }
 
     @Override
-    public DMatrix fillWithRandom(Random random, double min, double max) {
-        w.fillWithRandom(random, min, max);
-        return this;
-    }
-
-    @Override
-    public DMatrix fillWithRandomStd(Random random, double std) {
-        w.fillWithRandomStd(random, std);
-        return this;
-    }
-
-    @Override
     public int rows() {
         return w.rows();
     }

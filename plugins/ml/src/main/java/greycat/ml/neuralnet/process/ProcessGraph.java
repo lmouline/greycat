@@ -37,6 +37,12 @@ public class ProcessGraph {
         for (int i = backprop.size() - 1; i >= 0; i--) {
             backprop.get(i).execute();
         }
+        backprop.clear();
+    }
+
+    public final void setBackPropagation(boolean applyBackprop) {
+        this.applyBackprop = applyBackprop;
+        backprop.clear();
     }
 
     //Multiply two matrices
@@ -112,5 +118,5 @@ public class ProcessGraph {
         }
         return err;
     }
-    
+
 }

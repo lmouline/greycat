@@ -72,14 +72,14 @@ public class FeedForwardLayer implements Layer {
 
     @Override
     public void fillWithRandom(Random random, double min, double max) {
-        weights.fillWithRandom(random, min, max);
-        bias.fillWithRandom(random, min, max);
+        MatrixOps.fillWithRandom(weights, random, min, max);
+        MatrixOps.fillWithRandom(bias, random, min, max);
     }
 
     @Override
     public void fillWithRandomStd(Random random, double std) {
-        weights.fillWithRandomStd(random, std);
-        bias.fillWithRandomStd(random, std);
+        MatrixOps.fillWithRandomStd(weights, random, std);
+        MatrixOps.fillWithRandomStd(bias, random, std);
     }
 
     @Override

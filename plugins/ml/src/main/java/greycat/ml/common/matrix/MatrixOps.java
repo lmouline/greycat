@@ -17,6 +17,8 @@ package greycat.ml.common.matrix;
 
 import greycat.struct.DMatrix;
 
+import java.util.Random;
+
 
 public class MatrixOps {
 
@@ -42,6 +44,24 @@ public class MatrixOps {
         }
     }
 
+    public static DMatrix fillWithRandom(DMatrix matrix, Random random, double min, double max) {
+        int len = matrix.length();
+        double d = max - min;
+        for (int i = 0; i < len; i++) {
+            matrix.unsafeSet(i, random.nextDouble() * (d) + min);
+        }
+        return matrix;
+    }
+
+    public static DMatrix fillWithRandomStd(DMatrix matrix, Random random, double std) {
+        int len = matrix.length();
+        for (int i = 0; i < len; i++) {
+            matrix.unsafeSet(i, random.nextGaussian() * std);
+        }
+        return matrix;
+    }
+
+
     public static DMatrix multiply(DMatrix matA, DMatrix matB) {
         return defaultEngine().multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1d, matA, TransposeType.NOTRANSPOSE, matB, 0, null);
     }
@@ -66,16 +86,6 @@ public class MatrixOps {
         return defaultEngine().pinv(mat, invertInPlace);
     }
 
-
-    public static void scale(double alpha, VolatileDMatrix matA) {
-        if (alpha == 0) {
-            matA.fill(0);
-            return;
-        }
-        for (int i = 0; i < matA.rows() * matA.columns(); i++) {
-            matA.unsafeSet(i, alpha * matA.unsafeGet(i));
-        }
-    }
 
     public static DMatrix transpose(DMatrix matA) {
         DMatrix result = VolatileDMatrix.empty(matA.columns(), matA.rows());
@@ -145,8 +155,6 @@ public class MatrixOps {
     }
 
 
-
-
     public static boolean testDimensionsAB(TransposeType transA, TransposeType transB, DMatrix matA, DMatrix matB) {
         if (transA.equals(TransposeType.NOTRANSPOSE)) {
             if (transB.equals(TransposeType.NOTRANSPOSE)) {
@@ -164,14 +172,15 @@ public class MatrixOps {
     }
 
 
-    public static boolean checkDim(DMatrix x, DMatrix y) {
-        return (x.rows() == y.rows() && x.columns() == y.columns());
+    public static boolean testDim(DMatrix x, DMatrix y) {
+        if (x.rows() != y.rows() || x.columns() != y.columns()) {
+            throw new RuntimeException("Matrices original and destination have different dimensions");
+        }
+        return true;
     }
 
     public static DMatrix sub(DMatrix matA, DMatrix matB) {
-        if (matA.rows() != matB.rows() || matA.columns() != matB.columns()) {
-            throw new RuntimeException("Matrices A and B have different dimensions for the substract operation");
-        }
+        testDim(matA, matB);
         DMatrix result = VolatileDMatrix.empty(matA.rows(), matA.columns());
         int total = matA.length();
         for (int i = 0; i < total; i++) {
@@ -181,11 +190,66 @@ public class MatrixOps {
     }
 
 
-    //todo can be replaced by system array copy if possible
-    public static void copy(DMatrix from, DMatrix to){
-        if (from.rows() != to.rows() || from.columns() != to.columns()) {
-            throw new RuntimeException("Matrices original and values have different dimensions for the add operation");
+    //todo can be //
+    public static void scale(double alpha, VolatileDMatrix matA) {
+        if (alpha == 0) {
+            matA.fill(0);
+            return;
         }
+        for (int i = 0; i < matA.rows() * matA.columns(); i++) {
+            matA.unsafeSet(i, alpha * matA.unsafeGet(i));
+        }
+    }
+
+
+    //todo can be //
+    public static void addInPlace(DMatrix matA, double alpha, DMatrix matB, double beta) {
+        testDim(matA, matB);
+        int total = matA.length();
+        if (alpha == 0) {
+            if (beta == 0) {
+                matA.fill(0);
+            } else if (beta == 1) {
+                matA.fillWith(matB.data());
+            } else {
+                for (int i = 0; i < total; i++) {
+                    matA.unsafeSet(i, matB.unsafeGet(i) * beta);
+                }
+            }
+
+        } else if (alpha == 1) {
+            if (beta != 0) {
+                if (beta == 1) {
+                    for (int i = 0; i < total; i++) {
+                        matA.unsafeSet(i, matA.unsafeGet(i) + matB.unsafeGet(i));
+                    }
+                } else {
+                    for (int i = 0; i < total; i++) {
+                        matA.unsafeSet(i, matA.unsafeGet(i) + matB.unsafeGet(i) * beta);
+                    }
+                }
+            }
+        } else {
+            if (beta == 0) {
+                for (int i = 0; i < total; i++) {
+                    matA.unsafeSet(i, matA.unsafeGet(i) * alpha);
+                }
+            } else if (beta == 1) {
+                for (int i = 0; i < total; i++) {
+                    matA.unsafeSet(i, matA.unsafeGet(i) * alpha + matB.unsafeGet(i));
+                }
+            } else {
+                for (int i = 0; i < total; i++) {
+                    matA.unsafeSet(i, matA.unsafeGet(i) * alpha + matB.unsafeGet(i) * beta);
+                }
+            }
+        }
+    }
+
+
+    //todo can be replaced by system array copy if possible
+    public static void copy(DMatrix from, DMatrix to) {
+
         int total = from.length();
         for (int i = 0; i < total; i++) {
             to.unsafeSet(i, from.unsafeGet(i));
@@ -194,22 +258,17 @@ public class MatrixOps {
 
 
     //todo can be vectorized
-    public static void addtoMatrix(DMatrix original, DMatrix values){
-        if (original.rows() != values.rows() || original.columns() != values.columns()) {
-            throw new RuntimeException("Matrices original and values have different dimensions for the add operation");
-        }
-        int total = original.length();
-        for (int i = 0; i < total; i++) {
-            original.unsafeSet(i, original.unsafeGet(i) + values.unsafeGet(i));
-        }
+    //MatA=MatA+matB
+    public static void addtoMatrix(DMatrix original, DMatrix values) {
+
     }
 
 
     //todo can be vectorized
+    //MatC=MatA+matB
     public static DMatrix add(DMatrix matA, DMatrix matB) {
-        if (matA.rows() != matB.rows() || matA.columns() != matB.columns()) {
-            throw new RuntimeException("Matrices A and B have different dimensions for the add operation");
-        }
+        testDim(matA, matB);
+
         DMatrix result = VolatileDMatrix.empty(matA.rows(), matA.columns());
         int total = matA.length();
         for (int i = 0; i < total; i++) {
@@ -221,10 +280,8 @@ public class MatrixOps {
 
     //todo can be vectorized
     //Hadamard Multiplication multiply 2 matrices elementwise A=[a,b,c] B=[x,y,z] -> result=[a.x, b.y, c.z]
-    public static DMatrix HadamardMult(DMatrix matA, DMatrix matB){
-        if (matA.rows() != matB.rows() || matA.columns() != matB.columns()) {
-            throw new RuntimeException("Matrices A and B have different dimensions for the add operation");
-        }
+    public static DMatrix HadamardMult(DMatrix matA, DMatrix matB) {
+        testDim(matA, matB);
         DMatrix result = VolatileDMatrix.empty(matA.rows(), matA.columns());
         int total = matA.length();
         for (int i = 0; i < total; i++) {

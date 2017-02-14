@@ -33,7 +33,7 @@ import org.junit.Test;
  * Created by assaad on 13/02/2017.
  */
 public class TestFeedForward {
-    @Test
+    //@Test
     public void testcalc() {
 
         //Simulating example found in: https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/

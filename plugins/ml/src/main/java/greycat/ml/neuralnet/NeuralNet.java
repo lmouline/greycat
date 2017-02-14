@@ -30,6 +30,7 @@ public class NeuralNet {
 
     public static String LOSS="loss";
     public static String LEARNER="learner";
+    public static String LEARNER_PARAMS="learner_params";
 
     private EGraph backend;
     private Layer[] layers;
@@ -49,18 +50,19 @@ public class NeuralNet {
             //load NN configuration
             //load loss unit
             loss = Losses.getUnit((int) backend.root().get(LOSS));
-            learner= Learners.getUnit((int) backend.root().get(LEARNER));
+            learner= Learners.getUnit((int) backend.root().get(LEARNER), (double[]) backend.root().get(LEARNER_PARAMS));
 
         }
     }
 
-    public final void learn(double[] inputs, double[] outputs) {
+    public final double learn(double[] inputs, double[] outputs) {
         ProcessGraph cg = new ProcessGraph(true);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
         ExMatrix targetOutput = ExMatrix.createFromW(VolatileDMatrix.wrap(outputs, outputs.length, 1));
         ExMatrix actualOutput = internalForward(cg, input);
-        cg.applyLoss(loss, actualOutput, targetOutput);
+        double error= cg.applyLoss(loss, actualOutput, targetOutput);
         cg.backpropagate();
+        return error;
 
         //todo add learner
 

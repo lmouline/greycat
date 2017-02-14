@@ -1117,8 +1117,6 @@ declare module greycat {
                 fill(value: number): greycat.struct.DMatrix;
                 private internal_fill(value);
                 fillWith(values: Float64Array): greycat.struct.DMatrix;
-                fillWithRandom(random: java.util.Random, min: number, max: number): greycat.struct.DMatrix;
-                fillWithRandomStd(random: java.util.Random, std: number): greycat.struct.DMatrix;
                 private internal_fillWith(values);
                 rows(): number;
                 columns(): number;
@@ -2693,8 +2691,6 @@ declare module greycat {
             init(rows: number, columns: number): greycat.struct.DMatrix;
             fill(value: number): greycat.struct.DMatrix;
             fillWith(values: Float64Array): greycat.struct.DMatrix;
-            fillWithRandom(random: java.util.Random, min: number, max: number): greycat.struct.DMatrix;
-            fillWithRandomStd(random: java.util.Random, std: number): greycat.struct.DMatrix;
             rows(): number;
             columns(): number;
             length(): number;
