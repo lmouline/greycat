@@ -17,86 +17,65 @@ package greycat.ml.neuralnet.layer;
 
 import greycat.Type;
 import greycat.ml.common.matrix.MatrixOps;
-import greycat.ml.neuralnet.activation.Activation;
-import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.ml.neuralnet.process.ExMatrix;
-import greycat.ml.neuralnet.activation.Activations;
-import greycat.struct.DMatrix;
+import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.ENode;
 
 import java.util.Random;
 
-public class FeedForwardLayer implements Layer {
 
+// Returns Weights*Input
+// Can be used as PCA or dimensionality reduction of data, since here we are combining linearly outputs from input
+// There is no non-linearity here, since there is no activation function.
+
+public class Linear implements Layer {
     private static String WEIGHTS = "weights";
-    private static String BIAS = "bias";
-    private static String ACTIVATION = "activation";
-
-    private ExMatrix weights;
-    private ExMatrix bias;
-    private Activation activation;
     private ENode host;
 
-    public FeedForwardLayer(ENode hostnode) {
+    private ExMatrix weights;
+
+    public Linear(ENode hostnode) {
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }
         if (hostnode.get(WEIGHTS) != null) {
             weights = new ExMatrix(hostnode, WEIGHTS);
-            bias = new ExMatrix(hostnode, BIAS);
-            activation = Activations.getUnit((int) hostnode.get(ACTIVATION), null);
         }
         this.host = hostnode;
     }
 
-    public FeedForwardLayer create(int inputs, int outputs, int activationUnit, double[] unitArgs) {
+    public Linear create(int inputs, int outputs) {
         //First always set the type
-        host.set(Layers.TYPE, Type.INT, Layers.FeedForwardLayer);
+        host.set(Layers.TYPE, Type.INT, Layers.LINEAR_LAYER);
 
         weights = new ExMatrix(host, WEIGHTS);
         weights.init(outputs, inputs);
-        bias = new ExMatrix(host, BIAS);
-        bias.init(outputs, 1);
-        activation = Activations.getUnit(activationUnit, unitArgs);
-        host.set(ACTIVATION, Type.INT, activationUnit);
+
         return this;
-    }
-
-    public void setWeights(DMatrix weights) {
-        MatrixOps.copy(weights, this.weights);
-    }
-
-    public void setBias(DMatrix bias) {
-        MatrixOps.copy(bias, this.bias);
     }
 
     @Override
     public void fillWithRandom(Random random, double min, double max) {
         MatrixOps.fillWithRandom(weights, random, min, max);
-        MatrixOps.fillWithRandom(bias, random, min, max);
     }
 
     @Override
     public void fillWithRandomStd(Random random, double std) {
         MatrixOps.fillWithRandomStd(weights, random, std);
-        MatrixOps.fillWithRandomStd(bias, random, std);
     }
 
     @Override
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {
-        ExMatrix sum = g.add(g.mul(weights, input), bias);
-        ExMatrix out = g.activate(activation, sum);
-        return out;
+        return g.mul(weights, input);
     }
 
     @Override
     public void resetState() {
         weights.getDw().fill(0);
-        bias.getDw().fill(0);
     }
 
     @Override
     public ExMatrix[] getModelParameters() {
-        return new ExMatrix[]{weights, bias};
+        return new ExMatrix[]{weights};
     }
 }

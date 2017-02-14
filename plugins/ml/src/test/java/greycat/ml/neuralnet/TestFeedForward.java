@@ -18,7 +18,7 @@ package greycat.ml.neuralnet;
 import greycat.*;
 import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.activation.Activations;
-import greycat.ml.neuralnet.layer.FeedForwardLayer;
+import greycat.ml.neuralnet.layer.FeedForward;
 import greycat.ml.neuralnet.loss.Loss;
 import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.process.ProcessGraph;
@@ -26,7 +26,6 @@ import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
-import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -86,9 +85,9 @@ public class TestFeedForward {
                 ENode l1node = nngraph.newNode();
                 ENode l2node = nngraph.newNode();
 
-                FeedForwardLayer layer1 = new FeedForwardLayer(l1node);
+                FeedForward layer1 = new FeedForward(l1node);
                 layer1.create(2, 2, Activations.SIGMOID, null);
-                FeedForwardLayer layer2 = new FeedForwardLayer(l2node);
+                FeedForward layer2 = new FeedForward(l2node);
                 layer2.create(2, 2, Activations.SIGMOID, null);
 
                 layer1.setWeights(weights1);

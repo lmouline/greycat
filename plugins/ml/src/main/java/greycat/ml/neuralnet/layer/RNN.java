@@ -15,33 +15,42 @@
  */
 package greycat.ml.neuralnet.layer;
 
+import greycat.ml.neuralnet.process.ExMatrix;
+import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.ENode;
 
-public class Layers {
-    final static String TYPE = "type";
+import java.util.Random;
 
-    final static int FEED_FORWARD_LAYER = 0;
-    final static int LINEAR_LAYER = 1;
-    final static int GRU_LAYER = 2;
-    final static int LSTM_LAYER = 3;
-    final static int RNN_LAYER = 4;
+/**
+ * Created by assaad on 14/02/2017.
+ */
+public class RNN implements Layer{
+    public RNN(ENode hostnode) {
 
+    }
 
-    public static Layer toLayer(ENode node) {
-        switch ((int) node.get(TYPE)) {
-            case FEED_FORWARD_LAYER:
-                return new FeedForward(node);
-            case LINEAR_LAYER:
-                return new Linear(node);
-            case GRU_LAYER:
-                return new GRU(node);
-            case LSTM_LAYER:
-                return new LSTM(node);
-            case RNN_LAYER:
-                return new RNN(node);
+    @Override
+    public void fillWithRandom(Random random, double min, double max) {
 
-        }
+    }
+
+    @Override
+    public void fillWithRandomStd(Random random, double std) {
+
+    }
+
+    @Override
+    public ExMatrix forward(ExMatrix input, ProcessGraph g) {
         return null;
     }
 
+    @Override
+    public void resetState() {
+
+    }
+
+    @Override
+    public ExMatrix[] getModelParameters() {
+        return new ExMatrix[0];
+    }
 }
