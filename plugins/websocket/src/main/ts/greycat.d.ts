@@ -1154,6 +1154,7 @@ declare module greycat {
                 nodeByIndex(index: number, createIfAbsent: boolean): greycat.internal.heap.HeapENode;
                 declareDirty(): void;
                 newNode(): greycat.struct.ENode;
+                node(nodeIndex: number): greycat.struct.ENode;
                 root(): greycat.struct.ENode;
                 setRoot(eNode: greycat.struct.ENode): greycat.struct.EGraph;
                 drop(eNode: greycat.struct.ENode): greycat.struct.EGraph;
@@ -2710,6 +2711,7 @@ declare module greycat {
         interface EGraph {
             root(): greycat.struct.ENode;
             newNode(): greycat.struct.ENode;
+            node(index: number): greycat.struct.ENode;
             setRoot(eNode: greycat.struct.ENode): greycat.struct.EGraph;
             drop(eNode: greycat.struct.ENode): greycat.struct.EGraph;
             size(): number;

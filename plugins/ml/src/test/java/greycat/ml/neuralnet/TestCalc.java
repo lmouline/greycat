@@ -75,7 +75,7 @@ public class TestCalc {
         wb2.set(1, 0, 0.6);
         ExMatrix bias2 = ExMatrix.createFromW(wb2);
 
-        Loss sumsq = Losses.getUnit(Losses.SUM_OF_SQUARES, null);
+        Loss sumsq = Losses.getUnit(Losses.SUM_OF_SQUARES);
         Activation sigmoid = Activations.getUnit(Activations.SIGMOID, null);
 
 

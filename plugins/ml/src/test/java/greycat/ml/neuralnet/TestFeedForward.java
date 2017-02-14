@@ -79,7 +79,7 @@ public class TestFeedForward {
                 bias2.set(0, 0, 0.6);
                 bias2.set(1, 0, 0.6);
 
-                Loss sumsq = Losses.getUnit(Losses.SUM_OF_SQUARES, null);
+                Loss sumsq = Losses.getUnit(Losses.SUM_OF_SQUARES);
 
                 Node node = g.newNode(0, 0);
                 EGraph nngraph = (EGraph) node.getOrCreate("nn", Type.EGRAPH);
