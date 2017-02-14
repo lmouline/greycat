@@ -16,7 +16,8 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat-ml</artifactId>
     <version>2-SNAPSHOT</version>
@@ -172,7 +173,7 @@
                             <copyJRE>false</copyJRE>
                             <copyJunit>true</copyJunit>
                             <moduleImports>
-                                <moduleImport>../generated-sources/${js.name}.ts</moduleImport>
+                                <moduleImport>../classes-js/${js.name}.ts</moduleImport>
                             </moduleImports>
                             <source>${basedir}/src/test/java</source>
                             <target>${basedir}/target/generated-test-sources</target>
@@ -194,11 +195,93 @@
                         </goals>
                         <configuration>
                             <target>
+                                <!-- plain js -->
+                                <copy file="${basedir}/src/main/ts/package.json"
+                                      todir="${basedir}/target/classes-js"/>
+                                <replace file="${basedir}/target/classes-js/package.json" token="GREYCAT_VERSION"
+                                         value="${project.version}"/>
+                                <replace file="${basedir}/target/classes-js/package.json" token="J2TS_VERSION"
+                                         value="${java2typescript.plugin.version}"/>
+                                <replace file="${basedir}/target/classes-js/package.json" token="-SNAPSHOT" value=""/>
+                                <copy file="${basedir}/target/generated-sources/greycat.ml.ts"
+                                      todir="${basedir}/target/classes-js"/>
+                                <exec executable="npm" dir="${basedir}/target/classes-js" failonerror="true">
+                                    <arg value="link"/>
+                                    <arg value="greycat"/>
+                                </exec>
+                                <exec executable="npm" dir="${basedir}/target/classes-js" failonerror="true">
+                                    <arg value="install"/>
+                                </exec>
+                                <copy file="${basedir}/../../greycat/target/classes-js/greycat.d.ts"
+                                      todir="${basedir}/target/classes-js/"/>
+                                <copy file="${basedir}/../../share/greycat.blas.ts"
+                                      todir="${basedir}/target/classes-js/"/>
+                                <exec executable="${basedir}/target/classes-js/node_modules/typescript/bin/tsc"
+                                      dir="${basedir}/target/classes-js" failonerror="true">
+                                    <arg value="-d"/>
+                                    <arg value="--sourceMap"/>
+                                    <arg value="--target"/>
+                                    <arg value="es5"/>
+                                    <arg value="${basedir}/target/classes-js/greycat.ml.ts"/>
+                                    <arg value="--out"/>
+                                    <arg value="${basedir}/target/classes-js/greycat.ml.js"/>
+                                </exec>
+                                <!-- npm js -->
+                                <copy file="${basedir}/src/main/ts/package.json"
+                                      todir="${basedir}/target/classes-npm"/>
+                                <copy file="${basedir}/src/main/ts/readme.md"
+                                      todir="${basedir}/target/classes-npm"/>
+                                <replace file="${basedir}/target/classes-npm/package.json" token="GREYCAT_VERSION"
+                                         value="${project.version}"/>
+                                <replace file="${basedir}/target/classes-npm/package.json" token="J2TS_VERSION"
+                                         value="${java2typescript.plugin.version}"/>
+                                <replace file="${basedir}/target/classes-npm/package.json" token="-SNAPSHOT" value=""/>
+                                <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
+                                    <arg value="link"/>
+                                    <arg value="greycat"/>
+                                </exec>
+                                <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
+                                    <arg value="install"/>
+                                </exec>
+                                <concat append="false" destfile="${basedir}/target/classes-npm/greycat.ml.ts">
+                                    import {java,Long} from 'j2ts-jre';
+                                    import * as greycat from 'greycat';
+                                </concat>
+                                <concat append="true" destfile="${basedir}/target/classes-npm/greycat.ml.ts">
+                                    <fileset dir="${basedir}/target/generated-sources" includes="greycat.ml.ts"/>
+                                </concat>
+                                <concat append="true" destfile="${basedir}/target/classes-npm/greycat.ml.ts">
+                                    export = greycat.ml
+                                </concat>
+                                <replace file="${basedir}/target/classes-npm/greycat.ml.ts" token="module greycat"
+                                         value="module greycatML"/>
+                                <replace file="${basedir}/target/classes-npm/greycat.ml.ts" token="greycat.ml"
+                                         value="greycatML.ml"/>
+                                <replace file="${basedir}/target/classes-npm/greycat.ml.ts">
+                                    <replacetoken><![CDATA[/// <reference path="greycat.d.ts" />]]></replacetoken>
+                                    <replacevalue/>
+                                </replace>
+                                <replace file="${basedir}/target/classes-npm/greycat.ml.ts">
+                                    <replacetoken><![CDATA[/// <reference path="greycat.blas.ts" />]]></replacetoken>
+                                    <replacevalue/>
+                                </replace>
+                                <exec executable="${basedir}/target/classes-npm/node_modules/typescript/bin/tsc"
+                                      dir="${basedir}/target/classes-npm/" failonerror="true">
+                                    <arg value="-d"/>
+                                    <arg value="--sourceMap"/>
+                                    <arg value="--target"/>
+                                    <arg value="es5"/>
+                                    <arg value="${basedir}/target/classes-npm/greycat.ml.ts"/>
+                                </exec>
+                                <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
+                                    <arg value="link"/>
+                                </exec>
+
+
+                                <!--
                                 <echo message="Compile Java to TypeScript" />
-                                <!-- Copy greycat dependency -->
                                 <copy file="${basedir}/../../greycat/target/classes-js/greycat.d.ts" todir="${basedir}/target/generated-sources/" />
                                 <copy file="${basedir}/../../share/greycat.blas.ts" todir="${basedir}/target/generated-sources/" />
-                                <!-- Prepare NPM -->
                                 <copy file="${basedir}/../../share/package.json" todir="${basedir}/target" />
                                 <exec executable="npm" dir="${basedir}/target" failonerror="true">
                                     <arg value="install" />
@@ -206,11 +289,11 @@
                                 <echo message="Compile TypeScript to JavaScript" />
                                 <exec executable="${basedir}/target/node_modules/typescript/bin/tsc" dir="${basedir}/target/generated-sources/" failonerror="true">
                                     <arg value="-d" />
-                                    <arg value="--sourceMap" />
-                                    <arg value="--target" />
+                                    <arg value="-sourceMap" />
+                                    <arg value="-target" />
                                     <arg value="es5" />
                                     <arg value="${basedir}/target/generated-sources/${js.name}.ts" />
-                                    <arg value="--out" />
+                                    <arg value="-out" />
                                     <arg value="${js.name}.js" />
                                 </exec>
                                 <copy file="${basedir}/target/generated-sources/${js.name}.ts" todir="${basedir}/target/classes-js" />
@@ -220,26 +303,19 @@
                                 <copy file="${basedir}/../../share/netlib.js" todir="${basedir}/target/classes-js" />
                                 <echo message="Minifying JavaScript" />
                                 <java jar="${basedir}/../../share/compiler.jar" fork="true" failonerror="true">
-                                    <arg value="--js" />
+                                    <arg value="-js" />
                                     <arg value="${basedir}/target/classes-js/${js.name}.js" />
-                                    <arg value="--js_output_file" />
+                                    <arg value="-js_output_file" />
                                     <arg value="${basedir}/target/classes-js/${js.name}.min.js" />
                                 </java>
-
-                                <!-- NPM packaging -->
                                 <copy file="${basedir}/target/generated-sources/greycat.ml.d.ts" todir="${basedir}/target/classes-npm" />
-                                <!--
-                                <copy file="${basedir}/target/generated-sources/greycat.ml.js" todir="${basedir}/target/classes-npm" />
-                                      -->
                                 <copy file="${basedir}/target/generated-sources/greycat.ml.js.map" todir="${basedir}/target/classes-npm" />
                                 <copy file="${basedir}/src/main/ts/package.json" todir="${basedir}/target/classes-npm" />
                                 <copy file="${basedir}/src/main/ts/readme.md" todir="${basedir}/target/classes-npm" />
-                                <!-- update to maven version -->
                                 <replace file="${basedir}/target/classes-npm/package.json">
                                     <replacetoken>GREYCAT_VERSION</replacetoken>
                                     <replacevalue>${project.version}</replacevalue>
                                 </replace>
-                                <!-- remove snapshot if any -->
                                 <replace file="${basedir}/target/classes-npm/package.json">
                                     <replacetoken>-SNAPSHOT</replacetoken>
                                     <replacevalue />
@@ -260,11 +336,11 @@
                                 <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
                                     <arg value="link" />
                                 </exec>
+                                -->
 
                             </target>
                         </configuration>
                     </execution>
-
                     <execution>
                         <id>compile-test</id>
                         <phase>test-compile</phase>
@@ -273,37 +349,39 @@
                         </goals>
                         <configuration>
                             <target>
-                                <echo message="Compile tests TypeScript to JavaScript" />
-                                <exec executable="${basedir}/target/node_modules/typescript/bin/tsc" failonerror="true">
-                                    <arg value="--target" />
-                                    <arg value="es5" />
-                                    <arg value="${basedir}/target/generated-test-sources/test.ts" />
-                                    <arg value="--out" />
-                                    <arg value="${basedir}/target/test-classes/greycat.test.js" />
+                                <echo message="Compile tests TypeScript to JavaScript"/>
+                                <copy file="${basedir}/../../share/package.json" todir="${basedir}/target"/>
+                                <exec executable="npm" dir="${basedir}/target" failonerror="true">
+                                    <arg value="install"/>
                                 </exec>
-
+                                <exec executable="${basedir}/target/node_modules/typescript/bin/tsc" failonerror="true">
+                                    <arg value="--target"/>
+                                    <arg value="es5"/>
+                                    <arg value="${basedir}/target/generated-test-sources/test.ts"/>
+                                    <arg value="--out"/>
+                                    <arg value="${basedir}/target/test-classes/greycat.test.js"/>
+                                </exec>
                                 <concat destfile="${basedir}/target/test-classes/test.all.js" force="no">
-                                    <filelist dir="${basedir}/../../share/" files="netlib.js" />
-                                    <filelist dir="${basedir}/../../share/" files="spacer.js" />
-                                    <filelist dir="${basedir}/../../greycat/target/classes-js" files="greycat.js" />
-                                    <filelist dir="${basedir}/../../share/" files="spacer.js" />
-                                    <filelist dir="${basedir}/target/test-classes" files="greycat.test.js" />
-                                    <filelist dir="${basedir}/../../share/" files="spacer.js" />
-                                    <filelist dir="${basedir}/target/generated-test-sources/" files="testsRunner.js" />
+                                    <filelist dir="${basedir}/../../share/" files="netlib.js"/>
+                                    <filelist dir="${basedir}/../../share/" files="spacer.js"/>
+                                    <filelist dir="${basedir}/../../greycat/target/classes-js" files="greycat.js"/>
+                                    <filelist dir="${basedir}/../../share/" files="spacer.js"/>
+                                    <filelist dir="${basedir}/target/test-classes" files="greycat.test.js"/>
+                                    <filelist dir="${basedir}/../../share/" files="spacer.js"/>
+                                    <filelist dir="${basedir}/target/generated-test-sources/" files="testsRunner.js"/>
                                 </concat>
-
                                 <concat destfile="${basedir}/target/test-classes/test.all.dev.js" force="no">
-                                    <filelist dir="${basedir}/../../greycat/target/classes-js" files="greycat.js" />
-                                    <filelist dir="${basedir}/../../share/" files="spacer.js" />
-                                    <filelist dir="${basedir}/target/test-classes" files="greycat.test.js" />
-                                    <filelist dir="${basedir}/../../share/" files="spacer.js" />
-                                    <filelist dir="${basedir}/target/generated-test-sources/" files="testsRunnerDev.js" />
+                                    <filelist dir="${basedir}/../../greycat/target/classes-js" files="greycat.js"/>
+                                    <filelist dir="${basedir}/../../share/" files="spacer.js"/>
+                                    <filelist dir="${basedir}/target/test-classes" files="greycat.test.js"/>
+                                    <filelist dir="${basedir}/../../share/" files="spacer.js"/>
+                                    <filelist dir="${basedir}/target/generated-test-sources/"
+                                              files="testsRunnerDev.js"/>
                                 </concat>
-                                <copy file="${basedir}/../../share/test.js" todir="${basedir}/target" />
+                                <copy file="${basedir}/../../share/test.js" todir="${basedir}/target"/>
                             </target>
                         </configuration>
                     </execution>
-
                     <execution>
                         <id>run-test</id>
                         <phase>test</phase>
@@ -312,36 +390,15 @@
                         </goals>
                         <configuration>
                             <target>
-                                <echo message="Execute JS tests" />
+                                <echo message="Execute JS tests"/>
                                 <exec executable="node" dir="${basedir}/target" failonerror="true">
-                                    <arg value="test.js" />
+                                    <arg value="test.js"/>
                                 </exec>
                             </target>
                         </configuration>
                     </execution>
-
                 </executions>
             </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptors>
-                        <descriptor>${basedir}/../../share/zip.xml</descriptor>
-                    </descriptors>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
         </plugins>
     </build>
 

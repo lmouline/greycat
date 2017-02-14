@@ -16,7 +16,8 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat-websocket</artifactId>
     <version>2-SNAPSHOT</version>
@@ -58,68 +59,32 @@
                         <phase>compile</phase>
                         <configuration>
                             <target>
-                                <copy file="${basedir}/src/main/ts/greycat.ws.ts" todir="${basedir}/target/generated-sources" />
-                                <!-- Auto update for dev purpose -->
-                                <copy file="${basedir}/../../greycat/target/classes-js/greycat.d.ts" todir="${basedir}/src/main/ts" />
-                                <copy file="${basedir}/src/main/ts/greycat.d.ts" todir="${basedir}/target/generated-sources" />
-
-                                <copy file="${basedir}/../../share/package.json" todir="${basedir}/target" />
-                                <copy file="${basedir}/src/main/ts/reconnecting-websocket.ts" todir="${basedir}/target/generated-sources" />
-
-                                <exec executable="npm" dir="${basedir}/target" failonerror="true">
-                                    <arg value="install" />
-                                </exec>
-
-                                <exec executable="${basedir}/target/node_modules/typescript/bin/tsc" dir="${basedir}/target/generated-sources" failonerror="true">
-                                    <arg value="-d" />
-                                    <arg value="--sourceMap" />
-                                    <arg value="--target" />
-                                    <arg value="es5" />
-                                    <arg value="${basedir}/target/generated-sources/greycat.ws.ts" />
-                                    <arg value="--out" />
-                                    <arg value="${basedir}/target/generated-sources/greycat.ws.js" />
-                                </exec>
-
-                                <copy file="${basedir}/target/generated-sources/greycat.ws.ts" todir="${basedir}/target/classes-js" />
-                                <copy file="${basedir}/target/generated-sources/reconnecting-websocket.ts" todir="${basedir}/target/classes-js" />
-
-                                <copy file="${basedir}/target/generated-sources/greycat.ws.d.ts" todir="${basedir}/target/classes-js" />
-                                <copy file="${basedir}/target/generated-sources/greycat.ws.js" todir="${basedir}/target/classes-js" />
-                                <copy file="${basedir}/target/generated-sources/greycat.ws.js.map" todir="${basedir}/target/classes-js" />
-
-                                <java jar="${basedir}/../../share/compiler.jar" fork="true" failonerror="true">
-                                    <arg value="--js" />
-                                    <arg value="${basedir}/target/classes-js/greycat.ws.js" />
-                                    <arg value="--js_output_file" />
-                                    <arg value="${basedir}/target/classes-js/greycat.ws.min.js" />
-                                </java>
-
-                                <copy file="${basedir}/target/generated-sources/greycat.ws.d.ts" todir="${basedir}/target/classes-npm" />
-                                <copy file="${basedir}/target/generated-sources/greycat.ws.js" todir="${basedir}/target/classes-npm" />
-                                <copy file="${basedir}/target/generated-sources/greycat.ws.js.map" todir="${basedir}/target/classes-npm" />
-                                <copy file="${basedir}/src/main/ts/package.json" todir="${basedir}/target/classes-npm" />
-                                <copy file="${basedir}/src/main/ts/readme.md" todir="${basedir}/target/classes-npm" />
-                                <!-- update to maven version -->
-                                <replace file="${basedir}/target/classes-npm/package.json">
-                                    <replacetoken>GREYCAT_VERSION</replacetoken>
-                                    <replacevalue>${project.version}</replacevalue>
-                                </replace>
-                                <!-- remove snapshot if any -->
-                                <replace file="${basedir}/target/classes-npm/package.json">
-                                    <replacetoken>-SNAPSHOT</replacetoken>
-                                    <replacevalue />
-                                </replace>
-                                <concat append="true" destfile="${basedir}/target/classes-npm/greycat.ws.js">
-                                    ${line.separator}Object.assign(greycat,require('greycat'));
-                                    ${line.separator}var java=greycat.java;
-                                    ${line.separator}module.exports = greycat.websocket;
-                                </concat>
+                                <copy file="${basedir}/src/main/ts/greycat.ws.ts"
+                                      todir="${basedir}/target/classes-npm"/>
+                                <copy file="${basedir}/src/main/ts/package.json" todir="${basedir}/target/classes-npm"/>
+                                <replace file="${basedir}/target/classes-npm/package.json" token="GREYCAT_VERSION"
+                                         value="${project.version}"/>
+                                <replace file="${basedir}/target/classes-npm/package.json" token="J2TS_VERSION"
+                                         value="${java2typescript.plugin.version}"/>
+                                <replace file="${basedir}/target/classes-npm/package.json" token="-SNAPSHOT" value=""/>
+                                <copy file="${basedir}/src/main/ts/readme.md" todir="${basedir}/target/classes-npm"/>
                                 <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
-                                    <arg value="link" />
-                                    <arg value="greycat" />
+                                    <arg value="link"/>
+                                    <arg value="greycat"/>
                                 </exec>
                                 <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
-                                    <arg value="link" />
+                                    <arg value="install"/>
+                                </exec>
+                                <exec executable="${basedir}/target/classes-npm/node_modules/typescript/bin/tsc"
+                                      dir="${basedir}/target/classes-npm" failonerror="true">
+                                    <arg value="-d"/>
+                                    <arg value="--sourceMap"/>
+                                    <arg value="--target"/>
+                                    <arg value="es5"/>
+                                    <arg value="${basedir}/target/classes-npm/greycat.ws.ts"/>
+                                </exec>
+                                <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
+                                    <arg value="link"/>
                                 </exec>
                             </target>
                         </configuration>
@@ -129,26 +94,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptors>
-                        <descriptor>${basedir}/../../share/zip.xml</descriptor>
-                    </descriptors>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
         </plugins>
     </build>
 

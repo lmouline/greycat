@@ -23,6 +23,7 @@ import greycat.Action;
 import greycat.base.BaseNode;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 class ActionAddRemoveToGlobalIndex implements Action {
 
@@ -53,7 +54,7 @@ class ActionAddRemoveToGlobalIndex implements Action {
                     indexTime = ctx.time();
                 }
                 ctx.graph().index(loopBaseNode.world(), indexTime, templatedIndexName, indexNode -> {
-                    if(_remove){
+                    if (_remove) {
                         indexNode.removeFromIndex(loopBaseNode, templatedAttributes);
                     } else {
                         indexNode.addToIndex(loopBaseNode, templatedAttributes);

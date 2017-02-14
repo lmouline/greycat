@@ -49,6 +49,7 @@ class ActionTravelInWorld implements Action {
         final TaskResult previous = ctx.result();
         final DeferCounter defer = new CoreDeferCounter(previous.size());
         final int previousSize = previous.size();
+        //todo change to lookup all
         for (int i = 0; i < previousSize; i++) {
             Object loopObj = previous.get(i);
             if (loopObj instanceof BaseNode) {
