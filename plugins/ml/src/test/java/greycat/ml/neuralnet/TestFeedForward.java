@@ -33,7 +33,7 @@ import org.junit.Test;
  * Created by assaad on 13/02/2017.
  */
 public class TestFeedForward {
-    //@Test
+    @Test
     public void testcalc() {
 
         //Simulating example found in: https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
@@ -153,7 +153,12 @@ public class TestFeedForward {
     private static double EPS = 1e-16;
 
     private static void testdouble(double d1, double d2) {
-        Assert.assertTrue(Math.abs(d1 - d2) < EPS);
+
+        //Assert.assertTrue(Math.abs(d1 - d2) < EPS);
+        if(Math.abs(d1 - d2) > EPS){
+            System.out.println("d1: "+d1+ " d2: "+d2);
+            throw new RuntimeException("d1 != d2");
+        }
     }
 
     private static void applyLearningRate(ExMatrix mat, double learningRate) {
