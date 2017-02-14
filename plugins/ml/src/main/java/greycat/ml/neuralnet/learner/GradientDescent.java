@@ -21,32 +21,24 @@ import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
 
-public class SGD implements Learner {
+public class GradientDescent extends AbstractLearner {
     private double learningRate;
-    private double regularizationRate;
+    private double regularization;
 
     //param[0] => learning rate
     //param[1] => regularization rate
-    public SGD(double[] params) {
+    public GradientDescent(double[] params) {
+        super();
         learningRate = params[0];
-        regularizationRate = params[1];
+        regularization = params[1];
     }
 
     @Override
-    public void stepUpdate(Layer[] layers) {
-        update(layers, 1, learningRate, regularizationRate);
-    }
-
-    @Override
-    public void finalUpdate(Layer[] layers) {
-
-    }
-
-    public static void update(Layer[] layers, int numberOfSamples, double learningRate, double regularizationRate) {
+    protected void update(Layer[] layers) {
         DMatrix w;
         DMatrix dw;
 
-        double alpha = 1 - learningRate * regularizationRate / numberOfSamples;
+        double alpha = 1 - learningRate * regularization / numberOfSamples;
         double beta = -learningRate / numberOfSamples;
 
         for (int i = 0; i < layers.length; i++) {
@@ -55,12 +47,11 @@ public class SGD implements Learner {
                 w = weights[j].getW();
                 dw = weights[j].getDw();
 
-                //w= (1-alpha*Lambda)*w - learningRate * dw ;
+                //w= (1- learningRate * regularization / samples ) * w - learningRate * dw / samples ;
+                //Ref: https://www.coursera.org/learn/machine-learning/lecture/QrMXd/regularized-linear-regression
                 MatrixOps.addInPlace(w, alpha, dw, beta);
                 dw.fill(0);
             }
         }
-
     }
-
 }

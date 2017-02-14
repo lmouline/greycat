@@ -30,12 +30,15 @@ public class ExMatrix implements DMatrix {
     private DMatrix w;
     private DMatrix dw;
     private DMatrix stepCache;
+    private ENode backend;
+    private String att;
 
     public ExMatrix(ENode node, String attribute) {
         if (node != null) {
             w = (DMatrix) node.getOrCreate(attribute, Type.DMATRIX);
             dw = (DMatrix) node.getOrCreate(attribute + DW_KEY, Type.DMATRIX);
-            stepCache = (DMatrix) node.getOrCreate(attribute + STEPCACHE_KEY, Type.DMATRIX);
+            this.backend = node;
+            this.att = attribute;
         }
     }
 
@@ -49,7 +52,6 @@ public class ExMatrix implements DMatrix {
         ExMatrix res = new ExMatrix(null, null);
         res.w = w;
         res.dw = VolatileDMatrix.empty(w.rows(), w.columns());
-        res.stepCache = VolatileDMatrix.empty(w.rows(), w.columns());
         return res;
     }
 
@@ -58,11 +60,9 @@ public class ExMatrix implements DMatrix {
         if (w == null) {
             w = VolatileDMatrix.empty(rows, columns);
             dw = VolatileDMatrix.empty(rows, columns);
-            stepCache = VolatileDMatrix.empty(rows, columns);
         } else {
             w.init(rows, columns);
             dw.init(rows, columns);
-            stepCache.init(rows, columns);
         }
         return this;
     }
@@ -121,7 +121,6 @@ public class ExMatrix implements DMatrix {
     public DMatrix appendColumn(double[] newColumn) {
         w.appendColumn(newColumn);
         dw.appendColumn(new double[newColumn.length]);
-        stepCache.appendColumn(new double[newColumn.length]);
         return null;
     }
 
@@ -155,6 +154,13 @@ public class ExMatrix implements DMatrix {
     }
 
     public DMatrix getStepCache() {
+        if (stepCache == null) {
+            if (backend == null) {
+                stepCache = VolatileDMatrix.empty(w.rows(), w.columns());
+            } else {
+                stepCache = (DMatrix) backend.getOrCreate(att + STEPCACHE_KEY, Type.DMATRIX);
+            }
+        }
         return stepCache;
     }
 

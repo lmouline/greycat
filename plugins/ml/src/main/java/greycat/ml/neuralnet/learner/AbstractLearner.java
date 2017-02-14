@@ -17,40 +17,40 @@ package greycat.ml.neuralnet.learner;
 
 import greycat.ml.neuralnet.layer.Layer;
 
-/**
- * Created by assaad on 14/02/2017.
- */
-public class MiniBatchGD implements Learner {
-    private double learningRate;
-    private double regularizationRate;
-    private int batchSize;
-    private int counter;
 
+// The abstract class here manages all three cases between full online learning,
+// mini-batch, and full batch in an elegant way. All that is needed to be done is
+// to implement the update method and take into account the numberOfSamples that
+// have passed since the last update
 
-    //param[0] => learning rate
-    //param[1] => regularization rate
-    //param[2] => batch size
-    public MiniBatchGD(double[] params) {
-        learningRate = params[0];
-        regularizationRate = params[1];
-        batchSize = (int) params[2];
-        if (batchSize <= 0) {
-            throw new RuntimeException("Batch size can't be <0");
-        }
-        counter = 0;
+public abstract class AbstractLearner implements Learner {
+    protected int numberOfSamples;
+    private int maxCounter;
+
+    @Override
+    public void setUpdateFrequency(int n) {
+        this.maxCounter = n;
     }
+
 
     @Override
     public void stepUpdate(Layer[] layers) {
-        counter++;
-        if (counter == batchSize) {
-            SGD.update(layers, batchSize, learningRate, regularizationRate);
-            counter = 0;
+        numberOfSamples++;
+        if (maxCounter > 0 && numberOfSamples == maxCounter) {
+            update(layers);
+            numberOfSamples = 0;
         }
     }
 
     @Override
     public void finalUpdate(Layer[] layers) {
+        if (maxCounter <= 0 || numberOfSamples > 0) {
+            update(layers);
+            numberOfSamples = 0;
+        }
 
     }
+
+    protected abstract void update(Layer[] layers);
+
 }
