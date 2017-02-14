@@ -18,15 +18,23 @@ package greycat.ml.neuralnet.loss;
 public class Losses {
     public static final int SUM_OF_SQUARES = 0;
     public static final int SOFTMAX = 1;
+    public static final int ARGMAX = 2;
+    public static final int MULTI_DIM_BINARY = 3;
+
+
     public static final int DEFAULT = SUM_OF_SQUARES;
 
-    public static Loss getUnit(int lossUnit, double[] unitArgs) {
+    public static Loss getUnit(int lossUnit) {
         switch (lossUnit) {
             case SUM_OF_SQUARES:
-                return LossSumOfSquares.instance();
+                return SumOfSquares.instance();
             case SOFTMAX:
-                return LossSoftmax.instance();
+                return Softmax.instance();
+            case ARGMAX:
+                return ArgMax.instance();
+            case MULTI_DIM_BINARY:
+                return MultiDimensionalBinary.instance();
         }
-        return getUnit(DEFAULT, null);
+        return getUnit(DEFAULT);
     }
 }

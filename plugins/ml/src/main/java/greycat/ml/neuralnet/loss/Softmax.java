@@ -19,14 +19,14 @@ import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.process.ExMatrix;
 
 
-public class LossSoftmax implements Loss {
+public class Softmax implements Loss {
 
 
-    private static LossSoftmax static_unit= null;
+    private static Softmax static_unit= null;
 
-    public static LossSoftmax instance() {
+    public static Softmax instance() {
         if (static_unit == null) {
-            static_unit = new LossSoftmax();
+            static_unit = new Softmax();
         }
         return static_unit;
     }

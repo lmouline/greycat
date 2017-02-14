@@ -15,49 +15,44 @@
  */
 package greycat.ml.neuralnet.loss;
 
-
-import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.process.ExMatrix;
 
-public class LossArgMax implements Loss {
+public class MultiDimensionalBinary implements Loss {
+
+    private static MultiDimensionalBinary static_unit= null;
+
+    public static MultiDimensionalBinary instance() {
+        if (static_unit == null) {
+            static_unit = new MultiDimensionalBinary();
+        }
+        return static_unit;
+    }
+
 
     @Override
     public void backward(ExMatrix actualOutput, ExMatrix targetOutput) {
         throw new RuntimeException("not implemented");
-
     }
 
     @Override
     public double forward(ExMatrix actualOutput, ExMatrix targetOutput) {
-        if (!MatrixOps.checkDim(actualOutput, targetOutput)) {
-            throw new RuntimeException("mismatch");
+
+        int wlen = actualOutput.length();
+        int tlen = targetOutput.length();
+
+        if (wlen != tlen) {
+            throw new RuntimeException("dimension mismatch");
         }
-        double maxActual = Double.NEGATIVE_INFINITY;
-        double maxTarget = Double.NEGATIVE_INFINITY;
-        int indxMaxActual = -1;
-        int indxMaxTarget = -1;
 
-
-
-
-        double[] w = actualOutput.data();
-        double[] tw = targetOutput.data();
-
-        for (int i = 0; i < w.length; i++) {
-            if (w[i] > maxActual) {
-                maxActual = w[i];
-                indxMaxActual = i;
+        for (int i = 0; i < wlen; i++) {
+            if (targetOutput.unsafeGet(i) >= 0.5 && actualOutput.unsafeGet(i) < 0.5) {
+                return 1;
             }
-            if (tw[i] > maxTarget) {
-                maxTarget = tw[i];
-                indxMaxTarget = i;
+            if (targetOutput.unsafeGet(i) < 0.5 && actualOutput.unsafeGet(i) >= 0.5) {
+                return 1;
             }
         }
-        if (indxMaxActual == indxMaxTarget) {
-            return 0;
-        } else {
-            return 1;
-        }
+        return 0;
     }
 
 }

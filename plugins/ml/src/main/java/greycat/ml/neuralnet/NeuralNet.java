@@ -18,6 +18,8 @@ package greycat.ml.neuralnet;
 import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.layer.Layers;
+import greycat.ml.neuralnet.learner.Learner;
+import greycat.ml.neuralnet.learner.Learners;
 import greycat.ml.neuralnet.loss.Loss;
 import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.process.ExMatrix;
@@ -26,21 +28,29 @@ import greycat.struct.EGraph;
 
 public class NeuralNet {
 
+    public static String LOSS="loss";
+    public static String LEARNER="learner";
+
     private EGraph backend;
     private Layer[] layers;
-    private Loss lossUnit;
+    private Loss loss;
+    private Learner learner;
 
     public NeuralNet(EGraph p_backend) {
         backend = p_backend;
         int nb = backend.size();
+        layers=new Layer[nb];
+
         if (nb > 0) {
+            //load all layers
             for (int i = 0; i < layers.length; i++) {
                 layers[i] = Layers.toLayer(backend.node(i));
-                if (i == 0) {
-                    //todo load loss unit here
-                    lossUnit = Losses.getUnit(0, null);
-                }
             }
+            //load NN configuration
+            //load loss unit
+            loss = Losses.getUnit((int) backend.root().get(LOSS));
+            learner= Learners.getUnit((int) backend.root().get(LEARNER));
+
         }
     }
 
@@ -49,7 +59,7 @@ public class NeuralNet {
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
         ExMatrix targetOutput = ExMatrix.createFromW(VolatileDMatrix.wrap(outputs, outputs.length, 1));
         ExMatrix actualOutput = internalForward(cg, input);
-        cg.applyLoss(lossUnit, actualOutput, targetOutput);
+        cg.applyLoss(loss, actualOutput, targetOutput);
         cg.backpropagate();
 
         //todo add learner

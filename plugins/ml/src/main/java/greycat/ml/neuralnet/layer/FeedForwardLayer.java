@@ -50,13 +50,15 @@ public class FeedForwardLayer implements Layer {
     }
 
     public FeedForwardLayer create(int inputs, int outputs, int activationUnit, double[] unitArgs) {
+        //First always set the type
+        host.set(Layers.TYPE, Type.INT, Layers.FeedForwardLayer);
+
         weights = new ExMatrix(host, WEIGHTS);
         weights.init(outputs, inputs);
         bias = new ExMatrix(host, BIAS);
         bias.init(outputs, 1);
         activation = Activations.getUnit(activationUnit, unitArgs);
         host.set(ACTIVATION, Type.INT, activationUnit);
-        host.set("type", Type.INT, Layers.FeedForwardLayer);
         return this;
     }
 

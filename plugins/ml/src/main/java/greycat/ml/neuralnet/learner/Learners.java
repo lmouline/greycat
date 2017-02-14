@@ -19,4 +19,7 @@ package greycat.ml.neuralnet.learner;
  * Created by assaad on 13/02/2017.
  */
 public class Learners {
+    public static Learner getUnit(int learnerUnit) {
+        return null;
+    }
 }

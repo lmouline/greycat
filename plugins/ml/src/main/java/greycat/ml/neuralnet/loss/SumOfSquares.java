@@ -17,13 +17,13 @@ package greycat.ml.neuralnet.loss;
 
 import greycat.ml.neuralnet.process.ExMatrix;
 
-public class LossSumOfSquares implements Loss {
+public class SumOfSquares implements Loss {
 
-    private static LossSumOfSquares static_unit = null;
+    private static SumOfSquares static_unit = null;
 
-    public static LossSumOfSquares instance() {
+    public static SumOfSquares instance() {
         if (static_unit == null) {
-            static_unit = new LossSumOfSquares();
+            static_unit = new SumOfSquares();
         }
         return static_unit;
     }
