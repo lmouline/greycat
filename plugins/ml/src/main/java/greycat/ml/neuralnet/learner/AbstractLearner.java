@@ -15,40 +15,54 @@
  */
 package greycat.ml.neuralnet.learner;
 
+import greycat.Type;
 import greycat.ml.neuralnet.layer.Layer;
+import greycat.struct.ENode;
 
 
 // The abstract class here manages all three cases between full online learning,
 // mini-batch, and full batch in an elegant way. All that is needed to be done is
-// to implement the update method and take into account the numberOfSamples that
+// to implement the update method and take into account the steps that
 // have passed since the last update
 
 public abstract class AbstractLearner implements Learner {
-    protected int numberOfSamples;
-    private int maxCounter;
+    protected int steps;
+    private int maxSteps;
+    private ENode _backend;
+
+    private static String STEPS = "steps";
+    public static String MAX_STEPS = "max_steps";
+
+    public AbstractLearner(ENode backend) {
+        this._backend = backend;
+        steps=backend.getWithDefault(STEPS,0);
+        maxSteps=backend.getWithDefault(MAX_STEPS,1);
+    }
 
     @Override
-    public void setUpdateFrequency(int n) {
-        this.maxCounter = n;
+    public void setFrequency(int maxSteps) {
+        this.maxSteps = maxSteps;
+        _backend.set(MAX_STEPS, Type.INT, maxSteps);
     }
 
 
     @Override
     public void stepUpdate(Layer[] layers) {
-        numberOfSamples++;
-        if (maxCounter > 0 && numberOfSamples == maxCounter) {
+        steps++;
+        if (maxSteps > 0 && steps == maxSteps) {
             update(layers);
-            numberOfSamples = 0;
+            steps = 0;
         }
+        _backend.set(STEPS, Type.INT, steps);
     }
 
     @Override
     public void finalUpdate(Layer[] layers) {
-        if (maxCounter <= 0 || numberOfSamples > 0) {
+        if (maxSteps <= 0 || steps > 0) {
             update(layers);
-            numberOfSamples = 0;
+            steps = 0;
+            _backend.set(STEPS, Type.INT, steps);
         }
-
     }
 
     protected abstract void update(Layer[] layers);

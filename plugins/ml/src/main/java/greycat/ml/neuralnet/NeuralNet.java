@@ -50,7 +50,7 @@ public class NeuralNet {
             //load NN configuration
             //load loss unit
             loss = Losses.getUnit((int) backend.root().get(LOSS));
-            learner= Learners.getUnit((int) backend.root().get(LEARNER), (double[]) backend.root().get(LEARNER_PARAMS));
+            learner= Learners.getUnit((int) backend.root().get(LEARNER), backend.root());
 
         }
     }

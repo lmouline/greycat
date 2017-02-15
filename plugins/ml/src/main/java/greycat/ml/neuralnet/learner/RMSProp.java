@@ -18,12 +18,27 @@ package greycat.ml.neuralnet.learner;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
+import greycat.struct.ENode;
 
 /**
  * Created by assaad on 14/02/2017.
  */
 public class RMSProp extends AbstractLearner {
 
+    public static String LEARNING_RATE = "learningrate";
+    public static double LEARNING_RATE_DEF = 0.001;
+
+    public static String REGULARIZATION_RATE = "regularizationrate";
+    public static double REGULARIZATION_RATE_DEF = 0.000001;
+
+    public static String SMOOTH_EPSILON = "smoothepsilon";
+    public static double SMOOTH_EPSILON_DEF = 1e-8;
+
+    public static String DECAY_RATE = "decayrate";
+    public static double DECAY_RATE_DEF = 0.999;
+
+    public static String GRADIENT_CLIP_RATE = "gradientclip";
+    public static double GRADIENT_CLIP_DEF = 5;
 
     private double learningRate;
     private double regularization;
@@ -37,13 +52,13 @@ public class RMSProp extends AbstractLearner {
     //param[2] => smooth Epsilon
     //param[2] => decay Rate
     //param[2] => gradient Clip
-    public RMSProp(double[] params) {
-        super();
-        learningRate = params[0];
-        regularization = params[1];
-        smoothEpsilon = params[2];
-        decayRate = params[3];
-        gradientClip = params[4];
+    public RMSProp(ENode backend) {
+        super(backend);
+        learningRate = backend.getWithDefault(LEARNING_RATE, LEARNING_RATE_DEF);
+        regularization = backend.getWithDefault(REGULARIZATION_RATE, REGULARIZATION_RATE_DEF);
+        smoothEpsilon = backend.getWithDefault(SMOOTH_EPSILON, SMOOTH_EPSILON_DEF);
+        decayRate = backend.getWithDefault(DECAY_RATE, DECAY_RATE_DEF);
+        gradientClip = backend.getWithDefault(GRADIENT_CLIP_RATE, GRADIENT_CLIP_DEF);
     }
 
 
@@ -54,7 +69,7 @@ public class RMSProp extends AbstractLearner {
         DMatrix stepCache;
         int len;
         double dwi;
-        double alpha = 1 - learningRate * regularization / numberOfSamples;
+        double alpha = 1 - learningRate * regularization / steps;
 
         for (int k = 0; k < layers.length; k++) {
             ExMatrix[] weights = layers[k].getModelParameters();
@@ -67,7 +82,7 @@ public class RMSProp extends AbstractLearner {
                 for (int i = 0; i < len; i++) {
 
                     // rmsprop adaptive learning rate
-                    dwi = dw.unsafeGet(i) / numberOfSamples;
+                    dwi = dw.unsafeGet(i) / steps;
                     stepCache.unsafeSet(i, stepCache.unsafeGet(i) * decayRate + (1 - decayRate) * dwi * dwi);
 
                     // gradient clip

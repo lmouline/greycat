@@ -15,6 +15,8 @@
  */
 package greycat.ml.neuralnet.learner;
 
+import greycat.struct.ENode;
+
 /**
  * Created by assaad on 13/02/2017.
  */
@@ -25,13 +27,13 @@ public class Learners {
     public static final int DEFAULT = GRADIENT_DESCENT;
 
 
-    public static Learner getUnit(int learnerUnit, double[] learnParams) {
+    public static Learner getUnit(int learnerUnit, ENode root) {
         switch (learnerUnit) {
             case GRADIENT_DESCENT:
-                return new GradientDescent(learnParams);
+                return new GradientDescent(root);
             case RMSPROP:
-                return new RMSProp(learnParams);
+                return new RMSProp(root);
         }
-        return getUnit(DEFAULT, learnParams);
+        return getUnit(DEFAULT, root);
     }
 }
