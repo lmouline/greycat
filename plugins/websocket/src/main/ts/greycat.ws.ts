@@ -41,7 +41,7 @@ export class WSClient implements greycat.plugin.Storage {
 
     constructor(p_url: string) {
         this.url = p_url;
-        this.callbacks = {};// new java.util.HashMap<number,greycat.Callback<any>>();
+        this.callbacks = {};
     }
 
     connect(p_graph: greycat.Graph, callback: greycat.Callback<boolean>): void {
@@ -123,7 +123,8 @@ export class WSClient implements greycat.plugin.Storage {
                 let callbackCodeView = it.next();
                 if (callbackCodeView != null) {
                     let callbackCode = greycat.utility.Base64.decodeToIntWithBounds(callbackCodeView, 0, callbackCodeView.length());
-                    let resolvedCallback = this.callbacks.get(callbackCode);
+                    let resolvedCallback = this.callbacks[callbackCode];
+                    this.callbacks[callbackCode] = undefined;
                     if (resolvedCallback != null) {
                         if (firstCode == this.RESP_GET || firstCode == this.RESP_LOCK || firstCode == this.RESP_TASK) {
                             let newBuf = this.graph.newBuffer();
@@ -155,7 +156,7 @@ export class WSClient implements greycat.plugin.Storage {
         buffer.write(greycat.Constants.BUFFER_SEP);
         let hash = this.generator;
         this.generator = this.generator + 1 % 1000000;
-        this.callbacks.put(hash, callback);
+        this.callbacks[hash] = callback;
         greycat.utility.Base64.encodeIntToBuffer(hash, buffer);
         if (payload != null) {
             buffer.write(greycat.Constants.BUFFER_SEP);
