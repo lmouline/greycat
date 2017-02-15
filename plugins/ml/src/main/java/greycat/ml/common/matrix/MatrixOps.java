@@ -19,7 +19,6 @@ import greycat.struct.DMatrix;
 
 import java.util.Random;
 
-
 public class MatrixOps {
 
     private static MatrixEngine _defaultEngine = null;
@@ -34,7 +33,6 @@ public class MatrixOps {
     public static void setDefaultEngine(MatrixEngine engine) {
         _defaultEngine = engine;
     }
-
 
     public static void copyMatrix(DMatrix source, DMatrix destination) {
         for (int row = 0; row < source.rows(); row++) {
@@ -85,7 +83,6 @@ public class MatrixOps {
     public static DMatrix pinv(DMatrix mat, boolean invertInPlace) {
         return defaultEngine().pinv(mat, invertInPlace);
     }
-
 
     public static DMatrix transpose(DMatrix matA) {
         DMatrix result = VolatileDMatrix.empty(matA.columns(), matA.rows());

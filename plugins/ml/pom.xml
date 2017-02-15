@@ -41,89 +41,6 @@
             <artifactId>greycat</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
-        <dependency>
-            <!-- WORKAROUND: https://github.com/sbt/sbt/issues/861 -->
-            <groupId>net.sourceforge.f2j</groupId>
-            <artifactId>arpack_combined_all</artifactId>
-            <version>0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.fommil.netlib</groupId>
-            <artifactId>core</artifactId>
-            <version>1.1.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.fommil.netlib</groupId>
-            <artifactId>netlib-native_ref-osx-x86_64</artifactId>
-            <version>1.1</version>
-            <classifier>natives</classifier>
-        </dependency>
-        <dependency>
-            <groupId>com.github.fommil.netlib</groupId>
-            <artifactId>netlib-native_ref-linux-x86_64</artifactId>
-            <version>1.1</version>
-            <classifier>natives</classifier>
-        </dependency>
-        <dependency>
-            <groupId>com.github.fommil.netlib</groupId>
-            <artifactId>netlib-native_ref-linux-i686</artifactId>
-            <version>1.1</version>
-            <classifier>natives</classifier>
-        </dependency>
-        <dependency>
-            <groupId>com.github.fommil.netlib</groupId>
-            <artifactId>netlib-native_ref-win-x86_64</artifactId>
-            <version>1.1</version>
-            <classifier>natives</classifier>
-        </dependency>
-        <dependency>
-            <groupId>com.github.fommil.netlib</groupId>
-            <artifactId>netlib-native_ref-win-i686</artifactId>
-            <version>1.1</version>
-            <classifier>natives</classifier>
-        </dependency>
-        <dependency>
-            <groupId>com.github.fommil.netlib</groupId>
-            <artifactId>netlib-native_ref-linux-armhf</artifactId>
-            <version>1.1</version>
-            <classifier>natives</classifier>
-        </dependency>
-        <dependency>
-            <groupId>com.github.fommil.netlib</groupId>
-            <artifactId>netlib-native_system-osx-x86_64</artifactId>
-            <version>1.1</version>
-            <classifier>natives</classifier>
-        </dependency>
-        <dependency>
-            <groupId>com.github.fommil.netlib</groupId>
-            <artifactId>netlib-native_system-linux-x86_64</artifactId>
-            <version>1.1</version>
-            <classifier>natives</classifier>
-        </dependency>
-        <dependency>
-            <groupId>com.github.fommil.netlib</groupId>
-            <artifactId>netlib-native_system-linux-i686</artifactId>
-            <version>1.1</version>
-            <classifier>natives</classifier>
-        </dependency>
-        <dependency>
-            <groupId>com.github.fommil.netlib</groupId>
-            <artifactId>netlib-native_system-linux-armhf</artifactId>
-            <version>1.1</version>
-            <classifier>natives</classifier>
-        </dependency>
-        <dependency>
-            <groupId>com.github.fommil.netlib</groupId>
-            <artifactId>netlib-native_system-win-x86_64</artifactId>
-            <version>1.1</version>
-            <classifier>natives</classifier>
-        </dependency>
-        <dependency>
-            <groupId>com.github.fommil.netlib</groupId>
-            <artifactId>netlib-native_system-win-i686</artifactId>
-            <version>1.1</version>
-            <classifier>natives</classifier>
-        </dependency>
     </dependencies>
 
     <build>
@@ -275,71 +192,10 @@
                                     <arg value="es5"/>
                                     <arg value="${basedir}/target/classes-npm/greycat.ml.ts"/>
                                 </exec>
+                                <delete file="${basedir}/target/classes-npm/greycat.ml.ts"/>
                                 <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
                                     <arg value="link"/>
                                 </exec>
-
-
-                                <!--
-                                <echo message="Compile Java to TypeScript" />
-                                <copy file="${basedir}/../../greycat/target/classes-js/greycat.d.ts" todir="${basedir}/target/generated-sources/" />
-                                <copy file="${basedir}/../../share/greycat.blas.ts" todir="${basedir}/target/generated-sources/" />
-                                <copy file="${basedir}/../../share/package.json" todir="${basedir}/target" />
-                                <exec executable="npm" dir="${basedir}/target" failonerror="true">
-                                    <arg value="install" />
-                                </exec>
-                                <echo message="Compile TypeScript to JavaScript" />
-                                <exec executable="${basedir}/target/node_modules/typescript/bin/tsc" dir="${basedir}/target/generated-sources/" failonerror="true">
-                                    <arg value="-d" />
-                                    <arg value="-sourceMap" />
-                                    <arg value="-target" />
-                                    <arg value="es5" />
-                                    <arg value="${basedir}/target/generated-sources/${js.name}.ts" />
-                                    <arg value="-out" />
-                                    <arg value="${js.name}.js" />
-                                </exec>
-                                <copy file="${basedir}/target/generated-sources/${js.name}.ts" todir="${basedir}/target/classes-js" />
-                                <copy file="${basedir}/target/generated-sources/${js.name}.d.ts" todir="${basedir}/target/classes-js" />
-                                <copy file="${basedir}/target/generated-sources/${js.name}.js" todir="${basedir}/target/classes-js" />
-                                <copy file="${basedir}/target/generated-sources/${js.name}.js.map" todir="${basedir}/target/classes-js" />
-                                <copy file="${basedir}/../../share/netlib.js" todir="${basedir}/target/classes-js" />
-                                <echo message="Minifying JavaScript" />
-                                <java jar="${basedir}/../../share/compiler.jar" fork="true" failonerror="true">
-                                    <arg value="-js" />
-                                    <arg value="${basedir}/target/classes-js/${js.name}.js" />
-                                    <arg value="-js_output_file" />
-                                    <arg value="${basedir}/target/classes-js/${js.name}.min.js" />
-                                </java>
-                                <copy file="${basedir}/target/generated-sources/greycat.ml.d.ts" todir="${basedir}/target/classes-npm" />
-                                <copy file="${basedir}/target/generated-sources/greycat.ml.js.map" todir="${basedir}/target/classes-npm" />
-                                <copy file="${basedir}/src/main/ts/package.json" todir="${basedir}/target/classes-npm" />
-                                <copy file="${basedir}/src/main/ts/readme.md" todir="${basedir}/target/classes-npm" />
-                                <replace file="${basedir}/target/classes-npm/package.json">
-                                    <replacetoken>GREYCAT_VERSION</replacetoken>
-                                    <replacevalue>${project.version}</replacevalue>
-                                </replace>
-                                <replace file="${basedir}/target/classes-npm/package.json">
-                                    <replacetoken>-SNAPSHOT</replacetoken>
-                                    <replacevalue />
-                                </replace>
-                                <concat append="false" destfile="${basedir}/target/classes-npm/greycat.ml.js">
-                                    var greycat = {};Object.assign(greycat,require('greycat'));var java=greycat.java;
-                                </concat>
-                                <concat append="true" destfile="${basedir}/target/classes-npm/greycat.ml.js">
-                                    <fileset dir="${basedir}/target/generated-sources" includes="greycat.ml.js" />
-                                </concat>
-                                <concat append="true" destfile="${basedir}/target/classes-npm/greycat.ml.js">
-                                    ${line.separator}module.exports = greycat.ml.MLPlugin;
-                                </concat>
-                                <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
-                                    <arg value="link" />
-                                    <arg value="greycat" />
-                                </exec>
-                                <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
-                                    <arg value="link" />
-                                </exec>
-                                -->
-
                             </target>
                         </configuration>
                     </execution>

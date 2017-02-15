@@ -19,9 +19,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>greycat-websocket</artifactId>
+    <artifactId>greycat-blas</artifactId>
     <version>2-SNAPSHOT</version>
-    <name>greycat-websocket</name>
+    <name>greycat-blas</name>
 
     <properties>
         <header.path>${basedir}/../../HEADER</header.path>
@@ -36,17 +36,96 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.undertow</groupId>
-            <artifactId>undertow-core</artifactId>
-            <version>${undertow.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.datathings</groupId>
             <artifactId>greycat</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <dependency>
+            <!-- WORKAROUND: https://github.com/sbt/sbt/issues/861 -->
+            <groupId>net.sourceforge.f2j</groupId>
+            <artifactId>arpack_combined_all</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>core</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_ref-osx-x86_64</artifactId>
+            <version>1.1</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_ref-linux-x86_64</artifactId>
+            <version>1.1</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_ref-linux-i686</artifactId>
+            <version>1.1</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_ref-win-x86_64</artifactId>
+            <version>1.1</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_ref-win-i686</artifactId>
+            <version>1.1</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_ref-linux-armhf</artifactId>
+            <version>1.1</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_system-osx-x86_64</artifactId>
+            <version>1.1</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_system-linux-x86_64</artifactId>
+            <version>1.1</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_system-linux-i686</artifactId>
+            <version>1.1</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_system-linux-armhf</artifactId>
+            <version>1.1</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_system-win-x86_64</artifactId>
+            <version>1.1</version>
+            <classifier>natives</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fommil.netlib</groupId>
+            <artifactId>netlib-native_system-win-i686</artifactId>
+            <version>1.1</version>
+            <classifier>natives</classifier>
+        </dependency>
     </dependencies>
 
+    <!--
     <build>
         <plugins>
             <plugin>
@@ -78,12 +157,11 @@
                                 <exec executable="${basedir}/target/classes-npm/node_modules/typescript/bin/tsc"
                                       dir="${basedir}/target/classes-npm" failonerror="true">
                                     <arg value="-d"/>
-                                    <arg value="--sourceMap"/>
-                                    <arg value="--target"/>
+                                    <arg value="-sourceMap"/>
+                                    <arg value="-target"/>
                                     <arg value="es5"/>
                                     <arg value="${basedir}/target/classes-npm/greycat.ws.ts"/>
                                 </exec>
-                                <delete file="${basedir}/target/classes-npm/greycat.ws.ts"/>
                                 <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
                                     <arg value="link"/>
                                 </exec>
@@ -97,5 +175,6 @@
             </plugin>
         </plugins>
     </build>
+    -->
 
 </project>

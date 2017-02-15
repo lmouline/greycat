@@ -150,19 +150,10 @@
                                 <concat append="true" destfile="${basedir}/target/classes-npm/greycat.ts">
                                     export = greycat
                                 </concat>
-                                <!--
-                                <replace file="${basedir}/target/classes-npm/greycat.ts">
-                                    <replacetoken>module greycat {</replacetoken>
-                                    <replacevalue>export module greycat {</replacevalue>
-                                </replace>
-                                -->
                                 <replace file="${basedir}/target/classes-npm/greycat.ts">
                                     <replacetoken><![CDATA[/// <reference path="./jre.ts" />]]></replacetoken>
                                     <replacevalue/>
                                 </replace>
-
-
-
                                 <exec executable="${basedir}/target/classes-npm/node_modules/typescript/bin/tsc"
                                       dir="${basedir}/target/classes-npm/" failonerror="true">
                                     <arg value="-d"/>
@@ -171,6 +162,7 @@
                                     <arg value="es5"/>
                                     <arg value="${basedir}/target/classes-npm/greycat.ts"/>
                                 </exec>
+                                <delete file="${basedir}/target/classes-npm/greycat.ts"/>
                                 <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
                                     <arg value="link"/>
                                 </exec>

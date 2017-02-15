@@ -15,7 +15,6 @@
  */
 package greycat.ml.common.matrix.jamasolver;
 
-
 import greycat.ml.common.matrix.*;
 import greycat.struct.DMatrix;
 

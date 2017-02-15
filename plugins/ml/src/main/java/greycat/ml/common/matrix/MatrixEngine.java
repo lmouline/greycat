@@ -19,7 +19,6 @@ import greycat.struct.DMatrix;
 
 public interface MatrixEngine {
 
-
     DMatrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, DMatrix matA, TransposeType transB, DMatrix matB, double beta, DMatrix matC);
 
     DMatrix invert(DMatrix mat, boolean invertInPlace);
