@@ -19,7 +19,7 @@ import * as greycat from "greycat";
 export class WSClient implements greycat.plugin.Storage {
 
     private url: string;
-    private callbacks;//: java.util.Map<number,greycat.Callback<any>>;
+    private callbacks;
     private ws: WebSocket = null;
     private graph: greycat.Graph = null;
     private generator: number = 0;
@@ -53,7 +53,12 @@ export class WSClient implements greycat.plugin.Storage {
                 callback(true);
             };
             this.ws.onmessage = function (msg: MessageEvent) {
-                selfPointer.process_rpc_resp(new Int8Array(msg.data));
+                let fr = new FileReader();
+                fr.onload = function(){
+                    console.log(fr.result);
+                    selfPointer.process_rpc_resp(new Int8Array(fr.result));
+                };
+                fr.readAsArrayBuffer(msg.data);
             };
         } else {
             //do nothing
