@@ -24,6 +24,10 @@ import greycat.ml.MLPlugin;
 import java.util.Random;
 
 public class TestPolynomialRandom {
+
+    /**
+     * @native ts
+     */
     @Test
     public void randomTest() {
         final Graph graph = new GraphBuilder().withPlugin(new MLPlugin()).withScheduler(new NoopScheduler()).build();

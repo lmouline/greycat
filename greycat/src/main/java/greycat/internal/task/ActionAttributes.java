@@ -24,6 +24,7 @@ import greycat.base.BaseNode;
 import greycat.plugin.NodeState;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 class ActionAttributes implements Action {
 
@@ -66,24 +67,17 @@ class ActionAttributes implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
+    public void serialize(final Buffer builder) {
         if (_filter == -1) {
-            builder.append(CoreActionNames.ATTRIBUTES);
-            builder.append(Constants.TASK_PARAM_OPEN);
-            builder.append(Constants.TASK_PARAM_CLOSE);
+            builder.writeString(CoreActionNames.ATTRIBUTES);
+            builder.writeChar(Constants.TASK_PARAM_OPEN);
+            builder.writeChar(Constants.TASK_PARAM_CLOSE);
         } else {
-            builder.append(CoreActionNames.ATTRIBUTES_WITH_TYPE);
-            builder.append(Constants.TASK_PARAM_OPEN);
+            builder.writeString(CoreActionNames.ATTRIBUTES_WITH_TYPE);
+            builder.writeChar(Constants.TASK_PARAM_OPEN);
             TaskHelper.serializeType(_filter, builder);
-            builder.append(Constants.TASK_PARAM_CLOSE);
+            builder.writeChar(Constants.TASK_PARAM_CLOSE);
         }
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
     }
 
 }

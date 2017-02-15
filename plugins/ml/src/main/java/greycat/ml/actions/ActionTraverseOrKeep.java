@@ -19,6 +19,7 @@ import greycat.*;
 import greycat.base.BaseNode;
 import greycat.internal.task.TaskHelper;
 import greycat.plugin.Job;
+import greycat.struct.Buffer;
 
 public class ActionTraverseOrKeep implements Action {
 
@@ -76,18 +77,11 @@ public class ActionTraverseOrKeep implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(NAME);
-        builder.append(Constants.TASK_PARAM_OPEN);
+    public final void serialize(final Buffer builder) {
+        builder.writeString(NAME);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_name, builder,true);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

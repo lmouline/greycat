@@ -25,6 +25,7 @@ import greycat.Action;
 import greycat.Callback;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 class ActionTimepoints implements Action {
     private final String _from;
@@ -85,17 +86,10 @@ class ActionTimepoints implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(CoreActionNames.TIMEPOINTS);
-        builder.append(Constants.TASK_PARAM_OPEN);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+    public void serialize(final Buffer builder) {
+        builder.writeString(CoreActionNames.TIMEPOINTS);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

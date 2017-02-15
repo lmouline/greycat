@@ -17,6 +17,7 @@ package greycat.internal.task;
 
 import greycat.Action;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 
 class ActionNamed implements Action {
 
@@ -46,16 +47,9 @@ class ActionNamed implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(_name);
+    public final void serialize(final Buffer builder) {
+        builder.writeString(_name);
         TaskHelper.serializeStringParams(_params, builder);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
     }
 
 }

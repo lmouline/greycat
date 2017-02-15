@@ -18,6 +18,7 @@ package greycat.ml.regression.actions;
 import greycat.*;
 import greycat.internal.task.TaskHelper;
 import greycat.ml.regression.PolynomialNode;
+import greycat.struct.Buffer;
 
 import static greycat.Tasks.newTask;
 import static greycat.internal.task.CoreActions.*;
@@ -45,7 +46,7 @@ public class SetContinuous implements Action {
     }
 
     @Override
-    public void eval(final TaskContext context) {
+    public final void eval(final TaskContext context) {
 
         polyTask.executeWith(context.graph(), context.result(), new Callback<TaskResult>() {
             @Override
@@ -57,20 +58,13 @@ public class SetContinuous implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(NAME);
-        builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_relName, builder,true);
-        builder.append(Constants.TASK_PARAM_SEP);
-        TaskHelper.serializeString(_value, builder,true);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+    public final void serialize(final Buffer builder) {
+        builder.writeString(NAME);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_relName, builder, true);
+        builder.writeChar(Constants.TASK_PARAM_SEP);
+        TaskHelper.serializeString(_value, builder, true);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

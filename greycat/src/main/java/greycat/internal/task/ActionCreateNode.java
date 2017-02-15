@@ -19,6 +19,7 @@ import greycat.Constants;
 import greycat.Node;
 import greycat.Action;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 
 class ActionCreateNode implements Action {
 
@@ -41,24 +42,17 @@ class ActionCreateNode implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
+    public void serialize(final Buffer builder) {
         if (_typeNode == null) {
-            builder.append(CoreActionNames.CREATE_NODE);
-            builder.append(Constants.TASK_PARAM_OPEN);
-            builder.append(Constants.TASK_PARAM_CLOSE);
+            builder.writeString(CoreActionNames.CREATE_NODE);
+            builder.writeChar(Constants.TASK_PARAM_OPEN);
+            builder.writeChar(Constants.TASK_PARAM_CLOSE);
         } else {
-            builder.append(CoreActionNames.CREATE_TYPED_NODE);
-            builder.append(Constants.TASK_PARAM_OPEN);
-            TaskHelper.serializeString(_typeNode, builder,true);
-            builder.append(Constants.TASK_PARAM_CLOSE);
+            builder.writeString(CoreActionNames.CREATE_TYPED_NODE);
+            builder.writeChar(Constants.TASK_PARAM_OPEN);
+            TaskHelper.serializeString(_typeNode, builder, true);
+            builder.writeChar(Constants.TASK_PARAM_CLOSE);
         }
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
     }
 
 }

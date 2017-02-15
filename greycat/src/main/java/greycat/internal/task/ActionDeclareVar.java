@@ -19,6 +19,7 @@ import greycat.Constants;
 import greycat.Action;
 import greycat.TaskContext;
 import greycat.Tasks;
+import greycat.struct.Buffer;
 
 class ActionDeclareVar implements Action {
 
@@ -34,8 +35,8 @@ class ActionDeclareVar implements Action {
     }
 
     @Override
-    public void eval(final TaskContext ctx) {
-        if(_isGlobal){
+    public final void eval(final TaskContext ctx) {
+        if (_isGlobal) {
             ctx.setGlobalVariable(ctx.template(_name), Tasks.emptyResult());
         } else {
             ctx.declareVariable(ctx.template(_name));
@@ -44,22 +45,15 @@ class ActionDeclareVar implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        if(_isGlobal){
-            builder.append(CoreActionNames.DECLARE_GLOBAL_VAR);
+    public final void serialize(final Buffer builder) {
+        if (_isGlobal) {
+            builder.writeString(CoreActionNames.DECLARE_GLOBAL_VAR);
         } else {
-            builder.append(CoreActionNames.DECLARE_VAR);
+            builder.writeString(CoreActionNames.DECLARE_VAR);
         }
-        builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_name, builder,true);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_name, builder, true);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

@@ -22,6 +22,7 @@ import greycat.Constants;
 import greycat.plugin.SchedulerAffinity;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 import java.util.Map;
 
@@ -87,34 +88,34 @@ class CF_IfThenElse extends CF_Action {
     }
 
     @Override
-    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
+    public void cf_serialize(final Buffer builder, Map<Integer, Integer> dagIDS) {
         if (_conditionalScript == null) {
             throw new RuntimeException("Closure is not serializable, please use Script version instead!");
         }
-        builder.append(CoreActionNames.IF_THEN_ELSE);
-        builder.append(Constants.TASK_PARAM_OPEN);
+        builder.writeString(CoreActionNames.IF_THEN_ELSE);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_conditionalScript, builder, true);
-        builder.append(Constants.TASK_PARAM_SEP);
+        builder.writeChar(Constants.TASK_PARAM_SEP);
         CoreTask castedSubThen = (CoreTask) _thenSub;
         int castedSubThenHash = castedSubThen.hashCode();
         if (dagIDS == null || !dagIDS.containsKey(castedSubThenHash)) {
-            builder.append(Constants.SUB_TASK_OPEN);
+            builder.writeChar(Constants.SUB_TASK_OPEN);
             castedSubThen.serialize(builder, dagIDS);
-            builder.append(Constants.SUB_TASK_CLOSE);
+            builder.writeChar(Constants.SUB_TASK_CLOSE);
         } else {
-            builder.append("" + dagIDS.get(castedSubThenHash));
+            builder.writeString("" + dagIDS.get(castedSubThenHash));
         }
-        builder.append(Constants.TASK_PARAM_SEP);
+        builder.writeChar(Constants.TASK_PARAM_SEP);
         CoreTask castedSubElse = (CoreTask) _elseSub;
         int castedSubElseHash = castedSubElse.hashCode();
         if (dagIDS == null || !dagIDS.containsKey(castedSubElseHash)) {
-            builder.append(Constants.SUB_TASK_OPEN);
+            builder.writeChar(Constants.SUB_TASK_OPEN);
             castedSubElse.serialize(builder, dagIDS);
-            builder.append(Constants.SUB_TASK_CLOSE);
+            builder.writeChar(Constants.SUB_TASK_CLOSE);
         } else {
-            builder.append("" + dagIDS.get(castedSubElseHash));
+            builder.writeString("" + dagIDS.get(castedSubElseHash));
         }
-        builder.append(Constants.TASK_PARAM_CLOSE);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

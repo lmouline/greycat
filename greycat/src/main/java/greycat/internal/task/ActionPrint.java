@@ -18,6 +18,7 @@ package greycat.internal.task;
 import greycat.Constants;
 import greycat.Action;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 
 class ActionPrint implements Action {
 
@@ -40,22 +41,15 @@ class ActionPrint implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
+    public void serialize(final Buffer builder) {
         if (_withLineBreak) {
-            builder.append(CoreActionNames.PRINTLN);
+            builder.writeString(CoreActionNames.PRINTLN);
         } else {
-            builder.append(CoreActionNames.PRINT);
+            builder.writeString(CoreActionNames.PRINT);
         }
-        builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_name, builder,true);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_name, builder, true);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

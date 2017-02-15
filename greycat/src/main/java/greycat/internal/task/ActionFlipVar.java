@@ -19,6 +19,7 @@ import greycat.Constants;
 import greycat.Action;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 class ActionFlipVar implements Action {
 
@@ -40,18 +41,11 @@ class ActionFlipVar implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(CoreActionNames.FLIP_VAR);
-        builder.append(Constants.TASK_PARAM_OPEN);
+    public void serialize(final Buffer builder) {
+        builder.writeString(CoreActionNames.FLIP_VAR);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_name, builder, true);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

@@ -16,9 +16,11 @@
 package greycat.base;
 
 import greycat.Node;
+import greycat.internal.heap.HeapBuffer;
 import greycat.internal.task.TaskHelper;
 import greycat.TaskResult;
 import greycat.TaskResultIterator;
+import greycat.struct.Buffer;
 
 import java.util.ArrayList;
 
@@ -258,38 +260,38 @@ public class BaseTaskResult<A> implements TaskResult<A> {
     }
 
     private String toJson(boolean withContent) {
-        final StringBuilder builder = new StringBuilder();
+        final Buffer builder = new HeapBuffer();
         boolean isFirst = true;
-        builder.append("{");
+        builder.writeString("{");
         if (_exception != null) {
             isFirst = false;
-            builder.append("\"error\":");
+            builder.writeString("\"error\":");
             TaskHelper.serializeString(_exception.getMessage(), builder, false);
         }
         if (_output != null) {
             if (!isFirst) {
-                builder.append(",");
+                builder.writeString(",");
             } else {
                 isFirst = false;
             }
-            builder.append("\"output\":");
+            builder.writeString("\"output\":");
             TaskHelper.serializeString(_output, builder, false);
         }
         if (_size > 0) {
             if (!isFirst) {
-                builder.append(",");
+                builder.writeString(",");
             }
-            builder.append("\"result\":[");
+            builder.writeString("\"result\":[");
             for (int i = 0; i < _size; i++) {
                 if (i != 0) {
-                    builder.append(",");
+                    builder.writeString(",");
                 }
                 Object loop = _backend[i];
                 if (loop != null) {
-                    String saved = loop.toString();
+                    final String saved = loop.toString();
                     if (saved.length() > 0) {
                         if (saved.charAt(0) == '{' || saved.charAt(0) == '[') { //Array or Nodes
-                            builder.append(saved);
+                            builder.writeString(saved);
                         } else {
                             //escape string
                             TaskHelper.serializeString(saved, builder, false);
@@ -297,9 +299,9 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                     }
                 }
             }
-            builder.append("]");
+            builder.writeString("]");
         }
-        builder.append("}");
+        builder.writeString("}");
         return builder.toString();
     }
 

@@ -19,10 +19,11 @@ import greycat.ml.common.matrix.operation.PolynomialFit;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- * Created by assaad on 23/03/16.
- */
 public class PolynomialSolveTest {
+
+    /**
+     * @native ts
+     */
     @Test
     public void polytest() {
         double eps = 1e-7;

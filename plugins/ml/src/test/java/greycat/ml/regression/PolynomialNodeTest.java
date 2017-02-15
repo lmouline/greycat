@@ -25,6 +25,9 @@ public class PolynomialNodeTest {
     private static final int size = 100;
     private static final double precision = 0.5;
 
+    /**
+     * @native ts
+     */
     @Test
     public void testConstant() {
         final Graph graph = new GraphBuilder().withPlugin(new MLPlugin()).withScheduler(new NoopScheduler()).build();

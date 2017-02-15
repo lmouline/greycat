@@ -64,7 +64,8 @@ class OffHeapBuffer implements Buffer {
             OffHeapByteArray.copyArray(bytes, bufferPtr, writeCursor, bytes.length);
             writeCursor = bytes.length;
         } else if (writeCursor + bytes.length > capacity) {
-            long newCapacity = getNewSize(capacity, capacity + bytes.length);
+            long newCapacityWanted = getNewSize(capacity, capacity + bytes.length);
+            final int newCapacity = (int) Math.pow(2, Math.ceil(Math.log(newCapacityWanted) / Math.log(2)));
             bufferPtr = OffHeapByteArray.reallocate(bufferPtr, newCapacity);
             OffHeapByteArray.copyArray(bytes, bufferPtr, writeCursor, bytes.length);
             capacity = newCapacity;
@@ -73,6 +74,16 @@ class OffHeapBuffer implements Buffer {
             OffHeapByteArray.copyArray(bytes, bufferPtr, writeCursor, bytes.length);
             writeCursor = writeCursor + bytes.length;
         }
+    }
+
+    @Override
+    public void writeString(String input) {
+        writeAll(input.getBytes());
+    }
+
+    @Override
+    public void writeChar(char input) {
+        write((byte) input);
     }
 
     @Override

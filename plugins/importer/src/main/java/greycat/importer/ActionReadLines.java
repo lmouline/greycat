@@ -20,6 +20,7 @@ import greycat.internal.task.TaskHelper;
 import greycat.Action;
 import greycat.importer.util.IterableLines;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 
 class ActionReadLines implements Action {
 
@@ -36,17 +37,11 @@ class ActionReadLines implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append("readLines");
-        builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_pathOrTemplate, builder,true);
-        builder.append(Constants.TASK_PARAM_CLOSE);
+    public final void serialize(final Buffer builder) {
+        builder.writeString("readLines");
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_pathOrTemplate, builder, true);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
-    }
 }

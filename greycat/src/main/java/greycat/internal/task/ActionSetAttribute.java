@@ -22,6 +22,7 @@ import greycat.Type;
 import greycat.base.BaseNode;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 class ActionSetAttribute implements Action {
 
@@ -130,28 +131,20 @@ class ActionSetAttribute implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
+    public void serialize(final Buffer builder) {
         if (_force) {
-            builder.append(CoreActionNames.FORCE_ATTRIBUTE);
+            builder.writeString(CoreActionNames.FORCE_ATTRIBUTE);
         } else {
-            builder.append(CoreActionNames.SET_ATTRIBUTE);
+            builder.writeString(CoreActionNames.SET_ATTRIBUTE);
         }
-        builder.append(Constants.TASK_PARAM_OPEN);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_name, builder, true);
-        builder.append(Constants.TASK_PARAM_SEP);
+        builder.writeChar(Constants.TASK_PARAM_SEP);
         TaskHelper.serializeType(_propertyType, builder);
-        builder.append(Constants.TASK_PARAM_SEP);
+        builder.writeChar(Constants.TASK_PARAM_SEP);
         TaskHelper.serializeString(_value, builder, true);
-        builder.append(Constants.TASK_PARAM_CLOSE);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
-    }
-
 
 }
 

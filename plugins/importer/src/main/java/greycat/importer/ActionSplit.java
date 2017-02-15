@@ -20,6 +20,7 @@ import greycat.Action;
 import greycat.internal.task.TaskHelper;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 class ActionSplit implements Action {
 
@@ -51,18 +52,11 @@ class ActionSplit implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append("split");
-        builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_splitPattern, builder,true);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+    public final void serialize(final Buffer builder) {
+        builder.writeString("split");
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_splitPattern, builder, true);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

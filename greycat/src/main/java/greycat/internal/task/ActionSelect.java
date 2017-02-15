@@ -22,6 +22,7 @@ import greycat.TaskFunctionSelect;
 import greycat.base.BaseNode;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptException;
@@ -83,24 +84,14 @@ class ActionSelect implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
+    public void serialize(final Buffer builder) {
         if (_script == null) {
             throw new RuntimeException("Select remote usage not managed yet, please use SelectScript instead !");
         }
-        builder.append(CoreActionNames.SELECT);
-        builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_script, builder,true);
-        builder.append(Constants.TASK_PARAM_CLOSE);
+        builder.writeString(CoreActionNames.SELECT);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_script, builder, true);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
-    @Override
-    public String toString() {
-        if (_filter != null) {
-            return "select()";
-        } else {
-            final StringBuilder res = new StringBuilder();
-            serialize(res);
-            return res.toString();
-        }
-    }
 }

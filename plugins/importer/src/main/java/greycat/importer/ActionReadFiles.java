@@ -20,6 +20,7 @@ import greycat.internal.task.TaskHelper;
 import greycat.Action;
 import greycat.TaskResult;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -68,18 +69,11 @@ class ActionReadFiles implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append("readFiles");
-        builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_pathOrTemplate, builder,true);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+    public void serialize(final Buffer builder) {
+        builder.writeString("readFiles");
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_pathOrTemplate, builder, true);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

@@ -18,6 +18,7 @@ package greycat.internal.task;
 import greycat.Constants;
 import greycat.Action;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 
 class ActionLog implements Action {
 
@@ -34,18 +35,11 @@ class ActionLog implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(CoreActionNames.LOG);
-        builder.append(Constants.TASK_PARAM_OPEN);
+    public void serialize(final Buffer builder) {
+        builder.writeString(CoreActionNames.LOG);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_value, builder, true);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

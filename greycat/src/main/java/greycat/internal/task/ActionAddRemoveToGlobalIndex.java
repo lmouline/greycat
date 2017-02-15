@@ -74,24 +74,17 @@ class ActionAddRemoveToGlobalIndex implements Action {
     }
 
     @Override
-    public final void serialize(StringBuilder builder) {
+    public final void serialize(final Buffer builder) {
         if (_timed) {
-            builder.append(CoreActionNames.ADD_TO_GLOBAL_TIMED_INDEX);
+            builder.writeString(CoreActionNames.ADD_TO_GLOBAL_TIMED_INDEX);
         } else {
-            builder.append(CoreActionNames.ADD_TO_GLOBAL_INDEX);
+            builder.writeString(CoreActionNames.ADD_TO_GLOBAL_INDEX);
         }
-        builder.append(Constants.TASK_PARAM_OPEN);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_name, builder, true);
-        builder.append(Constants.TASK_PARAM_SEP);
+        builder.writeChar(Constants.TASK_PARAM_SEP);
         TaskHelper.serializeStringParams(_attributes, builder);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public final String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

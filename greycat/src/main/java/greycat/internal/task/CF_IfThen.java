@@ -22,6 +22,7 @@ import greycat.Callback;
 import greycat.plugin.SchedulerAffinity;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 import java.util.Map;
 
@@ -79,24 +80,24 @@ class CF_IfThen extends CF_Action {
     }
 
     @Override
-    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
+    public void cf_serialize(final Buffer builder, Map<Integer, Integer> dagIDS) {
         if (_conditionalScript == null) {
             throw new RuntimeException("Closure is not serializable, please use Script version instead!");
         }
-        builder.append(CoreActionNames.IF_THEN);
-        builder.append(Constants.TASK_PARAM_OPEN);
+        builder.writeString(CoreActionNames.IF_THEN);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_conditionalScript, builder, true);
-        builder.append(Constants.TASK_PARAM_SEP);
+        builder.writeChar(Constants.TASK_PARAM_SEP);
         final CoreTask castedAction = (CoreTask) _action;
         final int castedActionHash = castedAction.hashCode();
         if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
-            builder.append(Constants.SUB_TASK_OPEN);
+            builder.writeChar(Constants.SUB_TASK_OPEN);
             castedAction.serialize(builder, dagIDS);
-            builder.append(Constants.SUB_TASK_CLOSE);
+            builder.writeChar(Constants.SUB_TASK_CLOSE);
         } else {
-            builder.append("" + dagIDS.get(castedActionHash));
+            builder.writeString("" + dagIDS.get(castedActionHash));
         }
-        builder.append(Constants.TASK_PARAM_CLOSE);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

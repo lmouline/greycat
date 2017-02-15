@@ -19,6 +19,7 @@ import greycat.Constants;
 import greycat.Action;
 import greycat.Callback;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 
 class ActionIndexNames implements Action {
 
@@ -33,17 +34,10 @@ class ActionIndexNames implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(CoreActionNames.INDEX_NAMES);
-        builder.append(Constants.TASK_PARAM_OPEN);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+    public void serialize(final Buffer builder) {
+        builder.writeString(CoreActionNames.INDEX_NAMES);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

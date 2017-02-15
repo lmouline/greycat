@@ -18,6 +18,7 @@ package greycat.internal.task;
 import greycat.ActionFunction;
 import greycat.Action;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 
 class CF_ThenDo implements Action {
 
@@ -43,7 +44,7 @@ class CF_ThenDo implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
+    public void serialize(final Buffer builder) {
         throw new RuntimeException("Not managed yet!");
     }
 

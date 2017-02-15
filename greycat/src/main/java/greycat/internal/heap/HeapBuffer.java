@@ -27,7 +27,7 @@ public class HeapBuffer implements Buffer {
     private int writeCursor;
 
     @Override
-    public byte[] slice(long initPos, long endPos) {
+    public final byte[] slice(long initPos, long endPos) {
         int newSize = (int) (endPos - initPos + 1);
         byte[] newResult = new byte[newSize];
         System.arraycopy(buffer, (int) initPos, newResult, 0, newSize);
@@ -35,7 +35,7 @@ public class HeapBuffer implements Buffer {
     }
 
     @Override
-    public void write(byte b) {
+    public final void write(byte b) {
         if (buffer == null) {
             buffer = new byte[CoreConstants.MAP_INITIAL_CAPACITY];
             buffer[0] = b;
@@ -60,7 +60,7 @@ public class HeapBuffer implements Buffer {
     }
 
     @Override
-    public void writeAll(byte[] bytes) {
+    public final void writeAll(byte[] bytes) {
         if (buffer == null) {
             int initSize = (int) getNewSize(CoreConstants.MAP_INITIAL_CAPACITY, bytes.length);
             buffer = new byte[initSize];
@@ -68,7 +68,8 @@ public class HeapBuffer implements Buffer {
             writeCursor = bytes.length;
         } else if (writeCursor + bytes.length > buffer.length) {
             int newSize = (int) getNewSize(buffer.length, buffer.length + bytes.length);
-            byte[] tmp = new byte[newSize];
+            final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(newSize) / Math.log(2)));
+            byte[] tmp = new byte[closePowerOfTwo];
             System.arraycopy(buffer, 0, tmp, 0, buffer.length);
             System.arraycopy(bytes, 0, tmp, writeCursor, bytes.length);
             buffer = tmp;
@@ -79,13 +80,33 @@ public class HeapBuffer implements Buffer {
         }
     }
 
+    /**
+     * @native ts
+     * var ua = new Uint8Array(input.length);
+     * Array.prototype.forEach.call(input, function (ch, i) { ua[i] = ch.charCodeAt(0);});
+     * return this.writeAll(ua);
+     */
     @Override
-    public byte read(long position) {
+    public final void writeString(String input) {
+        writeAll(input.getBytes());
+    }
+
+    /**
+     * @native ts
+     * this.write(input.charCodeAt(0));
+     */
+    @Override
+    public final void writeChar(char input) {
+        write((byte) input);
+    }
+
+    @Override
+    public final byte read(long position) {
         return buffer[(int) position];
     }
 
     @Override
-    public byte[] data() {
+    public final byte[] data() {
         byte[] copy = new byte[writeCursor];
         if (buffer != null) {
             System.arraycopy(buffer, 0, copy, 0, writeCursor);
@@ -94,22 +115,22 @@ public class HeapBuffer implements Buffer {
     }
 
     @Override
-    public long length() {
+    public final long length() {
         return writeCursor;
     }
 
     @Override
-    public void free() {
+    public final void free() {
         buffer = null;
     }
 
     @Override
-    public BufferIterator iterator() {
+    public final BufferIterator iterator() {
         return new DefaultBufferIterator(this);
     }
 
     @Override
-    public void removeLast() {
+    public final void removeLast() {
         writeCursor--;
     }
 
@@ -118,7 +139,7 @@ public class HeapBuffer implements Buffer {
      * return String.fromCharCode.apply(null,this.data());
      */
     @Override
-    public String toString() {
+    public final String toString() {
         return new String(data());
     }
 }

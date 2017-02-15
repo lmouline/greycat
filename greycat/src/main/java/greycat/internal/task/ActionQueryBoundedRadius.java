@@ -19,6 +19,7 @@ import greycat.*;
 import greycat.internal.tree.KDTree;
 import greycat.internal.tree.NDTree;
 import greycat.plugin.Job;
+import greycat.struct.Buffer;
 import greycat.struct.Tree;
 import greycat.struct.TreeResult;
 
@@ -91,30 +92,23 @@ public class ActionQueryBoundedRadius implements Action {
             ctx.continueWith(nextResult);
         }
     }
-    
-    @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(CoreActionNames.READ_GLOBAL_INDEX);
-        builder.append(Constants.TASK_PARAM_OPEN);
-        builder.append(_n);
-        builder.append(Constants.TASK_PARAM_SEP);
-        builder.append(_radius);
-        builder.append(Constants.TASK_PARAM_SEP);
-        builder.append(_fetchNodes);
-        if (_key != null && _key.length > 0) {
-            for (int i = 0; i < _key.length; i++) {
-                builder.append(Constants.TASK_PARAM_SEP);
-                builder.append(_key[i]);
-            }
-        }
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
 
     @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+    public void serialize(final Buffer builder) {
+        builder.writeString(CoreActionNames.READ_GLOBAL_INDEX);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        builder.writeString("" + _n);
+        builder.writeChar(Constants.TASK_PARAM_SEP);
+        builder.writeString("" + _radius);
+        builder.writeChar(Constants.TASK_PARAM_SEP);
+        builder.writeString("" + _fetchNodes);
+        if (_key != null && _key.length > 0) {
+            for (int i = 0; i < _key.length; i++) {
+                builder.writeChar(Constants.TASK_PARAM_SEP);
+                builder.writeString("" + _key[i]);
+            }
+        }
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

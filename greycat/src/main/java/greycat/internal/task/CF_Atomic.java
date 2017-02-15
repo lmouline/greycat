@@ -24,6 +24,7 @@ import greycat.plugin.Resolver;
 import greycat.plugin.SchedulerAffinity;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,23 +105,23 @@ public class CF_Atomic extends CF_Action {
     }
 
     @Override
-    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
-        builder.append(CoreActionNames.ATOMIC);
-        builder.append(Constants.TASK_PARAM_OPEN);
+    public void cf_serialize(final Buffer builder, Map<Integer, Integer> dagIDS) {
+        builder.writeString(CoreActionNames.ATOMIC);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
         final CoreTask castedAction = (CoreTask) _subTask;
         final int castedActionHash = castedAction.hashCode();
         if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
-            builder.append(Constants.SUB_TASK_OPEN);
+            builder.writeChar(Constants.SUB_TASK_OPEN);
             castedAction.serialize(builder, dagIDS);
-            builder.append(Constants.SUB_TASK_CLOSE);
+            builder.writeChar(Constants.SUB_TASK_CLOSE);
         } else {
-            builder.append("" + dagIDS.get(castedActionHash));
+            builder.writeString("" + dagIDS.get(castedActionHash));
         }
         for (int i = 0; i < _variables.length; i++) {
-            builder.append(Constants.TASK_PARAM_SEP);
+            builder.writeChar(Constants.TASK_PARAM_SEP);
             TaskHelper.serializeString(_variables[i], builder, true);
         }
-        builder.append(Constants.TASK_PARAM_CLOSE);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 

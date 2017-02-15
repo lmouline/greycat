@@ -25,6 +25,7 @@ import greycat.Callback;
 import greycat.base.BaseNode;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 
 class ActionTravelInTime implements Action {
@@ -75,18 +76,11 @@ class ActionTravelInTime implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(CoreActionNames.TRAVEL_IN_TIME);
-        builder.append(Constants.TASK_PARAM_OPEN);
-        builder.append(_time);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+    public void serialize(final Buffer builder) {
+        builder.writeString(CoreActionNames.TRAVEL_IN_TIME);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        builder.writeString(_time);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

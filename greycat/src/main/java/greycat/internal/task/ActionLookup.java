@@ -20,6 +20,7 @@ import greycat.Constants;
 import greycat.Node;
 import greycat.Action;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 
 class ActionLookup implements Action {
 
@@ -41,18 +42,11 @@ class ActionLookup implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(CoreActionNames.LOOKUP);
-        builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_id, builder,true);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+    public void serialize(final Buffer builder) {
+        builder.writeString(CoreActionNames.LOOKUP);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_id, builder, true);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

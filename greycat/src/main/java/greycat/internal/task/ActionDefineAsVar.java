@@ -18,6 +18,7 @@ package greycat.internal.task;
 import greycat.Constants;
 import greycat.Action;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 
 class ActionDefineAsVar implements Action {
 
@@ -43,22 +44,15 @@ class ActionDefineAsVar implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
+    public void serialize(final Buffer builder) {
         if (_global) {
-            builder.append(CoreActionNames.DEFINE_AS_GLOBAL_VAR);
+            builder.writeString(CoreActionNames.DEFINE_AS_GLOBAL_VAR);
         } else {
-            builder.append(CoreActionNames.DEFINE_AS_VAR);
+            builder.writeString(CoreActionNames.DEFINE_AS_VAR);
         }
-        builder.append(Constants.TASK_PARAM_OPEN);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_name, builder,true);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

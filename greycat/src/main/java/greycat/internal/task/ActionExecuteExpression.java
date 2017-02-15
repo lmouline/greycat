@@ -23,6 +23,7 @@ import greycat.base.BaseNode;
 import greycat.internal.task.math.CoreMathExpressionEngine;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -61,18 +62,11 @@ class ActionExecuteExpression implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(CoreActionNames.EXECUTE_EXPRESSION);
-        builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_expression, builder,true);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+    public void serialize(final Buffer builder) {
+        builder.writeString(CoreActionNames.EXECUTE_EXPRESSION);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_expression, builder, true);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

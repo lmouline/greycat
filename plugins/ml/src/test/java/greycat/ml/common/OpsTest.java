@@ -28,7 +28,9 @@ public class OpsTest {
     boolean enablebench = false;
     int dim = 10;
 
-
+    /**
+     * @native ts
+     */
     @Test
     public void optimize() {
         if (!enablebench) {
@@ -177,7 +179,9 @@ public class OpsTest {
         }
     }
 
-
+    /**
+     * @native ts
+     */
     @Test
     public void decompose_blas() {
         MatrixEngine engine = new BlasMatrixEngine();
@@ -188,6 +192,9 @@ public class OpsTest {
         MatrixPseudoInv(engine);
     }
 
+    /**
+     * @native ts
+     */
     @Test
     public void decompose_jama() {
         MatrixEngine engine = new JamaMatrixEngine();
@@ -198,7 +205,9 @@ public class OpsTest {
         MatrixPseudoInv(engine);
     }
 
-
+    /**
+     * @native ts
+     */
     @Test
     public void decompose_Hybrid() {
         MatrixEngine engine = new HybridMatrixEngine();

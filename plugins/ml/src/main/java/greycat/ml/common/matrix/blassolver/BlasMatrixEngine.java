@@ -26,7 +26,7 @@ public class BlasMatrixEngine implements MatrixEngine {
 
     /**
      * @native ts
-     * this._blas = new greycat.ml.common.matrix.blassolver.blas.JSBlas();
+     * //this._blas = new greycat.ml.common.matrix.blassolver.jamasolver.JSBlas();
      */
     public BlasMatrixEngine() {
         // _blas = new F2JBlas();

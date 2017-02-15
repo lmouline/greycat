@@ -21,6 +21,7 @@ import greycat.base.BaseNode;
 import greycat.Action;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 import java.util.regex.Pattern;
 
@@ -62,20 +63,13 @@ class ActionWith implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(CoreActionNames.WITH);
-        builder.append(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_name,builder,true);
-        builder.append(Constants.TASK_PARAM_SEP);
-        TaskHelper.serializeString(_patternTemplate,builder,true);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+    public void serialize(final Buffer builder) {
+        builder.writeString(CoreActionNames.WITH);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        TaskHelper.serializeString(_name, builder, true);
+        builder.writeChar(Constants.TASK_PARAM_SEP);
+        TaskHelper.serializeString(_patternTemplate, builder, true);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

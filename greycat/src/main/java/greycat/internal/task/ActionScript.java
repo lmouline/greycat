@@ -18,6 +18,7 @@ package greycat.internal.task;
 import greycat.Constants;
 import greycat.Action;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 import greycat.utility.Tuple;
 import greycat.TaskResult;
 
@@ -38,21 +39,21 @@ class ActionScript implements Action {
     /**
      * {@native ts
      * var isolation = function(script){
-     *     var variables = ctx.variables();
-     *     for(var i=0;i<variables.length;i++){
-     *          this[variables[i].left()] = variables[i].right();
-     *     }
-     *     this['print'] = function(v){ctx.append(v+'\n');};
-     *     this['result'] = ctx.result();
-     *     return eval(script);
+     * var variables = ctx.variables();
+     * for(var i=0;i<variables.length;i++){
+     * this[variables[i].left()] = variables[i].right();
+     * }
+     * this['print'] = function(v){ctx.append(v+'\n');};
+     * this['result'] = ctx.result();
+     * return eval(script);
      * }
      * var scriptResult = isolation(this._script);
      * if(!this._async){
-     *     if(scriptResult != null && scriptResult != undefined){
-     *         ctx.continueWith(ctx.wrap(scriptResult));
-     *     } else {
-     *         ctx.continueTask();
-     *     }
+     * if(scriptResult != null && scriptResult != undefined){
+     * ctx.continueWith(ctx.wrap(scriptResult));
+     * } else {
+     * ctx.continueTask();
+     * }
      * }
      * }
      */
@@ -97,22 +98,15 @@ class ActionScript implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
+    public void serialize(final Buffer builder) {
         if (_async) {
-            builder.append(CoreActionNames.ASYNC_SCRIPT);
+            builder.writeString(CoreActionNames.ASYNC_SCRIPT);
         } else {
-            builder.append(CoreActionNames.SCRIPT);
+            builder.writeString(CoreActionNames.SCRIPT);
         }
-        builder.append(Constants.TASK_PARAM_OPEN);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_script, builder, true);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

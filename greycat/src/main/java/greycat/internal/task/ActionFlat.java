@@ -20,6 +20,7 @@ import greycat.base.BaseTaskResult;
 import greycat.Action;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 class ActionFlat implements Action {
 
@@ -35,7 +36,7 @@ class ActionFlat implements Action {
             final TaskResult next = ctx.newResult();
             for (int i = 0; i < result.size(); i++) {
                 final Object loop = result.get(i);
-                if(loop instanceof BaseTaskResult){
+                if (loop instanceof BaseTaskResult) {
                     BaseTaskResult casted = (BaseTaskResult) loop;
                     for (int j = 0; j < casted.size(); j++) {
                         final Object resultLoop = casted.get(j);
@@ -56,17 +57,10 @@ class ActionFlat implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(CoreActionNames.FLAT);
-        builder.append(Constants.TASK_PARAM_OPEN);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+    public void serialize(final Buffer builder) {
+        builder.writeString(CoreActionNames.FLAT);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

@@ -21,6 +21,7 @@ import greycat.Constants;
 import greycat.base.BaseNode;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 class ActionTimeSensitivity implements Action {
 
@@ -48,22 +49,14 @@ class ActionTimeSensitivity implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(CoreActionNames.SET_ATTRIBUTE);
-        builder.append(Constants.TASK_PARAM_OPEN);
-        builder.append(_delta);
-        builder.append(Constants.TASK_PARAM_SEP);
-        builder.append(_offset);
-        builder.append(Constants.TASK_PARAM_CLOSE);
+    public void serialize(final Buffer builder) {
+        builder.writeString(CoreActionNames.SET_ATTRIBUTE);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        builder.writeString(_delta);
+        builder.writeChar(Constants.TASK_PARAM_SEP);
+        builder.writeString(_offset);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
-    }
-
 
 }
 

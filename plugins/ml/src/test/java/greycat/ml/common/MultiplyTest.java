@@ -26,6 +26,9 @@ import greycat.struct.DMatrix;
 
 public class MultiplyTest {
 
+    /**
+     * @native ts
+     */
     @Test
     public void MatrixMultBlas() {
         InternalManualMult(new BlasMatrixEngine());

@@ -43,6 +43,16 @@ class BufferView implements Buffer {
     }
 
     @Override
+    public void writeString(String input) {
+        throw new RuntimeException("Write operation forbidden during iteration");
+    }
+
+    @Override
+    public void writeChar(char input) {
+        throw new RuntimeException("Write operation forbidden during iteration");
+    }
+
+    @Override
     public final byte read(long position) {
         if (_initPos + position > _endPos) {
             throw new ArrayIndexOutOfBoundsException("" + position);

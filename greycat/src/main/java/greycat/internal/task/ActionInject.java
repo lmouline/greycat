@@ -17,6 +17,7 @@ package greycat.internal.task;
 
 import greycat.Action;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 
 class ActionInject implements Action {
 
@@ -35,7 +36,7 @@ class ActionInject implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
+    public void serialize(final Buffer builder) {
         throw new RuntimeException("inject remote action not managed yet!");
     }
 

@@ -15,10 +15,12 @@
  */
 package greycat;
 
+import greycat.struct.Buffer;
+
 public interface Action {
 
     void eval(TaskContext ctx);
 
-    void serialize(StringBuilder builder);
+    void serialize(Buffer builder);
 
 }

@@ -17,6 +17,7 @@ package greycat.internal.task;
 
 import greycat.*;
 import greycat.base.BaseNode;
+import greycat.struct.Buffer;
 
 class ActionSelectObject implements Action {
 
@@ -50,7 +51,7 @@ class ActionSelectObject implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
+    public void serialize(final Buffer builder) {
         throw new RuntimeException("SelectObject remote usage not managed yet, please use SelectScript instead !");
     }
 

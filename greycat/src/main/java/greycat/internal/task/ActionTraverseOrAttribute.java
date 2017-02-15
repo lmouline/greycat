@@ -19,6 +19,7 @@ import greycat.*;
 import greycat.base.BaseNode;
 import greycat.plugin.Job;
 import greycat.Action;
+import greycat.struct.Buffer;
 import greycat.struct.RelationIndexed;
 import greycat.TaskContext;
 import greycat.TaskResult;
@@ -146,33 +147,26 @@ class ActionTraverseOrAttribute implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
+    public void serialize(final Buffer builder) {
         if (_isUnknown) {
-            builder.append(_name);
+            builder.writeString(_name);
         } else {
             if (_isAttribute) {
-                builder.append(CoreActionNames.ATTRIBUTE);
-                builder.append(Constants.TASK_PARAM_OPEN);
-                builder.append(_name);
-                builder.append(Constants.TASK_PARAM_CLOSE);
+                builder.writeString(CoreActionNames.ATTRIBUTE);
+                builder.writeChar(Constants.TASK_PARAM_OPEN);
+                builder.writeString(_name);
+                builder.writeChar(Constants.TASK_PARAM_CLOSE);
             } else {
-                builder.append(CoreActionNames.TRAVERSE);
-                builder.append(Constants.TASK_PARAM_OPEN);
-                builder.append(_name);
+                builder.writeString(CoreActionNames.TRAVERSE);
+                builder.writeChar(Constants.TASK_PARAM_OPEN);
+                builder.writeString(_name);
                 if (_params != null && _params.length > 0) {
-                    builder.append(Constants.TASK_PARAM_SEP);
+                    builder.writeChar(Constants.TASK_PARAM_SEP);
                     TaskHelper.serializeStringParams(_params, builder);
                 }
-                builder.append(Constants.TASK_PARAM_CLOSE);
+                builder.writeChar(Constants.TASK_PARAM_CLOSE);
             }
         }
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
     }
 
 }

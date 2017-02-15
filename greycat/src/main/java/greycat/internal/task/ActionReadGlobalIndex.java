@@ -21,6 +21,7 @@ import greycat.Callback;
 import greycat.Constants;
 import greycat.NodeIndex;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 
 class ActionReadGlobalIndex implements Action {
 
@@ -58,22 +59,15 @@ class ActionReadGlobalIndex implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(CoreActionNames.READ_GLOBAL_INDEX);
-        builder.append(Constants.TASK_PARAM_OPEN);
+    public void serialize(final Buffer builder) {
+        builder.writeString(CoreActionNames.READ_GLOBAL_INDEX);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_name, builder, true);
         if (_params != null && _params.length > 0) {
-            builder.append(Constants.TASK_PARAM_SEP);
+            builder.writeChar(Constants.TASK_PARAM_SEP);
             TaskHelper.serializeStringParams(_params, builder);
         }
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

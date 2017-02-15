@@ -250,11 +250,13 @@
                                 <concat append="true" destfile="${basedir}/target/classes-npm/greycat.ml.ts">
                                     <fileset dir="${basedir}/target/generated-sources" includes="greycat.ml.ts"/>
                                 </concat>
+                                <!--
                                 <concat append="true" destfile="${basedir}/target/classes-npm/greycat.ml.ts">
                                     export = greycat.ml
                                 </concat>
+                                -->
                                 <replace file="${basedir}/target/classes-npm/greycat.ml.ts" token="module greycat"
-                                         value="module greycatML"/>
+                                         value="export module greycatML"/>
                                 <replace file="${basedir}/target/classes-npm/greycat.ml.ts" token="greycat.ml"
                                          value="greycatML.ml"/>
                                 <replace file="${basedir}/target/classes-npm/greycat.ml.ts">

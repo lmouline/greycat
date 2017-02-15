@@ -19,6 +19,7 @@ import greycat.Constants;
 import greycat.Node;
 import greycat.Type;
 import greycat.base.BaseNode;
+import greycat.struct.Buffer;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -87,69 +88,71 @@ public class TaskHelper {
         return Integer.parseInt(s);
     }
 
-    public static void serializeString(String param, StringBuilder builder, boolean singleQuote) {
-        if(singleQuote){
-            builder.append("\'");
+    public static void serializeString(String param, final Buffer builder, boolean singleQuote) {
+        if (singleQuote) {
+            builder.writeString("\'");
         } else {
-            builder.append("\"");
+            builder.writeString("\"");
         }
         boolean escapteActivated = false;
         boolean previousIsEscape = false;
-        if(param != null){
+        if (param != null) {
             for (int i = 0; i < param.length(); i++) {
                 final char current = param.charAt(i);
-                if(current == '\r' || current == '\n'){
+                if (current == '\r' || current == '\n') {
                     if (!escapteActivated) {
                         escapteActivated = true;
-                        builder.append(param.substring(0, i));
+                        builder.writeString(param.substring(0, i));
                     }
                     //simply ignore the '\r'
-                } else if ( (singleQuote && current == '\'') || (!singleQuote && current == '\"')) {
+                } else if ((singleQuote && current == '\'') || (!singleQuote && current == '\"')) {
                     if (!escapteActivated) {
                         escapteActivated = true;
-                        builder.append(param.substring(0, i));
+                        builder.writeString(param.substring(0, i));
                     }
                     if (!previousIsEscape) {
-                        builder.append('\\');
+                        builder.writeChar('\\');
                     }
-                    builder.append(param.charAt(i));
+                    builder.writeChar(param.charAt(i));
                 } else {
                     if (escapteActivated) {
-                        builder.append(param.charAt(i));
+                        builder.writeChar(param.charAt(i));
                     }
                 }
                 previousIsEscape = (current == '\\');
             }
         }
         if (!escapteActivated) {
-            builder.append(param);
+            if(param!= null){
+                builder.writeString(param);
+            }
         }
-        if(singleQuote){
-            builder.append("\'");
+        if (singleQuote) {
+            builder.writeString("\'");
         } else {
-            builder.append("\"");
+            builder.writeString("\"");
         }
     }
 
-    public static void serializeType(byte type, StringBuilder builder) {
-        builder.append(Type.typeName(type));
+    public static void serializeType(byte type, final Buffer builder) {
+        builder.writeString(Type.typeName(type));
     }
 
     //TODO inject escape char
-    public static void serializeStringParams(String[] params, StringBuilder builder) {
+    public static void serializeStringParams(String[] params, final Buffer builder) {
         for (int i = 0; i < params.length; i++) {
             if (i != 0) {
-                builder.append(Constants.TASK_PARAM_SEP);
+                builder.writeChar(Constants.TASK_PARAM_SEP);
             }
-            serializeString(params[i], builder,true);
+            serializeString(params[i], builder, true);
         }
     }
 
-    public static void serializeNameAndStringParams(String name, String[] params, StringBuilder builder) {
-        builder.append(name);
-        builder.append(Constants.TASK_PARAM_OPEN);
+    public static void serializeNameAndStringParams(String name, String[] params, final Buffer builder) {
+        builder.writeString(name);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
         serializeStringParams(params, builder);
-        builder.append(Constants.TASK_PARAM_CLOSE);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

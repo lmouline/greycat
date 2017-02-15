@@ -22,6 +22,7 @@ import greycat.ConditionalFunction;
 import greycat.Task;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 import java.util.Map;
 
@@ -39,7 +40,7 @@ class CF_WhileDo extends CF_Action {
     }
 
     @Override
-    public void eval(final TaskContext ctx) {
+    public final void eval(final TaskContext ctx) {
         final CoreTaskContext coreTaskContext = (CoreTaskContext) ctx;
         final CF_WhileDo selfPointer = this;
         final Callback[] recursiveAction = new Callback[1];
@@ -82,31 +83,31 @@ class CF_WhileDo extends CF_Action {
     }
 
     @Override
-    public Task[] children() {
+    public final Task[] children() {
         Task[] children_tasks = new Task[1];
         children_tasks[0] = _then;
         return children_tasks;
     }
 
     @Override
-    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
+    public final void cf_serialize(final Buffer builder, Map<Integer, Integer> dagIDS) {
         if (_conditionalScript == null) {
             throw new RuntimeException("Closure is not serializable, please use Script version instead!");
         }
-        builder.append(CoreActionNames.WHILE_DO);
-        builder.append(Constants.TASK_PARAM_OPEN);
+        builder.writeString(CoreActionNames.WHILE_DO);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_conditionalScript, builder, true);
-        builder.append(Constants.TASK_PARAM_SEP);
+        builder.writeChar(Constants.TASK_PARAM_SEP);
         final CoreTask castedAction = (CoreTask) _then;
         final int castedActionHash = castedAction.hashCode();
         if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
-            builder.append(Constants.SUB_TASK_OPEN);
+            builder.writeChar(Constants.SUB_TASK_OPEN);
             castedAction.serialize(builder, dagIDS);
-            builder.append(Constants.SUB_TASK_CLOSE);
+            builder.writeChar(Constants.SUB_TASK_CLOSE);
         } else {
-            builder.append("" + dagIDS.get(castedActionHash));
+            builder.writeString("" + dagIDS.get(castedActionHash));
         }
-        builder.append(Constants.TASK_PARAM_CLOSE);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

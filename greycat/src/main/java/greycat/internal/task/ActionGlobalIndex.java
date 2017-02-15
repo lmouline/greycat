@@ -20,6 +20,7 @@ import greycat.Constants;
 import greycat.NodeIndex;
 import greycat.Action;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 
 class ActionGlobalIndex implements Action {
 
@@ -48,17 +49,10 @@ class ActionGlobalIndex implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(CoreActionNames.GLOBAL_INDEX);
-        builder.append(Constants.TASK_PARAM_OPEN);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+    public void serialize(final Buffer builder) {
+        builder.writeString(CoreActionNames.GLOBAL_INDEX);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

@@ -34,6 +34,10 @@ public interface Buffer {
      */
     void writeAll(byte[] bytes);
 
+    void writeString(String input);
+
+    void writeChar(char input);
+
     /**
      * Read the buffer at a precise position
      *

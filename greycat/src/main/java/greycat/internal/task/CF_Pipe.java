@@ -21,6 +21,7 @@ import greycat.Constants;
 import greycat.plugin.SchedulerAffinity;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.struct.Buffer;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -95,24 +96,24 @@ class CF_Pipe extends CF_Action {
     }
 
     @Override
-    public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS) {
-        builder.append(CoreActionNames.PIPE);
-        builder.append(Constants.TASK_PARAM_OPEN);
+    public void cf_serialize(final Buffer builder, Map<Integer, Integer> dagIDS) {
+        builder.writeString(CoreActionNames.PIPE);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
         for (int i = 0; i < _subTasks.length; i++) {
             if (i != 0) {
-                builder.append(Constants.TASK_PARAM_SEP);
+                builder.writeChar(Constants.TASK_PARAM_SEP);
             }
             final CoreTask castedAction = (CoreTask) _subTasks[i];
             final int castedActionHash = castedAction.hashCode();
             if (dagIDS == null || !dagIDS.containsKey(castedActionHash)) {
-                builder.append(Constants.SUB_TASK_OPEN);
+                builder.writeChar(Constants.SUB_TASK_OPEN);
                 castedAction.serialize(builder, dagIDS);
-                builder.append(Constants.SUB_TASK_CLOSE);
+                builder.writeChar(Constants.SUB_TASK_CLOSE);
             } else {
-                builder.append("" + dagIDS.get(castedActionHash));
+                builder.writeString("" + dagIDS.get(castedActionHash));
             }
         }
-        builder.append(Constants.TASK_PARAM_CLOSE);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

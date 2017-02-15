@@ -18,6 +18,7 @@ package greycat.internal.task;
 import greycat.*;
 import greycat.base.BaseTaskResult;
 import greycat.internal.CoreConstants;
+import greycat.internal.heap.HeapBuffer;
 import greycat.plugin.*;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
@@ -1072,11 +1073,10 @@ public class CoreTask implements Task {
 
     @Override
     public final String toString() {
-        final StringBuilder res = new StringBuilder();
+        final Buffer res = new HeapBuffer();
         final Map<Integer, Integer> dagCounters = new HashMap<Integer, Integer>();
         final Map<Integer, Task> dagCollector = new HashMap<Integer, Task>();
         deep_analyze(this, dagCounters, dagCollector);
-
         Set<Integer> keys = dagCounters.keySet();
         Integer[] flatKeys = keys.toArray(new Integer[keys.size()]);
         final Map<Integer, Integer> dagIDS = new HashMap<Integer, Integer>();
@@ -1088,27 +1088,26 @@ public class CoreTask implements Task {
             }
         }
         serialize(res, dagIDS);
-
         Set<Integer> set_dagIDS = dagIDS.keySet();
         Integer[] flatDagIDS = set_dagIDS.toArray(new Integer[set_dagIDS.size()]);
         for (int i = 0; i < flatDagIDS.length; i++) {
             Integer key = flatDagIDS[i];
             Integer index = dagIDS.get(key);
             final CoreTask dagTask = (CoreTask) dagCollector.get(key);
-            res.append(Constants.SUB_TASK_DECLR);
-            res.append("" + index);
-            res.append(Constants.SUB_TASK_OPEN);
+            res.writeChar(Constants.SUB_TASK_DECLR);
+            res.writeString("" + index);
+            res.writeChar(Constants.SUB_TASK_OPEN);
             dagTask.serialize(res, dagIDS);
-            res.append(Constants.SUB_TASK_CLOSE);
+            res.writeChar(Constants.SUB_TASK_CLOSE);
 
         }
         return res.toString();
     }
 
-    public final void serialize(StringBuilder builder, Map<Integer, Integer> dagCounters) {
+    public final void serialize(final Buffer builder, Map<Integer, Integer> dagCounters) {
         for (int i = 0; i < insertCursor; i++) {
             if (i != 0) {
-                builder.append(Constants.TASK_SEP);
+                builder.writeChar(Constants.TASK_SEP);
             }
             if (actions[i] instanceof CF_Action) {
                 ((CF_Action) actions[i]).cf_serialize(builder, dagCounters);

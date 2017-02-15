@@ -18,6 +18,7 @@ package greycat.internal.task;
 import greycat.Action;
 import greycat.Task;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 
 import java.util.Map;
 
@@ -25,21 +26,14 @@ public abstract class CF_Action implements Action {
 
     abstract public Task[] children();
 
-    abstract public void cf_serialize(StringBuilder builder, Map<Integer, Integer> dagIDS);
+    abstract public void cf_serialize(final Buffer builder, Map<Integer, Integer> dagIDS);
 
     @Override
     public abstract void eval(TaskContext ctx);
 
     @Override
-    public void serialize(StringBuilder builder) {
+    public void serialize(final Buffer builder) {
         throw new RuntimeException("serialization error !!!");
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        cf_serialize(res, null);
-        return res.toString();
     }
 
 }

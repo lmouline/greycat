@@ -18,26 +18,20 @@ package greycat.internal.task;
 import greycat.Constants;
 import greycat.Action;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 
 class ActionClearResult implements Action {
 
     @Override
-    public void eval(final TaskContext ctx) {
+    public final void eval(final TaskContext ctx) {
         ctx.continueWith(ctx.newResult());
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(CoreActionNames.CLEAR_RESULT);
-        builder.append(Constants.TASK_PARAM_OPEN);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+    public final void serialize(final Buffer builder) {
+        builder.writeString(CoreActionNames.CLEAR_RESULT);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

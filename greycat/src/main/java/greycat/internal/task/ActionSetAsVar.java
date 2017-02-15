@@ -19,6 +19,7 @@ import greycat.Constants;
 import greycat.Action;
 import greycat.TaskResult;
 import greycat.TaskContext;
+import greycat.struct.Buffer;
 
 class ActionSetAsVar implements Action {
 
@@ -43,18 +44,11 @@ class ActionSetAsVar implements Action {
     }
 
     @Override
-    public void serialize(StringBuilder builder) {
-        builder.append(CoreActionNames.SET_AS_VAR);
-        builder.append(Constants.TASK_PARAM_OPEN);
-        builder.append(_name);
-        builder.append(Constants.TASK_PARAM_CLOSE);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder res = new StringBuilder();
-        serialize(res);
-        return res.toString();
+    public void serialize(final Buffer builder) {
+        builder.writeString(CoreActionNames.SET_AS_VAR);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        builder.writeString(_name);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }
