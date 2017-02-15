@@ -29,19 +29,17 @@ public class RNN implements Layer{
 
     }
 
-    @Override
-    public void fillWithRandom(Random random, double min, double max) {
-
-    }
-
-    @Override
-    public void fillWithRandomStd(Random random, double std) {
-
-    }
 
     @Override
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {
         return null;
+    }
+
+
+
+    @Override
+    public ExMatrix[] getModelParameters() {
+        return new ExMatrix[0];
     }
 
     @Override
@@ -50,7 +48,12 @@ public class RNN implements Layer{
     }
 
     @Override
-    public ExMatrix[] getModelParameters() {
-        return new ExMatrix[0];
+    public int inputDimension() {
+        return 0;
+    }
+
+    @Override
+    public int outputDimension() {
+        return 0;
     }
 }

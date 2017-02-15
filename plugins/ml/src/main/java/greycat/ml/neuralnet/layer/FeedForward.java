@@ -31,11 +31,13 @@ public class FeedForward implements Layer {
     private static String WEIGHTS = "weights";
     private static String BIAS = "bias";
     private static String ACTIVATION = "activation";
+    private static String ACTIVATION_PARAM = "activation_param";
 
     private ExMatrix weights;
     private ExMatrix bias;
     private Activation activation;
     private ENode host;
+    private ExMatrix[] params = null;
 
 
     //Returns ActivationFct( Weights*Input + Bias )
@@ -44,24 +46,28 @@ public class FeedForward implements Layer {
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }
-        if (hostnode.get(WEIGHTS) != null) {
-            weights = new ExMatrix(hostnode, WEIGHTS);
-            bias = new ExMatrix(hostnode, BIAS);
-            activation = Activations.getUnit((int) hostnode.get(ACTIVATION), null);
-        }
+        weights = new ExMatrix(hostnode, WEIGHTS);
+        bias = new ExMatrix(hostnode, BIAS);
+        activation = Activations.getUnit(hostnode.getWithDefault(ACTIVATION, Activations.DEFAULT), (double[]) hostnode.getOrCreate(ACTIVATION_PARAM, Type.DOUBLE_ARRAY));
         this.host = hostnode;
     }
 
-    public FeedForward create(int inputs, int outputs, int activationUnit, double[] unitArgs) {
+    public FeedForward create(int inputs, int outputs, int activationUnit, double[] activationParams, Random random, double std) {
         //First always set the type
         host.set(Layers.TYPE, Type.INT, Layers.FEED_FORWARD_LAYER);
-
-        weights = new ExMatrix(host, WEIGHTS);
         weights.init(outputs, inputs);
-        bias = new ExMatrix(host, BIAS);
         bias.init(outputs, 1);
-        activation = Activations.getUnit(activationUnit, unitArgs);
+        activation = Activations.getUnit(activationUnit, activationParams);
         host.set(ACTIVATION, Type.INT, activationUnit);
+        if (activationParams != null) {
+            host.set(ACTIVATION_PARAM, Type.DOUBLE_ARRAY, activationParams);
+        }
+
+        if (random != null && std != 0) {
+            MatrixOps.fillWithRandomStd(weights, random, std);
+            MatrixOps.fillWithRandomStd(bias, random, std);
+        }
+
         return this;
     }
 
@@ -73,17 +79,6 @@ public class FeedForward implements Layer {
         MatrixOps.copy(bias, this.bias);
     }
 
-    @Override
-    public void fillWithRandom(Random random, double min, double max) {
-        MatrixOps.fillWithRandom(weights, random, min, max);
-        MatrixOps.fillWithRandom(bias, random, min, max);
-    }
-
-    @Override
-    public void fillWithRandomStd(Random random, double std) {
-        MatrixOps.fillWithRandomStd(weights, random, std);
-        MatrixOps.fillWithRandomStd(bias, random, std);
-    }
 
     @Override
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {
@@ -92,14 +87,27 @@ public class FeedForward implements Layer {
         return out;
     }
 
-    @Override
-    public void resetState() {
-        weights.getDw().fill(0);
-        bias.getDw().fill(0);
-    }
 
     @Override
     public ExMatrix[] getModelParameters() {
-        return new ExMatrix[]{weights, bias};
+        if (params == null) {
+            params = new ExMatrix[]{weights, bias};
+        }
+        return params;
+    }
+
+    @Override
+    public void resetState() {
+
+    }
+
+    @Override
+    public int inputDimension() {
+        return weights.columns();
+    }
+
+    @Override
+    public int outputDimension() {
+        return weights.rows();
     }
 }

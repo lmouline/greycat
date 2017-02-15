@@ -64,7 +64,6 @@ public class ProcessGraph {
     }
 
 
-
     //Add two matrices
     public final ExMatrix add(final ExMatrix matA, final ExMatrix matB) {
         final ExMatrix out = ExMatrix.createFromW(MatrixOps.add(matA, matB));
@@ -121,4 +120,38 @@ public class ProcessGraph {
         return err;
     }
 
+    public ExMatrix elmul(ExMatrix matA, ExMatrix matB) {
+        final ExMatrix out = ExMatrix.createFromW(MatrixOps.HadamardMult(matA, matB));
+
+        if (this.applyBackprop) {
+            ProcessStep bp = new ProcessStep() {
+                public void execute() {
+                    MatrixOps.addtoMatrix(matA.getDw(), MatrixOps.HadamardMult(matB.getW(), out.getDw()));
+                    MatrixOps.addtoMatrix(matB.getDw(), MatrixOps.HadamardMult(matA.getW(), out.getDw()));
+                }
+            };
+            backprop.add(bp);
+        }
+        return out;
+    }
+
+    public ExMatrix oneMinus(ExMatrix matA) {
+        final ExMatrix out = new ExMatrix(null, null);
+        out.init(matA.rows(), matA.columns());
+        final int len = matA.length();
+        for (int i = 0; i < matA.length(); i++) {
+            out.unsafeSet(i, 1 - matA.unsafeGet(i));
+        }
+
+        if (this.applyBackprop) {
+            ProcessStep bp = new ProcessStep() {
+                public void execute() {
+                    MatrixOps.scaleThenAddtoMatrix(matA.getDw(), out.getDw(), -1);
+                }
+            };
+            backprop.add(bp);
+        }
+
+        return null;
+    }
 }

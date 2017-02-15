@@ -86,9 +86,9 @@ public class TestFeedForward {
                 ENode l2node = nngraph.newNode();
 
                 FeedForward layer1 = new FeedForward(l1node);
-                layer1.create(2, 2, Activations.SIGMOID, null);
+                layer1.create(2, 2, Activations.SIGMOID, null, null, 0);
                 FeedForward layer2 = new FeedForward(l2node);
-                layer2.create(2, 2, Activations.SIGMOID, null);
+                layer2.create(2, 2, Activations.SIGMOID, null, null, 0);
 
                 layer1.setWeights(weights1);
                 layer1.setBias(bias1);
@@ -110,11 +110,11 @@ public class TestFeedForward {
                 calcgraph.backpropagate();
                 ExMatrix[] ww1 = layer1.getModelParameters();
                 ExMatrix[] ww2 = layer2.getModelParameters();
-                for(ExMatrix www: ww1){
-                    applyLearningRate(www,0.5);
+                for (ExMatrix www : ww1) {
+                    applyLearningRate(www, 0.5);
                 }
-                for(ExMatrix www: ww2){
-                    applyLearningRate(www,0.5);
+                for (ExMatrix www : ww2) {
+                    applyLearningRate(www, 0.5);
                 }
 
                 weights1 = ww1[0];
@@ -154,8 +154,8 @@ public class TestFeedForward {
     private static void testdouble(double d1, double d2) {
 
         //Assert.assertTrue(Math.abs(d1 - d2) < EPS);
-        if(Math.abs(d1 - d2) > EPS){
-            System.out.println("d1: "+d1+ " d2: "+d2);
+        if (Math.abs(d1 - d2) > EPS) {
+            System.out.println("d1: " + d1 + " d2: " + d2);
             throw new RuntimeException("d1 != d2");
         }
     }

@@ -33,35 +33,26 @@ public class Linear implements Layer {
     private ENode host;
 
     private ExMatrix weights;
+    private ExMatrix[] params = null;
 
     public Linear(ENode hostnode) {
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }
-        if (hostnode.get(WEIGHTS) != null) {
-            weights = new ExMatrix(hostnode, WEIGHTS);
-        }
+        weights = new ExMatrix(hostnode, WEIGHTS);
         this.host = hostnode;
     }
 
-    public Linear create(int inputs, int outputs) {
+    public Linear create(int inputs, int outputs, Random random, double std) {
         //First always set the type
         host.set(Layers.TYPE, Type.INT, Layers.LINEAR_LAYER);
-
-        weights = new ExMatrix(host, WEIGHTS);
         weights.init(outputs, inputs);
 
+        if (random != null && std != 0) {
+            MatrixOps.fillWithRandomStd(weights, random, std);
+        }
+
         return this;
-    }
-
-    @Override
-    public void fillWithRandom(Random random, double min, double max) {
-        MatrixOps.fillWithRandom(weights, random, min, max);
-    }
-
-    @Override
-    public void fillWithRandomStd(Random random, double std) {
-        MatrixOps.fillWithRandomStd(weights, random, std);
     }
 
     @Override
@@ -69,13 +60,27 @@ public class Linear implements Layer {
         return g.mul(weights, input);
     }
 
-    @Override
-    public void resetState() {
-        weights.getDw().fill(0);
-    }
 
     @Override
     public ExMatrix[] getModelParameters() {
-        return new ExMatrix[]{weights};
+        if (params == null) {
+            params = new ExMatrix[]{weights};
+        }
+        return params;
+    }
+
+    @Override
+    public void resetState() {
+
+    }
+
+    @Override
+    public int inputDimension() {
+        return weights.columns();
+    }
+
+    @Override
+    public int outputDimension() {
+        return weights.rows();
     }
 }

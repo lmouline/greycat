@@ -188,7 +188,7 @@ public class MatrixOps {
 
 
     //todo can be //
-    public static void scale(double alpha, VolatileDMatrix matA) {
+    public static void scaleInPlace(double alpha, DMatrix matA) {
         if (alpha == 0) {
             matA.fill(0);
             return;
@@ -264,6 +264,13 @@ public class MatrixOps {
         }
     }
 
+    public static void scaleThenAddtoMatrix(DMatrix original, DMatrix values, double scale) {
+        testDim(original, values);
+        int total = original.length();
+        for (int i = 0; i < total; i++) {
+            original.unsafeSet(i, original.unsafeGet(i) + values.unsafeGet(i) * scale);
+        }
+    }
 
     //todo can be vectorized
     //MatC=MatA+matB

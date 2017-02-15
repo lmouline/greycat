@@ -22,14 +22,15 @@ import java.util.Random;
 
 public interface Layer {
 
-    void fillWithRandom(Random random, double min, double max);
-
-    void fillWithRandomStd(Random random, double std);
-
     ExMatrix forward(ExMatrix input, ProcessGraph g);
+
+    ExMatrix[] getModelParameters();
 
     void resetState();
 
-    ExMatrix[] getModelParameters();
+    int inputDimension();
+
+    int outputDimension();
+
 
 }

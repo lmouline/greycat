@@ -15,43 +15,158 @@
  */
 package greycat.ml.neuralnet.layer;
 
+import greycat.Type;
+import greycat.ml.common.matrix.MatrixOps;
+import greycat.ml.neuralnet.activation.Activation;
+import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.ENode;
 
 import java.util.Random;
 
+
 /**
  * Created by assaad on 14/02/2017.
  */
-public class GRU implements Layer{
+public class GRU implements Layer {
+
+    private static String IHMIX = "ihmix";
+    private static String HHMIX = "hhmix";
+    private static String BMIX = "bmix";
+
+    private static String IHNEW = "ihnew";
+    private static String HHNEW = "hhnew";
+    private static String BNEW = "bnew";
+
+    private static String IHRESET = "ihreset";
+    private static String HHRESET = "hhreset";
+    private static String BRESET = "breset";
+
+    private static String CONTEXT = "context";
+
+    private ExMatrix ihmix, hhmix, bmix;
+    private ExMatrix ihnew, hhnew, bnew;
+    private ExMatrix ihreset, hhreset, breset;
+
+    private ExMatrix context;
+
+    private Activation fMix = Activations.getUnit(Activations.SIGMOID, null);
+    private Activation fReset = Activations.getUnit(Activations.SIGMOID, null);
+    private Activation fNew = Activations.getUnit(Activations.TANH, null);
+
+
+    private ENode host;
+    private ExMatrix[] params = null;
+
 
     public GRU(ENode hostnode) {
+        if (hostnode == null) {
+            throw new RuntimeException("Host node can't be null");
+        }
+        ihmix = new ExMatrix(hostnode, IHMIX);
+        hhmix = new ExMatrix(hostnode, HHMIX);
+        bmix = new ExMatrix(hostnode, BMIX);
 
+        ihnew = new ExMatrix(hostnode, IHNEW);
+        hhnew = new ExMatrix(hostnode, HHNEW);
+        bnew = new ExMatrix(hostnode, BNEW);
+
+        ihreset = new ExMatrix(hostnode, IHRESET);
+        hhreset = new ExMatrix(hostnode, HHRESET);
+        breset = new ExMatrix(hostnode, BRESET);
+
+        context = new ExMatrix(hostnode, CONTEXT);
+        this.host = hostnode;
     }
 
-    @Override
-    public void fillWithRandom(Random random, double min, double max) {
 
+    public GRU create(int inputDimension, int outputDimension, Random random, double std) {
+        host.set(Layers.TYPE, Type.INT, Layers.GRU_LAYER);
+
+        ihmix.init(outputDimension, inputDimension);
+        hhmix.init(outputDimension, outputDimension);
+        bmix.init(outputDimension, 1);
+
+        ihnew.init(outputDimension, inputDimension);
+        hhnew.init(outputDimension, outputDimension);
+        bnew.init(outputDimension, 1);
+
+        ihreset.init(outputDimension, inputDimension);
+        hhreset.init(outputDimension, outputDimension);
+        breset.init(outputDimension, 1);
+
+        context.init(outputDimension, 1);
+
+
+        //todo check why bias are not initialized randomly
+        if (random != null && std != 0) {
+            MatrixOps.fillWithRandomStd(ihmix, random, std);
+            MatrixOps.fillWithRandomStd(hhmix, random, std);
+            //MatrixOps.fillWithRandomStd(bmix,random,std);
+
+            MatrixOps.fillWithRandomStd(ihnew, random, std);
+            MatrixOps.fillWithRandomStd(hhnew, random, std);
+            // MatrixOps.fillWithRandomStd(bnew,random,std);
+
+            MatrixOps.fillWithRandomStd(ihreset, random, std);
+            MatrixOps.fillWithRandomStd(hhreset, random, std);
+            // MatrixOps.fillWithRandomStd(breset,random,std);
+        }
+
+        return this;
     }
 
-    @Override
-    public void fillWithRandomStd(Random random, double std) {
-
-    }
 
     @Override
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {
-        return null;
+
+        ExMatrix sum0 = g.mul(ihmix, input);
+        ExMatrix sum1 = g.mul(hhmix, context);
+        ExMatrix actMix = g.activate(fMix, g.add(g.add(sum0, sum1), bmix));
+
+        ExMatrix sum2 = g.mul(ihreset, input);
+        ExMatrix sum3 = g.mul(hhreset, context);
+        ExMatrix actReset = g.activate(fReset, g.add(g.add(sum2, sum3), breset));
+
+        ExMatrix sum4 = g.mul(ihnew, input);
+        ExMatrix gatedContext = g.elmul(actReset, context);
+        ExMatrix sum5 = g.mul(hhnew, gatedContext);
+        ExMatrix actNewPlusGatedContext = g.activate(fNew, g.add(g.add(sum4, sum5), bnew));
+
+        ExMatrix memvals = g.elmul(actMix, context);
+        ExMatrix newvals = g.elmul(g.oneMinus(actMix), actNewPlusGatedContext);
+        ExMatrix output = g.add(memvals, newvals);
+
+        //rollover activations for next iteration
+        context = output;
+
+        return output;
+    }
+
+
+    @Override
+    public ExMatrix[] getModelParameters() {
+        if (params == null) {
+            params = new ExMatrix[]{ihmix, hhmix, bmix, ihnew, hhnew, bnew, ihreset, hhreset, breset};
+        }
+        return params;
     }
 
     @Override
     public void resetState() {
-
+        context.getW().fill(0);
+        context.getDw().fill(0);
+        context.getStepCache().fill(0);
     }
 
     @Override
-    public ExMatrix[] getModelParameters() {
-        return new ExMatrix[0];
+    public int inputDimension() {
+        return ihmix.columns();
+    }
+
+    @Override
+    public int outputDimension() {
+        return ihmix.rows();
     }
 }

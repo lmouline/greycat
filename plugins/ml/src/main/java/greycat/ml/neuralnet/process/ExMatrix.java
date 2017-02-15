@@ -77,7 +77,6 @@ public class ExMatrix implements DMatrix {
     public DMatrix fillWith(double[] values) {
         w.fillWith(values);
         return this;
-
     }
 
     @Override
