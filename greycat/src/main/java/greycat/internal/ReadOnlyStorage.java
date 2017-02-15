@@ -35,12 +35,12 @@ public class ReadOnlyStorage implements Storage {
 
     @Override
     public void put(Buffer stream, Callback<Boolean> callback) {
-        System.err.println("WARNING: PUT TO A READ ONLY STORAGE");
+        callback.on(false);
     }
 
     @Override
     public void remove(Buffer keys, Callback<Boolean> callback) {
-        System.err.println("WARNING: REMOVE TO A READ ONLY STORAGE");
+        callback.on(false);
     }
 
     @Override
