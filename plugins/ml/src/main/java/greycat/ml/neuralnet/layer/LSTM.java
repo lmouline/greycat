@@ -28,7 +28,7 @@ import java.util.Random;
 /**
  * Created by assaad on 14/02/2017.
  */
-public class LSTM implements Layer {
+class LSTM implements Layer {
 
     private static String WIX = "wix";
     private static String WIH = "wih";
@@ -68,7 +68,7 @@ public class LSTM implements Layer {
     private ExMatrix[] params = null;
 
 
-    public LSTM(ENode hostnode) {
+    LSTM(ENode hostnode) {
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }
@@ -94,27 +94,28 @@ public class LSTM implements Layer {
     }
 
 
-    public LSTM create(int inputDimension, int outputDimension, Random random, double std) {
+    @Override
+    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, Random random, double std) {
         host.set(Layers.TYPE, Type.INT, Layers.LSTM_LAYER);
 
-        wix.init(outputDimension, inputDimension);
-        wih.init(outputDimension, outputDimension);
-        bi.init(outputDimension, 1);
+        wix.init(outputs, inputs);
+        wih.init(outputs, outputs);
+        bi.init(outputs, 1);
 
-        wfx.init(outputDimension, inputDimension);
-        wfh.init(outputDimension, outputDimension);
-        bf.init(outputDimension, 1);
+        wfx.init(outputs, inputs);
+        wfh.init(outputs, outputs);
+        bf.init(outputs, 1);
 
-        wox.init(outputDimension, inputDimension);
-        woh.init(outputDimension, outputDimension);
-        bo.init(outputDimension, 1);
+        wox.init(outputs, inputs);
+        woh.init(outputs, outputs);
+        bo.init(outputs, 1);
 
-        wcx.init(outputDimension, inputDimension);
-        wch.init(outputDimension, outputDimension);
-        bc.init(outputDimension, 1);
+        wcx.init(outputs, inputs);
+        wch.init(outputs, outputs);
+        bc.init(outputs, 1);
 
-        hiddenContext.init(outputDimension, 1);
-        cellContext.init(outputDimension, 1);
+        hiddenContext.init(outputs, 1);
+        cellContext.init(outputs, 1);
 
 
         //todo check why bias are not initialized randomly
@@ -180,7 +181,7 @@ public class LSTM implements Layer {
 
 
     @Override
-    public ExMatrix[] getModelParameters() {
+    public ExMatrix[] getLayerParameters() {
         if (params == null) {
             params = new ExMatrix[]{
                     wix, wih, bi,

@@ -15,6 +15,7 @@
  */
 package greycat.ml.neuralnet;
 
+import greycat.Type;
 import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.layer.Layers;
@@ -25,65 +26,137 @@ import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.EGraph;
+import greycat.struct.ENode;
+
+import java.util.Random;
 
 public class NeuralNet {
 
-    public static String LOSS="loss";
-    public static String LEARNER="learner";
-    public static String LEARNER_PARAMS="learner_params";
+    public static String TRAIN_LOSS = "train_loss";
+    public static String LEARNER = "learner";
+    public static String SEED = "seed";
+    public static String STD = "std";
+    public static double STD_DEF = 0.08;
+
 
     private EGraph backend;
+    private ENode root;
     private Layer[] layers;
-    private Loss loss;
+    private Loss tarinLoss;
     private Learner learner;
+
+    private Random random;
+    private double std;
+
 
     public NeuralNet(EGraph p_backend) {
         backend = p_backend;
-        int nb = backend.size();
-        layers=new Layer[nb];
+        int nb = backend.size() - 1;
+
+        if (nb < 0) {
+            //create configuration node
+            root = p_backend.newNode();
+            p_backend.setRoot(root);
+            nb = 0;
+        } else {
+            root = p_backend.root();
+        }
+
+        //Load config with everything in default
+
+        tarinLoss = Losses.getUnit(root.getWithDefault(TRAIN_LOSS, Losses.DEFAULT));
+        learner = Learners.getUnit(root.getWithDefault(LEARNER, Learners.DEFAULT), backend.root());
+        random = new Random();
+        random.setSeed(root.getWithDefault(SEED, System.currentTimeMillis()));
+        std = root.getWithDefault(STD, STD_DEF);
+
 
         if (nb > 0) {
             //load all layers
+            layers = new Layer[nb];
             for (int i = 0; i < layers.length; i++) {
-                layers[i] = Layers.toLayer(backend.node(i));
+                layers[i] = Layers.loadLayer(backend.node(i));
             }
-            //load NN configuration
-            //load loss unit
-            loss = Losses.getUnit((int) backend.root().get(LOSS));
-            learner= Learners.getUnit((int) backend.root().get(LEARNER), backend.root());
-
+        } else {
+            layers = new Layer[0];
         }
     }
 
-    public final double learn(double[] inputs, double[] outputs) {
+
+    public void setTrainLoss(int trainLoss){
+        this.tarinLoss =Losses.getUnit(trainLoss);
+        root.set(TRAIN_LOSS,Type.INT,trainLoss);
+    }
+
+    public void setLearner(int learner, double[] learnerParams, int frequency){
+        this.learner=Learners.getUnit(learner,root);
+        this.learner.setParams(learnerParams);
+        this.learner.setFrequency(frequency);
+    }
+
+
+    public void setRandom(long seed, double std) {
+        random.setSeed(seed);
+        this.std = std;
+        root.set(SEED, Type.LONG, seed);
+        root.set(STD, Type.DOUBLE, std);
+    }
+
+    public NeuralNet addLayer(int layerType, int inputs, int outputs, int activationUnit, double[] activationParams) {
+        if (layers.length > 0) {
+            if(layers[layers.length-1].outputDimension()!=inputs){
+                throw new RuntimeException("Layers last output size is different that current layer input");
+            }
+        }
+
+        Layer ff = Layers.createLayer(backend.newNode(), layerType);
+        ff.init(inputs, outputs, activationUnit, activationParams, random, std);
+        internal_add(ff);
+        return this;
+    }
+
+
+    public double learn(double[] inputs, double[] outputs) {
         ProcessGraph cg = new ProcessGraph(true);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
         ExMatrix targetOutput = ExMatrix.createFromW(VolatileDMatrix.wrap(outputs, outputs.length, 1));
         ExMatrix actualOutput = internalForward(cg, input);
-        double error= cg.applyLoss(loss, actualOutput, targetOutput);
+        double error = cg.applyLoss(tarinLoss, actualOutput, targetOutput);
         cg.backpropagate();
+        learner.stepUpdate(layers);
         return error;
-
-        //todo add learner
-
-
     }
 
-    public final double[] predict(double[] inputs) {
+    public final void finalLearn(){
+        learner.finalUpdate(layers);
+    }
+
+    public void resetState(){
+        for (int i = 0; i < layers.length; i++) {
+            layers[i].resetState();
+        }
+    }
+
+
+    public double[] predict(double[] inputs) {
         ProcessGraph cg = new ProcessGraph(false);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
         ExMatrix actualOutput = internalForward(cg, input);
         return actualOutput.data();
     }
 
-    ExMatrix internalForward(ProcessGraph cg, ExMatrix input) {
+    private ExMatrix internalForward(ProcessGraph cg, ExMatrix input) {
         ExMatrix nextInput = input;
         for (int i = 0; i < layers.length; i++) {
-            nextInput = layers[i].forward(nextInput, cg);//TODO pass input
+            nextInput = layers[i].forward(nextInput, cg);
         }
         return nextInput;
     }
 
-    //TODO idem for forward
+    private void internal_add(Layer layer) {
+        Layer[] temp = new Layer[layers.length + 1];
+        System.arraycopy(layers, 0, temp, 0, layers.length);
+        temp[layers.length] = layer;
+    }
 
 }

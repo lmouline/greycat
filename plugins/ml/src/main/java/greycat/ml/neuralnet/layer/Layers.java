@@ -15,19 +15,20 @@
  */
 package greycat.ml.neuralnet.layer;
 
+import greycat.Type;
 import greycat.struct.ENode;
 
 public class Layers {
-    final static String TYPE = "type";
+    public final static String TYPE = "type";
 
-    final static int FEED_FORWARD_LAYER = 0;
-    final static int LINEAR_LAYER = 1;
-    final static int GRU_LAYER = 2;
-    final static int LSTM_LAYER = 3;
-    final static int RNN_LAYER = 4;
+    public final static int FEED_FORWARD_LAYER = 0;
+    public final static int LINEAR_LAYER = 1;
+    public final static int GRU_LAYER = 2;
+    public final static int LSTM_LAYER = 3;
+    public final static int RNN_LAYER = 4;
 
 
-    public static Layer toLayer(ENode node) {
+    public static Layer loadLayer(ENode node) {
         switch ((int) node.get(TYPE)) {
             case FEED_FORWARD_LAYER:
                 return new FeedForward(node);
@@ -39,9 +40,26 @@ public class Layers {
                 return new LSTM(node);
             case RNN_LAYER:
                 return new RNN(node);
-
         }
-        return null;
+        throw new RuntimeException("Layer type unknown!");
     }
 
+
+    public static Layer createLayer(ENode node, int type) {
+        node.set(Layers.TYPE, Type.INT, type);
+
+        switch (type) {
+            case FEED_FORWARD_LAYER:
+                return new FeedForward(node);
+            case LINEAR_LAYER:
+                return new Linear(node);
+            case GRU_LAYER:
+                return new GRU(node);
+            case LSTM_LAYER:
+                return new LSTM(node);
+            case RNN_LAYER:
+                return new RNN(node);
+        }
+        throw new RuntimeException("Layer type unknown!");
+    }
 }

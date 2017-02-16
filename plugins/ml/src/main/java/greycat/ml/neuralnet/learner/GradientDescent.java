@@ -16,19 +16,20 @@
 package greycat.ml.neuralnet.learner;
 
 
+import greycat.Type;
 import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
 import greycat.struct.ENode;
 
-public class GradientDescent extends AbstractLearner {
+class GradientDescent extends AbstractLearner {
 
-    public static String LEARNING_RATE = "learningrate";
-    public static double LEARNING_RATE_DEF = 0.001;
+    private static final String LEARNING_RATE = "learningrate";
+    private static final double LEARNING_RATE_DEF = 0.001;
 
-    public static String REGULARIZATION_RATE = "regularizationrate";
-    public static double REGULARIZATION_RATE_DEF = 0.000001;
+    private static final String REGULARIZATION_RATE = "regularizationrate";
+    private static final double REGULARIZATION_RATE_DEF = 0.000001;
 
     private double learningRate;
     private double regularization;
@@ -36,10 +37,11 @@ public class GradientDescent extends AbstractLearner {
 
     //param[0] => learning rate
     //param[1] => regularization rate
-    public GradientDescent(ENode backend) {
+    GradientDescent(ENode backend) {
         super(backend);
         learningRate = backend.getWithDefault(LEARNING_RATE, LEARNING_RATE_DEF);
         regularization = backend.getWithDefault(REGULARIZATION_RATE, REGULARIZATION_RATE_DEF);
+
     }
 
     @Override
@@ -51,7 +53,7 @@ public class GradientDescent extends AbstractLearner {
         double beta = -learningRate / steps;
 
         for (int i = 0; i < layers.length; i++) {
-            ExMatrix[] weights = layers[i].getModelParameters();
+            ExMatrix[] weights = layers[i].getLayerParameters();
             for (int j = 0; j < weights.length; j++) {
                 w = weights[j].getW();
                 dw = weights[j].getDw();
@@ -62,5 +64,16 @@ public class GradientDescent extends AbstractLearner {
                 dw.fill(0);
             }
         }
+    }
+
+    @Override
+    public void setParams(double[] params) {
+        if (params.length != 2) {
+            throw new RuntimeException("Gradient descent needs 2 params: {learning rate, regularization rate}");
+        }
+        learningRate = params[0];
+        regularization = params[1];
+        _backend.set(LEARNING_RATE, Type.DOUBLE, learningRate);
+        _backend.set(REGULARIZATION_RATE, Type.DOUBLE, regularization);
     }
 }

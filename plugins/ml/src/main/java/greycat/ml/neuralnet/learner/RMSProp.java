@@ -15,30 +15,28 @@
  */
 package greycat.ml.neuralnet.learner;
 
+import greycat.Type;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
 import greycat.struct.ENode;
 
-/**
- * Created by assaad on 14/02/2017.
- */
-public class RMSProp extends AbstractLearner {
+class RMSProp extends AbstractLearner {
 
-    public static String LEARNING_RATE = "learningrate";
-    public static double LEARNING_RATE_DEF = 0.001;
+    static final String LEARNING_RATE = "learningrate";
+    static final double LEARNING_RATE_DEF = 0.001;
 
-    public static String REGULARIZATION_RATE = "regularizationrate";
-    public static double REGULARIZATION_RATE_DEF = 0.000001;
+    static final String REGULARIZATION_RATE = "regularizationrate";
+    static final double REGULARIZATION_RATE_DEF = 0.000001;
 
-    public static String SMOOTH_EPSILON = "smoothepsilon";
-    public static double SMOOTH_EPSILON_DEF = 1e-8;
+    static final String SMOOTH_EPSILON = "smoothepsilon";
+    static final double SMOOTH_EPSILON_DEF = 1e-8;
 
-    public static String DECAY_RATE = "decayrate";
-    public static double DECAY_RATE_DEF = 0.999;
+    static final String DECAY_RATE = "decayrate";
+    static final double DECAY_RATE_DEF = 0.999;
 
-    public static String GRADIENT_CLIP_RATE = "gradientclip";
-    public static double GRADIENT_CLIP_DEF = 5;
+    public final static String GRADIENT_CLIP_RATE = "gradientclip";
+    public final static double GRADIENT_CLIP_DEF = 5;
 
     private double learningRate;
     private double regularization;
@@ -47,11 +45,6 @@ public class RMSProp extends AbstractLearner {
     private double gradientClip;
 
 
-    //param[0] => learning rate
-    //param[1] => regularization rate
-    //param[2] => smooth Epsilon
-    //param[2] => decay Rate
-    //param[2] => gradient Clip
     public RMSProp(ENode backend) {
         super(backend);
         learningRate = backend.getWithDefault(LEARNING_RATE, LEARNING_RATE_DEF);
@@ -60,8 +53,6 @@ public class RMSProp extends AbstractLearner {
         decayRate = backend.getWithDefault(DECAY_RATE, DECAY_RATE_DEF);
         gradientClip = backend.getWithDefault(GRADIENT_CLIP_RATE, GRADIENT_CLIP_DEF);
     }
-
-
 
 
     @Override
@@ -74,7 +65,7 @@ public class RMSProp extends AbstractLearner {
         double alpha = 1 - learningRate * regularization / steps;
 
         for (int k = 0; k < layers.length; k++) {
-            ExMatrix[] weights = layers[k].getModelParameters();
+            ExMatrix[] weights = layers[k].getLayerParameters();
             for (int j = 0; j < weights.length; j++) {
                 w = weights[j].getW();
                 dw = weights[j].getDw();
@@ -101,5 +92,29 @@ public class RMSProp extends AbstractLearner {
                 dw.fill(0);
             }
         }
+    }
+
+    //param[0] => learning rate
+    //param[1] => regularization rate
+    //param[2] => smooth Epsilon
+    //param[3] => decay Rate
+    //param[4] => gradient Clip
+
+    @Override
+    public void setParams(double[] params) {
+        if (params.length != 5) {
+            throw new RuntimeException("Gradient descent needs 5 params: {learning rate, regularization rate, smooth Epsilon, decay Rate, gradient Clip}");
+        }
+        learningRate = params[0];
+        regularization = params[1];
+        smoothEpsilon = params[2];
+        decayRate = params[3];
+        gradientClip = params[4];
+
+        _backend.set(LEARNING_RATE, Type.DOUBLE, learningRate);
+        _backend.set(REGULARIZATION_RATE, Type.DOUBLE, regularization);
+        _backend.set(SMOOTH_EPSILON, Type.DOUBLE, smoothEpsilon);
+        _backend.set(DECAY_RATE, Type.DOUBLE, decayRate);
+        _backend.set(GRADIENT_CLIP_RATE, Type.DOUBLE, gradientClip);
     }
 }

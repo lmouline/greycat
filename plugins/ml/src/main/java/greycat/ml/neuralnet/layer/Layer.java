@@ -24,7 +24,9 @@ public interface Layer {
 
     ExMatrix forward(ExMatrix input, ProcessGraph g);
 
-    ExMatrix[] getModelParameters();
+    ExMatrix[] getLayerParameters();
+
+    Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, Random random, double std);
 
     void resetState();
 

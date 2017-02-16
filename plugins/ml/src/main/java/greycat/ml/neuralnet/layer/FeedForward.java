@@ -26,7 +26,7 @@ import greycat.struct.ENode;
 
 import java.util.Random;
 
-public class FeedForward implements Layer {
+class FeedForward implements Layer {
 
     private static String WEIGHTS = "weights";
     private static String BIAS = "bias";
@@ -42,7 +42,7 @@ public class FeedForward implements Layer {
 
     //Returns ActivationFct( Weights*Input + Bias )
     //Can be seen as simple fully-functional perceptron or neuron
-    public FeedForward(ENode hostnode) {
+    FeedForward(ENode hostnode) {
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }
@@ -52,7 +52,8 @@ public class FeedForward implements Layer {
         this.host = hostnode;
     }
 
-    public FeedForward create(int inputs, int outputs, int activationUnit, double[] activationParams, Random random, double std) {
+    @Override
+    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, Random random, double std) {
         //First always set the type
         host.set(Layers.TYPE, Type.INT, Layers.FEED_FORWARD_LAYER);
         weights.init(outputs, inputs);
@@ -89,12 +90,14 @@ public class FeedForward implements Layer {
 
 
     @Override
-    public ExMatrix[] getModelParameters() {
+    public ExMatrix[] getLayerParameters() {
         if (params == null) {
             params = new ExMatrix[]{weights, bias};
         }
         return params;
     }
+
+
 
     @Override
     public void resetState() {

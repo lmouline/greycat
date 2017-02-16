@@ -29,7 +29,7 @@ import java.util.Random;
 /**
  * Created by assaad on 14/02/2017.
  */
-public class GRU implements Layer {
+class GRU implements Layer {
 
     private static String IHMIX = "ihmix";
     private static String HHMIX = "hhmix";
@@ -60,7 +60,7 @@ public class GRU implements Layer {
     private ExMatrix[] params = null;
 
 
-    public GRU(ENode hostnode) {
+    GRU(ENode hostnode) {
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }
@@ -81,22 +81,23 @@ public class GRU implements Layer {
     }
 
 
-    public GRU create(int inputDimension, int outputDimension, Random random, double std) {
+    @Override
+    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, Random random, double std) {
         host.set(Layers.TYPE, Type.INT, Layers.GRU_LAYER);
 
-        ihmix.init(outputDimension, inputDimension);
-        hhmix.init(outputDimension, outputDimension);
-        bmix.init(outputDimension, 1);
+        ihmix.init(outputs, inputs);
+        hhmix.init(outputs, outputs);
+        bmix.init(outputs, 1);
 
-        ihnew.init(outputDimension, inputDimension);
-        hhnew.init(outputDimension, outputDimension);
-        bnew.init(outputDimension, 1);
+        ihnew.init(outputs, inputs);
+        hhnew.init(outputs, outputs);
+        bnew.init(outputs, 1);
 
-        ihreset.init(outputDimension, inputDimension);
-        hhreset.init(outputDimension, outputDimension);
-        breset.init(outputDimension, 1);
+        ihreset.init(outputs, inputs);
+        hhreset.init(outputs, outputs);
+        breset.init(outputs, 1);
 
-        context.init(outputDimension, 1);
+        context.init(outputs, 1);
 
 
         //todo check why bias are not initialized randomly
@@ -146,7 +147,7 @@ public class GRU implements Layer {
 
 
     @Override
-    public ExMatrix[] getModelParameters() {
+    public ExMatrix[] getLayerParameters() {
         if (params == null) {
             params = new ExMatrix[]{ihmix, hhmix, bmix, ihnew, hhnew, bnew, ihreset, hhreset, breset};
         }

@@ -15,7 +15,7 @@
  */
 package greycat.ml.neuralnet.activation;
 
-public class Sigmoid implements Activation {
+class Sigmoid implements Activation {
 
     private static Sigmoid static_unit= null;
 

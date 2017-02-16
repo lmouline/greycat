@@ -23,6 +23,9 @@ import greycat.ml.neuralnet.layer.Layer;
 public interface Learner {
     void setFrequency(int n);
 
+    void setParams(double[] params);
+
+
     void stepUpdate(Layer[] layers);
 
     void finalUpdate(Layer[] layers);

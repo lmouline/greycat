@@ -19,7 +19,7 @@ package greycat.ml.neuralnet.loss;
 import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.process.ExMatrix;
 
-public class ArgMax implements Loss {
+class ArgMax implements Loss {
 
     private static ArgMax static_unit= null;
 

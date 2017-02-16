@@ -28,14 +28,14 @@ import java.util.Random;
 // Can be used as PCA or dimensionality reduction of data, since here we are combining linearly outputs from input
 // There is no non-linearity here, since there is no activation function.
 
-public class Linear implements Layer {
+class Linear implements Layer {
     private static String WEIGHTS = "weights";
     private ENode host;
 
     private ExMatrix weights;
     private ExMatrix[] params = null;
 
-    public Linear(ENode hostnode) {
+    Linear(ENode hostnode) {
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }
@@ -43,7 +43,8 @@ public class Linear implements Layer {
         this.host = hostnode;
     }
 
-    public Linear create(int inputs, int outputs, Random random, double std) {
+    @Override
+    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, Random random, double std) {
         //First always set the type
         host.set(Layers.TYPE, Type.INT, Layers.LINEAR_LAYER);
         weights.init(outputs, inputs);
@@ -62,7 +63,7 @@ public class Linear implements Layer {
 
 
     @Override
-    public ExMatrix[] getModelParameters() {
+    public ExMatrix[] getLayerParameters() {
         if (params == null) {
             params = new ExMatrix[]{weights};
         }

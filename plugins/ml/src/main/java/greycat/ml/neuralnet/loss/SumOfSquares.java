@@ -17,7 +17,7 @@ package greycat.ml.neuralnet.loss;
 
 import greycat.ml.neuralnet.process.ExMatrix;
 
-public class SumOfSquares implements Loss {
+class SumOfSquares implements Loss {
 
     private static SumOfSquares static_unit = null;
 

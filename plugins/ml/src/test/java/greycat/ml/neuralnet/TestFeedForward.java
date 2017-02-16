@@ -18,7 +18,8 @@ package greycat.ml.neuralnet;
 import greycat.*;
 import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.activation.Activations;
-import greycat.ml.neuralnet.layer.FeedForward;
+import greycat.ml.neuralnet.layer.Layer;
+import greycat.ml.neuralnet.layer.Layers;
 import greycat.ml.neuralnet.loss.Loss;
 import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.process.ProcessGraph;
@@ -43,6 +44,17 @@ public class TestFeedForward {
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
+                Node node = g.newNode(0, 0);
+                EGraph nngraph = (EGraph) node.getOrCreate("nn", Type.EGRAPH);
+                ENode l1node = nngraph.newNode();
+                ENode l2node = nngraph.newNode();
+                l1node.set("activation", Type.INT, Activations.SIGMOID);
+                l2node.set("activation", Type.INT, Activations.SIGMOID);
+
+                l1node.set("type", Type.INT, Layers.FEED_FORWARD_LAYER);
+                l2node.set("type", Type.INT, Layers.FEED_FORWARD_LAYER);
+
+
                 //input matrix
                 DMatrix input = VolatileDMatrix.empty(2, 1);
                 input.set(0, 0, 0.05);
@@ -55,48 +67,43 @@ public class TestFeedForward {
 
 
                 //weights matrix 1
-                DMatrix weights1 = VolatileDMatrix.empty(2, 2);
+                DMatrix weights1 = new ExMatrix(l1node,"weights");
+                weights1.init(2,2);
                 weights1.set(0, 0, 0.15);
                 weights1.set(0, 1, 0.2);
                 weights1.set(1, 0, 0.25);
                 weights1.set(1, 1, 0.3);
 
                 //bias matrix 1
-                DMatrix bias1 = VolatileDMatrix.empty(2, 1);
+                DMatrix bias1 = new ExMatrix(l1node,"bias");
+                bias1.init(2,1);
                 bias1.set(0, 0, 0.35);
                 bias1.set(1, 0, 0.35);
 
                 //weights matrix 2
-                DMatrix weights2 = VolatileDMatrix.empty(2, 2);
+                DMatrix weights2 = new ExMatrix(l2node,"weights");
+                weights2.init(2,2);
                 weights2.set(0, 0, 0.4);
                 weights2.set(0, 1, 0.45);
                 weights2.set(1, 0, 0.5);
                 weights2.set(1, 1, 0.55);
 
                 //bias matrix 2
-                DMatrix bias2 = VolatileDMatrix.empty(2, 1);
+                DMatrix bias2 = new ExMatrix(l2node,"bias");
+                bias2.init(2,1);
                 bias2.set(0, 0, 0.6);
                 bias2.set(1, 0, 0.6);
 
                 Loss sumsq = Losses.getUnit(Losses.SUM_OF_SQUARES);
 
-                Node node = g.newNode(0, 0);
-                EGraph nngraph = (EGraph) node.getOrCreate("nn", Type.EGRAPH);
-                ENode l1node = nngraph.newNode();
-                ENode l2node = nngraph.newNode();
+                Layer layer1 = Layers.loadLayer(l1node);
+                Layer layer2 = Layers.loadLayer(l2node);
 
-                FeedForward layer1 = new FeedForward(l1node);
-                layer1.create(2, 2, Activations.SIGMOID, null, null, 0);
-                FeedForward layer2 = new FeedForward(l2node);
-                layer2.create(2, 2, Activations.SIGMOID, null, null, 0);
-
-                layer1.setWeights(weights1);
-                layer1.setBias(bias1);
-                layer2.setWeights(weights2);
-                layer2.setBias(bias2);
 
                 ProcessGraph calcgraph = new ProcessGraph(true);
-                ExMatrix actualOutput = layer2.forward(layer1.forward(ExMatrix.createFromW(input), calcgraph), calcgraph);
+
+                ExMatrix p1 = layer1.forward(ExMatrix.createFromW(input), calcgraph);
+                ExMatrix actualOutput = layer2.forward(p1, calcgraph);
 
 
                 //The calculation steps are here
@@ -108,8 +115,8 @@ public class TestFeedForward {
 
                 //Now the backpropagation step:
                 calcgraph.backpropagate();
-                ExMatrix[] ww1 = layer1.getModelParameters();
-                ExMatrix[] ww2 = layer2.getModelParameters();
+                ExMatrix[] ww1 = layer1.getLayerParameters();
+                ExMatrix[] ww2 = layer2.getLayerParameters();
                 for (ExMatrix www : ww1) {
                     applyLearningRate(www, 0.5);
                 }

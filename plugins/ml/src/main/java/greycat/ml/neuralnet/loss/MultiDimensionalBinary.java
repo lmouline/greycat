@@ -17,7 +17,7 @@ package greycat.ml.neuralnet.loss;
 
 import greycat.ml.neuralnet.process.ExMatrix;
 
-public class MultiDimensionalBinary implements Loss {
+class MultiDimensionalBinary implements Loss {
 
     private static MultiDimensionalBinary static_unit= null;
 

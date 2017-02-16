@@ -16,7 +16,7 @@
 package greycat.ml.neuralnet.activation;
 
 
-public class RectifiedLinear implements Activation {
+class RectifiedLinear implements Activation {
 	private double slope;
 
 	public RectifiedLinear(double slope) {

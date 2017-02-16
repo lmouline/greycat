@@ -28,7 +28,7 @@ import java.util.Random;
 /**
  * Created by assaad on 14/02/2017.
  */
-public class RNN implements Layer {
+class RNN implements Layer {
     private static String WEIGHTS = "weights";
     private static String BIAS = "bias";
     private static String ACTIVATION = "activation";
@@ -44,7 +44,7 @@ public class RNN implements Layer {
     private ENode host;
     private ExMatrix[] params = null;
 
-    public RNN(ENode hostnode) {
+    RNN(ENode hostnode) {
         if (hostnode == null) {
             throw new RuntimeException("Host node can't be null");
         }
@@ -56,7 +56,8 @@ public class RNN implements Layer {
     }
 
 
-    public RNN create(int inputs, int outputs, int activationUnit, double[] activationParams, Random random, double std) {
+    @Override
+    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, Random random, double std) {
         //First always set the type
         host.set(Layers.TYPE, Type.INT, Layers.RNN_LAYER);
         weights.init(outputs, inputs + outputs);
@@ -93,7 +94,7 @@ public class RNN implements Layer {
 
 
     @Override
-    public ExMatrix[] getModelParameters() {
+    public ExMatrix[] getLayerParameters() {
         if (params == null) {
             params = new ExMatrix[]{weights, bias};
         }

@@ -25,15 +25,17 @@ import greycat.struct.ENode;
 // to implement the update method and take into account the steps that
 // have passed since the last update
 
-public abstract class AbstractLearner implements Learner {
-    protected int steps;
+abstract class AbstractLearner implements Learner {
+
+    private static final String STEPS = "steps";
+    private static final String MAX_STEPS = "max_steps";
+
+    int steps;
     private int maxSteps;
-    private ENode _backend;
+    protected ENode _backend;
 
-    private static String STEPS = "steps";
-    public static String MAX_STEPS = "max_steps";
 
-    public AbstractLearner(ENode backend) {
+    AbstractLearner(ENode backend) {
         this._backend = backend;
         steps=backend.getWithDefault(STEPS,0);
         maxSteps=backend.getWithDefault(MAX_STEPS,1);
@@ -64,6 +66,9 @@ public abstract class AbstractLearner implements Learner {
             _backend.set(STEPS, Type.INT, steps);
         }
     }
+
+    @Override
+    public abstract void setParams(double[] params);
 
     protected abstract void update(Layer[] layers);
 

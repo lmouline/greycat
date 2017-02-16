@@ -23,8 +23,9 @@ import greycat.struct.ENode;
 public class Learners {
     public static final int GRADIENT_DESCENT = 0;
     public static final int RMSPROP = 1;
-
     public static final int DEFAULT = GRADIENT_DESCENT;
+
+
 
 
     public static Learner getUnit(int learnerUnit, ENode root) {
