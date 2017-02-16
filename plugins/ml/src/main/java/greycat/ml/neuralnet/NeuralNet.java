@@ -100,7 +100,9 @@ public class NeuralNet {
 
     public void setLearner(int learner, double[] learnerParams, int frequency) {
         this.learner = Learners.getUnit(learner, root);
-        this.learner.setParams(learnerParams);
+        if(learnerParams!=null) {
+            this.learner.setParams(learnerParams);
+        }
         this.learner.setFrequency(frequency);
     }
 

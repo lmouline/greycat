@@ -24,7 +24,7 @@ import greycat.struct.ENode;
 class RMSProp extends AbstractLearner {
 
     static final String LEARNING_RATE = "learningrate";
-    static final double LEARNING_RATE_DEF = 0.001;
+    static final double LEARNING_RATE_DEF = 0.0001;
 
     static final String REGULARIZATION_RATE = "regularizationrate";
     static final double REGULARIZATION_RATE_DEF = 0.000001;
@@ -33,7 +33,7 @@ class RMSProp extends AbstractLearner {
     static final double SMOOTH_EPSILON_DEF = 1e-8;
 
     static final String DECAY_RATE = "decayrate";
-    static final double DECAY_RATE_DEF = 0.999;
+    static final double DECAY_RATE_DEF = 0.9999;
 
     public final static String GRADIENT_CLIP_RATE = "gradientclip";
     public final static double GRADIENT_CLIP_DEF = 5;

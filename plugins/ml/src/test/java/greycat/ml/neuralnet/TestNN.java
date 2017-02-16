@@ -42,52 +42,51 @@ public class TestNN {
                 int output = 1;
 
 
-                int setsize=1000;
+                int setsize = 1000;
 
-                double learningrate=0.3;
-                double regularisation=0;
+                double learningrate = 0.3;
+                double regularisation = 0;
 
                 Node node = g.newNode(0, 0);
                 EGraph egraph = (EGraph) node.getOrCreate("nn", Type.EGRAPH);
 
                 NeuralNet net = new NeuralNet(egraph);
-                net.setRandom(1234,0.1);
+                net.setRandom(1234, 0.1);
 
                 net.addLayer(Layers.LINEAR_LAYER, input, output, Activations.LINEAR, null);
-                net.setLearner(Learners.GRADIENT_DESCENT,new double[]{learningrate,regularisation},1);
+                net.setLearner(Learners.GRADIENT_DESCENT, new double[]{learningrate,regularisation}, 1);
                 net.setTrainLoss(Losses.SUM_OF_SQUARES);
 
 
-
-                Random random=new Random();
+                Random random = new Random();
                 random.setSeed(456);
 
-                double[] inputSet= new double[input];
-                double[] outputSet= new double[output];
+                double[] inputSet = new double[input];
+                double[] outputSet = new double[output];
 
-                for(int i=0;i<setsize;i++){
+                for (int i = 0; i < setsize; i++) {
                     //generate input randomly:
-                    outputSet[0]=0;
-                    for(int j=0;j<input;j++){
-                        inputSet[j]=random.nextDouble();
-                        outputSet[0]+=inputSet[j]*j;
+                    outputSet[0] = 0;
+                    for (int j = 0; j < input; j++) {
+                        inputSet[j] = random.nextDouble();
+                        outputSet[0] += inputSet[j] * j;
                     }
-                    double err=net.learn(inputSet, outputSet);
+                    double err = net.learn(inputSet, outputSet);
 
-                    if(i%100==0) {
+                    if (i % 100 == 0) {
                         System.out.println("Step " + i + " error: " + err);
                     }
                 }
 
-                outputSet[0]=0;
-                for(int j=0;j<input;j++){
-                    inputSet[j]=random.nextDouble();
-                    outputSet[0]+=inputSet[j]*j;
+                outputSet[0] = 0;
+                for (int j = 0; j < input; j++) {
+                    inputSet[j] = random.nextDouble();
+                    outputSet[0] += inputSet[j] * j;
                 }
 
-                double[] pred=net.predict(inputSet);
-                System.out.println("testing target: "+outputSet[0]+" prediction: "+pred[0]);
-                Assert.assertTrue(Math.abs(pred[0]-outputSet[0])<1e-10);
+                double[] pred = net.predict(inputSet);
+                System.out.println("testing target: " + outputSet[0] + " prediction: " + pred[0]);
+                Assert.assertTrue(Math.abs(pred[0] - outputSet[0]) < 1e-10);
 
             }
         });
