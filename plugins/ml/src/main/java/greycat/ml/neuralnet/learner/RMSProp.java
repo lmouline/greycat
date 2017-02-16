@@ -62,6 +62,8 @@ public class RMSProp extends AbstractLearner {
     }
 
 
+
+
     @Override
     protected void update(Layer[] layers) {
         DMatrix w;

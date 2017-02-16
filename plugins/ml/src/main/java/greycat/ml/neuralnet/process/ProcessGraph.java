@@ -120,7 +120,7 @@ public class ProcessGraph {
         return err;
     }
 
-    public ExMatrix elmul(ExMatrix matA, ExMatrix matB) {
+    public ExMatrix elmul(final ExMatrix matA, final ExMatrix matB) {
         final ExMatrix out = ExMatrix.createFromW(MatrixOps.HadamardMult(matA, matB));
 
         if (this.applyBackprop) {
@@ -135,7 +135,7 @@ public class ProcessGraph {
         return out;
     }
 
-    public ExMatrix oneMinus(ExMatrix matA) {
+    public ExMatrix oneMinus(final ExMatrix matA) {
         final ExMatrix out = new ExMatrix(null, null);
         out.init(matA.rows(), matA.columns());
         final int len = matA.length();
@@ -153,5 +153,98 @@ public class ProcessGraph {
         }
 
         return null;
+    }
+
+    public ExMatrix concatVectors(final ExMatrix matA, final ExMatrix matB) {
+        if (matA.columns() != matB.columns()) {
+            throw new RuntimeException("Expected same column size");
+        }
+
+        final ExMatrix out = new ExMatrix(null, null);
+        out.init(matA.rows() + matB.rows(), matA.columns());
+
+        if (matA.hasStepCache() || matB.hasStepCache()) {
+            DMatrix outw = out.getW();
+            DMatrix outdw = out.getDw();
+            DMatrix outsc = out.getStepCache();
+            DMatrix aw = matA.getW();
+            DMatrix adw = matA.getDw();
+            DMatrix asc = matA.getStepCache();
+            DMatrix bw = matB.getW();
+            DMatrix bdw = matB.getDw();
+            DMatrix bsc = matB.getStepCache();
+
+            for (int i = 0; i < matA.rows(); i++) {
+                for (int j = 0; j < matA.columns(); j++) {
+                    outw.set(i, j, aw.get(i, j));
+                    outdw.set(i, j, adw.get(i, j));
+                    outsc.set(i, j, asc.get(i, j));
+                }
+            }
+
+            int r = matA.rows();
+
+            for (int i = 0; i < matB.rows(); i++) {
+                for (int j = 0; j < matB.columns(); j++) {
+                    outw.set(i + r, j, bw.get(i, j));
+                    outdw.set(i + r, j, bdw.get(i, j));
+                    outsc.set(i + r, j, bsc.get(i, j));
+                }
+            }
+
+        } else {
+            DMatrix outw = out.getW();
+            DMatrix outdw = out.getDw();
+            DMatrix aw = matA.getW();
+            DMatrix adw = matA.getDw();
+            DMatrix bw = matB.getW();
+            DMatrix bdw = matB.getDw();
+
+            for (int i = 0; i < matA.rows(); i++) {
+                for (int j = 0; j < matA.columns(); j++) {
+                    outw.set(i, j, aw.get(i, j));
+                    outdw.set(i, j, adw.get(i, j));
+                }
+            }
+
+            int r = matA.rows();
+
+            for (int i = 0; i < matB.rows(); i++) {
+                for (int j = 0; j < matB.columns(); j++) {
+                    outw.set(i + r, j, bw.get(i, j));
+                    outdw.set(i + r, j, bdw.get(i, j));
+                }
+            }
+        }
+
+
+        if (this.applyBackprop) {
+            ProcessStep bp = new ProcessStep() {
+                public void execute() {
+                    DMatrix outdw = out.getDw();
+                    DMatrix adw = matA.getDw();
+                    DMatrix bdw = matB.getDw();
+
+                    for (int i = 0; i < matA.rows(); i++) {
+                        for (int j = 0; j < matA.columns(); j++) {
+                            adw.set(i, j, outdw.get(i, j));
+                        }
+                    }
+
+                    int r = matA.rows();
+
+                    for (int i = 0; i < matB.rows(); i++) {
+                        for (int j = 0; j < matB.columns(); j++) {
+                            bdw.set(i , j, outdw.get(i+r, j));
+                        }
+                    }
+                }
+
+            };
+            backprop.add(bp);
+        }
+        return out;
+
+
     }
 }

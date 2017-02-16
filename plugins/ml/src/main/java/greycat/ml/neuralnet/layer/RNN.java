@@ -15,6 +15,10 @@
  */
 package greycat.ml.neuralnet.layer;
 
+import greycat.Type;
+import greycat.ml.common.matrix.MatrixOps;
+import greycat.ml.neuralnet.activation.Activation;
+import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.ENode;
@@ -24,36 +28,92 @@ import java.util.Random;
 /**
  * Created by assaad on 14/02/2017.
  */
-public class RNN implements Layer{
-    public RNN(ENode hostnode) {
+public class RNN implements Layer {
+    private static String WEIGHTS = "weights";
+    private static String BIAS = "bias";
+    private static String ACTIVATION = "activation";
+    private static String ACTIVATION_PARAM = "activation_param";
+    private static String CONTEXT = "context";
 
+    private ExMatrix weights;
+    private ExMatrix bias;
+
+    private ExMatrix context;
+
+    private Activation activation;
+    private ENode host;
+    private ExMatrix[] params = null;
+
+    public RNN(ENode hostnode) {
+        if (hostnode == null) {
+            throw new RuntimeException("Host node can't be null");
+        }
+        weights = new ExMatrix(hostnode, WEIGHTS);
+        bias = new ExMatrix(hostnode, BIAS);
+        context = new ExMatrix(hostnode, CONTEXT);
+        activation = Activations.getUnit(hostnode.getWithDefault(ACTIVATION, Activations.DEFAULT), (double[]) hostnode.getOrCreate(ACTIVATION_PARAM, Type.DOUBLE_ARRAY));
+        this.host = hostnode;
+    }
+
+
+    public RNN create(int inputs, int outputs, int activationUnit, double[] activationParams, Random random, double std) {
+        //First always set the type
+        host.set(Layers.TYPE, Type.INT, Layers.RNN_LAYER);
+        weights.init(outputs, inputs + outputs);
+        bias.init(outputs, 1);
+        context.init(outputs, 1);
+        activation = Activations.getUnit(activationUnit, activationParams);
+        host.set(ACTIVATION, Type.INT, activationUnit);
+        if (activationParams != null) {
+            host.set(ACTIVATION_PARAM, Type.DOUBLE_ARRAY, activationParams);
+        }
+
+        if (random != null && std != 0) {
+            MatrixOps.fillWithRandomStd(weights, random, std);
+            //MatrixOps.fillWithRandomStd(bias, random, std);
+        }
+
+        return this;
     }
 
 
     @Override
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {
-        return null;
-    }
+        ExMatrix concat = g.concatVectors(input, context);
 
+        ExMatrix sum = g.mul(weights, concat);
+        sum = g.add(sum, bias);
+        ExMatrix output = g.activate(activation, sum);
+
+        //rollover activations for next iteration
+        context = output;
+
+        return output;
+    }
 
 
     @Override
     public ExMatrix[] getModelParameters() {
-        return new ExMatrix[0];
+        if (params == null) {
+            params = new ExMatrix[]{weights, bias};
+        }
+        return params;
     }
 
     @Override
     public void resetState() {
-
+        context.getW().fill(0);
+        context.getDw().fill(0);
+        context.getStepCache().fill(0);
     }
 
     @Override
     public int inputDimension() {
-        return 0;
+        return weights.columns() - weights.rows();
     }
 
     @Override
     public int outputDimension() {
-        return 0;
+        return weights.rows();
     }
 }

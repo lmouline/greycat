@@ -152,6 +152,10 @@ public class ExMatrix implements DMatrix {
         return dw;
     }
 
+    public boolean hasStepCache(){
+        return stepCache!=null;
+    }
+
     public DMatrix getStepCache() {
         if (stepCache == null) {
             if (backend == null) {
