@@ -18,9 +18,9 @@ package greycat.ml.neuralnet.layer;
 import greycat.Type;
 import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.activation.Activation;
-import greycat.ml.neuralnet.process.ProcessGraph;
-import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.activation.Activations;
+import greycat.ml.neuralnet.process.ExMatrix;
+import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.DMatrix;
 import greycat.struct.ENode;
 

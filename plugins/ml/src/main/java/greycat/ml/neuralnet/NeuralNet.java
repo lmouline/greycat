@@ -32,17 +32,19 @@ import java.util.Random;
 
 public class NeuralNet {
 
-    public static String TRAIN_LOSS = "train_loss";
-    public static String LEARNER = "learner";
-    public static String SEED = "seed";
-    public static String STD = "std";
-    public static double STD_DEF = 0.08;
+    private static final String TRAIN_LOSS = "train_loss";
+    private static final String REPORTING_LOSS = "reporting_loss";
+    private static final String LEARNER = "learner";
+    private static final String SEED = "seed";
+    private static final String STD = "std";
+    private static final double STD_DEF = 0.08;
 
 
     private EGraph backend;
     private ENode root;
     private Layer[] layers;
     private Loss tarinLoss;
+    private Loss reportingLoss;
     private Learner learner;
 
     private Random random;
@@ -65,6 +67,7 @@ public class NeuralNet {
         //Load config with everything in default
 
         tarinLoss = Losses.getUnit(root.getWithDefault(TRAIN_LOSS, Losses.DEFAULT));
+        reportingLoss = Losses.getUnit(root.getWithDefault(REPORTING_LOSS, Losses.DEFAULT));
         learner = Learners.getUnit(root.getWithDefault(LEARNER, Learners.DEFAULT), backend.root());
         random = new Random();
         random.setSeed(root.getWithDefault(SEED, System.currentTimeMillis()));
@@ -83,13 +86,20 @@ public class NeuralNet {
     }
 
 
-    public void setTrainLoss(int trainLoss){
-        this.tarinLoss =Losses.getUnit(trainLoss);
-        root.set(TRAIN_LOSS,Type.INT,trainLoss);
+    public void setTrainLoss(int trainLoss) {
+        this.tarinLoss = Losses.getUnit(trainLoss);
+        root.set(TRAIN_LOSS, Type.INT, trainLoss);
     }
 
-    public void setLearner(int learner, double[] learnerParams, int frequency){
-        this.learner=Learners.getUnit(learner,root);
+
+    public void setReportingLoss(int reportingLoss) {
+        this.reportingLoss = Losses.getUnit(reportingLoss);
+        root.set(REPORTING_LOSS, Type.INT, reportingLoss);
+    }
+
+
+    public void setLearner(int learner, double[] learnerParams, int frequency) {
+        this.learner = Learners.getUnit(learner, root);
         this.learner.setParams(learnerParams);
         this.learner.setFrequency(frequency);
     }
@@ -104,7 +114,7 @@ public class NeuralNet {
 
     public NeuralNet addLayer(int layerType, int inputs, int outputs, int activationUnit, double[] activationParams) {
         if (layers.length > 0) {
-            if(layers[layers.length-1].outputDimension()!=inputs){
+            if (layers[layers.length - 1].outputDimension() != inputs) {
                 throw new RuntimeException("Layers last output size is different that current layer input");
             }
         }
@@ -127,11 +137,11 @@ public class NeuralNet {
         return error;
     }
 
-    public final void finalLearn(){
+    public final void finalLearn() {
         learner.finalUpdate(layers);
     }
 
-    public void resetState(){
+    public void resetState() {
         for (int i = 0; i < layers.length; i++) {
             layers[i].resetState();
         }
@@ -157,6 +167,7 @@ public class NeuralNet {
         Layer[] temp = new Layer[layers.length + 1];
         System.arraycopy(layers, 0, temp, 0, layers.length);
         temp[layers.length] = layer;
+        layers=temp;
     }
 
 }

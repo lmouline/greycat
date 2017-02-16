@@ -20,8 +20,6 @@ import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.struct.DMatrix;
 import greycat.struct.ENode;
 
-import java.util.Random;
-
 public class ExMatrix implements DMatrix {
 
     private static String DW_KEY = "-dw";

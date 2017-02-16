@@ -39,9 +39,8 @@ class ArgMax implements Loss {
 
     @Override
     public double forward(ExMatrix actualOutput, ExMatrix targetOutput) {
-        if (!MatrixOps.testDim(actualOutput, targetOutput)) {
-            throw new RuntimeException("mismatch");
-        }
+        MatrixOps.testDim(actualOutput,targetOutput);
+
         double maxActual = Double.NEGATIVE_INFINITY;
         double maxTarget = Double.NEGATIVE_INFINITY;
         int indxMaxActual = -1;

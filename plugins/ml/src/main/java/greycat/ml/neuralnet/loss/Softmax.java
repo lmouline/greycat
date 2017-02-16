@@ -15,6 +15,7 @@
  */
 package greycat.ml.neuralnet.loss;
 
+import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.process.ExMatrix;
 
@@ -46,6 +47,7 @@ class Softmax implements Loss {
 
     @Override
     public double forward(ExMatrix logprobs, ExMatrix targetOutput) {
+        MatrixOps.testDim(logprobs,targetOutput);
         int targetIndex = getTargetIndex(targetOutput);
         VolatileDMatrix probs = getSoftmaxProbs(logprobs, 1.0);
         double cost = -Math.log(probs.unsafeGet(targetIndex)); //cost = -Math.log(probs.w[targetIndex]);

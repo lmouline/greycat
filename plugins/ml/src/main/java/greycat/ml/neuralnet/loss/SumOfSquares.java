@@ -15,6 +15,7 @@
  */
 package greycat.ml.neuralnet.loss;
 
+import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.process.ExMatrix;
 
 class SumOfSquares implements Loss {
@@ -30,6 +31,7 @@ class SumOfSquares implements Loss {
 
     @Override
     public void backward(ExMatrix actualOutput, ExMatrix targetOutput) {
+
         int len = targetOutput.length();
 
         for (int i = 0; i < len; i++) {
@@ -40,6 +42,7 @@ class SumOfSquares implements Loss {
 
     @Override
     public double forward(ExMatrix actualOutput, ExMatrix targetOutput) {
+        MatrixOps.testDim(actualOutput,targetOutput);
         double sum = 0;
         int len = targetOutput.length();
         for (int i = 0; i < len; i++) {

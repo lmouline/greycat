@@ -15,8 +15,8 @@
  */
 package greycat.ml.neuralnet.layer;
 
-import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.ml.neuralnet.process.ExMatrix;
+import greycat.ml.neuralnet.process.ProcessGraph;
 
 import java.util.Random;
 

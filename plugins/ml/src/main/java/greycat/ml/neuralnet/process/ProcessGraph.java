@@ -17,8 +17,8 @@ package greycat.ml.neuralnet.process;
 
 import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.common.matrix.TransposeType;
-import greycat.ml.neuralnet.loss.Loss;
 import greycat.ml.neuralnet.activation.Activation;
+import greycat.ml.neuralnet.loss.Loss;
 import greycat.struct.DMatrix;
 
 import java.util.ArrayList;
