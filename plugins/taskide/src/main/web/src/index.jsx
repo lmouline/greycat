@@ -19,6 +19,7 @@ import SplitPane from 'react-split-pane';
 import renderjson from 'renderjson';
 
 import TaskEditor from './TaskEditor.jsx'
+import Printer from './Printer.tsx'
 
 import greycat from 'greycat';
 import greycatWS from 'greycat-websocket';
@@ -53,6 +54,8 @@ fetch("http://" + window.location.hostname + ":" + defaultPORT + "/actionregistr
         global.context.actions = actions;
     });
 });
+
+//new Printer.Printer().sayHello();
 
 renderjson.set_show_to_level(3);
 

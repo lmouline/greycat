@@ -55,7 +55,6 @@ export class WSClient implements greycat.plugin.Storage {
             this.ws.onmessage = function (msg: MessageEvent) {
                 let fr = new FileReader();
                 fr.onload = function(){
-                    console.log(fr.result);
                     selfPointer.process_rpc_resp(new Int8Array(fr.result));
                 };
                 fr.readAsArrayBuffer(msg.data);
