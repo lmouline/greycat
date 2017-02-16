@@ -54,7 +54,7 @@ public class TestNN {
                 net.setRandom(1234, 0.1);
 
                 net.addLayer(Layers.LINEAR_LAYER, input, output, Activations.LINEAR, null);
-                net.setLearner(Learners.GRADIENT_DESCENT, new double[]{learningrate,regularisation}, 1);
+                net.setLearner(Learners.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 1);
                 net.setTrainLoss(Losses.SUM_OF_SQUARES);
 
 
@@ -64,6 +64,7 @@ public class TestNN {
                 double[] inputSet = new double[input];
                 double[] outputSet = new double[output];
 
+                long start = System.currentTimeMillis();
                 for (int i = 0; i < setsize; i++) {
                     //generate input randomly:
                     outputSet[0] = 0;
@@ -77,6 +78,8 @@ public class TestNN {
                         System.out.println("Step " + i + " error: " + err);
                     }
                 }
+                long end = System.currentTimeMillis();
+                System.out.println("Learning done in: "+(end-start)+" ms!");
 
                 outputSet[0] = 0;
                 for (int j = 0; j < input; j++) {
@@ -85,7 +88,10 @@ public class TestNN {
                 }
 
                 double[] pred = net.predict(inputSet);
-                System.out.println("testing target: " + outputSet[0] + " prediction: " + pred[0]);
+                System.out.println("");
+                System.out.println("Target val : " + outputSet[0]);
+                System.out.println("Prediction : " + pred[0]);
+                System.out.println("Error val  : " + Math.abs(pred[0] - outputSet[0]));
                 Assert.assertTrue(Math.abs(pred[0] - outputSet[0]) < 1e-10);
 
             }
