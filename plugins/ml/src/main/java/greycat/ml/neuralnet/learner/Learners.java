@@ -23,9 +23,11 @@ import greycat.struct.ENode;
 public class Learners {
     public static final int GRADIENT_DESCENT = 0;
     public static final int RMSPROP = 1;
+    public static final int MOMENTUM = 2;
+    public static final int NESTEROV = 3;
+
+
     public static final int DEFAULT = GRADIENT_DESCENT;
-
-
 
 
     public static Learner getUnit(int learnerUnit, ENode root) {
@@ -34,6 +36,10 @@ public class Learners {
                 return new GradientDescent(root);
             case RMSPROP:
                 return new RMSProp(root);
+            case MOMENTUM:
+                return new Momentum(root);
+            case NESTEROV:
+                return new Nesterov(root);
         }
         return getUnit(DEFAULT, root);
     }
