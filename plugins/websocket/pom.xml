@@ -16,11 +16,10 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat-websocket</artifactId>
-    <version>2-SNAPSHOT</version>
+    <version>2</version>
     <name>greycat-websocket</name>
 
     <properties>
@@ -30,7 +29,7 @@
     <parent>
         <artifactId>greycat-parent</artifactId>
         <groupId>com.datathings</groupId>
-        <version>2-SNAPSHOT</version>
+        <version>2</version>
         <relativePath>../..</relativePath>
     </parent>
 
@@ -59,33 +58,29 @@
                         <phase>compile</phase>
                         <configuration>
                             <target>
-                                <copy file="${basedir}/src/main/ts/greycat.ws.ts"
-                                      todir="${basedir}/target/classes-npm"/>
-                                <copy file="${basedir}/src/main/ts/package.json" todir="${basedir}/target/classes-npm"/>
-                                <replace file="${basedir}/target/classes-npm/package.json" token="GREYCAT_VERSION"
-                                         value="${project.version}"/>
-                                <replace file="${basedir}/target/classes-npm/package.json" token="J2TS_VERSION"
-                                         value="${java2typescript.plugin.version}"/>
-                                <replace file="${basedir}/target/classes-npm/package.json" token="-SNAPSHOT" value=""/>
-                                <copy file="${basedir}/src/main/ts/readme.md" todir="${basedir}/target/classes-npm"/>
+                                <copy file="${basedir}/src/main/ts/greycat.ws.ts" todir="${basedir}/target/classes-npm" />
+                                <copy file="${basedir}/src/main/ts/package.json" todir="${basedir}/target/classes-npm" />
+                                <replace file="${basedir}/target/classes-npm/package.json" token="GREYCAT_VERSION" value="${project.version}" />
+                                <replace file="${basedir}/target/classes-npm/package.json" token="J2TS_VERSION" value="${java2typescript.plugin.version}" />
+                                <replace file="${basedir}/target/classes-npm/package.json" token="-SNAPSHOT" value="" />
+                                <copy file="${basedir}/src/main/ts/readme.md" todir="${basedir}/target/classes-npm" />
                                 <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
-                                    <arg value="link"/>
-                                    <arg value="greycat"/>
+                                    <arg value="link" />
+                                    <arg value="greycat" />
                                 </exec>
                                 <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
-                                    <arg value="install"/>
+                                    <arg value="install" />
                                 </exec>
-                                <exec executable="${basedir}/target/classes-npm/node_modules/typescript/bin/tsc"
-                                      dir="${basedir}/target/classes-npm" failonerror="true">
-                                    <arg value="-d"/>
-                                    <arg value="--sourceMap"/>
-                                    <arg value="--target"/>
-                                    <arg value="es5"/>
-                                    <arg value="${basedir}/target/classes-npm/greycat.ws.ts"/>
+                                <exec executable="${basedir}/target/classes-npm/node_modules/typescript/bin/tsc" dir="${basedir}/target/classes-npm" failonerror="true">
+                                    <arg value="-d" />
+                                    <arg value="--sourceMap" />
+                                    <arg value="--target" />
+                                    <arg value="es5" />
+                                    <arg value="${basedir}/target/classes-npm/greycat.ws.ts" />
                                 </exec>
-                                <delete file="${basedir}/target/classes-npm/greycat.ws.ts"/>
+                                <delete file="${basedir}/target/classes-npm/greycat.ws.ts" />
                                 <exec executable="npm" dir="${basedir}/target/classes-npm" failonerror="true">
-                                    <arg value="link"/>
+                                    <arg value="link" />
                                 </exec>
                             </target>
                         </configuration>
