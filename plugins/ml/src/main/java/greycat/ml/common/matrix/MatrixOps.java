@@ -200,6 +200,7 @@ public class MatrixOps {
 
 
     //todo can be //
+    //MatA= alpha * matA+ beta * matB
     public static void addInPlace(DMatrix matA, double alpha, DMatrix matB, double beta) {
         testDim(matA, matB);
         int total = matA.length();

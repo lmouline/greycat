@@ -23,11 +23,6 @@ import greycat.struct.ENode;
 
 class RMSProp extends AbstractLearner {
 
-    static final String LEARNING_RATE = "learningrate";
-    static final double LEARNING_RATE_DEF = 0.0001;
-
-    static final String REGULARIZATION_RATE = "regularizationrate";
-    static final double REGULARIZATION_RATE_DEF = 0.000001;
 
     static final String SMOOTH_EPSILON = "smoothepsilon";
     static final double SMOOTH_EPSILON_DEF = 1e-8;
@@ -38,8 +33,6 @@ class RMSProp extends AbstractLearner {
     public final static String GRADIENT_CLIP_RATE = "gradientclip";
     public final static double GRADIENT_CLIP_DEF = 5;
 
-    private double learningRate;
-    private double regularization;
     private double smoothEpsilon;
     private double decayRate;
     private double gradientClip;
@@ -47,8 +40,6 @@ class RMSProp extends AbstractLearner {
 
     public RMSProp(ENode backend) {
         super(backend);
-        learningRate = backend.getWithDefault(LEARNING_RATE, LEARNING_RATE_DEF);
-        regularization = backend.getWithDefault(REGULARIZATION_RATE, REGULARIZATION_RATE_DEF);
         smoothEpsilon = backend.getWithDefault(SMOOTH_EPSILON, SMOOTH_EPSILON_DEF);
         decayRate = backend.getWithDefault(DECAY_RATE, DECAY_RATE_DEF);
         gradientClip = backend.getWithDefault(GRADIENT_CLIP_RATE, GRADIENT_CLIP_DEF);
@@ -62,7 +53,7 @@ class RMSProp extends AbstractLearner {
         DMatrix stepCache;
         int len;
         double dwi;
-        double alpha = 1 - learningRate * regularization / steps;
+        double reg = 1 - learningRate * regularization / steps;
 
         for (int k = 0; k < layers.length; k++) {
             ExMatrix[] weights = layers[k].getLayerParameters();
@@ -87,7 +78,7 @@ class RMSProp extends AbstractLearner {
                     }
 
                     // update (and regularize)
-                    w.unsafeSet(i, w.unsafeGet(i) * alpha - learningRate * dwi / Math.sqrt(stepCache.unsafeGet(i) + smoothEpsilon));
+                    w.unsafeSet(i, w.unsafeGet(i) * reg - learningRate * dwi / Math.sqrt(stepCache.unsafeGet(i) + smoothEpsilon));
                 }
                 dw.fill(0);
             }
@@ -99,7 +90,6 @@ class RMSProp extends AbstractLearner {
     //param[2] => smooth Epsilon
     //param[3] => decay Rate
     //param[4] => gradient Clip
-
     @Override
     public void setParams(double[] params) {
         if (params.length != 5) {
