@@ -56,7 +56,7 @@ class HeapRelation implements Relation {
             if (_back == null) {
                 ids = new long[0];
             } else {
-                final int relSize = _back.length;
+                final int relSize = _size;
                 ids = new long[relSize];
                 for (int i = 0; i < relSize; i++) {
                     ids[i] = _back[i];
