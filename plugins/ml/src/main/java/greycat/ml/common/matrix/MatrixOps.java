@@ -247,7 +247,6 @@ public class MatrixOps {
 
     //todo can be replaced by system array copy if possible
     public static void copy(DMatrix from, DMatrix to) {
-
         int total = from.length();
         for (int i = 0; i < total; i++) {
             to.unsafeSet(i, from.unsafeGet(i));
