@@ -26,15 +26,6 @@ public class GaussianENode {
     //Getters and setters
     public final static String NAME = "GaussianENode";
 
-    public static final String MIN = "min";
-    public static final String MAX = "max";
-    public static final String AVG = "avg";
-    public static final String COV = "cov";
-    public static final String STD = "std";
-    public static final String SUM = "sum";
-    public static final String SUMSQ = "sumSquare";
-    public static final String TOTAL = "total";
-    public static final String PRECISIONS = "precisions"; //Default covariance matrix for a dirac function
 
     private ENode backend;
     //can be used for normalization
@@ -51,19 +42,19 @@ public class GaussianENode {
     }
 
     public void setPrecisions(double[] precisions) {
-        backend.set(PRECISIONS, Type.DOUBLE_ARRAY, precisions);
+        backend.set(Gaussian.PRECISIONS, Type.DOUBLE_ARRAY, precisions);
     }
 
     public void learn(double[] values) {
         int features = values.length;
-        int total = backend.getWithDefault(TOTAL, 0);
+        int total = backend.getWithDefault(Gaussian.TOTAL, 0);
         //Create dirac only save total and sum
         if (total == 0) {
             double[] sum = new double[features];
             System.arraycopy(values, 0, sum, 0, features);
             total = 1;
-            backend.set(TOTAL, Type.INT, total);
-            backend.set(SUM, Type.DOUBLE_ARRAY, sum);
+            backend.set(Gaussian.TOTAL, Type.INT, total);
+            backend.set(Gaussian.SUM, Type.DOUBLE_ARRAY, sum);
 
             //set total, weight, sum, return
         } else {
@@ -72,7 +63,7 @@ public class GaussianENode {
             double[] max;
             double[] sumsquares;
 
-            sum = (double[]) backend.get(SUM);
+            sum = (double[]) backend.get(Gaussian.SUM);
             if (features != sum.length) {
                 throw new RuntimeException("Input dimensions have changed!");
             }
@@ -94,9 +85,9 @@ public class GaussianENode {
             }
             //Otherwise, get previously stored values
             else {
-                min = (double[]) backend.get(MIN);
-                max = (double[]) backend.get(MAX);
-                sumsquares = (double[]) backend.get(SUMSQ);
+                min = (double[]) backend.get(Gaussian.MIN);
+                max = (double[]) backend.get(Gaussian.MAX);
+                sumsquares = (double[]) backend.get(Gaussian.SUMSQ);
             }
 
             //Update the values
@@ -120,11 +111,11 @@ public class GaussianENode {
             }
             total++;
             //Store everything
-            backend.set(TOTAL, Type.INT, total);
-            backend.set(SUM, Type.DOUBLE_ARRAY, sum);
-            backend.set(MIN, Type.DOUBLE_ARRAY, min);
-            backend.set(MAX, Type.DOUBLE_ARRAY, max);
-            backend.set(SUMSQ, Type.DOUBLE_ARRAY, sumsquares);
+            backend.set(Gaussian.TOTAL, Type.INT, total);
+            backend.set(Gaussian.SUM, Type.DOUBLE_ARRAY, sum);
+            backend.set(Gaussian.MIN, Type.DOUBLE_ARRAY, min);
+            backend.set(Gaussian.MAX, Type.DOUBLE_ARRAY, max);
+            backend.set(Gaussian.SUMSQ, Type.DOUBLE_ARRAY, sumsquares);
         }
         // set all cached avg, std, and cov arrays to null
         invalidate();
@@ -142,9 +133,9 @@ public class GaussianENode {
             return true;
         }
 
-        int total = backend.getWithDefault(TOTAL, 0);
+        int total = backend.getWithDefault(Gaussian.TOTAL, 0);
         if (total != 0) {
-            double[] sum = (double[]) backend.get(SUM);
+            double[] sum = (double[]) backend.get(Gaussian.SUM);
             avg = new double[sum.length];
             for (int i = 0; i < sum.length; i++) {
                 avg[i] = sum[i] / total;
@@ -160,11 +151,11 @@ public class GaussianENode {
         if (std != null) {
             return true;
         }
-        int total = backend.getWithDefault(TOTAL, 0);
+        int total = backend.getWithDefault(Gaussian.TOTAL, 0);
         if (total >= 2) {
             initAvg();
             int dim = avg.length;
-            double[] err = backend.getWithDefault(PRECISIONS, new double[avg.length]);
+            double[] err = backend.getWithDefault(Gaussian.PRECISIONS, new double[avg.length]);
             double[] sumsq = getSumSq();
             std = new double[dim];
 
@@ -189,12 +180,12 @@ public class GaussianENode {
         if (cov != null) {
             return true;
         }
-        int total = backend.getWithDefault(TOTAL, 0);
+        int total = backend.getWithDefault(Gaussian.TOTAL, 0);
         if (total >= 2) {
             initAvg();
             int dim = avg.length;
 
-            double[] err = backend.getWithDefault(PRECISIONS, new double[avg.length]);
+            double[] err = backend.getWithDefault(Gaussian.PRECISIONS, new double[avg.length]);
             for (int i = 0; i < err.length; i++) {
                 err[i] = err[i] * err[i];
             }
@@ -253,21 +244,21 @@ public class GaussianENode {
     }
 
     public double[] getSum() {
-        int total = backend.getWithDefault(TOTAL, 0);
+        int total = backend.getWithDefault(Gaussian.TOTAL, 0);
         if (total != 0) {
-            return (double[]) backend.get(SUM);
+            return (double[]) backend.get(Gaussian.SUM);
         } else {
             return null;
         }
     }
 
     public double[] getSumSq() {
-        int total = backend.getWithDefault(TOTAL, 0);
+        int total = backend.getWithDefault(Gaussian.TOTAL, 0);
         if (total == 0) {
             return null;
         }
         if (total == 1) {
-            double[] sum = (double[]) backend.get(SUM);
+            double[] sum = (double[]) backend.get(Gaussian.SUM);
 
             int features = sum.length;
             double[] sumsquares = new double[features * (features + 1) / 2];
@@ -280,46 +271,113 @@ public class GaussianENode {
             }
             return sumsquares;
         } else {
-            return (double[]) backend.get(SUMSQ);
+            return (double[]) backend.get(Gaussian.SUMSQ);
         }
     }
 
 
     public double[] getMin() {
-        int total = backend.getWithDefault(TOTAL, 0);
+        int total = backend.getWithDefault(Gaussian.TOTAL, 0);
         if (total == 0) {
             return null;
         }
         if (total == 1) {
-            return (double[]) backend.get(SUM);
+            return (double[]) backend.get(Gaussian.SUM);
         } else {
-            return (double[]) backend.get(MIN);
+            return (double[]) backend.get(Gaussian.MIN);
         }
     }
 
     public double[] getMax() {
-        int total = backend.getWithDefault(TOTAL, 0);
+        int total = backend.getWithDefault(Gaussian.TOTAL, 0);
         if (total == 0) {
             return null;
         }
         if (total == 1) {
-            return (double[]) backend.get(SUM);
+            return (double[]) backend.get(Gaussian.SUM);
         } else {
-            return (double[]) backend.get(MAX);
+            return (double[]) backend.get(Gaussian.MAX);
         }
     }
 
 
     public int getTotal() {
-        return backend.getWithDefault(TOTAL, 0);
+        return backend.getWithDefault(Gaussian.TOTAL, 0);
     }
 
     public int getDimensions() {
-        int total = backend.getWithDefault(TOTAL, 0);
+        int total = backend.getWithDefault(Gaussian.TOTAL, 0);
         if (total != 0) {
-            return ((double[]) backend.get(SUM)).length;
+            return ((double[]) backend.get(Gaussian.SUM)).length;
         } else {
             return 0;
         }
+    }
+
+
+    public double[] normalize(double[] input) {
+        if (!initStd()) {
+            throw new RuntimeException("can't normalize yet, not enough data!");
+        }
+
+        double[] res = new double[input.length];
+
+        for (int i = 0; i < input.length; i++) {
+            if (std[i] != 0) {
+                res[i] = (input[i] - avg[i]) / std[i];
+            } else {
+                res[i] = 0;
+            }
+        }
+
+        return res;
+    }
+
+    public double[] inverseNormalise(double[] input) {
+        if (!initStd()) {
+            throw new RuntimeException("can't normalize yet, not enough data!");
+        }
+
+        double[] res = new double[input.length];
+
+        for (int i = 0; i < input.length; i++) {
+            res[i] = input[i] * std[i] + avg[i];
+        }
+        return res;
+    }
+
+    public double[] normalizeMinMax(double[] input) {
+        if (!initAvg()) {
+            throw new RuntimeException("can't normalize yet, not enough data!");
+        }
+
+        double[] res = new double[input.length];
+        double[] max = getMax();
+        double[] min = getMin();
+
+        for (int i = 0; i < input.length; i++) {
+            if ((max[i] - min[i]) != 0) {
+                res[i] = (input[i] - min[i]) / (max[i] - min[i]);
+            } else {
+                res[i] = 0;
+            }
+        }
+
+        return res;
+    }
+
+    public double[] inverseNormaliseMinMax(double[] input) {
+        if (!initAvg()) {
+            throw new RuntimeException("can't normalize yet, not enough data!");
+        }
+
+        double[] res = new double[input.length];
+        double[] max = getMax();
+        double[] min = getMin();
+
+        for (int i = 0; i < input.length; i++) {
+            res[i] = input[i] * (max[i] - min[i]) + min[i];
+        }
+        return res;
     }
 }

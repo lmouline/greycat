@@ -27,17 +27,8 @@ import greycat.struct.EGraph;
 public class GaussianNode extends BaseNode {
     public final static String NAME = "GaussianNode";
 
-    public static final String MIN = "min";
-    public static final String MAX = "max";
-    public static final String AVG = "avg";
-    public static final String COV = "cov";
-    public static final String STD = "std";
-    public static final String SUM = "sum";
-    public static final String SUMSQ = "sumSquare";
-    public static final String TOTAL = "total";
-    public static final String VALUES = "values";
-    public static final String PRECISIONS = "precisions";
-    private static final String BACKEND="backend";
+
+    private static final String BACKEND = "backend";
 
     private EGraph egraph;
     private GaussianENode backend;
@@ -45,22 +36,32 @@ public class GaussianNode extends BaseNode {
 
     public GaussianNode(long p_world, long p_time, long p_id, Graph p_graph) {
         super(p_world, p_time, p_id, p_graph);
-        egraph = (EGraph) super.getOrCreate(BACKEND, Type.EGRAPH);
-        backend=new GaussianENode(egraph.newNode());
     }
 
 
+    public void learn(double[] values) {
+        set(Gaussian.VALUES, Type.DOUBLE_ARRAY, values);
+    }
+
+    public double[] predict() {
+        if (load()) {
+            return backend.getAvg();
+        } else {
+            return null;
+        }
+    }
+
     @Override
     public Node set(String name, byte type, Object value) {
-        if(!load()){
+        if (!load()) {
             egraph = (EGraph) super.getOrCreate(BACKEND, Type.EGRAPH);
-            backend=new GaussianENode(egraph.newNode());
+            backend = new GaussianENode(egraph.newNode());
         }
-        switch (name){
-            case VALUES:
+        switch (name) {
+            case Gaussian.VALUES:
                 backend.learn((double[]) value);
                 return this;
-            case PRECISIONS:
+            case Gaussian.PRECISIONS:
                 backend.setPrecisions((double[]) value);
                 return this;
         }
@@ -69,44 +70,42 @@ public class GaussianNode extends BaseNode {
 
     @Override
     public Object get(String attributeName) {
-        if(!load()){
+        if (!load()) {
             return null;
         }
-        switch (attributeName){
-            case MIN:
+        switch (attributeName) {
+            case Gaussian.MIN:
                 return backend.getMin();
-            case MAX:
+            case Gaussian.MAX:
                 return backend.getMax();
-            case AVG:
+            case Gaussian.AVG:
                 return backend.getAvg();
-            case COV:
+            case Gaussian.COV:
                 return backend.getCovariance();
-            case STD:
+            case Gaussian.STD:
                 return backend.getSTD();
-            case SUM:
+            case Gaussian.SUM:
                 return backend.getSum();
-            case SUMSQ:
+            case Gaussian.SUMSQ:
                 return backend.getSumSq();
-            case TOTAL:
+            case Gaussian.TOTAL:
                 return backend.getTotal();
         }
-        throw new RuntimeException("Attribute "+attributeName+" not found!");
+        throw new RuntimeException("Attribute " + attributeName + " not found!");
     }
 
-    private boolean load(){
-        if(backend!=null){
+    private boolean load() {
+        if (backend != null) {
             return true;
-        }
-        else {
-            if(super.get(BACKEND)==null){
+        } else {
+            if (super.get(BACKEND) == null) {
                 return false;
-            }
-            else {
+            } else {
                 egraph = (EGraph) super.get(BACKEND);
-                if(egraph.root()==null){
+                if (egraph.root() == null) {
                     return false;
                 }
-                backend=new GaussianENode(egraph.root());
+                backend = new GaussianENode(egraph.root());
                 return true;
             }
         }
