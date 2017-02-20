@@ -454,7 +454,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
 
     @Override
     public void saveDiff(Buffer buffer) {
-        //TODO
+        save(buffer);
     }
 
     @Override
@@ -1115,7 +1115,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
 
     @Override
     public void loadDiff(Buffer buffer) {
-
+        load(buffer);
     }
 
     static void free(final long addr, final OffHeapChunkSpace space) {

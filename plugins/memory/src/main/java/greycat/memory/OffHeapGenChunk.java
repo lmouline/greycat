@@ -73,7 +73,7 @@ final class OffHeapGenChunk implements GenChunk {
 
     @Override
     public void saveDiff(Buffer buffer) {
-
+        save(buffer);
     }
 
     @Override
@@ -99,7 +99,7 @@ final class OffHeapGenChunk implements GenChunk {
 
     @Override
     public void loadDiff(Buffer buffer) {
-
+        load(buffer);
     }
 
     @Override

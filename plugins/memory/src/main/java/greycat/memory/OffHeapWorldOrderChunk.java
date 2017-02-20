@@ -401,7 +401,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
 
     @Override
     public void loadDiff(Buffer buffer) {
-        //TODO
+        load(buffer);
     }
 
     @Override
@@ -436,7 +436,7 @@ final class OffHeapWorldOrderChunk implements WorldOrderChunk {
 
     @Override
     public void saveDiff(Buffer buffer) {
-        //TODO
+        save(buffer);
     }
 
 }
