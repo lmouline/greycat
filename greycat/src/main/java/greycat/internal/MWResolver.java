@@ -29,7 +29,7 @@ import greycat.base.BaseNode;
 import greycat.struct.Buffer;
 import greycat.utility.KeyHelper;
 
-final class MWGResolver implements Resolver {
+final class MWResolver implements Resolver {
 
     private final Storage _storage;
 
@@ -43,7 +43,7 @@ final class MWGResolver implements Resolver {
 
     private static int KEY_SIZE = 3;
 
-    public MWGResolver(final Storage p_storage, final ChunkSpace p_space, final Graph p_graph) {
+    public MWResolver(final Storage p_storage, final ChunkSpace p_space, final Graph p_graph) {
         _space = p_space;
         _storage = p_storage;
         _graph = p_graph;
@@ -163,7 +163,7 @@ final class MWGResolver implements Resolver {
 
     @Override
     public final <A extends Node> void lookup(final long world, final long time, final long id, final Callback<A> callback) {
-        final MWGResolver selfPointer = this;
+        final MWResolver selfPointer = this;
         selfPointer._space.getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id, new Callback<Chunk>() {
             @Override
             public void on(final Chunk theNodeWorldOrder) {
@@ -263,7 +263,7 @@ final class MWGResolver implements Resolver {
         if (!(worlds.length == times.length && times.length == idsSize)) {
             throw new RuntimeException("Bad API usage");
         }
-        final MWGResolver selfPointer = this;
+        final MWResolver selfPointer = this;
         final Node[] finalResult = new Node[idsSize];
         //init as null for JS compatibility
         for (int i = 0; i < idsSize; i++) {
@@ -406,7 +406,7 @@ final class MWGResolver implements Resolver {
 
     @Override
     public void lookupTimes(long world, long from, long to, long id, Callback<Node[]> callback) {
-        final MWGResolver selfPointer = this;
+        final MWResolver selfPointer = this;
         try {
             selfPointer._space.getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id, new Callback<Chunk>() {
                 @Override
@@ -531,7 +531,7 @@ final class MWGResolver implements Resolver {
 
     @Override
     public final void lookupAll(final long world, final long time, final long ids[], final Callback<Node[]> callback) {
-        final MWGResolver selfPointer = this;
+        final MWResolver selfPointer = this;
         final int idsSize = ids.length;
         final Node[] finalResult = new Node[idsSize];
         //init as null for JS compatibility
@@ -704,7 +704,7 @@ final class MWGResolver implements Resolver {
             callback.on(null);
             return;
         }
-        final MWGResolver selfPointer = this;
+        final MWResolver selfPointer = this;
         final Chunk cached = this._space.getAndMark(type, world, time, id);
         if (cached != null) {
             callback.on(cached);
@@ -767,7 +767,7 @@ final class MWGResolver implements Resolver {
                     lastInsertedIndex = lastInsertedIndex + 1;
                 }
             }
-            final MWGResolver selfPointer = this;
+            final MWResolver selfPointer = this;
             this._storage.get(keysToLoad, new Callback<Buffer>() {
                 @Override
                 public void on(Buffer fromDbBuffers) {
@@ -1259,7 +1259,7 @@ final class MWGResolver implements Resolver {
 
     @Override
     public void resolveTimepoints(final Node node, final long beginningOfSearch, final long endOfSearch, final Callback<long[]> callback) {
-        final MWGResolver selfPointer = this;
+        final MWResolver selfPointer = this;
         _space.getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, node.id(), new Callback<Chunk>() {
             @Override
             public void on(Chunk resolved) {
@@ -1310,7 +1310,7 @@ final class MWGResolver implements Resolver {
     }
 
     private void resolveTimepointsFromWorlds(final WorldOrderChunk objectWorldOrder, final Node node, final long beginningOfSearch, final long endOfSearch, final long[] collectedWorlds, final int collectedWorldsSize, final Callback<long[]> callback) {
-        final MWGResolver selfPointer = this;
+        final MWResolver selfPointer = this;
         final long[] timeTreeKeys = new long[collectedWorldsSize * 3];
         final byte[] types = new byte[collectedWorldsSize];
         for (int i = 0; i < collectedWorldsSize; i++) {
@@ -1375,7 +1375,7 @@ final class MWGResolver implements Resolver {
     }
 
     private void resolveTimepointsFromSuperTimes(final WorldOrderChunk objectWorldOrder, final Node node, final long beginningOfSearch, final long endOfSearch, final long[] collectedWorlds, final long[] collectedSuperTimes, final int collectedSize, final Callback<long[]> callback) {
-        final MWGResolver selfPointer = this;
+        final MWResolver selfPointer = this;
         final long[] timeTreeKeys = new long[collectedSize * 3];
         final byte[] types = new byte[collectedSize];
         for (int i = 0; i < collectedSize; i++) {

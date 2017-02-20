@@ -20,7 +20,7 @@ import greycat.struct.Buffer;
 import greycat.chunk.ChunkSpace;
 
 /**
- * Graph is the main structure of mwDB.
+ * Graph is the main structure of GreyCat.
  * Use the {@link GraphBuilder} to get an instance.
  */
 public interface Graph {

@@ -18,7 +18,6 @@ package greycat.internal;
 import greycat.*;
 import greycat.chunk.*;
 import greycat.internal.heap.HeapMemoryFactory;
-import greycat.internal.tree.KDTree;
 import greycat.internal.tree.KDTreeNode;
 import greycat.internal.tree.NDTreeNode;
 import greycat.plugin.*;
@@ -77,7 +76,7 @@ public class CoreGraph implements Graph {
         _taskHooks = temp_hooks;
         _storage = p_storage;
         _space = _memoryFactory.newSpace(memorySize, selfPointer, deepPriority);
-        _resolver = new MWGResolver(_storage, _space, selfPointer);
+        _resolver = new MWResolver(_storage, _space, selfPointer);
         _scheduler = p_scheduler;
         //Third round, initialize all taskActions and nodeTypes
         CoreTask.fillDefault(this._actionRegistry);

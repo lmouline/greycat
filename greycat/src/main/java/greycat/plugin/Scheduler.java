@@ -16,7 +16,7 @@
 package greycat.plugin;
 
 /**
- * In charge of the scheduling of tasks in mwDB
+ * In charge of the scheduling of tasks in GreyCat
  */
 public interface Scheduler {
 

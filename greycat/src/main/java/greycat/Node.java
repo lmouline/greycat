@@ -240,7 +240,7 @@ public interface Node {
     void timepoints(long beginningOfSearch, long endOfSearch, Callback<long[]> callback);
 
     /**
-     * Informs mwDB memory manager that this node object can be freed from the memory.<br>
+     * Informs GreyCat memory manager that this node object can be freed from the memory.<br>
      * <b>Warning: this MUST be the last method called on this node.</b><br>
      * To work with the node afterwards, a new lookup is mandatory.
      */

@@ -312,7 +312,7 @@ public class HeapChunkSpace implements ChunkSpace {
         }
         if (currentVictimIndex == -1) {
             // printMarked();
-            throw new RuntimeException("mwDB crashed, cache is full, please avoid to much retention of nodes or augment cache capacity! available:" + available());
+            throw new RuntimeException("GreyCat crashed, cache is full, please avoid to much retention of nodes or augment cache capacity! available:" + available());
         }
         Chunk toInsert = null;
         switch (type) {

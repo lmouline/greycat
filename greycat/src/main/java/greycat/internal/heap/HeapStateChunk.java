@@ -159,15 +159,15 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     /**
      * {@native ts
      * if(p_unsafe_elem != null){
-     * if(p_elemType == Type.STRING){ if(!(typeof p_unsafe_elem === 'string')){ throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
-     * if(p_elemType == Type.BOOL){ if(!(typeof p_unsafe_elem === 'boolean')){ throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
-     * if(p_elemType == Type.DOUBLE || p_elemType == Type.LONG || p_elemType == Type.INT){ if(!(typeof p_unsafe_elem === 'number')){ throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
-     * if(p_elemType == Type.DOUBLE_ARRAY){ if(!(p_unsafe_elem instanceof Float64Array)){ throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
-     * if(p_elemType == Type.LONG_ARRAY){ if(!(p_unsafe_elem instanceof Float64Array)){ throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
-     * if(p_elemType == Type.INT_ARRAY){ if(!(p_unsafe_elem instanceof Int32Array)){ throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
-     * if(p_elemType == Type.STRING_TO_INT_MAP){ if(!(typeof p_unsafe_elem === 'object')){ throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
-     * if(p_elemType == Type.LONG_TO_LONG_MAP){ if(!(typeof p_unsafe_elem === 'boolean')){ throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
-     * if(p_elemType == Type.LONG_TO_LONG_ARRAY_MAP){ if(!(typeof p_unsafe_elem === 'boolean')){ throw new Error("mwDB usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
+     * if(p_elemType == Type.STRING){ if(!(typeof p_unsafe_elem === 'string')){ throw new Error("GreyCat usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
+     * if(p_elemType == Type.BOOL){ if(!(typeof p_unsafe_elem === 'boolean')){ throw new Error("GreyCat usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
+     * if(p_elemType == Type.DOUBLE || p_elemType == Type.LONG || p_elemType == Type.INT){ if(!(typeof p_unsafe_elem === 'number')){ throw new Error("GreyCat usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
+     * if(p_elemType == Type.DOUBLE_ARRAY){ if(!(p_unsafe_elem instanceof Float64Array)){ throw new Error("GreyCat usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
+     * if(p_elemType == Type.LONG_ARRAY){ if(!(p_unsafe_elem instanceof Float64Array)){ throw new Error("GreyCat usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
+     * if(p_elemType == Type.INT_ARRAY){ if(!(p_unsafe_elem instanceof Int32Array)){ throw new Error("GreyCat usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
+     * if(p_elemType == Type.STRING_TO_INT_MAP){ if(!(typeof p_unsafe_elem === 'object')){ throw new Error("GreyCat usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
+     * if(p_elemType == Type.LONG_TO_LONG_MAP){ if(!(typeof p_unsafe_elem === 'boolean')){ throw new Error("GreyCat usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
+     * if(p_elemType == Type.LONG_TO_LONG_ARRAY_MAP){ if(!(typeof p_unsafe_elem === 'boolean')){ throw new Error("GreyCat usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
      * }
      * this.internal_set(p_elementIndex, p_elemType, p_unsafe_elem, true, false);
      * }
@@ -656,7 +656,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         throw new RuntimeException("Internal Exception, unknown type");
                 }
             } catch (Exception e) {
-                throw new RuntimeException("mwDB usage error, set method called with type " + Type.typeName(p_type) + " while param object is " + p_unsafe_elem);
+                throw new RuntimeException("GreyCat usage error, set method called with type " + Type.typeName(p_type) + " while param object is " + p_unsafe_elem);
             }
         }
         //first value
@@ -1137,8 +1137,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public void loadDiff(Buffer buffer) {
-        //TODO
+    public final void loadDiff(Buffer buffer) {
+        load(buffer);
     }
 
 }

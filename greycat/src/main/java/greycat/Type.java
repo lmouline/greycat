@@ -16,7 +16,7 @@
 package greycat;
 
 /**
- * Defines the constants used in mwDB.
+ * Defines the constants used in GreyCat.
  */
 public class Type {
 

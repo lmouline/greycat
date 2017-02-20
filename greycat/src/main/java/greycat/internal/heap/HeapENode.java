@@ -291,7 +291,7 @@ class HeapENode implements ENode, HeapContainer {
                         throw new RuntimeException("Internal Exception, unknown type");
                 }
             } catch (Exception e) {
-                throw new RuntimeException("mwDB usage error, set method called with type " + Type.typeName(p_type) + " while param object is " + p_unsafe_elem);
+                throw new RuntimeException("GreyCat usage error, set method called with type " + Type.typeName(p_type) + " while param object is " + p_unsafe_elem);
             }
         }
         //first value

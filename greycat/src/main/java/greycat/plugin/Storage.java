@@ -20,7 +20,7 @@ import greycat.struct.Buffer;
 import greycat.Callback;
 
 /**
- * Storage defines the interface any storage solution must comply with to be plugged to mwDB.
+ * Storage defines the interface any storage solution must comply with to be plugged to GreyCat.
  */
 public interface Storage {
 
