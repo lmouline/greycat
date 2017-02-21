@@ -48,32 +48,53 @@ class ActionTravelInWorld implements Action {
         }
         ctx.setWorld(parsedWorld);
         final TaskResult previous = ctx.result();
-        final DeferCounter defer = new CoreDeferCounter(previous.size());
         final int previousSize = previous.size();
-        //todo change to lookup all
+        //declare batch lookup variable
+        long[] worlds = new long[previousSize];
+        long[] times = new long[previousSize];
+        long[] ids = new long[previousSize];
+        final int[] indexes = new int[previousSize];
+        int index = 0;
         for (int i = 0; i < previousSize; i++) {
             Object loopObj = previous.get(i);
             if (loopObj instanceof BaseNode) {
-                Node castedPreviousNode = (Node) loopObj;
-                final int finalIndex = i;
-                ctx.graph().lookup(parsedWorld, castedPreviousNode.time(), castedPreviousNode.id(), new Callback<Node>() {
-                    @Override
-                    public void on(Node result) {
-                        castedPreviousNode.free();
-                        previous.set(finalIndex, result);
-                        defer.count();
-                    }
-                });
-            } else {
-                defer.count();
+                final Node casted = (Node) loopObj;
+                if (parsedWorld != casted.world()) {
+                    worlds[index] = parsedWorld;
+                    times[index] = casted.time();
+                    ids[index] = casted.id();
+                    indexes[index] = i;
+                    index++;
+                    casted.free();
+                }
             }
         }
-        defer.then(new Job() {
-            @Override
-            public void run() {
-                ctx.continueTask();
+        if (index == 0) {
+            ctx.continueTask();
+        } else {
+            //shrink if necessary
+            if (index != previousSize) {
+                long[] new_worlds = new long[index];
+                System.arraycopy(new_worlds, 0, worlds, 0, index);
+                worlds = new_worlds;
+                long[] new_times = new long[index];
+                System.arraycopy(new_times, 0, times, 0, index);
+                times = new_times;
+                long[] new_ids = new long[index];
+                System.arraycopy(new_ids, 0, ids, 0, index);
+                ids = new_ids;
             }
-        });
+            //lookup all
+            ctx.graph().resolver().lookupBatch(worlds, times, ids, new Callback<Node[]>() {
+                @Override
+                public void on(Node[] result) {
+                    for (int i = 0; i < result.length; i++) {
+                        previous.set(indexes[i], result[i]);
+                    }
+                    ctx.continueTask();
+                }
+            });
+        }
     }
 
     @Override
