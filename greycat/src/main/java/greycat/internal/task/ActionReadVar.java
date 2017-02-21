@@ -61,6 +61,8 @@ class ActionReadVar implements Action {
         }
         if (varResult != null) {
             varResult = varResult.clone();
+        } else {
+            varResult = ctx.newResult();
         }
         ctx.continueWith(varResult);
     }
