@@ -140,7 +140,7 @@ class CoreTaskContext implements TaskContext {
         if (res != null && res.size() > 0) {
             return (int) res.get(0);
         }
-        return 0;
+        return -1;
     }
 
     @Override
@@ -149,7 +149,7 @@ class CoreTaskContext implements TaskContext {
         if (res != null && res.size() > 0) {
             return (double) res.get(0);
         }
-        return 0d;
+        return -1d;
     }
 
     @Override
@@ -158,7 +158,7 @@ class CoreTaskContext implements TaskContext {
         if (res != null && res.size() > 0) {
             return (long) res.get(0);
         }
-        return 0L;
+        return -1L;
     }
 
     @Override
