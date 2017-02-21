@@ -33,6 +33,12 @@ public interface TaskContext {
 
     TaskResult variable(String name);
 
+    int intVar(String name);
+
+    double doubleVar(String name);
+
+    long longVar(String name);
+    
     boolean isGlobal(String name);
 
     TaskResult wrap(Object input);

@@ -135,6 +135,33 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
+    public int intVar(String name) {
+        TaskResult res = variable(name);
+        if (res != null && res.size() > 0) {
+            return (int) res.get(0);
+        }
+        return 0;
+    }
+
+    @Override
+    public double doubleVar(String name) {
+        TaskResult res = variable(name);
+        if (res != null && res.size() > 0) {
+            return (double) res.get(0);
+        }
+        return 0d;
+    }
+
+    @Override
+    public long longVar(String name) {
+        TaskResult res = variable(name);
+        if (res != null && res.size() > 0) {
+            return (long) res.get(0);
+        }
+        return 0L;
+    }
+
+    @Override
     public boolean isGlobal(String name) {
         return _globalVariables.containsKey(name);
     }
