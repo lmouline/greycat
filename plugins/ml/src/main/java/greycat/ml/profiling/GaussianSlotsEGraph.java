@@ -44,7 +44,11 @@ public class GaussianSlotsEGraph {
         if (!load()) {
             root = backend.newNode();
             backend.setRoot(root);
+            ERelation rel = (ERelation) root.getOrCreate(GENERIC_SLOT, Type.ERELATION);
+            rel.add(backend.newNode());
+            generic_slot = new GaussianENode(rel.node(0));
         }
+
     }
 
     public void setNumberOfSlots(int number) {
@@ -62,35 +66,31 @@ public class GaussianSlotsEGraph {
             relation.add(temp);
             slots[i] = new GaussianENode(temp);
         }
-        ERelation generic_relation = (ERelation) root.getOrCreate(GENERIC_SLOT, Type.ERELATION);
-        generic_relation.clear();
-        temp = root.egraph().newNode();
-        generic_relation.add(temp);
-        generic_slot = new GaussianENode(temp);
     }
 
-    public void learn(int slot, double[] values){
-        if(slots==null){
+    public void learn(int slot, double[] values) {
+        if (slots == null) {
             throw new RuntimeException("Please set the number of slots first!");
         }
-        if(slot>=slots.length){
+
+        if (slot >= slots.length) {
             throw new RuntimeException("Slot number exceed maximum slots allocated!");
         }
         slots[slot].learn(values);
         generic_slot.learn(values);
     }
 
-    public GaussianENode getGaussian(int slot){
-        if(slots==null){
+    public GaussianENode getGaussian(int slot) {
+        if (slots == null) {
             throw new RuntimeException("Please set the number of slots first!");
         }
-        if(slot>=slots.length){
+        if (slot >= slots.length) {
             throw new RuntimeException("Slot number exceed maximum slots allocated!");
         }
         return slots[slot];
     }
 
-    public GaussianENode getGeneric(){
+    public GaussianENode getGeneric() {
         return generic_slot;
     }
 
