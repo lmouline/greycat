@@ -1,4 +1,4 @@
-package greycat.ml.profiling;
+package greycat.ml;
 
 import greycat.*;
 import greycat.struct.EGraph;
@@ -7,7 +7,7 @@ import greycat.struct.ENode;
 /**
  * Created by assaad on 23/02/2017.
  */
-public class ENodeTest {
+public class BugTest {
 
     public static void main(String[] arg) {
 
