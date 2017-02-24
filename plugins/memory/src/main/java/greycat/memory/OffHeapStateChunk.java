@@ -450,7 +450,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                                 buffer.write(CoreConstants.CHUNK_ENODE_SEP);
                                 eNode.save(buffer);
                             }
-                            castedEGraph.declareDirty();
+                            castedEGraph.declareUnDirty();
                             break;
                         default:
                             break;

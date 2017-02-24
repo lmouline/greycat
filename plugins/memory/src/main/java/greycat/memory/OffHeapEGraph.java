@@ -238,6 +238,11 @@ public class OffHeapEGraph implements EGraph {
         }
     }
 
+    final void declareUnDirty() {
+        long addr = parent.addrByIndex(index);
+        OffHeapLongArray.set(addr, DIRTY, 0);
+    }
+
     @Override
     public final String toString() {
         long addr = parent.addrByIndex(index);

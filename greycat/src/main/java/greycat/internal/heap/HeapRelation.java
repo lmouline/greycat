@@ -99,31 +99,35 @@ class HeapRelation implements Relation {
     @Override
     public final Relation add(long newValue) {
         synchronized (parent) {
-            if (_back == null) {
-                aligned = true;
-                _back = new long[Constants.MAP_INITIAL_CAPACITY];
-                _back[0] = newValue;
-                _size = 1;
-            } else if (_size == _back.length) {
-                long[] ex_back = new long[_back.length * 2];
-                System.arraycopy(_back, 0, ex_back, 0, _size);
-                _back = ex_back;
-                _back[_size] = newValue;
-                aligned = true;
-                _size++;
-            } else {
-                if (!aligned) {
-                    long[] temp_back = new long[_back.length];
-                    System.arraycopy(_back, 0, temp_back, 0, _back.length);
-                    _back = temp_back;
-                    aligned = true;
-                }
-                _back[_size] = newValue;
-                _size++;
-            }
+            internal_add(newValue);
             parent.declareDirty();
         }
         return this;
+    }
+
+    private void internal_add(long newValue){
+        if (_back == null) {
+            aligned = true;
+            _back = new long[Constants.MAP_INITIAL_CAPACITY];
+            _back[0] = newValue;
+            _size = 1;
+        } else if (_size == _back.length) {
+            long[] ex_back = new long[_back.length * 2];
+            System.arraycopy(_back, 0, ex_back, 0, _size);
+            _back = ex_back;
+            _back[_size] = newValue;
+            aligned = true;
+            _size++;
+        } else {
+            if (!aligned) {
+                long[] temp_back = new long[_back.length];
+                System.arraycopy(_back, 0, temp_back, 0, _back.length);
+                _back = temp_back;
+                aligned = true;
+            }
+            _back[_size] = newValue;
+            _size++;
+        }
     }
 
     @Override
@@ -263,7 +267,7 @@ class HeapRelation implements Relation {
                     allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                     isFirst = false;
                 } else {
-                    add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    internal_add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
                 }
                 previous = cursor + 1;
             }
@@ -275,7 +279,7 @@ class HeapRelation implements Relation {
         if (isFirst) {
             allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
         } else {
-            add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
+            internal_add(Base64.decodeToLongWithBounds(buffer, previous, cursor));
         }
         return cursor;
     }
