@@ -786,7 +786,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                 next_and_hash[_capacity + hashIndex] = _size;
             }
             _size++;
-            declareDirty();
+            if (!initial) {
+                declareDirty();
+            }
             return;
         }
         //extend capacity
