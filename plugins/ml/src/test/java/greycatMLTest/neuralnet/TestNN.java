@@ -19,8 +19,8 @@ import greycat.*;
 import greycat.ml.neuralnet.NeuralNet;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.layer.Layers;
-import greycat.ml.neuralnet.learner.Learners;
 import greycat.ml.neuralnet.loss.Losses;
+import greycat.ml.neuralnet.optimiser.Optimisers;
 import greycat.struct.EGraph;
 import org.junit.Assert;
 import org.junit.Test;
@@ -52,7 +52,7 @@ public class TestNN {
                 net.setRandom(1234, 0.1);
 
                 net.addLayer(Layers.LINEAR_LAYER, input, output, Activations.LINEAR, null);
-                net.setLearner(Learners.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 1);
+                net.setLearner(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 1);
                 net.setTrainLoss(Losses.SUM_OF_SQUARES);
 
 
