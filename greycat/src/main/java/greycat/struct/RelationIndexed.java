@@ -23,6 +23,8 @@ public interface RelationIndexed {
 
     int size();
 
+    long getByIndex(int index);
+
     long[] all();
 
     RelationIndexed add(Node node, String... attributeNames);
@@ -33,6 +35,11 @@ public interface RelationIndexed {
 
     void find(Callback<Node[]> callback, long world, long time, String... params);
 
+    long[] select(String... params);
+
+    long[] selectByQuery(Query query);
+
     void findByQuery(Query query, Callback<Node[]> callback);
+
 
 }

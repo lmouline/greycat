@@ -41,7 +41,7 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
         this.parent = p_listener;
     }
 
-    private long key(int i) {
+    long key(int i) {
         return keys[i];
     }
 
@@ -49,7 +49,7 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
         keys[i] = newValue;
     }
 
-    private long value(int i) {
+    long value(int i) {
         return values[i];
     }
 

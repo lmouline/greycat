@@ -15,7 +15,7 @@
  */
 package greycat.memory;
 
-import greycat.internal.chunk.AbstractMatrixTest;
+import greycatTest.internal.chunk.AbstractMatrixTest;
 import org.junit.After;
 import org.junit.Assert;
 

@@ -16,6 +16,7 @@
 package greycat.internal.heap;
 
 import greycat.Constants;
+import greycat.Container;
 import greycat.Graph;
 import greycat.Type;
 import greycat.chunk.ChunkType;
@@ -85,7 +86,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public synchronized final Object get(final int p_key) {
+    public synchronized final Object getAt(final int p_key) {
         return internal_get(p_key);
     }
 
@@ -170,36 +171,38 @@ class HeapStateChunk implements StateChunk, HeapContainer {
      * if(p_elemType == Type.LONG_TO_LONG_ARRAY_MAP){ if(!(typeof p_unsafe_elem === 'boolean')){ throw new Error("GreyCat usage error, set method called with type " + Type.typeName(p_elemType) + " while param object is " + p_unsafe_elem); } }
      * }
      * this.internal_set(p_elementIndex, p_elemType, p_unsafe_elem, true, false);
+     * return this;
      * }
      */
     @Override
-    public synchronized final void set(final int p_elementIndex, final byte p_elemType, final Object p_unsafe_elem) {
+    public synchronized final Container setAt(final int p_elementIndex, final byte p_elemType, final Object p_unsafe_elem) {
         internal_set(p_elementIndex, p_elemType, p_unsafe_elem, true, false);
+        return this;
     }
 
     @Override
-    public synchronized final void setFromKey(final String key, final byte p_elemType, final Object p_unsafe_elem) {
+    public Container remove(String name) {
+        return set(name, Type.INT, null);
+    }
+
+    @Override
+    public Container removeAt(int key) {
+        return setAt(key, Type.INT, null);
+    }
+
+    @Override
+    public synchronized final Container set(final String key, final byte p_elemType, final Object p_unsafe_elem) {
         internal_set(_space.graph().resolver().stringToHash(key, true), p_elemType, p_unsafe_elem, true, false);
+        return this;
     }
 
-
     @Override
-    public synchronized final Object getFromKey(final String key) {
+    public synchronized final Object get(final String key) {
         return internal_get(_space.graph().resolver().stringToHash(key, false));
     }
 
     @Override
-    public final <A> A getFromKeyWithDefault(final String key, final A defaultValue) {
-        final Object result = getFromKey(key);
-        if (result == null) {
-            return defaultValue;
-        } else {
-            return (A) result;
-        }
-    }
-
-    @Override
-    public final <A> A getWithDefault(final int key, final A defaultValue) {
+    public final <A> A getWithDefault(final String key, final A defaultValue) {
         final Object result = get(key);
         if (result == null) {
             return defaultValue;
@@ -209,7 +212,17 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public synchronized final byte getType(final int p_key) {
+    public final <A> A getAtWithDefault(final int key, final A defaultValue) {
+        final Object result = getAt(key);
+        if (result == null) {
+            return defaultValue;
+        } else {
+            return (A) result;
+        }
+    }
+
+    @Override
+    public synchronized final byte typeAt(final int p_key) {
         final int found_index = internal_find(p_key);
         if (found_index != -1) {
             return _type[found_index];
@@ -219,12 +232,12 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public byte getTypeFromKey(final String key) {
-        return getType(_space.graph().resolver().stringToHash(key, false));
+    public byte type(final String key) {
+        return typeAt(_space.graph().resolver().stringToHash(key, false));
     }
 
     @Override
-    public synchronized final Object getOrCreate(final int p_key, final byte p_type) {
+    public synchronized final Object getOrCreateAt(final int p_key, final byte p_type) {
         final int found = internal_find(p_key);
         if (found != -1) {
             if (_type[found] == p_type) {
@@ -282,8 +295,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public final Object getOrCreateFromKey(final String key, final byte elemType) {
-        return getOrCreate(_space.graph().resolver().stringToHash(key, true), elemType);
+    public final Object getOrCreate(final String key, final byte elemType) {
+        return getOrCreateAt(_space.graph().resolver().stringToHash(key, true), elemType);
     }
 
     @Override

@@ -19,7 +19,7 @@ package greycat;
  * Node is the base element contained in the {@link Graph}.<br>
  * They belong to a world and time, have attributes (e.g. primitives, relations, and indexes).
  */
-public interface Node {
+public interface Node extends Container {
 
     /**
      * Returns the world this node belongs to.
@@ -44,60 +44,11 @@ public interface Node {
     long id();
 
     /**
-     * Returns the value of an attribute of the node.
-     *
-     * @param name The name of the attribute to be read.
-     * @return The value of the required attribute in this node for the current timepoint and world.
-     * The type of the returned object (i.e. of the attribute) is given by {@link #type(String)} (typed by one of  {@link #type(String)}
-     */
-    Object get(String name);
-
-    /**
-     * Returns the value of an attribute of the node.
-     *
-     * @param index index of attribute.
-     * @return The value of the required attribute in this node for the current timepoint and world.
-     * The type of the returned object (i.e. of the attribute) is given by {@link #type(String)}
-     * (typed by one of the Type)
-     */
-    Object getAt(int index);
-
-    /**
-     * Returns the type of an attribute. The returned value is one of {@link Type}.
-     *
-     * @param name The name of the attribute for which the type is asked.
-     * @return The type of the attribute inform of an int belonging to {@link Type}.
-     */
-    byte type(String name);
-
-    byte typeAt(int index);
-
-    /**
      * Returns the type name of the current node (case of typed node).
      *
      * @return The type name of the current node.
      */
     String nodeTypeName();
-
-    /**
-     * Sets the value of an attribute of this node for its current world and time.<br>
-     *
-     * @param name  Must be unique per node.
-     * @param type  Must be one of {@link Type} int value.
-     * @param value Must be consistent with the propertyType.
-     * @return The node for fluent API.
-     */
-    Node set(String name, byte type, Object value);
-
-    /**
-     * Sets the value of an attribute of this node for its current world and time.<br>
-     *
-     * @param index Must be unique per node.
-     * @param type  Must be one of {@link Type} int value.
-     * @param value Must be consistent with the propertyType.
-     * @return The node for fluent API.
-     */
-    Node setAt(int index, byte type, Object value);
 
     /**
      * Sets the value of an attribute of this node for its current world and time.<br>
@@ -118,34 +69,6 @@ public interface Node {
      * @return The node for fluent API.
      */
     Node forceSetAt(int index, byte type, Object value);
-
-    /**
-     * Removes an attribute from the node.
-     *
-     * @param name The name of the attribute to remove.
-     * @return The node for fluent API.
-     */
-    Node remove(String name);
-
-    Node removeAt(int index);
-
-    /**
-     * Gets or creates atomically a complex mutable attribute (e.g. Maps).<br>
-     *
-     * @param name The name of the object to create. Must be unique per node.
-     * @param type The type of the attribute. Must be one of {@link Type} int value.
-     * @return An instance that can be altered at the current world and time.
-     */
-    Object getOrCreate(String name, byte type);
-
-    /**
-     * Gets or creates atomically a complex mutable attribute (e.g. Maps).<br>
-     *
-     * @param index The name of the object to create. Must be unique per node.
-     * @param type  The type of the attribute. Must be one of {@link Type} int value.
-     * @return An instance that can be altered at the current world and time.
-     */
-    Object getOrCreateAt(int index, byte type);
 
     /**
      * Retrieves the named relation.

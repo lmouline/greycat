@@ -15,10 +15,12 @@
  */
 package greycat.struct;
 
+import greycat.Container;
 import greycat.plugin.NodeStateCallback;
 
-public interface ENode {
+public interface ENode extends Container {
 
+    /*
     ENode set(String name, byte type, Object value);
 
     ENode setAt(int key, byte type, Object value);
@@ -34,6 +36,7 @@ public interface ENode {
     Object getOrCreate(final String key, final byte type);
 
     Object getOrCreateAt(final int key, final byte type);
+    */
 
     void drop();
 

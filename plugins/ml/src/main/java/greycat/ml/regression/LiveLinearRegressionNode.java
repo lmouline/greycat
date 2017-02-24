@@ -26,9 +26,6 @@ import greycat.utility.Enforcer;
 
 import java.util.Random;
 
-/**
- * Created by assaad on 14/06/16.
- */
 public class LiveLinearRegressionNode extends BaseMLNode implements RegressionNode {
 
     public static final String ALPHA_KEY = "ALPHA"; //learning rate
@@ -74,10 +71,10 @@ public class LiveLinearRegressionNode extends BaseMLNode implements RegressionNo
 
     public void internalLearn(double[] input, double output, Callback<Boolean> callback) {
         NodeState state = this._resolver.alignState(this);
-        int iterations = state.getFromKeyWithDefault(ITERATION_KEY, ITERATION_DEF);
-        double alpha = state.getFromKeyWithDefault(ALPHA_KEY, ALPHA_DEF);
-        double lambda = state.getFromKeyWithDefault(LAMBDA_KEY, LAMBDA_DEF);
-        double[] weights = (double[]) state.getFromKey(WEIGHT_KEY);
+        int iterations = state.getWithDefault(ITERATION_KEY, ITERATION_DEF);
+        double alpha = state.getWithDefault(ALPHA_KEY, ALPHA_DEF);
+        double lambda = state.getWithDefault(LAMBDA_KEY, LAMBDA_DEF);
+        double[] weights = (double[]) state.get(WEIGHT_KEY);
 
 
         if (weights == null) {
@@ -89,13 +86,13 @@ public class LiveLinearRegressionNode extends BaseMLNode implements RegressionNo
         }
 
         //ToDo test currentErr and update alpha automatically
-        double prevErr = state.getFromKeyWithDefault(LAST_ERR_KEY, 0.0);
+        double prevErr = state.getWithDefault(LAST_ERR_KEY, 0.0);
         double currErr = calculate(weights, input) - output;
       /*  if (currErr > prevErr) {
             //toDo fill here
         }*/
 
-        state.setFromKey(LAST_ERR_KEY, Type.DOUBLE, currErr);
+        state.set(LAST_ERR_KEY, Type.DOUBLE, currErr);
 
         if (input == null || weights.length != (input.length + 1)) {
             throw new RuntimeException(MISMATCH_MSG);
@@ -110,27 +107,27 @@ public class LiveLinearRegressionNode extends BaseMLNode implements RegressionNo
             weights[featuresize] = weights[featuresize] - alpha * h;
         }
 
-        double[] bckupWeight = (double[]) state.getFromKey(INTERNAL_WEIGHT_BACKUP_KEY);
+        double[] bckupWeight = (double[]) state.get(INTERNAL_WEIGHT_BACKUP_KEY);
         if (bckupWeight == null) {
-            state.setFromKey(WEIGHT_KEY, Type.DOUBLE_ARRAY, weights);
-            state.setFromKey(INTERNAL_WEIGHT_BACKUP_KEY, Type.DOUBLE_ARRAY, weights);
-            state.setFromKey(INTERNAL_TOTAL_KEY, Type.INT, 1);
+            state.set(WEIGHT_KEY, Type.DOUBLE_ARRAY, weights);
+            state.set(INTERNAL_WEIGHT_BACKUP_KEY, Type.DOUBLE_ARRAY, weights);
+            state.set(INTERNAL_TOTAL_KEY, Type.INT, 1);
         } else {
             double diff = 0;
             for (int i = 0; i < weights.length; i++) {
                 diff = Math.max(diff, Math.abs(weights[i] - bckupWeight[i]));
             }
-            double deviation = state.getFromKeyWithDefault(THRESHOLD_KEY, THRESHOLD_DEF);
+            double deviation = state.getWithDefault(THRESHOLD_KEY, THRESHOLD_DEF);
 
             if (diff > deviation) {
                 state = phasedState();
                 //ToDo test weight here and play with alpha
-                state.setFromKey(WEIGHT_KEY, Type.DOUBLE_ARRAY, weights);
-                state.setFromKey(INTERNAL_WEIGHT_BACKUP_KEY, Type.DOUBLE_ARRAY, weights);
-                state.setFromKey(INTERNAL_TOTAL_KEY, Type.INT, 1);
+                state.set(WEIGHT_KEY, Type.DOUBLE_ARRAY, weights);
+                state.set(INTERNAL_WEIGHT_BACKUP_KEY, Type.DOUBLE_ARRAY, weights);
+                state.set(INTERNAL_TOTAL_KEY, Type.INT, 1);
             } else {
-                state.setFromKey(WEIGHT_KEY, Type.DOUBLE_ARRAY, weights);
-                state.setFromKey(INTERNAL_TOTAL_KEY, Type.INT, (Integer) state.getFromKey(INTERNAL_TOTAL_KEY) + 1);
+                state.set(WEIGHT_KEY, Type.DOUBLE_ARRAY, weights);
+                state.set(INTERNAL_TOTAL_KEY, Type.INT, (Integer) state.get(INTERNAL_TOTAL_KEY) + 1);
             }
         }
 
@@ -163,7 +160,7 @@ public class LiveLinearRegressionNode extends BaseMLNode implements RegressionNo
     @Override
     public void extrapolate(final Callback<Double> callback) {
         final NodeState state = this._resolver.resolveState(this);
-        final double[] weights = (double[]) state.getFromKey(WEIGHT_KEY);
+        final double[] weights = (double[]) state.get(WEIGHT_KEY);
         if (weights == null) {
             if (callback != null) {
                 callback.on(0.0);

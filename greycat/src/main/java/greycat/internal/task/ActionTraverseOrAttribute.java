@@ -19,10 +19,19 @@ import greycat.*;
 import greycat.base.BaseNode;
 import greycat.plugin.Job;
 import greycat.Action;
+import greycat.plugin.NodeState;
+import greycat.plugin.Resolver;
 import greycat.struct.Buffer;
+import greycat.struct.Relation;
 import greycat.struct.RelationIndexed;
 import greycat.TaskContext;
 import greycat.TaskResult;
+import greycat.utility.LongArray;
+import greycat.utility.LongMap;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 class ActionTraverseOrAttribute implements Action {
 
@@ -41,81 +50,66 @@ class ActionTraverseOrAttribute implements Action {
 
     @Override
     public final void eval(final TaskContext ctx) {
+        final Resolver resolver = ctx.graph().resolver();
         final TaskResult finalResult = ctx.newResult();
         final String flatName = ctx.template(_name);
         final TaskResult previousResult = ctx.result();
         if (previousResult != null) {
             final int previousSize = previousResult.size();
-            final DeferCounter defer = ctx.graph().newCounter(previousSize);
+            final LongArray worlds = new LongArray();
+            final LongArray times = new LongArray();
+            final LongArray ids = new LongArray();
+
+            final Query query;
+            if (_params != null && _params.length > 0) {
+                query = ctx.graph().newQuery();
+                String previous = null;
+                for (int k = 0; k < _params.length; k++) {
+                    if (previous != null) {
+                        query.add(previous, ctx.template(_params[k]));
+                        previous = null;
+                    } else {
+                        previous = _params[k];
+                    }
+                }
+            } else {
+                query = null;
+            }
             for (int i = 0; i < previousSize; i++) {
                 final Object loop = previousResult.get(i);
+                //TODO manage eNode here
                 if (loop instanceof BaseNode) {
                     final Node casted = (Node) loop;
                     switch (casted.type(flatName)) {
                         case Type.RELATION:
-                            casted.relation(flatName, new Callback<Node[]>() {
-                                @Override
-                                public void on(Node[] result) {
-                                    if (result != null) {
-                                        for (int j = 0; j < result.length; j++) {
-                                            finalResult.add(result[j]);
-                                        }
-                                    }
-                                    casted.free();
-                                    defer.count();
+                            Relation relation = (Relation) casted.get(flatName);
+                            if (relation != null) {
+                                int relSize = relation.size();
+                                for (int k = 0; k < relSize; k++) {
+                                    worlds.add(casted.world());
+                                    times.add(casted.time());
+                                    ids.add(relation.get(k));
                                 }
-                            });
+                            }
                             break;
                         case Type.RELATION_INDEXED:
-                            //TODO move this to the API
                             RelationIndexed relationIndexed = (RelationIndexed) casted.get(flatName);
                             if (relationIndexed != null) {
-                                if (_params != null && _params.length > 0) {
-                                    String[] templatedParams = ctx.templates(_params);
-                                    Query query = ctx.graph().newQuery();
-                                    query.setWorld(casted.world());
-                                    query.setTime(casted.time());
-                                    String previous = null;
-                                    for (int k = 0; k < templatedParams.length; k++) {
-                                        if (previous != null) {
-                                            query.add(previous, templatedParams[k]);
-                                            previous = null;
-                                        } else {
-                                            previous = templatedParams[k];
-                                        }
+                                if (query != null) {
+                                    final long[] candidates = relationIndexed.selectByQuery(query);
+                                    for (int k = 0; k < candidates.length; k++) {
+                                        worlds.add(casted.world());
+                                        times.add(casted.time());
+                                        ids.add(candidates[k]);
                                     }
-                                    relationIndexed.findByQuery(query, new Callback<Node[]>() {
-                                        @Override
-                                        public void on(Node[] result) {
-                                            if (result != null) {
-                                                for (int j = 0; j < result.length; j++) {
-                                                    if (result[j] != null) {
-                                                        finalResult.add(result[j]);
-                                                    }
-                                                }
-                                            }
-                                            casted.free();
-                                            defer.count();
-                                        }
-                                    });
                                 } else {
-                                    casted.graph().lookupAll(ctx.world(), ctx.time(), relationIndexed.all(), new Callback<Node[]>() {
-                                        @Override
-                                        public void on(Node[] result) {
-                                            if (result != null) {
-                                                for (int j = 0; j < result.length; j++) {
-                                                    if (result[j] != null) {
-                                                        finalResult.add(result[j]);
-                                                    }
-                                                }
-                                            }
-                                            casted.free();
-                                            defer.count();
-                                        }
-                                    });
+                                    int relSize = relationIndexed.size();
+                                    for (int k = 0; k < relSize; k++) {
+                                        worlds.add(casted.world());
+                                        times.add(casted.time());
+                                        ids.add(relationIndexed.getByIndex(k));
+                                    }
                                 }
-                            } else {
-                                defer.count();
                             }
                             break;
                         default:
@@ -123,24 +117,70 @@ class ActionTraverseOrAttribute implements Action {
                             if (resolved != null) {
                                 finalResult.add(resolved);
                             }
-                            casted.free();
-                            defer.count();
                             break;
                     }
+                    casted.free();
                 } else {
-                    //TODO add closable management
                     finalResult.add(loop);
-                    defer.count();
                 }
             }
-            defer.then(new Job() {
-                @Override
-                public void run() {
-                    //optimization to avoid iterating again on previous result set
-                    previousResult.clear();
-                    ctx.continueWith(finalResult);
-                }
-            });
+            if (ids.size() == 0) {
+                previousResult.clear();
+                ctx.continueWith(finalResult);
+            } else {
+                resolver.lookupBatch(worlds.all(), times.all(), ids.all(), new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        for (int i = 0; i < result.length; i++) {
+                            final Node resolvedNode = result[i];
+                            if (resolvedNode != null) {
+                                if (query == null) {
+                                    finalResult.add(resolvedNode);
+                                } else {
+                                    final NodeState resolvedState = resolver.resolveState(resolvedNode);
+                                    boolean exact = true;
+                                    for (int j = 0; j < query.attributes().length; j++) {
+                                        Object obj = resolvedState.getAt(query.attributes()[j]);
+                                        if (query.values()[j] == null) {
+                                            if (obj != null) {
+                                                exact = false;
+                                                break;
+                                            }
+                                        } else {
+                                            if (obj == null) {
+                                                exact = false;
+                                                break;
+                                            } else {
+                                                if (obj instanceof long[]) {
+                                                    if (query.values()[j] instanceof long[]) {
+                                                        if (!Constants.longArrayEquals((long[]) query.values()[j], (long[]) obj)) {
+                                                            exact = false;
+                                                            break;
+                                                        }
+                                                    } else {
+                                                        exact = false;
+                                                        break;
+                                                    }
+                                                } else {
+                                                    if (!Constants.equals(query.values()[j].toString(), obj.toString())) {
+                                                        exact = false;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (exact) {
+                                        finalResult.add(resolvedNode);
+                                    }
+                                }
+                            }
+                        }
+                        previousResult.clear();
+                        ctx.continueWith(finalResult);
+                    }
+                });
+            }
         } else {
             ctx.continueTask();
         }

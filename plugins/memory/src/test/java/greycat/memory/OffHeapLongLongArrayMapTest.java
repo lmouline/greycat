@@ -15,7 +15,7 @@
  */
 package greycat.memory;
 
-import greycat.internal.chunk.AbstractLongLongArrayMapTest;
+import greycatTest.internal.chunk.AbstractLongLongArrayMapTest;
 import org.junit.After;
 import org.junit.Assert;
 

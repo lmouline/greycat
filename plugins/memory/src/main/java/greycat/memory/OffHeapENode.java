@@ -16,9 +16,9 @@
 package greycat.memory;
 
 import greycat.Constants;
+import greycat.Container;
 import greycat.Graph;
 import greycat.Type;
-import greycat.base.BaseNode;
 import greycat.internal.CoreConstants;
 import greycat.memory.primary.OffHeapDoubleArray;
 import greycat.memory.primary.OffHeapIntArray;
@@ -403,12 +403,34 @@ public class OffHeapENode implements ENode, OffHeapContainer {
         return internal_get(graph.resolver().stringToHash(name, false));
     }
 
+    @Override
+    public byte type(String name) {
+        return typeAt(graph.resolver().stringToHash(name, false));
+    }
+
+    @Override
+    public final byte typeAt(int key) {
+        long addr = _eGraph.addrByIndex(index);
+        long typeIndex = internal_find(key);
+        return type(addr, typeIndex);
+    }
+
+    @Override
+    public Container remove(String name) {
+        return removeAt(graph.resolver().stringToHash(name, false));
+    }
+
+    @Override
+    public Container removeAt(int index) {
+        internal_set(index, Type.INT, null, true, false);
+        return this;
+    }
+
     private Object internal_get(long p_key) {
         long addr = _eGraph.addrByIndex(index);
         if (addr == OffHeapConstants.NULL_PTR) {
             addr = allocate(addr, Constants.MAP_INITIAL_CAPACITY);
         }
-
         long size = OffHeapLongArray.get(addr, SIZE);
         //empty chunk, we return immediately
         if (size == 0) {
@@ -776,7 +798,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                         break;
                     }
                     case Type.DOUBLE: {
-                        if (!BaseNode.isNaN((double) elem)) {
+                        if (!Constants.isNaN((double) elem)) {
                             builder.append("\"");
                             builder.append(resolveName);
                             builder.append("\":");

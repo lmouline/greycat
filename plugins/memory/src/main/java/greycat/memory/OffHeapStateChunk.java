@@ -16,6 +16,7 @@
 package greycat.memory;
 
 import greycat.Constants;
+import greycat.Container;
 import greycat.Graph;
 import greycat.Type;
 import greycat.chunk.ChunkType;
@@ -147,7 +148,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
     }
 
     @Override
-    public final Object get(final int p_key) {
+    public final Object getAt(final int p_key) {
         Object result = null;
         lock();
         try {
@@ -163,8 +164,8 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
     }
 
     @Override
-    public final Object getFromKey(final String key) {
-        return get(space.graph().resolver().stringToHash(key, false));
+    public final Object get(final String key) {
+        return getAt(space.graph().resolver().stringToHash(key, false));
     }
 
     @Override
@@ -267,7 +268,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
     }
 
     @Override
-    public final Object getOrCreate(final int requestKey, final byte requestType) {
+    public final Object getOrCreateAt(final int requestKey, final byte requestType) {
         Object result;
         lock();
         try {
@@ -288,12 +289,12 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
     }
 
     @Override
-    public final Object getOrCreateFromKey(final String key, final byte elemType) {
-        return getOrCreate(space.graph().resolver().stringToHash(key, true), elemType);
+    public final Object getOrCreate(final String key, final byte elemType) {
+        return getOrCreateAt(space.graph().resolver().stringToHash(key, true), elemType);
     }
 
     @Override
-    public final void set(final int p_elementIndex, final byte p_elemType, final Object p_unsafe_elem) {
+    public final Container setAt(final int p_elementIndex, final byte p_elemType, final Object p_unsafe_elem) {
         if (p_elemType == Type.LONG_TO_LONG_MAP || p_elemType == Type.LONG_TO_LONG_ARRAY_MAP || p_elemType == Type.STRING_TO_INT_MAP || p_elemType == Type.RELATION || p_elemType == Type.RELATION_INDEXED || p_elemType == Type.DMATRIX || p_elemType == Type.LMATRIX) {
             throw new RuntimeException("Bad API usage ! Set are forbidden for Maps and Relationship , please use getOrCreate instead");
         }
@@ -303,25 +304,27 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
         } finally {
             unlock();
         }
+        return this;
     }
 
     @Override
-    public final void setFromKey(final String key, final byte p_elemType, final Object p_unsafe_elem) {
-        set(space.graph().resolver().stringToHash(key, true), p_elemType, p_unsafe_elem);
+    public Container remove(String name) {
+        return removeAt(space.graph().resolver().stringToHash(name, false));
     }
 
     @Override
-    public final <A> A getFromKeyWithDefault(final String key, final A defaultValue) {
-        final Object result = getFromKey(key);
-        if (result == null) {
-            return defaultValue;
-        } else {
-            return (A) result;
-        }
+    public Container removeAt(int index) {
+        return setAt(index, Type.INT, null);
     }
 
     @Override
-    public <A> A getWithDefault(int key, A defaultValue) {
+    public final Container set(final String key, final byte p_elemType, final Object p_unsafe_elem) {
+        setAt(space.graph().resolver().stringToHash(key, true), p_elemType, p_unsafe_elem);
+        return this;
+    }
+
+    @Override
+    public final <A> A getWithDefault(final String key, final A defaultValue) {
         final Object result = get(key);
         if (result == null) {
             return defaultValue;
@@ -331,7 +334,17 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
     }
 
     @Override
-    public final byte getType(final int p_key) {
+    public <A> A getAtWithDefault(int key, A defaultValue) {
+        final Object result = getAt(key);
+        if (result == null) {
+            return defaultValue;
+        } else {
+            return (A) result;
+        }
+    }
+
+    @Override
+    public final byte typeAt(final int p_key) {
         byte result = (byte) -1;
         lock();
         try {
@@ -349,8 +362,8 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
     }
 
     @Override
-    public byte getTypeFromKey(final String key) {
-        return getType(space.graph().resolver().stringToHash(key, false));
+    public byte type(final String key) {
+        return typeAt(space.graph().resolver().stringToHash(key, false));
     }
 
     @Override

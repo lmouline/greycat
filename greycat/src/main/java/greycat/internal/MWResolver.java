@@ -57,10 +57,10 @@ final class MWResolver implements Resolver {
 
     @Override
     public final void free() {
-        if(dictionary != null){
+        if (dictionary != null) {
             _space.free(dictionary);
         }
-        if(globalWorldOrderChunk != null){
+        if (globalWorldOrderChunk != null) {
             _space.free(globalWorldOrderChunk);
         }
     }
@@ -1446,9 +1446,9 @@ final class MWResolver implements Resolver {
     public int stringToHash(String name, boolean insertIfNotExists) {
         int hash = HashHelper.hash(name);
         if (insertIfNotExists) {
-            StringIntMap dictionaryIndex = (StringIntMap) this.dictionary.get(0);
+            StringIntMap dictionaryIndex = (StringIntMap) this.dictionary.getAt(0);
             if (dictionaryIndex == null) {
-                dictionaryIndex = (StringIntMap) this.dictionary.getOrCreate(0, Type.STRING_TO_INT_MAP);
+                dictionaryIndex = (StringIntMap) this.dictionary.getOrCreateAt(0, Type.STRING_TO_INT_MAP);
             }
             if (!dictionaryIndex.containsHash(hash)) {
                 dictionaryIndex.put(name, hash);
@@ -1459,7 +1459,7 @@ final class MWResolver implements Resolver {
 
     @Override
     public String hashToString(int key) {
-        final StringIntMap dictionaryIndex = (StringIntMap) this.dictionary.get(0);
+        final StringIntMap dictionaryIndex = (StringIntMap) this.dictionary.getAt(0);
         if (dictionaryIndex != null) {
             return dictionaryIndex.getByHash(key);
         }

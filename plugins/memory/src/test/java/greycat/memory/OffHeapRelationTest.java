@@ -15,7 +15,7 @@
  */
 package greycat.memory;
 
-import greycat.internal.chunk.AbstractRelationTest;
+import greycatTest.internal.chunk.AbstractRelationTest;
 import org.junit.After;
 import org.junit.Assert;
 

@@ -20,7 +20,7 @@ import greycat.GraphBuilder;
 import greycat.chunk.ChunkSpace;
 import greycat.chunk.ChunkType;
 import greycat.chunk.StateChunk;
-import greycat.internal.chunk.AbstractStateChunkTest;
+import greycatTest.internal.chunk.AbstractStateChunkTest;
 import greycat.plugin.Plugin;
 import greycat.scheduler.NoopScheduler;
 import greycat.struct.Buffer;

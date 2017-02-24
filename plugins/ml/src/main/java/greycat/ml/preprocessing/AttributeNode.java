@@ -101,26 +101,26 @@ public class AttributeNode extends BaseNode {
 
     private Double getAvg() {
         NodeState state = phasedState();
-        long totalVal = state.getFromKeyWithDefault(TOTAL_VALID, 0);
+        long totalVal = state.getWithDefault(TOTAL_VALID, 0);
         if (totalVal == 0) {
             return null;
         } else {
-            Double v = state.getFromKeyWithDefault(INTERNAL_SUM_KEY, 0.0);
+            Double v = state.getWithDefault(INTERNAL_SUM_KEY, 0.0);
             return v / totalVal;
         }
     }
 
     private Double getSigma() {
         NodeState state = phasedState();
-        long totalVal = state.getFromKeyWithDefault(TOTAL_VALID, 0);
+        long totalVal = state.getWithDefault(TOTAL_VALID, 0);
         if (totalVal < 1) {
             return null;
         } else {
-            double avg = state.getFromKeyWithDefault(INTERNAL_SUM_KEY, 0);
+            double avg = state.getWithDefault(INTERNAL_SUM_KEY, 0);
             avg = avg / totalVal;
             double correction = totalVal;
             correction = correction / (totalVal - 1);
-            double sumsq = state.getFromKeyWithDefault(INTERNAL_SUMSQUARE_KEY, 0.0);
+            double sumsq = state.getWithDefault(INTERNAL_SUMSQUARE_KEY, 0.0);
             double cov = (sumsq / totalVal - avg * avg) * correction;
             return Math.sqrt(cov);
         }
@@ -145,49 +145,45 @@ public class AttributeNode extends BaseNode {
         //Get the phase state now
         NodeState state = phasedState();
         //Set the value whatever it is
-        state.setFromKey(VALUE, Type.DOUBLE, v); //ToDo set on another subnode
+        state.set(VALUE, Type.DOUBLE, v); //ToDo set on another subnode
 
         //Check the total and uptade min max for the first time
-        long total = state.getFromKeyWithDefault(TOTAL, 0);
+        long total = state.getWithDefault(TOTAL, 0);
         if (total == 0) {
-            state.setFromKey(MIN_OBSERVED, Type.DOUBLE, v);
-            state.setFromKey(MAX_OBSERVED, Type.DOUBLE, v);
+            state.set(MIN_OBSERVED, Type.DOUBLE, v);
+            state.set(MAX_OBSERVED, Type.DOUBLE, v);
         }
-        state.setFromKey(TOTAL, Type.LONG, total + 1);
-
-
+        state.set(TOTAL, Type.LONG, total + 1);
         //Get tolerated bound
-        Double mintol = state.getFromKeyWithDefault(MIN_TOLERATED, null);
-        Double maxtol = state.getFromKeyWithDefault(MAX_TOLERATED, null);
-
-
-        Double minval = state.getFromKeyWithDefault(MIN_VALID, null);
-        Double maxval = state.getFromKeyWithDefault(MAX_VALID, null);
+        Double mintol = state.getWithDefault(MIN_TOLERATED, null);
+        Double maxtol = state.getWithDefault(MAX_TOLERATED, null);
+        Double minval = state.getWithDefault(MIN_VALID, null);
+        Double maxval = state.getWithDefault(MAX_VALID, null);
 
         //Check validity of the current insert
         boolean valid = checkValid(v, mintol, maxtol);
-        state.setFromKey(IS_VALID, Type.BOOL, valid);
+        state.set(IS_VALID, Type.BOOL, valid);
         if (valid) {
             //Update min, max valid
             if (minval == null || v < minval) {
-                state.setFromKey(MIN_VALID, Type.DOUBLE, v);
+                state.set(MIN_VALID, Type.DOUBLE, v);
             }
             if (maxval == null || v > maxval) {
-                state.setFromKey(MAX_VALID, Type.DOUBLE, v);
+                state.set(MAX_VALID, Type.DOUBLE, v);
             }
 
             //Update statistics:
-            double internalSum = state.getFromKeyWithDefault(INTERNAL_SUM_KEY, 0);
+            double internalSum = state.getWithDefault(INTERNAL_SUM_KEY, 0);
             internalSum += v;
-            state.setFromKey(INTERNAL_SUM_KEY, Type.DOUBLE, internalSum);
+            state.set(INTERNAL_SUM_KEY, Type.DOUBLE, internalSum);
 
-            double internalSumSq = state.getFromKeyWithDefault(INTERNAL_SUMSQUARE_KEY, 0);
+            double internalSumSq = state.getWithDefault(INTERNAL_SUMSQUARE_KEY, 0);
             internalSumSq += v * v;
-            state.setFromKey(INTERNAL_SUMSQUARE_KEY, Type.DOUBLE, internalSumSq);
+            state.set(INTERNAL_SUMSQUARE_KEY, Type.DOUBLE, internalSumSq);
 
-            long totalval = state.getFromKeyWithDefault(TOTAL_VALID, 0);
+            long totalval = state.getWithDefault(TOTAL_VALID, 0);
             totalval++;
-            state.setFromKey(TOTAL_VALID, Type.LONG, totalval);
+            state.set(TOTAL_VALID, Type.LONG, totalval);
         }
 
         if (callback != null) {

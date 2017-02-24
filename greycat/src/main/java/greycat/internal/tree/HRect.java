@@ -16,12 +16,12 @@
 package greycat.internal.tree;
 
 // Hyper-Rectangle class supporting KDTreeOld class
-class HRect {
+public class HRect {
 
     public double[] min;
     public double[] max;
 
-    HRect(double[] vmin, double[] vmax) {
+    public HRect(double[] vmin, double[] vmax) {
         min = new double[vmin.length];
         max = new double[vmax.length];
         System.arraycopy(vmin, 0, min, 0, vmin.length);
@@ -33,7 +33,7 @@ class HRect {
     }
 
     // from Moore's eqn. 6.6
-    double[] closest(double[] t) {
+    public double[] closest(double[] t) {
 
         double[] p = new double[t.length];
 
@@ -51,7 +51,7 @@ class HRect {
     }
 
     // used in initial conditions of KDTreeOld.nearest()
-    static HRect infiniteHRect(int d) {
+    public static HRect infiniteHRect(int d) {
         double[] vmin = new double[d];
         double[] vmax = new double[d];
         for (int i = 0; i < d; ++i) {

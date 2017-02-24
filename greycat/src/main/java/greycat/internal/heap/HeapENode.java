@@ -16,6 +16,7 @@
 package greycat.internal.heap;
 
 import greycat.Constants;
+import greycat.Container;
 import greycat.Graph;
 import greycat.Type;
 import greycat.base.BaseNode;
@@ -214,6 +215,18 @@ class HeapENode implements ENode, HeapContainer {
             return _v[found];
         }
         return null;
+    }
+
+    private byte internal_type(final int p_key) {
+        //empty chunk, we return immediately
+        if (_size == 0) {
+            return -1;
+        }
+        int found = internal_find(p_key);
+        if (found != -1) {
+            return _type[found];
+        }
+        return -1;
     }
 
     private void internal_set(final int p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
@@ -451,6 +464,18 @@ class HeapENode implements ENode, HeapContainer {
     }
 
     @Override
+    public Container remove(String name) {
+        internal_set(_eGraph.graph().resolver().stringToHash(name, true), Type.INT, null, true, false);
+        return this;
+    }
+
+    @Override
+    public Container removeAt(int index) {
+        internal_set(index, Type.INT, null, true, false);
+        return this;
+    }
+
+    @Override
     public Object get(String name) {
         return internal_get(_eGraph.graph().resolver().stringToHash(name, false));
     }
@@ -458,6 +483,16 @@ class HeapENode implements ENode, HeapContainer {
     @Override
     public Object getAt(int key) {
         return internal_get(key);
+    }
+
+    @Override
+    public byte type(String name) {
+        return internal_type(_eGraph.graph().resolver().stringToHash(name, false));
+    }
+
+    @Override
+    public byte typeAt(int key) {
+        return internal_type(key);
     }
 
     @Override
@@ -597,7 +632,7 @@ class HeapENode implements ENode, HeapContainer {
                         break;
                     }
                     case Type.DOUBLE: {
-                        if (!BaseNode.isNaN((double) elem)) {
+                        if (!Constants.isNaN((double) elem)) {
                             builder.append("\"");
                             builder.append(resolveName);
                             builder.append("\":");

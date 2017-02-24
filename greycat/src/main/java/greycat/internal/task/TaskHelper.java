@@ -123,7 +123,7 @@ public class TaskHelper {
             }
         }
         if (!escapteActivated) {
-            if(param!= null){
+            if (param != null) {
                 builder.writeString(param);
             }
         }
@@ -138,7 +138,6 @@ public class TaskHelper {
         builder.writeString(Type.typeName(type));
     }
 
-    //TODO inject escape char
     public static void serializeStringParams(String[] params, final Buffer builder) {
         for (int i = 0; i < params.length; i++) {
             if (i != 0) {

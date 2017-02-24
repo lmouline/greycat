@@ -15,7 +15,7 @@
  */
 package greycat.memory;
 
-import greycat.internal.memory.AbstractBufferTest;
+import greycatTest.internal.memory.AbstractBufferTest;
 import org.junit.After;
 import org.junit.Assert;
 

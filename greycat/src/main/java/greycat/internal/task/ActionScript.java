@@ -40,9 +40,7 @@ class ActionScript implements Action {
      * {@native ts
      * var isolation = function(script){
      * var variables = ctx.variables();
-     * for(var i=0;i<variables.length;i++){
-     * this[variables[i].left()] = variables[i].right();
-     * }
+     * for(var i=0;i<variables.length;i++){this[variables[i].left()] = variables[i].right();}
      * this['print'] = function(v){ctx.append(v+'\n');};
      * this['result'] = ctx.result();
      * return eval(script);

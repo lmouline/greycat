@@ -36,7 +36,7 @@ public class CoreQuery implements Query {
     private long _world = Constants.NULL_LONG;
     private long _time = Constants.NULL_LONG;
 
-    CoreQuery(Graph graph, Resolver p_resolver) {
+    public CoreQuery(Graph graph, Resolver p_resolver) {
         _graph = graph;
         _resolver = p_resolver;
         _hash = null;

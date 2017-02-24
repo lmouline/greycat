@@ -152,14 +152,14 @@ public class BaseNode implements Node {
     public Object get(String name) {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
-            return resolved.get(this._resolver.stringToHash(name, false));
+            return resolved.getAt(this._resolver.stringToHash(name, false));
         }
         return null;
     }
 
     @Override
     public Object getAt(int propIndex) {
-        return _resolver.resolveState(this).get(propIndex);
+        return _resolver.resolveState(this).getAt(propIndex);
     }
 
     @Override
@@ -171,7 +171,7 @@ public class BaseNode implements Node {
     public Node forceSetAt(int index, byte type, Object value) {
         final NodeState preciseState = this._resolver.alignState(this);
         if (preciseState != null) {
-            preciseState.set(index, type, value);
+            preciseState.setAt(index, type, value);
         } else {
             throw new RuntimeException(Constants.CACHE_MISS_ERROR);
         }
@@ -181,14 +181,14 @@ public class BaseNode implements Node {
     @Override
     public Node setAt(int index, byte type, Object value) {
         final NodeState unPhasedState = this._resolver.resolveState(this);
-        boolean isDiff = (type != unPhasedState.getType(index));
+        boolean isDiff = (type != unPhasedState.typeAt(index));
         if (!isDiff) {
-            isDiff = !isEquals(unPhasedState.get(index), value, type);
+            isDiff = !isEquals(unPhasedState.getAt(index), value, type);
         }
         if (isDiff) {
             final NodeState preciseState = this._resolver.alignState(this);
             if (preciseState != null) {
-                preciseState.set(index, type, value);
+                preciseState.setAt(index, type, value);
             } else {
                 throw new RuntimeException(Constants.CACHE_MISS_ERROR);
             }
@@ -274,17 +274,27 @@ public class BaseNode implements Node {
     public Object getOrCreateAt(int index, byte type) {
         final NodeState preciseState = this._resolver.alignState(this);
         if (preciseState != null) {
-            return preciseState.getOrCreate(index, type);
+            return preciseState.getOrCreateAt(index, type);
         } else {
             throw new RuntimeException(Constants.CACHE_MISS_ERROR);
         }
     }
 
     @Override
+    public <A> A getWithDefault(String key, A defaultValue) {
+        return this._resolver.alignState(this).getWithDefault(key, defaultValue);
+    }
+
+    @Override
+    public <A> A getAtWithDefault(int key, A defaultValue) {
+        return this._resolver.alignState(this).getAtWithDefault(key, defaultValue);
+    }
+
+    @Override
     public byte type(String name) {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
-            return resolved.getType(this._resolver.stringToHash(name, false));
+            return resolved.typeAt(this._resolver.stringToHash(name, false));
         }
         return -1;
     }
@@ -293,7 +303,7 @@ public class BaseNode implements Node {
     public byte typeAt(final int index) {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
-            return resolved.getType(index);
+            return resolved.typeAt(index);
         }
         return -1;
     }
@@ -320,9 +330,9 @@ public class BaseNode implements Node {
         }
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
-            switch (resolved.getType(relationIndex)) {
+            switch (resolved.typeAt(relationIndex)) {
                 case Type.RELATION:
-                    final Relation relation = (Relation) resolved.get(relationIndex);
+                    final Relation relation = (Relation) resolved.getAt(relationIndex);
                     if (relation == null || relation.size() == 0) {
                         callback.on(new Node[0]);
                     } else {
@@ -340,7 +350,7 @@ public class BaseNode implements Node {
                     }
                     break;
                 case Type.RELATION_INDEXED:
-                    final RelationIndexed relation_indexed = (RelationIndexed) resolved.get(relationIndex);
+                    final RelationIndexed relation_indexed = (RelationIndexed) resolved.getAt(relationIndex);
                     if (relation_indexed == null || relation_indexed.size() == 0) {
                         callback.on(new Node[0]);
                     } else {
@@ -373,10 +383,10 @@ public class BaseNode implements Node {
             if (preciseState != null) {
                 boolean attributesNotEmpty = (attributes != null && attributes.length > 0);
                 if (attributesNotEmpty) {
-                    RelationIndexed indexedRel = (RelationIndexed) preciseState.getOrCreate(relationIndex, Type.RELATION_INDEXED);
+                    RelationIndexed indexedRel = (RelationIndexed) preciseState.getOrCreateAt(relationIndex, Type.RELATION_INDEXED);
                     indexedRel.add(relatedNode, attributes);
                 } else {
-                    Relation relationArray = (Relation) preciseState.getOrCreate(relationIndex, Type.RELATION);
+                    Relation relationArray = (Relation) preciseState.getOrCreateAt(relationIndex, Type.RELATION);
                     relationArray.add(relatedNode.id());
                 }
             } else {
@@ -398,10 +408,10 @@ public class BaseNode implements Node {
             if (preciseState != null) {
                 boolean attributesNotEmpty = (attributes != null && attributes.length > 0);
                 if (attributesNotEmpty) {
-                    RelationIndexed indexedRel = (RelationIndexed) preciseState.getOrCreate(relationIndex, Type.RELATION_INDEXED);
+                    RelationIndexed indexedRel = (RelationIndexed) preciseState.getOrCreateAt(relationIndex, Type.RELATION_INDEXED);
                     indexedRel.remove(relatedNode, attributes);
                 } else {
-                    Relation relationArray = (Relation) preciseState.getOrCreate(relationIndex, Type.RELATION);
+                    Relation relationArray = (Relation) preciseState.getOrCreateAt(relationIndex, Type.RELATION);
                     relationArray.remove(relatedNode.id());
                 }
             } else {
@@ -463,20 +473,6 @@ public class BaseNode implements Node {
         return _resolver.getTimeSensitivity(this);
     }
 
-    /**
-     * @native ts
-     * return isNaN(toTest);
-     */
-    /**
-     * Tests if an element is Not A Number
-     *
-     * @param toTest the element to test
-     * @return false if the element is a number
-     */
-    public static boolean isNaN(double toTest) {
-        return Double.NaN == toTest;
-    }//TODO: Move to a utility class
-
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -533,7 +529,7 @@ public class BaseNode implements Node {
                                 break;
                             }
                             case Type.DOUBLE: {
-                                if (!isNaN((double) elem)) {
+                                if (!Constants.isNaN((double) elem)) {
                                     builder.append(",\"");
                                     builder.append(resolveName);
                                     builder.append("\":");

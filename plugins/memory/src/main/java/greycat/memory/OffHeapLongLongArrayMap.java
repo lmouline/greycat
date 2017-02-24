@@ -40,7 +40,7 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
         index = p_index;
     }
 
-    private static long key(final long addr, final long elemIndex) {
+    static long key(final long addr, final long elemIndex) {
         return OffHeapLongArray.get(addr, HEADER + (elemIndex * ELEM_SIZE));
     }
 
@@ -48,7 +48,7 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
         OffHeapLongArray.set(addr, HEADER + (elemIndex * ELEM_SIZE), newValue);
     }
 
-    private static long value(final long addr, final long elemIndex) {
+    static long value(final long addr, final long elemIndex) {
         return OffHeapLongArray.get(addr, HEADER + (elemIndex * ELEM_SIZE) + 1);
     }
 

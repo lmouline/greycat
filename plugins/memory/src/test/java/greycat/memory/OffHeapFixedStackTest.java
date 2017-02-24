@@ -16,7 +16,7 @@
 package greycat.memory;
 
 import greycat.chunk.Stack;
-import greycat.internal.chunk.AbstractFixedStackTest;
+import greycatTest.internal.chunk.AbstractFixedStackTest;
 import org.junit.Assert;
 import org.junit.Test;
 public class OffHeapFixedStackTest extends AbstractFixedStackTest {

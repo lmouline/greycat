@@ -15,7 +15,7 @@
  */
 package greycat.memory;
 
-import greycat.internal.chunk.AbstractStringIntMapTest;
+import greycatTest.internal.chunk.AbstractStringIntMapTest;
 import org.junit.After;
 import org.junit.Assert;
 

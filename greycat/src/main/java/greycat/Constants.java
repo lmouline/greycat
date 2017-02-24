@@ -152,5 +152,19 @@ public class Constants {
 
     public static boolean WIDE_WORLD = false;
 
+    /**
+     * @native ts
+     * return isNaN(toTest);
+     */
+    /**
+     * Tests if an element is Not A Number
+     *
+     * @param toTest the element to test
+     * @return false if the element is a number
+     */
+    public static boolean isNaN(double toTest) {
+        return Double.NaN == toTest;
+    }
+
 }
 

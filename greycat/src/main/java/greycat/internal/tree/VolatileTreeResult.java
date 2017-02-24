@@ -18,7 +18,7 @@ package greycat.internal.tree;
 import greycat.Type;
 import greycat.struct.*;
 
-class VolatileTreeResult implements ProfileResult {
+public class VolatileTreeResult implements ProfileResult {
 
     private static double maxPriority = Double.MAX_VALUE;
     private static int _KEYS = 1;
@@ -34,7 +34,7 @@ class VolatileTreeResult implements ProfileResult {
     private LMatrix _values;
     private DMatrix _distances;
 
-    VolatileTreeResult(ENode node, int capacity) {
+    public VolatileTreeResult(ENode node, int capacity) {
         this.node = node;
         this.count = 0;
         _keys = (DMatrix) node.getOrCreateAt(_KEYS, Type.DMATRIX);

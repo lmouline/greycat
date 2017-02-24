@@ -47,7 +47,7 @@ class HeapRelationIndexed extends HeapLongLongArrayMap implements RelationIndexe
         final NodeState toIndexNodeState = node.graph().resolver().resolveState(node);
         for (int i = 0; i < attributeNames.length; i++) {
             final String attKey = attributeNames[i];
-            final Object attValue = toIndexNodeState.getFromKey(attKey);
+            final Object attValue = toIndexNodeState.get(attKey);
             if (attValue != null) {
                 flatQuery.add(attKey, attValue.toString());
             } else {
@@ -85,6 +85,26 @@ class HeapRelationIndexed extends HeapLongLongArrayMap implements RelationIndexe
     }
 
     @Override
+    public final long[] select(final String... params) {
+        final Query queryObj = _graph.newQuery();
+        String previous = null;
+        for (int i = 0; i < params.length; i++) {
+            if (previous != null) {
+                queryObj.add(previous, params[i]);
+                previous = null;
+            } else {
+                previous = params[i];
+            }
+        }
+        return selectByQuery(queryObj);
+    }
+
+    @Override
+    public final long[] selectByQuery(Query query) {
+        return get(query.hash());
+    }
+
+    @Override
     public void findByQuery(Query query, Callback<Node[]> callback) {
         final long[] foundIds = get(query.hash());
         if (foundIds == null) {
@@ -102,7 +122,7 @@ class HeapRelationIndexed extends HeapLongLongArrayMap implements RelationIndexe
                             final NodeState resolvedState = _graph.resolver().resolveState(resolvedNode);
                             boolean exact = true;
                             for (int j = 0; j < query.attributes().length; j++) {
-                                Object obj = resolvedState.get(query.attributes()[j]);
+                                Object obj = resolvedState.getAt(query.attributes()[j]);
                                 if (query.values()[j] == null) {
                                     if (obj != null) {
                                         exact = false;
@@ -148,6 +168,11 @@ class HeapRelationIndexed extends HeapLongLongArrayMap implements RelationIndexe
                 }
             });
         }
+    }
+
+    @Override
+    public long getByIndex(int index) {
+        return value(index);
     }
 
     @Override
