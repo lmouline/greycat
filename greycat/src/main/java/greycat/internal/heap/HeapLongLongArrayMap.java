@@ -277,40 +277,48 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
     @Override
     public final void put(final long insertKey, final long insertValue) {
         synchronized (parent) {
-            if (keys == null) {
-                reallocate(Constants.MAP_INITIAL_CAPACITY);
-                setKey(0, insertKey);
-                setValue(0, insertValue);
-                setHash((int) HashHelper.longHash(insertKey, capacity * 2), 0);
-                setNext(0, -1);
-                mapSize++;
+            internal_put(insertKey, insertValue, false);
+        }
+    }
+
+    private void internal_put(final long insertKey, final long insertValue, final boolean initial) {
+        if (keys == null) {
+            reallocate(Constants.MAP_INITIAL_CAPACITY);
+            setKey(0, insertKey);
+            setValue(0, insertValue);
+            setHash((int) HashHelper.longHash(insertKey, capacity * 2), 0);
+            setNext(0, -1);
+            mapSize++;
+            if (!initial) {
                 parent.declareDirty();
-            } else {
-                long hashCapacity = capacity * 2;
-                int insertKeyHash = (int) HashHelper.longHash(insertKey, hashCapacity);
-                int currentHash = hash(insertKeyHash);
-                int m = currentHash;
-                int found = -1;
-                while (m >= 0) {
-                    if (insertKey == key(m) && insertValue == value(m)) {
-                        found = m;
-                        break;
-                    }
-                    m = next(m);
+            }
+        } else {
+            long hashCapacity = capacity * 2;
+            int insertKeyHash = (int) HashHelper.longHash(insertKey, hashCapacity);
+            int currentHash = hash(insertKeyHash);
+            int m = currentHash;
+            int found = -1;
+            while (m >= 0) {
+                if (insertKey == key(m) && insertValue == value(m)) {
+                    found = m;
+                    break;
                 }
-                if (found == -1) {
-                    final int lastIndex = mapSize;
-                    if (lastIndex == capacity) {
-                        reallocate(capacity * 2);
-                        hashCapacity = capacity * 2;
-                        insertKeyHash = (int) HashHelper.longHash(insertKey, hashCapacity);
-                        currentHash = hash(insertKeyHash);
-                    }
-                    setKey(lastIndex, insertKey);
-                    setValue(lastIndex, insertValue);
-                    setHash((int) HashHelper.longHash(insertKey, capacity * 2), lastIndex);
-                    setNext(lastIndex, currentHash);
-                    mapSize++;
+                m = next(m);
+            }
+            if (found == -1) {
+                final int lastIndex = mapSize;
+                if (lastIndex == capacity) {
+                    reallocate(capacity * 2);
+                    hashCapacity = capacity * 2;
+                    insertKeyHash = (int) HashHelper.longHash(insertKey, hashCapacity);
+                    currentHash = hash(insertKeyHash);
+                }
+                setKey(lastIndex, insertKey);
+                setValue(lastIndex, insertValue);
+                setHash((int) HashHelper.longHash(insertKey, capacity * 2), lastIndex);
+                setNext(lastIndex, currentHash);
+                mapSize++;
+                if (!initial) {
                     parent.declareDirty();
                 }
             }
@@ -335,7 +343,7 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
                         waitingVal = true;
                     } else {
                         waitingVal = false;
-                        put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                        internal_put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor), true);
                     }
                 }
                 previous = cursor + 1;
@@ -349,7 +357,7 @@ class HeapLongLongArrayMap implements LongLongArrayMap {
             reallocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
         } else {
             if (waitingVal) {
-                put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                internal_put(previousKey, Base64.decodeToLongWithBounds(buffer, previous, cursor), true);
             }
         }
         return cursor;
