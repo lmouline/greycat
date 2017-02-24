@@ -139,8 +139,8 @@ public class GaussianSlotsNode extends BaseNode {
     private int getSlotNumber(){
         long t = time();
         NodeState resolved = unphasedState();
-        int slots = resolved.getFromKeyWithDefault(NUMBER_OF_SLOTS, NUMBER_OF_SLOTS_DEF);
-        long period = resolved.getFromKeyWithDefault(PERIOD_SIZE, PERIOD_SIZE_DEF);
+        int slots = resolved.getWithDefault(NUMBER_OF_SLOTS, NUMBER_OF_SLOTS_DEF);
+        long period = resolved.getWithDefault(PERIOD_SIZE, PERIOD_SIZE_DEF);
         return getIntTime(t, slots, period);
     }
 
