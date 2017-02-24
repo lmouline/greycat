@@ -19,8 +19,8 @@ import greycat.Type;
 import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.layer.Layers;
-import greycat.ml.neuralnet.learner.Learner;
-import greycat.ml.neuralnet.learner.Learners;
+import greycat.ml.neuralnet.optimiser.Optimiser;
+import greycat.ml.neuralnet.optimiser.Optimisers;
 import greycat.ml.neuralnet.loss.Loss;
 import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.process.ExMatrix;
@@ -34,7 +34,7 @@ public class NeuralNet {
 
     private static final String TRAIN_LOSS = "train_loss";
     private static final String REPORTING_LOSS = "reporting_loss";
-    private static final String LEARNER = "learner";
+    private static final String LEARNER = "optimiser";
     private static final String SEED = "seed";
     private static final String STD = "std";
     private static final double STD_DEF = 0.08;
@@ -45,7 +45,7 @@ public class NeuralNet {
     private Layer[] layers;
     private Loss tarinLoss;
     private Loss reportingLoss;
-    private Learner learner;
+    private Optimiser learner;
 
     private Random random;
     private double std;
@@ -68,7 +68,7 @@ public class NeuralNet {
 
         tarinLoss = Losses.getUnit(root.getWithDefault(TRAIN_LOSS, Losses.DEFAULT));
         reportingLoss = Losses.getUnit(root.getWithDefault(REPORTING_LOSS, Losses.DEFAULT));
-        learner = Learners.getUnit(root.getWithDefault(LEARNER, Learners.DEFAULT), backend.root());
+        learner = Optimisers.getUnit(root.getWithDefault(LEARNER, Optimisers.DEFAULT), backend.root());
         random = new Random();
         random.setSeed(root.getWithDefault(SEED, System.currentTimeMillis()));
         std = root.getWithDefault(STD, STD_DEF);
@@ -99,7 +99,7 @@ public class NeuralNet {
 
 
     public void setLearner(int learner, double[] learnerParams, int frequency) {
-        this.learner = Learners.getUnit(learner, root);
+        this.learner = Optimisers.getUnit(learner, root);
         if(learnerParams!=null) {
             this.learner.setParams(learnerParams);
         }

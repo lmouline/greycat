@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.learner;
+package greycat.ml.neuralnet.optimiser;
 
 import greycat.struct.ENode;
 
 /**
  * Created by assaad on 13/02/2017.
  */
-public class Learners {
+public class Optimisers {
     public static final int GRADIENT_DESCENT = 0;
     public static final int RMSPROP = 1;
     public static final int MOMENTUM = 2;
@@ -30,7 +30,7 @@ public class Learners {
     public static final int DEFAULT = GRADIENT_DESCENT;
 
 
-    public static Learner getUnit(int learnerUnit, ENode root) {
+    public static Optimiser getUnit(int learnerUnit, ENode root) {
         switch (learnerUnit) {
             case GRADIENT_DESCENT:
                 return new GradientDescent(root);

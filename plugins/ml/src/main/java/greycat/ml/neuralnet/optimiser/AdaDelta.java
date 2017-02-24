@@ -13,20 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.learner;
+package greycat.ml.neuralnet.optimiser;
 
 import greycat.ml.neuralnet.layer.Layer;
+import greycat.struct.ENode;
 
 /**
- * Created by assaad on 13/02/2017.
+ * Created by assaad on 17/02/2017.
  */
-public interface Learner {
-    void setFrequency(int n);
+public class AdaDelta extends AbstractOptimiser {
+    AdaDelta(ENode backend) {
+        super(backend);
+    }
 
-    void setParams(double[] params);
+    @Override
+    public void setParams(double[] params) {
 
+    }
 
-    void stepUpdate(Layer[] layers);
+    @Override
+    protected void update(Layer[] layers) {
 
-    void finalUpdate(Layer[] layers);
+    }
 }

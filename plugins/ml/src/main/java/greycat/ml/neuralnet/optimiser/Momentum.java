@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.learner;
+package greycat.ml.neuralnet.optimiser;
 
 
 import greycat.Type;
@@ -23,45 +23,62 @@ import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
 import greycat.struct.ENode;
 
-class GradientDescent extends AbstractLearner {
+class Momentum extends AbstractOptimiser {
 
-    GradientDescent(ENode backend) {
+    static final String DECAY_RATE = "decayrate";
+    static final double DECAY_RATE_DEF = 0.9;
+
+    double decayRate;
+
+
+    Momentum(ENode backend) {
         super(backend);
+        decayRate = backend.getWithDefault(DECAY_RATE, DECAY_RATE_DEF);
+    }
+
+    //param[0] => learning rate
+    //param[1] => regularization rate
+    //param[3] => decay Rate
+    @Override
+    public void setParams(double[] params) {
+        if (params.length != 3) {
+            throw new RuntimeException("Gradient descent needs 3 params: {learning rate, regularization rate, decay Rate}");
+        }
+        learningRate = params[0];
+        regularization = params[1];
+        decayRate = params[2];
+
+        _backend.set(LEARNING_RATE, Type.DOUBLE, learningRate);
+        _backend.set(REGULARIZATION_RATE, Type.DOUBLE, regularization);
+        _backend.set(DECAY_RATE, Type.DOUBLE, decayRate);
     }
 
 
-    // w= reg * w -learning * dw
-    //
+    //sc = decay * sc + learning * dw
+    //w = reg*w - sc
     @Override
     protected void update(Layer[] layers) {
         DMatrix w;
         DMatrix dw;
+        DMatrix sc;
 
         double reg = 1 - learningRate * regularization / steps;
-        double stepsize = -learningRate / steps;
+        double stepsize = learningRate / steps;
 
         for (int i = 0; i < layers.length; i++) {
             ExMatrix[] weights = layers[i].getLayerParameters();
             for (int j = 0; j < weights.length; j++) {
                 w = weights[j].getW();
                 dw = weights[j].getDw();
+                sc = weights[j].getStepCache();
+
+                MatrixOps.addInPlace(sc, decayRate, dw, stepsize);
 
                 //w= (1- learningRate * regularization / samples ) * w - learningRate * dw / samples ;
                 //Ref: https://www.coursera.org/learn/machine-learning/lecture/QrMXd/regularized-linear-regression
-                MatrixOps.addInPlace(w, reg, dw, stepsize);
+                MatrixOps.addInPlace(w, reg, sc, -1);
                 dw.fill(0);
             }
         }
-    }
-
-    @Override
-    public void setParams(double[] params) {
-        if (params.length != 2) {
-            throw new RuntimeException("Gradient descent needs 2 params: {learning rate, regularization rate}");
-        }
-        learningRate = params[0];
-        regularization = params[1];
-        _backend.set(LEARNING_RATE, Type.DOUBLE, learningRate);
-        _backend.set(REGULARIZATION_RATE, Type.DOUBLE, regularization);
     }
 }

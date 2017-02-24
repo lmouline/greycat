@@ -47,7 +47,7 @@ public class BugTest {
                         ENode enode1 = eg1.root();
                         int total= (int) enode1.get("total");
                         enode1.set("total", Type.INT,total+1);
-                        double[] sum= (double[]) enode1.get("sum");
+                        double[] sum= ((double[]) enode1.get("sum"));
                         sum[0]++;
                         sum[1]++;
                         sum[2]++;

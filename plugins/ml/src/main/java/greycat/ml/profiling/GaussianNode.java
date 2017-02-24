@@ -51,9 +51,16 @@ public class GaussianNode extends BaseNode {
         }
     }
 
+    private void invalidate(){
+        egraph=null;
+        backend=null;
+    }
+
     @Override
     public Node set(String name, byte type, Object value) {
-        if (!load()) {
+        rephase();
+        invalidate();
+        if(!load()){
             egraph = (EGraph) super.getOrCreate(BACKEND, Type.EGRAPH);
             backend = new GaussianENode(egraph.newNode());
         }

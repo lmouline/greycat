@@ -24,6 +24,7 @@ import greycat.struct.EGraph;
 import greycat.utility.Enforcer;
 
 public class GaussianSlotsNode extends BaseNode {
+    public final static String NAME = "GaussianSlotsNode";
 
     private static final String GSEGRAPH = "gsegraph";
 

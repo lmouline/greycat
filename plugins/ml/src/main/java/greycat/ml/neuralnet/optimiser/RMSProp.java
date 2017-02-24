@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.learner;
+package greycat.ml.neuralnet.optimiser;
 
 import greycat.Type;
 import greycat.ml.neuralnet.layer.Layer;
@@ -21,7 +21,7 @@ import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
 import greycat.struct.ENode;
 
-class RMSProp extends AbstractLearner {
+class RMSProp extends AbstractOptimiser {
 
 
     static final String SMOOTH_EPSILON = "smoothepsilon";

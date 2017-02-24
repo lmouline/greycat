@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.learner;
+package greycat.ml.neuralnet.optimiser;
 
 import greycat.Type;
 import greycat.ml.neuralnet.layer.Layer;
@@ -25,7 +25,7 @@ import greycat.struct.ENode;
 // to implement the update method and take into account the steps that
 // have passed since the last update
 
-abstract class AbstractLearner implements Learner {
+abstract class AbstractOptimiser implements Optimiser {
 
     protected static final String LEARNING_RATE = "learningrate";
     private static final double LEARNING_RATE_DEF = 0.001;
@@ -45,7 +45,7 @@ abstract class AbstractLearner implements Learner {
     protected ENode _backend;
 
 
-    AbstractLearner(ENode backend) {
+    AbstractOptimiser(ENode backend) {
         this._backend = backend;
         learningRate = backend.getWithDefault(LEARNING_RATE, LEARNING_RATE_DEF);
         regularization = backend.getWithDefault(REGULARIZATION_RATE, REGULARIZATION_RATE_DEF);

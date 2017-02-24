@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.neuralnet.learner;
+package greycat.ml.neuralnet.optimiser;
 
 import greycat.Type;
 import greycat.ml.common.matrix.MatrixOps;
@@ -25,7 +25,7 @@ import greycat.struct.ENode;
 /**
  * Created by assaad on 17/02/2017.
  */
-class Nesterov extends AbstractLearner {
+class Nesterov extends AbstractOptimiser {
 
     static final String DECAY_RATE = "decayrate";
     static final double DECAY_RATE_DEF = 0.9;
