@@ -85,7 +85,7 @@ public class TestCalc {
         ExMatrix o2 = add(o2temp, bias2);
         ExMatrix actualOutput = activation(sigmoid, o2);
 
-        double err = sumsq.forward(actualOutput, targetOutput);
+        DMatrix err = sumsq.forward(actualOutput, targetOutput);
         //till here
 
         System.out.println("");

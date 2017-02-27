@@ -16,7 +16,9 @@
 package greycat.ml.neuralnet.loss;
 
 import greycat.ml.common.matrix.MatrixOps;
+import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.process.ExMatrix;
+import greycat.struct.DMatrix;
 
 class SumOfSquares implements Loss {
 
@@ -41,14 +43,15 @@ class SumOfSquares implements Loss {
     }
 
     @Override
-    public double forward(ExMatrix actualOutput, ExMatrix targetOutput) {
+    public DMatrix forward(ExMatrix actualOutput, ExMatrix targetOutput) {
         MatrixOps.testDim(actualOutput,targetOutput);
-        double sum = 0;
+        DMatrix res= VolatileDMatrix.empty(actualOutput.rows(),actualOutput.columns());
         int len = targetOutput.length();
+        double errDelta;
         for (int i = 0; i < len; i++) {
-            double errDelta = actualOutput.unsafeGet(i) - targetOutput.unsafeGet(i);
-            sum += 0.5 * errDelta * errDelta;
+            errDelta = actualOutput.unsafeGet(i) - targetOutput.unsafeGet(i);
+            res.unsafeSet(i,0.5 * errDelta * errDelta);
         }
-        return sum;
+        return res;
     }
 }

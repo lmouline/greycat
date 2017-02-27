@@ -16,7 +16,9 @@
 package greycat.ml.neuralnet.loss;
 
 import greycat.ml.common.matrix.MatrixOps;
+import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.process.ExMatrix;
+import greycat.struct.DMatrix;
 
 class MultiDimensionalBinary implements Loss {
 
@@ -36,20 +38,20 @@ class MultiDimensionalBinary implements Loss {
     }
 
     @Override
-    public double forward(ExMatrix actualOutput, ExMatrix targetOutput) {
+    public DMatrix forward(ExMatrix actualOutput, ExMatrix targetOutput) {
         MatrixOps.testDim(actualOutput,targetOutput);
-        int wlen = actualOutput.length();
+        DMatrix res = VolatileDMatrix.empty(actualOutput.rows(), actualOutput.columns());
 
+        DMatrix wa=actualOutput.getW();
+        DMatrix wt=targetOutput.getW();
+        int len= actualOutput.length();
 
-        for (int i = 0; i < wlen; i++) {
-            if (targetOutput.unsafeGet(i) >= 0.5 && actualOutput.unsafeGet(i) < 0.5) {
-                return 1;
-            }
-            if (targetOutput.unsafeGet(i) < 0.5 && actualOutput.unsafeGet(i) >= 0.5) {
-                return 1;
+        for(int i=0;i<len;i++){
+            if ((wt.unsafeGet(i) >= 0.5 && wa.unsafeGet(i) < 0.5) || (wt.unsafeGet(i) < 0.5 && wa.unsafeGet(i) >= 0.5) ){
+                res.unsafeSet(i,1);
             }
         }
-        return 0;
+        return res;
     }
 
 }

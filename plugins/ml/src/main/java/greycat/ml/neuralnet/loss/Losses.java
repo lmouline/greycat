@@ -15,6 +15,8 @@
  */
 package greycat.ml.neuralnet.loss;
 
+import greycat.struct.DMatrix;
+
 public class Losses {
     public static final int SUM_OF_SQUARES = 0;
     public static final int SOFTMAX = 1;
@@ -36,5 +38,40 @@ public class Losses {
                 return MultiDimensionalBinary.instance();
         }
         return getUnit(DEFAULT);
+    }
+
+
+    public static double[] sumOverOutputs(DMatrix losses) {
+        double[] res = new double[losses.columns()];
+        for (int i = 0; i < losses.columns(); i++) {
+            for (int j = 0; j < losses.rows(); j++) {
+                res[i] += losses.get(j, i);
+            }
+        }
+        return res;
+    }
+
+    public static double sumOfLosses(DMatrix losses) {
+        double res = 0;
+        int len = losses.length();
+        for (int i = 0; i < len; i++) {
+            res += losses.unsafeGet(i);
+        }
+        return res;
+    }
+
+    public static double avgOfLosses(DMatrix losses) {
+        return sumOfLosses(losses)/losses.length();
+    }
+
+    public static double[] avgLossPerOutput(DMatrix losses) {
+        double[] res = new double[losses.columns()];
+        for (int i = 0; i < losses.columns(); i++) {
+            for (int j = 0; j < losses.rows(); j++) {
+                res[i] += losses.get(j, i);
+            }
+            res[i] = res[i] / losses.columns();
+        }
+        return res;
     }
 }

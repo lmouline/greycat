@@ -21,6 +21,7 @@ import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.layer.Layers;
 import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.optimiser.Optimisers;
+import greycat.struct.DMatrix;
 import greycat.struct.EGraph;
 import org.junit.Assert;
 import org.junit.Test;
@@ -70,7 +71,7 @@ public class TestNN {
                         inputSet[j] = random.nextDouble();
                         outputSet[0] += inputSet[j] * j;
                     }
-                    double err = net.learn(inputSet, outputSet);
+                    DMatrix err = net.learn(inputSet, outputSet,true);
 
                     if (i % 100 == 0) {
                         System.out.println("Step " + i + " error: " + err);

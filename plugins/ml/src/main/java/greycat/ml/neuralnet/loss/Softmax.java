@@ -18,8 +18,10 @@ package greycat.ml.neuralnet.loss;
 import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.process.ExMatrix;
+import greycat.struct.DMatrix;
 
 
+//todo need fix on forward and backward
 class Softmax implements Loss {
 
 
@@ -46,12 +48,12 @@ class Softmax implements Loss {
     }
 
     @Override
-    public double forward(ExMatrix logprobs, ExMatrix targetOutput) {
+    public DMatrix forward(ExMatrix logprobs, ExMatrix targetOutput) {
         MatrixOps.testDim(logprobs,targetOutput);
         int targetIndex = getTargetIndex(targetOutput);
         VolatileDMatrix probs = getSoftmaxProbs(logprobs, 1.0);
         double cost = -Math.log(probs.unsafeGet(targetIndex)); //cost = -Math.log(probs.w[targetIndex]);
-        return cost;
+        return null;
     }
 
 

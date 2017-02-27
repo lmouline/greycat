@@ -17,11 +17,13 @@ package greycat.ml.neuralnet.loss;
 
 
 import greycat.ml.common.matrix.MatrixOps;
+import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.process.ExMatrix;
+import greycat.struct.DMatrix;
 
 class ArgMax implements Loss {
 
-    private static ArgMax static_unit= null;
+    private static ArgMax static_unit = null;
 
     public static ArgMax instance() {
         if (static_unit == null) {
@@ -37,36 +39,54 @@ class ArgMax implements Loss {
 
     }
 
+
+    //return wether or not for each training example, the maximum was the same 1 x training samples
+    //if actual arg max = target arg max -> 0
+    //else there is a loss -> 1
     @Override
-    public double forward(ExMatrix actualOutput, ExMatrix targetOutput) {
-        MatrixOps.testDim(actualOutput,targetOutput);
+    public DMatrix forward(ExMatrix actualOutput, ExMatrix targetOutput) {
+        MatrixOps.testDim(actualOutput, targetOutput);
 
-        double maxActual = Double.NEGATIVE_INFINITY;
-        double maxTarget = Double.NEGATIVE_INFINITY;
-        int indxMaxActual = -1;
-        int indxMaxTarget = -1;
+        double maxActual;
+        double maxTarget;
+        int indxMaxActual;
+        int indxMaxTarget;
+        double aw;
+        double tw;
 
 
+        DMatrix res = VolatileDMatrix.empty(1, actualOutput.columns());
 
+        if (actualOutput.rows() == 1) {
+            res.fill(0);
+            return res;
+        }
 
-        double[] w = actualOutput.data();
-        double[] tw = targetOutput.data();
+        for (int i = 0; i < actualOutput.columns(); i++) {
+            maxActual = actualOutput.get(0, i);
+            maxTarget = targetOutput.get(0, i);
+            indxMaxActual = 0;
+            indxMaxTarget = 0;
+            for (int j = 1; j < actualOutput.rows(); j++) {
+                aw = actualOutput.get(j, i);
+                tw = targetOutput.get(j, i);
+                if (aw > maxActual) {
+                    maxActual = aw;
+                    indxMaxActual = j;
+                }
 
-        for (int i = 0; i < w.length; i++) {
-            if (w[i] > maxActual) {
-                maxActual = w[i];
-                indxMaxActual = i;
+                if (tw > maxTarget) {
+                    maxTarget = tw;
+                    indxMaxTarget = j;
+                }
             }
-            if (tw[i] > maxTarget) {
-                maxTarget = tw[i];
-                indxMaxTarget = i;
+            if (indxMaxActual == indxMaxTarget) {
+                res.set(0, i, 0);
+            } else {
+                res.set(0, i, 1);
             }
         }
-        if (indxMaxActual == indxMaxTarget) {
-            return 0;
-        } else {
-            return 1;
-        }
+        return res;
     }
 
 }

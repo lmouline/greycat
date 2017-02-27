@@ -16,9 +16,10 @@
 package greycat.ml.neuralnet.loss;
 
 import greycat.ml.neuralnet.process.ExMatrix;
+import greycat.struct.DMatrix;
 
 public interface Loss {
     void backward(ExMatrix actualOutput, ExMatrix targetOutput);
 
-    double forward(ExMatrix actualOutput, ExMatrix targetOutput);
+    DMatrix forward(ExMatrix actualOutput, ExMatrix targetOutput);
 }

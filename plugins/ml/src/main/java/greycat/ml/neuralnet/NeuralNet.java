@@ -25,6 +25,7 @@ import greycat.ml.neuralnet.loss.Loss;
 import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
+import greycat.struct.DMatrix;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
 
@@ -100,7 +101,7 @@ public class NeuralNet {
 
     public void setLearner(int learner, double[] learnerParams, int frequency) {
         this.learner = Optimisers.getUnit(learner, root);
-        if(learnerParams!=null) {
+        if (learnerParams != null) {
             this.learner.setParams(learnerParams);
         }
         this.learner.setFrequency(frequency);
@@ -128,16 +129,29 @@ public class NeuralNet {
     }
 
 
-    public double learn(double[] inputs, double[] outputs) {
+    public DMatrix learn(double[] inputs, double[] outputs, boolean reportLoss) {
         ProcessGraph cg = new ProcessGraph(true);
         ExMatrix input = ExMatrix.createFromW(VolatileDMatrix.wrap(inputs, inputs.length, 1));
         ExMatrix targetOutput = ExMatrix.createFromW(VolatileDMatrix.wrap(outputs, outputs.length, 1));
         ExMatrix actualOutput = internalForward(cg, input);
-        double error = cg.applyLoss(tarinLoss, actualOutput, targetOutput);
+        DMatrix error = cg.applyLoss(tarinLoss, actualOutput, targetOutput, reportLoss);
         cg.backpropagate();
         learner.stepUpdate(layers);
         return error;
     }
+
+
+    public DMatrix learnVec(DMatrix inputs, DMatrix outputs, boolean reportLoss) {
+        ProcessGraph cg = new ProcessGraph(true);
+        ExMatrix input = ExMatrix.createFromW(inputs);
+        ExMatrix targetOutput = ExMatrix.createFromW(outputs);
+        ExMatrix actualOutput = internalForward(cg, input);
+        DMatrix error = cg.applyLoss(tarinLoss, actualOutput, targetOutput, reportLoss);
+        cg.backpropagate();
+        learner.stepUpdate(layers);
+        return error;
+    }
+
 
     public final void finalLearn() {
         learner.finalUpdate(layers);
@@ -169,7 +183,7 @@ public class NeuralNet {
         Layer[] temp = new Layer[layers.length + 1];
         System.arraycopy(layers, 0, temp, 0, layers.length);
         temp[layers.length] = layer;
-        layers=temp;
+        layers = temp;
     }
 
 }

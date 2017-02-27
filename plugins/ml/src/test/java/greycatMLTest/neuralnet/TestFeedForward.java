@@ -106,9 +106,9 @@ public class TestFeedForward {
                 //The calculation steps are here
 
 
-                double err = calcgraph.applyLoss(sumsq, actualOutput, ExMatrix.createFromW(targetOutput));
+                DMatrix err = calcgraph.applyLoss(sumsq, actualOutput, ExMatrix.createFromW(targetOutput),true);
                 //System.out.println("Error: "+err);
-                testdouble(err, 0.2983711087600027);
+                testdouble(Losses.sumOfLosses(err), 0.2983711087600027);
 
                 //Now the backpropagation step:
                 calcgraph.backpropagate();

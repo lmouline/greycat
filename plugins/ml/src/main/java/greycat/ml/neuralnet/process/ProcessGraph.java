@@ -107,8 +107,8 @@ public class ProcessGraph {
         return output;
     }
 
-    public final double applyLoss(final Loss lossUnit, final ExMatrix actualOutput, final ExMatrix targetOutput) {
-        double err = lossUnit.forward(actualOutput, targetOutput);
+    public final DMatrix applyLoss(final Loss lossUnit, final ExMatrix actualOutput, final ExMatrix targetOutput, final boolean calcForwardLoss) {
+
         if (this.applyBackprop) {
             ProcessStep bp = new ProcessStep() {
                 public void execute() {
@@ -117,7 +117,13 @@ public class ProcessGraph {
             };
             backprop.add(bp);
         }
-        return err;
+        if(calcForwardLoss){
+            DMatrix err = lossUnit.forward(actualOutput, targetOutput);
+            return err;
+        }
+        else {
+            return null;
+        }
     }
 
     public ExMatrix elmul(final ExMatrix matA, final ExMatrix matB) {
