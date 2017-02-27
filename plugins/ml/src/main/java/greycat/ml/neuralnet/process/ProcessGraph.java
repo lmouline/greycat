@@ -17,6 +17,7 @@ package greycat.ml.neuralnet.process;
 
 import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.common.matrix.TransposeType;
+import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.loss.Loss;
 import greycat.struct.DMatrix;
@@ -61,6 +62,21 @@ public class ProcessGraph {
             backprop.add(bp);
         }
         return out;
+    }
+
+
+    public final ExMatrix expand(final ExMatrix matA, final int numOfCol) {
+        if (numOfCol == 1) {
+            return matA;
+        } else {
+            if (matA.columns() != 1) {
+                throw new RuntimeException("This method does not support expansion for matrices with more than 1 column! ");
+            }
+            DMatrix ones = VolatileDMatrix.empty(1, numOfCol);
+            ones.fill(1);
+            final ExMatrix one = ExMatrix.createFromW(ones);
+            return mul(matA, one);
+        }
     }
 
 
@@ -117,11 +133,10 @@ public class ProcessGraph {
             };
             backprop.add(bp);
         }
-        if(calcForwardLoss){
+        if (calcForwardLoss) {
             DMatrix err = lossUnit.forward(actualOutput, targetOutput);
             return err;
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -241,7 +256,7 @@ public class ProcessGraph {
 
                     for (int i = 0; i < matB.rows(); i++) {
                         for (int j = 0; j < matB.columns(); j++) {
-                            bdw.set(i , j, outdw.get(i+r, j));
+                            bdw.set(i, j, outdw.get(i + r, j));
                         }
                     }
                 }

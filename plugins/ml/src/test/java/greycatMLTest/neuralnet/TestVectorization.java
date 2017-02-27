@@ -26,13 +26,14 @@ import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.optimiser.Optimisers;
 import greycat.struct.DMatrix;
 import greycat.struct.EGraph;
+import org.junit.Test;
 
 /**
  * Created by assaad on 27/02/2017.
  */
 public class TestVectorization {
 
-    //@Test
+    @Test
     public void vectorize() {
         Graph g = GraphBuilder.newBuilder().withPlugin(new MLPlugin()).build();
         g.connect(new Callback<Boolean>() {
@@ -44,10 +45,10 @@ public class TestVectorization {
                 int outputdim = 2;
 
                 //number of training set to generate
-                int trainset = 1000;
-                int rounds = 1000;
+                int trainset = 100;
+                int rounds = 10000;
 
-                double learningrate = 0.03;
+                double learningrate = 0.01;
                 double regularisation = 0;
                 boolean display=false;
 
@@ -61,7 +62,7 @@ public class TestVectorization {
                 EGraph egraph1 = (EGraph) node1.getOrCreate("nn1", Type.EGRAPH);
                 NeuralNet net1 = new NeuralNet(egraph1);
                 net1.setRandom(1234, 0.1);
-                net1.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
+                net1.addLayer(Layers.FEED_FORWARD_LAYER, inputdim, outputdim, Activations.LINEAR, null);
                 net1.setLearner(Optimisers.GRADIENT_DESCENT, new double[]{learningrate/trainset, regularisation}, 1);
                 net1.setTrainLoss(Losses.SUM_OF_SQUARES);
 
@@ -70,7 +71,7 @@ public class TestVectorization {
                 EGraph egraph2 = (EGraph) node2.getOrCreate("nn2", Type.EGRAPH);
                 NeuralNet net2 = new NeuralNet(egraph2);
                 net2.setRandom(1234, 0.1);
-                net2.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
+                net2.addLayer(Layers.FEED_FORWARD_LAYER, inputdim, outputdim, Activations.LINEAR, null);
                 net2.setLearner(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 0);
                 net2.setTrainLoss(Losses.SUM_OF_SQUARES);
 

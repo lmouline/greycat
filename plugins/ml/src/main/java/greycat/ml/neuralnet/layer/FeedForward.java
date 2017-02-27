@@ -83,7 +83,7 @@ class FeedForward implements Layer {
 
     @Override
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {
-        ExMatrix sum = g.add(g.mul(weights, input), bias);
+        ExMatrix sum = g.add(g.mul(weights, input), g.expand(bias,input.columns()));
         ExMatrix out = g.activate(activation, sum);
         return out;
     }
