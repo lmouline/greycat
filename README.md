@@ -8,8 +8,8 @@ For any questions please contact us via our Gitter:
 
 # Changelog
 
-## Version 4 (03/03/17)
-    - fix free bug in **flat** task action
+## Version 4 (planned for 03/03/17)
+    - fix free bug in flat task action
 ## Version 3 (27/02/17)
     - fix apriori dirty element on get
     - fix dirty flag after remote state chunk load *(need global check)*
