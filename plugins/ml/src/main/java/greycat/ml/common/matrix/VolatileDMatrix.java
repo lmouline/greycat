@@ -219,9 +219,12 @@ public class VolatileDMatrix implements DMatrix {
     }*/
 
 
-    public static DMatrix random(int rows, int columns, double min, double max) {
+    public static DMatrix random(int rows, int columns, long seed, double min, double max) {
         VolatileDMatrix res = new VolatileDMatrix(null, rows, columns);
         Random rand = new Random();
+        if(seed!=0){
+            rand.setSeed(seed);
+        }
         for (int i = 0; i < rows * columns; i++) {
             res.unsafeSet(i, rand.nextDouble() * (max - min) + min);
         }

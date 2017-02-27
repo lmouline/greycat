@@ -65,10 +65,10 @@ public class Losses {
     }
 
     public static double[] avgLossPerOutput(DMatrix losses) {
-        double[] res = new double[losses.columns()];
-        for (int i = 0; i < losses.columns(); i++) {
-            for (int j = 0; j < losses.rows(); j++) {
-                res[i] += losses.get(j, i);
+        double[] res = new double[losses.rows()];
+        for (int i = 0; i < losses.rows(); i++) {
+            for (int j = 0; j < losses.columns(); j++) {
+                res[i] += losses.get(i, j);
             }
             res[i] = res[i] / losses.columns();
         }

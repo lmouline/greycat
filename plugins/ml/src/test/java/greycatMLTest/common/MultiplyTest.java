@@ -60,8 +60,8 @@ public class MultiplyTest {
         int r = 30;
         int o = 30;
         int p = 30;
-        DMatrix matA = VolatileDMatrix.random(r, o, 0, 100);
-        DMatrix matB = VolatileDMatrix.random(o, p, 0, 100);
+        DMatrix matA = VolatileDMatrix.random(r, o, 0, 0, 100);
+        DMatrix matB = VolatileDMatrix.random(o, p, 0, 0, 100);
 
         DMatrix result = engine.multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1, matA, TransposeType.NOTRANSPOSE, matB, 0, null);
         DMatrix matD = manualMultpily(matA, matB);
