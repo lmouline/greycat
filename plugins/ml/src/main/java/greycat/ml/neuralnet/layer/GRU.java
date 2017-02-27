@@ -121,6 +121,9 @@ class GRU implements Layer {
 
     @Override
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {
+        if (input.columns() != 1) {
+            throw new RuntimeException("GRU can't process more than 1 input vector at a time!");
+        }
 
         ExMatrix sum0 = g.mul(ihmix, input);
         ExMatrix sum1 = g.mul(hhmix, context);

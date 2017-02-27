@@ -80,6 +80,10 @@ class RNN implements Layer {
 
     @Override
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {
+        if (input.columns() != 1) {
+            throw new RuntimeException("RNN can't process more than 1 input vector at a time!");
+        }
+
         ExMatrix concat = g.concatVectors(input, context);
 
         ExMatrix sum = g.mul(weights, concat);

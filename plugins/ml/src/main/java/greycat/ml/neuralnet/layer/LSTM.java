@@ -143,6 +143,11 @@ class LSTM implements Layer {
 
     @Override
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {
+
+        if (input.columns() != 1) {
+            throw new RuntimeException("LSTM can't process more than 1 input vector at a time!");
+        }
+
         //input gate
         ExMatrix sum0 = g.mul(wix, input);
         ExMatrix sum1 = g.mul(wih, hiddenContext);
