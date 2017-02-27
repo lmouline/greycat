@@ -45,10 +45,10 @@ public class TestVectorization {
                 int outputdim = 2;
 
                 //number of training set to generate
-                int trainset = 5;
-                int rounds = 10000;
+                int trainset = 1000;
+                int rounds = 100;
 
-                double learningrate = 0.01;
+                double learningrate = 0.1;
                 double regularisation = 0;
                 boolean display=false;
 
@@ -62,7 +62,7 @@ public class TestVectorization {
                 EGraph egraph1 = (EGraph) node1.getOrCreate("nn1", Type.EGRAPH);
                 NeuralNet net1 = new NeuralNet(egraph1);
                 net1.setRandom(1234, 0.1);
-                net1.addLayer(Layers.LSTM_LAYER, inputdim, outputdim, Activations.LINEAR, null);
+                net1.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
                 net1.setLearner(Optimisers.GRADIENT_DESCENT, new double[]{learningrate/trainset, regularisation}, 1);
                 net1.setTrainLoss(Losses.SUM_OF_SQUARES);
 
@@ -71,7 +71,7 @@ public class TestVectorization {
                 EGraph egraph2 = (EGraph) node2.getOrCreate("nn2", Type.EGRAPH);
                 NeuralNet net2 = new NeuralNet(egraph2);
                 net2.setRandom(1234, 0.1);
-                net2.addLayer(Layers.LSTM_LAYER, inputdim, outputdim, Activations.LINEAR, null);
+                net2.addLayer(Layers.LINEAR_LAYER, inputdim, outputdim, Activations.LINEAR, null);
                 net2.setLearner(Optimisers.GRADIENT_DESCENT, new double[]{learningrate, regularisation}, 0);
                 net2.setTrainLoss(Losses.SUM_OF_SQUARES);
 
