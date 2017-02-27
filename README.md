@@ -18,10 +18,12 @@ For any questions please contact us via our Gitter:
     - use J2TS-JUNIT (https://www.npmjs.com/search?q=j2ts-junit)
     - rename sub test package as greycatTest to avoid conflict for NPM
     - new RocksDB support for ARM-V7 processor
+    - closing #3 add TypeScript correct typing header to NPM
 ## Version 2 (17/02/17)
     - introduce new NPM packaging (https://www.npmjs.com/package/greycat)
     - use J2TS-JRE (https://www.npmjs.com/search?q=j2ts-junit)
     - rename base package as greycat
+    - closing #2
 ## Version 1
     - first release with the GreyCat name, mostly renamed from ManyWorldGraph project
     
