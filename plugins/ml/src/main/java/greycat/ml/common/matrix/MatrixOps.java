@@ -15,6 +15,7 @@
  */
 package greycat.ml.common.matrix;
 
+import greycat.ml.common.matrix.jamasolver.JamaMatrixEngine;
 import greycat.struct.DMatrix;
 
 import java.util.Random;
@@ -25,7 +26,7 @@ public class MatrixOps {
 
     public static MatrixEngine defaultEngine() {
         if (_defaultEngine == null) {
-            _defaultEngine = new HybridMatrixEngine();
+            _defaultEngine = new JamaMatrixEngine(); //todo return back to HybridMatrixEngine once blas is working in JS
         }
         return _defaultEngine;
     }
