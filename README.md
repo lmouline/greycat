@@ -14,7 +14,9 @@ For any questions please contact us via our Gitter:
     - fix apriori dirty element on get
     - fix dirty flat after remote load
     - switch test execution with full NPM management
+    
 ## Version 2 (17/02/17)
     - introduce new NPM packaging (https://www.npmjs.com/package/greycat)
+    - rename base package as greycat
 ## Version 1
     - first release with the GreyCat name, mostly renamed from ManyWorldGraph project
