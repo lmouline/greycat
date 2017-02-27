@@ -20,7 +20,7 @@ For any questions please contact us via our Gitter:
     - new RocksDB support for ARM-V7 processor
     - closing issue #3 add TypeScript correct typing header to NPM
 ## Version 2 (17/02/17)
-closed (#2)
+closed ([#2]((/../../issues/2)))
 
     - introduce new NPM packaging (https://www.npmjs.com/package/greycat)
     - use J2TS-JRE (https://www.npmjs.com/search?q=j2ts-junit)
