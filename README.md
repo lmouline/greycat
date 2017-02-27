@@ -17,6 +17,7 @@ For any questions please contact us via our Gitter:
     - switch test execution with full NPM management
     - use J2TS-JUNIT (https://www.npmjs.com/search?q=j2ts-junit)
     - rename sub test package as greycatTest to avoid conflict for NPM
+    - new RocksDB support for ARM-V7 processor
 ## Version 2 (17/02/17)
     - introduce new NPM packaging (https://www.npmjs.com/package/greycat)
     - use J2TS-JRE (https://www.npmjs.com/search?q=j2ts-junit)
