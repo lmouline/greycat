@@ -12,11 +12,15 @@ For any questions please contact us via our Gitter:
     - fix free bug in **flat** task action
 ## Version 3 (27/02/17)
     - fix apriori dirty element on get
-    - fix dirty flat after remote load
+    - fix dirty flag after remote state chunk load *(need global check)*
+    - fix dirty flag after remote timetree chunk load *(need global check)*
     - switch test execution with full NPM management
-    
+    - use J2TS-JUNIT (https://www.npmjs.com/search?q=j2ts-junit)
+    - rename sub test package as greycatTest to avoid conflict for NPM
 ## Version 2 (17/02/17)
     - introduce new NPM packaging (https://www.npmjs.com/package/greycat)
+    - use J2TS-JRE (https://www.npmjs.com/search?q=j2ts-junit)
     - rename base package as greycat
 ## Version 1
     - first release with the GreyCat name, mostly renamed from ManyWorldGraph project
+    
