@@ -49,9 +49,8 @@ class ActionFlat implements Action {
                         next.add(loop);
                     }
                 }
-
-
             }
+            result.clear();
             ctx.continueWith(next);
         }
     }
