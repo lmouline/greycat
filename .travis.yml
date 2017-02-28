@@ -6,9 +6,9 @@ notifications:
   email:
     recipients:
       - francois.fouquet@uni.lu
-      - gregory.nain@uni.lu
+      - gregory.nain@datathings.com
       - thomas.hartmann@uni.lu
-      - assaad.moawad@uni.lu
+      - assaad.moawad@datathings.com
     on_success: change
     on_failure: change
 
