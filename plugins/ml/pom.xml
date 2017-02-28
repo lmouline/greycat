@@ -178,7 +178,11 @@
                                     <arg value="install" />
                                 </exec>
                                 <exec executable="${basedir}/target/test-classes-npm/node_modules/typescript/bin/tsc" dir="${basedir}/target/test-classes-npm" failonerror="true" />
-                                <copy file="${basedir}/../../share/jasmine.js" todir="${basedir}/target/test-classes-npm" />
+                                <concat append="false" destfile="${basedir}/target/test-classes-npm/jasmine.js">
+                                    var Jasmine = require('jasmine');
+                                    var jasmine = new Jasmine();
+                                    jasmine.execute(['testsRunner.js']);
+                                </concat>
                                 <copy file="${basedir}/target/generated-test-sources/testsRunner.js" todir="${basedir}/target/test-classes-npm" />
                             </target>
                         </configuration>

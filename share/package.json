@@ -1,9 +1,0 @@
-{
-  "name": "mwg.generic.js",
-  "version": "1.0.0-SNAPSHOT",
-  "devDependencies": {
-    "typescript": "2.1.5",
-    "jasmine": "2.5.3",
-    "uglify-js": "2.7.5"
-  }
-}
