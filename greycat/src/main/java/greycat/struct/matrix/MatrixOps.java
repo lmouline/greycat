@@ -283,6 +283,21 @@ public class MatrixOps {
         return result;
     }
 
+    //todo can be vectorized
+    public static double compare(DMatrix matA, DMatrix matB) {
+        testDim(matA, matB);
+
+        double max = 0;
+        double temp;
+        int total = matA.length();
+        for (int i = 0; i < total; i++) {
+            temp = Math.abs(matA.unsafeGet(i) - matB.unsafeGet(i));
+            if (temp > max) {
+                max = temp;
+            }
+        }
+        return max;
+    }
 
     //todo can be vectorized
     //Hadamard Multiplication multiply 2 matrices elementwise A=[a,b,c] B=[x,y,z] -> result=[a.x, b.y, c.z]
