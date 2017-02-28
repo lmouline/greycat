@@ -25,6 +25,9 @@ import greycat.utility.Base64;
 import org.rocksdb.*;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class RocksDBStorage implements Storage {
 
@@ -41,7 +44,7 @@ public class RocksDBStorage implements Storage {
     private final String _storagePath;
 
     public RocksDBStorage(String storagePath) {
-        if(System.getProperty("os.arch").equals("arm")) {
+        if (System.getProperty("os.arch").equals("arm")) {
             LibraryLoader.loadArmLibrary("librocksdbjni-linux32");
         }
         RocksDB.loadLibrary();
@@ -55,6 +58,32 @@ public class RocksDBStorage implements Storage {
         }
         Buffer result = _graph.newBuffer();
         BufferIterator it = keys.iterator();
+        List<byte[]> query = new ArrayList<byte[]>();
+        while (it.hasNext()) {
+            Buffer view = it.next();
+            query.add(view.data());
+        }
+        try {
+            Map<byte[], byte[]> dbResult = _db.multiGet(query);
+            boolean isFirst = true;
+            for (int i = 0; i < query.size(); i++) {
+                if (!isFirst) {
+                    result.write(Constants.BUFFER_SEP);
+                } else {
+                    isFirst = false;
+                }
+                byte[] subResult = dbResult.get(query.get(i));
+                if (subResult != null) {
+                    result.writeAll(subResult);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (callback != null) {
+            callback.on(result);
+        }
+/*
         boolean isFirst = true;
         while (it.hasNext()) {
             Buffer view = it.next();
@@ -75,6 +104,7 @@ public class RocksDBStorage implements Storage {
         if (callback != null) {
             callback.on(result);
         }
+        */
     }
 
     @Override
@@ -197,7 +227,7 @@ public class RocksDBStorage implements Storage {
             _db.put(prefixKey, ((currentPrefix + 1) + "").getBytes());
             if (callback != null) {
                 Buffer newBuf = _graph.newBuffer();
-                Base64.encodeIntToBuffer(currentPrefix,newBuf);
+                Base64.encodeIntToBuffer(currentPrefix, newBuf);
                 callback.on(newBuf);
             }
         } catch (RocksDBException e) {
