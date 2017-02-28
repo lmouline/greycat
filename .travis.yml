@@ -8,8 +8,6 @@ notifications:
       - gregory.nain@uni.lu
       - thomas.hartmann@uni.lu
       - assaad.moawad@uni.lu
-      - ludovic.mouline@uni.lu
-      - andrey.boytsov@uni.lu
     on_success: change
     on_failure: change
 
@@ -17,8 +15,6 @@ notifications:
 branches:
   only:
     - master
-    - draftNewGenerator 
-
 env:
   - TRAVIS_NODE_VERSION="4"
 
