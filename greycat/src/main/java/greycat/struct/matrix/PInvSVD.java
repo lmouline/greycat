@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.common.matrix.operation;
+package greycat.struct.matrix;
 
-import greycat.ml.common.matrix.MatrixOps;
-import greycat.ml.common.matrix.SVDDecompose;
-import greycat.ml.common.matrix.TransposeType;
-import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.struct.DMatrix;
 
 public class PInvSVD {
@@ -36,10 +32,7 @@ public class PInvSVD {
     public double getDeterminant() {
         return det;
     }
-
-    public PInvSVD() {
-    }
-
+    
     public PInvSVD factor(DMatrix A, boolean invertInPlace) {
         _svd = MatrixOps.defaultEngine().decomposeSVD(A, invertInPlace);
         //We get UxSxVt

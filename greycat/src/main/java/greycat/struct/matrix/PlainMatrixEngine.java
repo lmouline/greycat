@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.common.matrix.jamasolver;
+package greycat.struct.matrix;
 
-import greycat.ml.common.matrix.*;
 import greycat.struct.DMatrix;
 
-public class JamaMatrixEngine implements MatrixEngine {
+public class PlainMatrixEngine implements MatrixEngine {
 
     @Override
     public DMatrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, DMatrix matA, TransposeType transB, DMatrix matB, double beta, DMatrix matC) {

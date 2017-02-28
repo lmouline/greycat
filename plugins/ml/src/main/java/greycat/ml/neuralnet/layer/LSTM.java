@@ -16,18 +16,16 @@
 package greycat.ml.neuralnet.layer;
 
 import greycat.Type;
-import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.ENode;
+import greycat.struct.matrix.MatrixOps;
+import greycat.struct.matrix.RandomGenerator;
 
 import java.util.Random;
 
-/**
- * Created by assaad on 14/02/2017.
- */
 class LSTM implements Layer {
 
     private static String WIX = "wix";
@@ -95,7 +93,7 @@ class LSTM implements Layer {
 
 
     @Override
-    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, Random random, double std) {
+    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomGenerator random, double std) {
         host.set(Layers.TYPE, Type.INT, Layers.LSTM_LAYER);
 
         wix.init(outputs, inputs);

@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.common.matrix.blassolver.blas;
+package greycat.struct.matrix;
 
-import greycat.ml.common.matrix.TransposeType;
+class Utils {
 
-public class BlasHelper {
-
-    private static final String TRANSPOSE_TYPE_CONJUCATE = "c";
-
-    private static final String TRANSPOSE_TYPE_NOTRANSPOSE = "n";
-
-    private static final String TRANSPOSE_TYPE_TRANSPOSE = "t";
-
-    public static String transTypeToChar(TransposeType type) {
-        if (type.equals(TransposeType.NOTRANSPOSE)) {
-            return TRANSPOSE_TYPE_NOTRANSPOSE;
-        } else if (type.equals(TransposeType.TRANSPOSE)) {
-            return TRANSPOSE_TYPE_TRANSPOSE;
+    /**
+     * sqrt(a^2 + b^2) without under/overflow.
+     **/
+    static double hypot(double a, double b) {
+        double r;
+        if (Math.abs(a) > Math.abs(b)) {
+            r = b / a;
+            r = Math.abs(a) * Math.sqrt(1 + r * r);
+        } else if (b != 0) {
+            r = a / b;
+            r = Math.abs(b) * Math.sqrt(1 + r * r);
+        } else {
+            r = 0.0;
         }
-        return null;
+        return r;
     }
 
 }

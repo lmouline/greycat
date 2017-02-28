@@ -15,9 +15,10 @@
  */
 package greycat.ml.common.matrix.operation;
 
-import greycat.ml.common.matrix.MatrixOps;
-import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.struct.DMatrix;
+import greycat.struct.matrix.MatrixOps;
+import greycat.struct.matrix.PInvSVD;
+import greycat.struct.matrix.VolatileDMatrix;
 
 public class MultivariateNormalDistribution {
 

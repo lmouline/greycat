@@ -16,7 +16,6 @@
 package greycatMLTest.neuralnet;
 
 import greycat.*;
-import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.layer.Layers;
@@ -27,17 +26,14 @@ import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
+import greycat.struct.matrix.VolatileDMatrix;
 import org.junit.Test;
 
 public class TestFeedForward {
     @Test
     public void testcalc() {
-
         //Simulating example found in: https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
-
-
         Graph g = GraphBuilder.newBuilder().build();
-
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {

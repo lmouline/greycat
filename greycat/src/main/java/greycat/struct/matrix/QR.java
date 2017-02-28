@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.common.matrix.jamasolver;
+package greycat.struct.matrix;
 
 
-import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.struct.DMatrix;
 
 /**

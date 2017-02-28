@@ -13,9 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.common.matrix;
+package greycat.struct.matrix;
 
-public enum TransposeType {
-    NOTRANSPOSE, TRANSPOSE
+import java.util.Random;
+
+public class RandomGenerator {
+
+    private Random random = new Random();
+
+    public final double nextDouble() {
+        return random.nextDouble();
+    }
+
+    public final double nextGaussian() {
+        return random.nextGaussian();
+    }
+
+    public final void setSeed(long seed) {
+        random.setSeed(seed);
+    }
+
 }
-

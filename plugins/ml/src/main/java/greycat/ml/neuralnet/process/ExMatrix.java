@@ -16,9 +16,9 @@
 package greycat.ml.neuralnet.process;
 
 import greycat.Type;
-import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.struct.DMatrix;
 import greycat.struct.ENode;
+import greycat.struct.matrix.VolatileDMatrix;
 
 public class ExMatrix implements DMatrix {
 

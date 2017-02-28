@@ -15,10 +15,10 @@
  */
 package greycat.ml.neuralnet.loss;
 
-import greycat.ml.common.matrix.MatrixOps;
-import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
+import greycat.struct.matrix.MatrixOps;
+import greycat.struct.matrix.VolatileDMatrix;
 
 class SumOfSquares implements Loss {
 
@@ -33,9 +33,7 @@ class SumOfSquares implements Loss {
 
     @Override
     public void backward(ExMatrix actualOutput, ExMatrix targetOutput) {
-
-        int len = targetOutput.length();
-
+        final int len = targetOutput.length();
         for (int i = 0; i < len; i++) {
             double errDelta = actualOutput.unsafeGet(i) - targetOutput.unsafeGet(i);  //double errDelta = actualOutput.w[i] - targetOutput.w[i];
             actualOutput.getDw().unsafeSet(i, actualOutput.getDw().unsafeGet(i) + errDelta); //actualOutput.dw[i] += errDelta;
@@ -44,13 +42,13 @@ class SumOfSquares implements Loss {
 
     @Override
     public DMatrix forward(ExMatrix actualOutput, ExMatrix targetOutput) {
-        MatrixOps.testDim(actualOutput,targetOutput);
-        DMatrix res= VolatileDMatrix.empty(actualOutput.rows(),actualOutput.columns());
+        MatrixOps.testDim(actualOutput, targetOutput);
+        DMatrix res = VolatileDMatrix.empty(actualOutput.rows(), actualOutput.columns());
         int len = targetOutput.length();
         double errDelta;
         for (int i = 0; i < len; i++) {
             errDelta = actualOutput.unsafeGet(i) - targetOutput.unsafeGet(i);
-            res.unsafeSet(i,0.5 * errDelta * errDelta);
+            res.unsafeSet(i, 0.5 * errDelta * errDelta);
         }
         return res;
     }

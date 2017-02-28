@@ -17,8 +17,6 @@ package greycatMLTest.neuralnet;
 
 import greycat.*;
 import greycat.ml.MLPlugin;
-import greycat.ml.common.matrix.MatrixOps;
-import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.NeuralNet;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.layer.Layers;
@@ -26,11 +24,10 @@ import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.optimiser.Optimisers;
 import greycat.struct.DMatrix;
 import greycat.struct.EGraph;
+import greycat.struct.matrix.MatrixOps;
+import greycat.struct.matrix.VolatileDMatrix;
 import org.junit.Test;
 
-/**
- * Created by assaad on 27/02/2017.
- */
 public class TestVectorization {
 
     @Test
@@ -51,7 +48,6 @@ public class TestVectorization {
                 double learningrate = 0.1;
                 double regularisation = 0;
                 boolean display=false;
-
 
                 DMatrix inputs = VolatileDMatrix.random(inputdim, trainset, 1234, -1, 1);
                 DMatrix linearsys = VolatileDMatrix.random(outputdim, inputdim, 1234,-2, 2);

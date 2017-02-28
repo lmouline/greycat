@@ -15,28 +15,19 @@
  */
 package greycatMLTest.common;
 
-import greycat.ml.common.matrix.MatrixEngine;
-import greycat.ml.common.matrix.TransposeType;
-import greycat.ml.common.matrix.blassolver.BlasMatrixEngine;
-import greycat.ml.common.matrix.jamasolver.JamaMatrixEngine;
+import greycat.struct.matrix.MatrixEngine;
+import greycat.struct.matrix.PlainMatrixEngine;
+import greycat.struct.matrix.TransposeType;
+import greycat.struct.matrix.VolatileDMatrix;
 import org.junit.Assert;
 import org.junit.Test;
-import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.struct.DMatrix;
 
 public class MultiplyTest {
 
-    /**
-     * @native ts
-     */
-    @Test
-    public void MatrixMultBlas() {
-        InternalManualMult(new BlasMatrixEngine());
-    }
-
     @Test
     public void MatrixMultJama() {
-        InternalManualMult(new JamaMatrixEngine());
+        InternalManualMult(new PlainMatrixEngine());
     }
 
     public DMatrix manualMultpily(DMatrix matA, DMatrix matB) {

@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.common.matrix;
+package greycat.struct.matrix;
 
-import greycat.ml.common.matrix.jamasolver.JamaMatrixEngine;
 import greycat.struct.DMatrix;
-
-import java.util.Random;
 
 public class MatrixOps {
 
@@ -26,7 +23,7 @@ public class MatrixOps {
 
     public static MatrixEngine defaultEngine() {
         if (_defaultEngine == null) {
-            _defaultEngine = new JamaMatrixEngine(); //todo return back to HybridMatrixEngine once blas is working in JS
+            _defaultEngine = new PlainMatrixEngine(); //todo return back to HybridMatrixEngine once blas is working in JS
         }
         return _defaultEngine;
     }
@@ -43,7 +40,7 @@ public class MatrixOps {
         }
     }
 
-    public static DMatrix fillWithRandom(DMatrix matrix, Random random, double min, double max) {
+    public static DMatrix fillWithRandom(DMatrix matrix, RandomGenerator random, double min, double max) {
         int len = matrix.length();
         double d = max - min;
         for (int i = 0; i < len; i++) {
@@ -52,7 +49,7 @@ public class MatrixOps {
         return matrix;
     }
 
-    public static DMatrix fillWithRandomStd(DMatrix matrix, Random random, double std) {
+    public static DMatrix fillWithRandomStd(DMatrix matrix, RandomGenerator random, double std) {
         int len = matrix.length();
         for (int i = 0; i < len; i++) {
             matrix.unsafeSet(i, random.nextGaussian() * std);

@@ -16,18 +16,14 @@
 package greycat.ml.neuralnet.layer;
 
 import greycat.Type;
-import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.ENode;
+import greycat.struct.matrix.MatrixOps;
+import greycat.struct.matrix.RandomGenerator;
 
-import java.util.Random;
-
-/**
- * Created by assaad on 14/02/2017.
- */
 class RNN implements Layer {
     private static String WEIGHTS = "weights";
     private static String BIAS = "bias";
@@ -57,7 +53,7 @@ class RNN implements Layer {
 
 
     @Override
-    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, Random random, double std) {
+    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomGenerator random, double std) {
         //First always set the type
         host.set(Layers.TYPE, Type.INT, Layers.RNN_LAYER);
         weights.init(outputs, inputs + outputs);
@@ -68,12 +64,10 @@ class RNN implements Layer {
         if (activationParams != null) {
             host.set(ACTIVATION_PARAM, Type.DOUBLE_ARRAY, activationParams);
         }
-
         if (random != null && std != 0) {
             MatrixOps.fillWithRandomStd(weights, random, std);
             //MatrixOps.fillWithRandomStd(bias, random, std);
         }
-
         return this;
     }
 
@@ -83,16 +77,12 @@ class RNN implements Layer {
         if (input.columns() != 1) {
             throw new RuntimeException("RNN can't process more than 1 input vector at a time!");
         }
-
         ExMatrix concat = g.concatVectors(input, context);
-
         ExMatrix sum = g.mul(weights, concat);
         sum = g.add(sum, bias);
         ExMatrix output = g.activate(activation, sum);
-
         //rollover activations for next iteration
         context = output;
-
         return output;
     }
 

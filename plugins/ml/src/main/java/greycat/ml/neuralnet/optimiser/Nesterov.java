@@ -16,23 +16,17 @@
 package greycat.ml.neuralnet.optimiser;
 
 import greycat.Type;
-import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
 import greycat.struct.ENode;
+import greycat.struct.matrix.MatrixOps;
 
-/**
- * Created by assaad on 17/02/2017.
- */
 class Nesterov extends AbstractOptimiser {
 
     static final String DECAY_RATE = "decayrate";
     static final double DECAY_RATE_DEF = 0.9;
-
     double decayRate;
-
-
     Nesterov(ENode backend) {
         super(backend);
         decayRate = backend.getWithDefault(DECAY_RATE, DECAY_RATE_DEF);
@@ -55,7 +49,6 @@ class Nesterov extends AbstractOptimiser {
         _backend.set(DECAY_RATE, Type.DOUBLE, decayRate);
     }
 
-
     //w= reg * w + decay*decay*sc -(1+ decay)*learning * dw
     //sc = sc*decay -learning *dw
     @Override
@@ -75,15 +68,11 @@ class Nesterov extends AbstractOptimiser {
                 w = weights[j].getW();
                 dw = weights[j].getDw();
                 sc = weights[j].getStepCache();
-
                 MatrixOps.addInPlace(w, reg, sc, rate1);
                 MatrixOps.addInPlace(w, 1, dw, rate2);
-
                 MatrixOps.addInPlace(sc, decayRate, dw, -stepsize);
-
                 //w= (1- learningRate * regularization / samples ) * w - learningRate * dw / samples ;
                 //Ref: https://www.coursera.org/learn/machine-learning/lecture/QrMXd/regularized-linear-regression
-
                 dw.fill(0);
             }
         }

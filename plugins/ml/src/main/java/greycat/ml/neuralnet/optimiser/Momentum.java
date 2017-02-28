@@ -15,13 +15,12 @@
  */
 package greycat.ml.neuralnet.optimiser;
 
-
 import greycat.Type;
-import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
 import greycat.struct.ENode;
+import greycat.struct.matrix.MatrixOps;
 
 class Momentum extends AbstractOptimiser {
 
@@ -29,7 +28,6 @@ class Momentum extends AbstractOptimiser {
     static final double DECAY_RATE_DEF = 0.9;
 
     double decayRate;
-
 
     Momentum(ENode backend) {
         super(backend);
@@ -71,9 +69,7 @@ class Momentum extends AbstractOptimiser {
                 w = weights[j].getW();
                 dw = weights[j].getDw();
                 sc = weights[j].getStepCache();
-
                 MatrixOps.addInPlace(sc, decayRate, dw, stepsize);
-
                 //w= (1- learningRate * regularization / samples ) * w - learningRate * dw / samples ;
                 //Ref: https://www.coursera.org/learn/machine-learning/lecture/QrMXd/regularized-linear-regression
                 MatrixOps.addInPlace(w, reg, sc, -1);

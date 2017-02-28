@@ -15,9 +15,9 @@
  */
 package greycatMLTest.preprocessing;
 
-import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.preprocessing.PCA;
 import greycat.struct.DMatrix;
+import greycat.struct.matrix.VolatileDMatrix;
 
 import java.util.Random;
 

@@ -16,13 +16,11 @@
 package greycat.ml.neuralnet.layer;
 
 import greycat.Type;
-import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.ENode;
-
-import java.util.Random;
-
+import greycat.struct.matrix.MatrixOps;
+import greycat.struct.matrix.RandomGenerator;
 
 // Returns Weights*Input
 // Can be used as PCA or dimensionality reduction of data, since here we are combining linearly outputs from input
@@ -44,15 +42,13 @@ class Linear implements Layer {
     }
 
     @Override
-    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, Random random, double std) {
+    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomGenerator random, double std) {
         //First always set the type
         host.set(Layers.TYPE, Type.INT, Layers.LINEAR_LAYER);
         weights.init(outputs, inputs);
-
         if (random != null && std != 0) {
             MatrixOps.fillWithRandomStd(weights, random, std);
         }
-
         return this;
     }
 

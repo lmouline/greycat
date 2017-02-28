@@ -15,12 +15,11 @@
  */
 package greycat.ml.profiling;
 
-
 import greycat.Type;
-import greycat.ml.common.matrix.MatrixOps;
-import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.struct.DMatrix;
 import greycat.struct.ENode;
+import greycat.struct.matrix.MatrixOps;
+import greycat.struct.matrix.VolatileDMatrix;
 
 public class GaussianENode {
     //Getters and setters

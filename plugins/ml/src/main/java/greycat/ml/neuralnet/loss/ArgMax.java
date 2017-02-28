@@ -15,11 +15,10 @@
  */
 package greycat.ml.neuralnet.loss;
 
-
-import greycat.ml.common.matrix.MatrixOps;
-import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
+import greycat.struct.matrix.MatrixOps;
+import greycat.struct.matrix.VolatileDMatrix;
 
 class ArgMax implements Loss {
 
@@ -39,29 +38,23 @@ class ArgMax implements Loss {
 
     }
 
-
     //return wether or not for each training example, the maximum was the same 1 x training samples
     //if actual arg max = target arg max -> 0
     //else there is a loss -> 1
     @Override
     public DMatrix forward(ExMatrix actualOutput, ExMatrix targetOutput) {
         MatrixOps.testDim(actualOutput, targetOutput);
-
         double maxActual;
         double maxTarget;
         int indxMaxActual;
         int indxMaxTarget;
         double aw;
         double tw;
-
-
         DMatrix res = VolatileDMatrix.empty(1, actualOutput.columns());
-
         if (actualOutput.rows() == 1) {
             res.fill(0);
             return res;
         }
-
         for (int i = 0; i < actualOutput.columns(); i++) {
             maxActual = actualOutput.get(0, i);
             maxTarget = targetOutput.get(0, i);
@@ -74,7 +67,6 @@ class ArgMax implements Loss {
                     maxActual = aw;
                     indxMaxActual = j;
                 }
-
                 if (tw > maxTarget) {
                     maxTarget = tw;
                     indxMaxTarget = j;

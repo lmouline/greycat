@@ -16,15 +16,14 @@
 package greycat.ml.neuralnet.layer;
 
 import greycat.Type;
-import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.DMatrix;
 import greycat.struct.ENode;
-
-import java.util.Random;
+import greycat.struct.matrix.MatrixOps;
+import greycat.struct.matrix.RandomGenerator;
 
 class FeedForward implements Layer {
 
@@ -39,7 +38,6 @@ class FeedForward implements Layer {
     private ENode host;
     private ExMatrix[] params = null;
 
-
     //Returns ActivationFct( Weights*Input + Bias )
     //Can be seen as simple fully-functional perceptron or neuron
     FeedForward(ENode hostnode) {
@@ -53,7 +51,7 @@ class FeedForward implements Layer {
     }
 
     @Override
-    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, Random random, double std) {
+    public Layer init(int inputs, int outputs, int activationUnit, double[] activationParams, RandomGenerator random, double std) {
         //First always set the type
         host.set(Layers.TYPE, Type.INT, Layers.FEED_FORWARD_LAYER);
         weights.init(outputs, inputs);
@@ -63,12 +61,10 @@ class FeedForward implements Layer {
         if (activationParams != null) {
             host.set(ACTIVATION_PARAM, Type.DOUBLE_ARRAY, activationParams);
         }
-
         if (random != null && std != 0) {
             MatrixOps.fillWithRandomStd(weights, random, std);
             MatrixOps.fillWithRandomStd(bias, random, std);
         }
-
         return this;
     }
 
@@ -79,7 +75,6 @@ class FeedForward implements Layer {
     public void setBias(DMatrix bias) {
         MatrixOps.copy(bias, this.bias);
     }
-
 
     @Override
     public ExMatrix forward(ExMatrix input, ProcessGraph g) {

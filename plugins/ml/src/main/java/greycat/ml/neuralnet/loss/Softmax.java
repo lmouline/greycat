@@ -15,11 +15,10 @@
  */
 package greycat.ml.neuralnet.loss;
 
-import greycat.ml.common.matrix.MatrixOps;
-import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
-
+import greycat.struct.matrix.MatrixOps;
+import greycat.struct.matrix.VolatileDMatrix;
 
 //todo need fix on forward and backward
 class Softmax implements Loss {
@@ -38,9 +37,7 @@ class Softmax implements Loss {
     public void backward(ExMatrix logprobs, ExMatrix targetOutput) {
         int targetIndex = getTargetIndex(targetOutput);
         VolatileDMatrix probs = getSoftmaxProbs(logprobs, 1.0);
-
         int wlen = probs.length();
-
         for (int i = 0; i < wlen; i++) {
             logprobs.getDw().unsafeSet(i, probs.unsafeGet(i));
         }
@@ -58,12 +55,8 @@ class Softmax implements Loss {
 
 
     public static VolatileDMatrix getSoftmaxProbs(ExMatrix logprobs, double temperature) {
-
-
         VolatileDMatrix probs = VolatileDMatrix.empty(logprobs.rows(), logprobs.columns());
-
         int loglen = logprobs.length();
-
         if (temperature != 1.0) {
             for (int i = 0; i < loglen; i++) {
                 logprobs.unsafeSet(i, logprobs.unsafeGet(i) / temperature); // logprobs.w[i] /= temperature;

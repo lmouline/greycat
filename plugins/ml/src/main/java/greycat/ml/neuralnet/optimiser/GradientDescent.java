@@ -17,35 +17,31 @@ package greycat.ml.neuralnet.optimiser;
 
 
 import greycat.Type;
-import greycat.ml.common.matrix.MatrixOps;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
 import greycat.struct.ENode;
+import greycat.struct.matrix.MatrixOps;
 
 class GradientDescent extends AbstractOptimiser {
 
     GradientDescent(ENode backend) {
         super(backend);
     }
-
-
+    
     // w= reg * w -learning * dw
     //
     @Override
     protected void update(Layer[] layers) {
         DMatrix w;
         DMatrix dw;
-
         double reg = 1 - learningRate * regularization / steps;
         double stepsize = -learningRate / steps;
-
         for (int i = 0; i < layers.length; i++) {
             ExMatrix[] weights = layers[i].getLayerParameters();
             for (int j = 0; j < weights.length; j++) {
                 w = weights[j].getW();
                 dw = weights[j].getDw();
-
                 //w= (1- learningRate * regularization / samples ) * w - learningRate * dw / samples ;
                 //Ref: https://www.coursera.org/learn/machine-learning/lecture/QrMXd/regularized-linear-regression
                 MatrixOps.addInPlace(w, reg, dw, stepsize);

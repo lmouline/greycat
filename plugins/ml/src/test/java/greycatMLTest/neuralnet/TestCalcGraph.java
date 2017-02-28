@@ -15,7 +15,6 @@
  */
 package greycatMLTest.neuralnet;
 
-import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.loss.Loss;
 import greycat.ml.neuralnet.loss.Losses;
@@ -23,7 +22,7 @@ import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
-import org.junit.Assert;
+import greycat.struct.matrix.VolatileDMatrix;
 import org.junit.Test;
 
 public class TestCalcGraph {

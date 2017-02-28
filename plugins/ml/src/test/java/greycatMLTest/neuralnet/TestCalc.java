@@ -15,15 +15,15 @@
  */
 package greycatMLTest.neuralnet;
 
-import greycat.ml.common.matrix.MatrixOps;
-import greycat.ml.common.matrix.TransposeType;
-import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.loss.Loss;
 import greycat.ml.neuralnet.loss.Losses;
 import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.struct.DMatrix;
+import greycat.struct.matrix.MatrixOps;
+import greycat.struct.matrix.TransposeType;
+import greycat.struct.matrix.VolatileDMatrix;
 
 public class TestCalc {
     public static void main(String[] arg) {

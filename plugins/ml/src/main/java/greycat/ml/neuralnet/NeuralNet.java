@@ -16,7 +16,6 @@
 package greycat.ml.neuralnet;
 
 import greycat.Type;
-import greycat.ml.common.matrix.VolatileDMatrix;
 import greycat.ml.neuralnet.layer.Layer;
 import greycat.ml.neuralnet.layer.Layers;
 import greycat.ml.neuralnet.optimiser.Optimiser;
@@ -28,6 +27,8 @@ import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.DMatrix;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
+import greycat.struct.matrix.RandomGenerator;
+import greycat.struct.matrix.VolatileDMatrix;
 
 import java.util.Random;
 
@@ -40,7 +41,6 @@ public class NeuralNet {
     private static final String STD = "std";
     private static final double STD_DEF = 0.08;
 
-
     private EGraph backend;
     private ENode root;
     private Layer[] layers;
@@ -48,9 +48,8 @@ public class NeuralNet {
     private Loss reportingLoss;
     private Optimiser learner;
 
-    private Random random;
+    private RandomGenerator random;
     private double std;
-
 
     public NeuralNet(EGraph p_backend) {
         backend = p_backend;
@@ -70,7 +69,7 @@ public class NeuralNet {
         tarinLoss = Losses.getUnit(root.getWithDefault(TRAIN_LOSS, Losses.DEFAULT));
         reportingLoss = Losses.getUnit(root.getWithDefault(REPORTING_LOSS, Losses.DEFAULT));
         learner = Optimisers.getUnit(root.getWithDefault(LEARNER, Optimisers.DEFAULT), backend.root());
-        random = new Random();
+        random = new RandomGenerator();
         random.setSeed(root.getWithDefault(SEED, System.currentTimeMillis()));
         std = root.getWithDefault(STD, STD_DEF);
 
@@ -121,7 +120,6 @@ public class NeuralNet {
                 throw new RuntimeException("Layers last output size is different that current layer input");
             }
         }
-
         Layer ff = Layers.createLayer(backend.newNode(), layerType);
         ff.init(inputs, outputs, activationUnit, activationParams, random, std);
         internal_add(ff);
