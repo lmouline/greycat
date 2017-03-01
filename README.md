@@ -10,6 +10,10 @@ For any questions please contact us via our Gitter:
 
 ## Version 4 (planned for 03/03/17)
     - fix free bug in flat task action
+    - define interfaces for Blas plugin
+    - cleanup build scripts
+    - implement multi-get within RocksDB plugin
+    
 ## Version 3 (27/02/17)
     - fix apriori dirty element on get
     - fix dirty flag after remote state chunk load *(need global check)*
@@ -20,6 +24,7 @@ For any questions please contact us via our Gitter:
     - new RocksDB support for ARM-V7 processor
     - closing issue #3 add TypeScript correct typing header to NPM
     - alignement of interface NodeState, StateChunk and Node (all inherit from container)
+    
 ## Version 2 (17/02/17)
     - introduce new NPM packaging (https://www.npmjs.com/package/greycat)
     - use J2TS-JRE (https://www.npmjs.com/search?q=j2ts-junit)
