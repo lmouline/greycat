@@ -18,8 +18,6 @@ package greycat.struct.matrix;
 import greycat.Constants;
 import greycat.struct.DMatrix;
 
-import java.util.Random;
-
 //Most of the time we will be using column based matrix due to blas.
 public class VolatileDMatrix implements DMatrix {
 
@@ -219,13 +217,9 @@ public class VolatileDMatrix implements DMatrix {
     }*/
 
 
-    public static DMatrix random(int rows, int columns, long seed, double min, double max) {
+    public static DMatrix random(int rows, int columns, RandomGenerator rand, double min, double max) {
         VolatileDMatrix res = new VolatileDMatrix(null, rows, columns);
-        Random rand = new Random();
-        if(seed!=0){
-            rand.setSeed(seed);
-        }
-        for (int i = 0; i < rows * columns; i++) {
+           for (int i = 0; i < rows * columns; i++) {
             res.unsafeSet(i, rand.nextDouble() * (max - min) + min);
         }
         return res;

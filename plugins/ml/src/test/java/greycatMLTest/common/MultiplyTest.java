@@ -15,10 +15,7 @@
  */
 package greycatMLTest.common;
 
-import greycat.struct.matrix.MatrixEngine;
-import greycat.struct.matrix.PlainMatrixEngine;
-import greycat.struct.matrix.TransposeType;
-import greycat.struct.matrix.VolatileDMatrix;
+import greycat.struct.matrix.*;
 import org.junit.Assert;
 import org.junit.Test;
 import greycat.struct.DMatrix;
@@ -51,8 +48,11 @@ public class MultiplyTest {
         int r = 30;
         int o = 30;
         int p = 30;
-        DMatrix matA = VolatileDMatrix.random(r, o, 0, 0, 100);
-        DMatrix matB = VolatileDMatrix.random(o, p, 0, 0, 100);
+        RandomGenerator randomGenerator=new RandomGenerator();
+        randomGenerator.setSeed(0);
+
+        DMatrix matA = VolatileDMatrix.random(r, o, randomGenerator, 0, 100);
+        DMatrix matB = VolatileDMatrix.random(o, p, randomGenerator, 0, 100);
 
         DMatrix result = engine.multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1, matA, TransposeType.NOTRANSPOSE, matB, 0, null);
         DMatrix matD = manualMultpily(matA, matB);

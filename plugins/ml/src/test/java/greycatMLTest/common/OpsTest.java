@@ -22,6 +22,7 @@ import greycat.struct.DMatrix;
 
 public class OpsTest {
 
+    RandomGenerator rand=new RandomGenerator();
     int exec = 1000;
     boolean enablebench = false;
     int dim = 10;
@@ -31,6 +32,7 @@ public class OpsTest {
      */
     @Test
     public void decompose() {
+        rand.setSeed(0);
         MatrixEngine engine = new PlainMatrixEngine();
         MatrixSVD(engine);
         MatrixInvert(engine);
@@ -41,15 +43,16 @@ public class OpsTest {
 
     public void MatrixMult(MatrixEngine engine) {
         double eps = 1e-7;
-        DMatrix matA = VolatileDMatrix.random(dim, dim, 0, 0, 100);
-        DMatrix matB = VolatileDMatrix.random(dim, dim, 0, 0, 100);
+
+        DMatrix matA = VolatileDMatrix.random(dim, dim, rand, 0, 100);
+        DMatrix matB = VolatileDMatrix.random(dim, dim, rand, 0, 100);
         DMatrix res = engine.multiplyTransposeAlphaBeta(TransposeType.NOTRANSPOSE, 1.0, matA, TransposeType.NOTRANSPOSE, matB, 0, null);
     }
 
     public void MatrixInvert(MatrixEngine engine) {
         double eps = 1e-7;
 
-        DMatrix matA = VolatileDMatrix.random(dim, dim, 0, 0, 100);
+        DMatrix matA = VolatileDMatrix.random(dim, dim, rand, 0, 100);
         DMatrix res = engine.invert(matA, false);
 
         if (!enablebench) {
@@ -74,8 +77,8 @@ public class OpsTest {
         int p = dim;
         double eps = 1e-7;
 
-        DMatrix matA = VolatileDMatrix.random(m, n, 0, 0, 100);
-        DMatrix matB = VolatileDMatrix.random(m, p, 0, 0, 100);
+        DMatrix matA = VolatileDMatrix.random(m, n, rand, 0, 100);
+        DMatrix matB = VolatileDMatrix.random(m, p, rand, 0, 100);
         DMatrix res = engine.solveLU(matA, matB, false, TransposeType.NOTRANSPOSE);
         if (!enablebench) {
             DMatrix temp = MatrixOps.multiply(matA, res);
@@ -94,8 +97,8 @@ public class OpsTest {
         int p = dim;
         double eps = 1e-6;
 
-        DMatrix matA = VolatileDMatrix.random(m, n, 0, 0, 100);
-        DMatrix matB = VolatileDMatrix.random(m, p, 0, 0, 100);
+        DMatrix matA = VolatileDMatrix.random(m, n, rand, 0, 100);
+        DMatrix matB = VolatileDMatrix.random(m, p, rand, 0, 100);
 
         DMatrix res = engine.solveQR(matA, matB, false, TransposeType.NOTRANSPOSE);
         if (!enablebench) {
@@ -114,7 +117,7 @@ public class OpsTest {
         int n = dim;
         double eps = 1e-6;
 
-        DMatrix matA = VolatileDMatrix.random(m, n, 0, 0, 100);
+        DMatrix matA = VolatileDMatrix.random(m, n, rand, 0, 100);
         DMatrix res = engine.pinv(matA, false);
         if (!enablebench) {
             DMatrix id = MatrixOps.multiply(res, matA);
@@ -137,7 +140,7 @@ public class OpsTest {
         int m = dim;
         int n = dim;
         double eps = 1e-7;
-        DMatrix matA = VolatileDMatrix.random(m, n, 0, 0, 100);
+        DMatrix matA = VolatileDMatrix.random(m, n, rand, 0, 100);
         SVDDecompose svd = engine.decomposeSVD(matA, false);
         if (!enablebench) {
             DMatrix U = svd.getU();
