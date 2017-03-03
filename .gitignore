@@ -19,3 +19,4 @@ buildNumber.properties
 plugins/storage/cassandra/src/main/resources/
 plugins/taskide/src/main/web/node_modules/
 node_modules/
+*.ldt
