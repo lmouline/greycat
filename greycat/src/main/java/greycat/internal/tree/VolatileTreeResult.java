@@ -29,6 +29,7 @@ public class VolatileTreeResult implements ProfileResult {
     private int capacity;
     private int count;
     private double worst;
+    private long total=-1;
 
     private DMatrix _keys;
     private LMatrix _values;
@@ -49,7 +50,7 @@ public class VolatileTreeResult implements ProfileResult {
     }
 
     @Override
-    public TreeResult groupBy(double[] resolutions) {
+    public ProfileResult groupBy(double[] resolutions) {
         if (count == 0) {
             return null;
         }
@@ -111,6 +112,28 @@ public class VolatileTreeResult implements ProfileResult {
         }
 
         return tempTree.queryArea(newmin, newmax);
+    }
+
+    @Override
+    public ProfileResult sortByProbability(boolean descending) {
+        if (count > 1) {
+            quickSort(1, count, !descending,true);
+        }
+        return this;
+    }
+
+    @Override
+    public long getTotal() {
+        if(total==-1){
+            total=0;
+            for(int i=0;i<size();i++){
+                total+=value(i);
+            }
+            return total;
+        }
+        else {
+            return total;
+        }
     }
 
     @Override
@@ -265,12 +288,23 @@ public class VolatileTreeResult implements ProfileResult {
 
     @Override
     public double[] keys(int index) {
-        return _keys.column(index + 1);
+        if(index<size()) {
+            return _keys.column(index + 1);
+        }
+        else {
+            return null;
+        }
     }
 
     @Override
     public long value(int index) {
-        return _values.get(index + 1, 0);
+        if(index<size()) {
+            return _values.get(index + 1, 0);
+        }
+        else {
+            return 0;
+        }
+
     }
 
     @Override
@@ -322,30 +356,53 @@ public class VolatileTreeResult implements ProfileResult {
     }
 
 
-    private int partition(int l, int h, boolean ascending) {
-        double x = _distances.get(0, h);
-        int i = (l - 1);
+    private int partition(int l, int h, boolean ascending, boolean byValue) {
+        if(byValue){
+            long x = _values.get(0, h);
+            int i = (l - 1);
 
-
-        for (int j = l; j <= h - 1; j++) {
-            if (ascending) {
-                if (_distances.get(0, j) <= x) {
-                    i++;
-                    swap(i, j);
-                }
-            } else {
-                if (_distances.get(0, j) > x) {
-                    i++;
-                    swap(i, j);
+            for (int j = l; j <= h - 1; j++) {
+                if (ascending) {
+                    if (_values.get(0, j) <= x) {
+                        i++;
+                        swap(i, j);
+                    }
+                } else {
+                    if (_values.get(0, j) > x) {
+                        i++;
+                        swap(i, j);
+                    }
                 }
             }
+            // swap arr[i+1] and arr[h]
+            swap(i + 1, h);
+            return (i + 1);
         }
-        // swap arr[i+1] and arr[h]
-        swap(i + 1, h);
-        return (i + 1);
+        else {
+            double x = _distances.get(0, h);
+            int i = (l - 1);
+
+
+            for (int j = l; j <= h - 1; j++) {
+                if (ascending) {
+                    if (_distances.get(0, j) <= x) {
+                        i++;
+                        swap(i, j);
+                    }
+                } else {
+                    if (_distances.get(0, j) > x) {
+                        i++;
+                        swap(i, j);
+                    }
+                }
+            }
+            // swap arr[i+1] and arr[h]
+            swap(i + 1, h);
+            return (i + 1);
+        }
     }
 
-    private void quickSort(int l, int h, boolean ascending) {
+    private void quickSort(int l, int h, boolean ascending, boolean byValue) {
         // create auxiliary stack
         int stack[] = new int[h - l + 1];
 
@@ -363,7 +420,7 @@ public class VolatileTreeResult implements ProfileResult {
             l = stack[top--];
 
             // set pivot element at it's proper position
-            int p = partition(l, h, ascending);
+            int p = partition(l, h, ascending, byValue);
 
             // If there are elements on left side of pivot,
             // then push left side to stack
@@ -382,10 +439,11 @@ public class VolatileTreeResult implements ProfileResult {
     }
 
     @Override
-    public void sort(boolean ascending) {
+    public ProfileResult sort(boolean ascending) {
         if (count > 1) {
-            quickSort(1, count, ascending);
+            quickSort(1, count, ascending,false);
         }
+        return this;
     }
 
 }

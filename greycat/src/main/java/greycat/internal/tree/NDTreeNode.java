@@ -21,6 +21,7 @@ import greycat.Type;
 import greycat.base.BaseNode;
 import greycat.struct.Profile;
 import greycat.struct.ProfileResult;
+import greycat.utility.distance.Distance;
 
 public class NDTreeNode extends BaseNode implements Profile {
 
@@ -112,6 +113,7 @@ public class NDTreeNode extends BaseNode implements Profile {
     public final ProfileResult queryBoundedRadius(final double[] keys, final double radius, final int max) {
         return getTree().queryBoundedRadius(keys, radius, max);
     }
+
 
     @Override
     public final ProfileResult queryArea(final double[] min, final double[] max) {

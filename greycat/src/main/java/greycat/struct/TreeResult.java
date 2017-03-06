@@ -35,7 +35,7 @@ public interface TreeResult {
 
     boolean isCapacityReached();
 
-    void sort(boolean ascending);
+    TreeResult sort(boolean ascending);
 
     void free();
 

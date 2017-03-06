@@ -53,10 +53,10 @@ class TreeHelper {
         return distance.measure(closest, target);
     }
 
-    static void filterAndInsert(double[] key, long value, double[] target, double[] targetmin, double[] targetmax, double[] targetcenter, Distance distance, double radius, VolatileTreeResult nnl) {
+    static void filterAndInsert(double[] key, long value, double[] target, double[] targetmin, double[] targetmax, Distance distance, double radius, VolatileTreeResult nnl) {
         if (targetmin != null) {
             if (checkKeyInsideBounds(key, targetmin, targetmax)) {
-                nnl.insert(key, value, distance.measure(key, targetcenter));
+                nnl.insert(key, value, distance.measure(key, target));
             }
         } else {
             double dist = distance.measure(key, target);

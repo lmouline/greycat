@@ -18,5 +18,7 @@ package greycat.struct;
 public interface ProfileResult extends TreeResult {
 
     TreeResult groupBy(double[] resolutions);
+    long getTotal();
+    ProfileResult sortByProbability(boolean descending);
 
 }

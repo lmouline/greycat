@@ -417,10 +417,12 @@ public class NDTree implements Profile {
         int strategyType = (int) root.getAt(STRATEGY);
         EGraph calcZone = eGraph.graph().space().newVolatileGraph();
         VolatileTreeResult nnl = new VolatileTreeResult(calcZone.newNode(), max);
-        reccursiveTraverse(root, calcZone, nnl, strategyType, distance, keys, null, null, null, radius);
+        reccursiveTraverse(root, calcZone, nnl, strategyType, distance, keys, null, null, radius);
         nnl.sort(true);
         return nnl;
     }
+
+
 
     @Override
     public final ProfileResult queryArea(final double[] min, final double[] max) {
@@ -436,7 +438,7 @@ public class NDTree implements Profile {
         }
         EGraph calcZone = eGraph.graph().space().newVolatileGraph();
         VolatileTreeResult nnl = new VolatileTreeResult(calcZone.newNode(), -1);
-        reccursiveTraverse(root, calcZone, nnl, strategyType, distance, null, min, max, center, -1);
+        reccursiveTraverse(root, calcZone, nnl, strategyType, distance, center, min, max, -1);
         nnl.sort(true);
         return nnl;
     }
@@ -467,7 +469,7 @@ public class NDTree implements Profile {
     }
 
 
-    private static void reccursiveTraverse(final ENode node, final EGraph calcZone, final VolatileTreeResult nnl, final int strategyType, final Distance distance, final double[] target, final double[] targetmin, final double[] targetmax, final double[] targetcenter, final double radius) {
+    private static void reccursiveTraverse(final ENode node, final EGraph calcZone, final VolatileTreeResult nnl, final int strategyType, final Distance distance, final double[] target, final double[] targetmin, final double[] targetmax,  final double radius) {
 
         if (node.getAtWithDefault(E_SUBNODES, 0L) == 0) {
             //Leave node
@@ -486,13 +488,13 @@ public class NDTree implements Profile {
                             for (int j = 0; j < buffer.rows(); j++) {
                                 tempK[j] = bufferkeys.get(j, i) / t;
                             }
-                            TreeHelper.filterAndInsert(tempK, t, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
+                            TreeHelper.filterAndInsert(tempK, t, target, targetmin, targetmax, distance, radius, nnl);
                         }
                         return;
                     }
                     case TreeStrategy.INDEX: {
                         for (int i = 0; i < buffer.columns(); i++) {
-                            TreeHelper.filterAndInsert(buffer.column(i), bufferValue.get(0, i), target, targetmin, targetmax, targetcenter, distance, radius, nnl);
+                            TreeHelper.filterAndInsert(buffer.column(i), bufferValue.get(0, i), target, targetmin, targetmax, distance, radius, nnl);
                         }
                         return;
 
@@ -512,13 +514,13 @@ public class NDTree implements Profile {
                         for (int i = 0; i < keyo.length; i++) {
                             key[i] = keyo[i] / value;
                         }
-                        TreeHelper.filterAndInsert(key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
+                        TreeHelper.filterAndInsert(key, value, target, targetmin, targetmax, distance, radius, nnl);
                         return;
                     }
                     case TreeStrategy.INDEX: {
                         double[] key = (double[]) node.getAt(E_PROFILE);
                         long value = (long) node.getAt(E_VALUE);
-                        TreeHelper.filterAndInsert(key, value, target, targetmin, targetmax, targetcenter, distance, radius, nnl);
+                        TreeHelper.filterAndInsert(key, value, target, targetmin, targetmax, distance, radius, nnl);
                         return;
                     }
                     default: {
@@ -563,7 +565,7 @@ public class NDTree implements Profile {
 
                     for (int i = 0; i < childPriority.size(); i++) {
                         ENode child = (ENode) node.getAt((int) childPriority.value(i));
-                        reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, targetcenter, radius);
+                        reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, radius);
                     }
                     childPriority.free();
                 }
@@ -574,7 +576,7 @@ public class NDTree implements Profile {
                         if (attributeKey >= E_OFFSET_REL) {
                             ENode child = (ENode) node.getAt(attributeKey);
                             if (TreeHelper.checkBoundsIntersection(targetmin, targetmax, (double[]) child.getAt(E_MIN), (double[]) child.getAt(E_MAX))) {
-                                reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, targetcenter, radius);
+                                reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, radius);
                             }
                         }
                     }
