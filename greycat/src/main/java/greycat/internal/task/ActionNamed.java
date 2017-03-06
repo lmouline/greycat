@@ -16,6 +16,7 @@
 package greycat.internal.task;
 
 import greycat.Action;
+import greycat.Constants;
 import greycat.TaskContext;
 import greycat.struct.Buffer;
 
@@ -49,7 +50,9 @@ class ActionNamed implements Action {
     @Override
     public final void serialize(final Buffer builder) {
         builder.writeString(_name);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeStringParams(_params, builder);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
 }

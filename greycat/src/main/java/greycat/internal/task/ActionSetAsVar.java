@@ -47,7 +47,7 @@ class ActionSetAsVar implements Action {
     public void serialize(final Buffer builder) {
         builder.writeString(CoreActionNames.SET_AS_VAR);
         builder.writeChar(Constants.TASK_PARAM_OPEN);
-        builder.writeString(_name);
+        TaskHelper.serializeString(_name, builder, true);
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
