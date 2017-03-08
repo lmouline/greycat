@@ -21,7 +21,7 @@ import greycat.Type;
 import greycat.ml.BaseMLNode;
 import greycat.ml.ProfilingNode;
 import greycat.ml.common.matrix.VolatileDMatrix;
-import greycat.ml.common.matrix.operation.MultivariateNormalDistribution;
+import MultivariateNormalDistribution;
 import greycat.plugin.NodeState;
 import greycat.struct.DMatrix;
 

@@ -15,7 +15,7 @@
  */
 package greycatMLTest.common;
 
-import greycat.ml.common.matrix.operation.PolynomialFit;
+import greycat.ml.math.PolynomialFit;
 import org.junit.Assert;
 import org.junit.Test;
 

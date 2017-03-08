@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.common.matrix.operation;
+package greycat.ml.math;
 
 public class Gaussian1D {
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.ml.common.matrix.operation;
+package greycat.ml.math;
 
 import greycat.struct.DMatrix;
 import greycat.struct.matrix.MatrixOps;
@@ -57,5 +57,17 @@ public class PolynomialFit {
         }
         return result;
     }
+
+    public static double rmse(double[] time, double[] values, double[] coef){
+        double rmse=0;
+        double ex;
+        for(int i=0;i<time.length;i++){
+            ex=extrapolate(time[i],coef);
+            rmse+=(ex-values[i])*(ex-values[i]);
+        }
+        rmse=rmse/time.length;
+        return Math.sqrt(rmse);
+    }
+
 
 }

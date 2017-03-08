@@ -21,7 +21,7 @@ import greycat.Node;
 import greycat.Type;
 import greycat.ml.BaseMLNode;
 import greycat.ml.RegressionNode;
-import greycat.ml.common.matrix.operation.PolynomialFit;
+import greycat.ml.math.PolynomialFit;
 import greycat.plugin.NodeState;
 import greycat.utility.Enforcer;
 
