@@ -70,6 +70,5 @@ public class PearsonPeriodicity {
         }
         return max;
     }
-
-    public static double convert(int position)
+    
 }
