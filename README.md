@@ -9,6 +9,7 @@ For any questions please contact us via our Gitter:
 # Changelog
 
 ## Version 4 (planned for 03/03/17)
+    - Replaced declaration() in ActionRegistry and NodeRegistry by getOrCreateDeclaration. declaration() now acts like a simple get.
     - fix free bug in flat task action
     - define interfaces for Blas plugin
     - cleanup build scripts
