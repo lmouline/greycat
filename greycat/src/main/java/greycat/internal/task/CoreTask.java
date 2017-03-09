@@ -501,7 +501,7 @@ public class CoreTask implements Task {
             final String[] varargs = params;
             return new ActionNamed(actionName, varargs);
             */
-            throw new RuntimeException("Action '"+actionName+"' not found in registry.");
+            throw new RuntimeException("Action '" + actionName + "' not found in registry.");
         } else {
             final ActionFactory factory = declaration.factory();
             final byte[] declaredParams = declaration.params();
@@ -683,6 +683,36 @@ public class CoreTask implements Task {
                     @Override
                     public Action create(Object[] params) {
                         return new ActionAddToVar((String) params[0]);
+                    }
+                });
+        registry.getOrCreateDeclaration(CoreActionNames.ADD_VAR_TO_RELATION)
+                .setParams(Type.STRING, Type.STRING, Type.STRING_ARRAY)
+                .setDescription("Adds the content of the variable (2nd param) to the relation (1st param). Following parameters for indexation.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        final String[] varrags = (String[]) params[2];
+                        if (varrags != null) {
+                            return new ActionAddRemoveVarToRelation(true, (String) params[0], (String) params[1], varrags);
+                        } else {
+                            return new ActionAddRemoveVarToRelation(true, (String) params[0], (String) params[1]);
+                        }
+
+                    }
+                });
+        registry.getOrCreateDeclaration(CoreActionNames.REMOVE_VAR_TO_RELATION)
+                .setParams(Type.STRING, Type.STRING, Type.STRING_ARRAY)
+                .setDescription("Removes the content of the variable (2nd param) from the relation (1st param). Following parameters for indexed relations.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        final String[] varrags = (String[]) params[2];
+                        if (varrags != null) {
+                            return new ActionAddRemoveVarToRelation(false, (String) params[0], (String) params[1], varrags);
+                        } else {
+                            return new ActionAddRemoveVarToRelation(false, (String) params[0], (String) params[1]);
+                        }
+
                     }
                 });
         registry.getOrCreateDeclaration(CoreActionNames.TRAVERSE)
