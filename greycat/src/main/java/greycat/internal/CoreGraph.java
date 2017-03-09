@@ -80,19 +80,19 @@ public class CoreGraph implements Graph {
         _scheduler = p_scheduler;
         //Third round, initialize all taskActions and nodeTypes
         CoreTask.fillDefault(this._actionRegistry);
-        this._nodeRegistry.declaration(CoreNodeIndex.NAME).setFactory(new NodeFactory() {
+        this._nodeRegistry.getOrCreateDeclaration(CoreNodeIndex.NAME).setFactory(new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
                 return new CoreNodeIndex(world, time, id, graph);
             }
         });
-        this._nodeRegistry.declaration(KDTreeNode.NAME).setFactory(new NodeFactory() {
+        this._nodeRegistry.getOrCreateDeclaration(KDTreeNode.NAME).setFactory(new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
                 return new KDTreeNode(world, time, id, graph);
             }
         });
-        this._nodeRegistry.declaration(NDTreeNode.NAME).setFactory(new NodeFactory() {
+        this._nodeRegistry.getOrCreateDeclaration(NDTreeNode.NAME).setFactory(new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {
                 return new NDTreeNode(world, time, id, graph);

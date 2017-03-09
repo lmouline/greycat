@@ -31,7 +31,7 @@ class CoreNodeRegistry implements NodeRegistry {
     }
 
     @Override
-    public final synchronized NodeDeclaration declaration(String name) {
+    public final synchronized NodeDeclaration getOrCreateDeclaration(String name) {
         NodeDeclaration previous = backend.get(name);
         if (previous == null) {
             previous = new CoreNodeDeclaration(name);
@@ -39,6 +39,11 @@ class CoreNodeRegistry implements NodeRegistry {
             backend_hash.put(HashHelper.hash(name), previous);
         }
         return previous;
+    }
+
+    @Override
+    public final NodeDeclaration declaration(String name) {
+        return  backend.get(name);
     }
 
     @Override

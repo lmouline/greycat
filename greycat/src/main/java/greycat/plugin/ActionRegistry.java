@@ -18,6 +18,8 @@ package greycat.plugin;
 
 public interface ActionRegistry {
 
+    ActionDeclaration getOrCreateDeclaration(String name);
+
     ActionDeclaration declaration(String name);
 
     ActionDeclaration[] declarations();

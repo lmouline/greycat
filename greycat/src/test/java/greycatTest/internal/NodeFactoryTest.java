@@ -58,7 +58,7 @@ public class NodeFactoryTest {
 
         @Override
         public void start(Graph graph) {
-            graph.nodeRegistry().declaration(NAME).setFactory(new NodeFactory() {
+            graph.nodeRegistry().getOrCreateDeclaration(NAME).setFactory(new NodeFactory() {
                 @Override
                 public Node create(long world, long time, long id, Graph graph) {
                     return new ExNodeImpl(world, time, id, graph);

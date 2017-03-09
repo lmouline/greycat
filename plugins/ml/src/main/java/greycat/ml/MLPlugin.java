@@ -34,7 +34,7 @@ public class MLPlugin  implements Plugin  {
     @Override
     public void start(Graph graph) {
         graph.actionRegistry()
-                .declaration(greycat.ml.regression.actions.ReadContinuous.NAME)
+                .getOrCreateDeclaration(greycat.ml.regression.actions.ReadContinuous.NAME)
                 .setParams(Type.STRING)
                 .setFactory(new ActionFactory() {
                     @Override
@@ -43,7 +43,7 @@ public class MLPlugin  implements Plugin  {
                     }
                 });
         graph.actionRegistry()
-                .declaration(SetContinuous.NAME)
+                .getOrCreateDeclaration(SetContinuous.NAME)
                 .setParams(Type.STRING, Type.STRING)
                 .setFactory(new ActionFactory() {
                     @Override
@@ -52,7 +52,7 @@ public class MLPlugin  implements Plugin  {
                     }
                 });
         graph.nodeRegistry()
-                .declaration(PolynomialNode.NAME)
+                .getOrCreateDeclaration(PolynomialNode.NAME)
                 .setFactory(new NodeFactory() {
                     @Override
                     public Node create(long world, long time, long id, Graph graph) {
@@ -61,7 +61,7 @@ public class MLPlugin  implements Plugin  {
                 });
 
         graph.nodeRegistry()
-                .declaration(LiveLinearRegressionNode.NAME)
+                .getOrCreateDeclaration(LiveLinearRegressionNode.NAME)
                 .setFactory(new NodeFactory() {
                     @Override
                     public Node create(long world, long time, long id, Graph graph) {
@@ -70,7 +70,7 @@ public class MLPlugin  implements Plugin  {
                 });
 
         graph.nodeRegistry()
-                .declaration(GaussianNode.NAME)
+                .getOrCreateDeclaration(GaussianNode.NAME)
                 .setFactory(new NodeFactory() {
                     @Override
                     public Node create(long world, long time, long id, Graph graph) {
@@ -79,7 +79,7 @@ public class MLPlugin  implements Plugin  {
                 });
 
         graph.nodeRegistry()
-                .declaration(GaussianSlotsNode.NAME)
+                .getOrCreateDeclaration(GaussianSlotsNode.NAME)
                 .setFactory(new NodeFactory() {
                     @Override
                     public Node create(long world, long time, long id, Graph graph) {

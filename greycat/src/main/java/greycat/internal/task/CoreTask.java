@@ -497,8 +497,11 @@ public class CoreTask implements Task {
     static Action loadAction(final ActionRegistry registry, final String actionName, final String[] params, final Map<Integer, Task> contextTasks) {
         final ActionDeclaration declaration = registry.declaration(actionName);
         if (declaration == null || declaration.factory() == null) {
+            /*
             final String[] varargs = params;
             return new ActionNamed(actionName, varargs);
+            */
+            throw new RuntimeException("Action '"+actionName+"' not found in registry.");
         } else {
             final ActionFactory factory = declaration.factory();
             final byte[] declaredParams = declaration.params();
@@ -601,7 +604,7 @@ public class CoreTask implements Task {
     }
 
     public static void fillDefault(ActionRegistry registry) {
-        registry.declaration(CoreActionNames.TRAVEL_IN_WORLD)
+        registry.getOrCreateDeclaration(CoreActionNames.TRAVEL_IN_WORLD)
                 .setParams(Type.STRING)
                 .setDescription("Sets the task context to a particular world. Every nodes in current result will be switch ot new world.")
                 .setFactory(new ActionFactory() {
@@ -610,7 +613,7 @@ public class CoreTask implements Task {
                         return new ActionTravelInWorld((String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.TRAVEL_IN_TIME)
+        registry.getOrCreateDeclaration(CoreActionNames.TRAVEL_IN_TIME)
                 .setParams(Type.STRING)
                 .setDescription("Switches the time of the task context, i.e. travels the task context in time. Every nodes in current result will be switch ot new time.")
                 .setFactory(new ActionFactory() {
@@ -619,7 +622,7 @@ public class CoreTask implements Task {
                         return new ActionTravelInTime((String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.DEFINE_AS_GLOBAL_VAR)
+        registry.getOrCreateDeclaration(CoreActionNames.DEFINE_AS_GLOBAL_VAR)
                 .setParams(Type.STRING)
                 .setDescription("Stores the task result as a global variable in the task context and starts a new scope (for sub tasks).")
                 .setFactory(new ActionFactory() {
@@ -628,7 +631,7 @@ public class CoreTask implements Task {
                         return new ActionDefineAsVar((String) params[0], true);
                     }
                 });
-        registry.declaration(CoreActionNames.DEFINE_AS_VAR)
+        registry.getOrCreateDeclaration(CoreActionNames.DEFINE_AS_VAR)
                 .setParams(Type.STRING)
                 .setDescription("Stores the task result as a local variable in the task context and starts a new scope (for sub tasks).")
                 .setFactory(new ActionFactory() {
@@ -637,7 +640,7 @@ public class CoreTask implements Task {
                         return new ActionDefineAsVar((String) params[0], false);
                     }
                 });
-        registry.declaration(CoreActionNames.DECLARE_GLOBAL_VAR)
+        registry.getOrCreateDeclaration(CoreActionNames.DECLARE_GLOBAL_VAR)
                 .setParams(Type.STRING)
                 .setDescription("Stores the task result as a global variable in the task context and starts a new scope (for sub tasks).")
                 .setFactory(new ActionFactory() {
@@ -646,7 +649,7 @@ public class CoreTask implements Task {
                         return new ActionDeclareVar(true, (String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.DECLARE_VAR)
+        registry.getOrCreateDeclaration(CoreActionNames.DECLARE_VAR)
                 .setParams(Type.STRING)
                 .setDescription("Stores the task result as a local variable in the task context and starts a new scope (for sub tasks).")
                 .setFactory(new ActionFactory() {
@@ -655,7 +658,7 @@ public class CoreTask implements Task {
                         return new ActionDeclareVar(false, (String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.READ_VAR)
+        registry.getOrCreateDeclaration(CoreActionNames.READ_VAR)
                 .setParams(Type.STRING)
                 .setDescription("Retrieves a stored variable. To reach a particular index, a default array notation can be used. Therefore, A[B] will be interpreted as: extract value stored at index B from the variable A.")
                 .setFactory(new ActionFactory() {
@@ -664,7 +667,7 @@ public class CoreTask implements Task {
                         return new ActionReadVar((String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.SET_AS_VAR)
+        registry.getOrCreateDeclaration(CoreActionNames.SET_AS_VAR)
                 .setParams(Type.STRING)
                 .setDescription("Stores the current task result into a named variable without starting a new scope.")
                 .setFactory(new ActionFactory() {
@@ -673,7 +676,7 @@ public class CoreTask implements Task {
                         return new ActionSetAsVar((String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.ADD_TO_VAR)
+        registry.getOrCreateDeclaration(CoreActionNames.ADD_TO_VAR)
                 .setParams(Type.STRING)
                 .setDescription("Adds the current task result to the named variable.")
                 .setFactory(new ActionFactory() {
@@ -682,7 +685,7 @@ public class CoreTask implements Task {
                         return new ActionAddToVar((String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.TRAVERSE)
+        registry.getOrCreateDeclaration(CoreActionNames.TRAVERSE)
                 .setParams(Type.STRING, Type.STRING_ARRAY)
                 .setDescription("Retrieves any nodes contained in a relations of the nodes present in the current result.")
                 .setFactory(new ActionFactory() {
@@ -696,7 +699,7 @@ public class CoreTask implements Task {
                         }
                     }
                 });
-        registry.declaration(CoreActionNames.ATTRIBUTE)
+        registry.getOrCreateDeclaration(CoreActionNames.ATTRIBUTE)
                 .setParams(Type.STRING)
                 .setDescription("Retrieves any attribute(s) contained in the nodes present in the current result.")
                 .setFactory(new ActionFactory() {
@@ -705,7 +708,7 @@ public class CoreTask implements Task {
                         return new ActionTraverseOrAttribute(false, false, (String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.WITH)
+        registry.getOrCreateDeclaration(CoreActionNames.WITH)
                 .setParams(Type.STRING, Type.STRING)
                 .setDescription("Filters the previous result to keep nodes, which named attribute has a specific value.")
                 .setFactory(new ActionFactory() {
@@ -714,7 +717,7 @@ public class CoreTask implements Task {
                         return new ActionWith((String) params[0], (String) params[1]);
                     }
                 });
-        registry.declaration(CoreActionNames.WITHOUT)
+        registry.getOrCreateDeclaration(CoreActionNames.WITHOUT)
                 .setParams(Type.STRING, Type.STRING)
                 .setDescription("Filters the previous result to keep nodes, which named attribute does not have a given value.")
                 .setFactory(new ActionFactory() {
@@ -723,7 +726,7 @@ public class CoreTask implements Task {
                         return new ActionWithout((String) params[0], (String) params[1]);
                     }
                 });
-        registry.declaration(CoreActionNames.SCRIPT)
+        registry.getOrCreateDeclaration(CoreActionNames.SCRIPT)
                 .setParams(Type.STRING)
                 .setDescription("Execute a JS script; Current context is automatically injected as ctx variables. Other variables are directly reachable as JS vars. Execution is synchronous")
                 .setFactory(new ActionFactory() {
@@ -732,7 +735,7 @@ public class CoreTask implements Task {
                         return new ActionScript((String) params[0], false);
                     }
                 });
-        registry.declaration(CoreActionNames.ASYNC_SCRIPT)
+        registry.getOrCreateDeclaration(CoreActionNames.ASYNC_SCRIPT)
                 .setParams(Type.STRING)
                 .setDescription("Execute a JS script; Current context is automatically injected as ctx variables. Other variables are directly reachable as JS vars. Execution is asynchronous and script must contains a ctx.continueTask(); or ctx.continueWith(newResult).")
                 .setFactory(new ActionFactory() {
@@ -741,7 +744,7 @@ public class CoreTask implements Task {
                         return new ActionScript((String) params[0], true);
                     }
                 });
-        registry.declaration(CoreActionNames.CREATE_NODE)
+        registry.getOrCreateDeclaration(CoreActionNames.CREATE_NODE)
                 .setParams()
                 .setDescription("Creates a new node in the [world,time] of the current context.")
                 .setFactory(new ActionFactory() {
@@ -750,7 +753,7 @@ public class CoreTask implements Task {
                         return new ActionCreateNode(null);
                     }
                 });
-        registry.declaration(CoreActionNames.CREATE_TYPED_NODE)
+        registry.getOrCreateDeclaration(CoreActionNames.CREATE_TYPED_NODE)
                 .setParams(Type.STRING)
                 .setDescription("Creates a new typed node in the [world,time] of the current context.")
                 .setFactory(new ActionFactory() {
@@ -759,7 +762,7 @@ public class CoreTask implements Task {
                         return new ActionCreateNode((String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.PRINT)
+        registry.getOrCreateDeclaration(CoreActionNames.PRINT)
                 .setParams(Type.STRING)
                 .setDescription("Prints the action in a human readable format (without line breaks).")
                 .setFactory(new ActionFactory() {
@@ -768,7 +771,7 @@ public class CoreTask implements Task {
                         return new ActionPrint((String) params[0], false);
                     }
                 });
-        registry.declaration(CoreActionNames.LOG)
+        registry.getOrCreateDeclaration(CoreActionNames.LOG)
                 .setParams(Type.STRING)
                 .setDescription("Prints the action in a human readable format (without line breaks).")
                 .setFactory(new ActionFactory() {
@@ -777,7 +780,7 @@ public class CoreTask implements Task {
                         return new ActionLog((String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.PRINTLN)
+        registry.getOrCreateDeclaration(CoreActionNames.PRINTLN)
                 .setParams(Type.STRING)
                 .setDescription("Prints the action in a human readable format (with line breaks).")
                 .setFactory(new ActionFactory() {
@@ -786,7 +789,7 @@ public class CoreTask implements Task {
                         return new ActionPrint((String) params[0], true);
                     }
                 });
-        registry.declaration(CoreActionNames.ATTRIBUTES)
+        registry.getOrCreateDeclaration(CoreActionNames.ATTRIBUTES)
                 .setParams()
                 .setDescription("Retrieves all attribute names of nodes present in the previous task result.")
                 .setFactory(new ActionFactory() {
@@ -795,7 +798,7 @@ public class CoreTask implements Task {
                         return new ActionAttributes(null);
                     }
                 });
-        registry.declaration(CoreActionNames.ATTRIBUTES)
+        registry.getOrCreateDeclaration(CoreActionNames.ATTRIBUTES)
                 .setParams()
                 .setDescription("Retrieves all attribute names of nodes present in the previous task result.")
                 .setFactory(new ActionFactory() {
@@ -804,7 +807,7 @@ public class CoreTask implements Task {
                         return new ActionAttributes(null);
                     }
                 });
-        registry.declaration(CoreActionNames.ATTRIBUTES_WITH_TYPE)
+        registry.getOrCreateDeclaration(CoreActionNames.ATTRIBUTES_WITH_TYPE)
                 .setParams(Type.STRING)
                 .setDescription("Gets and filters all attribute names of nodes present in the previous result.")
                 .setFactory(new ActionFactory() {
@@ -813,7 +816,7 @@ public class CoreTask implements Task {
                         return new ActionAttributes((String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.FLAT)
+        registry.getOrCreateDeclaration(CoreActionNames.FLAT)
                 .setParams()
                 .setDescription("Flat a TaskResult containing TaskResult to a flat TaskResult.")
                 .setFactory(new ActionFactory() {
@@ -822,7 +825,7 @@ public class CoreTask implements Task {
                         return new ActionFlat();
                     }
                 });
-        registry.declaration(CoreActionNames.SAVE)
+        registry.getOrCreateDeclaration(CoreActionNames.SAVE)
                 .setParams()
                 .setDescription("Save current cache into persistence storage")
                 .setFactory(new ActionFactory() {
@@ -831,7 +834,7 @@ public class CoreTask implements Task {
                         return new ActionSave();
                     }
                 });
-        registry.declaration(CoreActionNames.EXECUTE_EXPRESSION)
+        registry.getOrCreateDeclaration(CoreActionNames.EXECUTE_EXPRESSION)
                 .setParams(Type.STRING)
                 .setDescription("Executes an expression on all nodes given from the previous step.")
                 .setFactory(new ActionFactory() {
@@ -840,7 +843,7 @@ public class CoreTask implements Task {
                         return new ActionExecuteExpression((String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.READ_GLOBAL_INDEX)
+        registry.getOrCreateDeclaration(CoreActionNames.READ_GLOBAL_INDEX)
                 .setParams(Type.STRING, Type.STRING_ARRAY)
                 .setDescription("Retrieves indexed nodes matching the query.")
                 .setFactory(new ActionFactory() {
@@ -854,7 +857,7 @@ public class CoreTask implements Task {
                         }
                     }
                 });
-        registry.declaration(CoreActionNames.GLOBAL_INDEX)
+        registry.getOrCreateDeclaration(CoreActionNames.GLOBAL_INDEX)
                 .setParams(Type.STRING)
                 .setDescription("Retrieve global index node")
                 .setFactory(new ActionFactory() {
@@ -863,7 +866,7 @@ public class CoreTask implements Task {
                         return new ActionGlobalIndex((String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.SELECT)
+        registry.getOrCreateDeclaration(CoreActionNames.SELECT)
                 .setParams(Type.STRING)
                 .setDescription("Use a JS script to filter nodes. The task context is inject in the variable 'context'. The current node is inject in the variable 'node'.")
                 .setFactory(new ActionFactory() {
@@ -872,7 +875,7 @@ public class CoreTask implements Task {
                         return new ActionSelect((String) params[0], null);
                     }
                 });
-        registry.declaration(CoreActionNames.TIME_SENSITIVITY)
+        registry.getOrCreateDeclaration(CoreActionNames.TIME_SENSITIVITY)
                 .setParams(Type.STRING, Type.STRING)
                 .setDescription("Adjust the time sensitivity of nodes present in current result.")
                 .setFactory(new ActionFactory() {
@@ -881,7 +884,7 @@ public class CoreTask implements Task {
                         return new ActionTimeSensitivity((String) params[0], (String) params[1]);
                     }
                 });
-        registry.declaration(CoreActionNames.SET_ATTRIBUTE)
+        registry.getOrCreateDeclaration(CoreActionNames.SET_ATTRIBUTE)
                 .setParams(Type.STRING, Type.STRING, Type.STRING)
                 .setDescription("Sets the value of an attribute for all nodes present in the current result. If value is similar to the previously stored one, nodes will remain unmodified.")
                 .setFactory(new ActionFactory() {
@@ -890,7 +893,7 @@ public class CoreTask implements Task {
                         return new ActionSetAttribute((String) params[0], (String) params[1], (String) params[2], true);
                     }
                 });
-        registry.declaration(CoreActionNames.FORCE_ATTRIBUTE)
+        registry.getOrCreateDeclaration(CoreActionNames.FORCE_ATTRIBUTE)
                 .setParams(Type.STRING, Type.STRING, Type.STRING)
                 .setDescription("Forces the value of an attribute for all nodes present in the current result. If value is similar to the previously stored one, nodes will still be modified and their timeline will be affected.")
                 .setFactory(new ActionFactory() {
@@ -899,7 +902,7 @@ public class CoreTask implements Task {
                         return new ActionSetAttribute((String) params[0], (String) params[1], (String) params[2], true);
                     }
                 });
-        registry.declaration(CoreActionNames.LOOP)
+        registry.getOrCreateDeclaration(CoreActionNames.LOOP)
                 .setParams(Type.STRING, Type.STRING, Type.TASK)
                 .setDescription("Executes a task in a range.")
                 .setFactory(new ActionFactory() {
@@ -908,7 +911,7 @@ public class CoreTask implements Task {
                         return new CF_Loop((String) params[0], (String) params[1], (Task) params[2]);
                     }
                 });
-        registry.declaration(CoreActionNames.LOOP_PAR)
+        registry.getOrCreateDeclaration(CoreActionNames.LOOP_PAR)
                 .setParams(Type.STRING, Type.STRING, Type.TASK)
                 .setDescription("Parallel version of loop(String, String, Task). Executes a task in a range. Steps can be executed in parallel. Creates as many threads as elements in the collection.")
                 .setFactory(new ActionFactory() {
@@ -917,7 +920,7 @@ public class CoreTask implements Task {
                         return new CF_LoopPar((String) params[0], (String) params[1], (Task) params[2]);
                     }
                 });
-        registry.declaration(CoreActionNames.FOR_EACH)
+        registry.getOrCreateDeclaration(CoreActionNames.FOR_EACH)
                 .setParams(Type.TASK)
                 .setDescription("Iterates through a collection and calls the sub task for each element.")
                 .setFactory(new ActionFactory() {
@@ -926,7 +929,7 @@ public class CoreTask implements Task {
                         return new CF_ForEach((Task) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.FOR_EACH_PAR)
+        registry.getOrCreateDeclaration(CoreActionNames.FOR_EACH_PAR)
                 .setParams(Type.TASK)
                 .setDescription("Parallel version of forEach(Task). All sub tasks can be called in parallel. Creates as many threads as elements in the collection.")
                 .setFactory(new ActionFactory() {
@@ -935,7 +938,7 @@ public class CoreTask implements Task {
                         return new CF_ForEachPar((Task) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.MAP)
+        registry.getOrCreateDeclaration(CoreActionNames.MAP)
                 .setParams(Type.TASK)
                 .setDescription("Iterates through a collection and calls the sub task for each element in parallel and then aggregates all results in an array of array manner.")
                 .setFactory(new ActionFactory() {
@@ -944,7 +947,7 @@ public class CoreTask implements Task {
                         return new CF_Map((Task) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.MAP_PAR)
+        registry.getOrCreateDeclaration(CoreActionNames.MAP_PAR)
                 .setParams(Type.TASK)
                 .setDescription("Parallel version of map(Task). Iterates through a collection and calls the sub task for each element in parallel and then aggregates all results in an array of array manner.")
                 .setFactory(new ActionFactory() {
@@ -953,7 +956,7 @@ public class CoreTask implements Task {
                         return new CF_MapPar((Task) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.PIPE)
+        registry.getOrCreateDeclaration(CoreActionNames.PIPE)
                 .setParams(Type.TASK_ARRAY)
                 .setDescription("Executes and waits for a number of given sub tasks. The result of these sub tasks is immediately enqueued and available in the next sub task in a array of array manner.")
                 .setFactory(new ActionFactory() {
@@ -963,7 +966,7 @@ public class CoreTask implements Task {
                         return new CF_Pipe(varargs);
                     }
                 });
-        registry.declaration(CoreActionNames.PIPE_PAR)
+        registry.getOrCreateDeclaration(CoreActionNames.PIPE_PAR)
                 .setParams(Type.TASK_ARRAY)
                 .setDescription("Parallel version of pipe(Tasks...). Executes and waits a number of given sub tasks. The result of these sub tasks is immediately enqueued and available in the next sub task in a array of array manner.")
                 .setFactory(new ActionFactory() {
@@ -973,7 +976,7 @@ public class CoreTask implements Task {
                         return new CF_PipePar(varargs);
                     }
                 });
-        registry.declaration(CoreActionNames.DO_WHILE)
+        registry.getOrCreateDeclaration(CoreActionNames.DO_WHILE)
                 .setParams(Type.STRING, Type.TASK)
                 .setDescription("Executes a give task until a given condition evaluates to true.")
                 .setFactory(new ActionFactory() {
@@ -982,7 +985,7 @@ public class CoreTask implements Task {
                         return new CF_DoWhile((Task) params[1], condFromScript((String) params[0]), (String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.WHILE_DO)
+        registry.getOrCreateDeclaration(CoreActionNames.WHILE_DO)
                 .setParams(Type.STRING, Type.TASK)
                 .setDescription("Similar to doWhile(Task, ConditionalExpression) but the task is at least executed once.")
                 .setFactory(new ActionFactory() {
@@ -991,7 +994,7 @@ public class CoreTask implements Task {
                         return new CF_WhileDo(condFromScript((String) params[0]), (Task) params[1], (String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.PIPE_TO)
+        registry.getOrCreateDeclaration(CoreActionNames.PIPE_TO)
                 .setParams(Type.TASK, Type.STRING_ARRAY)
                 .setDescription("Executes a given sub task in an isolated environment and store result as variables.")
                 .setFactory(new ActionFactory() {
@@ -1005,7 +1008,7 @@ public class CoreTask implements Task {
                         }
                     }
                 });
-        registry.declaration(CoreActionNames.ATOMIC)
+        registry.getOrCreateDeclaration(CoreActionNames.ATOMIC)
                 .setParams(Type.TASK, Type.STRING_ARRAY)
                 .setDescription("Atomically execute a subTask while blocking on nodes present in named variables")
                 .setFactory(new ActionFactory() {
@@ -1019,7 +1022,7 @@ public class CoreTask implements Task {
                         }
                     }
                 });
-        registry.declaration(CoreActionNames.IF_THEN)
+        registry.getOrCreateDeclaration(CoreActionNames.IF_THEN)
                 .setParams(Type.STRING, Type.TASK)
                 .setDescription("Executes a sub task if a given condition is evaluated to true.")
                 .setFactory(new ActionFactory() {
@@ -1028,7 +1031,7 @@ public class CoreTask implements Task {
                         return new CF_IfThen(condFromScript((String) params[0]), (Task) params[1], (String) params[0]);
                     }
                 });
-        registry.declaration(CoreActionNames.IF_THEN_ELSE)
+        registry.getOrCreateDeclaration(CoreActionNames.IF_THEN_ELSE)
                 .setParams(Type.STRING, Type.TASK, Type.TASK)
                 .setDescription("Executes a sub task if a given condition is evaluated to true, another one otherwise.")
                 .setFactory(new ActionFactory() {
@@ -1039,7 +1042,7 @@ public class CoreTask implements Task {
                 });
         //TODO improve TreeTask API
         registry
-                .declaration(ActionQueryBoundedRadius.NAME)
+                .getOrCreateDeclaration(ActionQueryBoundedRadius.NAME)
                 .setParams(Type.INT, Type.DOUBLE, Type.BOOL, Type.DOUBLE_ARRAY)
                 .setFactory(new ActionFactory() {
                     @Override

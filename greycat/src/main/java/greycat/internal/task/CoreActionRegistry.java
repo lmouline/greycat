@@ -30,13 +30,18 @@ public class CoreActionRegistry implements ActionRegistry {
     }
 
     @Override
-    public final synchronized ActionDeclaration declaration(String name) {
+    public final synchronized ActionDeclaration getOrCreateDeclaration(String name) {
         ActionDeclaration previous = backend.get(name);
         if (previous == null) {
             previous = new CoreActionDeclaration(name);
             backend.put(name, previous);
         }
         return previous;
+    }
+
+    @Override
+    public final ActionDeclaration declaration(String name) {
+        return backend.get(name);
     }
 
     @Override

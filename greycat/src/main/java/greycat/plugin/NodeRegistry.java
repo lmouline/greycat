@@ -17,6 +17,8 @@ package greycat.plugin;
 
 public interface NodeRegistry {
 
+    NodeDeclaration getOrCreateDeclaration(String name);
+
     NodeDeclaration declaration(String name);
 
     NodeDeclaration declarationByHash(int hash);
