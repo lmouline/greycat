@@ -187,12 +187,12 @@ public class WSClient implements Storage, TaskExecutor {
         }
     }
 
-    private void send_rpc_req(byte code, Buffer payload, Callback callback) {
+    private void send_rpc_req(byte operationId, Buffer payload, Callback callback) {
         if (channel == null) {
             throw new RuntimeException(WSConstants.DISCONNECTED_ERROR);
         }
         Buffer buffer = graph.newBuffer();
-        buffer.write(code);
+        buffer.write(operationId);
         buffer.write(Constants.BUFFER_SEP);
         int hash = callback.hashCode();
         callbacks.put(hash, callback);
