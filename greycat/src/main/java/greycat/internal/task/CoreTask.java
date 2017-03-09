@@ -528,7 +528,7 @@ public class CoreTask implements Task {
                             break;
                         case Type.STRING_ARRAY:
                             if (varargs_index == 0) {
-                                final String[] parsedSubParam = new String[resultSize - i];
+                                final String[] parsedSubParam = new String[params.length - i];
                                 parsedSubParam[varargs_index] = params[i];
                                 varargs_index = 1;
                                 parsedParams[i] = parsedSubParam;
