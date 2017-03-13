@@ -1,7 +1,7 @@
 {
   "name": "greycat",
   "homepage": "https://github.com/datathings/greycat",
-  "version": "GREYCAT_VERSION.0.0",
+  "version": "GREYCAT_VERSION",
   "main": "greycat.js",
   "typings": "greycat.d.ts",
   "repository": {
@@ -21,6 +21,6 @@
     "typescript": "^2.1.5"
   },
   "dependencies": {
-    "j2ts-jre":"^J2TS_VERSION.0.0"
+    "j2ts-jre":"^J2TS_VERSION"
   }
 }
