@@ -16,7 +16,8 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat</artifactId>
     <name>greycat</name>
@@ -100,6 +101,7 @@
             <plugin>
                 <groupId>org.codehaus.gmaven</groupId>
                 <artifactId>groovy-maven-plugin</artifactId>
+                <version>2.0</version>
                 <executions>
                     <execution>
                         <id>main.ts.compile</id>
@@ -110,20 +112,40 @@
                         <configuration>
                             <source>
                                 def ant = new AntBuilder()
-                                ant.copy(file:"${basedir}/src/main/ts/tsconfig.json",todir:"${basedir}/target/classes-npm")
-                                ant.copy(file:"${basedir}/src/main/ts/package.json",todir:"${basedir}/target/classes-npm")
-                                def project_version = "${project.version}".replaceAll("-SNAPSHOT","")
-                                while(project_version.split('\\.').length != 3){project_version += '.0'}
-                                def j2ts_version = "${java2typescript.plugin.version}".replaceAll("-SNAPSHOT","")
-                                while(j2ts_version.split('\\.').length != 3){j2ts_version += '.0'}
-                                ant.replace(file:"${basedir}/target/classes-npm/package.json",token:"GREYCAT_VERSION",value:project_version)
-                                ant.replace(file:"${basedir}/target/classes-npm/package.json",token:"J2TS_VERSION",value:j2ts_version)
-                                ant.copy(file:"${basedir}/target/generated-sources/greycat.ts",todir:"${basedir}/target/classes-npm")
-                                ant.concat(append:true,destfile:"${basedir}/target/classes-npm/greycat.ts","export = greycat;")
-                                "npm install".execute(null, new File("${basedir}/target/classes-npm")).waitForProcessOutput(System.out, System.err)
-                                "node ${basedir}/target/classes-npm/node_modules/typescript/lib/tsc.js".execute(null, new File("${basedir}/target/classes-npm")).waitForProcessOutput(System.out, System.err)
-                                ant.delete(file:"${basedir}/target/classes-npm/greycat.ts")
-                                "npm link".execute(null, new File("${basedir}/target/classes-npm")).waitForProcessOutput(System.out, System.err)
+                                ant.copy(file: "${basedir}/src/main/ts/tsconfig.json", todir: "${basedir}/target/classes-npm")
+                                ant.copy(file: "${basedir}/src/main/ts/package.json", todir: "${basedir}/target/classes-npm")
+                                def project_version = "${project.version}".replaceAll("-SNAPSHOT", "")
+                                while (project_version.split('\\.').length != 3) {
+                                    project_version += '.0'
+                                }
+                                def j2ts_version = "${java2typescript.plugin.version}".replaceAll("-SNAPSHOT", "")
+                                while (j2ts_version.split('\\.').length != 3) {
+                                    j2ts_version += '.0'
+                                }
+                                ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "GREYCAT_VERSION", value: project_version)
+                                ant.replace(file: "${basedir}/target/classes-npm/package.json", token: "J2TS_VERSION", value: j2ts_version)
+                                ant.copy(file: "${basedir}/target/generated-sources/greycat.ts", todir: "${basedir}/target/classes-npm")
+                                ant.concat(append: true, destfile: "${basedir}/target/classes-npm/greycat.ts", "export = greycat;")
+                                ant.echo("NPM Install")
+                                def npmInstallProcess = "npm install".execute(null, new File("${basedir}/target/classes-npm"))
+                                npmInstallProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmInstallProcess.exitValue() != 0) {
+                                    exit
+                                }
+                                ant.echo("TypeScript Compiler")
+                                def tscProcess = "node ${basedir}/target/classes-npm/node_modules/typescript/lib/tsc.js".execute(null, new File("${basedir}/target/classes-npm"))
+                                tscProcess.waitForProcessOutput(System.out, System.err)
+                                if (tscProcess.exitValue() != 0) {
+                                    exit
+                                }
+                                ant.delete(file: "${basedir}/target/classes-npm/greycat.ts")
+
+                                ant.echo("NPM Link")
+                                def linkProcess = "npm link".execute(null, new File("${basedir}/target/classes-npm"))
+                                linkProcess.waitForProcessOutput(System.out, System.err)
+                                if (linkProcess.exitValue() != 0) {
+                                    exit
+                                }
                             </source>
                         </configuration>
                     </execution>
@@ -136,20 +158,32 @@
                         <configuration>
                             <source>
                                 def ant = new AntBuilder()
-                                ant.copy(file:"${basedir}/src/test/ts/tsconfig.json",todir:"${basedir}/target/test-classes-npm")
-                                ant.copy(file:"${basedir}/src/test/ts/package.json",todir:"${basedir}/target/test-classes-npm")
-                                def project_version = "${project.version}".replaceAll("-SNAPSHOT","")
-                                while(project_version.split('\\.').length != 3){project_version += '.0'}
-                                def j2ts_version = "${java2typescript.plugin.version}".replaceAll("-SNAPSHOT","")
-                                while(j2ts_version.split('\\.').length != 3){j2ts_version += '.0'}
-                                ant.replace(file:"${basedir}/target/test-classes-npm/package.json",token:"GREYCAT_VERSION",value:project_version)
-                                ant.replace(file:"${basedir}/target/test-classes-npm/package.json",token:"J2TS_VERSION",value:j2ts_version)
-                                ant.copy(file:"${basedir}/target/generated-test-sources/test.ts",todir:"${basedir}/target/test-classes-npm")
-                                ant.concat(append:"true",destfile:"${basedir}/target/test-classes-npm/test.ts","export = greycatTest;")
-                                "npm install".execute(null, new File("${basedir}/target/test-classes-npm")).waitForProcessOutput(System.out, System.err)
-                                "node ${basedir}/target/test-classes-npm/node_modules/typescript/lib/tsc.js".execute(null, new File("${basedir}/target/test-classes-npm")).waitForProcessOutput(System.out, System.err)
-                                ant.concat(append:"false",destfile:"${basedir}/target/test-classes-npm/jasmine.js","var Jasmine = require('jasmine');var jasmine = new Jasmine();jasmine.execute(['testsRunner.js']);")
-                                ant.copy(file:"${basedir}/target/generated-test-sources/testsRunner.js",todir:"${basedir}/target/test-classes-npm")
+                                ant.copy(file: "${basedir}/src/test/ts/tsconfig.json", todir: "${basedir}/target/test-classes-npm")
+                                ant.copy(file: "${basedir}/src/test/ts/package.json", todir: "${basedir}/target/test-classes-npm")
+                                def project_version = "${project.version}".replaceAll("-SNAPSHOT", "")
+                                while (project_version.split('\\.').length != 3) {
+                                    project_version += '.0'
+                                }
+                                def j2ts_version = "${java2typescript.plugin.version}".replaceAll("-SNAPSHOT", "")
+                                while (j2ts_version.split('\\.').length != 3) {
+                                    j2ts_version += '.0'
+                                }
+                                ant.replace(file: "${basedir}/target/test-classes-npm/package.json", token: "GREYCAT_VERSION", value: project_version)
+                                ant.replace(file: "${basedir}/target/test-classes-npm/package.json", token: "J2TS_VERSION", value: j2ts_version)
+                                ant.copy(file: "${basedir}/target/generated-test-sources/test.ts", todir: "${basedir}/target/test-classes-npm")
+                                ant.concat(append: "true", destfile: "${basedir}/target/test-classes-npm/test.ts", "export = greycatTest;")
+                                def npmInstallProcess = "npm install".execute(null, new File("${basedir}/target/test-classes-npm"))
+                                npmInstallProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmInstallProcess.exitValue() != 0) {
+                                    exit
+                                }
+                                def tscProcess = "node ${basedir}/target/test-classes-npm/node_modules/typescript/lib/tsc.js".execute(null, new File("${basedir}/target/test-classes-npm"))
+                                tscProcess.waitForProcessOutput(System.out, System.err)
+                                if (tscProcess.exitValue() != 0) {
+                                    exit
+                                }
+                                ant.concat(append: "false", destfile: "${basedir}/target/test-classes-npm/jasmine.js", "var Jasmine = require('jasmine');var jasmine = new Jasmine();jasmine.execute(['testsRunner.js']);")
+                                ant.copy(file: "${basedir}/target/generated-test-sources/testsRunner.js", todir: "${basedir}/target/test-classes-npm")
                             </source>
                         </configuration>
                     </execution>
@@ -161,7 +195,11 @@
                         </goals>
                         <configuration>
                             <source>
-                                "node jasmine.js".execute(null, new File("${basedir}/target/test-classes-npm")).waitForProcessOutput(System.out, System.err)
+                                def jasmineProcess = "node jasmine.js".execute(null, new File("${basedir}/target/test-classes-npm"))
+                                jasmineProcess.waitForProcessOutput(System.out, System.err)
+                                if (jasmineProcess.exitValue() != 0) {
+                                    exit
+                                }
                             </source>
                         </configuration>
                     </execution>

@@ -3,6 +3,7 @@
   "homepage": "https://github.com/datathings/greycat",
   "version": "GREYCAT_VERSION",
   "main": "greycat.js",
+  "description": "GreyCat is a powerful environment bringing Live Machine Learning and Data Analytics to your business. Check it out on http://datathings.com.",
   "typings": "greycat.d.ts",
   "repository": {
     "type": "git",
@@ -11,16 +12,11 @@
   "bugs": {
     "url": "https://github.com/datathings/greycat/issues"
   },
-  "licenses": [
-    {
-      "type": "Apache-2.0",
-      "url": "http://www.apache.org/licenses/LICENSE-2.0"
-    }
-  ],
+  "license": "Apache-2.0",
   "devDependencies": {
     "typescript": "^2.1.5"
   },
   "dependencies": {
-    "j2ts-jre":"^J2TS_VERSION"
+    "j2ts-jre": "^J2TS_VERSION"
   }
 }

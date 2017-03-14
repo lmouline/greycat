@@ -1,5 +1,6 @@
 {
   "name": "greycat-test",
+  "private": true,
   "homepage": "https://github.com/datathings/greycat",
   "version": "GREYCAT_VERSION",
   "main": "test.js",
