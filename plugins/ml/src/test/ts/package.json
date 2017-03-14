@@ -3,6 +3,7 @@
   "homepage": "https://github.com/datathings/greycat",
   "version": "GREYCAT_VERSION",
   "main": "test.js",
+  "private": true,
   "typings": "test.d.ts",
   "devDependencies": {
     "typescript": "^2.1.5"

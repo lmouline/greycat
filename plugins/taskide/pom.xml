@@ -16,7 +16,8 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat-taskide</artifactId>
     <version>5-SNAPSHOT</version>
@@ -49,41 +50,46 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.8</version>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>groovy-maven-plugin</artifactId>
+                <version>2.0</version>
                 <executions>
                     <execution>
-                        <id>compile</id>
+                        <id>main.ts.compile</id>
                         <phase>compile</phase>
                         <goals>
-                            <goal>run</goal>
+                            <goal>execute</goal>
                         </goals>
                         <configuration>
-                            <target>
-                                <echo message="npm install" />
-                                <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
-                                    <arg value="link" />
-                                    <arg value="greycat" />
-                                </exec>
-                                <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
-                                    <arg value="link" />
-                                    <arg value="greycat-websocket" />
-                                </exec>
-                                <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
-                                    <arg value="link" />
-                                    <arg value="greycat-ml" />
-                                </exec>
-                                <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
-                                    <arg value="install" />
-                                </exec>
-                                <echo message="static build" />
-                                <exec executable="npm" dir="${basedir}/src/main/web" failonerror="true">
-                                    <arg value="run" />
-                                    <arg value="build" />
-                                </exec>
-                                <copydir src="${basedir}/src/main/web/build" dest="${basedir}/target/classes/taskide" forceoverwrite="true" />
-                            </target>
+                            <source>
+                                def ant = new AntBuilder()
+                                def installGreyCatProcess = "npm install ${basedir}/../../greycat/target/classes-npm".execute(null, new File("${basedir}/src/main/web"))
+                                installGreyCatProcess.waitForProcessOutput(System.out, System.err)
+                                if (installGreyCatProcess.exitValue() != 0) {
+                                    exit
+                                }
+                                def installGreyCatWSProcess = "npm install ${basedir}/../websocket/target/classes-npm".execute(null, new File("${basedir}/src/main/web"))
+                                installGreyCatWSProcess.waitForProcessOutput(System.out, System.err)
+                                if (installGreyCatWSProcess.exitValue() != 0) {
+                                    exit
+                                }
+                                def installGreyCatMLProcess = "npm install ${basedir}/../ml/target/classes-npm".execute(null, new File("${basedir}/src/main/web"))
+                                installGreyCatMLProcess.waitForProcessOutput(System.out, System.err)
+                                if (installGreyCatMLProcess.exitValue() != 0) {
+                                    exit
+                                }
+                                def installProcess = "npm install".execute(null, new File("${basedir}/src/main/web"))
+                                installProcess.waitForProcessOutput(System.out, System.err)
+                                if (installProcess.exitValue() != 0) {
+                                    exit
+                                }
+                                def buildProcess = "npm run build".execute(null, new File("${basedir}/src/main/web"))
+                                buildProcess.waitForProcessOutput(System.out, System.err)
+                                if (buildProcess.exitValue() != 0) {
+                                    exit
+                                }
+                                ant.copydir(src: "${basedir}/src/main/web/build", dest: "${basedir}/target/classes/taskide", forceoverwrite: "true")
+                            </source>
                         </configuration>
                     </execution>
                 </executions>
