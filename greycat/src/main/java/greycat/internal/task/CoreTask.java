@@ -928,7 +928,7 @@ public class CoreTask implements Task {
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        return new ActionSetAttribute((String) params[0], (String) params[1], (String) params[2], true);
+                        return new ActionSetAttribute((String) params[0], (String) params[1], (String) params[2], false);
                     }
                 });
         registry.getOrCreateDeclaration(CoreActionNames.FORCE_ATTRIBUTE)
