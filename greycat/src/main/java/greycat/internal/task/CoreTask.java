@@ -896,6 +896,14 @@ public class CoreTask implements Task {
                         return new ActionGlobalIndex((String) params[0]);
                     }
                 });
+        registry.getOrCreateDeclaration(CoreActionNames.INDEX_NAMES)
+                .setDescription("Retrieves existing indexes")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionIndexNames();
+                    }
+                });
         registry.getOrCreateDeclaration(CoreActionNames.SELECT)
                 .setParams(Type.STRING)
                 .setDescription("Use a JS script to filter nodes. The task context is inject in the variable 'context'. The current node is inject in the variable 'node'.")
