@@ -21,6 +21,8 @@ import greycat.struct.*;
 import greycat.plugin.NodeDeclaration;
 import greycat.plugin.NodeState;
 import greycat.plugin.Resolver;
+import greycat.struct.proxy.DMatrixProxy;
+import greycat.struct.proxy.LMatrixProxy;
 import greycat.struct.proxy.RelationProxy;
 
 import java.lang.reflect.Field;
@@ -166,6 +168,10 @@ public class BaseNode implements Node {
                 Object elem = resolved.getAt(propIndex);
                 //temporary proxy
                 switch (type) {
+                    case Type.LMATRIX:
+                        return new LMatrixProxy(propIndex, this, (LMatrixProxy) elem);
+                    case Type.DMATRIX:
+                        return new DMatrixProxy(propIndex, this, (DMatrixProxy) elem);
                     case Type.RELATION:
                         return new RelationProxy(propIndex, this, (Relation) elem);
                     default:

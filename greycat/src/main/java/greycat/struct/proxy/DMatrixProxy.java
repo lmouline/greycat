@@ -15,82 +15,107 @@
  */
 package greycat.struct.proxy;
 
+import greycat.Node;
 import greycat.struct.DMatrix;
 
 public class DMatrixProxy implements DMatrix {
 
-    @Override
-    public DMatrix init(int rows, int columns) {
-        return null;
+    private final int _index;
+    private Node _target;
+    private DMatrixProxy _elem;
+
+    public DMatrixProxy(final int _relationIndex, final Node _target, final DMatrixProxy _relation) {
+        this._index = _relationIndex;
+        this._target = _target;
+        this._elem = _relation;
+    }
+
+    private void check() {
+        if (_target != null) {
+            _elem = (DMatrixProxy) _target.graph().resolver().alignState(_target).getAt(_index);
+            _target = null;
+        }
     }
 
     @Override
-    public DMatrix fill(double value) {
-        return null;
+    public final int rows() {
+        return _elem.rows();
     }
 
     @Override
-    public DMatrix fillWith(double[] values) {
-        return null;
-    }
-
-    @Override
-    public int rows() {
-        return 0;
-    }
-
-    @Override
-    public int columns() {
-        return 0;
+    public final int columns() {
+        return _elem.columns();
     }
 
     @Override
     public int length() {
-        return 0;
+        return _elem.length();
     }
 
     @Override
-    public double[] column(int i) {
-        return new double[0];
+    public final double[] column(final int i) {
+        return _elem.column(i);
     }
 
     @Override
-    public double get(int rowIndex, int columnIndex) {
-        return 0;
+    public final double get(final int rowIndex, final int columnIndex) {
+        return _elem.get(rowIndex, columnIndex);
     }
 
     @Override
-    public DMatrix set(int rowIndex, int columnIndex, double value) {
-        return null;
+    public final double[] data() {
+        return _elem.data();
     }
 
     @Override
-    public DMatrix add(int rowIndex, int columnIndex, double value) {
-        return null;
+    public final int leadingDimension() {
+        return _elem.leadingDimension();
     }
 
     @Override
-    public DMatrix appendColumn(double[] newColumn) {
-        return null;
+    public final double unsafeGet(int index) {
+        return _elem.unsafeGet(index);
     }
 
     @Override
-    public double[] data() {
-        return new double[0];
+    public final DMatrix init(final int rows, final int columns) {
+        check();
+        return _elem.init(rows, columns);
     }
 
     @Override
-    public int leadingDimension() {
-        return 0;
+    public final DMatrix fill(final double value) {
+        check();
+        return _elem.fill(value);
     }
 
     @Override
-    public double unsafeGet(int index) {
-        return 0;
+    public final DMatrix fillWith(final double[] values) {
+        check();
+        return _elem.fillWith(values);
     }
 
     @Override
-    public DMatrix unsafeSet(int index, double value) {
-        return null;
+    public final DMatrix set(final int rowIndex, final int columnIndex, final double value) {
+        check();
+        return _elem.set(rowIndex, columnIndex, value);
+    }
+
+    @Override
+    public final DMatrix add(final int rowIndex, final int columnIndex, final double value) {
+        check();
+        return _elem.add(rowIndex, columnIndex, value);
+    }
+
+    @Override
+    public final DMatrix appendColumn(final double[] newColumn) {
+        check();
+        return _elem.appendColumn(newColumn);
+    }
+
+    @Override
+    public final DMatrix unsafeSet(final int index, final double value) {
+        check();
+        return _elem.unsafeSet(index, value);
     }
 }

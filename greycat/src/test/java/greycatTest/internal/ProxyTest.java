@@ -33,6 +33,7 @@ public class ProxyTest {
             Node n = g.newNode(0, 0);
             Relation rel = (Relation) n.getOrCreate("myRel", Type.RELATION);
             rel.add(42);
+            Assert.assertEquals(42,rel.get(0));
             Assert.assertEquals(1, rel.size());
             n.travelInTime(10, n_t10 -> {
                 Relation rel_10 = (Relation) n_t10.get("myRel");

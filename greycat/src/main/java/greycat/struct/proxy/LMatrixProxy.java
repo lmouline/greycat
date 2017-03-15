@@ -15,82 +15,108 @@
  */
 package greycat.struct.proxy;
 
+import greycat.Node;
 import greycat.struct.LMatrix;
 
 public class LMatrixProxy implements LMatrix {
-    
-    @Override
-    public LMatrix init(int rows, int columns) {
-        return null;
+
+    private final int _index;
+    private Node _target;
+    private LMatrix _elem;
+
+    public LMatrixProxy(final int _relationIndex, final Node _target, final LMatrix _relation) {
+        this._index = _relationIndex;
+        this._target = _target;
+        this._elem = _relation;
+    }
+
+    private void check() {
+        if (_target != null) {
+            _elem = (LMatrix) _target.graph().resolver().alignState(_target).getAt(_index);
+            _target = null;
+        }
     }
 
     @Override
-    public LMatrix fill(long value) {
-        return null;
+    public final int rows() {
+        return _elem.rows();
     }
 
     @Override
-    public LMatrix fillWith(long[] values) {
-        return null;
+    public final int columns() {
+        return _elem.columns();
     }
 
     @Override
-    public LMatrix fillWithRandom(long min, long max, long seed) {
-        return null;
+    public final long[] column(final int i) {
+        return _elem.column(i);
     }
 
     @Override
-    public int rows() {
-        return 0;
+    public final long get(final int rowIndex, final int columnIndex) {
+        return _elem.get(rowIndex, columnIndex);
     }
 
     @Override
-    public int columns() {
-        return 0;
+    public final long[] data() {
+        return _elem.data();
     }
 
     @Override
-    public long[] column(int i) {
-        return new long[0];
+    public final int leadingDimension() {
+        return _elem.leadingDimension();
     }
 
     @Override
-    public long get(int rowIndex, int columnIndex) {
-        return 0;
+    public final long unsafeGet(int index) {
+        return _elem.unsafeGet(index);
     }
 
     @Override
-    public LMatrix set(int rowIndex, int columnIndex, long value) {
-        return null;
+    public final LMatrix init(final int rows, final int columns) {
+        check();
+        return _elem.init(rows, columns);
     }
 
     @Override
-    public LMatrix add(int rowIndex, int columnIndex, long value) {
-        return null;
+    public final LMatrix fill(final long value) {
+        check();
+        return _elem.fill(value);
     }
 
     @Override
-    public LMatrix appendColumn(long[] newColumn) {
-        return null;
+    public final LMatrix fillWith(final long[] values) {
+        check();
+        return _elem.fillWith(values);
     }
 
     @Override
-    public long[] data() {
-        return new long[0];
+    public final LMatrix fillWithRandom(final long min, final long max, final long seed) {
+        check();
+        return _elem.fillWithRandom(min, max, seed);
     }
 
     @Override
-    public int leadingDimension() {
-        return 0;
+    public final LMatrix set(final int rowIndex, final int columnIndex, final long value) {
+        check();
+        return _elem.set(rowIndex, columnIndex, value);
     }
 
     @Override
-    public long unsafeGet(int index) {
-        return 0;
+    public final LMatrix add(final int rowIndex, final int columnIndex, final long value) {
+        check();
+        return _elem.add(rowIndex, columnIndex, value);
     }
 
     @Override
-    public LMatrix unsafeSet(int index, long value) {
-        return null;
+    public final LMatrix appendColumn(final long[] newColumn) {
+        check();
+        return _elem.appendColumn(newColumn);
+    }
+
+    @Override
+    public final LMatrix unsafeSet(final int index, final long value) {
+        check();
+        return _elem.unsafeSet(index, value);
     }
 }
