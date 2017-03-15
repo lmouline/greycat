@@ -18,7 +18,7 @@ package greycat.struct.proxy;
 import greycat.Container;
 import greycat.struct.DMatrix;
 
-public class DMatrixProxy implements DMatrix {
+public final class DMatrixProxy implements DMatrix {
 
     private final int _index;
     private Container _target;
@@ -118,4 +118,10 @@ public class DMatrixProxy implements DMatrix {
         check();
         return _elem.unsafeSet(index, value);
     }
+
+    @Override
+    public final String toString() {
+        return _elem.toString();
+    }
+
 }

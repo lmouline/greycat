@@ -23,7 +23,7 @@ import greycat.struct.ENode;
 import greycat.struct.Relation;
 import greycat.struct.RelationIndexed;
 
-public class ENodeProxy implements ENode {
+public final class ENodeProxy implements ENode {
 
     EGraphProxy _parent;
     ENode _node;
@@ -173,6 +173,11 @@ public class ENodeProxy implements ENode {
     public final ENode clear() {
         check();
         return _node.clear();
+    }
+
+    @Override
+    public final String toString() {
+        return _node.toString();
     }
 
 }

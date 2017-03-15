@@ -18,7 +18,7 @@ package greycat.struct.proxy;
 import greycat.Container;
 import greycat.struct.LMatrix;
 
-public class LMatrixProxy implements LMatrix {
+public final class LMatrixProxy implements LMatrix {
 
     private final int _index;
     private Container _target;
@@ -119,4 +119,11 @@ public class LMatrixProxy implements LMatrix {
         check();
         return _elem.unsafeSet(index, value);
     }
+
+    @Override
+    public final String toString() {
+        return _elem.toString();
+    }
+
+
 }

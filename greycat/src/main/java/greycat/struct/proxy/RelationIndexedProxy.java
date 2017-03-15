@@ -22,7 +22,7 @@ import greycat.Query;
 import greycat.struct.Relation;
 import greycat.struct.RelationIndexed;
 
-public class RelationIndexedProxy implements RelationIndexed {
+public final class RelationIndexedProxy implements RelationIndexed {
 
     private final int _index;
     private Container _target;
@@ -92,6 +92,11 @@ public class RelationIndexedProxy implements RelationIndexed {
     public final RelationIndexed clear() {
         check();
         return _elem.clear();
+    }
+
+    @Override
+    public final String toString() {
+        return _elem.toString();
     }
 
 }

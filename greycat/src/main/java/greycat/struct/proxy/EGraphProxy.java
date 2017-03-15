@@ -21,7 +21,7 @@ import greycat.Node;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
 
-public class EGraphProxy implements EGraph {
+public final class EGraphProxy implements EGraph {
 
     private final int _index;
     private Container _target;
@@ -97,5 +97,11 @@ public class EGraphProxy implements EGraph {
         check();
         return _elem;
     }
+
+    @Override
+    public final String toString() {
+        return _elem.toString();
+    }
+
 
 }

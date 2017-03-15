@@ -542,6 +542,11 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     }
 
     @Override
+    public final Container rephase() {
+        return this;
+    }
+
+    @Override
     public Object getOrCreate(String key, byte type) {
         Object previous = get(key);
         if (previous != null) {

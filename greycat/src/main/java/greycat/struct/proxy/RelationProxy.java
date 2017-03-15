@@ -19,7 +19,7 @@ import greycat.Container;
 import greycat.Node;
 import greycat.struct.Relation;
 
-public class RelationProxy implements Relation {
+public final class RelationProxy implements Relation {
 
     private final int _relationIndex;
     private Container _target;
@@ -100,4 +100,10 @@ public class RelationProxy implements Relation {
         check();
         return _relation.clear();
     }
+
+    @Override
+    public final String toString() {
+        return _relation.toString();
+    }
+
 }

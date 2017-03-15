@@ -344,6 +344,11 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
     }
 
     @Override
+    public final Container rephase() {
+        return this;
+    }
+
+    @Override
     public final byte typeAt(final int p_key) {
         byte result = (byte) -1;
         lock();
