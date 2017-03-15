@@ -21,6 +21,7 @@ import greycat.Node;
 import greycat.Type;
 import greycat.scheduler.NoopScheduler;
 import greycat.struct.EGraph;
+import greycat.struct.ENode;
 import greycat.struct.Relation;
 import org.junit.Assert;
 import org.junit.Test;
@@ -59,6 +60,36 @@ public class ProxyTest {
                 Assert.assertEquals(1, eg.size());
                 Assert.assertEquals(2, eg_10.size());
             });
+        });
+    }
+
+    @Test
+    public void eGraphRelationTest() {
+        Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
+        g.connect(result -> {
+            Node n = g.newNode(0, 0);
+            EGraph eg = (EGraph) n.getOrCreate("eg", Type.EGRAPH);
+            ENode egn = eg.newNode();
+            Relation egn_r = (Relation) egn.getOrCreate("myrel", Type.RELATION);
+            egn_r.add(42);
+            n.travelInTime(10, n_t10 -> {
+                EGraph eg10 = (EGraph) n_t10.get("eg");
+                ENode eg10n = eg10.node(0);
+                Relation eg10n_r = (Relation) eg10n.get("myrel");
+                eg10n_r.add(43);
+                Assert.assertEquals(1, egn_r.size());
+                Assert.assertEquals(2, eg10n_r.size());
+            });
+
+            /*
+            Assert.assertEquals(1, eg.size());
+            n.travelInTime(10, n_t10 -> {
+                EGraph eg_10 = (EGraph) n_t10.get("eg");
+                eg_10.newNode();//mutable operation, here we expect an automatic clone
+                Assert.assertEquals(1, eg.size());
+                Assert.assertEquals(2, eg_10.size());
+            });
+            */
         });
     }
 

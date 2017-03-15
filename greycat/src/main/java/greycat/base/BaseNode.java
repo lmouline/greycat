@@ -158,31 +158,34 @@ public class BaseNode implements Node {
     public Object getAt(int propIndex) {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
-            long resolvedTime = resolved.time();
-            long resolvedWorld = resolved.world();
-            if (resolvedTime == _time && resolvedWorld == _world) { //implement time sensitivity
-                return resolved.getAt(propIndex);
-            } else {
-                byte type = resolved.typeAt(propIndex);
-                Object elem = resolved.getAt(propIndex);
-                //temporary proxy
-                switch (type) {
-                    case Type.LMATRIX:
-                        return new LMatrixProxy(propIndex, this, (LMatrixProxy) elem);
-                    case Type.DMATRIX:
-                        return new DMatrixProxy(propIndex, this, (DMatrixProxy) elem);
-                    case Type.RELATION:
-                        return new RelationProxy(propIndex, this, (Relation) elem);
-                    case Type.RELATION_INDEXED:
-                        return new RelationIndexedProxy(propIndex, this, (RelationIndexed) elem);
-                    case Type.EGRAPH:
-                        return new EGraphProxy(propIndex, this, (EGraph) elem);
-                    default:
-                        return elem;
-                }
-            }
+            return proxyIfNecessary(resolved, propIndex, resolved.getAt(propIndex));
         }
         return null;
+    }
+
+    private Object proxyIfNecessary(NodeState state, int index, Object elem) {
+        long resolvedTime = state.time();
+        long resolvedWorld = state.world();
+        if (resolvedTime == _time && resolvedWorld == _world) { //implement time sensitivity
+            return elem;
+        } else {
+            byte type = state.typeAt(index);
+            //temporary proxy
+            switch (type) {
+                case Type.LMATRIX:
+                    return new LMatrixProxy(index, this, (LMatrixProxy) elem);
+                case Type.DMATRIX:
+                    return new DMatrixProxy(index, this, (DMatrixProxy) elem);
+                case Type.RELATION:
+                    return new RelationProxy(index, this, (Relation) elem);
+                case Type.RELATION_INDEXED:
+                    return new RelationIndexedProxy(index, this, (RelationIndexed) elem);
+                case Type.EGRAPH:
+                    return new EGraphProxy(index, this, (EGraph) elem);
+                default:
+                    return elem;
+            }
+        }
     }
 
     @Override
@@ -192,22 +195,33 @@ public class BaseNode implements Node {
 
     @Override
     public Object getOrCreateAt(int index, byte type) {
-        final NodeState preciseState = this._resolver.alignState(this);
-        if (preciseState != null) {
-            return preciseState.getOrCreateAt(index, type);
+        final NodeState previousState = this._resolver.resolveState(this);
+        final Object elem = previousState.getAt(index);
+        if (elem != null) {
+            return proxyIfNecessary(previousState, index, elem);
         } else {
-            throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+            final NodeState preciseState = this._resolver.resolveState(this);
+            if (preciseState != null) {
+                return proxyIfNecessary(preciseState, index, preciseState.getOrCreateAt(index, type));
+            } else {
+                throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+            }
         }
     }
 
     @Override
-    public <A> A getWithDefault(String key, A defaultValue) {
-        return this._resolver.alignState(this).getWithDefault(key, defaultValue);
+    public <A> A getWithDefault(final String key, final A defaultValue) {
+        return getAtWithDefault(this._resolver.stringToHash(key, false), defaultValue);
     }
 
     @Override
-    public <A> A getAtWithDefault(int key, A defaultValue) {
-        return this._resolver.alignState(this).getAtWithDefault(key, defaultValue);
+    public <A> A getAtWithDefault(final int key, final A defaultValue) {
+        Object found = getAt(key);
+        if (found != null) {
+            return (A) found;
+        } else {
+            return defaultValue;
+        }
     }
 
     @Override

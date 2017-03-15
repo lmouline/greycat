@@ -1,9 +1,27 @@
+/**
+ * Copyright 2017 The GreyCat Authors.  All rights reserved.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package greycat.struct.proxy;
 
 import greycat.Container;
+import greycat.Type;
 import greycat.plugin.NodeStateCallback;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
+import greycat.struct.Relation;
+import greycat.struct.RelationIndexed;
 
 public class ENodeProxy implements ENode {
 
@@ -20,96 +38,141 @@ public class ENodeProxy implements ENode {
     private void check() {
         if (_parent != null) {
             if (_index == -1) {
-                _node = (ENode) _parent.rephase().root();
+                _node = _parent.rephase().root();
             } else {
-                _node = (ENode) _parent.rephase().node(_index);
+                _node = _parent.rephase().node(_index);
             }
             _parent = null;
         }
     }
 
     @Override
-    public Object get(String name) {
-        return _;
+    public final Object get(final String name) {
+        return this.getAt(_node.egraph().graph().resolver().stringToHash(name, false));
     }
 
     @Override
-    public Object getAt(int index) {
-        return null;
+    public final <A> A getWithDefault(final String key, final A defaultValue) {
+        return getAtWithDefault(_node.egraph().graph().resolver().stringToHash(key, false), defaultValue);
     }
 
     @Override
-    public byte type(String name) {
-        return 0;
+    public final <A> A getAtWithDefault(final int key, final A defaultValue) {
+        Object elem = getAt(key);
+        if (elem != null) {
+            return (A) elem;
+        } else {
+            return defaultValue;
+        }
     }
 
     @Override
-    public byte typeAt(int index) {
-        return 0;
+    public final Object getOrCreate(final String name, final byte type) {
+        return this.getOrCreateAt(_node.egraph().graph().resolver().stringToHash(name, false), type);
     }
 
     @Override
-    public Container set(String name, byte type, Object value) {
-        return null;
+    public final Object getOrCreateAt(final int index, final byte type) {
+        Object elem = getAt(index);
+        if (elem != null) {
+            return proxifyIfNecesserary(elem, index);
+        } else {
+            check();
+            return _node.getOrCreateAt(index, type);
+        }
+    }
+
+    private Object proxifyIfNecesserary(Object elem, int index) {
+        if (elem == null || _parent == null) { //implement time sensitivity
+            return elem;
+        } else {
+            byte type = typeAt(index);
+            //temporary proxy
+            switch (type) {
+                case Type.LMATRIX:
+                    return new LMatrixProxy(index, this, (LMatrixProxy) elem);
+                case Type.DMATRIX:
+                    return new DMatrixProxy(index, this, (DMatrixProxy) elem);
+                case Type.RELATION:
+                    return new RelationProxy(index, this, (Relation) elem);
+                case Type.RELATION_INDEXED:
+                    return new RelationIndexedProxy(index, this, (RelationIndexed) elem);
+                case Type.EGRAPH:
+                    return new EGraphProxy(index, this, (EGraph) elem);
+                default:
+                    return elem;
+            }
+        }
     }
 
     @Override
-    public Container setAt(int index, byte type, Object value) {
-        return null;
+    public final Object getAt(int index) {
+        return proxifyIfNecesserary(_node.getAt(index), index);
     }
 
     @Override
-    public Container remove(String name) {
-        return null;
+    public final byte type(String name) {
+        return _node.type(name);
     }
 
     @Override
-    public Container removeAt(int index) {
-        return null;
+    public final byte typeAt(int index) {
+        return _node.typeAt(index);
     }
 
     @Override
-    public Object getOrCreate(String name, byte type) {
-        return null;
+    public final EGraph egraph() {
+        return _node.egraph();
     }
 
     @Override
-    public Object getOrCreateAt(int index, byte type) {
-        return null;
+    public final void each(final NodeStateCallback callBack) {
+        _node.each(callBack);
     }
 
     @Override
-    public <A> A getWithDefault(String key, A defaultValue) {
-        return null;
+    public final Container set(final String name, final byte type, final Object value) {
+        check();
+        return _node.set(name, type, value);
     }
 
     @Override
-    public <A> A getAtWithDefault(int key, A defaultValue) {
-        return null;
+    public final Container setAt(final int index, final byte type, final Object value) {
+        check();
+        return _node.setAt(index, type, value);
     }
 
     @Override
-    public Container rephase() {
-        return null;
+    public final Container remove(final String name) {
+        check();
+        return _node.remove(name);
     }
 
     @Override
-    public void drop() {
-
+    public final Container removeAt(final int index) {
+        check();
+        return _node.removeAt(index);
     }
 
     @Override
-    public EGraph egraph() {
-        return null;
+    public final Container rephase() {
+        if (_index == -1) {
+            return _parent.rephase().root();
+        } else {
+            return _parent.rephase().node(_index);
+        }
     }
 
     @Override
-    public void each(NodeStateCallback callBack) {
-
+    public final void drop() {
+        check();
+        _node.drop();
     }
 
     @Override
-    public ENode clear() {
-        return null;
+    public final ENode clear() {
+        check();
+        return _node.clear();
     }
+
 }

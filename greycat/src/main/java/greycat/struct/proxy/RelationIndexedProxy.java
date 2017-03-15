@@ -16,6 +16,7 @@
 package greycat.struct.proxy;
 
 import greycat.Callback;
+import greycat.Container;
 import greycat.Node;
 import greycat.Query;
 import greycat.struct.Relation;
@@ -24,10 +25,10 @@ import greycat.struct.RelationIndexed;
 public class RelationIndexedProxy implements RelationIndexed {
 
     private final int _index;
-    private Node _target;
+    private Container _target;
     private RelationIndexed _elem;
 
-    public RelationIndexedProxy(final int _relationIndex, final Node _target, final RelationIndexed _relation) {
+    public RelationIndexedProxy(final int _relationIndex, final Container _target, final RelationIndexed _relation) {
         this._index = _relationIndex;
         this._target = _target;
         this._elem = _relation;
@@ -35,7 +36,7 @@ public class RelationIndexedProxy implements RelationIndexed {
 
     private void check() {
         if (_target != null) {
-            _elem = (RelationIndexed) _target.graph().resolver().alignState(_target).getAt(_index);
+            _elem = (RelationIndexed) _target.rephase().getAt(_index);
             _target = null;
         }
     }

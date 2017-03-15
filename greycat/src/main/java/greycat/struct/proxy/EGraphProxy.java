@@ -27,7 +27,7 @@ public class EGraphProxy implements EGraph {
     private Container _target;
     private EGraph _elem;
 
-    public EGraphProxy(final int _relationIndex, final Node _target, final EGraph _relation) {
+    public EGraphProxy(final int _relationIndex, final Container _target, final EGraph _relation) {
         this._index = _relationIndex;
         this._target = _target;
         this._elem = _relation;
@@ -64,7 +64,7 @@ public class EGraphProxy implements EGraph {
     @Override
     public final ENode root() {
         final Container _host = _target;
-        if (_host == null) {
+        if (_host != null) {
             return new ENodeProxy(this, _elem.root(), -1);
         } else {
             return _elem.root();
@@ -74,7 +74,7 @@ public class EGraphProxy implements EGraph {
     @Override
     public final ENode node(int index) {
         final Container _host = _target;
-        if (_host == null) {
+        if (_host != null) {
             return new ENodeProxy(this, _elem.node(index), index);
         } else {
             return _elem.node(index);
