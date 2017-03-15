@@ -162,10 +162,10 @@ public class BaseNode implements Node {
                 return resolved.getAt(propIndex);
             } else {
                 //TODO proxy
+                return resolved.getAt(propIndex);
             }
         }
         return null;
-
     }
 
     @Override

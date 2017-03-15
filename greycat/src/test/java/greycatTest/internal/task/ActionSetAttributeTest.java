@@ -37,9 +37,9 @@ public class ActionSetAttributeTest extends ActionNewNodeTest {
     @Test
     public void testWithOneNode() {
         final long[] id = new long[1];
-        newTask().then(inject("node")).then(defineAsGlobalVar("nodeName"))
-                .then(createNode())
-                .then(setAttribute("name", Type.STRING, "{{nodeName}}"))
+        newTask().inject("node").defineAsGlobalVar("nodeName")
+                .createNode()
+                .setAttribute("name", Type.STRING, "{{nodeName}}")
                 .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext ctx) {
