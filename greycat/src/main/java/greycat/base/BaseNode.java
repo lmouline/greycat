@@ -150,16 +150,47 @@ public class BaseNode implements Node {
 
     @Override
     public Object get(String name) {
-        final NodeState resolved = this._resolver.resolveState(this);
-        if (resolved != null) {
-            return resolved.getAt(this._resolver.stringToHash(name, false));
-        }
-        return null;
+        return this.getAt(this._resolver.stringToHash(name, false));
     }
 
     @Override
     public Object getAt(int propIndex) {
-        return _resolver.resolveState(this).getAt(propIndex);
+        final NodeState resolved = this._resolver.resolveState(this);
+        if (resolved != null) {
+            long resolvedTime = resolved.time();
+            if(resolvedTime == _time){ //implement time sensitivity
+                return resolved.getAt(propIndex);
+            } else {
+                //TODO proxy
+            }
+        }
+        return null;
+
+    }
+
+    @Override
+    public final Object getOrCreate(String name, byte type) {
+        return getOrCreateAt(this._resolver.stringToHash(name, true), type);
+    }
+
+    @Override
+    public Object getOrCreateAt(int index, byte type) {
+        final NodeState preciseState = this._resolver.alignState(this);
+        if (preciseState != null) {
+            return preciseState.getOrCreateAt(index, type);
+        } else {
+            throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+        }
+    }
+
+    @Override
+    public <A> A getWithDefault(String key, A defaultValue) {
+        return this._resolver.alignState(this).getWithDefault(key, defaultValue);
+    }
+
+    @Override
+    public <A> A getAtWithDefault(int key, A defaultValue) {
+        return this._resolver.alignState(this).getAtWithDefault(key, defaultValue);
     }
 
     @Override
@@ -263,31 +294,6 @@ public class BaseNode implements Node {
             default:
                 throw new RuntimeException("Not managed type " + type);
         }
-    }
-
-    @Override
-    public final Object getOrCreate(String name, byte type) {
-        return getOrCreateAt(this._resolver.stringToHash(name, true), type);
-    }
-
-    @Override
-    public Object getOrCreateAt(int index, byte type) {
-        final NodeState preciseState = this._resolver.alignState(this);
-        if (preciseState != null) {
-            return preciseState.getOrCreateAt(index, type);
-        } else {
-            throw new RuntimeException(Constants.CACHE_MISS_ERROR);
-        }
-    }
-
-    @Override
-    public <A> A getWithDefault(String key, A defaultValue) {
-        return this._resolver.alignState(this).getWithDefault(key, defaultValue);
-    }
-
-    @Override
-    public <A> A getAtWithDefault(int key, A defaultValue) {
-        return this._resolver.alignState(this).getAtWithDefault(key, defaultValue);
     }
 
     @Override
