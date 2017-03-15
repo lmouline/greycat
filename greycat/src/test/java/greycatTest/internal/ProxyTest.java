@@ -20,6 +20,7 @@ import greycat.GraphBuilder;
 import greycat.Node;
 import greycat.Type;
 import greycat.scheduler.NoopScheduler;
+import greycat.struct.EGraph;
 import greycat.struct.Relation;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,7 +34,7 @@ public class ProxyTest {
             Node n = g.newNode(0, 0);
             Relation rel = (Relation) n.getOrCreate("myRel", Type.RELATION);
             rel.add(42);
-            Assert.assertEquals(42,rel.get(0));
+            Assert.assertEquals(42, rel.get(0));
             Assert.assertEquals(1, rel.size());
             n.travelInTime(10, n_t10 -> {
                 Relation rel_10 = (Relation) n_t10.get("myRel");
@@ -42,7 +43,24 @@ public class ProxyTest {
                 Assert.assertEquals(1, rel.size());
             });
         });
-
     }
+
+    @Test
+    public void eGraphTest() {
+        Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
+        g.connect(result -> {
+            Node n = g.newNode(0, 0);
+            EGraph eg = (EGraph) n.getOrCreate("eg", Type.EGRAPH);
+            eg.newNode();
+            Assert.assertEquals(1, eg.size());
+            n.travelInTime(10, n_t10 -> {
+                EGraph eg_10 = (EGraph) n_t10.get("eg");
+                eg_10.newNode();//mutable operation, here we expect an automatic clone
+                Assert.assertEquals(1, eg.size());
+                Assert.assertEquals(2, eg_10.size());
+            });
+        });
+    }
+
 
 }

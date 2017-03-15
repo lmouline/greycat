@@ -21,10 +21,7 @@ import greycat.struct.*;
 import greycat.plugin.NodeDeclaration;
 import greycat.plugin.NodeState;
 import greycat.plugin.Resolver;
-import greycat.struct.proxy.DMatrixProxy;
-import greycat.struct.proxy.LMatrixProxy;
-import greycat.struct.proxy.RelationIndexedProxy;
-import greycat.struct.proxy.RelationProxy;
+import greycat.struct.proxy.*;
 
 import java.lang.reflect.Field;
 import java.util.HashSet;
@@ -178,6 +175,8 @@ public class BaseNode implements Node {
                         return new RelationProxy(propIndex, this, (Relation) elem);
                     case Type.RELATION_INDEXED:
                         return new RelationIndexedProxy(propIndex, this, (RelationIndexed) elem);
+                    case Type.EGRAPH:
+                        return new EGraphProxy(propIndex, this, (EGraph) elem);
                     default:
                         return elem;
                 }
@@ -188,7 +187,7 @@ public class BaseNode implements Node {
 
     @Override
     public final Object getOrCreate(String name, byte type) {
-        return getOrCreateAt(this._resolver.stringToHash(name, true), type);
+        return this.getOrCreateAt(this._resolver.stringToHash(name, true), type);
     }
 
     @Override

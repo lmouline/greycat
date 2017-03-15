@@ -15,16 +15,16 @@
  */
 package greycat.struct.proxy;
 
-import greycat.Node;
+import greycat.Container;
 import greycat.struct.LMatrix;
 
 public class LMatrixProxy implements LMatrix {
 
     private final int _index;
-    private Node _target;
+    private Container _target;
     private LMatrix _elem;
 
-    public LMatrixProxy(final int _relationIndex, final Node _target, final LMatrix _relation) {
+    public LMatrixProxy(final int _relationIndex, final Container _target, final LMatrix _relation) {
         this._index = _relationIndex;
         this._target = _target;
         this._elem = _relation;
@@ -32,7 +32,7 @@ public class LMatrixProxy implements LMatrix {
 
     private void check() {
         if (_target != null) {
-            _elem = (LMatrix) _target.graph().resolver().alignState(_target).getAt(_index);
+            _elem = (LMatrix) _target.rephase().getAt(_index);
             _target = null;
         }
     }

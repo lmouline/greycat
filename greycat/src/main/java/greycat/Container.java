@@ -93,9 +93,11 @@ public interface Container {
      * @return An instance that can be altered at the current world and time.
      */
     Object getOrCreateAt(int index, byte type);
-    
+
     <A> A getWithDefault(String key, A defaultValue);
 
     <A> A getAtWithDefault(int key, A defaultValue);
+
+    Container rephase();
 
 }

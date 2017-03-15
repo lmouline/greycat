@@ -15,16 +15,17 @@
  */
 package greycat.struct.proxy;
 
+import greycat.Container;
 import greycat.Node;
 import greycat.struct.Relation;
 
 public class RelationProxy implements Relation {
 
     private final int _relationIndex;
-    private Node _target;
+    private Container _target;
     private Relation _relation;
 
-    public RelationProxy(final int _relationIndex, final Node _target, final Relation _relation) {
+    public RelationProxy(final int _relationIndex, final Container _target, final Relation _relation) {
         this._relationIndex = _relationIndex;
         this._target = _target;
         this._relation = _relation;
@@ -32,7 +33,7 @@ public class RelationProxy implements Relation {
 
     private void check() {
         if (_target != null) {
-            _relation = (Relation) _target.graph().resolver().alignState(_target).getAt(_relationIndex);
+            _relation = (Relation) _target.rephase().getAt(_relationIndex);
             _target = null;
         }
     }

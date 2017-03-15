@@ -515,6 +515,12 @@ class HeapENode implements ENode, HeapContainer {
         }
     }
 
+    @Override
+    public Container rephase() {
+        //ENode proxy will take care
+        return this;
+    }
+
 
     @Override
     public void drop() {

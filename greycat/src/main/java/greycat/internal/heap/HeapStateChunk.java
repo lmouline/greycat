@@ -222,6 +222,11 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
+    public Container rephase() {
+        return this;
+    }
+
+    @Override
     public synchronized final byte typeAt(final int p_key) {
         final int found_index = internal_find(p_key);
         if (found_index != -1) {
