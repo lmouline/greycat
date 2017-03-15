@@ -23,6 +23,7 @@ import greycat.plugin.NodeState;
 import greycat.plugin.Resolver;
 import greycat.struct.proxy.DMatrixProxy;
 import greycat.struct.proxy.LMatrixProxy;
+import greycat.struct.proxy.RelationIndexedProxy;
 import greycat.struct.proxy.RelationProxy;
 
 import java.lang.reflect.Field;
@@ -161,7 +162,8 @@ public class BaseNode implements Node {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
             long resolvedTime = resolved.time();
-            if (resolvedTime == _time) { //implement time sensitivity
+            long resolvedWorld = resolved.world();
+            if (resolvedTime == _time && resolvedWorld == _world) { //implement time sensitivity
                 return resolved.getAt(propIndex);
             } else {
                 byte type = resolved.typeAt(propIndex);
@@ -174,6 +176,8 @@ public class BaseNode implements Node {
                         return new DMatrixProxy(propIndex, this, (DMatrixProxy) elem);
                     case Type.RELATION:
                         return new RelationProxy(propIndex, this, (Relation) elem);
+                    case Type.RELATION_INDEXED:
+                        return new RelationIndexedProxy(propIndex, this, (RelationIndexed) elem);
                     default:
                         return elem;
                 }

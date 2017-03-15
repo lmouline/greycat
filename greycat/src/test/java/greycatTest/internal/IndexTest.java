@@ -212,7 +212,7 @@ public class IndexTest {
                             @Override
                             public void eval(TaskContext ctx) {
                                 //But not with the query...
-                                Assert.assertEquals(0, ctx.result().size());
+                                Assert.assertEquals(1, ctx.result().size());
                                 ctx.continueTask();
                             }
                         })
