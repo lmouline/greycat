@@ -862,10 +862,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     private static final byte LOAD_WAITING_KEY = 2;
     private static final byte LOAD_WAITING_VALUE = 3;
 
-    @Override
-    public final synchronized void load(final Buffer buffer) {
+    private final synchronized void internal_load(final Buffer buffer, final boolean initial) {
         if (buffer != null && buffer.length() > 0) {
-            final boolean initial = _k == null;
             final long payloadSize = buffer.length();
             long previous = 0;
             long cursor = 0;
@@ -1151,9 +1149,15 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         }
     }
 
+    public final synchronized void load(final Buffer buffer) {
+        internal_load(buffer, true);
+    }
+
     @Override
     public final void loadDiff(Buffer buffer) {
-        load(buffer);
+        internal_load(buffer, false);
     }
+
+
 
 }
