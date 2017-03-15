@@ -21,6 +21,7 @@ import greycat.struct.*;
 import greycat.plugin.NodeDeclaration;
 import greycat.plugin.NodeState;
 import greycat.plugin.Resolver;
+import greycat.struct.proxy.RelationProxy;
 
 import java.lang.reflect.Field;
 import java.util.HashSet;
@@ -158,11 +159,18 @@ public class BaseNode implements Node {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
             long resolvedTime = resolved.time();
-            if(resolvedTime == _time){ //implement time sensitivity
+            if (resolvedTime == _time) { //implement time sensitivity
                 return resolved.getAt(propIndex);
             } else {
-                //TODO proxy
-                return resolved.getAt(propIndex);
+                byte type = resolved.typeAt(propIndex);
+                Object elem = resolved.getAt(propIndex);
+                //temporary proxy
+                switch (type) {
+                    case Type.RELATION:
+                        return new RelationProxy(propIndex, this, (Relation) elem);
+                    default:
+                        return elem;
+                }
             }
         }
         return null;
