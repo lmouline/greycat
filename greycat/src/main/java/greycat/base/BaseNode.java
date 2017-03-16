@@ -182,6 +182,10 @@ public class BaseNode implements Node {
                     return new RelationIndexedProxy(index, this, (RelationIndexed) elem);
                 case Type.EGRAPH:
                     return new EGraphProxy(index, this, (EGraph) elem);
+                case Type.KDTREE:
+                    return new TreeProxy(index, this, (Tree) elem);
+                case Type.NDTREE:
+                    return new ProfileProxy(index, this, (Profile) elem);
                 default:
                     return elem;
             }

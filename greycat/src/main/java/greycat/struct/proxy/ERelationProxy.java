@@ -34,23 +34,23 @@ public class ERelationProxy implements ERelation {
 
     private void check() {
         if (_target != null) {
-            _relation = (ERelationProxy) _target.rephase().getAt(_relationIndex);
+            _relation = (ERelation) _target.rephase().getAt(_relationIndex);
             _target = null;
         }
     }
 
     @Override
-    public ENode[] nodes() {
+    public final ENode[] nodes() {
         return _relation.nodes();
     }
 
     @Override
-    public int size() {
+    public final int size() {
         return _relation.size();
     }
 
     @Override
-    public ENode node(int index) {
+    public final ENode node(final int index) {
         if (_target != null) {
             EGraph eg = ((ENode) _target).egraph();
             if (eg instanceof EGraphProxy) {
@@ -80,4 +80,10 @@ public class ERelationProxy implements ERelation {
         check();
         return _relation.clear();
     }
+
+    @Override
+    public final String toString() {
+        return _relation.toString();
+    }
+
 }
