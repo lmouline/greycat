@@ -186,6 +186,12 @@ public class BaseNode implements Node {
                     return new TreeProxy(index, this, (Tree) elem);
                 case Type.NDTREE:
                     return new ProfileProxy(index, this, (Profile) elem);
+                case Type.LONG_TO_LONG_MAP:
+                    return new LongLongMapProxy(index, this, (LongLongMap) elem);
+                case Type.LONG_TO_LONG_ARRAY_MAP:
+                    return new LongLongArrayMapProxy(index, this, (LongLongArrayMap) elem);
+                case Type.STRING_TO_INT_MAP:
+                    return new StringIntMapProxy(index, this, (StringIntMap) elem);
                 default:
                     return elem;
             }

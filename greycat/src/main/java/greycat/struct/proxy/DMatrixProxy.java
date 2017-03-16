@@ -22,9 +22,9 @@ public final class DMatrixProxy implements DMatrix {
 
     private final int _index;
     private Container _target;
-    private DMatrixProxy _elem;
+    private DMatrix _elem;
 
-    public DMatrixProxy(final int _relationIndex, final Container _target, final DMatrixProxy _relation) {
+    public DMatrixProxy(final int _relationIndex, final Container _target, final DMatrix _relation) {
         this._index = _relationIndex;
         this._target = _target;
         this._elem = _relation;
@@ -32,7 +32,7 @@ public final class DMatrixProxy implements DMatrix {
 
     private void check() {
         if (_target != null) {
-            _elem = (DMatrixProxy) _target.getAt(_index);
+            _elem = (DMatrix) _target.getAt(_index);
             _target = null;
         }
     }
