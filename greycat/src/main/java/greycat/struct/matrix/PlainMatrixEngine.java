@@ -23,8 +23,8 @@ public class PlainMatrixEngine implements MatrixEngine {
     public DMatrix multiplyTransposeAlphaBeta(TransposeType transA, double alpha, DMatrix matA, TransposeType transB, DMatrix matB, double beta, DMatrix matC) {
         if (MatrixOps.testDimensionsAB(transA, transB, matA, matB)) {
             int[] dimC = new int[3];
-            if (transA.equals(TransposeType.NOTRANSPOSE)) {
-                if (transB.equals(TransposeType.NOTRANSPOSE)) {
+            if (transA == TransposeType.NOTRANSPOSE) {
+                if (transB == TransposeType.NOTRANSPOSE) {
                     dimC[0] = matA.rows();
                     dimC[1] = matB.columns();
                     dimC[2] = matA.columns();
@@ -34,7 +34,7 @@ public class PlainMatrixEngine implements MatrixEngine {
                     dimC[2] = matA.columns();
                 }
             } else {
-                if (transB.equals(TransposeType.NOTRANSPOSE)) {
+                if (transB == TransposeType.NOTRANSPOSE) {
                     dimC[0] = matA.columns();
                     dimC[1] = matB.columns();
                     dimC[2] = matA.rows();

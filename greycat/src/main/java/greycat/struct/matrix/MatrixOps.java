@@ -151,14 +151,14 @@ public class MatrixOps {
 
 
     public static boolean testDimensionsAB(TransposeType transA, TransposeType transB, DMatrix matA, DMatrix matB) {
-        if (transA.equals(TransposeType.NOTRANSPOSE)) {
-            if (transB.equals(TransposeType.NOTRANSPOSE)) {
+        if (transA == TransposeType.NOTRANSPOSE) {
+            if (transB == TransposeType.NOTRANSPOSE) {
                 return (matA.columns() == matB.rows());
             } else {
                 return (matA.columns() == matB.columns());
             }
         } else {
-            if (transB.equals(TransposeType.NOTRANSPOSE)) {
+            if (transB == TransposeType.NOTRANSPOSE) {
                 return (matA.rows() == matB.rows());
             } else {
                 return (matA.rows() == matB.columns());
