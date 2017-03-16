@@ -33,7 +33,7 @@ public class LongLongArrayMapProxy implements LongLongArrayMap {
 
     private void check() {
         if (_target != null) {
-            _elem = (LongLongArrayMap) _target.getAt(_index);
+            _elem = (LongLongArrayMap) _target.getRawAt(_index);
             _target = null;
         }
     }

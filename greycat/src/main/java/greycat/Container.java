@@ -36,6 +36,8 @@ public interface Container {
      */
     Object getAt(int index);
 
+    Object getRawAt(int index);
+
     /**
      * Returns the type of an attribute. The returned value is one of {@link Type}.
      *

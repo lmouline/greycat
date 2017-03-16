@@ -90,6 +90,11 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         return internal_get(p_key);
     }
 
+    @Override
+    public Object getRawAt(int p_key) {
+        return getAt(p_key);
+    }
+
     private int internal_find(final int p_key) {
         if (_size == 0) {
             return -1;
@@ -1162,7 +1167,6 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     public final void loadDiff(Buffer buffer) {
         internal_load(buffer, false);
     }
-
 
 
 }

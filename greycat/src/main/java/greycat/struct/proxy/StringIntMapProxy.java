@@ -35,7 +35,7 @@ public class StringIntMapProxy implements StringIntMap {
 
     private void check() {
         if (_target != null) {
-            _elem = (StringIntMap) _target.getAt(_index);
+            _elem = (StringIntMap) _target.getRawAt(_index);
             _target = null;
         }
     }

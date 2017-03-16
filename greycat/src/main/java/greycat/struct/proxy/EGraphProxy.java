@@ -35,7 +35,7 @@ public final class EGraphProxy implements EGraph {
 
     private void check() {
         if (_target != null) {
-            _elem = (EGraph) _target.rephase().getAt(_index);
+            _elem = (EGraph) _target.rephase().getRawAt(_index);
             _target = null;
         }
     }

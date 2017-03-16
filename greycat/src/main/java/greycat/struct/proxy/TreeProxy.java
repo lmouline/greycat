@@ -32,7 +32,7 @@ public class TreeProxy implements Tree {
 
     private void check() {
         if (_target != null) {
-            _elem = (Tree) _target.rephase().getAt(_relationIndex);
+            _elem = (Tree) _target.rephase().getRawAt(_relationIndex);
             _target = null;
         }
     }

@@ -33,7 +33,7 @@ public final class RelationProxy implements Relation {
 
     private void check() {
         if (_target != null) {
-            _relation = (Relation) _target.rephase().getAt(_relationIndex);
+            _relation = (Relation) _target.rephase().getRawAt(_relationIndex);
             _target = null;
         }
     }

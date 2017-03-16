@@ -32,7 +32,7 @@ public final class LMatrixProxy implements LMatrix {
 
     private void check() {
         if (_target != null) {
-            _elem = (LMatrix) _target.rephase().getAt(_index);
+            _elem = (LMatrix) _target.rephase().getRawAt(_index);
             _target = null;
         }
     }

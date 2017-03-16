@@ -118,6 +118,11 @@ public final class ENodeProxy implements ENode {
     }
 
     @Override
+    public Object getRawAt(int index) {
+        return _node.getAt(index);
+    }
+
+    @Override
     public final byte type(String name) {
         return _node.type(name);
     }

@@ -19,9 +19,6 @@ import greycat.*;
 import greycat.struct.Relation;
 import org.junit.Test;
 
-/**
- * Created by assaad on 15/03/2017.
- */
 public class RelTest {
 
     @Test
@@ -35,7 +32,7 @@ public class RelTest {
             @Override
             public void on(Boolean result) {
 
-                final int size=10000;
+                final int size=10;
                 Node[] nodes=new Node[size];
 
                 for(int i=0;i<size;i++){
@@ -44,7 +41,7 @@ public class RelTest {
                     nodes[i].set("name", Type.STRING,"Node "+i);
                 }
 
-                int reltoadd=100;
+                int reltoadd=10;
                 int counter=0;
 
                 long start=System.currentTimeMillis();

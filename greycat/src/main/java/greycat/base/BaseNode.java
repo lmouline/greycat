@@ -163,6 +163,15 @@ public class BaseNode implements Node {
         return null;
     }
 
+    @Override
+    public Object getRawAt(int propIndex) {
+        final NodeState resolved = this._resolver.resolveState(this);
+        if (resolved != null) {
+            return resolved.getAt(propIndex);
+        }
+        return null;
+    }
+
     private Object proxyIfNecessary(NodeState state, int index, Object elem) {
         long resolvedTime = state.time();
         long resolvedWorld = state.world();

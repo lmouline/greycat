@@ -36,7 +36,7 @@ public final class RelationIndexedProxy implements RelationIndexed {
 
     private void check() {
         if (_target != null) {
-            _elem = (RelationIndexed) _target.rephase().getAt(_index);
+            _elem = (RelationIndexed) _target.rephase().getRawAt(_index);
             _target = null;
         }
     }

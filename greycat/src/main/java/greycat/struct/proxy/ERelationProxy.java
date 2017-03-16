@@ -34,7 +34,7 @@ public class ERelationProxy implements ERelation {
 
     private void check() {
         if (_target != null) {
-            _relation = (ERelation) _target.rephase().getAt(_relationIndex);
+            _relation = (ERelation) _target.rephase().getRawAt(_relationIndex);
             _target = null;
         }
     }

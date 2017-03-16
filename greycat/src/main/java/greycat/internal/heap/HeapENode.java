@@ -486,6 +486,11 @@ class HeapENode implements ENode, HeapContainer {
     }
 
     @Override
+    public Object getRawAt(int key) {
+        return getAt(key);
+    }
+
+    @Override
     public byte type(String name) {
         return internal_type(_eGraph.graph().resolver().stringToHash(name, false));
     }

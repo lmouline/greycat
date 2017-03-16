@@ -35,7 +35,7 @@ public class ProfileProxy implements Profile {
 
     private void check() {
         if (_target != null) {
-            _elem = (Profile) _target.rephase().getAt(_relationIndex);
+            _elem = (Profile) _target.rephase().getRawAt(_relationIndex);
             _target = null;
         }
     }
