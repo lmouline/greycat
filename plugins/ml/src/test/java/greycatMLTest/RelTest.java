@@ -57,7 +57,7 @@ public class RelTest {
                                 rel.addNode(nodes[(finalI + finalJ +1) % size]);
                             }
                         });
-                        if(i==0){
+                       /* if(i==0){
                             for(int k=0;k<=time;k++) {
                                 int finalTime = time;
                                 int finalK = k;
@@ -70,7 +70,7 @@ public class RelTest {
                                 });
                             }
                             System.out.println("");
-                        }
+                        }*/
                         counter++;
                     }
                 }
