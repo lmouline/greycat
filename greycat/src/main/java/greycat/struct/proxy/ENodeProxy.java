@@ -18,10 +18,7 @@ package greycat.struct.proxy;
 import greycat.Container;
 import greycat.Type;
 import greycat.plugin.NodeStateCallback;
-import greycat.struct.EGraph;
-import greycat.struct.ENode;
-import greycat.struct.Relation;
-import greycat.struct.RelationIndexed;
+import greycat.struct.*;
 
 public final class ENodeProxy implements ENode {
 
@@ -93,6 +90,8 @@ public final class ENodeProxy implements ENode {
                     return new LMatrixProxy(index, this, (LMatrixProxy) elem);
                 case Type.DMATRIX:
                     return new DMatrixProxy(index, this, (DMatrixProxy) elem);
+                case Type.ERELATION:
+                    return new ERelationProxy(index, this, (ERelation) elem);
                 case Type.RELATION:
                     return new RelationProxy(index, this, (Relation) elem);
                 case Type.RELATION_INDEXED:
@@ -122,7 +121,11 @@ public final class ENodeProxy implements ENode {
 
     @Override
     public final EGraph egraph() {
-        return _node.egraph();
+        if (_parent != null) {
+            return _parent;
+        } else {
+            return _node.egraph();
+        }
     }
 
     @Override
