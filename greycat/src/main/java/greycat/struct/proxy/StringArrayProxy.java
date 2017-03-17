@@ -66,4 +66,9 @@ public class StringArrayProxy implements StringArray {
         _elem.initWith(values);
     }
 
+    @Override
+    public final String[] extract() {
+        return _elem.extract();
+    }
+
 }

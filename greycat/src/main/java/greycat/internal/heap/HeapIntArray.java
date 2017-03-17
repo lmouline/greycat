@@ -70,6 +70,13 @@ class HeapIntArray implements IntArray {
         System.arraycopy(values, 0, _backend, 0, values.length);
     }
 
+    @Override
+    public final synchronized int[] extract() {
+        final int[] extracted = new int[_backend.length];
+        System.arraycopy(_backend, 0, extracted, 0, _backend.length);
+        return extracted;
+    }
+
     /* TODO merge */
     public final long load(final Buffer buffer, final long offset, final long max) {
         long cursor = offset;

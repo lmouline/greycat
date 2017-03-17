@@ -42,7 +42,7 @@ public class POffHeapIntArray {
         //return the newly created segment
         return newMemorySegment;
     }
-    
+
     public static long reallocate(final long addr, final long nextCapacity) {
         long new_segment = unsafe.reallocateMemory(addr, nextCapacity * 4);
         if (OffHeapConstants.DEBUG_MODE) {
@@ -140,6 +140,18 @@ public class POffHeapIntArray {
                 OffHeapConstants.SEGMENTS.remove(addr);
             }
         }
+    }
+
+    public static long cloneArray(final long srcAddr, final long length) {
+        if (srcAddr == OffHeapConstants.NULL_PTR) {
+            return srcAddr;
+        }
+        long newAddr = unsafe.allocateMemory(length * 4);
+        if (OffHeapConstants.DEBUG_MODE) {
+            OffHeapConstants.SEGMENTS.put(newAddr, (length * 4));
+        }
+        unsafe.copyMemory(srcAddr, newAddr, (length * 4));
+        return newAddr;
     }
 
 }

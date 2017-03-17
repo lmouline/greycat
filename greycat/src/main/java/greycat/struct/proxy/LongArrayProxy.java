@@ -66,4 +66,9 @@ public class LongArrayProxy implements LongArray {
         _elem.initWith(values);
     }
 
+    @Override
+    public final long[] extract() {
+        return _elem.extract();
+    }
+
 }

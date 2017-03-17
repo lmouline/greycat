@@ -66,4 +66,9 @@ public class DoubleArrayProxy implements DoubleArray {
         _elem.initWith(values);
     }
 
+    @Override
+    public final double[] extract() {
+        return _elem.extract();
+    }
+
 }

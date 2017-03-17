@@ -27,4 +27,6 @@ public interface DoubleArray {
 
     void initWith(double[] values);
 
+    double[] extract();
+
 }

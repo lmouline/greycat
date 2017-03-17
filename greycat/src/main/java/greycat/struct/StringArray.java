@@ -27,4 +27,6 @@ public interface StringArray {
 
     int size();
 
+    String[] extract();
+
 }

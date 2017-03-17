@@ -66,4 +66,9 @@ public class IntArrayProxy implements IntArray {
         _elem.initWith(values);
     }
 
+    @Override
+    public final int[] extract() {
+        return _elem.extract();
+    }
+
 }

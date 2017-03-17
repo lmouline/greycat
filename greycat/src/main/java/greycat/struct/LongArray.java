@@ -27,4 +27,6 @@ public interface LongArray {
 
     void initWith(long[] values);
 
+    long[] extract();
+
 }
