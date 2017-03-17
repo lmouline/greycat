@@ -266,7 +266,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
         if (_exception != null) {
             isFirst = false;
             builder.writeString("\"error\":");
-            TaskHelper.serializeString(_exception.getMessage(), builder, false);
+            TaskHelper.serializeString(_exception.toString(), builder, false);
         }
         if (_output != null) {
             if (!isFirst) {
