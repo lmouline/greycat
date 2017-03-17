@@ -18,7 +18,7 @@ package greycat.struct.proxy;
 import greycat.Container;
 import greycat.struct.LongArray;
 
-public class LongArrayProxy implements LongArray {
+public final class LongArrayProxy implements LongArray {
 
     private final int _index;
     private Container _target;

@@ -16,6 +16,7 @@
 package greycat.memory;
 
 import greycat.Constants;
+import greycat.memory.primary.POffHeapDoubleArray;
 import greycat.memory.primary.POffHeapIntArray;
 import greycat.struct.Buffer;
 import greycat.struct.IntArray;
@@ -87,6 +88,21 @@ public class OffHeapIntArray implements IntArray {
             container.unlock();
         }
         container.declareDirty();
+    }
+
+    @Override
+    public final int[] extract() {
+        int[] result = null;
+        container.lock();
+        try {
+            final long addr = container.addrByIndex(index);
+            if(addr != OffHeapConstants.NULL_PTR){
+                result = POffHeapIntArray.asObject(addr);
+            }
+        } finally {
+            container.unlock();
+        }
+        return result;
     }
 
     private long unsafe_allocate(int newSize) {

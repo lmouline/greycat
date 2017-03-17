@@ -16,46 +16,43 @@
 package greycat.memory;
 
 import greycat.Constants;
-import greycat.memory.primary.POffHeapLongArray;
+import greycat.memory.primary.POffHeapStringArray2;
 import greycat.struct.Buffer;
-import greycat.struct.LongArray;
+import greycat.struct.StringArray;
 import greycat.utility.Base64;
 
-public final class OffHeapLongArray implements LongArray {
-
-    private static int SIZE = 0;
-    private static int SHIFT = 1;
+public class OffHeapStringArray implements StringArray {
 
     private final long index;
     private final OffHeapContainer container;
 
-    OffHeapLongArray(final OffHeapContainer p_container, final long p_index) {
+    OffHeapStringArray(final OffHeapContainer p_container, final long p_index) {
         container = p_container;
         index = p_index;
     }
 
     @Override
-    public long get(int elemIndex) {
+    public String get(int elemIndex) {
         container.lock();
-        long result = 0;
+        String result = null;
         try {
             final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
-                result = POffHeapLongArray.get(addr, SHIFT + elemIndex);
+                result = POffHeapStringArray2.get(addr, elemIndex);
             }
         } finally {
             container.unlock();
         }
-        return (int) result;
+        return result;
     }
 
     @Override
-    public void set(int elemIndex, long value) {
+    public void set(int elemIndex, String value) {
         container.lock();
         try {
             final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
-                POffHeapLongArray.set(addr, SHIFT + elemIndex, value);
+                POffHeapStringArray2.set(addr, elemIndex, value);
             }
         } finally {
             container.unlock();
@@ -66,16 +63,31 @@ public final class OffHeapLongArray implements LongArray {
     @Override
     public int size() {
         container.lock();
-        long size = 0;
+        int size = 0;
         try {
             final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
-                size = POffHeapLongArray.get(addr, SIZE);
+                size = (int) POffHeapStringArray2.size(addr);
             }
         } finally {
             container.unlock();
         }
-        return (int) size;
+        return size;
+    }
+
+    @Override
+    public final String[] extract() {
+        String[] result = null;
+        container.lock();
+        try {
+            final long addr = container.addrByIndex(index);
+            if(addr != OffHeapConstants.NULL_PTR){
+                result = POffHeapStringArray2.asObject(addr);
+            }
+        } finally {
+            container.unlock();
+        }
+        return result;
     }
 
     @Override
@@ -93,25 +105,23 @@ public final class OffHeapLongArray implements LongArray {
         final long addr = container.addrByIndex(index);
         if (addr == OffHeapConstants.NULL_PTR) {
             //initial allocation
-            final long newly = POffHeapLongArray.allocate(newSize + SHIFT);
-            POffHeapLongArray.set(newly, SIZE, newSize);
+            final long newly = POffHeapStringArray2.allocate(newSize);
             container.setAddrByIndex(index, newly);
             return newly;
         } else {
-            long exAddr = POffHeapLongArray.reallocate(addr, newSize + SHIFT);
-            POffHeapLongArray.set(exAddr, SIZE, newSize);
+            long exAddr = POffHeapStringArray2.reallocate(addr, newSize);
             container.setAddrByIndex(index, exAddr);
             return exAddr;
         }
     }
 
     @Override
-    public void initWith(long[] values) {
+    public void initWith(String[] values) {
         container.lock();
         try {
             long addr = unsafe_allocate(values.length);
-            for(int i=0;i<values.length;i++){
-                POffHeapLongArray.set(addr,i,values[i]);
+            for (int i = 0; i < values.length; i++) {
+                POffHeapStringArray2.set(addr, i, values[i]);
             }
         } finally {
             container.unlock();
@@ -119,30 +129,15 @@ public final class OffHeapLongArray implements LongArray {
         container.declareDirty();
     }
 
-    @Override
-    public final long[] extract() {
-        long[] result = null;
-        container.lock();
-        try {
-            final long addr = container.addrByIndex(index);
-            if(addr != OffHeapConstants.NULL_PTR){
-                result = POffHeapLongArray.asObject(addr);
-            }
-        } finally {
-            container.unlock();
-        }
-        return result;
-    }
-
     static void save(final long addr, final Buffer buffer) {
         if (addr == OffHeapConstants.NULL_PTR) {
             return;
         }
-        final long size = POffHeapLongArray.get(addr, SIZE);
-        Base64.encodeLongToBuffer(size, buffer);
+        final int size = (int) POffHeapStringArray2.size(addr);
+        Base64.encodeIntToBuffer(size, buffer);
         for (long i = 0; i < size; i++) {
             buffer.write(Constants.CHUNK_VAL_SEP);
-            Base64.encodeLongToBuffer(POffHeapLongArray.get(addr, i + SHIFT), buffer);
+            Base64.encodeStringToBuffer(POffHeapStringArray2.get(addr, i), buffer);
         }
     }
 
@@ -150,12 +145,11 @@ public final class OffHeapLongArray implements LongArray {
         if (addr == OffHeapConstants.NULL_PTR) {
             return OffHeapConstants.NULL_PTR;
         }
-        final long size = POffHeapLongArray.get(addr, SIZE);
-        return POffHeapLongArray.cloneArray(addr, size + SHIFT);
+        return POffHeapStringArray2.cloneArray(addr);
     }
 
     static void free(final long addr) {
-        POffHeapLongArray.free(addr);
+        POffHeapStringArray2.free(addr);
     }
 
     final long load(final Buffer buffer, final long offset, final long max) {
@@ -171,7 +165,7 @@ public final class OffHeapLongArray implements LongArray {
                     addr = unsafe_allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
                     isFirst = false;
                 } else {
-                    POffHeapLongArray.set(addr, elemIndex, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                    POffHeapStringArray2.set(addr, elemIndex, Base64.decodeToStringWithBounds(buffer, previous, cursor));
                     elemIndex++;
                 }
                 previous = cursor + 1;
@@ -184,7 +178,7 @@ public final class OffHeapLongArray implements LongArray {
         if (isFirst) {
             unsafe_allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
         } else {
-            POffHeapLongArray.set(addr, elemIndex, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+            POffHeapStringArray2.set(addr, elemIndex, Base64.decodeToStringWithBounds(buffer, previous, cursor));
         }
         return cursor;
     }

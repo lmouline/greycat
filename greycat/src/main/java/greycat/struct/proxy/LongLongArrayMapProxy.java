@@ -19,7 +19,7 @@ import greycat.Container;
 import greycat.struct.LongLongArrayMap;
 import greycat.struct.LongLongArrayMapCallBack;
 
-public class LongLongArrayMapProxy implements LongLongArrayMap {
+public final class LongLongArrayMapProxy implements LongLongArrayMap {
 
     private final int _index;
     private Container _target;

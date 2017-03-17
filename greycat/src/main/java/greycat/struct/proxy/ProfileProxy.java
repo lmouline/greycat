@@ -21,7 +21,7 @@ import greycat.struct.ProfileResult;
 import greycat.struct.Tree;
 import greycat.struct.TreeResult;
 
-public class ProfileProxy implements Profile {
+public final class ProfileProxy implements Profile {
 
     private final int _relationIndex;
     private Container _target;

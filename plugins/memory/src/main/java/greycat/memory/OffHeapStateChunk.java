@@ -225,18 +225,14 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                     return (int) rawValue;
                 case Type.STRING:
                     return POffHeapString.asObject(rawValue);
-                    /*
-                case Type.DOUBLE_ARRAY:
-                    return POffHeapDoubleArray.asObject(rawValue);
-                case Type.LONG_ARRAY:
-                    return POffHeapLongArray.asObject(rawValue);
-                case Type.INT_ARRAY:
-                    return POffHeapIntArray.asObject(rawValue);
-                    */
-
                 case Type.LONG_ARRAY:
                     return new OffHeapLongArray(this, index);
-
+                case Type.DOUBLE_ARRAY:
+                    return new OffHeapDoubleArray(this, index);
+                case Type.INT_ARRAY:
+                    return new OffHeapIntArray(this, index);
+                case Type.STRING_ARRAY:
+                    return new OffHeapStringArray(this, index);
                 case Type.RELATION:
                     return new OffHeapRelation(this, index);
                 case Type.DMATRIX:

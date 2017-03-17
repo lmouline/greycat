@@ -18,7 +18,7 @@ package greycat.struct.proxy;
 import greycat.Container;
 import greycat.struct.DoubleArray;
 
-public class DoubleArrayProxy implements DoubleArray {
+public final class DoubleArrayProxy implements DoubleArray {
 
     private final int _index;
     private Container _target;

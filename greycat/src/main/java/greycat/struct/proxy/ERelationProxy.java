@@ -20,7 +20,7 @@ import greycat.struct.EGraph;
 import greycat.struct.ENode;
 import greycat.struct.ERelation;
 
-public class ERelationProxy implements ERelation {
+public final class ERelationProxy implements ERelation {
 
     private final int _relationIndex;
     private Container _target;

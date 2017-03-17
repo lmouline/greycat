@@ -21,7 +21,7 @@ import greycat.struct.LongLongMapCallBack;
 import greycat.struct.StringIntMap;
 import greycat.struct.StringLongMapCallBack;
 
-public class StringIntMapProxy implements StringIntMap {
+public final class StringIntMapProxy implements StringIntMap {
 
     private final int _index;
     private Container _target;

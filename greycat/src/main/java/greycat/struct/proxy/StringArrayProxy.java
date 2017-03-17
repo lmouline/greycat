@@ -18,7 +18,7 @@ package greycat.struct.proxy;
 import greycat.Container;
 import greycat.struct.StringArray;
 
-public class StringArrayProxy implements StringArray {
+public final class StringArrayProxy implements StringArray {
 
     private final int _index;
     private Container _target;

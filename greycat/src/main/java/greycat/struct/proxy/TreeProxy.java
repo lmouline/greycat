@@ -18,7 +18,7 @@ package greycat.struct.proxy;
 import greycat.Container;
 import greycat.struct.*;
 
-public class TreeProxy implements Tree {
+public final class TreeProxy implements Tree {
 
     private final int _relationIndex;
     private Container _target;

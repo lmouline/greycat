@@ -17,6 +17,7 @@ package greycat.memory;
 
 import greycat.Constants;
 import greycat.memory.primary.POffHeapDoubleArray;
+import greycat.memory.primary.POffHeapLongArray;
 import greycat.struct.Buffer;
 import greycat.struct.DoubleArray;
 import greycat.utility.Base64;
@@ -76,6 +77,21 @@ public class OffHeapDoubleArray implements DoubleArray {
             container.unlock();
         }
         return size;
+    }
+
+    @Override
+    public final double[] extract() {
+        double[] result = null;
+        container.lock();
+        try {
+            final long addr = container.addrByIndex(index);
+            if(addr != OffHeapConstants.NULL_PTR){
+                result = POffHeapDoubleArray.asObject(addr);
+            }
+        } finally {
+            container.unlock();
+        }
+        return result;
     }
 
     @Override
