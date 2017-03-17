@@ -302,6 +302,12 @@ public class BaseNode implements Node {
     }
 
     private boolean isEquals(Object obj1, Object obj2, byte type) {
+        if(obj1 == null && obj2 == null) {
+            return true;
+        }
+        if(obj1 == null || obj2 == null) {
+            return false;
+        }
         switch (type) {
             case Type.BOOL:
                 return (((boolean) obj1) == ((boolean) obj2));
