@@ -69,7 +69,7 @@ import greycat.struct.Buffer;
  * }
  * public static decodeToIntWithBounds(s:greycat.struct.Buffer, offsetBegin:number, offsetEnd:number) {
  * var result = 0;
- * result += (Base64.dictionary.indexOf(s.read((offsetEnd - 1))) & 0xFF) / 2;
+ * result += ((Base64.dictionary.indexOf(s.read((offsetEnd - 1))) & 0xFF) / 2) & 0xFF;
  * for (var i = 1; i < (offsetEnd - offsetBegin); i++) {
  * result += (Base64.dictionary.indexOf(s.read((offsetEnd - 1) - i)) & 0xFF) * Base64.powTwo[(6 * i)-1];
  * }
