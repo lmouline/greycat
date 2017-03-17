@@ -428,6 +428,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
 
     private Object internal_get(long p_key) {
         long addr = _eGraph.addrByIndex(index);
+        //TODO check why allocation here?
         if (addr == OffHeapConstants.NULL_PTR) {
             addr = allocate(addr, Constants.MAP_INITIAL_CAPACITY);
         }
@@ -487,6 +488,9 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     @SuppressWarnings("Duplicates")
     private long internal_find(long p_key) {
         long addr = _eGraph.addrByIndex(index);
+        if(addr == OffHeapConstants.NULL_PTR){
+            return OffHeapConstants.NULL_PTR;
+        }
         final long size = OffHeapLongArray.get(addr, SIZE);
         final long subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
         if (size == 0) {
@@ -519,6 +523,24 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     @Override
     public Object getAt(int key) {
         return internal_get(key);
+    }
+
+    @Override
+    public Object getRawAt(int key) {
+        return internal_get(key);
+    }
+
+    @Override
+    public Object getTypedRawAt(int p_key, byte type) {
+        long addr = _eGraph.addrByIndex(index);
+        long found = internal_find(p_key);
+        if(found == OffHeapConstants.NULL_PTR){
+            return null;
+        }
+        if(type(addr, found) != type){
+            return null;
+        }
+        return internal_get(p_key);
     }
 
     @Override

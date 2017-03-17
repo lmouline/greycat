@@ -106,6 +106,14 @@ public final class ENodeProxy implements ENode {
                     return new LongLongArrayMapProxy(index, this, (LongLongArrayMap) elem);
                 case Type.STRING_TO_INT_MAP:
                     return new StringIntMapProxy(index, this, (StringIntMap) elem);
+                case Type.LONG_ARRAY:
+                    return new LongArrayProxy(index, this, (LongArray) elem);
+                case Type.INT_ARRAY:
+                    return new IntArrayProxy(index, this, (IntArray) elem);
+                case Type.DOUBLE_ARRAY:
+                    return new DoubleArrayProxy(index, this, (DoubleArray) elem);
+                case Type.STRING_ARRAY:
+                    return new StringArrayProxy(index, this, (StringArray) elem);
                 default:
                     return elem;
             }
@@ -113,22 +121,27 @@ public final class ENodeProxy implements ENode {
     }
 
     @Override
-    public final Object getAt(int index) {
+    public final Object getAt(final int index) {
         return proxifyIfNecesserary(_node.getAt(index), index);
     }
 
     @Override
-    public Object getRawAt(int index) {
+    public final Object getRawAt(final int index) {
         return _node.getAt(index);
     }
 
     @Override
-    public final byte type(String name) {
+    public final Object getTypedRawAt(final int index, final byte type) {
+        return _node.getTypedRawAt(index, type);
+    }
+
+    @Override
+    public final byte type(final String name) {
         return _node.type(name);
     }
 
     @Override
-    public final byte typeAt(int index) {
+    public final byte typeAt(final int index) {
         return _node.typeAt(index);
     }
 

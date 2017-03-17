@@ -491,6 +491,18 @@ class HeapENode implements ENode, HeapContainer {
     }
 
     @Override
+    public final Object getTypedRawAt(final int index, final byte type) {
+        if (_size == 0) {
+            return null;
+        }
+        int found = internal_find(index);
+        if (found != -1 && _type[found] == type) {
+            return _v[found];
+        }
+        return null;
+    }
+
+    @Override
     public byte type(String name) {
         return internal_type(_eGraph.graph().resolver().stringToHash(name, false));
     }

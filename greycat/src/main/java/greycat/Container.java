@@ -38,6 +38,8 @@ public interface Container {
 
     Object getRawAt(int index);
 
+    Object getTypedRawAt(int index, byte type);
+
     /**
      * Returns the type of an attribute. The returned value is one of {@link Type}.
      *

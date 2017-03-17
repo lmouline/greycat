@@ -106,6 +106,118 @@ public abstract class AbstractStateChunkTest {
     }
 
     @Test
+    public void lArrayTest() {
+        ChunkSpace space = factory.newSpace(100, null, false);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+        LongArray larray = (LongArray) chunk.getOrCreateAt(0, Type.LONG_ARRAY);
+        Assert.assertEquals(0, larray.size());
+        larray.init(3);
+        larray.set(0, 1);
+        larray.set(1, 2);
+        larray.set(2, 3);
+        Assert.assertEquals(3, larray.size());
+        //test load and save of array
+        Buffer buffer = factory.newBuffer();
+        chunk.save(buffer);
+        StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
+        chunk2.load(buffer);
+        Buffer buffer2 = factory.newBuffer();
+        chunk2.save(buffer2);
+        Assert.assertTrue(compareBuffers(buffer, buffer2));
+        //check consistency
+        Assert.assertEquals(3, ((LongArray) chunk2.getAt(0)).size());
+        space.free(chunk);
+        space.free(chunk2);
+        buffer2.free();
+        buffer.free();
+        space.freeAll();
+    }
+
+    @Test
+    public void dArrayTest() {
+        ChunkSpace space = factory.newSpace(100, null, false);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+        DoubleArray darray = (DoubleArray) chunk.getOrCreateAt(0, Type.DOUBLE_ARRAY);
+        Assert.assertEquals(0, darray.size());
+        darray.init(3);
+        darray.set(0, 1.0);
+        darray.set(1, 2.0);
+        darray.set(2, 3.0);
+        Assert.assertEquals(3, darray.size());
+        //test load and save of array
+        Buffer buffer = factory.newBuffer();
+        chunk.save(buffer);
+        StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
+        chunk2.load(buffer);
+        Buffer buffer2 = factory.newBuffer();
+        chunk2.save(buffer2);
+        Assert.assertTrue(compareBuffers(buffer, buffer2));
+        //check consistency
+        Assert.assertEquals(3, ((DoubleArray) chunk2.getAt(0)).size());
+        space.free(chunk);
+        space.free(chunk2);
+        buffer2.free();
+        buffer.free();
+        space.freeAll();
+    }
+
+    @Test
+    public void iArrayTest() {
+        ChunkSpace space = factory.newSpace(100, null, false);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+        IntArray darray = (IntArray) chunk.getOrCreateAt(0, Type.INT_ARRAY);
+        Assert.assertEquals(0, darray.size());
+        darray.init(3);
+        darray.set(0, 1);
+        darray.set(1, 2);
+        darray.set(2, 3);
+        Assert.assertEquals(3, darray.size());
+        //test load and save of array
+        Buffer buffer = factory.newBuffer();
+        chunk.save(buffer);
+        StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
+        chunk2.load(buffer);
+        Buffer buffer2 = factory.newBuffer();
+        chunk2.save(buffer2);
+        Assert.assertTrue(compareBuffers(buffer, buffer2));
+        //check consistency
+        Assert.assertEquals(3, ((IntArray) chunk2.getAt(0)).size());
+        space.free(chunk);
+        space.free(chunk2);
+        buffer2.free();
+        buffer.free();
+        space.freeAll();
+    }
+
+    @Test
+    public void sArrayTest() {
+        ChunkSpace space = factory.newSpace(100, null, false);
+        StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
+        StringArray sArray = (StringArray) chunk.getOrCreateAt(0, Type.STRING_ARRAY);
+        Assert.assertEquals(0, sArray.size());
+        sArray.init(3);
+        sArray.set(0, "1");
+        sArray.set(1, "2");
+        sArray.set(2, "3");
+        Assert.assertEquals(3, sArray.size());
+        //test load and save of array
+        Buffer buffer = factory.newBuffer();
+        chunk.save(buffer);
+        StateChunk chunk2 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 1);
+        chunk2.load(buffer);
+        Buffer buffer2 = factory.newBuffer();
+        chunk2.save(buffer2);
+        Assert.assertTrue(compareBuffers(buffer, buffer2));
+        //check consistency
+        Assert.assertEquals(3, ((StringArray) chunk2.getAt(0)).size());
+        space.free(chunk);
+        space.free(chunk2);
+        buffer2.free();
+        buffer.free();
+        space.freeAll();
+    }
+
+    @Test
     public void castTest() {
         ChunkSpace space = factory.newSpace(100, null, false);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
@@ -314,9 +426,9 @@ public abstract class AbstractStateChunkTest {
         }
 
         //init chunk selectWith arrays
-        chunk.setAt(5, Type.LONG_ARRAY, new long[]{0, 1, 2, 3, 4});
-        chunk.setAt(6, Type.DOUBLE_ARRAY, new double[]{0.1, 1.1, 2.1, 3.1, 4.1});
-        chunk.setAt(7, Type.INT_ARRAY, new int[]{0, 1, 2, 3, 4});
+        ((LongArray) chunk.getOrCreateAt(5, Type.LONG_ARRAY)).initWith(new long[]{0, 1, 2, 3, 4});
+        ((DoubleArray) chunk.getOrCreateAt(6, Type.DOUBLE_ARRAY)).initWith(new double[]{0.1, 1.1, 2.1, 3.1, 4.1});
+        ((IntArray) chunk.getOrCreateAt(7, Type.INT_ARRAY)).initWith(new int[]{0, 1, 2, 3, 4});
 
         buffer.free();
         buffer = factory.newBuffer();
@@ -397,13 +509,13 @@ public abstract class AbstractStateChunkTest {
 
         //create an empty
         StateChunk chunk4 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 5);
-        chunk4.setAt(0, Type.LONG_ARRAY, new long[0]);
+        ((LongArray) chunk4.getOrCreateAt(0, Type.LONG_ARRAY)).initWith(new long[0]);
         Buffer saved4 = factory.newBuffer();
         chunk4.save(saved4);
 
         StateChunk chunk5 = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 6);
         chunk5.load(saved4);
-        Assert.assertEquals(((long[]) chunk5.getAt(0)).length, 0);
+        Assert.assertEquals(((LongArray) chunk5.getAt(0)).size(), 0);
         space.free(chunk5);
         space.free(chunk4);
         saved4.free();
@@ -422,9 +534,9 @@ public abstract class AbstractStateChunkTest {
         chunk.setAt(3, Type.INT, 100);
         chunk.setAt(4, Type.DOUBLE, 1.0);
         //init arrays
-        chunk.setAt(5, Type.DOUBLE_ARRAY, new double[]{1.0, 2.0, 3.0});
-        chunk.setAt(6, Type.LONG_ARRAY, new long[]{1, 2, 3});
-        chunk.setAt(7, Type.INT_ARRAY, new int[]{1, 2, 3});
+        ((DoubleArray) chunk.getOrCreateAt(5, Type.DOUBLE_ARRAY)).initWith(new double[]{1.0, 2.0, 3.0});
+        ((LongArray) chunk.getOrCreateAt(6, Type.LONG_ARRAY)).initWith(new long[]{1, 2, 3});
+        ((IntArray) chunk.getOrCreateAt(7, Type.INT_ARRAY)).initWith(new int[]{1, 2, 3});
         //init maps
         ((LongLongMap) chunk.getOrCreateAt(8, Type.LONG_TO_LONG_MAP)).put(100, 100);
         ((LongLongArrayMap) chunk.getOrCreateAt(9, Type.LONG_TO_LONG_ARRAY_MAP)).put(100, 100);
@@ -451,13 +563,13 @@ public abstract class AbstractStateChunkTest {
 
         //test arrays
         Assert.assertTrue(chunk2.typeAt(5) == Type.DOUBLE_ARRAY);
-        Assert.assertTrue(((double[]) chunk2.getAt(5))[0] == 1.0);
+        Assert.assertTrue(((DoubleArray) chunk2.getAt(5)).get(0) == 1.0);
 
         Assert.assertTrue(chunk2.typeAt(6) == Type.LONG_ARRAY);
-        Assert.assertTrue(((long[]) chunk2.getAt(6))[0] == 1);
+        Assert.assertTrue(((LongArray) chunk2.getAt(6)).get(0) == 1);
 
         Assert.assertTrue(chunk2.typeAt(7) == Type.INT_ARRAY);
-        Assert.assertTrue(((int[]) chunk2.getAt(7))[0] == 1);
+        Assert.assertTrue(((IntArray) chunk2.getAt(7)).get(0) == 1);
 
         //test maps
         Assert.assertEquals(((LongLongMap) chunk2.getAt(8)).get(100), 100);
@@ -476,24 +588,23 @@ public abstract class AbstractStateChunkTest {
         Assert.assertTrue(HashHelper.equals(chunk.getAt(1).toString(), "helloPast"));
 
         //ARRAYS
-        chunk2.setAt(5, Type.DOUBLE_ARRAY, new double[]{3.0, 4.0, 5.0});
-        Assert.assertTrue(((double[]) chunk2.getAt(5))[0] == 3.0);
-        Assert.assertTrue(((double[]) chunk.getAt(5))[0] == 1.0);
+        ((DoubleArray) chunk2.getOrCreateAt(5, Type.DOUBLE_ARRAY)).initWith(new double[]{3.0, 4.0, 5.0});
+        Assert.assertTrue(((DoubleArray) chunk2.getAt(5)).get(0) == 3.0);
+        Assert.assertTrue(((DoubleArray) chunk.getAt(5)).get(0) == 1.0);
 
-        chunk2.setAt(6, Type.LONG_ARRAY, new long[]{100, 200, 300});
-        Assert.assertTrue(((long[]) chunk2.getAt(6))[0] == 100);
-        Assert.assertTrue(((long[]) chunk.getAt(6))[0] == 1);
+        ((LongArray) chunk2.getOrCreateAt(6, Type.LONG_ARRAY)).initWith(new long[]{100, 200, 300});
+        Assert.assertTrue(((LongArray) chunk2.getAt(6)).get(0) == 100);
+        Assert.assertTrue(((LongArray) chunk.getAt(6)).get(0) == 1);
 
-        chunk2.setAt(7, Type.INT_ARRAY, new int[]{100, 200, 300});
-        Assert.assertTrue(((int[]) chunk2.getAt(7))[0] == 100);
-        Assert.assertTrue(((int[]) chunk.getAt(7))[0] == 1);
+        ((IntArray) chunk2.getOrCreateAt(7, Type.INT_ARRAY)).initWith(new int[]{100, 200, 300});
+        Assert.assertTrue(((IntArray) chunk2.getAt(7)).get(0) == 100);
+        Assert.assertTrue(((IntArray) chunk.getAt(7)).get(0) == 1);
 
         //MAPS
 
         ((LongLongMap) chunk2.getAt(8)).put(100, 200);
         Assert.assertTrue(((LongLongMap) chunk2.getAt(8)).get(100) == 200);
         Assert.assertTrue(((LongLongMap) chunk.getAt(8)).get(100) == 100);
-
 
         ((LongLongArrayMap) chunk2.getAt(9)).put(100, 200);
         Assert.assertTrue(((LongLongArrayMap) chunk2.getAt(9)).get(100)[0] == 200);
@@ -543,13 +654,13 @@ public abstract class AbstractStateChunkTest {
         protectionMethod(chunk, Type.STRING, true, true);
 
         //arrays
-        protectionMethod(chunk, Type.DOUBLE_ARRAY, new double[]{0.1d, 0.2d, 0.3d}, false);
+        //protectionMethod(chunk, Type.DOUBLE_ARRAY, new double[]{0.1d, 0.2d, 0.3d}, false);
         protectionMethod(chunk, Type.DOUBLE_ARRAY, "hello", true);
 
-        protectionMethod(chunk, Type.LONG_ARRAY, new long[]{10l, 100l, 1000l}, false);
+        //protectionMethod(chunk, Type.LONG_ARRAY, new long[]{10l, 100l, 1000l}, false);
         protectionMethod(chunk, Type.LONG_ARRAY, "hello", true);
 
-        protectionMethod(chunk, Type.INT_ARRAY, new int[]{10, 100, 1000}, false);
+        //protectionMethod(chunk, Type.INT_ARRAY, new int[]{10, 100, 1000}, false);
         protectionMethod(chunk, Type.INT_ARRAY, "hello", true);
 
         //maps
@@ -559,8 +670,6 @@ public abstract class AbstractStateChunkTest {
 
         space.free(chunk);
         space.freeAll();
-
-
     }
 
     @Test
@@ -575,9 +684,9 @@ public abstract class AbstractStateChunkTest {
         chunk.setAt(3, Type.INT, 100);
         chunk.setAt(4, Type.DOUBLE, 1.0);
         //init arrays
-        chunk.setAt(5, Type.DOUBLE_ARRAY, new double[]{1.0, 2.0, 3.0});
-        chunk.setAt(6, Type.LONG_ARRAY, new long[]{1, 2, 3});
-        chunk.setAt(7, Type.INT_ARRAY, new int[]{1, 2, 3});
+        ((DoubleArray) chunk.getOrCreateAt(5, Type.DOUBLE_ARRAY)).initWith(new double[]{1.0, 2.0, 3.0});
+        ((LongArray) chunk.getOrCreateAt(6, Type.LONG_ARRAY)).initWith(new long[]{1, 2, 3});
+        ((IntArray) chunk.getOrCreateAt(7, Type.INT_ARRAY)).initWith(new int[]{1, 2, 3});
         //init maps
         ((LongLongMap) chunk.getOrCreateAt(8, Type.LONG_TO_LONG_MAP)).put(100, 100);
         ((LongLongArrayMap) chunk.getOrCreateAt(9, Type.LONG_TO_LONG_ARRAY_MAP)).put(100, 100);
@@ -590,11 +699,9 @@ public abstract class AbstractStateChunkTest {
         Assert.assertTrue(chunk.typeAt(10) == Type.BOOL);
         Assert.assertTrue((Boolean) chunk.getAt(10));
 
-
         chunk.setAt(0, Type.STRING, "hello");
         Assert.assertTrue(chunk.typeAt(0) == Type.STRING);
         Assert.assertTrue(HashHelper.equals(chunk.getAt(0).toString(), "hello"));
-
 
         chunk.setAt(1, Type.LONG, 1000l);
         Assert.assertTrue(chunk.typeAt(1) == Type.LONG);
@@ -609,17 +716,17 @@ public abstract class AbstractStateChunkTest {
         Assert.assertTrue((Double) chunk.getAt(3) == 1.0);
 
         //switch arrays
-        chunk.setAt(4, Type.DOUBLE_ARRAY, new double[]{1.0, 2.0, 3.0});
+        ((DoubleArray) chunk.getOrCreateAt(4, Type.DOUBLE_ARRAY)).initWith(new double[]{1.0, 2.0, 3.0});
         Assert.assertTrue(chunk.typeAt(4) == Type.DOUBLE_ARRAY);
-        Assert.assertTrue(((double[]) chunk.getAt(4))[0] == 1.0);
+        Assert.assertTrue(((DoubleArray) chunk.getAt(4)).get(0) == 1.0);
 
-        chunk.setAt(5, Type.LONG_ARRAY, new long[]{1, 2, 3});
+        ((LongArray) chunk.getOrCreateAt(5, Type.LONG_ARRAY)).initWith(new long[]{1, 2, 3});
         Assert.assertTrue(chunk.typeAt(5) == Type.LONG_ARRAY);
-        Assert.assertTrue(((long[]) chunk.getAt(5))[0] == 1);
+        Assert.assertTrue(((LongArray) chunk.getAt(5)).get(0) == 1);
 
-        chunk.setAt(6, Type.INT_ARRAY, new int[]{1, 2, 3});
+        ((IntArray) chunk.getOrCreateAt(6, Type.INT_ARRAY)).initWith(new int[]{1, 2, 3});
         Assert.assertTrue(chunk.typeAt(6) == Type.INT_ARRAY);
-        Assert.assertTrue(((int[]) chunk.getAt(6))[0] == 1);
+        Assert.assertTrue(((IntArray) chunk.getAt(6)).get(0) == 1);
 
         //switch maps
         ((LongLongMap) chunk.getOrCreateAt(7, Type.LONG_TO_LONG_MAP)).put(100, 100);

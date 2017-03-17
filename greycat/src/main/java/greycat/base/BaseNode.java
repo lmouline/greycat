@@ -164,10 +164,19 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public Object getRawAt(int propIndex) {
+    public final Object getRawAt(int propIndex) {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
             return resolved.getAt(propIndex);
+        }
+        return null;
+    }
+
+    @Override
+    public final Object getTypedRawAt(final int propIndex, final byte type) {
+        final NodeState resolved = this._resolver.resolveState(this);
+        if (resolved != null) {
+            return resolved.getTypedRawAt(propIndex, type);
         }
         return null;
     }
@@ -201,6 +210,14 @@ public class BaseNode implements Node {
                     return new LongLongArrayMapProxy(index, this, (LongLongArrayMap) elem);
                 case Type.STRING_TO_INT_MAP:
                     return new StringIntMapProxy(index, this, (StringIntMap) elem);
+                case Type.LONG_ARRAY:
+                    return new LongArrayProxy(index, this, (LongArray) elem);
+                case Type.INT_ARRAY:
+                    return new IntArrayProxy(index, this, (IntArray) elem);
+                case Type.DOUBLE_ARRAY:
+                    return new DoubleArrayProxy(index, this, (DoubleArray) elem);
+                case Type.STRING_ARRAY:
+                    return new StringArrayProxy(index, this, (StringArray) elem);
                 default:
                     return elem;
             }

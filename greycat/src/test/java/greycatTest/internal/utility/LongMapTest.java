@@ -15,7 +15,7 @@
  */
 package greycatTest.internal.utility;
 
-import greycat.utility.LongMap;
+import greycat.utility.LMap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -23,7 +23,7 @@ public class LongMapTest {
 
     @Test
     public void test() {
-        LongMap map = new LongMap(false);
+        LMap map = new LMap(false);
         Assert.assertTrue(map.add(1L));
         Assert.assertTrue(map.add(2L));
         Assert.assertTrue(map.add(3L));

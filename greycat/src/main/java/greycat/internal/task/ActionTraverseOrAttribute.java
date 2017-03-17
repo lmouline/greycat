@@ -17,7 +17,6 @@ package greycat.internal.task;
 
 import greycat.*;
 import greycat.base.BaseNode;
-import greycat.plugin.Job;
 import greycat.Action;
 import greycat.plugin.NodeState;
 import greycat.plugin.Resolver;
@@ -26,12 +25,7 @@ import greycat.struct.Relation;
 import greycat.struct.RelationIndexed;
 import greycat.TaskContext;
 import greycat.TaskResult;
-import greycat.utility.LongArray;
-import greycat.utility.LongMap;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import greycat.utility.LArray;
 
 class ActionTraverseOrAttribute implements Action {
 
@@ -56,9 +50,9 @@ class ActionTraverseOrAttribute implements Action {
         final TaskResult previousResult = ctx.result();
         if (previousResult != null) {
             final int previousSize = previousResult.size();
-            final LongArray worlds = new LongArray();
-            final LongArray times = new LongArray();
-            final LongArray ids = new LongArray();
+            final LArray worlds = new LArray();
+            final LArray times = new LArray();
+            final LArray ids = new LArray();
 
             final Query query;
             if (_params != null && _params.length > 0) {

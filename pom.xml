@@ -102,9 +102,8 @@
         <module>plugins/websocket</module>
         <module>plugins/ml</module>
         <!--
-        <module>plugins/blas</module>
-        -->
         <module>plugins/memory</module>
+        -->
         <module>plugins/taskide</module>
 
         <!--

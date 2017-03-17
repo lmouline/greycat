@@ -91,8 +91,32 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
-    public Object getRawAt(int p_key) {
+    public synchronized Object getRawAt(int p_key) {
         return getAt(p_key);
+    }
+
+    @Override
+    public Object getTypedRawAt(int index, byte type) {
+        //empty chunk, we return immediately
+        if (_size == 0) {
+            return null;
+        }
+        int found = internal_find(index);
+        Object result;
+        if (found != -1 && _type[found] == type) {
+            result = _v[found];
+            if (result != null) {
+                switch (_type[found]) {
+                    case Type.NDTREE:
+                        return new NDTree((EGraph) result);
+                    case Type.KDTREE:
+                        return new KDTree((EGraph) result);
+                    default:
+                        return result;
+                }
+            }
+        }
+        return null;
     }
 
     private int internal_find(final int p_key) {
@@ -133,23 +157,6 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             result = _v[found];
             if (result != null) {
                 switch (_type[found]) {
-                    /*
-                    case Type.DOUBLE_ARRAY:
-                        double[] castedResultD = (double[]) result;
-                        double[] copyD = new double[castedResultD.length];
-                        System.arraycopy(castedResultD, 0, copyD, 0, castedResultD.length);
-                        return copyD;
-                    case Type.LONG_ARRAY:
-                        long[] castedResultL = (long[]) result;
-                        long[] copyL = new long[castedResultL.length];
-                        System.arraycopy(castedResultL, 0, copyL, 0, castedResultL.length);
-                        return copyL;
-                    case Type.INT_ARRAY:
-                        int[] castedResultI = (int[]) result;
-                        int[] copyI = new int[castedResultI.length];
-                        System.arraycopy(castedResultI, 0, copyI, 0, castedResultI.length);
-                        return copyI;
-                        */
                     case Type.NDTREE:
                         return new NDTree((EGraph) result);
                     case Type.KDTREE:
@@ -257,6 +264,22 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         Object toSet = null;
         Object toGet = null;
         switch (p_type) {
+            case Type.LONG_ARRAY:
+                toSet = new HeapLongArray(this);
+                toGet = toSet;
+                break;
+            case Type.DOUBLE_ARRAY:
+                toSet = new HeapDoubleArray(this);
+                toGet = toSet;
+                break;
+            case Type.INT_ARRAY:
+                toSet = new HeapIntArray(this);
+                toGet = toSet;
+                break;
+            case Type.STRING_ARRAY:
+                toSet = new HeapStringArray(this);
+                toGet = toSet;
+                break;
             case Type.RELATION:
                 toSet = new HeapRelation(this, null);
                 toGet = toSet;
@@ -350,27 +373,35 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         Base64.encodeIntToBuffer((Integer) loopValue, buffer);
                         break;
                     case Type.DOUBLE_ARRAY:
-                        double[] castedDoubleArr = (double[]) loopValue;
-                        Base64.encodeIntToBuffer(castedDoubleArr.length, buffer);
-                        for (int j = 0; j < castedDoubleArr.length; j++) {
+                        HeapDoubleArray doubleArray = (HeapDoubleArray) loopValue;
+                        Base64.encodeIntToBuffer(doubleArray.size(), buffer);
+                        for (int j = 0; j < doubleArray.size(); j++) {
                             buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                            Base64.encodeDoubleToBuffer(castedDoubleArr[j], buffer);
+                            Base64.encodeDoubleToBuffer(doubleArray.get(j), buffer);
                         }
                         break;
                     case Type.LONG_ARRAY:
-                        long[] castedLongArr = (long[]) loopValue;
-                        Base64.encodeIntToBuffer(castedLongArr.length, buffer);
-                        for (int j = 0; j < castedLongArr.length; j++) {
+                        HeapLongArray longArray = (HeapLongArray) loopValue;
+                        Base64.encodeIntToBuffer(longArray.size(), buffer);
+                        for (int j = 0; j < longArray.size(); j++) {
                             buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                            Base64.encodeLongToBuffer(castedLongArr[j], buffer);
+                            Base64.encodeLongToBuffer(longArray.get(j), buffer);
                         }
                         break;
                     case Type.INT_ARRAY:
-                        int[] castedIntArr = (int[]) loopValue;
-                        Base64.encodeIntToBuffer(castedIntArr.length, buffer);
-                        for (int j = 0; j < castedIntArr.length; j++) {
+                        HeapIntArray intArray = (HeapIntArray) loopValue;
+                        Base64.encodeIntToBuffer(intArray.size(), buffer);
+                        for (int j = 0; j < intArray.size(); j++) {
                             buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                            Base64.encodeIntToBuffer(castedIntArr[j], buffer);
+                            Base64.encodeIntToBuffer(intArray.get(j), buffer);
+                        }
+                        break;
+                    case Type.STRING_ARRAY:
+                        HeapStringArray stringArray = (HeapStringArray) loopValue;
+                        Base64.encodeIntToBuffer(stringArray.size(), buffer);
+                        for (int j = 0; j < stringArray.size(); j++) {
+                            buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                            Base64.encodeStringToBuffer(stringArray.get(j), buffer);
                         }
                         break;
                     case Type.RELATION:
@@ -554,6 +585,26 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             _v[i] = new HeapEGraph(this, (HeapEGraph) casted._v[i], _space.graph());
                         }
                         break;
+                    case Type.LONG_ARRAY:
+                        if (casted._v[i] != null) {
+                            _v[i] = ((HeapLongArray) casted._v[i]).cloneFor(this);
+                        }
+                        break;
+                    case Type.DOUBLE_ARRAY:
+                        if (casted._v[i] != null) {
+                            _v[i] = ((HeapDoubleArray) casted._v[i]).cloneFor(this);
+                        }
+                        break;
+                    case Type.INT_ARRAY:
+                        if (casted._v[i] != null) {
+                            _v[i] = ((HeapIntArray) casted._v[i]).cloneFor(this);
+                        }
+                        break;
+                    case Type.STRING_ARRAY:
+                        if (casted._v[i] != null) {
+                            _v[i] = ((HeapStringArray) casted._v[i]).cloneFor(this);
+                        }
+                        break;
                     default:
                         _v[i] = casted._v[i];
                         break;
@@ -641,22 +692,16 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         param_elem = (Relation) p_unsafe_elem;
                         break;
                     case Type.DOUBLE_ARRAY:
-                        double[] castedParamDouble = (double[]) p_unsafe_elem;
-                        double[] clonedDoubleArray = new double[castedParamDouble.length];
-                        System.arraycopy(castedParamDouble, 0, clonedDoubleArray, 0, castedParamDouble.length);
-                        param_elem = clonedDoubleArray;
+                        param_elem = (DoubleArray) p_unsafe_elem;
                         break;
                     case Type.LONG_ARRAY:
-                        long[] castedParamLong = (long[]) p_unsafe_elem;
-                        long[] clonedLongArray = new long[castedParamLong.length];
-                        System.arraycopy(castedParamLong, 0, clonedLongArray, 0, castedParamLong.length);
-                        param_elem = clonedLongArray;
+                        param_elem = (LongArray) p_unsafe_elem;
                         break;
                     case Type.INT_ARRAY:
-                        int[] castedParamInt = (int[]) p_unsafe_elem;
-                        int[] clonedIntArray = new int[castedParamInt.length];
-                        System.arraycopy(castedParamInt, 0, clonedIntArray, 0, castedParamInt.length);
-                        param_elem = clonedIntArray;
+                        param_elem = (IntArray) p_unsafe_elem;
+                        break;
+                    case Type.STRING_ARRAY:
+                        param_elem = (StringArray) p_unsafe_elem;
                         break;
                     case Type.STRING_TO_INT_MAP:
                         param_elem = (StringIntMap) p_unsafe_elem;
@@ -911,6 +956,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                     previous = cursor;
                                     break;
                                 //arrays
+                                /*
                                 case Type.DOUBLE_ARRAY:
                                     double[] doubleArrayLoaded = null;
                                     int doubleArrayIndex = 0;
@@ -942,6 +988,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                     cursor++;
                                     previous = cursor;
                                     break;
+
                                 case Type.LONG_ARRAY:
                                     long[] longArrayLoaded = null;
                                     int longArrayIndex = 0;
@@ -973,6 +1020,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                     cursor++;
                                     previous = cursor;
                                     break;
+
                                 case Type.INT_ARRAY:
                                     int[] intArrayLoaded = null;
                                     int intArrayIndex = 0;
@@ -1003,6 +1051,63 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                     state = LOAD_WAITING_TYPE;
                                     cursor++;
                                     previous = cursor;
+                                    break;
+*/
+                                case Type.LONG_ARRAY:
+                                    HeapLongArray larray = new HeapLongArray(this);
+                                    cursor++;
+                                    cursor = larray.load(buffer, cursor, payloadSize);
+                                    internal_set(read_key, read_type, larray, true, initial);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
+                                    break;
+                                case Type.DOUBLE_ARRAY:
+                                    HeapDoubleArray darray = new HeapDoubleArray(this);
+                                    cursor++;
+                                    cursor = darray.load(buffer, cursor, payloadSize);
+                                    internal_set(read_key, read_type, darray, true, initial);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
+                                    break;
+                                case Type.INT_ARRAY:
+                                    HeapIntArray iarray = new HeapIntArray(this);
+                                    cursor++;
+                                    cursor = iarray.load(buffer, cursor, payloadSize);
+                                    internal_set(read_key, read_type, iarray, true, initial);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
+                                    break;
+                                case Type.STRING_ARRAY:
+                                    HeapStringArray sarray = new HeapStringArray(this);
+                                    cursor++;
+                                    cursor = sarray.load(buffer, cursor, payloadSize);
+                                    internal_set(read_key, read_type, sarray, true, initial);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
                                     break;
                                 case Type.RELATION:
                                     HeapRelation relation = new HeapRelation(this, null);

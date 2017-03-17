@@ -17,7 +17,7 @@ package greycat.utility;
 
 import greycat.Constants;
 
-public class LongArray {
+public class LArray {
 
     private int index = 0;
     private int capacity = Constants.MAP_INITIAL_CAPACITY;

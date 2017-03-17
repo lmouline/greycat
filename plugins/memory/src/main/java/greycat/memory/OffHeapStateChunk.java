@@ -164,6 +164,29 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
     }
 
     @Override
+    public Object getRawAt(int p_key) {
+        return getAt(p_key);
+    }
+
+    @Override
+    public Object getTypedRawAt(int p_key, byte type) {
+        Object result = null;
+        lock();
+        try {
+            final long addr = space.addrByIndex(index);
+            if (addr != OffHeapConstants.NULL_PTR) {
+                final long foundIndex = internal_find(addr, p_key);
+                if (foundIndex != OffHeapConstants.NULL_PTR && type(addr, foundIndex) == type) {
+                    result = internal_get(addr, foundIndex);
+                }
+            }
+        } finally {
+            unlock();
+        }
+        return result;
+    }
+
+    @Override
     public final Object get(final String key) {
         return getAt(space.graph().resolver().stringToHash(key, false));
     }

@@ -20,7 +20,7 @@ import greycat.struct.LongLongMapCallBack;
 
 import java.util.Arrays;
 
-public class LongMap {
+public class LMap {
 
     private int mapSize = 0;
     private int capacity = 0;
@@ -30,7 +30,7 @@ public class LongMap {
 
     private final boolean _withValue;
 
-    public LongMap(final boolean withValue) {
+    public LMap(final boolean withValue) {
         this._withValue = withValue;
     }
 
