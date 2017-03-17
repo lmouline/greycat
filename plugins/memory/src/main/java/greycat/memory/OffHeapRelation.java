@@ -17,7 +17,7 @@ package greycat.memory;
 
 import greycat.Constants;
 import greycat.Node;
-import greycat.memory.primary.OffHeapLongArray;
+import greycat.memory.primary.POffHeapLongArray;
 import greycat.struct.Buffer;
 import greycat.struct.Relation;
 import greycat.utility.Base64;
@@ -46,10 +46,10 @@ class OffHeapRelation implements Relation {
             if (addr == OffHeapConstants.NULL_PTR) {
                 ids = new long[0];
             } else {
-                final long relSize = OffHeapLongArray.get(addr, SIZE);
+                final long relSize = POffHeapLongArray.get(addr, SIZE);
                 ids = new long[(int) relSize];
                 for (int i = 0; i < relSize; i++) {
-                    ids[i] = OffHeapLongArray.get(addr, i + SHIFT);
+                    ids[i] = POffHeapLongArray.get(addr, i + SHIFT);
                 }
             }
         } finally {
@@ -71,17 +71,17 @@ class OffHeapRelation implements Relation {
         final long addr = container.addrByIndex(index);
         if (addr == OffHeapConstants.NULL_PTR) {
             //initial allocation
-            final long newly = OffHeapLongArray.allocate(newCapacity + SHIFT);
-            OffHeapLongArray.set(newly, SIZE, 0);
-            OffHeapLongArray.set(newly, CAPACITY, newCapacity);
+            final long newly = POffHeapLongArray.allocate(newCapacity + SHIFT);
+            POffHeapLongArray.set(newly, SIZE, 0);
+            POffHeapLongArray.set(newly, CAPACITY, newCapacity);
             container.setAddrByIndex(index, newly);
         } else {
-            final long capacity = OffHeapLongArray.get(addr, CAPACITY);
+            final long capacity = POffHeapLongArray.get(addr, CAPACITY);
             if (capacity < newCapacity) {
                 //extends
-                long exAddr = OffHeapLongArray.reallocate(addr, newCapacity + SHIFT);
+                long exAddr = POffHeapLongArray.reallocate(addr, newCapacity + SHIFT);
                 container.setAddrByIndex(index, exAddr);
-                OffHeapLongArray.set(exAddr, CAPACITY, newCapacity);
+                POffHeapLongArray.set(exAddr, CAPACITY, newCapacity);
             }
         }
     }
@@ -93,7 +93,7 @@ class OffHeapRelation implements Relation {
         try {
             final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
-                size = OffHeapLongArray.get(addr, SIZE);
+                size = POffHeapLongArray.get(addr, SIZE);
             }
         } finally {
             container.unlock();
@@ -108,9 +108,9 @@ class OffHeapRelation implements Relation {
         try {
             final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
-                final long size = OffHeapLongArray.get(addr, SIZE);
+                final long size = POffHeapLongArray.get(addr, SIZE);
                 if (elemIndex < size) {
-                    result = OffHeapLongArray.get(addr, elemIndex + SHIFT);
+                    result = POffHeapLongArray.get(addr, elemIndex + SHIFT);
                 } else {
                     return -1;
                 }
@@ -127,9 +127,9 @@ class OffHeapRelation implements Relation {
         try {
             final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
-                final long size = OffHeapLongArray.get(addr, SIZE);
+                final long size = POffHeapLongArray.get(addr, SIZE);
                 if (index < size) {
-                    OffHeapLongArray.set(addr, index + SHIFT, value);
+                    POffHeapLongArray.set(addr, index + SHIFT, value);
                 }
             }
         } finally {
@@ -175,29 +175,29 @@ class OffHeapRelation implements Relation {
             long size = 0;
             long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
-                size = OffHeapLongArray.get(addr, SIZE);
+                size = POffHeapLongArray.get(addr, SIZE);
             }
             if (size == 0) {
                 if (insertIndex != 0) {
                     throw new RuntimeException("Bad API usage ! index out of bounds: " + index);
                 }
                 long capacity = Constants.MAP_INITIAL_CAPACITY;
-                addr = OffHeapLongArray.allocate(SHIFT + capacity);
-                OffHeapLongArray.set(addr, CAPACITY, capacity);
+                addr = POffHeapLongArray.allocate(SHIFT + capacity);
+                POffHeapLongArray.set(addr, CAPACITY, capacity);
                 container.setAddrByIndex(index, addr);
-                OffHeapLongArray.set(addr, SHIFT, newValue);
-                OffHeapLongArray.set(addr, SIZE, 1);
+                POffHeapLongArray.set(addr, SHIFT, newValue);
+                POffHeapLongArray.set(addr, SIZE, 1);
             } else {
-                final long capacity = OffHeapLongArray.get(addr, CAPACITY);
+                final long capacity = POffHeapLongArray.get(addr, CAPACITY);
                 if (capacity == size) {
                     //need to reallocate first
                     final long newCapacity = capacity * 2;
-                    addr = OffHeapLongArray.reallocate(addr, newCapacity + SHIFT);
+                    addr = POffHeapLongArray.reallocate(addr, newCapacity + SHIFT);
                     container.setAddrByIndex(index, addr);
-                    OffHeapLongArray.set(addr, CAPACITY, newCapacity);
+                    POffHeapLongArray.set(addr, CAPACITY, newCapacity);
                 }
-                OffHeapLongArray.insert(addr, SHIFT + insertIndex, newValue, size + SHIFT);
-                OffHeapLongArray.set(addr, SIZE, size + 1);
+                POffHeapLongArray.insert(addr, SHIFT + insertIndex, newValue, size + SHIFT);
+                POffHeapLongArray.set(addr, SIZE, size + 1);
             }
             container.declareDirty();
         } finally {
@@ -211,22 +211,22 @@ class OffHeapRelation implements Relation {
         long size;
         if (addr == OffHeapConstants.NULL_PTR) {
             long capacity = Constants.MAP_INITIAL_CAPACITY;
-            addr = OffHeapLongArray.allocate(SHIFT + capacity);
-            OffHeapLongArray.set(addr, CAPACITY, capacity);
+            addr = POffHeapLongArray.allocate(SHIFT + capacity);
+            POffHeapLongArray.set(addr, CAPACITY, capacity);
             container.setAddrByIndex(index, addr);
             size = 0;
         } else {
-            size = OffHeapLongArray.get(addr, SIZE);
-            final long capacity = OffHeapLongArray.get(addr, CAPACITY);
+            size = POffHeapLongArray.get(addr, SIZE);
+            final long capacity = POffHeapLongArray.get(addr, CAPACITY);
             if (size == capacity) {
                 final long newCapacity = capacity * 2;
-                addr = OffHeapLongArray.reallocate(addr, newCapacity + SHIFT);
+                addr = POffHeapLongArray.reallocate(addr, newCapacity + SHIFT);
                 container.setAddrByIndex(index, addr);
-                OffHeapLongArray.set(addr, CAPACITY, newCapacity);
+                POffHeapLongArray.set(addr, CAPACITY, newCapacity);
             }
         }
-        OffHeapLongArray.set(addr, size + SHIFT, newValue);
-        OffHeapLongArray.set(addr, SIZE, size + 1);
+        POffHeapLongArray.set(addr, size + SHIFT, newValue);
+        POffHeapLongArray.set(addr, SIZE, size + 1);
     }
 
     @Override
@@ -236,11 +236,11 @@ class OffHeapRelation implements Relation {
         try {
             long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
-                final long size = OffHeapLongArray.get(addr, SIZE);
+                final long size = POffHeapLongArray.get(addr, SIZE);
                 for (int i = 0; i < size; i++) {
-                    long current = OffHeapLongArray.get(addr, SHIFT + i);
+                    long current = POffHeapLongArray.get(addr, SHIFT + i);
                     if (leftShift) {
-                        OffHeapLongArray.set(addr, SHIFT + i - 1, current);
+                        POffHeapLongArray.set(addr, SHIFT + i - 1, current);
                     } else {
                         if (current == oldValue) {
                             leftShift = true;
@@ -248,7 +248,7 @@ class OffHeapRelation implements Relation {
                     }
                 }
                 if (leftShift) {
-                    OffHeapLongArray.set(addr, SIZE, size - 1);
+                    POffHeapLongArray.set(addr, SIZE, size - 1);
                     container.declareDirty();
                 }
             }
@@ -265,9 +265,9 @@ class OffHeapRelation implements Relation {
         try {
             long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
-                final long size = OffHeapLongArray.get(addr, SIZE);
-                OffHeapLongArray.delete(addr, indexToDelete + SHIFT, size);
-                OffHeapLongArray.set(addr, SIZE, size - 1);
+                final long size = POffHeapLongArray.get(addr, SIZE);
+                POffHeapLongArray.delete(addr, indexToDelete + SHIFT, size);
+                POffHeapLongArray.set(addr, SIZE, size - 1);
                 container.declareDirty();
             }
 
@@ -283,7 +283,7 @@ class OffHeapRelation implements Relation {
         try {
             final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
-                OffHeapLongArray.set(addr, SIZE, 0);
+                POffHeapLongArray.set(addr, SIZE, 0);
             }
         } finally {
             container.unlock();
@@ -300,12 +300,12 @@ class OffHeapRelation implements Relation {
         final long addr = container.addrByIndex(index);
         if (addr != OffHeapConstants.NULL_PTR) {
             buffer.append("[");
-            final long size = OffHeapLongArray.get(addr, SIZE);
+            final long size = POffHeapLongArray.get(addr, SIZE);
             for (int i = 0; i < size; i++) {
                 if (i != 0) {
                     buffer.append(",");
                 }
-                buffer.append(OffHeapLongArray.get(addr, i + SHIFT));
+                buffer.append(POffHeapLongArray.get(addr, i + SHIFT));
             }
             buffer.append("]");
         }
@@ -319,11 +319,11 @@ class OffHeapRelation implements Relation {
         if (addr == OffHeapConstants.NULL_PTR) {
             return;
         }
-        final long size = OffHeapLongArray.get(addr, SIZE);
+        final long size = POffHeapLongArray.get(addr, SIZE);
         Base64.encodeLongToBuffer(size, buffer);
         for (long i = 0; i < size; i++) {
             buffer.write(Constants.CHUNK_VAL_SEP);
-            Base64.encodeLongToBuffer(OffHeapLongArray.get(addr, i + SHIFT), buffer);
+            Base64.encodeLongToBuffer(POffHeapLongArray.get(addr, i + SHIFT), buffer);
         }
     }
 
@@ -331,12 +331,12 @@ class OffHeapRelation implements Relation {
         if (addr == OffHeapConstants.NULL_PTR) {
             return OffHeapConstants.NULL_PTR;
         }
-        final long capacity = OffHeapLongArray.get(addr, CAPACITY);
-        return OffHeapLongArray.cloneArray(addr, capacity + SHIFT);
+        final long capacity = POffHeapLongArray.get(addr, CAPACITY);
+        return POffHeapLongArray.cloneArray(addr, capacity + SHIFT);
     }
 
     static void free(final long addr) {
-        OffHeapLongArray.free(addr);
+        POffHeapLongArray.free(addr);
     }
 
     final long load(final Buffer buffer, final long offset, final long max) {

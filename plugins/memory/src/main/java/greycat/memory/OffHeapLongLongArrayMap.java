@@ -16,7 +16,7 @@
 package greycat.memory;
 
 import greycat.Constants;
-import greycat.memory.primary.OffHeapLongArray;
+import greycat.memory.primary.POffHeapLongArray;
 import greycat.struct.Buffer;
 import greycat.struct.LongLongArrayMap;
 import greycat.struct.LongLongArrayMapCallBack;
@@ -41,57 +41,57 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
     }
 
     static long key(final long addr, final long elemIndex) {
-        return OffHeapLongArray.get(addr, HEADER + (elemIndex * ELEM_SIZE));
+        return POffHeapLongArray.get(addr, HEADER + (elemIndex * ELEM_SIZE));
     }
 
     private void setKey(final long addr, final long elemIndex, long newValue) {
-        OffHeapLongArray.set(addr, HEADER + (elemIndex * ELEM_SIZE), newValue);
+        POffHeapLongArray.set(addr, HEADER + (elemIndex * ELEM_SIZE), newValue);
     }
 
     static long value(final long addr, final long elemIndex) {
-        return OffHeapLongArray.get(addr, HEADER + (elemIndex * ELEM_SIZE) + 1);
+        return POffHeapLongArray.get(addr, HEADER + (elemIndex * ELEM_SIZE) + 1);
     }
 
     private void setValue(final long addr, final long elemIndex, long newValue) {
-        OffHeapLongArray.set(addr, HEADER + (elemIndex * ELEM_SIZE) + 1, newValue);
+        POffHeapLongArray.set(addr, HEADER + (elemIndex * ELEM_SIZE) + 1, newValue);
     }
 
     private long next(final long subHashAddr, final long elemIndex) {
-        return OffHeapLongArray.get(subHashAddr, elemIndex);
+        return POffHeapLongArray.get(subHashAddr, elemIndex);
     }
 
     private void setNext(final long subHashAddr, final long elemIndex, final long newValue) {
-        OffHeapLongArray.set(subHashAddr, elemIndex, newValue);
+        POffHeapLongArray.set(subHashAddr, elemIndex, newValue);
     }
 
     private long hash(final long subHashAddr, final long capacity, final long elemIndex) {
-        return OffHeapLongArray.get(subHashAddr, (capacity + elemIndex));
+        return POffHeapLongArray.get(subHashAddr, (capacity + elemIndex));
     }
 
     private void setHash(final long subHashAddr, final long capacity, final long elemIndex, final long newValue) {
-        OffHeapLongArray.set(subHashAddr, (capacity + elemIndex), newValue);
+        POffHeapLongArray.set(subHashAddr, (capacity + elemIndex), newValue);
     }
 
     void preAllocate(long wantedCapacity) {
         long addr = container.addrByIndex(index);
         if (addr == OffHeapConstants.NULL_PTR) {
-            addr = OffHeapLongArray.allocate(HEADER + wantedCapacity * 2);
+            addr = POffHeapLongArray.allocate(HEADER + wantedCapacity * 2);
             container.setAddrByIndex(index, addr);
-            OffHeapLongArray.set(addr, SIZE, 0);
-            OffHeapLongArray.set(addr, CAPACITY, wantedCapacity);
-            long subHash = OffHeapLongArray.allocate(wantedCapacity * 3);
-            OffHeapLongArray.set(addr, SUBHASH, subHash);
+            POffHeapLongArray.set(addr, SIZE, 0);
+            POffHeapLongArray.set(addr, CAPACITY, wantedCapacity);
+            long subHash = POffHeapLongArray.allocate(wantedCapacity * 3);
+            POffHeapLongArray.set(addr, SUBHASH, subHash);
         } else {
-            long currentCapacity = OffHeapLongArray.get(addr, CAPACITY);
+            long currentCapacity = POffHeapLongArray.get(addr, CAPACITY);
             if (wantedCapacity > currentCapacity) {
-                addr = OffHeapLongArray.reallocate(addr, HEADER + wantedCapacity * 2);
+                addr = POffHeapLongArray.reallocate(addr, HEADER + wantedCapacity * 2);
                 container.setAddrByIndex(index, addr);
-                OffHeapLongArray.set(addr, CAPACITY, wantedCapacity);
-                long subHash = OffHeapLongArray.get(addr, SUBHASH);
-                subHash = OffHeapLongArray.reallocate(subHash, wantedCapacity * 3);
-                OffHeapLongArray.set(addr, SUBHASH, subHash);
-                OffHeapLongArray.reset(subHash, wantedCapacity * 3);
-                long size = OffHeapLongArray.get(addr, SIZE);
+                POffHeapLongArray.set(addr, CAPACITY, wantedCapacity);
+                long subHash = POffHeapLongArray.get(addr, SUBHASH);
+                subHash = POffHeapLongArray.reallocate(subHash, wantedCapacity * 3);
+                POffHeapLongArray.set(addr, SUBHASH, subHash);
+                POffHeapLongArray.reset(subHash, wantedCapacity * 3);
+                long size = POffHeapLongArray.get(addr, SIZE);
                 for (long i = 0; i < size; i++) {
                     long new_key_hash = HashHelper.longHash(key(addr, i), wantedCapacity * 2);
                     setNext(subHash, i, hash(subHash, wantedCapacity, new_key_hash));
@@ -109,8 +109,8 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
             final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
 
-                final long capacity = OffHeapLongArray.get(addr, CAPACITY);
-                final long subHash = OffHeapLongArray.get(addr, SUBHASH);
+                final long capacity = POffHeapLongArray.get(addr, CAPACITY);
+                final long subHash = POffHeapLongArray.get(addr, SUBHASH);
                 final long hashIndex = HashHelper.longHash(requestKey, capacity * 2);
 
                 int resultCapacity = 0;
@@ -156,8 +156,8 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
             final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
 
-                final long capacity = OffHeapLongArray.get(addr, CAPACITY);
-                final long subHash = OffHeapLongArray.get(addr, SUBHASH);
+                final long capacity = POffHeapLongArray.get(addr, CAPACITY);
+                final long subHash = POffHeapLongArray.get(addr, SUBHASH);
                 final long hashIndex = HashHelper.longHash(requestKey, capacity * 2);
 
                 long m = hash(subHash, capacity, hashIndex);
@@ -179,7 +179,7 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
         container.lock();
         try {
             final long addr = container.addrByIndex(index);
-            final long mapSize = OffHeapLongArray.get(addr, SIZE);
+            final long mapSize = POffHeapLongArray.get(addr, SIZE);
             for (long i = 0; i < mapSize; i++) {
                 callback.on(key(addr, i), value(addr, i));
             }
@@ -195,7 +195,7 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
         try {
             final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
-                result = OffHeapLongArray.get(addr, SIZE);
+                result = POffHeapLongArray.get(addr, SIZE);
             }
         } finally {
             container.unlock();
@@ -209,10 +209,10 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
         try {
             final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
-                long mapSize = OffHeapLongArray.get(addr, SIZE);
+                long mapSize = POffHeapLongArray.get(addr, SIZE);
                 if (mapSize != 0) {
-                    long capacity = OffHeapLongArray.get(addr, CAPACITY);
-                    long subHash = OffHeapLongArray.get(addr, SUBHASH);
+                    long capacity = POffHeapLongArray.get(addr, CAPACITY);
+                    long subHash = POffHeapLongArray.get(addr, SUBHASH);
                     long hashCapacity = capacity * 2;
                     long hashIndex = HashHelper.longHash(requestKey, hashCapacity);
                     long m = hash(subHash, capacity, hashIndex);
@@ -244,7 +244,7 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
                         if (lastIndex == found) {
                             //easy, was the last element
                             mapSize--;
-                            OffHeapLongArray.set(addr, SIZE, mapSize);
+                            POffHeapLongArray.set(addr, SIZE, mapSize);
                         } else {
                             //less cool, we have to unchain the last value of the map
                             final long lastKey = key(addr, lastIndex);
@@ -268,7 +268,7 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
                                 }
                             }
                             mapSize--;
-                            OffHeapLongArray.set(addr, SIZE, mapSize);
+                            POffHeapLongArray.set(addr, SIZE, mapSize);
                         }
                         container.declareDirty();
                     }
@@ -294,20 +294,20 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
         if (addr == OffHeapConstants.NULL_PTR) {
             //initial allocation
             final long capacity = Constants.MAP_INITIAL_CAPACITY;
-            addr = OffHeapLongArray.allocate(HEADER + capacity * 2);
+            addr = POffHeapLongArray.allocate(HEADER + capacity * 2);
             container.setAddrByIndex(index, addr);
-            final long subHash = OffHeapLongArray.allocate(capacity * 3);
-            OffHeapLongArray.set(addr, SIZE, 1);
-            OffHeapLongArray.set(addr, CAPACITY, capacity);
-            OffHeapLongArray.set(addr, SUBHASH, subHash);
+            final long subHash = POffHeapLongArray.allocate(capacity * 3);
+            POffHeapLongArray.set(addr, SIZE, 1);
+            POffHeapLongArray.set(addr, CAPACITY, capacity);
+            POffHeapLongArray.set(addr, SUBHASH, subHash);
             setKey(addr, 0, insertKey);
             setValue(addr, 0, insertValue);
             setHash(subHash, capacity, (int) HashHelper.longHash(insertKey, capacity * 2), 0);
             setNext(subHash, 0, -1);
         } else {
-            long mapSize = OffHeapLongArray.get(addr, SIZE);
-            long capacity = OffHeapLongArray.get(addr, CAPACITY);
-            long subHash = OffHeapLongArray.get(addr, SUBHASH);
+            long mapSize = POffHeapLongArray.get(addr, SIZE);
+            long capacity = POffHeapLongArray.get(addr, CAPACITY);
+            long subHash = POffHeapLongArray.get(addr, SUBHASH);
             long m = hash(subHash, capacity, HashHelper.longHash(insertKey, capacity * 2));
             long found = -1;
             while (m >= 0) {
@@ -322,14 +322,14 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
                 if (lastIndex == capacity) {
                     //extend capacity
                     capacity = capacity * 2;
-                    addr = OffHeapLongArray.reallocate(addr, HEADER + (capacity * 2));
+                    addr = POffHeapLongArray.reallocate(addr, HEADER + (capacity * 2));
                     container.setAddrByIndex(index, addr);
-                    OffHeapLongArray.set(addr, CAPACITY, capacity);
-                    subHash = OffHeapLongArray.reallocate(subHash, capacity * 3);
-                    OffHeapLongArray.reset(subHash, capacity * 3);
-                    OffHeapLongArray.set(addr, SUBHASH, subHash);
+                    POffHeapLongArray.set(addr, CAPACITY, capacity);
+                    subHash = POffHeapLongArray.reallocate(subHash, capacity * 3);
+                    POffHeapLongArray.reset(subHash, capacity * 3);
+                    POffHeapLongArray.set(addr, SUBHASH, subHash);
                     //reHash previous stored content
-                    long size = OffHeapLongArray.get(addr, SIZE);
+                    long size = POffHeapLongArray.get(addr, SIZE);
                     for (long i = 0; i < size; i++) {
                         long new_key_hash = HashHelper.longHash(key(addr, i), capacity * 2);
                         setNext(subHash, i, hash(subHash, capacity, new_key_hash));
@@ -341,7 +341,7 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
                 final long hashedKey = HashHelper.longHash(insertKey, capacity * 2);
                 setNext(subHash, lastIndex, hash(subHash, capacity, hashedKey));
                 setHash(subHash, capacity, hashedKey, lastIndex);
-                OffHeapLongArray.set(addr, SIZE, mapSize + 1);
+                POffHeapLongArray.set(addr, SIZE, mapSize + 1);
                 container.declareDirty();
             } else {
                 if (value(addr, found) != insertValue) {
@@ -354,7 +354,7 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
 
     static void save(final long addr, final Buffer buffer) {
         if (addr != OffHeapConstants.NULL_PTR) {
-            final long size = OffHeapLongArray.get(addr, SIZE);
+            final long size = POffHeapLongArray.get(addr, SIZE);
             Base64.encodeLongToBuffer(size, buffer);
             for (long i = 0; i < size; i++) {
                 buffer.write(Constants.CHUNK_VAL_SEP);
@@ -367,11 +367,11 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
 
     static void free(final long addr) {
         if (addr != OffHeapConstants.NULL_PTR) {
-            final long previousHash = OffHeapLongArray.get(addr, SUBHASH);
+            final long previousHash = POffHeapLongArray.get(addr, SUBHASH);
             if (previousHash != OffHeapConstants.NULL_PTR) {
-                OffHeapLongArray.free(previousHash);
+                POffHeapLongArray.free(previousHash);
             }
-            OffHeapLongArray.free(addr);
+            POffHeapLongArray.free(addr);
         }
     }
 
@@ -379,13 +379,13 @@ class OffHeapLongLongArrayMap implements LongLongArrayMap {
         if (addr == OffHeapConstants.NULL_PTR) {
             return OffHeapConstants.NULL_PTR;
         } else {
-            final long capacity = OffHeapLongArray.get(addr, CAPACITY);
+            final long capacity = POffHeapLongArray.get(addr, CAPACITY);
             //copy main array
-            final long new_addr = OffHeapLongArray.cloneArray(addr, HEADER + capacity * 2);
-            final long previousHash = OffHeapLongArray.get(addr, SUBHASH);
+            final long new_addr = POffHeapLongArray.cloneArray(addr, HEADER + capacity * 2);
+            final long previousHash = POffHeapLongArray.get(addr, SUBHASH);
             if (previousHash != OffHeapConstants.NULL_PTR) {
-                final long newHash = OffHeapLongArray.cloneArray(previousHash, capacity * 3);
-                OffHeapLongArray.set(new_addr, SUBHASH, newHash);
+                final long newHash = POffHeapLongArray.cloneArray(previousHash, capacity * 3);
+                POffHeapLongArray.set(new_addr, SUBHASH, newHash);
             }
             return new_addr;
         }

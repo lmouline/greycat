@@ -24,10 +24,10 @@ import greycat.chunk.StateChunk;
 import greycat.internal.CoreConstants;
 import greycat.internal.tree.KDTree;
 import greycat.internal.tree.NDTree;
-import greycat.memory.primary.OffHeapDoubleArray;
-import greycat.memory.primary.OffHeapIntArray;
-import greycat.memory.primary.OffHeapLongArray;
-import greycat.memory.primary.OffHeapString;
+import greycat.memory.primary.POffHeapDoubleArray;
+import greycat.memory.primary.POffHeapIntArray;
+import greycat.memory.primary.POffHeapLongArray;
+import greycat.memory.primary.POffHeapString;
 import greycat.plugin.NodeStateCallback;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
@@ -81,60 +81,60 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
 
     @Override
     public final long addrByIndex(long elemIndex) {
-        return OffHeapLongArray.get(space.addrByIndex(index), OFFSET + (elemIndex * ELEM_SIZE) + 2);
+        return POffHeapLongArray.get(space.addrByIndex(index), OFFSET + (elemIndex * ELEM_SIZE) + 2);
     }
 
     @Override
     public void setAddrByIndex(long elemIndex, long newAddr) {
-        OffHeapLongArray.set(space.addrByIndex(index), OFFSET + (elemIndex * ELEM_SIZE) + 2, newAddr);
+        POffHeapLongArray.set(space.addrByIndex(index), OFFSET + (elemIndex * ELEM_SIZE) + 2, newAddr);
     }
 
     private static long key(final long addr, final long index) {
-        return OffHeapLongArray.get(addr, OFFSET + (index * ELEM_SIZE));
+        return POffHeapLongArray.get(addr, OFFSET + (index * ELEM_SIZE));
     }
 
     private static void setKey(final long addr, final long index, final long insertKey) {
-        OffHeapLongArray.set(addr, OFFSET + (index * ELEM_SIZE), insertKey);
+        POffHeapLongArray.set(addr, OFFSET + (index * ELEM_SIZE), insertKey);
     }
 
     private static byte type(final long addr, final long index) {
-        return (byte) OffHeapLongArray.get(addr, OFFSET + (index * ELEM_SIZE) + 1);
+        return (byte) POffHeapLongArray.get(addr, OFFSET + (index * ELEM_SIZE) + 1);
     }
 
     private static void setType(final long addr, final long index, final byte insertType) {
-        OffHeapLongArray.set(addr, OFFSET + (index * ELEM_SIZE) + 1, insertType);
+        POffHeapLongArray.set(addr, OFFSET + (index * ELEM_SIZE) + 1, insertType);
     }
 
     private static long value(final long addr, final long index) {
-        return OffHeapLongArray.get(addr, OFFSET + (index * ELEM_SIZE) + 2);
+        return POffHeapLongArray.get(addr, OFFSET + (index * ELEM_SIZE) + 2);
     }
 
     private static void setValue(final long addr, final long index, final long insertValue) {
-        OffHeapLongArray.set(addr, OFFSET + (index * ELEM_SIZE) + 2, insertValue);
+        POffHeapLongArray.set(addr, OFFSET + (index * ELEM_SIZE) + 2, insertValue);
     }
 
     private static double doubleValue(final long addr, final long index) {
-        return OffHeapDoubleArray.get(addr, OFFSET + (index * ELEM_SIZE) + 2);
+        return POffHeapDoubleArray.get(addr, OFFSET + (index * ELEM_SIZE) + 2);
     }
 
     private static void setDoubleValue(final long addr, final long index, final double insertValue) {
-        OffHeapDoubleArray.set(addr, OFFSET + (index * ELEM_SIZE) + 2, insertValue);
+        POffHeapDoubleArray.set(addr, OFFSET + (index * ELEM_SIZE) + 2, insertValue);
     }
 
     private static long next(final long hashAddr, final long index) {
-        return OffHeapLongArray.get(hashAddr, index);
+        return POffHeapLongArray.get(hashAddr, index);
     }
 
     private static void setNext(final long hashAddr, final long index, final long insertNext) {
-        OffHeapLongArray.set(hashAddr, index, insertNext);
+        POffHeapLongArray.set(hashAddr, index, insertNext);
     }
 
     private static long hash(final long hashAddr, final long capacity, final long index) {
-        return OffHeapLongArray.get(hashAddr, capacity + index);
+        return POffHeapLongArray.get(hashAddr, capacity + index);
     }
 
     private static void setHash(final long hashAddr, final long capacity, final long index, final long insertHash) {
-        OffHeapLongArray.set(hashAddr, capacity + index, insertHash);
+        POffHeapLongArray.set(hashAddr, capacity + index, insertHash);
     }
 
     @Override
@@ -197,7 +197,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
         //  try {
         final long addr = space.addrByIndex(index);
         if (addr != OffHeapConstants.NULL_PTR) {
-            final long size = OffHeapLongArray.get(addr, SIZE);
+            final long size = POffHeapLongArray.get(addr, SIZE);
             for (int i = 0; i < size; i++) {
                 Object resolved = internal_get(addr, i);
                 if (resolved != null) {
@@ -224,13 +224,19 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                 case Type.INT:
                     return (int) rawValue;
                 case Type.STRING:
-                    return OffHeapString.asObject(rawValue);
+                    return POffHeapString.asObject(rawValue);
+                    /*
                 case Type.DOUBLE_ARRAY:
-                    return OffHeapDoubleArray.asObject(rawValue);
+                    return POffHeapDoubleArray.asObject(rawValue);
                 case Type.LONG_ARRAY:
-                    return OffHeapLongArray.asObject(rawValue);
+                    return POffHeapLongArray.asObject(rawValue);
                 case Type.INT_ARRAY:
-                    return OffHeapIntArray.asObject(rawValue);
+                    return POffHeapIntArray.asObject(rawValue);
+                    */
+
+                case Type.LONG_ARRAY:
+                    return new OffHeapLongArray(this, index);
+
                 case Type.RELATION:
                     return new OffHeapRelation(this, index);
                 case Type.DMATRIX:
@@ -261,8 +267,8 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
     }
 
     private long internal_find(final long addr, final long requestKey) {
-        final long size = OffHeapLongArray.get(addr, SIZE);
-        final long subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
+        final long size = POffHeapLongArray.get(addr, SIZE);
+        final long subhash_ptr = POffHeapLongArray.get(addr, SUBHASH);
         if (size == 0) {
             return -1;
         } else if (subhash_ptr == OffHeapConstants.NULL_PTR) {
@@ -273,7 +279,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
             }
             return -1;
         } else {
-            final long capacity = OffHeapLongArray.get(addr, CAPACITY);
+            final long capacity = POffHeapLongArray.get(addr, CAPACITY);
             long hashIndex = requestKey % (capacity * 2);
             if (hashIndex < 0) {
                 hashIndex = hashIndex * -1;
@@ -318,7 +324,17 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
 
     @Override
     public final Container setAt(final int p_elementIndex, final byte p_elemType, final Object p_unsafe_elem) {
-        if (p_elemType == Type.LONG_TO_LONG_MAP || p_elemType == Type.LONG_TO_LONG_ARRAY_MAP || p_elemType == Type.STRING_TO_INT_MAP || p_elemType == Type.RELATION || p_elemType == Type.RELATION_INDEXED || p_elemType == Type.DMATRIX || p_elemType == Type.LMATRIX) {
+        if (p_elemType == Type.LONG_TO_LONG_MAP
+                || p_elemType == Type.LONG_TO_LONG_ARRAY_MAP
+                || p_elemType == Type.STRING_TO_INT_MAP
+                || p_elemType == Type.RELATION
+                || p_elemType == Type.RELATION_INDEXED
+                || p_elemType == Type.DMATRIX
+                || p_elemType == Type.LMATRIX
+                || p_elemType == Type.LONG_ARRAY
+                || p_elemType == Type.DOUBLE_ARRAY
+                || p_elemType == Type.INT_ARRAY
+                || p_elemType == Type.STRING_ARRAY) {
             throw new RuntimeException("Bad API usage ! Set are forbidden for Maps and Relationship , please use getOrCreate instead");
         }
         lock();
@@ -397,8 +413,8 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
     @Override
     public final void declareDirty() {
         final long addr = space.addrByIndex(index);
-        if (OffHeapLongArray.get(addr, DIRTY) != 1) {
-            OffHeapLongArray.set(addr, DIRTY, 1);
+        if (POffHeapLongArray.get(addr, DIRTY) != 1) {
+            POffHeapLongArray.set(addr, DIRTY, 1);
             space.notifyUpdate(index);
         }
     }
@@ -409,7 +425,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
         try {
             final long addr = space.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
-                long size = OffHeapLongArray.get(addr, SIZE);
+                long size = POffHeapLongArray.get(addr, SIZE);
                 Base64.encodeLongToBuffer(size, buffer);
                 for (int i = 0; i < size; i++) {
                     buffer.write(Constants.CHUNK_SEP);
@@ -421,7 +437,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                     final long rawValue = value(addr, i);
                     switch (type) {
                         case Type.STRING:
-                            OffHeapString.save(rawValue, buffer);
+                            POffHeapString.save(rawValue, buffer);
                             break;
                         case Type.BOOL:
                             if (rawValue == 1) {
@@ -440,13 +456,13 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                             Base64.encodeIntToBuffer((int) rawValue, buffer);
                             break;
                         case Type.DOUBLE_ARRAY:
-                            OffHeapDoubleArray.save(rawValue, buffer);
+                            POffHeapDoubleArray.save(rawValue, buffer);
                             break;
                         case Type.LONG_ARRAY:
-                            OffHeapLongArray.save(rawValue, buffer);
+                            POffHeapLongArray.save(rawValue, buffer);
                             break;
                         case Type.INT_ARRAY:
-                            OffHeapIntArray.save(rawValue, buffer);
+                            POffHeapIntArray.save(rawValue, buffer);
                             break;
                         case Type.RELATION:
                             OffHeapRelation.save(rawValue, buffer);
@@ -520,29 +536,34 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                 if (castedAddr == OffHeapConstants.NULL_PTR) {
                     space.setAddrByIndex(index, OffHeapConstants.NULL_PTR);
                 } else {
-                    final long castedCapacity = OffHeapLongArray.get(castedAddr, CAPACITY);
-                    final long castedSize = OffHeapLongArray.get(castedAddr, SIZE);
-                    final long castedSubHash = OffHeapLongArray.get(castedAddr, SUBHASH);
-                    addr = OffHeapLongArray.cloneArray(castedAddr, OFFSET + (castedCapacity * ELEM_SIZE));
+                    final long castedCapacity = POffHeapLongArray.get(castedAddr, CAPACITY);
+                    final long castedSize = POffHeapLongArray.get(castedAddr, SIZE);
+                    final long castedSubHash = POffHeapLongArray.get(castedAddr, SUBHASH);
+                    addr = POffHeapLongArray.cloneArray(castedAddr, OFFSET + (castedCapacity * ELEM_SIZE));
                     //clone sub hash if needed
                     if (castedSubHash != OffHeapConstants.NULL_PTR) {
-                        OffHeapLongArray.set(addr, SUBHASH, OffHeapLongArray.cloneArray(castedSubHash, castedCapacity * 3));
+                        POffHeapLongArray.set(addr, SUBHASH, POffHeapLongArray.cloneArray(castedSubHash, castedCapacity * 3));
                     }
                     //clone complex structures
                     //TODO optimze with a flag to avoid this iteration
                     for (int i = 0; i < castedSize; i++) {
                         switch (type(castedAddr, i)) {
-                            case Type.DOUBLE_ARRAY:
-                                OffHeapDoubleArray.cloneObject(value(castedAddr, i));
-                                break;
                             case Type.LONG_ARRAY:
-                                OffHeapLongArray.cloneObject(value(castedAddr, i));
+                                POffHeapLongArray.cloneObject(value(castedAddr, i));
+                                break;
+                                /*
+                            case Type.DOUBLE_ARRAY:
+                                POffHeapDoubleArray.cloneObject(value(castedAddr, i));
                                 break;
                             case Type.INT_ARRAY:
-                                OffHeapIntArray.cloneObject(value(castedAddr, i));
+                                POffHeapIntArray.cloneObject(value(castedAddr, i));
                                 break;
+                            case Type.STRING_ARRAY:
+                                POffHeapStringArray.cloneObject(value(castedAddr, i));
+                                break;
+                                */
                             case Type.STRING:
-                                OffHeapString.clone(value(castedAddr, i));
+                                POffHeapString.clone(value(castedAddr, i));
                                 break;
                             case Type.RELATION:
                                 setValue(addr, i, OffHeapRelation.clone(value(castedAddr, i)));
@@ -619,17 +640,12 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                         }
                         break;
                     case Type.STRING:
-                        param_elem = OffHeapString.fromObject((String) p_unsafe_elem);
-                        break;
-                    case Type.DOUBLE_ARRAY:
-                        param_elem = OffHeapDoubleArray.fromObject((double[]) p_unsafe_elem);
+                        param_elem = POffHeapString.fromObject((String) p_unsafe_elem);
                         break;
                     case Type.LONG_ARRAY:
-                        param_elem = OffHeapLongArray.fromObject((long[]) p_unsafe_elem);
-                        break;
+                    case Type.DOUBLE_ARRAY:
                     case Type.INT_ARRAY:
-                        param_elem = OffHeapIntArray.fromObject((int[]) p_unsafe_elem);
-                        break;
+                    case Type.STRING_ARRAY:
                     case Type.RELATION:
                     case Type.DMATRIX:
                     case Type.LMATRIX:
@@ -676,9 +692,9 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
         long entry = -1;
         long prev_entry = -1;
         long hashIndex = -1;
-        long size = OffHeapLongArray.get(addr, SIZE);
-        long capacity = OffHeapLongArray.get(addr, CAPACITY);
-        long subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
+        long size = POffHeapLongArray.get(addr, SIZE);
+        long capacity = POffHeapLongArray.get(addr, CAPACITY);
+        long subhash_ptr = POffHeapLongArray.get(addr, SUBHASH);
         if (subhash_ptr == OffHeapConstants.NULL_PTR) {
             for (int i = 0; i < size; i++) {
                 if (key(addr, i) == p_key) {
@@ -761,7 +777,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                         setValue(addr, indexVictim, OffHeapConstants.NULL_PTR);
                         setType(addr, indexVictim, (byte) OffHeapConstants.NULL_PTR);
                     }
-                    OffHeapLongArray.set(addr, SIZE, size - 1);
+                    POffHeapLongArray.set(addr, SIZE, size - 1);
                 } else {
                     final long previous_value = value(addr, entry);
                     //freeThePreviousValue
@@ -784,7 +800,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
         if (size >= capacity) {
             long newCapacity = capacity * 2;
             addr = allocate(addr, newCapacity);
-            subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
+            subhash_ptr = POffHeapLongArray.get(addr, SUBHASH);
             capacity = newCapacity;
             hashIndex = p_key % (capacity * 2);
             if (hashIndex < 0) {
@@ -804,7 +820,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
             setHash(subhash_ptr, capacity, hashIndex, insert_index);
         }
         size++;
-        OffHeapLongArray.set(addr, SIZE, size);
+        POffHeapLongArray.set(addr, SIZE, size);
         if (!initial) {
             declareDirty();
         }
@@ -814,32 +830,32 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
     private long allocate(final long addr, final long newCapacity) {
         if (addr == OffHeapConstants.NULL_PTR) {
             //nothing before, initial allocation...
-            final long new_addr = OffHeapLongArray.allocate(OFFSET + (newCapacity * ELEM_SIZE));
+            final long new_addr = POffHeapLongArray.allocate(OFFSET + (newCapacity * ELEM_SIZE));
             space.setAddrByIndex(index, new_addr);
-            OffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
-            OffHeapLongArray.set(new_addr, DIRTY, 0);
-            OffHeapLongArray.set(new_addr, SIZE, 0);
+            POffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
+            POffHeapLongArray.set(new_addr, DIRTY, 0);
+            POffHeapLongArray.set(new_addr, SIZE, 0);
             if (newCapacity > Constants.MAP_INITIAL_CAPACITY) {
-                OffHeapLongArray.set(new_addr, SUBHASH, OffHeapLongArray.allocate(newCapacity * 3));
+                POffHeapLongArray.set(new_addr, SUBHASH, POffHeapLongArray.allocate(newCapacity * 3));
             } else {
-                OffHeapLongArray.set(new_addr, SUBHASH, OffHeapConstants.NULL_PTR);
+                POffHeapLongArray.set(new_addr, SUBHASH, OffHeapConstants.NULL_PTR);
             }
             return new_addr;
         } else {
             //reallocation or overallocation
-            final long new_addr = OffHeapLongArray.reallocate(addr, OFFSET + (newCapacity * ELEM_SIZE));
+            final long new_addr = POffHeapLongArray.reallocate(addr, OFFSET + (newCapacity * ELEM_SIZE));
             space.setAddrByIndex(index, new_addr);
-            OffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
-            long subHash_ptr = OffHeapLongArray.get(new_addr, SUBHASH);
+            POffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
+            long subHash_ptr = POffHeapLongArray.get(new_addr, SUBHASH);
             if (subHash_ptr == OffHeapConstants.NULL_PTR) {
-                subHash_ptr = OffHeapLongArray.allocate(newCapacity * 3);
+                subHash_ptr = POffHeapLongArray.allocate(newCapacity * 3);
             } else {
-                subHash_ptr = OffHeapLongArray.reallocate(subHash_ptr, newCapacity * 3);
-                OffHeapLongArray.reset(subHash_ptr, newCapacity * 3);
+                subHash_ptr = POffHeapLongArray.reallocate(subHash_ptr, newCapacity * 3);
+                POffHeapLongArray.reset(subHash_ptr, newCapacity * 3);
             }
-            OffHeapLongArray.set(new_addr, SUBHASH, subHash_ptr);
+            POffHeapLongArray.set(new_addr, SUBHASH, subHash_ptr);
             //reHash
-            final long size = OffHeapLongArray.get(new_addr, SIZE);
+            final long size = POffHeapLongArray.get(new_addr, SIZE);
             final long hash_capacity = newCapacity * 2;
             for (long i = 0; i < size; i++) {
                 long keyHash = key(new_addr, i) % hash_capacity;
@@ -867,7 +883,7 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                 final boolean initial = (addr == OffHeapConstants.NULL_PTR);
                 long capacity = 0;
                 if (addr != OffHeapConstants.NULL_PTR) {
-                    capacity = OffHeapLongArray.get(addr, CAPACITY);
+                    capacity = POffHeapLongArray.get(addr, CAPACITY);
                 }
                 final long payloadSize = buffer.length();
                 long previous = 0;
@@ -1161,25 +1177,25 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
 
     static void free(final long addr, final OffHeapChunkSpace space) {
         if (addr != OffHeapConstants.NULL_PTR) {
-            final long subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
-            final long size = OffHeapLongArray.get(addr, SIZE);
+            final long subhash_ptr = POffHeapLongArray.get(addr, SUBHASH);
+            final long size = POffHeapLongArray.get(addr, SIZE);
             for (long i = 0; i < size; i++) {
                 freeElement(value(addr, i), type(addr, i), space);
             }
             if (subhash_ptr != OffHeapConstants.NULL_PTR) {
-                OffHeapLongArray.free(subhash_ptr);
+                POffHeapLongArray.free(subhash_ptr);
             }
-            OffHeapLongArray.free(addr);
+            POffHeapLongArray.free(addr);
         }
     }
 
     private static void freeElement(final long addr, final byte elemType, final OffHeapChunkSpace space) {
         switch (elemType) {
             case Type.STRING:
-                OffHeapString.free(addr);
+                POffHeapString.free(addr);
                 break;
             case Type.DOUBLE_ARRAY:
-                OffHeapDoubleArray.freeObject(addr);
+                POffHeapDoubleArray.freeObject(addr);
                 break;
             case Type.RELATION:
                 OffHeapRelation.free(addr);
@@ -1191,10 +1207,10 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                 OffHeapLMatrix.free(addr);
                 break;
             case Type.LONG_ARRAY:
-                OffHeapLongArray.freeObject(addr);
+                POffHeapLongArray.freeObject(addr);
                 break;
             case Type.INT_ARRAY:
-                OffHeapIntArray.freeObject(addr);
+                POffHeapIntArray.freeObject(addr);
                 break;
             case Type.STRING_TO_INT_MAP:
                 OffHeapStringIntMap.free(addr);

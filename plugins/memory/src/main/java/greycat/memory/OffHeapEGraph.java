@@ -17,7 +17,7 @@ package greycat.memory;
 
 import greycat.Constants;
 import greycat.Graph;
-import greycat.memory.primary.OffHeapLongArray;
+import greycat.memory.primary.POffHeapLongArray;
 import greycat.struct.Buffer;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
@@ -39,21 +39,21 @@ public class OffHeapEGraph implements EGraph {
         _graph = p_graph;
         long originAddr = p_container.addrByIndex(p_index);
         if (originAddr == OffHeapConstants.NULL_PTR) {
-            long newAddr = OffHeapLongArray.allocate(OFFSET);
-            OffHeapLongArray.set(newAddr, DIRTY, 0);
-            OffHeapLongArray.set(newAddr, NODES_INDEX, 0);
-            OffHeapLongArray.set(newAddr, NODES_CAPACITY, 0);
+            long newAddr = POffHeapLongArray.allocate(OFFSET);
+            POffHeapLongArray.set(newAddr, DIRTY, 0);
+            POffHeapLongArray.set(newAddr, NODES_INDEX, 0);
+            POffHeapLongArray.set(newAddr, NODES_CAPACITY, 0);
             parent.setAddrByIndex(index, newAddr);
             parent.declareDirty();
         }
 
         /*
         if (originAddr != OffHeapConstants.NULL_PTR) {
-            long nodesCapacity = OffHeapLongArray.get(originAddr, NODES_CAPACITY);
-            long nodesIndex = OffHeapLongArray.get(originAddr, NODES_INDEX);
-            long newAddr = OffHeapLongArray.allocate(OFFSET + nodesCapacity);
-            OffHeapLongArray.set(newAddr, NODES_INDEX, nodesIndex);
-            OffHeapLongArray.set(newAddr, NODES_CAPACITY, nodesCapacity);
+            long nodesCapacity = POffHeapLongArray.get(originAddr, NODES_CAPACITY);
+            long nodesIndex = POffHeapLongArray.get(originAddr, NODES_INDEX);
+            long newAddr = POffHeapLongArray.allocate(OFFSET + nodesCapacity);
+            POffHeapLongArray.set(newAddr, NODES_INDEX, nodesIndex);
+            POffHeapLongArray.set(newAddr, NODES_CAPACITY, nodesCapacity);
             //pass #1: copy nodes
             for (int i = 0; i < nodesIndex; i++) {
                 OffHeapENode eNode = new OffHeapENode(this, _graph, i, nodeAddrAt(originAddr, i));
@@ -66,10 +66,10 @@ public class OffHeapEGraph implements EGraph {
             parent.setAddrByIndex(index, newAddr);
             parent.declareDirty();
         } else {
-            long newAddr = OffHeapLongArray.allocate(OFFSET);
-            OffHeapLongArray.set(newAddr, DIRTY, 0);
-            OffHeapLongArray.set(newAddr, NODES_INDEX, 0);
-            OffHeapLongArray.set(newAddr, NODES_CAPACITY, 0);
+            long newAddr = POffHeapLongArray.allocate(OFFSET);
+            POffHeapLongArray.set(newAddr, DIRTY, 0);
+            POffHeapLongArray.set(newAddr, NODES_INDEX, 0);
+            POffHeapLongArray.set(newAddr, NODES_CAPACITY, 0);
             parent.setAddrByIndex(index, newAddr);
             parent.declareDirty();
         }*/
@@ -102,19 +102,19 @@ public class OffHeapEGraph implements EGraph {
     final void allocate(int newCapacity) {
         long addr = parent.addrByIndex(index);
         final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(newCapacity) / Math.log(2)));
-        long nodesCapacity = OffHeapLongArray.get(addr, NODES_CAPACITY);
+        long nodesCapacity = POffHeapLongArray.get(addr, NODES_CAPACITY);
         if (closePowerOfTwo > nodesCapacity) {
-            long newAddr = OffHeapLongArray.reallocate(addr, OFFSET + closePowerOfTwo);
-            OffHeapLongArray.fillByte(newAddr, OFFSET + nodesCapacity, OFFSET + closePowerOfTwo, (byte) OffHeapConstants.NULL_PTR);
+            long newAddr = POffHeapLongArray.reallocate(addr, OFFSET + closePowerOfTwo);
+            POffHeapLongArray.fillByte(newAddr, OFFSET + nodesCapacity, OFFSET + closePowerOfTwo, (byte) OffHeapConstants.NULL_PTR);
             parent.setAddrByIndex(index, newAddr);
-            OffHeapLongArray.set(newAddr, NODES_CAPACITY, closePowerOfTwo);
+            POffHeapLongArray.set(newAddr, NODES_CAPACITY, closePowerOfTwo);
         }
     }
 
     @Override
     public final ENode root() {
         long addr = parent.addrByIndex(index);
-        if (OffHeapLongArray.get(addr, NODES_INDEX) > 0) {
+        if (POffHeapLongArray.get(addr, NODES_INDEX) > 0) {
             return new OffHeapENode(0, this, _graph);
         }
         return null;
@@ -123,21 +123,21 @@ public class OffHeapEGraph implements EGraph {
     @Override
     public final ENode newNode() {
         long addr = parent.addrByIndex(index);
-        long nodesIndex = OffHeapLongArray.get(addr, NODES_INDEX);
-        long nodesCapacity = OffHeapLongArray.get(addr, NODES_CAPACITY);
+        long nodesIndex = POffHeapLongArray.get(addr, NODES_INDEX);
+        long nodesCapacity = POffHeapLongArray.get(addr, NODES_CAPACITY);
         if (nodesIndex == nodesCapacity) {
             long newCapacity = nodesCapacity * 2;
             if (newCapacity == 0) {
                 newCapacity = Constants.MAP_INITIAL_CAPACITY;
             }
             // reallocate
-            addr = OffHeapLongArray.reallocate(addr, OFFSET + newCapacity);
-            OffHeapLongArray.fillByte(addr, OFFSET + nodesCapacity, OFFSET + newCapacity, (byte) OffHeapConstants.NULL_PTR);
+            addr = POffHeapLongArray.reallocate(addr, OFFSET + newCapacity);
+            POffHeapLongArray.fillByte(addr, OFFSET + nodesCapacity, OFFSET + newCapacity, (byte) OffHeapConstants.NULL_PTR);
             parent.setAddrByIndex(index, addr);
-            OffHeapLongArray.set(addr, NODES_CAPACITY, newCapacity);
+            POffHeapLongArray.set(addr, NODES_CAPACITY, newCapacity);
         }
         OffHeapENode newNode = new OffHeapENode(nodesIndex, this, _graph);
-        OffHeapLongArray.set(addr, NODES_INDEX, nodesIndex + 1);
+        POffHeapLongArray.set(addr, NODES_INDEX, nodesIndex + 1);
         return newNode;
     }
 
@@ -183,16 +183,16 @@ public class OffHeapEGraph implements EGraph {
         long addr = parent.addrByIndex(index);
         OffHeapENode casted = (OffHeapENode) eNode;
         long previousId = OffHeapENode.getId(casted.getAddr());
-        long nodesIndex = OffHeapLongArray.get(addr, NODES_INDEX);
+        long nodesIndex = POffHeapLongArray.get(addr, NODES_INDEX);
         if (previousId == nodesIndex - 1) {
             //free
             OffHeapENode.free(casted.getAddr());
             setNodeAddrAt(addr, previousId, OffHeapConstants.NULL_PTR);
-            OffHeapLongArray.set(addr, NODES_INDEX, nodesIndex - 1);
+            POffHeapLongArray.set(addr, NODES_INDEX, nodesIndex - 1);
         } else {
             setNodeAddrAt(addr, previousId, nodeAddrAt(addr, nodesIndex - 1));
             OffHeapENode.setId(nodeAddrAt(addr, previousId), previousId);
-            OffHeapLongArray.set(addr, NODES_INDEX, nodesIndex - 1);
+            POffHeapLongArray.set(addr, NODES_INDEX, nodesIndex - 1);
         }
         return this;
         */
@@ -203,7 +203,7 @@ public class OffHeapEGraph implements EGraph {
     @Override
     public final int size() {
         long addr = parent.addrByIndex(index);
-        return (int) OffHeapLongArray.get(addr, NODES_INDEX);
+        return (int) POffHeapLongArray.get(addr, NODES_INDEX);
     }
 
     @Override
@@ -216,11 +216,11 @@ public class OffHeapEGraph implements EGraph {
 
     static void freeByAddr(long addr) {
         if (addr != OffHeapConstants.NULL_PTR) {
-            long nodesIndex = OffHeapLongArray.get(addr, NODES_INDEX);
+            long nodesIndex = POffHeapLongArray.get(addr, NODES_INDEX);
             for (long i = 0; i < nodesIndex; i++) {
-                OffHeapENode.free(OffHeapLongArray.get(addr, OFFSET + i));
+                OffHeapENode.free(POffHeapLongArray.get(addr, OFFSET + i));
             }
-            OffHeapLongArray.free(addr);
+            POffHeapLongArray.free(addr);
         }
     }
 
@@ -231,16 +231,16 @@ public class OffHeapEGraph implements EGraph {
 
     final void declareDirty() {
         long addr = parent.addrByIndex(index);
-        long dirty = OffHeapLongArray.get(addr, DIRTY);
+        long dirty = POffHeapLongArray.get(addr, DIRTY);
         if (dirty == 0) {
-            OffHeapLongArray.set(addr, DIRTY, 1);
+            POffHeapLongArray.set(addr, DIRTY, 1);
             parent.declareDirty();
         }
     }
 
     final void declareUnDirty() {
         long addr = parent.addrByIndex(index);
-        OffHeapLongArray.set(addr, DIRTY, 0);
+        POffHeapLongArray.set(addr, DIRTY, 0);
     }
 
     @Override
@@ -248,13 +248,13 @@ public class OffHeapEGraph implements EGraph {
         long addr = parent.addrByIndex(index);
         final StringBuilder builder = new StringBuilder();
         builder.append("{\"nodes\":[");
-        long nodesIndex = OffHeapLongArray.get(addr, NODES_INDEX);
+        long nodesIndex = POffHeapLongArray.get(addr, NODES_INDEX);
         for (int i = 0; i < nodesIndex; i++) {
             if (i != 0) {
                 builder.append(",");
             }
             //TODO optimize
-            OffHeapENode enode = new OffHeapENode(OffHeapLongArray.get(addr, i + OFFSET), this, _graph);
+            OffHeapENode enode = new OffHeapENode(POffHeapLongArray.get(addr, i + OFFSET), this, _graph);
             builder.append(enode.toString());
         }
         builder.append("]}");
@@ -263,14 +263,14 @@ public class OffHeapEGraph implements EGraph {
 
     final OffHeapENode nodeByIndex(final long nodeIndex, final boolean createIfAbsent) {
         final long addr = parent.addrByIndex(index);
-        final long nodesCapacity = OffHeapLongArray.get(addr, NODES_CAPACITY);
-        final long nodesIndex = OffHeapLongArray.get(addr, NODES_INDEX);
+        final long nodesCapacity = POffHeapLongArray.get(addr, NODES_CAPACITY);
+        final long nodesIndex = POffHeapLongArray.get(addr, NODES_INDEX);
         if (nodeIndex < nodesCapacity) {
             if (nodeIndex >= nodesIndex) {
-                OffHeapLongArray.set(addr, NODES_INDEX, nodeIndex + 1);
+                POffHeapLongArray.set(addr, NODES_INDEX, nodeIndex + 1);
             }
             OffHeapENode elem = null;
-            long elemAddr = OffHeapLongArray.get(addr, nodeIndex + OFFSET);
+            long elemAddr = POffHeapLongArray.get(addr, nodeIndex + OFFSET);
             if (elemAddr != OffHeapConstants.NULL_PTR) {
                 elem = new OffHeapENode(nodeIndex, this, _graph);
             }
@@ -287,16 +287,16 @@ public class OffHeapEGraph implements EGraph {
         if (originAddr == OffHeapConstants.NULL_PTR) {
             return OffHeapConstants.NULL_PTR;
         }
-        long nodesCapacity = OffHeapLongArray.get(originAddr, NODES_CAPACITY);
-        long nodesIndex = OffHeapLongArray.get(originAddr, NODES_INDEX);
-        long newAddr = OffHeapLongArray.allocate(OFFSET + nodesCapacity);
-        OffHeapLongArray.set(newAddr, NODES_INDEX, nodesIndex);
-        OffHeapLongArray.set(newAddr, NODES_CAPACITY, nodesCapacity);
+        long nodesCapacity = POffHeapLongArray.get(originAddr, NODES_CAPACITY);
+        long nodesIndex = POffHeapLongArray.get(originAddr, NODES_INDEX);
+        long newAddr = POffHeapLongArray.allocate(OFFSET + nodesCapacity);
+        POffHeapLongArray.set(newAddr, NODES_INDEX, nodesIndex);
+        POffHeapLongArray.set(newAddr, NODES_CAPACITY, nodesCapacity);
         //pass #1: copy nodes
         for (int i = 0; i < nodesIndex; i++) {
-            long previousNodeAddr = OffHeapLongArray.get(originAddr, i + OFFSET);
+            long previousNodeAddr = POffHeapLongArray.get(originAddr, i + OFFSET);
             long clonedNodeAddr = OffHeapENode.cloneENode(previousNodeAddr);
-            OffHeapLongArray.set(newAddr, i + OFFSET, clonedNodeAddr);
+            POffHeapLongArray.set(newAddr, i + OFFSET, clonedNodeAddr);
         }
         return newAddr;
     }
@@ -306,11 +306,11 @@ public class OffHeapEGraph implements EGraph {
 //    }
 
     public long addrByIndex(long elemIndex) {
-        return OffHeapLongArray.get(parent.addrByIndex(index), elemIndex + OFFSET);
+        return POffHeapLongArray.get(parent.addrByIndex(index), elemIndex + OFFSET);
     }
 
     public void setAddrByIndex(long elemIndex, long newAddr) {
-        OffHeapLongArray.set(parent.addrByIndex(index), elemIndex + OFFSET, newAddr);
+        POffHeapLongArray.set(parent.addrByIndex(index), elemIndex + OFFSET, newAddr);
     }
 
 }

@@ -18,7 +18,7 @@ package greycat.memory;
 import greycat.Constants;
 import greycat.chunk.ChunkType;
 import greycat.chunk.GenChunk;
-import greycat.memory.primary.OffHeapLongArray;
+import greycat.memory.primary.POffHeapLongArray;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
 
@@ -43,10 +43,10 @@ final class OffHeapGenChunk implements GenChunk {
         try {
             long temp_addr = space.addrByIndex(index);
             if (temp_addr == OffHeapConstants.NULL_PTR) {
-                temp_addr = OffHeapLongArray.allocate(CHUNK_SIZE);
+                temp_addr = POffHeapLongArray.allocate(CHUNK_SIZE);
                 space.setAddrByIndex(index, temp_addr);
-                OffHeapLongArray.set(temp_addr, SEED, -1);
-                OffHeapLongArray.set(temp_addr, DIRTY, 0);
+                POffHeapLongArray.set(temp_addr, SEED, -1);
+                POffHeapLongArray.set(temp_addr, DIRTY, 0);
             }
             addr = temp_addr;
         } finally {
@@ -56,7 +56,7 @@ final class OffHeapGenChunk implements GenChunk {
 
     static void free(final long addr) {
         if (addr != OffHeapConstants.NULL_PTR) {
-            OffHeapLongArray.free(addr);
+            POffHeapLongArray.free(addr);
         }
     }
 
@@ -64,8 +64,8 @@ final class OffHeapGenChunk implements GenChunk {
     public final void save(final Buffer buffer) {
         space.lockByIndex(index);
         try {
-            Base64.encodeLongToBuffer(OffHeapLongArray.get(addr, SEED), buffer);
-            OffHeapLongArray.set(addr, DIRTY, 0);
+            Base64.encodeLongToBuffer(POffHeapLongArray.get(addr, SEED), buffer);
+            POffHeapLongArray.set(addr, DIRTY, 0);
         } finally {
             space.unlockByIndex(index);
         }
@@ -84,11 +84,11 @@ final class OffHeapGenChunk implements GenChunk {
                 return;
             }
             long loaded = Base64.decodeToLongWithBounds(buffer, 0, buffer.length());
-            long previousSeed = OffHeapLongArray.get(addr, SEED);
-            OffHeapLongArray.set(addr, SEED, loaded);
+            long previousSeed = POffHeapLongArray.get(addr, SEED);
+            POffHeapLongArray.set(addr, SEED, loaded);
             if (previousSeed != -1 && previousSeed != loaded) {
-                if (OffHeapLongArray.get(addr, DIRTY) != 1) {
-                    OffHeapLongArray.set(addr, DIRTY, 1);
+                if (POffHeapLongArray.get(addr, DIRTY) != 1) {
+                    POffHeapLongArray.set(addr, DIRTY, 1);
                     space.notifyUpdate(index);
                 }
             }
@@ -106,7 +106,7 @@ final class OffHeapGenChunk implements GenChunk {
     public final long newKey() {
         space.lockByIndex(index);
         try {
-            long seed = OffHeapLongArray.get(addr, SEED);
+            long seed = POffHeapLongArray.get(addr, SEED);
             if (seed == Constants.KEY_PREFIX_MASK) {
                 throw new IndexOutOfBoundsException("Object Index could not be created because it exceeded the capacity of the current prefix. Ask for a new prefix.");
             }
@@ -114,7 +114,7 @@ final class OffHeapGenChunk implements GenChunk {
                 seed = 0;
             }
             seed++;
-            OffHeapLongArray.set(addr, SEED, seed);
+            POffHeapLongArray.set(addr, SEED, seed);
             long objectKey = prefix + seed;
             space.notifyUpdate(index);
             if (objectKey >= Constants.END_OF_TIME) {

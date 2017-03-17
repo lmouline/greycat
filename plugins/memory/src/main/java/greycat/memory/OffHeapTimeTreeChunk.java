@@ -20,7 +20,7 @@ import greycat.chunk.ChunkType;
 import greycat.chunk.TimeTreeChunk;
 import greycat.chunk.TreeWalker;
 import greycat.internal.CoreConstants;
-import greycat.memory.primary.OffHeapLongArray;
+import greycat.memory.primary.POffHeapLongArray;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
 
@@ -48,16 +48,16 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             long temp_addr = space.addrByIndex(index);
             if (temp_addr == OffHeapConstants.NULL_PTR) {
                 long initialCapacity = Constants.MAP_INITIAL_CAPACITY;
-                temp_addr = OffHeapLongArray.allocate(OFFSET + (initialCapacity * ELEM_SIZE));
+                temp_addr = POffHeapLongArray.allocate(OFFSET + (initialCapacity * ELEM_SIZE));
                 space.setAddrByIndex(index, temp_addr);
                 //init the initial values
-                OffHeapLongArray.set(temp_addr, MAGIC, 0);
-                OffHeapLongArray.set(temp_addr, CAPACITY, initialCapacity);
-                OffHeapLongArray.set(temp_addr, SIZE, 0);
-                OffHeapLongArray.set(temp_addr, DIRTY, 0);
-                OffHeapLongArray.set(temp_addr, HEAD, -1);
-                OffHeapLongArray.set(temp_addr, EXTRA, 0);
-                OffHeapLongArray.set(temp_addr, EXTRA2, 0);
+                POffHeapLongArray.set(temp_addr, MAGIC, 0);
+                POffHeapLongArray.set(temp_addr, CAPACITY, initialCapacity);
+                POffHeapLongArray.set(temp_addr, SIZE, 0);
+                POffHeapLongArray.set(temp_addr, DIRTY, 0);
+                POffHeapLongArray.set(temp_addr, HEAD, -1);
+                POffHeapLongArray.set(temp_addr, EXTRA, 0);
+                POffHeapLongArray.set(temp_addr, EXTRA2, 0);
             }
         } finally {
             space.unlockByIndex(index);
@@ -66,7 +66,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
 
     public static void free(final long addr) {
         if (addr != OffHeapConstants.NULL_PTR) {
-            OffHeapLongArray.free(addr);
+            POffHeapLongArray.free(addr);
         }
     }
 
@@ -90,7 +90,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         long result;
         space.lockByIndex(index);
         try {
-            result = OffHeapLongArray.get(space.addrByIndex(index), SIZE);
+            result = POffHeapLongArray.get(space.addrByIndex(index), SIZE);
         } finally {
             space.unlockByIndex(index);
         }
@@ -102,7 +102,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         long result;
         space.lockByIndex(index);
         try {
-            result = OffHeapLongArray.get(space.addrByIndex(index), EXTRA);
+            result = POffHeapLongArray.get(space.addrByIndex(index), EXTRA);
         } finally {
             space.unlockByIndex(index);
         }
@@ -113,7 +113,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     public void setExtra(long extraValue) {
         space.lockByIndex(index);
         try {
-            OffHeapLongArray.set(space.addrByIndex(index), EXTRA, extraValue);
+            POffHeapLongArray.set(space.addrByIndex(index), EXTRA, extraValue);
         } finally {
             space.unlockByIndex(index);
         }
@@ -124,7 +124,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         long result;
         space.lockByIndex(index);
         try {
-            result = OffHeapLongArray.get(space.addrByIndex(index), EXTRA2);
+            result = POffHeapLongArray.get(space.addrByIndex(index), EXTRA2);
         } finally {
             space.unlockByIndex(index);
         }
@@ -135,7 +135,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     public void setExtra2(long extraValue) {
         space.lockByIndex(index);
         try {
-            OffHeapLongArray.set(space.addrByIndex(index), EXTRA2, extraValue);
+            POffHeapLongArray.set(space.addrByIndex(index), EXTRA2, extraValue);
         } finally {
             space.unlockByIndex(index);
         }
@@ -151,7 +151,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         long result;
         space.lockByIndex(index);
         try {
-            result = OffHeapLongArray.get(space.addrByIndex(index), MAGIC);
+            result = POffHeapLongArray.get(space.addrByIndex(index), MAGIC);
         } finally {
             space.unlockByIndex(index);
         }
@@ -180,9 +180,9 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         space.lockByIndex(index);
         try {
             final long addr = space.addrByIndex(index);
-            final int size = (int) OffHeapLongArray.get(addr, SIZE);
-            final long extra = OffHeapLongArray.get(addr, EXTRA);
-            final long extra2 = OffHeapLongArray.get(addr, EXTRA2);
+            final int size = (int) POffHeapLongArray.get(addr, SIZE);
+            final long extra = POffHeapLongArray.get(addr, EXTRA);
+            final long extra2 = POffHeapLongArray.get(addr, EXTRA2);
             if (extra != CoreConstants.NULL_LONG && extra != 0) {
                 Base64.encodeLongToBuffer(extra, buffer);
                 buffer.write(CoreConstants.CHUNK_SEP);
@@ -196,7 +196,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                 buffer.write(Constants.CHUNK_VAL_SEP);
                 Base64.encodeLongToBuffer(key(addr, i), buffer);
             }
-            OffHeapLongArray.set(addr, DIRTY, 0);
+            POffHeapLongArray.set(addr, DIRTY, 0);
         } finally {
             space.unlockByIndex(index);
         }
@@ -207,11 +207,11 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         space.lockByIndex(index);
         try {
             final long addr = space.addrByIndex(index);
-            final boolean dirty = OffHeapLongArray.get(addr, DIRTY) == 1;
+            final boolean dirty = POffHeapLongArray.get(addr, DIRTY) == 1;
             if (dirty) {
-                final int size = (int) OffHeapLongArray.get(addr, SIZE);
-                final long extra = OffHeapLongArray.get(addr, EXTRA);
-                final long extra2 = OffHeapLongArray.get(addr, EXTRA2);
+                final int size = (int) POffHeapLongArray.get(addr, SIZE);
+                final long extra = POffHeapLongArray.get(addr, EXTRA);
+                final long extra2 = POffHeapLongArray.get(addr, EXTRA2);
                 if (extra != CoreConstants.NULL_LONG && extra != 0) {
                     Base64.encodeLongToBuffer(extra, buffer);
                     buffer.write(CoreConstants.CHUNK_SEP);
@@ -225,7 +225,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                     buffer.write(Constants.CHUNK_VAL_SEP);
                     Base64.encodeLongToBuffer(key(addr, i), buffer);
                 }
-                OffHeapLongArray.set(addr, DIRTY, 0);
+                POffHeapLongArray.set(addr, DIRTY, 0);
             }
         } finally {
             space.unlockByIndex(index);
@@ -258,11 +258,11 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             switch (current) {
                 case Constants.CHUNK_SEP:
                     if (isFirstExtra) {
-                        OffHeapLongArray.set(addr, EXTRA, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                        POffHeapLongArray.set(addr, EXTRA, Base64.decodeToLongWithBounds(buffer, previous, cursor));
                         previous = cursor + 1;
                         isFirstExtra = false;
                     } else {
-                        OffHeapLongArray.set(addr, EXTRA2, Base64.decodeToLongWithBounds(buffer, previous, cursor));
+                        POffHeapLongArray.set(addr, EXTRA2, Base64.decodeToLongWithBounds(buffer, previous, cursor));
                         previous = cursor + 1;
                     }
                     break;
@@ -270,7 +270,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                     if (isFirst) {
                         final int treeSize = Base64.decodeToIntWithBounds(buffer, previous, cursor);
                         final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
-                        addr = reallocate(addr, (int) OffHeapLongArray.get(addr, CAPACITY), closePowerOfTwo);
+                        addr = reallocate(addr, (int) POffHeapLongArray.get(addr, CAPACITY), closePowerOfTwo);
                         previous = cursor + 1;
                         isFirst = false;
                     } else {
@@ -297,8 +297,8 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         try {
             long addr = space.addrByIndex(index);
             boolean isDirty = internal_load(addr, buffer);
-            if (isDirty && OffHeapLongArray.get(addr, DIRTY) != 1) {
-                OffHeapLongArray.set(addr, DIRTY, 1);
+            if (isDirty && POffHeapLongArray.get(addr, DIRTY) != 1) {
+                POffHeapLongArray.set(addr, DIRTY, 1);
                 space.notifyUpdate(index);
             }
         } finally {
@@ -390,16 +390,16 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         space.lockByIndex(index);
         try {
             final long previous_addr = space.addrByIndex(index);
-            final long previousCapacity = OffHeapLongArray.get(previous_addr, CAPACITY);
-            final long previousSize = OffHeapLongArray.get(previous_addr, SIZE);
+            final long previousCapacity = POffHeapLongArray.get(previous_addr, CAPACITY);
+            final long previousSize = POffHeapLongArray.get(previous_addr, SIZE);
 
             //alocate the new segment
-            long new_addr = OffHeapLongArray.allocate(OFFSET + (previousCapacity * ELEM_SIZE));
-            OffHeapLongArray.set(new_addr, MAGIC, OffHeapLongArray.get(previous_addr, MAGIC) + 1);
-            OffHeapLongArray.set(new_addr, CAPACITY, previousCapacity);
-            OffHeapLongArray.set(new_addr, SIZE, 0);
-            OffHeapLongArray.set(new_addr, DIRTY, 0);
-            OffHeapLongArray.set(new_addr, HEAD, -1);
+            long new_addr = POffHeapLongArray.allocate(OFFSET + (previousCapacity * ELEM_SIZE));
+            POffHeapLongArray.set(new_addr, MAGIC, POffHeapLongArray.get(previous_addr, MAGIC) + 1);
+            POffHeapLongArray.set(new_addr, CAPACITY, previousCapacity);
+            POffHeapLongArray.set(new_addr, SIZE, 0);
+            POffHeapLongArray.set(new_addr, DIRTY, 0);
+            POffHeapLongArray.set(new_addr, HEAD, -1);
 
             for (long i = 0; i < previousSize; i++) {
                 long currentVal = key(previous_addr, i);
@@ -408,7 +408,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                 }
             }
             space.setAddrByIndex(index, new_addr);
-            OffHeapLongArray.free(previous_addr);
+            POffHeapLongArray.free(previous_addr);
             internal_set_dirty(new_addr);
         } finally {
             space.unlockByIndex(index);
@@ -417,8 +417,8 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
 
     private long reallocate(final long addr, final int previousCapacity, final int newCapacity) {
         if (previousCapacity < newCapacity) {
-            final long new_addr = OffHeapLongArray.reallocate(addr, OFFSET + (newCapacity * ELEM_SIZE));
-            OffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
+            final long new_addr = POffHeapLongArray.reallocate(addr, OFFSET + (newCapacity * ELEM_SIZE));
+            POffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
             space.setAddrByIndex(index, new_addr);
             return new_addr;
         } else {
@@ -430,11 +430,11 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         if (index == -1) {
             return -1;
         }
-        return OffHeapLongArray.get(addr, OFFSET + (index * 5));
+        return POffHeapLongArray.get(addr, OFFSET + (index * 5));
     }
 
     private static void setKey(final long addr, final long index, final long insertKey, final boolean initial) {
-        OffHeapLongArray.set(addr, OFFSET + (index * 5), insertKey);
+        POffHeapLongArray.set(addr, OFFSET + (index * 5), insertKey);
         if (initial) {
             setDiff(addr, index, false);
         } else {
@@ -451,12 +451,12 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
         if (index == -1) {
             return true;
         }
-        long previous = OffHeapLongArray.get(addr, OFFSET + (index * 5) + 1);
+        long previous = POffHeapLongArray.get(addr, OFFSET + (index * 5) + 1);
         return previous == TRUE_DIFF || previous == FALSE_DIFF;
     }
 
     private static void setDiff(final long addr, final long index, boolean insertDiff) {
-        final long previous = OffHeapLongArray.get(addr, OFFSET + (index * 5) + 1);
+        final long previous = POffHeapLongArray.get(addr, OFFSET + (index * 5) + 1);
         final long next;
         if (previous == TRUE_CLEAN || previous == TRUE_DIFF) {
             if (insertDiff) {
@@ -471,19 +471,19 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                 next = FALSE_CLEAN;
             }
         }
-        OffHeapLongArray.set(addr, OFFSET + (index * 5) + 1, next);
+        POffHeapLongArray.set(addr, OFFSET + (index * 5) + 1, next);
     }
 
     private static boolean color(final long addr, final long index) {
         if (index == -1) {
             return true;
         }
-        final long previous = OffHeapLongArray.get(addr, OFFSET + (index * 5) + 1);
+        final long previous = POffHeapLongArray.get(addr, OFFSET + (index * 5) + 1);
         return previous == TRUE_CLEAN || previous == TRUE_DIFF;
     }
 
     private static void setColor(final long addr, final long index, boolean insertColor) {
-        final long previous = OffHeapLongArray.get(addr, OFFSET + (index * 5) + 1);
+        final long previous = POffHeapLongArray.get(addr, OFFSET + (index * 5) + 1);
         final long next;
         if (previous == TRUE_DIFF || previous == FALSE_DIFF) {
             if (insertColor) {
@@ -498,40 +498,40 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                 next = FALSE_CLEAN;
             }
         }
-        OffHeapLongArray.set(addr, OFFSET + (index * 5) + 1, next);
+        POffHeapLongArray.set(addr, OFFSET + (index * 5) + 1, next);
     }
 
     private static long left(final long addr, final long index) {
         if (index == -1) {
             return -1;
         }
-        return OffHeapLongArray.get(addr, OFFSET + (index * 5) + 2);
+        return POffHeapLongArray.get(addr, OFFSET + (index * 5) + 2);
     }
 
     private static void setLeft(final long addr, final long index, final long insertLeft) {
-        OffHeapLongArray.set(addr, OFFSET + (index * 5) + 2, insertLeft);
+        POffHeapLongArray.set(addr, OFFSET + (index * 5) + 2, insertLeft);
     }
 
     private static long right(final long addr, final long index) {
         if (index == -1) {
             return -1;
         }
-        return OffHeapLongArray.get(addr, OFFSET + (index * 5) + 3);
+        return POffHeapLongArray.get(addr, OFFSET + (index * 5) + 3);
     }
 
     private static void setRight(final long addr, final long index, final long insertRight) {
-        OffHeapLongArray.set(addr, OFFSET + +(index * 5) + 3, insertRight);
+        POffHeapLongArray.set(addr, OFFSET + +(index * 5) + 3, insertRight);
     }
 
     private static long parent(final long addr, final long index) {
         if (index == -1) {
             return -1;
         }
-        return OffHeapLongArray.get(addr, OFFSET + (index * 5) + 4);
+        return POffHeapLongArray.get(addr, OFFSET + (index * 5) + 4);
     }
 
     private static void setParent(final long addr, final long index, final long insertParent) {
-        OffHeapLongArray.set(addr, OFFSET + (index * 5) + 4, insertParent);
+        POffHeapLongArray.set(addr, OFFSET + (index * 5) + 4, insertParent);
     }
 
     private static long grandParent(final long addr, final long index) {
@@ -617,7 +617,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     private static void replaceNode(final long addr, final long oldn, final long newn) {
         final long parentOldN = parent(addr, oldn);
         if (parentOldN == -1) {
-            OffHeapLongArray.set(addr, HEAD, newn);
+            POffHeapLongArray.set(addr, HEAD, newn);
         } else {
             if (oldn == left(addr, parentOldN)) {
                 setLeft(addr, parentOldN, newn);
@@ -682,7 +682,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private static long internal_previous_index(final long addr, final long p_key) {
-        long p = OffHeapLongArray.get(addr, HEAD);
+        long p = POffHeapLongArray.get(addr, HEAD);
         if (p == -1) {
             return p;
         }
@@ -711,7 +711,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private static long internal_previousOrEqual_index(final long addr, final long p_key) {
-        long p = OffHeapLongArray.get(addr, HEAD);
+        long p = POffHeapLongArray.get(addr, HEAD);
         if (p == -1) {
             return p;
         }
@@ -767,8 +767,8 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private boolean internal_insert(long addr, final long insertLey, final boolean initial) {
-        int size = (int) OffHeapLongArray.get(addr, SIZE);
-        int capacity = (int) OffHeapLongArray.get(addr, CAPACITY);
+        int size = (int) POffHeapLongArray.get(addr, SIZE);
+        int capacity = (int) POffHeapLongArray.get(addr, CAPACITY);
         if (capacity == size) {
             int nextCapacity = size;
             if (nextCapacity == 0) {
@@ -784,10 +784,10 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
             setLeft(addr, size, -1);
             setRight(addr, size, -1);
             setParent(addr, size, -1);
-            OffHeapLongArray.set(addr, HEAD, size);
-            OffHeapLongArray.set(addr, SIZE, 1);
+            POffHeapLongArray.set(addr, HEAD, size);
+            POffHeapLongArray.set(addr, SIZE, 1);
         } else {
-            long n = OffHeapLongArray.get(addr, HEAD);
+            long n = POffHeapLongArray.get(addr, HEAD);
             while (true) {
                 if (insertLey == key(addr, n)) {
                     return false;
@@ -799,7 +799,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                         setRight(addr, size, -1);
                         setParent(addr, size, -1);
                         setLeft(addr, n, size);
-                        OffHeapLongArray.set(addr, SIZE, size + 1);
+                        POffHeapLongArray.set(addr, SIZE, size + 1);
                         break;
                     } else {
                         n = left(addr, n);
@@ -812,7 +812,7 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
                         setRight(addr, size, -1);
                         setParent(addr, size, -1);
                         setRight(addr, n, size);
-                        OffHeapLongArray.set(addr, SIZE, size + 1);
+                        POffHeapLongArray.set(addr, SIZE, size + 1);
                         break;
                     } else {
                         n = right(addr, n);
@@ -826,9 +826,9 @@ class OffHeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void internal_set_dirty(final long addr) {
-        OffHeapLongArray.set(addr, MAGIC, OffHeapLongArray.get(addr, MAGIC) + 1);
-        if (space != null && OffHeapLongArray.get(addr, DIRTY) != 1) {
-            OffHeapLongArray.set(addr, DIRTY, 1);
+        POffHeapLongArray.set(addr, MAGIC, POffHeapLongArray.get(addr, MAGIC) + 1);
+        if (space != null && POffHeapLongArray.get(addr, DIRTY) != 1) {
+            POffHeapLongArray.set(addr, DIRTY, 1);
             space.notifyUpdate(index);
         }
     }

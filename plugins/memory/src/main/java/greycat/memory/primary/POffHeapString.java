@@ -20,7 +20,7 @@ import greycat.struct.Buffer;
 import greycat.utility.Base64;
 import greycat.utility.Unsafe;
 
-public class OffHeapString {
+public class POffHeapString {
 
     private static int COW = 0;
     private static int SIZE = 8;

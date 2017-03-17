@@ -22,8 +22,8 @@ import greycat.chunk.Chunk;
 import greycat.chunk.ChunkSpace;
 import greycat.chunk.ChunkType;
 import greycat.chunk.Stack;
-import greycat.memory.primary.OffHeapByteArray;
-import greycat.memory.primary.OffHeapLongArray;
+import greycat.memory.primary.POffHeapByteArray;
+import greycat.memory.primary.POffHeapLongArray;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
 import greycat.struct.EGraph;
@@ -59,31 +59,31 @@ class OffHeapChunkSpace implements ChunkSpace {
     }
 
     final long worldByIndex(long index) {
-        return OffHeapLongArray.get(worlds, index);
+        return POffHeapLongArray.get(worlds, index);
     }
 
     final long timeByIndex(long index) {
-        return OffHeapLongArray.get(times, index);
+        return POffHeapLongArray.get(times, index);
     }
 
     final long idByIndex(long index) {
-        return OffHeapLongArray.get(ids, index);
+        return POffHeapLongArray.get(ids, index);
     }
 
     final long addrByIndex(long index) {
-        return OffHeapLongArray.get(addrs, index);
+        return POffHeapLongArray.get(addrs, index);
     }
 
     final void setAddrByIndex(long index, long addr) {
-        OffHeapLongArray.set(addrs, index, addr);
+        POffHeapLongArray.set(addrs, index, addr);
     }
 
     final void lockByIndex(final long index) {
-        while (!OffHeapLongArray.compareAndSwap(locks, index, -1, 1)) ;
+        while (!POffHeapLongArray.compareAndSwap(locks, index, -1, 1)) ;
     }
 
     final void unlockByIndex(final long index) {
-        if (!OffHeapLongArray.compareAndSwap(locks, index, 1, -1)) {
+        if (!POffHeapLongArray.compareAndSwap(locks, index, 1, -1)) {
             System.out.println("CAS error !!!");
         }
     }
@@ -94,17 +94,17 @@ class OffHeapChunkSpace implements ChunkSpace {
         _hashEntries = initialCapacity * HASH_LOAD_FACTOR;
         _lru = new OffHeapFixedStack(initialCapacity, true);
         _dirtiesStack = new OffHeapFixedStack(initialCapacity, false);
-        locks = OffHeapLongArray.allocate(initialCapacity);
-        hashNext = OffHeapLongArray.allocate(initialCapacity);
-        hash = OffHeapLongArray.allocate(_hashEntries);
-        addrs = OffHeapLongArray.allocate(initialCapacity);
-        worlds = OffHeapLongArray.allocate(_maxEntries);
-        times = OffHeapLongArray.allocate(_maxEntries);
-        ids = OffHeapLongArray.allocate(_maxEntries);
-        types = OffHeapByteArray.allocate(_maxEntries);
-        marks = OffHeapLongArray.allocate(_maxEntries);
+        locks = POffHeapLongArray.allocate(initialCapacity);
+        hashNext = POffHeapLongArray.allocate(initialCapacity);
+        hash = POffHeapLongArray.allocate(_hashEntries);
+        addrs = POffHeapLongArray.allocate(initialCapacity);
+        worlds = POffHeapLongArray.allocate(_maxEntries);
+        times = POffHeapLongArray.allocate(_maxEntries);
+        ids = POffHeapLongArray.allocate(_maxEntries);
+        types = POffHeapByteArray.allocate(_maxEntries);
+        marks = POffHeapLongArray.allocate(_maxEntries);
         for (long i = 0; i < _maxEntries; i++) {
-            OffHeapLongArray.set(marks, i, 0);
+            POffHeapLongArray.set(marks, i, 0);
         }
     }
 
@@ -112,33 +112,33 @@ class OffHeapChunkSpace implements ChunkSpace {
     public final void freeAll() {
         _lru.free();
         _dirtiesStack.free();
-        OffHeapLongArray.free(hashNext);
-        OffHeapLongArray.free(hash);
-        OffHeapLongArray.free(addrs);
-        OffHeapLongArray.free(worlds);
-        OffHeapLongArray.free(times);
-        OffHeapLongArray.free(ids);
-        OffHeapByteArray.free(types);
-        OffHeapLongArray.free(marks);
-        OffHeapLongArray.free(locks);
+        POffHeapLongArray.free(hashNext);
+        POffHeapLongArray.free(hash);
+        POffHeapLongArray.free(addrs);
+        POffHeapLongArray.free(worlds);
+        POffHeapLongArray.free(times);
+        POffHeapLongArray.free(ids);
+        POffHeapByteArray.free(types);
+        POffHeapLongArray.free(marks);
+        POffHeapLongArray.free(locks);
     }
 
     @Override
     public final Chunk getAndMark(final byte type, final long world, final long time, final long id) {
         final long index = HashHelper.tripleHash(type, world, time, id, this._hashEntries);
-        long m = OffHeapLongArray.get(hash, index);
+        long m = POffHeapLongArray.get(hash, index);
         long found = -1;
         while (m != -1) {
-            if (OffHeapByteArray.get(types, m) == type
-                    && OffHeapLongArray.get(worlds, m) == world
-                    && OffHeapLongArray.get(times, m) == time
-                    && OffHeapLongArray.get(ids, m) == id) {
+            if (POffHeapByteArray.get(types, m) == type
+                    && POffHeapLongArray.get(worlds, m) == world
+                    && POffHeapLongArray.get(times, m) == time
+                    && POffHeapLongArray.get(ids, m) == id) {
                 if (mark(m) > 0) {
                     found = m;
                 }
                 break;
             } else {
-                m = OffHeapLongArray.get(hashNext, m);
+                m = POffHeapLongArray.get(hashNext, m);
             }
         }
         if (found != -1) {
@@ -150,7 +150,7 @@ class OffHeapChunkSpace implements ChunkSpace {
 
     @Override
     public final Chunk get(final long index) {
-        switch (OffHeapByteArray.get(types, index)) {
+        switch (POffHeapByteArray.get(types, index)) {
             case ChunkType.STATE_CHUNK:
                 return new OffHeapStateChunk(this, index);
             case ChunkType.WORLD_ORDER_CHUNK:
@@ -158,7 +158,7 @@ class OffHeapChunkSpace implements ChunkSpace {
             case ChunkType.TIME_TREE_CHUNK:
                 return new OffHeapTimeTreeChunk(this, index);
             case ChunkType.GEN_CHUNK:
-                return new OffHeapGenChunk(this, OffHeapLongArray.get(ids, index), index);
+                return new OffHeapGenChunk(this, POffHeapLongArray.get(ids, index), index);
         }
         return null;
     }
@@ -253,13 +253,13 @@ class OffHeapChunkSpace implements ChunkSpace {
         long before;
         long after;
         do {
-            before = OffHeapLongArray.get(marks, index);
+            before = POffHeapLongArray.get(marks, index);
             if (before != -1) {
                 after = before + 1;
             } else {
                 after = before;
             }
-        } while (!OffHeapLongArray.compareAndSwap(marks, index, before, after));
+        } while (!POffHeapLongArray.compareAndSwap(marks, index, before, after));
         if (before == 0 && after == 1) {
             //was at zero before, risky operation, check selectWith LRU
             this._lru.dequeue(index);
@@ -272,14 +272,14 @@ class OffHeapChunkSpace implements ChunkSpace {
         long before;
         long after;
         do {
-            before = OffHeapLongArray.get(marks, index);
+            before = POffHeapLongArray.get(marks, index);
             if (before > 0) {
                 after = before - 1;
             } else {
                 System.err.println("WARNING: DOUBLE UNMARK");
                 after = before;
             }
-        } while (!OffHeapLongArray.compareAndSwap(marks, index, before, after));
+        } while (!POffHeapLongArray.compareAndSwap(marks, index, before, after));
         if (before == 1 && after == 0) {
             //was at zero before, risky operation, check selectWith LRU
             this._lru.enqueue(index);
@@ -292,8 +292,8 @@ class OffHeapChunkSpace implements ChunkSpace {
     }
 
     private void freeByIndex(long index) {
-        final long rawValue = OffHeapLongArray.get(addrs, index);
-        switch (OffHeapByteArray.get(types, index)) {
+        final long rawValue = POffHeapLongArray.get(addrs, index);
+        switch (POffHeapByteArray.get(types, index)) {
             case ChunkType.STATE_CHUNK:
                 OffHeapStateChunk.free(rawValue, this);
                 break;
@@ -307,7 +307,7 @@ class OffHeapChunkSpace implements ChunkSpace {
                 OffHeapGenChunk.free(rawValue);
                 break;
         }
-        OffHeapLongArray.set(addrs, index, OffHeapConstants.NULL_PTR);
+        POffHeapLongArray.set(addrs, index, OffHeapConstants.NULL_PTR);
     }
 
     @Override
@@ -315,25 +315,25 @@ class OffHeapChunkSpace implements ChunkSpace {
         //first mark the object
         long entry = -1;
         long hashIndex = HashHelper.tripleHash(type, world, time, id, this._hashEntries);
-        long m = OffHeapLongArray.get(hash, hashIndex);
+        long m = POffHeapLongArray.get(hash, hashIndex);
         while (m >= 0) {
-            if (type == OffHeapByteArray.get(types, m) && world == OffHeapLongArray.get(worlds, m) && time == OffHeapLongArray.get(times, m) && id == OffHeapLongArray.get(ids, m)) {
+            if (type == POffHeapByteArray.get(types, m) && world == POffHeapLongArray.get(worlds, m) && time == POffHeapLongArray.get(times, m) && id == POffHeapLongArray.get(ids, m)) {
                 entry = m;
                 break;
             }
-            m = OffHeapLongArray.get(hashNext, m);
+            m = POffHeapLongArray.get(hashNext, m);
         }
         if (entry != -1) {
             long previous;
             long after;
             do {
-                previous = OffHeapLongArray.get(marks, entry);
+                previous = POffHeapLongArray.get(marks, entry);
                 if (previous != -1) {
                     after = previous + 1;
                 } else {
                     after = previous;
                 }
-            } while (!OffHeapLongArray.compareAndSwap(marks, entry, previous, after));
+            } while (!POffHeapLongArray.compareAndSwap(marks, entry, previous, after));
             if (after == (previous + 1)) {
                 return get(entry);
             }
@@ -344,7 +344,7 @@ class OffHeapChunkSpace implements ChunkSpace {
             if (temp_victim == -1) {
                 break;
             } else {
-                if (OffHeapLongArray.compareAndSwap(marks, temp_victim, 0, -1)) {
+                if (POffHeapLongArray.compareAndSwap(marks, temp_victim, 0, -1)) {
                     currentVictimIndex = temp_victim;
                 }
             }
@@ -352,44 +352,44 @@ class OffHeapChunkSpace implements ChunkSpace {
         if (currentVictimIndex == -1) {
             throw new RuntimeException("mwDB crashed, cache is full, please avoid to much retention of nodes or augment cache capacity! available:" + available());
         }
-        if (OffHeapLongArray.get(addrs, currentVictimIndex) != OffHeapConstants.NULL_PTR) {
-            final long victimWorld = OffHeapLongArray.get(worlds, currentVictimIndex);
-            final long victimTime = OffHeapLongArray.get(times, currentVictimIndex);
-            final long victimObj = OffHeapLongArray.get(ids, currentVictimIndex);
-            final byte victimType = OffHeapByteArray.get(types, currentVictimIndex);
+        if (POffHeapLongArray.get(addrs, currentVictimIndex) != OffHeapConstants.NULL_PTR) {
+            final long victimWorld = POffHeapLongArray.get(worlds, currentVictimIndex);
+            final long victimTime = POffHeapLongArray.get(times, currentVictimIndex);
+            final long victimObj = POffHeapLongArray.get(ids, currentVictimIndex);
+            final byte victimType = POffHeapByteArray.get(types, currentVictimIndex);
             final long indexVictim = HashHelper.tripleHash(victimType, victimWorld, victimTime, victimObj, this._hashEntries);
-            m = OffHeapLongArray.get(hash, indexVictim);
+            m = POffHeapLongArray.get(hash, indexVictim);
             long last = -1;
             while (m >= 0) {
-                if (victimType == OffHeapByteArray.get(types, m) && victimWorld == OffHeapLongArray.get(worlds, m) && victimTime == OffHeapLongArray.get(times, m) && victimObj == OffHeapLongArray.get(ids, m)) {
+                if (victimType == POffHeapByteArray.get(types, m) && victimWorld == POffHeapLongArray.get(worlds, m) && victimTime == POffHeapLongArray.get(times, m) && victimObj == POffHeapLongArray.get(ids, m)) {
                     break;
                 }
                 last = m;
-                m = OffHeapLongArray.get(hashNext, m);
+                m = POffHeapLongArray.get(hashNext, m);
             }
             //POP THE VALUE FROM THE NEXT LIST
             if (last == -1) {
-                long previousNext = OffHeapLongArray.get(hashNext, m);
-                OffHeapLongArray.set(hash, indexVictim, previousNext);
+                long previousNext = POffHeapLongArray.get(hashNext, m);
+                POffHeapLongArray.set(hash, indexVictim, previousNext);
             } else {
                 if (m == -1) {
-                    OffHeapLongArray.set(hashNext, last, -1);
+                    POffHeapLongArray.set(hashNext, last, -1);
                 } else {
-                    OffHeapLongArray.set(hashNext, last, OffHeapLongArray.get(hashNext, m));
+                    POffHeapLongArray.set(hashNext, last, POffHeapLongArray.get(hashNext, m));
                 }
             }
-            OffHeapLongArray.set(hashNext, m, -1);
+            POffHeapLongArray.set(hashNext, m, -1);
             freeByIndex(currentVictimIndex);
         }
         //will be registered by the chunk itself
-        OffHeapLongArray.set(marks, currentVictimIndex, 1);
-        OffHeapByteArray.set(types, currentVictimIndex, type);
-        OffHeapLongArray.set(worlds, currentVictimIndex, world);
-        OffHeapLongArray.set(times, currentVictimIndex, time);
-        OffHeapLongArray.set(ids, currentVictimIndex, id);
+        POffHeapLongArray.set(marks, currentVictimIndex, 1);
+        POffHeapByteArray.set(types, currentVictimIndex, type);
+        POffHeapLongArray.set(worlds, currentVictimIndex, world);
+        POffHeapLongArray.set(times, currentVictimIndex, time);
+        POffHeapLongArray.set(ids, currentVictimIndex, id);
         //negociate the lock to write on hashIndex
-        OffHeapLongArray.set(hashNext, currentVictimIndex, OffHeapLongArray.get(hash, hashIndex));
-        OffHeapLongArray.set(hash, hashIndex, currentVictimIndex);
+        POffHeapLongArray.set(hashNext, currentVictimIndex, POffHeapLongArray.get(hash, hashIndex));
+        POffHeapLongArray.set(hash, hashIndex, currentVictimIndex);
         //free the lock
         return get(currentVictimIndex);
     }
@@ -413,7 +413,7 @@ class OffHeapChunkSpace implements ChunkSpace {
             } else {
                 stream.write(BUFFER_SEP);
             }
-            KeyHelper.keyToBuffer(stream, OffHeapByteArray.get(types, tail), OffHeapLongArray.get(worlds, tail), OffHeapLongArray.get(times, tail), OffHeapLongArray.get(ids, tail));
+            KeyHelper.keyToBuffer(stream, POffHeapByteArray.get(types, tail), POffHeapLongArray.get(worlds, tail), POffHeapLongArray.get(times, tail), POffHeapLongArray.get(ids, tail));
             //Save chunk payload
             stream.write(BUFFER_SEP);
             try {

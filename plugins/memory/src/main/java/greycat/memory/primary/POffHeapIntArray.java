@@ -21,7 +21,7 @@ import greycat.struct.Buffer;
 import greycat.utility.Base64;
 import greycat.utility.Unsafe;
 
-public class OffHeapIntArray {
+public class POffHeapIntArray {
 
     private static int COW_INDEX = 0;
     private static int SIZE_INDEX = 1;
@@ -87,7 +87,7 @@ public class OffHeapIntArray {
         if (addr == OffHeapConstants.NULL_PTR) {
             return;
         }
-        final long rawSize = OffHeapIntArray.get(addr, SIZE_INDEX);
+        final long rawSize = POffHeapIntArray.get(addr, SIZE_INDEX);
         Base64.encodeLongToBuffer(rawSize, buffer);
         for (int j = 0; j < rawSize; j++) {
             buffer.write(Constants.CHUNK_VAL_SEP);
@@ -108,7 +108,7 @@ public class OffHeapIntArray {
     }
 
     public static long fromObject(int[] origin) {
-        long intArrayToInsert_ptr = OffHeapIntArray.allocate(SHIFT_INDEX + origin.length);
+        long intArrayToInsert_ptr = POffHeapIntArray.allocate(SHIFT_INDEX + origin.length);
         set(intArrayToInsert_ptr, SIZE_INDEX, origin.length);
         set(intArrayToInsert_ptr, COW_INDEX, 1);
         for (int i = 0; i < origin.length; i++) {

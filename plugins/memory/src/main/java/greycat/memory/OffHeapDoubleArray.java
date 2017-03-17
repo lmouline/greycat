@@ -16,12 +16,13 @@
 package greycat.memory;
 
 import greycat.Constants;
+import greycat.memory.primary.POffHeapDoubleArray;
 import greycat.memory.primary.POffHeapLongArray;
 import greycat.struct.Buffer;
-import greycat.struct.LongArray;
+import greycat.struct.DoubleArray;
 import greycat.utility.Base64;
 
-public class OffHeapLongArray implements LongArray {
+public class OffHeapDoubleArray implements DoubleArray {
 
     private static int SIZE = 0;
     private static int SHIFT = 1;
@@ -29,19 +30,19 @@ public class OffHeapLongArray implements LongArray {
     private final long index;
     private final OffHeapContainer container;
 
-    OffHeapLongArray(final OffHeapContainer p_container, final long p_index) {
+    OffHeapDoubleArray(final OffHeapContainer p_container, final long p_index) {
         container = p_container;
         index = p_index;
     }
 
     @Override
-    public long get(int elemIndex) {
+    public double get(int elemIndex) {
         container.lock();
-        long result = 0;
+        double result = 0;
         try {
             final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
-                result = POffHeapLongArray.get(addr, SHIFT + elemIndex);
+                result = POffHeapDoubleArray.get(addr, SHIFT + elemIndex);
             }
         } finally {
             container.unlock();
@@ -50,12 +51,12 @@ public class OffHeapLongArray implements LongArray {
     }
 
     @Override
-    public void set(int elemIndex, long value) {
+    public void set(int elemIndex, double value) {
         container.lock();
         try {
             final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
-                POffHeapLongArray.set(addr, SHIFT + elemIndex, value);
+                POffHeapDoubleArray.set(addr, SHIFT + elemIndex, value);
             }
         } finally {
             container.unlock();
@@ -66,16 +67,16 @@ public class OffHeapLongArray implements LongArray {
     @Override
     public int size() {
         container.lock();
-        long size = 0;
+        int size = 0;
         try {
             final long addr = container.addrByIndex(index);
             if (addr != OffHeapConstants.NULL_PTR) {
-                size = POffHeapLongArray.get(addr, SIZE);
+                size = (int) POffHeapDoubleArray.get(addr, SIZE);
             }
         } finally {
             container.unlock();
         }
-        return (int) size;
+        return size;
     }
 
     @Override
@@ -93,25 +94,25 @@ public class OffHeapLongArray implements LongArray {
         final long addr = container.addrByIndex(index);
         if (addr == OffHeapConstants.NULL_PTR) {
             //initial allocation
-            final long newly = POffHeapLongArray.allocate(newSize + SHIFT);
-            POffHeapLongArray.set(newly, SIZE, newSize);
+            final long newly = POffHeapDoubleArray.allocate(newSize + SHIFT);
+            POffHeapDoubleArray.set(newly, SIZE, newSize);
             container.setAddrByIndex(index, newly);
             return newly;
         } else {
-            long exAddr = POffHeapLongArray.reallocate(addr, newSize + SHIFT);
-            POffHeapLongArray.set(exAddr, SIZE, newSize);
+            long exAddr = POffHeapDoubleArray.reallocate(addr, newSize + SHIFT);
+            POffHeapDoubleArray.set(exAddr, SIZE, newSize);
             container.setAddrByIndex(index, exAddr);
             return exAddr;
         }
     }
 
     @Override
-    public void initWith(long[] values) {
+    public void initWith(double[] values) {
         container.lock();
         try {
             long addr = unsafe_allocate(values.length);
-            for(int i=0;i<values.length;i++){
-                POffHeapLongArray.set(addr,i,values[i]);
+            for (int i = 0; i < values.length; i++) {
+                POffHeapDoubleArray.set(addr, i, values[i]);
             }
         } finally {
             container.unlock();
@@ -123,11 +124,11 @@ public class OffHeapLongArray implements LongArray {
         if (addr == OffHeapConstants.NULL_PTR) {
             return;
         }
-        final long size = POffHeapLongArray.get(addr, SIZE);
+        final int size = (int) POffHeapDoubleArray.get(addr, SIZE);
         Base64.encodeLongToBuffer(size, buffer);
         for (long i = 0; i < size; i++) {
             buffer.write(Constants.CHUNK_VAL_SEP);
-            Base64.encodeLongToBuffer(POffHeapLongArray.get(addr, i + SHIFT), buffer);
+            Base64.encodeDoubleToBuffer(POffHeapDoubleArray.get(addr, i + SHIFT), buffer);
         }
     }
 

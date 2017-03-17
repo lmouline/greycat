@@ -16,11 +16,10 @@
 package greycat.memory;
 
 
-import greycat.memory.OffHeapConstants;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
-import greycat.memory.primary.OffHeapByteArray;
+import greycat.memory.primary.POffHeapByteArray;
 
 import java.nio.ByteBuffer;
 
@@ -66,12 +65,12 @@ public class OffHeapByteArrayTest {
     public void copyIntArrayTest() {
         int[] heapTable = new int[]{Integer.MAX_VALUE, Integer.MIN_VALUE, 3, 4, 5};
 
-        final long offHeapTableAddr = OffHeapByteArray.allocate(heapTable.length * 4); //int on 4 bytes
-        OffHeapByteArray.copyArray(heapTable, offHeapTableAddr,0, heapTable.length);
+        final long offHeapTableAddr = POffHeapByteArray.allocate(heapTable.length * 4); //int on 4 bytes
+        POffHeapByteArray.copyArray(heapTable, offHeapTableAddr,0, heapTable.length);
 
         byte[] data = new byte[heapTable.length * 4];
         for (int i = 0; i < data.length; i++) {
-            data[i] = OffHeapByteArray.get(offHeapTableAddr, i);
+            data[i] = POffHeapByteArray.get(offHeapTableAddr, i);
         }
 
         int[] res = byteArraytoIntArray(data);
@@ -79,19 +78,19 @@ public class OffHeapByteArrayTest {
         for (int i = 0; i < res.length; i++) {
             Assert.assertEquals(heapTable[i], res[i]);
         }
-        OffHeapByteArray.free(offHeapTableAddr);
+        POffHeapByteArray.free(offHeapTableAddr);
     }
 
     @Test
     public void copyFloatArrayTest() {
         float[] heapTable = new float[]{Float.MAX_VALUE, Float.MIN_VALUE, 3.7f, 4.2f, 5.4f};
 
-        final long offHeapTableAddr = OffHeapByteArray.allocate(heapTable.length * 4); //float on 4 bytes
-        OffHeapByteArray.copyArray(heapTable, offHeapTableAddr,0, heapTable.length);
+        final long offHeapTableAddr = POffHeapByteArray.allocate(heapTable.length * 4); //float on 4 bytes
+        POffHeapByteArray.copyArray(heapTable, offHeapTableAddr,0, heapTable.length);
 
         byte[] data = new byte[heapTable.length * 4];
         for (int i = 0; i < data.length; i++) {
-            data[i] = OffHeapByteArray.get(offHeapTableAddr, i);
+            data[i] = POffHeapByteArray.get(offHeapTableAddr, i);
         }
 
         float[] res = byteArraytoFloatArray(data);
@@ -100,7 +99,7 @@ public class OffHeapByteArrayTest {
             Assert.assertEquals(heapTable[i], res[i], 0);
         }
 
-        OffHeapByteArray.free(offHeapTableAddr);
+        POffHeapByteArray.free(offHeapTableAddr);
 
     }
 
@@ -108,12 +107,12 @@ public class OffHeapByteArrayTest {
     public void copyByteArrayTest() {
         byte[] byteTable = new byte[]{127, 127, 8, 9};
 
-        final long offHeapTableAddr = OffHeapByteArray.allocate(byteTable.length); //byte on 1 bytes
-        OffHeapByteArray.copyArray(byteTable, offHeapTableAddr,0, byteTable.length);
+        final long offHeapTableAddr = POffHeapByteArray.allocate(byteTable.length); //byte on 1 bytes
+        POffHeapByteArray.copyArray(byteTable, offHeapTableAddr,0, byteTable.length);
 
         byte[] data = new byte[byteTable.length];
         for (int i = 0; i < data.length; i++) {
-            data[i] = OffHeapByteArray.get(offHeapTableAddr, i);
+            data[i] = POffHeapByteArray.get(offHeapTableAddr, i);
         }
 
         Assert.assertEquals(byteTable.length, data.length);
@@ -121,7 +120,7 @@ public class OffHeapByteArrayTest {
             Assert.assertEquals(byteTable[i], data[i], 0.1);
         }
 
-        OffHeapByteArray.free(offHeapTableAddr);
+        POffHeapByteArray.free(offHeapTableAddr);
     }
 
     @After

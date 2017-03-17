@@ -16,7 +16,7 @@
 package greycat.memory;
 
 import greycat.Constants;
-import greycat.memory.primary.OffHeapByteArray;
+import greycat.memory.primary.POffHeapByteArray;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
 import greycat.utility.DefaultBufferIterator;
@@ -32,7 +32,7 @@ class OffHeapBuffer implements Buffer {
         int newSize = (int) (endPos - initPos + 1);
         byte[] result = new byte[newSize];
         for (int i = 0; i < newSize; i++) {
-            result[i] = OffHeapByteArray.get(bufferPtr, i + initPos);
+            result[i] = POffHeapByteArray.get(bufferPtr, i + initPos);
         }
         return result;
     }
@@ -41,17 +41,17 @@ class OffHeapBuffer implements Buffer {
     public void write(byte b) {
         if (bufferPtr == OffHeapConstants.NULL_PTR) {
             capacity = Constants.MAP_INITIAL_CAPACITY;
-            bufferPtr = OffHeapByteArray.allocate(capacity);
-            OffHeapByteArray.set(bufferPtr, writeCursor, b);
+            bufferPtr = POffHeapByteArray.allocate(capacity);
+            POffHeapByteArray.set(bufferPtr, writeCursor, b);
             writeCursor++;
         } else if (writeCursor == capacity) {
             long newCapacity = capacity * 2;
-            bufferPtr = OffHeapByteArray.reallocate(bufferPtr, newCapacity);
+            bufferPtr = POffHeapByteArray.reallocate(bufferPtr, newCapacity);
             capacity = newCapacity;
-            OffHeapByteArray.set(bufferPtr, writeCursor, b);
+            POffHeapByteArray.set(bufferPtr, writeCursor, b);
             writeCursor++;
         } else {
-            OffHeapByteArray.set(bufferPtr, writeCursor, b);
+            POffHeapByteArray.set(bufferPtr, writeCursor, b);
             writeCursor++;
         }
     }
@@ -60,18 +60,18 @@ class OffHeapBuffer implements Buffer {
     public void writeAll(byte[] bytes) {
         if (bufferPtr == OffHeapConstants.NULL_PTR) {
             capacity = getNewSize(Constants.MAP_INITIAL_CAPACITY, bytes.length);
-            bufferPtr = OffHeapByteArray.allocate(capacity);
-            OffHeapByteArray.copyArray(bytes, bufferPtr, writeCursor, bytes.length);
+            bufferPtr = POffHeapByteArray.allocate(capacity);
+            POffHeapByteArray.copyArray(bytes, bufferPtr, writeCursor, bytes.length);
             writeCursor = bytes.length;
         } else if (writeCursor + bytes.length > capacity) {
             long newCapacityWanted = getNewSize(capacity, capacity + bytes.length);
             final int newCapacity = (int) Math.pow(2, Math.ceil(Math.log(newCapacityWanted) / Math.log(2)));
-            bufferPtr = OffHeapByteArray.reallocate(bufferPtr, newCapacity);
-            OffHeapByteArray.copyArray(bytes, bufferPtr, writeCursor, bytes.length);
+            bufferPtr = POffHeapByteArray.reallocate(bufferPtr, newCapacity);
+            POffHeapByteArray.copyArray(bytes, bufferPtr, writeCursor, bytes.length);
             capacity = newCapacity;
             writeCursor = writeCursor + bytes.length;
         } else {
-            OffHeapByteArray.copyArray(bytes, bufferPtr, writeCursor, bytes.length);
+            POffHeapByteArray.copyArray(bytes, bufferPtr, writeCursor, bytes.length);
             writeCursor = writeCursor + bytes.length;
         }
     }
@@ -89,7 +89,7 @@ class OffHeapBuffer implements Buffer {
     @Override
     public byte read(long position) {
         if (bufferPtr != OffHeapConstants.NULL_PTR && position < capacity) {
-            return OffHeapByteArray.get(bufferPtr, position);
+            return POffHeapByteArray.get(bufferPtr, position);
         }
         return -1;
     }
@@ -98,7 +98,7 @@ class OffHeapBuffer implements Buffer {
     public byte[] data() {
         byte[] result = new byte[(int) writeCursor];
         for (long i = 0; i < writeCursor; i++) {
-            result[(int) i] = OffHeapByteArray.get(bufferPtr, i);
+            result[(int) i] = POffHeapByteArray.get(bufferPtr, i);
         }
         return result;
     }
@@ -111,7 +111,7 @@ class OffHeapBuffer implements Buffer {
     @Override
     public void free() {
         if (bufferPtr != OffHeapConstants.NULL_PTR) {
-            OffHeapByteArray.free(bufferPtr);
+            POffHeapByteArray.free(bufferPtr);
             bufferPtr = OffHeapConstants.NULL_PTR;
             capacity = 0;
             writeCursor = 0;

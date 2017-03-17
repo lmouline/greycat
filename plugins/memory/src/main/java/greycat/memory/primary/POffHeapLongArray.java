@@ -21,7 +21,7 @@ import greycat.struct.Buffer;
 import greycat.utility.Base64;
 import greycat.utility.Unsafe;
 
-public class OffHeapDoubleArray {
+public class POffHeapLongArray {
 
     private static int COW_INDEX = 0;
     private static int SIZE_INDEX = 1;
@@ -41,6 +41,10 @@ public class OffHeapDoubleArray {
         return newMemorySegment;
     }
 
+    public static void reset(final long addr, final long capacity) {
+        unsafe.setMemory(addr, capacity * 8, (byte) OffHeapConstants.NULL_PTR);
+    }
+
     public static long reallocate(final long addr, final long nextCapacity) {
         long new_segment = unsafe.reallocateMemory(addr, nextCapacity * 8);
         if (OffHeapConstants.DEBUG_MODE) {
@@ -50,37 +54,45 @@ public class OffHeapDoubleArray {
         return new_segment;
     }
 
-    public static void set(final long addr, final long index, final double valueToInsert) {
+    public static void set(final long addr, final long index, final long valueToInsert) {
         if (OffHeapConstants.DEBUG_MODE) {
             Long allocated = OffHeapConstants.SEGMENTS.get(addr);
             if (allocated == null || index < 0 || (index * 8) > allocated) {
                 throw new RuntimeException("set: bad address " + index + "(" + index * 8 + ")" + " in " + allocated);
             }
         }
-        unsafe.putDoubleVolatile(null, addr + index * 8, valueToInsert);
+        unsafe.putLongVolatile(null, addr + (index * 8), valueToInsert);
     }
 
-
-    public static void fill(final long addr, final long beginIndex, final long endIndex, final double valueToInsert) {
-        if (OffHeapConstants.DEBUG_MODE) {
-            Long allocated = OffHeapConstants.SEGMENTS.get(addr);
-            if (allocated == null || endIndex < 0 || (endIndex * 8) > allocated) {
-                throw new RuntimeException("set: bad address " + endIndex + "(" + endIndex * 8 + ")" + " in " + allocated);
-            }
-        }
-        for (long index = beginIndex; index < endIndex; index++) {
-            unsafe.putDoubleVolatile(null, addr + index * 8, valueToInsert);
-        }
-    }
-
-    public static double get(final long addr, final long index) {
+    public static void insert(final long addr, final long index, final long valueToInsert, final long size) {
         if (OffHeapConstants.DEBUG_MODE) {
             Long allocated = OffHeapConstants.SEGMENTS.get(addr);
             if (allocated == null || index < 0 || (index * 8) > allocated) {
-                throw new RuntimeException("get: bad address " + index + " in " + allocated);
+                throw new RuntimeException("set: bad address " + index + "(" + index * 8 + ")" + " in " + allocated);
             }
         }
-        return unsafe.getDoubleVolatile(null, addr + index * 8);
+        unsafe.copyMemory(addr + (index * 8), addr + ((index + 1) * 8), (size - index) * 8);
+        unsafe.putLongVolatile(null, addr + (index * 8), valueToInsert);
+    }
+
+    public static void delete(final long addr, final long index, final long size) {
+        if (OffHeapConstants.DEBUG_MODE) {
+            Long allocated = OffHeapConstants.SEGMENTS.get(addr);
+            if (allocated == null || index < 0 || (index * 8) > allocated) {
+                throw new RuntimeException("set: bad address " + index + "(" + index * 8 + ")" + " in " + allocated);
+            }
+        }
+        unsafe.copyMemory(addr + ((index + 1) * 8), addr + (index * 8), (size - index - 1) * 8);
+    }
+
+    public static long get(final long addr, final long index) {
+        if (OffHeapConstants.DEBUG_MODE) {
+            Long allocated = OffHeapConstants.SEGMENTS.get(addr);
+            if (allocated == null || index < 0 || (index * 8) > allocated) {
+                throw new RuntimeException("get: bad address " + index + "*8 in " + allocated);
+            }
+        }
+        return unsafe.getLongVolatile(null, addr + (index * 8));
     }
 
     public static void free(final long addr) {
@@ -94,10 +106,6 @@ public class OffHeapDoubleArray {
         return unsafe.compareAndSwapLong(null, addr + index * 8, expectedValue, updatedValue);
     }
 
-    public static void copy(final long srcAddr, final long destAddr, long numberOfElemsToCopy) {
-        unsafe.copyMemory(srcAddr, destAddr, numberOfElemsToCopy);
-    }
-
     public static long cloneArray(final long srcAddr, final long length) {
         if (srcAddr == OffHeapConstants.NULL_PTR) {
             return srcAddr;
@@ -106,7 +114,7 @@ public class OffHeapDoubleArray {
         if (OffHeapConstants.DEBUG_MODE) {
             OffHeapConstants.SEGMENTS.put(newAddr, (length * 8));
         }
-        unsafe.copyMemory(srcAddr, newAddr, length * 8);
+        unsafe.copyMemory(srcAddr, newAddr, (length * 8));
         return newAddr;
     }
 
@@ -114,43 +122,43 @@ public class OffHeapDoubleArray {
         if (addr == OffHeapConstants.NULL_PTR) {
             return;
         }
-        int rawSize = (int) OffHeapLongArray.get(addr, SIZE_INDEX);
-        Base64.encodeIntToBuffer(rawSize, buffer);
+        final long rawSize = POffHeapLongArray.get(addr, SIZE_INDEX);
+        Base64.encodeLongToBuffer(rawSize, buffer);
         for (int j = 0; j < rawSize; j++) {
             buffer.write(Constants.CHUNK_VAL_SEP);
-            Base64.encodeDoubleToBuffer(OffHeapDoubleArray.get(addr, j + SHIFT_INDEX), buffer);
+            Base64.encodeLongToBuffer(POffHeapLongArray.get(addr, j + SHIFT_INDEX), buffer);
         }
     }
 
-    public static double[] asObject(final long addr) {
+    public static long[] asObject(final long addr) {
         if (addr == OffHeapConstants.NULL_PTR) {
             return null;
         }
-        int doubleArrayLength = (int) OffHeapLongArray.get(addr, SIZE_INDEX);
-        double[] doubleArray = new double[doubleArrayLength];
-        for (int i = 0; i < doubleArrayLength; i++) {
-            doubleArray[i] = OffHeapDoubleArray.get(addr, i + SHIFT_INDEX);
+        int longArrayLength = (int) get(addr, SIZE_INDEX); // can be safely casted
+        long[] longArray = new long[longArrayLength];
+        for (int i = 0; i < longArrayLength; i++) {
+            longArray[i] = get(addr, i + SHIFT_INDEX);
         }
-        return doubleArray;
+        return longArray;
     }
 
-    public static long fromObject(double[] origin) {
-        long doubleArrayToInsert_ptr = OffHeapDoubleArray.allocate(SHIFT_INDEX + origin.length);
-        OffHeapLongArray.set(doubleArrayToInsert_ptr, SIZE_INDEX, origin.length);
-        OffHeapLongArray.set(doubleArrayToInsert_ptr, COW_INDEX, 1);
+    public static long fromObject(long[] origin) {
+        long longArrayToInsert_ptr = allocate(SHIFT_INDEX + origin.length);
+        set(longArrayToInsert_ptr, SIZE_INDEX, origin.length);
+        set(longArrayToInsert_ptr, COW_INDEX, 1);
         for (int i = 0; i < origin.length; i++) {
-            OffHeapDoubleArray.set(doubleArrayToInsert_ptr, SHIFT_INDEX + i, origin[i]);
+            set(longArrayToInsert_ptr, SHIFT_INDEX + i, origin[i]);
         }
-        return doubleArrayToInsert_ptr;
+        return longArrayToInsert_ptr;
     }
 
     public static long cloneObject(final long addr) {
         long cow;
         long cow_after;
         do {
-            cow = OffHeapLongArray.get(addr, COW_INDEX);
+            cow = get(addr, COW_INDEX);
             cow_after = cow + 1;
-        } while (!OffHeapLongArray.compareAndSwap(addr, COW_INDEX, cow, cow_after));
+        } while (!compareAndSwap(addr, COW_INDEX, cow, cow_after));
         return addr;
     }
 
@@ -158,15 +166,41 @@ public class OffHeapDoubleArray {
         long cow;
         long cow_after;
         do {
-            cow = OffHeapLongArray.get(addr, COW_INDEX);
+            cow = get(addr, COW_INDEX);
             cow_after = cow - 1;
-        } while (!OffHeapLongArray.compareAndSwap(addr, COW_INDEX, cow, cow_after));
+        } while (!compareAndSwap(addr, COW_INDEX, cow, cow_after));
         if (cow == 1 && cow_after == 0) {
-            unsafe.freeMemory(addr);
             if (OffHeapConstants.DEBUG_MODE) {
+                if (!OffHeapConstants.SEGMENTS.containsKey(addr)) {
+                    throw new RuntimeException("Bad ADDR!");
+                }
                 OffHeapConstants.SEGMENTS.remove(addr);
             }
+            unsafe.freeMemory(addr);
         }
     }
+
+    public static void fillLong(final long addr, final long beginIndex, final long endIndex, final long valueToInsert) {
+        if (OffHeapConstants.DEBUG_MODE) {
+            Long allocated = OffHeapConstants.SEGMENTS.get(addr);
+            if (allocated == null || endIndex < 0 || (endIndex * 8) > allocated) {
+                throw new RuntimeException("set: bad address " + endIndex + "(" + endIndex * 8 + ")" + " in " + allocated);
+            }
+        }
+        for (long index = beginIndex; index < endIndex; index++) {
+            unsafe.putLongVolatile(null, addr + index * 8, valueToInsert);
+        }
+    }
+
+    public static void fillByte(final long addr, final long beginIndex, final long endIndex, final byte valueToInsert) {
+        if (OffHeapConstants.DEBUG_MODE) {
+            Long allocated = OffHeapConstants.SEGMENTS.get(addr);
+            if (allocated == null || endIndex < 0 || (endIndex * 8) > allocated) {
+                throw new RuntimeException("set: bad address " + endIndex + "(" + endIndex * 8 + ")" + " in " + allocated);
+            }
+        }
+        unsafe.setMemory(addr + (beginIndex * 8), (endIndex - beginIndex) * 8, valueToInsert);
+    }
+
 
 }

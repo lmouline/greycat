@@ -20,10 +20,10 @@ import greycat.Container;
 import greycat.Graph;
 import greycat.Type;
 import greycat.internal.CoreConstants;
-import greycat.memory.primary.OffHeapDoubleArray;
-import greycat.memory.primary.OffHeapIntArray;
-import greycat.memory.primary.OffHeapLongArray;
-import greycat.memory.primary.OffHeapString;
+import greycat.memory.primary.POffHeapDoubleArray;
+import greycat.memory.primary.POffHeapIntArray;
+import greycat.memory.primary.POffHeapLongArray;
+import greycat.memory.primary.POffHeapString;
 import greycat.plugin.NodeStateCallback;
 import greycat.plugin.Resolver;
 import greycat.struct.*;
@@ -60,35 +60,35 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     private long allocate(final long addr, final long newCapacity) {
         if (addr == OffHeapConstants.NULL_PTR) {
             //nothing before, initial allocation...
-            final long new_addr = OffHeapLongArray.allocate(OFFSET + (newCapacity * ELEM_SIZE));
-            OffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
-            OffHeapLongArray.set(new_addr, DIRTY, 0);
-            OffHeapLongArray.set(new_addr, SIZE, 0);
+            final long new_addr = POffHeapLongArray.allocate(OFFSET + (newCapacity * ELEM_SIZE));
+            POffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
+            POffHeapLongArray.set(new_addr, DIRTY, 0);
+            POffHeapLongArray.set(new_addr, SIZE, 0);
             if (newCapacity > Constants.MAP_INITIAL_CAPACITY) {
-                OffHeapLongArray.set(new_addr, SUBHASH, OffHeapLongArray.allocate(newCapacity * 3));
+                POffHeapLongArray.set(new_addr, SUBHASH, POffHeapLongArray.allocate(newCapacity * 3));
             } else {
-                OffHeapLongArray.set(new_addr, SUBHASH, OffHeapConstants.NULL_PTR);
+                POffHeapLongArray.set(new_addr, SUBHASH, OffHeapConstants.NULL_PTR);
             }
             _eGraph.setAddrByIndex(index, new_addr);
             return new_addr;
 
         } else {
             //reallocation or overallocation
-            long previousCapacity = OffHeapLongArray.get(addr, CAPACITY);
+            long previousCapacity = POffHeapLongArray.get(addr, CAPACITY);
             if (previousCapacity < newCapacity) {
 //                long graphAddr = _eGraph.getAddr();
-                final long new_addr = OffHeapLongArray.reallocate(addr, OFFSET + (newCapacity * ELEM_SIZE));
-                OffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
-                long subHash_ptr = OffHeapLongArray.get(new_addr, SUBHASH);
+                final long new_addr = POffHeapLongArray.reallocate(addr, OFFSET + (newCapacity * ELEM_SIZE));
+                POffHeapLongArray.set(new_addr, CAPACITY, newCapacity);
+                long subHash_ptr = POffHeapLongArray.get(new_addr, SUBHASH);
                 if (subHash_ptr == OffHeapConstants.NULL_PTR) {
-                    subHash_ptr = OffHeapLongArray.allocate(newCapacity * 3);
+                    subHash_ptr = POffHeapLongArray.allocate(newCapacity * 3);
                 } else {
-                    subHash_ptr = OffHeapLongArray.reallocate(subHash_ptr, newCapacity * 3);
-                    OffHeapLongArray.reset(subHash_ptr, newCapacity * 3);
+                    subHash_ptr = POffHeapLongArray.reallocate(subHash_ptr, newCapacity * 3);
+                    POffHeapLongArray.reset(subHash_ptr, newCapacity * 3);
                 }
-                OffHeapLongArray.set(new_addr, SUBHASH, subHash_ptr);
+                POffHeapLongArray.set(new_addr, SUBHASH, subHash_ptr);
                 //reHash
-                final long size = OffHeapLongArray.get(new_addr, SIZE);
+                final long size = POffHeapLongArray.get(new_addr, SIZE);
                 final long hash_capacity = newCapacity * 2;
                 for (long i = 0; i < size; i++) {
                     long keyHash = key(new_addr, i) % hash_capacity;
@@ -109,60 +109,60 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     @Override
     public void declareDirty() {
         long addr = _eGraph.addrByIndex(index);
-        long dirty = OffHeapLongArray.get(addr, DIRTY);
+        long dirty = POffHeapLongArray.get(addr, DIRTY);
         if (dirty == 0) {
-            OffHeapLongArray.set(addr, DIRTY, 1);
+            POffHeapLongArray.set(addr, DIRTY, 1);
             _eGraph.declareDirty();
         }
     }
 
     private static long value(final long addr, final long index) {
-        return OffHeapLongArray.get(addr, OFFSET + (index * ELEM_SIZE) + 2);
+        return POffHeapLongArray.get(addr, OFFSET + (index * ELEM_SIZE) + 2);
     }
 
     private static void setValue(final long addr, final long index, final long insertValue) {
-        OffHeapLongArray.set(addr, OFFSET + (index * ELEM_SIZE) + 2, insertValue);
+        POffHeapLongArray.set(addr, OFFSET + (index * ELEM_SIZE) + 2, insertValue);
     }
 
     private static long key(final long addr, final long index) {
-        return OffHeapLongArray.get(addr, OFFSET + (index * ELEM_SIZE));
+        return POffHeapLongArray.get(addr, OFFSET + (index * ELEM_SIZE));
     }
 
     private static void setKey(final long addr, final long index, final long insertKey) {
-        OffHeapLongArray.set(addr, OFFSET + (index * ELEM_SIZE), insertKey);
+        POffHeapLongArray.set(addr, OFFSET + (index * ELEM_SIZE), insertKey);
     }
 
 
     private static long next(final long hashAddr, final long index) {
-        return OffHeapLongArray.get(hashAddr, index);
+        return POffHeapLongArray.get(hashAddr, index);
     }
 
     private static void setNext(final long hashAddr, final long index, final long insertNext) {
-        OffHeapLongArray.set(hashAddr, index, insertNext);
+        POffHeapLongArray.set(hashAddr, index, insertNext);
     }
 
     private static long hash(final long hashAddr, final long capacity, final long index) {
-        return OffHeapLongArray.get(hashAddr, capacity + index);
+        return POffHeapLongArray.get(hashAddr, capacity + index);
     }
 
     private static void setHash(final long hashAddr, final long capacity, final long index, final long insertHash) {
-        OffHeapLongArray.set(hashAddr, capacity + index, insertHash);
+        POffHeapLongArray.set(hashAddr, capacity + index, insertHash);
     }
 
     private static byte type(final long addr, final long index) {
-        return (byte) OffHeapLongArray.get(addr, OFFSET + (index * ELEM_SIZE) + 1);
+        return (byte) POffHeapLongArray.get(addr, OFFSET + (index * ELEM_SIZE) + 1);
     }
 
     private static void setType(final long addr, final long index, final long insertType) {
-        OffHeapLongArray.set(addr, OFFSET + (index * ELEM_SIZE) + 1, insertType);
+        POffHeapLongArray.set(addr, OFFSET + (index * ELEM_SIZE) + 1, insertType);
     }
 
     private static double doubleValue(final long addr, final long index) {
-        return OffHeapDoubleArray.get(addr, OFFSET + (index * ELEM_SIZE) + 2);
+        return POffHeapDoubleArray.get(addr, OFFSET + (index * ELEM_SIZE) + 2);
     }
 
     private static void setDoubleValue(final long addr, final long index, final double insertValue) {
-        OffHeapDoubleArray.set(addr, OFFSET + (index * ELEM_SIZE) + 2, insertValue);
+        POffHeapDoubleArray.set(addr, OFFSET + (index * ELEM_SIZE) + 2, insertValue);
     }
 
     @Override
@@ -180,9 +180,9 @@ public class OffHeapENode implements ENode, OffHeapContainer {
         long entry = -1;
         long prev_entry = -1;
         long hashIndex = -1;
-        long size = OffHeapLongArray.get(addr, SIZE);
-        long capacity = OffHeapLongArray.get(addr, CAPACITY);
-        long subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
+        long size = POffHeapLongArray.get(addr, SIZE);
+        long capacity = POffHeapLongArray.get(addr, CAPACITY);
+        long subhash_ptr = POffHeapLongArray.get(addr, SUBHASH);
         if (subhash_ptr == OffHeapConstants.NULL_PTR) {
             for (int i = 0; i < size; i++) {
                 if (key(addr, i) == p_key) {
@@ -265,7 +265,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                         setValue(addr, indexVictim, OffHeapConstants.NULL_PTR);
                         setType(addr, indexVictim, OffHeapConstants.NULL_PTR);
                     }
-                    OffHeapLongArray.set(addr, SIZE, size - 1);
+                    POffHeapLongArray.set(addr, SIZE, size - 1);
                 } else {
                     final long previous_value = value(addr, entry);
                     //freeThePreviousValue
@@ -287,7 +287,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
         if (size >= capacity) {
             long newCapacity = capacity * 2;
             addr = allocate(addr, newCapacity);
-            subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
+            subhash_ptr = POffHeapLongArray.get(addr, SUBHASH);
             capacity = newCapacity;
             hashIndex = p_key % (capacity * 2);
             if (hashIndex < 0) {
@@ -307,7 +307,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             setHash(subhash_ptr, capacity, hashIndex, insert_index);
         }
         size++;
-        OffHeapLongArray.set(addr, SIZE, size);
+        POffHeapLongArray.set(addr, SIZE, size);
         if (!initial) {
             declareDirty();
         }
@@ -354,16 +354,16 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                         }
                         break;
                     case Type.STRING:
-                        param_elem = OffHeapString.fromObject((String) p_unsafe_elem);
+                        param_elem = POffHeapString.fromObject((String) p_unsafe_elem);
                         break;
                     case Type.DOUBLE_ARRAY:
-                        param_elem = OffHeapDoubleArray.fromObject((double[]) p_unsafe_elem);
+                        param_elem = POffHeapDoubleArray.fromObject((double[]) p_unsafe_elem);
                         break;
                     case Type.LONG_ARRAY:
-                        param_elem = OffHeapLongArray.fromObject((long[]) p_unsafe_elem);
+                        param_elem = POffHeapLongArray.fromObject((long[]) p_unsafe_elem);
                         break;
                     case Type.INT_ARRAY:
-                        param_elem = OffHeapIntArray.fromObject((int[]) p_unsafe_elem);
+                        param_elem = POffHeapIntArray.fromObject((int[]) p_unsafe_elem);
                         break;
                     case Type.ENODE:
                         param_elem = ((OffHeapENode) p_unsafe_elem).index;
@@ -432,7 +432,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
         if (addr == OffHeapConstants.NULL_PTR) {
             addr = allocate(addr, Constants.MAP_INITIAL_CAPACITY);
         }
-        long size = OffHeapLongArray.get(addr, SIZE);
+        long size = POffHeapLongArray.get(addr, SIZE);
         //empty chunk, we return immediately
         if (size == 0) {
             return null;
@@ -451,13 +451,13 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                 case Type.INT:
                     return (int) rawValue;
                 case Type.STRING:
-                    return OffHeapString.asObject(rawValue);
+                    return POffHeapString.asObject(rawValue);
                 case Type.DOUBLE_ARRAY:
-                    return OffHeapDoubleArray.asObject(rawValue);
+                    return POffHeapDoubleArray.asObject(rawValue);
                 case Type.LONG_ARRAY:
-                    return OffHeapLongArray.asObject(rawValue);
+                    return POffHeapLongArray.asObject(rawValue);
                 case Type.INT_ARRAY:
-                    return OffHeapIntArray.asObject(rawValue);
+                    return POffHeapIntArray.asObject(rawValue);
                 case Type.RELATION:
                     return new OffHeapRelation(this, index);
                 case Type.ERELATION:
@@ -491,8 +491,8 @@ public class OffHeapENode implements ENode, OffHeapContainer {
         if(addr == OffHeapConstants.NULL_PTR){
             return OffHeapConstants.NULL_PTR;
         }
-        final long size = OffHeapLongArray.get(addr, SIZE);
-        final long subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
+        final long size = POffHeapLongArray.get(addr, SIZE);
+        final long subhash_ptr = POffHeapLongArray.get(addr, SUBHASH);
         if (size == 0) {
             return -1;
         } else if (subhash_ptr == OffHeapConstants.NULL_PTR) {
@@ -503,7 +503,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             }
             return -1;
         } else {
-            final long capacity = OffHeapLongArray.get(addr, CAPACITY);
+            final long capacity = POffHeapLongArray.get(addr, CAPACITY);
             long hashIndex = p_key % (capacity * 2);
             if (hashIndex < 0) {
                 hashIndex = hashIndex * -1;
@@ -581,7 +581,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     @Override
     public Object getOrCreateAt(int key, byte type) {
         long addr = _eGraph.addrByIndex(index);
-        long index = OffHeapLongArray.get(addr, SIZE);
+        long index = POffHeapLongArray.get(addr, SIZE);
         long found = internal_find(key);
         if (found != -1) {
             Object elem = internal_get(key);
@@ -633,7 +633,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     @Override
     public void each(NodeStateCallback callBack) {
         long addr = _eGraph.addrByIndex(index);
-        long size = OffHeapLongArray.get(addr, SIZE);
+        long size = POffHeapLongArray.get(addr, SIZE);
         for (long i = 0; i < size; i++) {
             if (value(addr, i) != OffHeapConstants.NULL_PTR) {
                 long key = key(addr, i);
@@ -648,11 +648,11 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     @Override
     public ENode clear() {
         long addr = _eGraph.addrByIndex(index);
-        long subhash = OffHeapLongArray.get(addr, SUBHASH);
-        long size = OffHeapLongArray.get(addr, SIZE);
-        OffHeapLongArray.set(addr, CAPACITY, 0);
-        OffHeapLongArray.set(addr, SIZE, 0);
-        OffHeapLongArray.set(addr, SUBHASH, OffHeapConstants.NULL_PTR);
+        long subhash = POffHeapLongArray.get(addr, SUBHASH);
+        long size = POffHeapLongArray.get(addr, SIZE);
+        POffHeapLongArray.set(addr, CAPACITY, 0);
+        POffHeapLongArray.set(addr, SIZE, 0);
+        POffHeapLongArray.set(addr, SUBHASH, OffHeapConstants.NULL_PTR);
         for (long i = 0; i < size; i++) {
             freeElement(value(addr, i), type(addr, i));
             setKey(addr, i, OffHeapConstants.NULL_PTR);
@@ -660,10 +660,10 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             setType(addr, i, OffHeapConstants.NULL_PTR);
         }
         if (subhash != OffHeapConstants.NULL_PTR) {
-            OffHeapLongArray.free(subhash);
-            OffHeapLongArray.set(addr, SUBHASH, OffHeapConstants.NULL_PTR);
+            POffHeapLongArray.free(subhash);
+            POffHeapLongArray.set(addr, SUBHASH, OffHeapConstants.NULL_PTR);
         }
-        OffHeapLongArray.free(addr);
+        POffHeapLongArray.free(addr);
         return this;
     }
 
@@ -685,7 +685,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
 
     /*
     static void rebase(long addr, long eGraphAddr) {
-        long size = OffHeapLongArray.get(addr, SIZE);
+        long size = POffHeapLongArray.get(addr, SIZE);
         for (int i = 0; i < size; i++) {
             int type = type(addr, i);
             switch (type) {
@@ -705,8 +705,8 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     @SuppressWarnings("Duplicates")
     static void free(long addr) {
         if (addr != OffHeapConstants.NULL_PTR) {
-            final long subhash_ptr = OffHeapLongArray.get(addr, SUBHASH);
-            final long size = OffHeapLongArray.get(addr, SIZE);
+            final long subhash_ptr = POffHeapLongArray.get(addr, SUBHASH);
+            final long size = POffHeapLongArray.get(addr, SIZE);
             for (long i = 0; i < size; i++) {
                 long value = value(addr, i);
                 byte type = type(addr, i);
@@ -715,9 +715,9 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                 }
             }
             if (subhash_ptr != OffHeapConstants.NULL_PTR) {
-                OffHeapLongArray.free(subhash_ptr);
+                POffHeapLongArray.free(subhash_ptr);
             }
-            OffHeapLongArray.free(addr);
+            POffHeapLongArray.free(addr);
         }
     }
 
@@ -731,10 +731,10 @@ public class OffHeapENode implements ENode, OffHeapContainer {
             case Type.DOUBLE:
                 break;
             case Type.STRING:
-                OffHeapString.free(addr);
+                POffHeapString.free(addr);
                 break;
             case Type.DOUBLE_ARRAY:
-                OffHeapDoubleArray.freeObject(addr);
+                POffHeapDoubleArray.freeObject(addr);
                 break;
             case Type.RELATION:
                 OffHeapRelation.free(addr);
@@ -748,10 +748,10 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                 OffHeapLMatrix.free(addr);
                 break;
             case Type.LONG_ARRAY:
-                OffHeapLongArray.freeObject(addr);
+                POffHeapLongArray.freeObject(addr);
                 break;
             case Type.INT_ARRAY:
-                OffHeapIntArray.freeObject(addr);
+                POffHeapIntArray.freeObject(addr);
                 break;
             case Type.STRING_TO_INT_MAP:
                 OffHeapStringIntMap.free(addr);
@@ -772,7 +772,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
         final StringBuilder builder = new StringBuilder();
         final boolean[] isFirst = {true};
         boolean isFirstField = true;
-        long size = OffHeapLongArray.get(addr, SIZE);
+        long size = POffHeapLongArray.get(addr, SIZE);
         builder.append("{");
         for (int i = 0; i < size; i++) {
             final long elem = value(addr, i);
@@ -806,7 +806,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("\"");
-                        builder.append(OffHeapString.asObject(elem));
+                        builder.append(POffHeapString.asObject(elem));
                         builder.append("\"");
                         break;
                     }
@@ -838,7 +838,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("[");
-                        double[] castedArr = OffHeapDoubleArray.asObject(elem);
+                        double[] castedArr = POffHeapDoubleArray.asObject(elem);
                         for (int j = 0; j < castedArr.length; j++) {
                             if (j != 0) {
                                 builder.append(",");
@@ -883,7 +883,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("[");
-                        long[] castedArr2 = OffHeapLongArray.asObject(elem);
+                        long[] castedArr2 = POffHeapLongArray.asObject(elem);
                         for (int j = 0; j < castedArr2.length; j++) {
                             if (j != 0) {
                                 builder.append(",");
@@ -898,7 +898,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("[");
-                        int[] castedArr3 = OffHeapIntArray.asObject(elem);
+                        int[] castedArr3 = POffHeapIntArray.asObject(elem);
                         for (int j = 0; j < castedArr3.length; j++) {
                             if (j != 0) {
                                 builder.append(",");
@@ -1004,7 +1004,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
     @SuppressWarnings("Duplicates")
     final void save(final Buffer buffer) {
         final long addr = _eGraph.addrByIndex(index);
-        int size = (int) OffHeapLongArray.get(addr, SIZE);
+        int size = (int) POffHeapLongArray.get(addr, SIZE);
         Base64.encodeIntToBuffer(size, buffer);
         for (int i = 0; i < size; i++) {
             if (value(addr, i) != OffHeapConstants.NULL_PTR) { //there is a real value
@@ -1031,7 +1031,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                             break;
                         //common types
                         case Type.STRING:
-                            OffHeapString.save(loopValue, buffer);
+                            POffHeapString.save(loopValue, buffer);
                             break;
                         case Type.BOOL:
                             if (loopValue == 1) {
@@ -1050,16 +1050,16 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                             Base64.encodeIntToBuffer((int) loopValue, buffer);
                             break;
                         case Type.DOUBLE_ARRAY:
-                            OffHeapDoubleArray.save(loopValue, buffer);
+                            POffHeapDoubleArray.save(loopValue, buffer);
                             break;
                         case Type.RELATION:
                             OffHeapRelation.save(loopValue, buffer);
                             break;
                         case Type.LONG_ARRAY:
-                            OffHeapLongArray.save(loopValue, buffer);
+                            POffHeapLongArray.save(loopValue, buffer);
                             break;
                         case Type.INT_ARRAY:
-                            OffHeapIntArray.save(loopValue, buffer);
+                            POffHeapIntArray.save(loopValue, buffer);
                             break;
                         case Type.DMATRIX:
                             OffHeapDMatrix.save(loopValue, buffer);
@@ -1083,7 +1083,7 @@ public class OffHeapENode implements ENode, OffHeapContainer {
                 }
             }
         }
-        OffHeapLongArray.set(addr, DIRTY, 0);
+        POffHeapLongArray.set(addr, DIRTY, 0);
     }
 
 

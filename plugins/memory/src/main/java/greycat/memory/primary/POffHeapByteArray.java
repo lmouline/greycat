@@ -18,7 +18,7 @@ package greycat.memory.primary;
 import greycat.memory.OffHeapConstants;
 import greycat.utility.Unsafe;
 
-public class OffHeapByteArray {
+public class POffHeapByteArray {
 
     private static final sun.misc.Unsafe unsafe = Unsafe.getUnsafe();
 
