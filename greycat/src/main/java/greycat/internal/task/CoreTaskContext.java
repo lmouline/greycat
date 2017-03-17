@@ -418,12 +418,12 @@ class CoreTaskContext implements TaskContext {
                     globalHooks[i].beforeAction(nextAction, this);
                 }
             }
-            final int previousCursot = cursor;
+            final int previousCursor = cursor;
             try {
                 nextAction.eval(this);
             } catch (Exception e) {
-                if (cursor == previousCursot) {
-                    endTask(null, e);
+                if (cursor == previousCursor) {
+                    endTask(null, new RuntimeException("Exception during evaluation of in task: " + nextAction.toString()+ "\n" + e.toString()));
                 } else {
                     e.printStackTrace();
                 }
