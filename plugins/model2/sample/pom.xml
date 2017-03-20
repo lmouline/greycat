@@ -27,7 +27,7 @@
 
     <properties>
         <kmf.version>1</kmf.version>
-        <mwg.version>6-SNAPSHOT</mwg.version>
+        <mwg.version>5-SNAPSHOT</mwg.version>
     </properties>
 
     <build>
