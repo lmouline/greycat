@@ -8,8 +8,12 @@ For any questions please contact us via our Gitter:
 
 # Changelog
 
-## Version 5 (planned for 17/03/2017) 
-    - 
+## Version 6 (27/03/2017)
+
+## Version 5 (20/03/2017) 
+    - New API for Arrays (now defined as complex sub objects such as Map or Relationships)
+    - New Proxy approach to seamlessly manage temporal semantic of complex objects (Relationships...)
+    - Temporary desactivation of OffHeap module (some bug remaining before the release)
 
 ## Version 4 (13/03/17)
     - Replaced declaration() in ActionRegistry and NodeRegistry by getOrCreateDeclaration. declaration() now acts like a simple get.
