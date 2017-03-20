@@ -65,9 +65,9 @@ public abstract class BaseMLNode extends BaseNode {
             String[] split = query.split(FROM_SEPARATOR);
             Task[] tasks = new Task[split.length];
             for (int i = 0; i < split.length; i++) {
-                Task t = newTask().then(travelInWorld("" + world()));
+                Task t = newTask().travelInWorld("" + world());
                 t.then(CoreActions.travelInTime(time() + ""));
-                t.parse(split[i].trim(),graph());
+                t.parse(split[i].trim(), graph());
                 tasks[i] = t;
             }
             //END TODO IN CACHE
