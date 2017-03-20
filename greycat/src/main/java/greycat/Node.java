@@ -186,6 +186,27 @@ public interface Node extends Container {
      */
     <A extends Node> void travelInTime(long targetTime, Callback<A> callback);
 
+    /**
+     * Travels this object in time.
+     * This method is equivalent to a call to lookup with the same ID than the current Node.
+     *
+     * @param targetWorld target world selectWhere this node hasField to be resolved.
+     * @param callback    Called whe the travelInTime is complete. Gives the new timed node in parameter.
+     * @param <A>         Generic parameter that define the type of the result, should be a sub-type of Node
+     */
+    <A extends Node> void travelInWorld(long targetWorld, Callback<A> callback);
+
+    /**
+     * Travels this object in world and time.
+     * This method is equivalent to a call to lookup with the same ID than the current Node.
+     *
+     * @param targetTime  target time selectWhere this node hasField to be resolved.
+     * @param targetWorld target world selectWhere this node hasField to be resolved.
+     * @param callback    Called whe the travelInTime is complete. Gives the new timed node in parameter.
+     * @param <A>         Generic parameter that define the type of the result, should be a sub-type of Node
+     */
+    <A extends Node> void travel(long targetWorld, long targetTime, Callback<A> callback);
+
     /*
     long initialTime();
 

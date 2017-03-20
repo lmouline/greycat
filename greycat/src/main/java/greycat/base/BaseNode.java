@@ -542,6 +542,16 @@ public class BaseNode implements Node {
     }
 
     @Override
+    public <A extends Node> void travelInWorld(final long targetWorld, final Callback<A> callback) {
+        _resolver.lookup(targetWorld, _time, _id, callback);
+    }
+
+    @Override
+    public <A extends Node> void travel(long targetWorld, long targetTime, Callback<A> callback) {
+        _resolver.lookup(targetWorld, targetTime, _id, callback);
+    }
+
+    @Override
     public final Node setTimeSensitivity(long deltaTime, long offset) {
         _resolver.setTimeSensitivity(this, deltaTime, offset);
         return this;

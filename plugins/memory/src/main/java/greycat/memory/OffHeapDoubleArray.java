@@ -164,7 +164,7 @@ public class OffHeapDoubleArray implements DoubleArray {
         byte current = buffer.read(cursor);
         boolean isFirst = true;
         long previous = offset;
-        int elemIndex = 0;
+        int elemIndex = SHIFT;
         long addr = -1;
         while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
             if (current == Constants.CHUNK_VAL_SEP) {

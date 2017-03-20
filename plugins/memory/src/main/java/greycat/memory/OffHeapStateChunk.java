@@ -452,13 +452,16 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                             Base64.encodeIntToBuffer((int) rawValue, buffer);
                             break;
                         case Type.DOUBLE_ARRAY:
-                            POffHeapDoubleArray.save(rawValue, buffer);
+                            OffHeapDoubleArray.save(rawValue, buffer);
                             break;
                         case Type.LONG_ARRAY:
-                            POffHeapLongArray.save(rawValue, buffer);
+                            OffHeapLongArray.save(rawValue, buffer);
                             break;
                         case Type.INT_ARRAY:
-                            POffHeapIntArray.save(rawValue, buffer);
+                            OffHeapIntArray.save(rawValue, buffer);
+                            break;
+                        case Type.STRING_ARRAY:
+                            OffHeapStringArray.save(rawValue, buffer);
                             break;
                         case Type.RELATION:
                             OffHeapRelation.save(rawValue, buffer);
@@ -545,19 +548,17 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                     for (int i = 0; i < castedSize; i++) {
                         switch (type(castedAddr, i)) {
                             case Type.LONG_ARRAY:
-                                POffHeapLongArray.cloneObject(value(castedAddr, i));
+                                OffHeapLongArray.clone(value(castedAddr, i));
                                 break;
-                                /*
                             case Type.DOUBLE_ARRAY:
-                                POffHeapDoubleArray.cloneObject(value(castedAddr, i));
+                                OffHeapDoubleArray.clone(value(castedAddr, i));
                                 break;
                             case Type.INT_ARRAY:
-                                POffHeapIntArray.cloneObject(value(castedAddr, i));
+                                OffHeapIntArray.clone(value(castedAddr, i));
                                 break;
                             case Type.STRING_ARRAY:
-                                POffHeapStringArray.cloneObject(value(castedAddr, i));
+                                OffHeapStringArray.clone(value(castedAddr, i));
                                 break;
-                                */
                             case Type.STRING:
                                 POffHeapString.clone(value(castedAddr, i));
                                 break;
@@ -922,99 +923,57 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                                         cursor++;
                                         previous = cursor;
                                         break;
-                                    //arrays
-                                    case Type.DOUBLE_ARRAY:
-                                        double[] doubleArrayLoaded = null;
-                                        int doubleArrayIndex = 0;
-                                        cursor++;
-                                        previous = cursor;
-                                        current = buffer.read(cursor);
-                                        while (cursor < payloadSize && current != Constants.CHUNK_SEP) {
-                                            if (current == Constants.CHUNK_VAL_SEP) {
-                                                if (doubleArrayLoaded == null) {
-                                                    doubleArrayLoaded = new double[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                                } else {
-                                                    doubleArrayLoaded[doubleArrayIndex] = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
-                                                    doubleArrayIndex++;
-                                                }
-                                                previous = cursor + 1;
-                                            }
-                                            cursor++;
-                                            if (cursor < payloadSize) {
-                                                current = buffer.read(cursor);
-                                            }
-                                        }
-                                        if (doubleArrayLoaded == null) {
-                                            doubleArrayLoaded = new double[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                        } else {
-                                            doubleArrayLoaded[doubleArrayIndex] = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
-                                        }
-                                        internal_set(read_key, read_type, doubleArrayLoaded, true, initial);
-                                        state = LOAD_WAITING_TYPE;
-                                        cursor++;
-                                        previous = cursor;
-                                        break;
                                     case Type.LONG_ARRAY:
-                                        long[] longArrayLoaded = null;
-                                        int longArrayIndex = 0;
+                                        OffHeapLongArray longArray = new OffHeapLongArray(this, internal_set(read_key, read_type, null, true, initial));
                                         cursor++;
-                                        previous = cursor;
-                                        current = buffer.read(cursor);
-                                        while (cursor < payloadSize && current != Constants.CHUNK_SEP) {
-                                            if (current == Constants.CHUNK_VAL_SEP) {
-                                                if (longArrayLoaded == null) {
-                                                    longArrayLoaded = new long[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                                } else {
-                                                    longArrayLoaded[longArrayIndex] = Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                                                    longArrayIndex++;
-                                                }
-                                                previous = cursor + 1;
-                                            }
-                                            cursor++;
-                                            if (cursor < payloadSize) {
-                                                current = buffer.read(cursor);
+                                        cursor = longArray.load(buffer, cursor, payloadSize);
+                                        if (cursor < payloadSize) {
+                                            current = buffer.read(cursor);
+                                            if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                state = LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
                                             }
                                         }
-                                        if (longArrayLoaded == null) {
-                                            longArrayLoaded = new long[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                        } else {
-                                            longArrayLoaded[longArrayIndex] = Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                                        }
-                                        internal_set(read_key, read_type, longArrayLoaded, true, initial);
-                                        state = LOAD_WAITING_TYPE;
+                                        break;
+                                    case Type.DOUBLE_ARRAY:
+                                        OffHeapDoubleArray doubleArray = new OffHeapDoubleArray(this, internal_set(read_key, read_type, null, true, initial));
                                         cursor++;
-                                        previous = cursor;
+                                        cursor = doubleArray.load(buffer, cursor, payloadSize);
+                                        if (cursor < payloadSize) {
+                                            current = buffer.read(cursor);
+                                            if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                state = LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                            }
+                                        }
                                         break;
                                     case Type.INT_ARRAY:
-                                        int[] intArrayLoaded = null;
-                                        int intArrayIndex = 0;
+                                        OffHeapIntArray intArray = new OffHeapIntArray(this, internal_set(read_key, read_type, null, true, initial));
                                         cursor++;
-                                        previous = cursor;
-                                        current = buffer.read(cursor);
-                                        while (cursor < payloadSize && current != Constants.CHUNK_SEP) {
-                                            if (current == Constants.CHUNK_VAL_SEP) {
-                                                if (intArrayLoaded == null) {
-                                                    intArrayLoaded = new int[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                                } else {
-                                                    intArrayLoaded[intArrayIndex] = Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                                                    intArrayIndex++;
-                                                }
-                                                previous = cursor + 1;
-                                            }
-                                            cursor++;
-                                            if (cursor < payloadSize) {
-                                                current = buffer.read(cursor);
+                                        cursor = intArray.load(buffer, cursor, payloadSize);
+                                        if (cursor < payloadSize) {
+                                            current = buffer.read(cursor);
+                                            if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                state = LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
                                             }
                                         }
-                                        if (intArrayLoaded == null) {
-                                            intArrayLoaded = new int[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                        } else {
-                                            intArrayLoaded[intArrayIndex] = Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                                        }
-                                        internal_set(read_key, read_type, intArrayLoaded, true, initial);
-                                        state = LOAD_WAITING_TYPE;
+                                        break;
+                                    case Type.STRING_ARRAY:
+                                        OffHeapStringArray stringArray = new OffHeapStringArray(this, internal_set(read_key, read_type, null, true, initial));
                                         cursor++;
-                                        previous = cursor;
+                                        cursor = stringArray.load(buffer, cursor, payloadSize);
+                                        if (cursor < payloadSize) {
+                                            current = buffer.read(cursor);
+                                            if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                state = LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                            }
+                                        }
                                         break;
                                     case Type.RELATION:
                                         OffHeapRelation relation = new OffHeapRelation(this, internal_set(read_key, read_type, null, true, initial));
@@ -1190,9 +1149,6 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
             case Type.STRING:
                 POffHeapString.free(addr);
                 break;
-            case Type.DOUBLE_ARRAY:
-                POffHeapDoubleArray.freeObject(addr);
-                break;
             case Type.RELATION:
                 OffHeapRelation.free(addr);
                 break;
@@ -1203,10 +1159,16 @@ class OffHeapStateChunk implements StateChunk, OffHeapContainer {
                 OffHeapLMatrix.free(addr);
                 break;
             case Type.LONG_ARRAY:
-                POffHeapLongArray.freeObject(addr);
+                OffHeapLongArray.free(addr);
                 break;
             case Type.INT_ARRAY:
-                POffHeapIntArray.freeObject(addr);
+                OffHeapIntArray.free(addr);
+                break;
+            case Type.DOUBLE_ARRAY:
+                OffHeapDoubleArray.free(addr);
+                break;
+            case Type.STRING_ARRAY:
+                OffHeapStringArray.free(addr);
                 break;
             case Type.STRING_TO_INT_MAP:
                 OffHeapStringIntMap.free(addr);

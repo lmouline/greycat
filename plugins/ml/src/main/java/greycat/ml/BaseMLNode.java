@@ -22,7 +22,6 @@ import greycat.plugin.Job;
 
 import static greycat.Tasks.emptyResult;
 import static greycat.Tasks.newTask;
-import static greycat.internal.task.CoreActions.travelInWorld;
 
 public abstract class BaseMLNode extends BaseNode {
 
