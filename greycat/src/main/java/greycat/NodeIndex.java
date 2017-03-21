@@ -31,4 +31,6 @@ public interface NodeIndex extends Node {
 
     void findByQuery(Query query, Callback<Node[]> callback);
 
+    long[] select(String... params);
+
 }

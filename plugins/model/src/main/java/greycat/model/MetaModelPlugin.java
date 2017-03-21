@@ -20,11 +20,13 @@ import greycat.Node;
 import greycat.plugin.NodeFactory;
 import greycat.plugin.Plugin;
 
-public class ModelPlugin implements Plugin {
+public class MetaModelPlugin implements Plugin {
+
+    public static final String INDEXES = "metaClasses";
 
     @Override
     public final void start(final Graph graph) {
-        graph.nodeRegistry().declaration(MetaClass.NAME).setFactory(new NodeFactory() {
+        graph.nodeRegistry().getOrCreateDeclaration(MetaClass.NAME).setFactory(new NodeFactory() {
             @Override
             public Node create(final long world, final long time, final long id, final Graph graph) {
                 return new MetaClass(world, time, id, graph);
