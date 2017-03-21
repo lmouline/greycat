@@ -62,21 +62,28 @@
                         <configuration>
                             <source>
                                 def ant = new AntBuilder()
+                                ant.echo("install greycat")
                                 def installGreyCatProcess = "npm install ${basedir}/../../greycat/target/classes-npm".execute(null, new File("${basedir}/src/main/web"))
                                 installGreyCatProcess.waitForProcessOutput(System.out, System.err)
                                 if (installGreyCatProcess.exitValue() != 0) {
                                     exit
                                 }
+
+                                ant.echo("install websocket")
                                 def installGreyCatWSProcess = "npm install ${basedir}/../websocket/target/classes-npm".execute(null, new File("${basedir}/src/main/web"))
                                 installGreyCatWSProcess.waitForProcessOutput(System.out, System.err)
                                 if (installGreyCatWSProcess.exitValue() != 0) {
                                     exit
                                 }
+
+                                ant.echo("install ml")
                                 def installGreyCatMLProcess = "npm install ${basedir}/../ml/target/classes-npm".execute(null, new File("${basedir}/src/main/web"))
                                 installGreyCatMLProcess.waitForProcessOutput(System.out, System.err)
                                 if (installGreyCatMLProcess.exitValue() != 0) {
                                     exit
                                 }
+
+                                ant.echo("install")
                                 def installProcess = "npm install".execute(null, new File("${basedir}/src/main/web"))
                                 installProcess.waitForProcessOutput(System.out, System.err)
                                 if (installProcess.exitValue() != 0) {
