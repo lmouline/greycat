@@ -98,19 +98,6 @@
                             </source>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>main.ts.clean</id>
-                        <phase>clean</phase>
-                        <goals>
-                            <goal>execute</goal>
-                        </goals>
-                        <configuration>
-                            <source>
-                                def ant = new AntBuilder()
-                                ant.delete(dir:"${basedir}/src/main/web/node_modules",failonerror:true)
-                            </source>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
         </plugins>
