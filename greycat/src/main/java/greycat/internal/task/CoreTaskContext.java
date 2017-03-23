@@ -374,6 +374,30 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
+    public int intResult() {
+        if (_result != null && _result.size() > 0) {
+            return (int) _result.get(0);
+        }
+        return -1;
+    }
+
+    @Override
+    public double doubleResult() {
+        if (_result != null && _result.size() > 0) {
+            return (double) _result.get(0);
+        }
+        return -1;
+    }
+
+    @Override
+    public long longResult() {
+        if (_result != null && _result.size() > 0) {
+            return (long) _result.get(0);
+        }
+        return -1;
+    }
+
+    @Override
     public final void continueWith(TaskResult nextResult) {
         final TaskResult previousResult = this._result;
         if (previousResult != null && previousResult != nextResult) {
@@ -423,7 +447,7 @@ class CoreTaskContext implements TaskContext {
                 nextAction.eval(this);
             } catch (Exception e) {
                 if (cursor == previousCursor) {
-                    endTask(null, new RuntimeException("Exception during evaluation of in task: " + nextAction.toString()+ "\n" + e.toString()));
+                    endTask(null, new RuntimeException("Exception during evaluation of in task: " + nextAction.toString() + "\n" + e.toString()));
                 } else {
                     e.printStackTrace();
                 }

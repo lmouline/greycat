@@ -68,6 +68,12 @@ public interface TaskContext {
 
     TaskResult<String> resultAsStrings();
 
+    int intResult();
+
+    double doubleResult();
+
+    long longResult();
+
     void continueTask();
 
     void continueWith(TaskResult nextResult);
