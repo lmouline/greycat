@@ -17,7 +17,7 @@ package greycat.ml.math;
 
 public class Gaussian1D {
 
-    public static double getCovariance(double sum, double sumSq, int total) {
+    public static double getCovariance(double sum, double sumSq, long total) {
         return (sumSq - (sum * sum) / total) / (total - 1);
     }
 
