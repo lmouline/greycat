@@ -15,7 +15,6 @@
  */
 package greycat.ml.profiling;
 
-import greycat.Constants;
 import greycat.Node;
 import greycat.Type;
 import greycat.ml.math.Gaussian1D;
@@ -47,8 +46,8 @@ public class Gaussian {
 
 
         long total = host.getWithDefault(TOTAL, 0L) + 1;
-        double sum = host.getWithDefault(SUM, 0) + value;
-        double sumsq = host.getWithDefault(SUMSQ, 0) + value * value;
+        double sum = host.getWithDefault(SUM, 0.0) + value;
+        double sumsq = host.getWithDefault(SUMSQ, 0.0) + value * value;
 
 
         host.set(TOTAL, Type.LONG, total);
