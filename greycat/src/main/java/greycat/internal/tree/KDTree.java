@@ -16,10 +16,7 @@
 package greycat.internal.tree;
 
 import greycat.Type;
-import greycat.struct.EGraph;
-import greycat.struct.ENode;
-import greycat.struct.Tree;
-import greycat.struct.TreeResult;
+import greycat.struct.*;
 import greycat.utility.distance.Distance;
 import greycat.utility.distance.Distances;
 
@@ -77,7 +74,7 @@ public class KDTree implements Tree {
         if (node == null)
             return;
 
-        double[] key = (double[]) node.getAt(E_KEY);
+        double[] key = ((DoubleArray) node.getAt(E_KEY)).extract();
 
         if (lowk[lev] <= key[lev]) {
             rangeSearch(lowk, uppk, center, distance, (ENode) node.getAt(E_LEFT), (lev + 1) % dim, dim, nnl);
@@ -101,7 +98,7 @@ public class KDTree implements Tree {
         if (node == null) {
             return;
         }
-        double[] pivot = (double[]) node.getAt(E_KEY);
+        double[] pivot = ((DoubleArray) node.getAt(E_KEY)).extract();
         if (pivot == null) {
             throw new RuntimeException("Key can't be null");
         }
@@ -187,11 +184,16 @@ public class KDTree implements Tree {
     }
 
     private static boolean internalInsert(final ENode node, final double[] key, final long value, final int strategyType, final int lev, final double[] resolution) {
-        double[] pKey = (double[]) node.getAt(E_KEY);
+        DoubleArray pka = (DoubleArray) node.getAt(E_KEY);
+        double[] pKey = null;
+        if (pka != null) {
+            pKey = pka.extract();
+        }
         if (pKey == null) {
             pKey = new double[key.length];
             System.arraycopy(key, 0, pKey, 0, key.length);
-            node.setAt(E_KEY, Type.DOUBLE_ARRAY, pKey);
+
+            ((DoubleArray) node.getOrCreateAt(E_KEY, Type.DOUBLE_ARRAY)).initWith(pKey);
             node.setAt(E_VALUE, Type.LONG, value);
             if (strategyType == TreeStrategy.PROFILE) {
                 node.setAt(E_SUBTREE_VALUES, Type.LONG, value);
@@ -199,7 +201,7 @@ public class KDTree implements Tree {
                 for (int i = 0; i < key.length; i++) {
                     sk[i] = pKey[i] * value;
                 }
-                node.setAt(E_SUM_KEY, Type.DOUBLE_ARRAY, sk);
+                ((DoubleArray) node.getOrCreateAt(E_SUM_KEY, Type.DOUBLE_ARRAY)).initWith(sk);
             }
             node.setAt(E_SUBTREE_NODES, Type.LONG, 1);
             return true;
@@ -209,11 +211,11 @@ public class KDTree implements Tree {
                 node.setAt(E_VALUE, Type.LONG, value);
             } else if (strategyType == TreeStrategy.PROFILE) {
                 //need to update the keys and values of the profiles
-                double[] sk = (double[]) node.getAt(E_SUM_KEY);
+                double[] sk = ((DoubleArray) node.getAt(E_SUM_KEY)).extract();
                 for (int i = 0; i < pKey.length; i++) {
                     sk[i] = (sk[i] + key[i] * value);
                 }
-                node.setAt(E_SUM_KEY, Type.DOUBLE_ARRAY, sk);
+                ((DoubleArray) node.getOrCreateAt(E_SUM_KEY, Type.DOUBLE_ARRAY)).initWith(sk);
                 node.setAt(E_VALUE, Type.LONG, (long) node.getOrCreateAt(E_VALUE, Type.LONG) + value);
                 node.setAt(E_SUBTREE_VALUES, Type.LONG, (long) node.getOrCreateAt(E_SUBTREE_VALUES, Type.LONG) + value);
             }
@@ -265,7 +267,7 @@ public class KDTree implements Tree {
 
     @Override
     public final void setResolution(final double[] resolution) {
-        eGraph.root().setAt(RESOLUTION, Type.DOUBLE_ARRAY, resolution);
+        ((DoubleArray) eGraph.root().getOrCreateAt(RESOLUTION, Type.DOUBLE_ARRAY)).initWith(resolution);
     }
 
     @Override
@@ -290,7 +292,7 @@ public class KDTree implements Tree {
                 throw new RuntimeException("Keys should always be the same length");
             }
         }
-        internalInsert(root, keys, value, strategy, 0, (double[]) root.getAt(RESOLUTION));
+        internalInsert(root, keys, value, strategy, 0, ((DoubleArray) root.getAt(RESOLUTION)).extract());
     }
 
     /*
@@ -306,7 +308,7 @@ public class KDTree implements Tree {
                 throw new RuntimeException("Keys should always be the same length");
             }
         }
-        internalInsert(root, keys, occurrence, strategy, 0, (double[]) root.getAt(RESOLUTION));
+        internalInsert(root, keys, occurrence, strategy, 0, ((DoubleArray)root.getAt(RESOLUTION));
     }*/
 
     @Override
@@ -325,8 +327,8 @@ public class KDTree implements Tree {
         if (root.getAt(E_KEY) == null) {
             return null;
         }
-        final Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT),null);
-        if (keys.length != ((double[]) root.getAt(E_KEY)).length) {
+        final Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT), null);
+        if (keys.length != ((DoubleArray) root.getAt(E_KEY)).size()) {
             throw new RuntimeException("Keys are not of the same size");
         }
         EGraph calcZone = eGraph.graph().space().newVolatileGraph();
@@ -342,7 +344,7 @@ public class KDTree implements Tree {
         if (root.getAt(E_KEY) == null) {
             return null;
         }
-        final Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT),null);
+        final Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT), null);
         final double[] center = new double[max.length];
         for (int i = 0; i < center.length; i++) {
             center[i] = (min[i] + max[i]) / 2;
