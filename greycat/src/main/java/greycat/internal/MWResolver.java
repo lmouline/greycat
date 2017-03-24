@@ -1142,8 +1142,15 @@ final class MWResolver implements Resolver {
 
         final StateChunk clonedState;
         if (nodeTime != previousTime || nodeWorld != previousWorld) {
-            clonedState = (StateChunk) this._space.createAndMark(ChunkType.STATE_CHUNK, nodeWorld, nodeTime, nodeId);
-            clonedState.loadFrom(previouStateChunk);
+            try {
+                clonedState = (StateChunk) this._space.createAndMark(ChunkType.STATE_CHUNK, nodeWorld, nodeTime, nodeId);
+                clonedState.loadFrom(previouStateChunk);
+            } catch (Exception e){
+                nodeWorldOrder.unlock();
+                castedNode.cacheUnlock();
+                throw e;
+            }
+
             castedNode._index_stateChunk = clonedState.index();
             _space.unmark(previouStateChunk.index());
         } else {
