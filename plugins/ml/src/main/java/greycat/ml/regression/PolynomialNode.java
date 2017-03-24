@@ -260,7 +260,8 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
         if (ts == null) {
             ts = new double[1];
             ts[0] = t;
-            state.set(key, Type.DOUBLE_ARRAY, ts);
+            tsa = (DoubleArray) state.getOrCreate(key, Type.DOUBLE_ARRAY);
+            tsa.initWith(ts);
             return ts;
         } else if (ts.length < maxdeg * 4) {
             double[] nts = new double[ts.length + 1];

@@ -21,6 +21,7 @@ import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
 import greycat.struct.DMatrix;
+import greycat.struct.DoubleArray;
 import greycat.struct.ENode;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
@@ -46,7 +47,14 @@ class FeedForward implements Layer {
         }
         weights = new ExMatrix(hostnode, WEIGHTS);
         bias = new ExMatrix(hostnode, BIAS);
-        activation = Activations.getUnit(hostnode.getWithDefault(ACTIVATION, Activations.DEFAULT), (double[]) hostnode.getOrCreate(ACTIVATION_PARAM, Type.DOUBLE_ARRAY));
+
+        DoubleArray argarray = (DoubleArray) hostnode.get(ACTIVATION_PARAM);
+        double[] args = null;
+        if (argarray != null) {
+            args = argarray.extract();
+        }
+
+        activation = Activations.getUnit(hostnode.getWithDefault(ACTIVATION, Activations.DEFAULT), args);
         this.host = hostnode;
     }
 
@@ -59,7 +67,7 @@ class FeedForward implements Layer {
         activation = Activations.getUnit(activationUnit, activationParams);
         host.set(ACTIVATION, Type.INT, activationUnit);
         if (activationParams != null) {
-            host.set(ACTIVATION_PARAM, Type.DOUBLE_ARRAY, activationParams);
+            ((DoubleArray) host.getOrCreate(ACTIVATION_PARAM, Type.DOUBLE_ARRAY)).initWith(activationParams);
         }
         if (random != null && std != 0) {
             MatrixOps.fillWithRandomStd(weights, random, std);

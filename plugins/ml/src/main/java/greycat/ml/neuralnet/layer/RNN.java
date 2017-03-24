@@ -20,6 +20,7 @@ import greycat.ml.neuralnet.activation.Activation;
 import greycat.ml.neuralnet.activation.Activations;
 import greycat.ml.neuralnet.process.ExMatrix;
 import greycat.ml.neuralnet.process.ProcessGraph;
+import greycat.struct.DoubleArray;
 import greycat.struct.ENode;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.RandomGenerator;
@@ -62,7 +63,7 @@ class RNN implements Layer {
         activation = Activations.getUnit(activationUnit, activationParams);
         host.set(ACTIVATION, Type.INT, activationUnit);
         if (activationParams != null) {
-            host.set(ACTIVATION_PARAM, Type.DOUBLE_ARRAY, activationParams);
+            ((DoubleArray) host.getOrCreate(ACTIVATION_PARAM, Type.DOUBLE_ARRAY)).initWith(activationParams);
         }
         if (random != null && std != 0) {
             MatrixOps.fillWithRandomStd(weights, random, std);

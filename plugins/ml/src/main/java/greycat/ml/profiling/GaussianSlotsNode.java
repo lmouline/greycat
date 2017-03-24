@@ -76,6 +76,7 @@ public class GaussianSlotsNode extends BaseNode {
 
 
     public void learn(double[] values) {
+        //this should be fine no need to fix here
         set(Gaussian.VALUES, Type.DOUBLE_ARRAY, values);
     }
 

@@ -17,6 +17,7 @@ package greycat.ml.profiling;
 
 import greycat.Type;
 import greycat.struct.DMatrix;
+import greycat.struct.DoubleArray;
 import greycat.struct.ENode;
 import greycat.struct.matrix.MatrixOps;
 import greycat.struct.matrix.VolatileDMatrix;
@@ -41,7 +42,7 @@ public class GaussianENode {
     }
 
     public void setPrecisions(double[] precisions) {
-        backend.set(Gaussian.PRECISIONS, Type.DOUBLE_ARRAY, precisions);
+        ((DoubleArray) backend.getOrCreate(Gaussian.PRECISIONS,Type.DOUBLE_ARRAY)).initWith(precisions);
     }
 
     public void learn(double[] values) {
@@ -53,68 +54,57 @@ public class GaussianENode {
             System.arraycopy(values, 0, sum, 0, features);
             total = 1;
             backend.set(Gaussian.TOTAL, Type.INT, total);
-            backend.set(Gaussian.SUM, Type.DOUBLE_ARRAY, sum);
+            ((DoubleArray) backend.getOrCreate(Gaussian.SUM, Type.DOUBLE_ARRAY)).initWith(sum);
 
             //set total, weight, sum, return
         } else {
-            double[] sum;
-            double[] min;
-            double[] max;
-            double[] sumsquares;
+            DoubleArray sum;
+            DoubleArray min = (DoubleArray) backend.getOrCreate(Gaussian.MIN, Type.DOUBLE_ARRAY);
+            DoubleArray max = (DoubleArray) backend.getOrCreate(Gaussian.MAX, Type.DOUBLE_ARRAY);
+            DoubleArray sumsquares = (DoubleArray) backend.getOrCreate(Gaussian.SUMSQ, Type.DOUBLE_ARRAY);
 
-            sum = (double[]) backend.get(Gaussian.SUM);
-            if (features != sum.length) {
+            sum = (DoubleArray) backend.get(Gaussian.SUM);
+            if (features != sum.size()) {
                 throw new RuntimeException("Input dimensions have changed!");
             }
             //Upgrade dirac to gaussian
             if (total == 1) {
                 //Create getMin, getMax, sumsquares
-                min = new double[features];
-                max = new double[features];
-                System.arraycopy(sum, 0, min, 0, features);
-                System.arraycopy(sum, 0, max, 0, features);
-                sumsquares = new double[features * (features + 1) / 2];
+                double[] sumex = sum.extract();
+                min.initWith(sumex);
+                max.initWith(sumex);
+                sumsquares.init(features * (features + 1) / 2);
                 int count = 0;
                 for (int i = 0; i < features; i++) {
                     for (int j = i; j < features; j++) {
-                        sumsquares[count] = sum[i] * sum[j];
+                        sumsquares.set(count, sumex[i] * sumex[j]);
                         count++;
                     }
                 }
             }
-            //Otherwise, get previously stored values
-            else {
-                min = (double[]) backend.get(Gaussian.MIN);
-                max = (double[]) backend.get(Gaussian.MAX);
-                sumsquares = (double[]) backend.get(Gaussian.SUMSQ);
-            }
 
             //Update the values
             for (int i = 0; i < features; i++) {
-                if (values[i] < min[i]) {
-                    min[i] = values[i];
+                if (values[i] < min.get(i)) {
+                    min.set(i, values[i]);
                 }
 
-                if (values[i] > max[i]) {
-                    max[i] = values[i];
+                if (values[i] > max.get(i)) {
+                    max.set(i, values[i]);
                 }
-                sum[i] += values[i];
+                sum.set(i, sum.get(i) + values[i]);
             }
 
             int count = 0;
             for (int i = 0; i < features; i++) {
                 for (int j = i; j < features; j++) {
-                    sumsquares[count] += values[i] * values[j];
+                    sumsquares.set(count, sumsquares.get(count) + values[i] * values[j]);
                     count++;
                 }
             }
             total++;
             //Store everything
             backend.set(Gaussian.TOTAL, Type.INT, total);
-            backend.set(Gaussian.SUM, Type.DOUBLE_ARRAY, sum);
-            backend.set(Gaussian.MIN, Type.DOUBLE_ARRAY, min);
-            backend.set(Gaussian.MAX, Type.DOUBLE_ARRAY, max);
-            backend.set(Gaussian.SUMSQ, Type.DOUBLE_ARRAY, sumsquares);
         }
         // set all cached avg, std, and cov arrays to null
         invalidate();

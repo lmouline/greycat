@@ -19,6 +19,7 @@ import greycat.Graph;
 import greycat.Node;
 import greycat.Type;
 import greycat.base.BaseNode;
+import greycat.struct.DoubleArray;
 import greycat.struct.EGraph;
 
 /**
@@ -40,6 +41,7 @@ public class GaussianNode extends BaseNode {
 
 
     public void learn(double[] values) {
+        //this should be fine no need to fix here
         set(Gaussian.VALUES, Type.DOUBLE_ARRAY, values);
     }
 
