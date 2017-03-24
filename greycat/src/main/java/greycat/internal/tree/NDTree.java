@@ -89,8 +89,8 @@ public class NDTree implements Profile {
     }
 
     private static double[] getCenter(ENode node) {
-        double[] min = (double[]) node.getAt(E_MIN);
-        double[] max = (double[]) node.getAt(E_MAX);
+        double[] min = ((DoubleArray) node.getAt(E_MIN)).extract();
+        double[] max = ((DoubleArray) node.getAt(E_MAX)).extract();
         return getCenterMinMax(min, max);
     }
 
@@ -122,8 +122,8 @@ public class NDTree implements Profile {
             }
         }
         node.setAt(E_SUBNODES, Type.LONG, 0);
-        node.setAt(E_MIN, Type.DOUBLE_ARRAY, minChild);
-        node.setAt(E_MAX, Type.DOUBLE_ARRAY, maxChild);
+        ((DoubleArray)node.getOrCreateAt(E_MIN, Type.DOUBLE_ARRAY)).initWith(minChild);
+        ((DoubleArray)node.getOrCreateAt(E_MAX, Type.DOUBLE_ARRAY)).initWith(maxChild);
         node.setAt(E_TOTAL, Type.LONG, 0);
         root.setAt(E_TOTAL_SUBNODES, Type.LONG, (long) root.getAt(E_TOTAL_SUBNODES) + 1);
         parent.setAt(E_SUBNODES, Type.LONG, (long) parent.getAt(E_SUBNODES) + 1);
@@ -142,8 +142,8 @@ public class NDTree implements Profile {
         if (child == null) {
             child = createNewNode(parent, root, index, min, max, center, key, buffersize);
         }
-        double[] childmin = (double[]) child.getAt(E_MIN);
-        double[] childmax = (double[]) child.getAt(E_MAX);
+        double[] childmin = ((DoubleArray) child.getAt(E_MIN)).extract();
+        double[] childmax = ((DoubleArray) child.getAt(E_MAX)).extract();
         double[] childcenter = getCenterMinMax(childmin, childmax);
         boolean res = internalInsert(child, key, value, strategyType, childmin, childmax, childcenter, resolution, buffersize, root);
         res = res && !bufferupdate;
@@ -265,7 +265,7 @@ public class NDTree implements Profile {
             switch (strategyType) {
                 case TreeStrategy.PROFILE: {
                     //todo add the value later
-                    double[] profile = (double[]) node.getAt(E_PROFILE);
+                    double[] profile = ((DoubleArray) node.getAt(E_PROFILE)).extract();
                     if (profile == null) {
                         profile = new double[key.length];
                         System.arraycopy(key, 0, profile, 0, key.length);
@@ -274,18 +274,18 @@ public class NDTree implements Profile {
                             profile[i] += key[i] * value;
                         }
                     }
-                    node.setAt(E_PROFILE, Type.DOUBLE_ARRAY, profile);
+                    ((DoubleArray)node.getOrCreateAt(E_PROFILE, Type.DOUBLE_ARRAY)).initWith(profile);
                     node.setAt(E_TOTAL, Type.LONG, (long) node.getAt(E_TOTAL) + value);
                     return true; //to update parent total
                 }
                 case TreeStrategy.INDEX: {
                     if ((long) node.getAt(E_TOTAL) == 0) {
-                        node.setAt(E_PROFILE, Type.DOUBLE_ARRAY, key);
+                        ((DoubleArray)node.getOrCreateAt(E_PROFILE, Type.DOUBLE_ARRAY)).initWith(key);
                         node.setAt(E_VALUE, Type.LONG, value);
                         node.setAt(E_TOTAL, Type.LONG, 1);
                         return true;
                     } else {
-                        node.setAt(E_PROFILE, Type.DOUBLE_ARRAY, key);
+                        ((DoubleArray)node.getOrCreateAt(E_PROFILE, Type.DOUBLE_ARRAY)).initWith(key);
                         node.setAt(E_VALUE, Type.LONG, value);
                         return false;
                     }
@@ -325,20 +325,18 @@ public class NDTree implements Profile {
 
     @Override
     public void setResolution(double[] resolution) {
-        eGraph.root().setAt(RESOLUTION, Type.DOUBLE_ARRAY, resolution);
+        ((DoubleArray)(eGraph.root().getOrCreateAt(RESOLUTION, Type.DOUBLE_ARRAY))).initWith(resolution);
     }
 
     @Override
     public void setMinBound(double[] min) {
-        ENode root= eGraph.root();
-        DoubleArray array= ((DoubleArray)(root.getOrCreateAt(E_MIN, Type.DOUBLE_ARRAY)));
-        array.initWith(min);
+        ((DoubleArray)(eGraph.root().getOrCreateAt(E_MIN, Type.DOUBLE_ARRAY))).initWith(min);
     }
 
 
     @Override
     public void setMaxBound(double[] max) {
-        eGraph.root().setAt(E_MAX, Type.DOUBLE_ARRAY, max);
+        ((DoubleArray)(eGraph.root().getOrCreateAt(E_MAX, Type.DOUBLE_ARRAY))).initWith(max);
     }
 
     @Override
@@ -354,10 +352,10 @@ public class NDTree implements Profile {
     @Override
     public void insert(final double[] keys, final long value) {
         ENode root = eGraph.root();
-        double[] min = (double[]) root.getAt(E_MIN);
-        double[] max = (double[]) root.getAt(E_MAX);
+        double[] min = ((DoubleArray) root.getAt(E_MIN)).extract();
+        double[] max = ((DoubleArray) root.getAt(E_MAX)).extract();
         check(keys, min, max);
-        double[] resolution = (double[]) root.getAt(RESOLUTION);
+        double[] resolution = ((DoubleArray) root.getAt(RESOLUTION)).extract();
         int buffersize = root.getAtWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
         //Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
         if (root.getAtWithDefault(E_TOTAL, 0L) == 0) {
@@ -365,8 +363,9 @@ public class NDTree implements Profile {
             root.setAt(E_TOTAL, Type.LONG, 0);
             root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
             root.setAt(E_SUBNODES, Type.LONG, 0);
-            root.setAt(E_MIN, Type.DOUBLE_ARRAY, min);
-            root.setAt(E_MAX, Type.DOUBLE_ARRAY, max);
+
+            ((DoubleArray)root.getOrCreateAt(E_MIN, Type.DOUBLE_ARRAY)).initWith(min);
+            ((DoubleArray)root.getOrCreateAt(E_MAX, Type.DOUBLE_ARRAY)).initWith(max);
         }
         internalInsert(root, keys, value, TreeStrategy.INDEX, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
     }
@@ -379,10 +378,10 @@ public class NDTree implements Profile {
     @Override
     public void profileWith(final double[] keys, final long occurrence) {
         ENode root = eGraph.root();
-        double[] min = (double[]) root.getAt(E_MIN);
-        double[] max = (double[]) root.getAt(E_MAX);
+        double[] min = ((DoubleArray) root.getAt(E_MIN)).extract();
+        double[] max = ((DoubleArray) root.getAt(E_MAX)).extract();
         check(keys, min, max);
-        double[] resolution = (double[]) root.getAt(RESOLUTION);
+        double[] resolution = ((DoubleArray) root.getAt(RESOLUTION)).extract();
         int buffersize = root.getAtWithDefault(BUFFER_SIZE, BUFFER_SIZE_DEF);
         //Distance distance = Distances.getDistance(state.getWithDefault(DISTANCE, DISTANCE_DEF));
         if (root.getAtWithDefault(E_TOTAL, 0L) == 0) {
@@ -390,8 +389,8 @@ public class NDTree implements Profile {
             root.setAt(E_TOTAL, Type.LONG, 0);
             root.setAt(E_TOTAL_SUBNODES, Type.LONG, 0);
             root.setAt(E_SUBNODES, Type.LONG, 0);
-            root.setAt(E_MIN, Type.DOUBLE_ARRAY, min);
-            root.setAt(E_MAX, Type.DOUBLE_ARRAY, max);
+            ((DoubleArray)root.getOrCreateAt(E_MIN, Type.DOUBLE_ARRAY)).initWith(min);
+            ((DoubleArray)root.getOrCreateAt(E_MAX, Type.DOUBLE_ARRAY)).initWith(max);
         }
         internalInsert(root, keys, occurrence, TreeStrategy.PROFILE, min, max, getCenterMinMax(min, max), resolution, buffersize, root);
 
@@ -413,8 +412,8 @@ public class NDTree implements Profile {
         if (root.getAtWithDefault(E_TOTAL, 0L) == 0) {
             return null;
         }
-        double[] emin = (double[]) root.getAt(E_MIN);
-        double[] emax = (double[]) root.getAt(E_MAX);
+        double[] emin = ((DoubleArray) root.getAt(E_MIN)).extract();
+        double[] emax = ((DoubleArray) root.getAt(E_MAX)).extract();
         check(keys, emin, emax);
         Distance distance = Distances.getDistance(root.getAtWithDefault(DISTANCE, Distances.DEFAULT), null);
         int strategyType = (int) root.getAt(STRATEGY);
@@ -511,7 +510,7 @@ public class NDTree implements Profile {
                 //Very End node
                 switch (strategyType) {
                     case TreeStrategy.PROFILE: {
-                        double[] keyo = (double[]) node.getAt(E_PROFILE);
+                        double[] keyo = ((DoubleArray) node.getAt(E_PROFILE)).extract();
                         double[] key = new double[keyo.length];
                         long value = (long) node.getAt(E_TOTAL);
                         for (int i = 0; i < keyo.length; i++) {
@@ -521,7 +520,7 @@ public class NDTree implements Profile {
                         return;
                     }
                     case TreeStrategy.INDEX: {
-                        double[] key = (double[]) node.getAt(E_PROFILE);
+                        double[] key = ((DoubleArray) node.getAt(E_PROFILE)).extract();
                         long value = (long) node.getAt(E_VALUE);
                         TreeHelper.filterAndInsert(key, value, target, targetmin, targetmax, distance, radius, nnl);
                         return;
@@ -534,8 +533,8 @@ public class NDTree implements Profile {
 
         } else {
             //Parent node
-            final double[] boundMax = (double[]) node.getAt(E_MAX);
-            final double[] boundMin = (double[]) node.getAt(E_MIN);
+            final double[] boundMax = ((DoubleArray) node.getAt(E_MAX)).extract();
+            final double[] boundMin = ((DoubleArray) node.getAt(E_MIN)).extract();
             final double worst = nnl.getWorstDistance();
             if (targetmin == null || targetmax == null) {
                 if (!nnl.isCapacityReached() || TreeHelper.getclosestDistance(target, boundMin, boundMax, distance) <= worst) {
@@ -578,7 +577,7 @@ public class NDTree implements Profile {
                     public void on(int attributeKey, byte elemType, Object elem) {
                         if (attributeKey >= E_OFFSET_REL) {
                             ENode child = (ENode) node.getAt(attributeKey);
-                            if (TreeHelper.checkBoundsIntersection(targetmin, targetmax, (double[]) child.getAt(E_MIN), (double[]) child.getAt(E_MAX))) {
+                            if (TreeHelper.checkBoundsIntersection(targetmin, targetmax, ((DoubleArray) child.getAt(E_MIN)).extract(), ((DoubleArray) child.getAt(E_MAX)).extract())) {
                                 reccursiveTraverse(child, calcZone, nnl, strategyType, distance, target, targetmin, targetmax, radius);
                             }
                         }

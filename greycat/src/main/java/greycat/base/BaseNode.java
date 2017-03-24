@@ -360,7 +360,7 @@ public class BaseNode implements Node {
                 return true;
                 /*
             case Type.STRING_ARRAY:
-                StringArray obj1_ar_s = (StringArray) obj1;
+              /*  StringArray obj1_ar_s = (StringArray) obj1;
                 StringArray obj2_ar_s = (StringArray) obj2;
                 if (obj1_ar_s.size() != obj2_ar_s.size()) {
                     return false;

@@ -881,11 +881,11 @@ class HeapENode implements ENode, HeapContainer {
                             Base64.encodeIntToBuffer((Integer) loopValue, buffer);
                             break;
                         case Type.DOUBLE_ARRAY:
-                            double[] castedDoubleArr = (double[]) loopValue;
-                            Base64.encodeIntToBuffer(castedDoubleArr.length, buffer);
-                            for (int j = 0; j < castedDoubleArr.length; j++) {
+                            DoubleArray castedDoubleArr = (DoubleArray) loopValue;
+                            Base64.encodeIntToBuffer(castedDoubleArr.size(), buffer);
+                            for (int j = 0; j < castedDoubleArr.size(); j++) {
                                 buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeDoubleToBuffer(castedDoubleArr[j], buffer);
+                                Base64.encodeDoubleToBuffer(castedDoubleArr.get(j), buffer);
                             }
                             break;
                         case Type.RELATION:
