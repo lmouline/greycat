@@ -54,7 +54,6 @@ public class EmbeddedTreeTest {
                 Assert.assertTrue(500 == retrieveKeys[1]);
                 treeResult.free();
                 
-
                 g.disconnect(null);
 
             }

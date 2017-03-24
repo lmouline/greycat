@@ -563,6 +563,18 @@ class HeapENode implements ENode, HeapContainer {
         }
         Object toSet = null;
         switch (type) {
+            case Type.LONG_ARRAY:
+                toSet = new HeapLongArray(this);
+                break;
+            case Type.DOUBLE_ARRAY:
+                toSet = new HeapDoubleArray(this);
+                break;
+            case Type.INT_ARRAY:
+                toSet = new HeapIntArray(this);
+                break;
+            case Type.STRING_ARRAY:
+                toSet = new HeapStringArray(this);
+                break;
             case Type.ERELATION:
                 toSet = new HeapERelation(this, null);
                 break;

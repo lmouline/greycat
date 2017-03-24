@@ -358,6 +358,7 @@ public class BaseNode implements Node {
                     }
                 }
                 return true;
+                /*
             case Type.STRING_ARRAY:
                 StringArray obj1_ar_s = (StringArray) obj1;
                 StringArray obj2_ar_s = (StringArray) obj2;
@@ -371,6 +372,7 @@ public class BaseNode implements Node {
                     }
                 }
                 return true;
+                */
             case Type.RELATION:
             case Type.RELATION_INDEXED:
             case Type.STRING_TO_INT_MAP:
