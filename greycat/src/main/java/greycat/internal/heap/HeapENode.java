@@ -880,14 +880,6 @@ class HeapENode implements ENode, HeapContainer {
                         case Type.INT:
                             Base64.encodeIntToBuffer((Integer) loopValue, buffer);
                             break;
-                        case Type.DOUBLE_ARRAY:
-                            DoubleArray castedDoubleArr = (DoubleArray) loopValue;
-                            Base64.encodeIntToBuffer(castedDoubleArr.size(), buffer);
-                            for (int j = 0; j < castedDoubleArr.size(); j++) {
-                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeDoubleToBuffer(castedDoubleArr.get(j), buffer);
-                            }
-                            break;
                         case Type.RELATION:
                             HeapRelation castedLongArrRel = (HeapRelation) loopValue;
                             Base64.encodeIntToBuffer(castedLongArrRel.size(), buffer);
@@ -896,20 +888,36 @@ class HeapENode implements ENode, HeapContainer {
                                 Base64.encodeLongToBuffer(castedLongArrRel.unsafe_get(j), buffer);
                             }
                             break;
-                        case Type.LONG_ARRAY:
-                            long[] castedLongArr = (long[]) loopValue;
-                            Base64.encodeIntToBuffer(castedLongArr.length, buffer);
-                            for (int j = 0; j < castedLongArr.length; j++) {
+                        case Type.DOUBLE_ARRAY:
+                            DoubleArray castedDoubleArr = (DoubleArray) loopValue;
+                            Base64.encodeIntToBuffer(castedDoubleArr.size(), buffer);
+                            for (int j = 0; j < castedDoubleArr.size(); j++) {
                                 buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeLongToBuffer(castedLongArr[j], buffer);
+                                Base64.encodeDoubleToBuffer(castedDoubleArr.get(j), buffer);
+                            }
+                            break;
+                        case Type.LONG_ARRAY:
+                            LongArray castedLongArr = (LongArray) loopValue;
+                            Base64.encodeIntToBuffer(castedLongArr.size(), buffer);
+                            for (int j = 0; j < castedLongArr.size(); j++) {
+                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                                Base64.encodeLongToBuffer(castedLongArr.get(j), buffer);
                             }
                             break;
                         case Type.INT_ARRAY:
-                            int[] castedIntArr = (int[]) loopValue;
-                            Base64.encodeIntToBuffer(castedIntArr.length, buffer);
-                            for (int j = 0; j < castedIntArr.length; j++) {
+                            IntArray castedIntArr = (IntArray) loopValue;
+                            Base64.encodeIntToBuffer(castedIntArr.size(), buffer);
+                            for (int j = 0; j < castedIntArr.size(); j++) {
                                 buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeIntToBuffer(castedIntArr[j], buffer);
+                                Base64.encodeIntToBuffer(castedIntArr.get(j), buffer);
+                            }
+                            break;
+                        case Type.STRING_ARRAY:
+                            StringArray castedStringArr = (StringArray) loopValue;
+                            Base64.encodeIntToBuffer(castedStringArr.size(), buffer);
+                            for (int j = 0; j < castedStringArr.size(); j++) {
+                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                                Base64.encodeStringToBuffer(castedStringArr.get(j), buffer);
                             }
                             break;
                         case Type.DMATRIX:
