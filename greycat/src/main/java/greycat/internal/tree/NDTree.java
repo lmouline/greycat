@@ -330,8 +330,10 @@ public class NDTree implements Profile {
 
     @Override
     public void setMinBound(double[] min) {
-        eGraph.root().setAt(E_MIN, Type.DOUBLE_ARRAY, min);
+        ENode root= eGraph.root();
+        ((DoubleArray)(root.getOrCreateAt(E_MIN, Type.DOUBLE_ARRAY))).initWith(min);
     }
+
 
     @Override
     public void setMaxBound(double[] max) {
