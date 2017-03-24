@@ -271,22 +271,16 @@ class HeapENode implements ENode, HeapContainer {
                         param_elem = (ENode) p_unsafe_elem;
                         break;
                     case Type.DOUBLE_ARRAY:
-                        double[] castedParamDouble = (double[]) p_unsafe_elem;
-                        double[] clonedDoubleArray = new double[castedParamDouble.length];
-                        System.arraycopy(castedParamDouble, 0, clonedDoubleArray, 0, castedParamDouble.length);
-                        param_elem = clonedDoubleArray;
+                        param_elem = (DoubleArray) p_unsafe_elem;
                         break;
                     case Type.LONG_ARRAY:
-                        long[] castedParamLong = (long[]) p_unsafe_elem;
-                        long[] clonedLongArray = new long[castedParamLong.length];
-                        System.arraycopy(castedParamLong, 0, clonedLongArray, 0, castedParamLong.length);
-                        param_elem = clonedLongArray;
+                        param_elem = (LongArray) p_unsafe_elem;
                         break;
                     case Type.INT_ARRAY:
-                        int[] castedParamInt = (int[]) p_unsafe_elem;
-                        int[] clonedIntArray = new int[castedParamInt.length];
-                        System.arraycopy(castedParamInt, 0, clonedIntArray, 0, castedParamInt.length);
-                        param_elem = clonedIntArray;
+                        param_elem = (IntArray) p_unsafe_elem;
+                        break;
+                    case Type.STRING_ARRAY:
+                        param_elem = (StringArray) p_unsafe_elem;
                         break;
                     case Type.STRING_TO_INT_MAP:
                         param_elem = (StringIntMap) p_unsafe_elem;

@@ -37,6 +37,6 @@ public final class MetaAttribute {
 
     @Override
     public String toString() {
-        return "@"+_name+":"+ Type.typeName(_type);
+        return "@" + _name + ":" + Type.typeName(_type);
     }
 }

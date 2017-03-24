@@ -13,7 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.search;
+package greycat.model;
 
-public class FullSearch {
+public final class MetaRelation {
+
+    private final String _name;
+    private final String _target;
+
+    public MetaRelation(final String name, final String target) {
+        this._name = name;
+        this._target = target;
+    }
 }

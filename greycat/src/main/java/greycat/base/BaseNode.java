@@ -302,10 +302,10 @@ public class BaseNode implements Node {
     }
 
     private boolean isEquals(Object obj1, Object obj2, byte type) {
-        if(obj1 == null && obj2 == null) {
+        if (obj1 == null && obj2 == null) {
             return true;
         }
-        if(obj1 == null || obj2 == null) {
+        if (obj1 == null || obj2 == null) {
             return false;
         }
         switch (type) {
@@ -320,39 +320,52 @@ public class BaseNode implements Node {
             case Type.STRING:
                 return (((String) obj1).equals((String) obj2));
             case Type.DOUBLE_ARRAY:
-                double[] obj1_ar_d = (double[]) obj1;
-                double[] obj2_ar_d = (double[]) obj2;
-                if (obj1_ar_d.length != obj2_ar_d.length) {
+                DoubleArray obj1_ar_d = (DoubleArray) obj1;
+                DoubleArray obj2_ar_d = (DoubleArray) obj2;
+                if (obj1_ar_d.size() != obj2_ar_d.size()) {
                     return false;
                 } else {
-                    for (int i = 0; i < obj1_ar_d.length; i++) {
-                        if (obj1_ar_d[i] != obj2_ar_d[i]) {
+                    for (int i = 0; i < obj1_ar_d.size(); i++) {
+                        if (obj1_ar_d.get(i) != obj2_ar_d.get(i)) {
                             return false;
                         }
                     }
                 }
                 return true;
             case Type.INT_ARRAY:
-                int[] obj1_ar_i = (int[]) obj1;
-                int[] obj2_ar_i = (int[]) obj2;
-                if (obj1_ar_i.length != obj2_ar_i.length) {
+                IntArray obj1_ar_i = (IntArray) obj1;
+                IntArray obj2_ar_i = (IntArray) obj2;
+                if (obj1_ar_i.size() != obj2_ar_i.size()) {
                     return false;
                 } else {
-                    for (int i = 0; i < obj1_ar_i.length; i++) {
-                        if (obj1_ar_i[i] != obj2_ar_i[i]) {
+                    for (int i = 0; i < obj1_ar_i.size(); i++) {
+                        if (obj1_ar_i.get(i) != obj2_ar_i.get(i)) {
                             return false;
                         }
                     }
                 }
                 return true;
             case Type.LONG_ARRAY:
-                long[] obj1_ar_l = (long[]) obj1;
-                long[] obj2_ar_l = (long[]) obj2;
-                if (obj1_ar_l.length != obj2_ar_l.length) {
+                LongArray obj1_ar_l = (LongArray) obj1;
+                LongArray obj2_ar_l = (LongArray) obj2;
+                if (obj1_ar_l.size() != obj2_ar_l.size()) {
                     return false;
                 } else {
-                    for (int i = 0; i < obj1_ar_l.length; i++) {
-                        if (obj1_ar_l[i] != obj2_ar_l[i]) {
+                    for (int i = 0; i < obj1_ar_l.size(); i++) {
+                        if (obj1_ar_l.get(i) != obj2_ar_l.get(i)) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            case Type.STRING_ARRAY:
+                StringArray obj1_ar_s = (StringArray) obj1;
+                StringArray obj2_ar_s = (StringArray) obj2;
+                if (obj1_ar_s.size() != obj2_ar_s.size()) {
+                    return false;
+                } else {
+                    for (int i = 0; i < obj1_ar_s.size(); i++) {
+                        if (!obj1_ar_s.get(i).equals(obj2_ar_s.get(i))) {
                             return false;
                         }
                     }
