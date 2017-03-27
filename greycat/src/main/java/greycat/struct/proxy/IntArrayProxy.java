@@ -71,4 +71,28 @@ public final class IntArrayProxy implements IntArray {
         return _elem.extract();
     }
 
+    @Override
+    public boolean removeElement(int value) {
+        check();
+        return _elem.removeElement(value);
+    }
+
+    @Override
+    public boolean removeElementbyIndex(int index) {
+        check();
+        return _elem.removeElementbyIndex(index);
+    }
+
+    @Override
+    public void addElement(int value) {
+        check();
+        _elem.addElement(value);
+    }
+
+    @Override
+    public void addAll(int[] values) {
+        check();
+        _elem.addAll(values);
+    }
+
 }

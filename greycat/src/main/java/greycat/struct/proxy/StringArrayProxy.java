@@ -71,4 +71,28 @@ public final class StringArrayProxy implements StringArray {
         return _elem.extract();
     }
 
+    @Override
+    public boolean removeElement(String value) {
+        check();
+        return _elem.removeElement(value);
+    }
+
+    @Override
+    public boolean removeElementbyIndex(int index) {
+        check();
+        return _elem.removeElementbyIndex(index);
+    }
+
+    @Override
+    public void addElement(String value) {
+        check();
+        _elem.addElement(value);
+    }
+
+    @Override
+    public void addAll(String[] values) {
+        check();
+        _elem.addAll(values);
+    }
+
 }
