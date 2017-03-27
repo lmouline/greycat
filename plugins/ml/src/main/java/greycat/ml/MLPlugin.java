@@ -21,7 +21,6 @@ import greycat.Node;
 import greycat.Type;
 import greycat.ml.profiling.GaussianNode;
 import greycat.ml.profiling.GaussianSlotsNode;
-import greycat.ml.regression.LiveLinearRegressionNode;
 import greycat.ml.regression.PolynomialNode;
 import greycat.ml.regression.actions.ReadContinuous;
 import greycat.ml.regression.actions.SetContinuous;
@@ -57,15 +56,6 @@ public class MLPlugin  implements Plugin  {
                     @Override
                     public Node create(long world, long time, long id, Graph graph) {
                         return new PolynomialNode(world, time, id, graph);
-                    }
-                });
-
-        graph.nodeRegistry()
-                .getOrCreateDeclaration(LiveLinearRegressionNode.NAME)
-                .setFactory(new NodeFactory() {
-                    @Override
-                    public Node create(long world, long time, long id, Graph graph) {
-                        return new LiveLinearRegressionNode(world, time, id, graph);
                     }
                 });
 

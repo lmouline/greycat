@@ -48,7 +48,7 @@ public class BugTest {
                         ENode enode1 = eg1.root();
                         int total = (int) enode1.get("total");
                         enode1.set("total", Type.INT, total + 1);
-                        double[] sum = ((double[]) enode1.get("sum"));
+                        double[] sum = ((DoubleArray) enode1.get("sum")).extract();
                         sum[0]++;
                         sum[1]++;
                         sum[2]++;
@@ -63,8 +63,8 @@ public class BugTest {
                         EGraph egres0 = (EGraph) res0.getOrCreate("egraph", Type.EGRAPH);
                         ENode enoderes0 = egres0.root();
                         int total = (int) enoderes0.get("total");
-                        double[] sum = (double[]) enoderes0.get("sum");
-                        System.out.println("time 0: total: " + total + " sum:[" + sum[0] + "," + sum[1] + "," + sum[2] + "]");
+                        double[] sum = ((DoubleArray) enoderes0.get("sum")).extract();
+                        System.out.println("time 0: total: " + total + " sum:[" + sum[0] + "," + sum[1] + "," + sum[2] + "] should be [0,0,0]");
                     }
                 });
 
@@ -75,8 +75,8 @@ public class BugTest {
                         EGraph egres1 = (EGraph) res1.getOrCreate("egraph", Type.EGRAPH);
                         ENode enoderes1 = egres1.root();
                         int total = (int) enoderes1.get("total");
-                        double[] sum = (double[]) enoderes1.get("sum");
-                        System.out.println("time 1: total: " + total + " sum:[" + sum[0] + "," + sum[1] + "," + sum[2] + "]");
+                        double[] sum = ((DoubleArray) enoderes1.get("sum")).extract();
+                        System.out.println("time 1: total: " + total + " sum:[" + sum[0] + "," + sum[1] + "," + sum[2] + "] should be [1,1,1]");
                     }
                 });
 
