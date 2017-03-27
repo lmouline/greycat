@@ -104,7 +104,9 @@
         <!--
         <module>plugins/memory</module>
         -->
+        <!--
         <module>plugins/taskide</module>
+        -->
         <!--
         <module>plugins/model</module>
         <module>plugins/search</module>

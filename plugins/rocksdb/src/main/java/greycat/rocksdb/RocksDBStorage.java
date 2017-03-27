@@ -22,6 +22,7 @@ import greycat.plugin.Storage;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
 import greycat.utility.Base64;
+import greycat.utility.HashHelper;
 import org.rocksdb.*;
 
 import java.io.File;
@@ -36,6 +37,7 @@ public class RocksDBStorage implements Storage {
     private RocksDB _db;
 
     private Graph _graph;
+    private final List<Callback<Buffer>> updates = new ArrayList<Callback<Buffer>>();
 
     private static final String _connectedError = "PLEASE CONNECT YOUR DATABASE FIRST";
 
@@ -49,6 +51,11 @@ public class RocksDBStorage implements Storage {
         }
         RocksDB.loadLibrary();
         this._storagePath = storagePath;
+    }
+
+    @Override
+    public void listen(Callback<Buffer> synCallback) {
+        updates.add(synCallback);
     }
 
     @Override
@@ -112,19 +119,38 @@ public class RocksDBStorage implements Storage {
         if (!_isConnected) {
             throw new RuntimeException(_connectedError);
         }
+        Buffer result = null;
+        if (updates.size() != 0) {
+            result = _graph.newBuffer();
+        }
         WriteBatch batch = new WriteBatch();
         BufferIterator it = stream.iterator();
+        boolean isFirst = true;
         while (it.hasNext()) {
             Buffer keyView = it.next();
             Buffer valueView = it.next();
             if (valueView != null) {
                 batch.put(keyView.data(), valueView.data());
             }
+            if (result != null) {
+                if (isFirst) {
+                    isFirst = false;
+                } else {
+                    result.write(Constants.BUFFER_SEP);
+                }
+                result.writeAll(keyView.data());
+                result.write(Constants.BUFFER_SEP);
+                Base64.encodeLongToBuffer(HashHelper.hashBuffer(valueView, 0, valueView.length()), result);
+            }
         }
         WriteOptions options = new WriteOptions();
         options.setSync(false);
         try {
             _db.write(options, batch);
+            for (int i = 0; i < updates.size(); i++) {
+                final Callback<Buffer> explicit = updates.get(i);
+                explicit.on(result);
+            }
             if (p_callback != null) {
                 p_callback.on(true);
             }

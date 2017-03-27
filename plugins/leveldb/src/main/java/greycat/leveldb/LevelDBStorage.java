@@ -22,6 +22,7 @@ import greycat.plugin.Storage;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
 import greycat.utility.Base64;
+import greycat.utility.HashHelper;
 import org.fusesource.leveldbjni.JniDBFactory;
 import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.DB;
@@ -30,13 +31,16 @@ import org.iq80.leveldb.WriteBatch;
 import org.iq80.leveldb.impl.Iq80DBFactory;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LevelDBStorage implements Storage {
 
     private static final String _connectedError = "PLEASE CONNECT YOUR DATABASE FIRST";
     private static final byte[] prefixKey = "prefix".getBytes();
-
     private final String storagePath;
+
+    private final List<Callback<Buffer>> updates = new ArrayList<Callback<Buffer>>();
 
     private DB db;
     private boolean isConnected;
@@ -88,16 +92,35 @@ public class LevelDBStorage implements Storage {
             throw new RuntimeException(_connectedError);
         }
         try {
+            Buffer result = null;
+            if (updates.size() != 0) {
+                result = graph.newBuffer();
+            }
             WriteBatch batch = db.createWriteBatch();
             BufferIterator it = stream.iterator();
+            boolean isFirst = true;
             while (it.hasNext()) {
                 Buffer keyView = it.next();
                 Buffer valueView = it.next();
                 if (valueView != null) {
                     batch.put(keyView.data(), valueView.data());
                 }
+                if (result != null) {
+                    if (isFirst) {
+                        isFirst = false;
+                    } else {
+                        result.write(Constants.BUFFER_SEP);
+                    }
+                    result.writeAll(keyView.data());
+                    result.write(Constants.BUFFER_SEP);
+                    Base64.encodeLongToBuffer(HashHelper.hashBuffer(valueView, 0, valueView.length()), result);
+                }
             }
             db.write(batch);
+            for (int i = 0; i < updates.size(); i++) {
+                final Callback<Buffer> explicit = updates.get(i);
+                explicit.on(result);
+            }
             if (callback != null) {
                 callback.on(true);
             }
@@ -147,6 +170,11 @@ public class LevelDBStorage implements Storage {
                 callback.on(false);
             }
         }
+    }
+
+    @Override
+    public void listen(Callback<Buffer> synCallback) {
+        updates.add(synCallback);
     }
 
     @Override
