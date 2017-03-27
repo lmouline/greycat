@@ -29,4 +29,12 @@ public interface LongArray {
 
     long[] extract();
 
+    boolean removeElement(long value);
+
+    boolean removeElementbyIndex(int index);
+
+    void addElement(long value);
+
+    void addAll(long[] values);
+
 }

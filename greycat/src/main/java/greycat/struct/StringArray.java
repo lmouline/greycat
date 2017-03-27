@@ -29,4 +29,11 @@ public interface StringArray {
 
     String[] extract();
 
+    boolean removeElement(String value);
+
+    boolean removeElementbyIndex(int index);
+
+    void addElement(String value);
+
+    void addAll(String[] values);
 }

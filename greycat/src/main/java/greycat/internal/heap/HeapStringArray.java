@@ -20,6 +20,8 @@ import greycat.struct.Buffer;
 import greycat.struct.StringArray;
 import greycat.utility.Base64;
 
+import java.util.Objects;
+
 class HeapStringArray implements StringArray {
 
     private String[] _backend = null;
@@ -68,6 +70,7 @@ class HeapStringArray implements StringArray {
     public synchronized final void initWith(final String[] values) {
         _backend = new String[values.length];
         System.arraycopy(values, 0, _backend, 0, values.length);
+        _parent.declareDirty();
     }
 
     @Override
@@ -75,6 +78,52 @@ class HeapStringArray implements StringArray {
         final String[] extracted = new String[_backend.length];
         System.arraycopy(_backend, 0, extracted, 0, _backend.length);
         return extracted;
+    }
+
+    @Override
+    public final synchronized boolean removeElement(String value) {
+        int index = -1;
+        for (int i = 0; i < _backend.length; i++) {
+            if (_backend[i].equals(value)) {
+                index = i;
+                break;
+            }
+        }
+        return removeElementbyIndex(index);
+    }
+
+    @Override
+    public final synchronized boolean removeElementbyIndex(int index) {
+        if (index < 0 || index >= _backend.length) return false;
+        String[] newBackend = new String[_backend.length - 1];
+        System.arraycopy(_backend, 0, newBackend, 0, index);
+        System.arraycopy(_backend, index + 1, newBackend, index, _backend.length - index - 1);
+        _backend = newBackend;
+        _parent.declareDirty();
+        return true;
+    }
+
+    @Override
+    public final synchronized void addElement(String value) {
+        if (_backend == null) {
+            _backend = new String[]{value};
+        } else {
+            String[] newBackend = new String[_backend.length + 1];
+            System.arraycopy(_backend, 0, newBackend, 0, _backend.length);
+            newBackend[_backend.length] = value;
+            _backend = newBackend;
+        }
+        _parent.declareDirty();
+    }
+
+    @Override
+    public final synchronized void addAll(String[] values) {
+        if (_backend == null) initWith(values);
+        String[] newBackend = new String[_backend.length + values.length];
+        System.arraycopy(_backend, 0, newBackend, 0, _backend.length);
+        System.arraycopy(values, 0, newBackend, _backend.length, values.length);
+        _backend = newBackend;
+        _parent.declareDirty();
     }
 
     /* TODO merge */
