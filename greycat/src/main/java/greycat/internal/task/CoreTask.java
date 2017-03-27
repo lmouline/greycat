@@ -947,7 +947,8 @@ public class CoreTask implements Task {
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        return new ActionAddRemoveToGlobalIndex(false, false, (String) params[0], (String[]) params[1]);
+                        final String[] castedVarrargs = (String[]) params[1];
+                        return new ActionAddRemoveToGlobalIndex(false, false, (String) params[0], castedVarrargs);
                     }
                 });
         registry.getOrCreateDeclaration(CoreActionNames.ADD_TO_GLOBAL_TIMED_INDEX)
@@ -956,7 +957,8 @@ public class CoreTask implements Task {
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        return new ActionAddRemoveToGlobalIndex(false, true, (String) params[0], (String[]) params[1]);
+                        final String[] castedVarrargs = (String[]) params[1];
+                        return new ActionAddRemoveToGlobalIndex(false, true, (String) params[0], castedVarrargs);
                     }
                 });
         /*
