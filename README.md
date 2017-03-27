@@ -9,6 +9,9 @@ For any questions please contact us via our Gitter:
 # Changelog
 
 ## Version 6 (27/03/2017)
+    - Introducing Hash to check Remote Cache Consistency
+    - New API for React Remote Graph usage
+    - Fix various bugs according to new Arrays APIs.
 
 ## Version 5 (20/03/2017) 
     - New API for Arrays (now defined as complex sub objects such as Map or Relationships)
