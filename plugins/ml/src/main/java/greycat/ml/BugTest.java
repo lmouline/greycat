@@ -53,32 +53,41 @@ public class BugTest {
                         sum[1]++;
                         sum[2]++;
                         ((DoubleArray) enode1.getOrCreate("sum", Type.DOUBLE_ARRAY)).initWith(sum);
+
+
+                        hostnode.travelInTime(0, new Callback<Node>() {
+                            @Override
+                            public void on(Node res0) {
+                                EGraph egres0 = (EGraph) res0.getOrCreate("egraph", Type.EGRAPH);
+                                ENode enoderes0 = egres0.root();
+                                int total = (int) enoderes0.get("total");
+                                double[] sum = ((DoubleArray) enoderes0.get("sum")).extract();
+                                System.out.println("time 0: total: " + total + " sum:[" + sum[0] + "," + sum[1] + "," + sum[2] + "] should be [0,0,0]");
+
+
+                                hostnode.travelInTime(1, new Callback<Node>() {
+                                    @Override
+                                    public void on(Node res1) {
+                                        EGraph egres1 = (EGraph) res1.getOrCreate("egraph", Type.EGRAPH);
+                                        ENode enoderes1 = egres1.root();
+                                        int total = (int) enoderes1.get("total");
+                                        double[] sum = ((DoubleArray) enoderes1.get("sum")).extract();
+                                        System.out.println("time 1: total: " + total + " sum:[" + sum[0] + "," + sum[1] + "," + sum[2] + "] should be [1,1,1]");
+                                    }
+                                });
+                            }
+
+
+
+
+                        });
+
                     }
                 });
 
 
-                hostnode.travelInTime(0, new Callback<Node>() {
-                    @Override
-                    public void on(Node res0) {
-                        EGraph egres0 = (EGraph) res0.getOrCreate("egraph", Type.EGRAPH);
-                        ENode enoderes0 = egres0.root();
-                        int total = (int) enoderes0.get("total");
-                        double[] sum = ((DoubleArray) enoderes0.get("sum")).extract();
-                        System.out.println("time 0: total: " + total + " sum:[" + sum[0] + "," + sum[1] + "," + sum[2] + "] should be [0,0,0]");
-                    }
-                });
 
 
-                hostnode.travelInTime(1, new Callback<Node>() {
-                    @Override
-                    public void on(Node res1) {
-                        EGraph egres1 = (EGraph) res1.getOrCreate("egraph", Type.EGRAPH);
-                        ENode enoderes1 = egres1.root();
-                        int total = (int) enoderes1.get("total");
-                        double[] sum = ((DoubleArray) enoderes1.get("sum")).extract();
-                        System.out.println("time 1: total: " + total + " sum:[" + sum[0] + "," + sum[1] + "," + sum[2] + "] should be [1,1,1]");
-                    }
-                });
 
 
             }
