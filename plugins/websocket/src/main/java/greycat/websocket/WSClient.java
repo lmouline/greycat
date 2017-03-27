@@ -34,7 +34,9 @@ import org.xnio.*;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -49,6 +51,8 @@ public class WSClient implements Storage, TaskExecutor {
     private Graph graph;
 
     private Map<Integer, Callback> callbacks;
+
+    private final List<Callback<Buffer>> listeners = new ArrayList<Callback<Buffer>>();
 
     public WSClient(String p_url) {
         this.url = p_url;
@@ -132,7 +136,7 @@ public class WSClient implements Storage, TaskExecutor {
     }
 
     @Override
-    public void disconnect(Callback<Boolean> callback) {
+    public final void disconnect(Callback<Boolean> callback) {
         try {
             channel.sendClose();
             channel.close();
@@ -147,7 +151,12 @@ public class WSClient implements Storage, TaskExecutor {
     }
 
     @Override
-    public void executeTasks(final Callback<String[]> callback, final Task... tasks) {
+    public final void listen(Callback<Buffer> synCallback) {
+        listeners.add(synCallback);
+    }
+
+    @Override
+    public final void executeTasks(final Callback<String[]> callback, final Task... tasks) {
         final Buffer buffer = graph.newBuffer();
         for (int i = 0; i < tasks.length; i++) {
             if (i != 0) {
@@ -223,28 +232,20 @@ public class WSClient implements Storage, TaskExecutor {
         Buffer codeView = it.next();
         if (codeView != null && codeView.length() != 0) {
             final byte firstCode = codeView.read(0);
-            if (firstCode == WSConstants.REQ_UPDATE) {
-                Buffer updateBuf = graph.newBuffer();
-                boolean isFirst = true;
+            if (firstCode == WSConstants.NOTIFY_UPDATE) {
                 while (it.hasNext()) {
-                    Buffer view = it.next();
-                    ChunkKey key = ChunkKey.build(view);
-                    if (key != null) {
-                        Chunk ch = graph.space().getAndMark(key.type, key.world, key.time, key.id);
+                    final Buffer view = it.next();
+                    final ChunkKey key = ChunkKey.build(view);
+                    final Buffer hashView = it.next();
+                    if (key != null && hashView != null) {
+                        final long hash = Base64.decodeToLongWithBounds(hashView, 0, hashView.length());
+                        final Chunk ch = graph.space().getAndMark(key.type, key.world, key.time, key.id);
                         if (ch != null) {
+                            ch.sync(hash);
                             graph.space().unmark(ch.index());
-                            //ok we keep it, ask for update
-                            if (isFirst) {
-                                isFirst = false;
-                            } else {
-                                updateBuf.write(Constants.BUFFER_SEP);
-                            }
-                            updateBuf.writeAll(view.data());
                         }
                     }
                 }
-                //now ask for ta get query ... TODO
-                //System.out.println("Notification!"); //TODO
             } else {
                 Buffer callbackCodeView = it.next();
                 if (callbackCodeView != null) {

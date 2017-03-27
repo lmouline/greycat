@@ -74,5 +74,4 @@ class ChunkKey {
         }
         return tuple;
     }
-
 }

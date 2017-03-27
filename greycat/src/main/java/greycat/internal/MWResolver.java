@@ -1145,7 +1145,7 @@ final class MWResolver implements Resolver {
             try {
                 clonedState = (StateChunk) this._space.createAndMark(ChunkType.STATE_CHUNK, nodeWorld, nodeTime, nodeId);
                 clonedState.loadFrom(previouStateChunk);
-            } catch (Exception e){
+            } catch (Exception e) {
                 nodeWorldOrder.unlock();
                 castedNode.cacheUnlock();
                 throw e;

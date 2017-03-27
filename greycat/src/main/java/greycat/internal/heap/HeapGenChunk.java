@@ -20,6 +20,7 @@ import greycat.chunk.ChunkType;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
 import greycat.chunk.GenChunk;
+import greycat.utility.HashHelper;
 
 final class HeapGenChunk implements GenChunk {
 
@@ -34,7 +35,8 @@ final class HeapGenChunk implements GenChunk {
     private final long _prefix;
     private long _seed;
 
-    private boolean _dirty;
+    private long _hash;
+    private boolean _inSync;
 
     /**
      * {@native ts
@@ -50,19 +52,22 @@ final class HeapGenChunk implements GenChunk {
         //moves the prefix 53-size(short) times to the left;
         _prefix = p_id << (Constants.LONG_SIZE - Constants.PREFIX_SIZE);
         _seed = -1;
-        _dirty = false;
+        _hash = 0;
+        _inSync = true;
     }
 
     @Override
     public synchronized final void save(final Buffer buffer) {
+        final long beginIndex = buffer.writeIndex();
         Base64.encodeLongToBuffer(_seed, buffer);
-        _dirty = false;
+        _hash = HashHelper.hashBuffer(buffer, beginIndex, buffer.writeIndex());
     }
 
     @Override
     public synchronized void saveDiff(Buffer buffer) {
+        final long beginIndex = buffer.writeIndex();
         Base64.encodeLongToBuffer(_seed, buffer);
-        _dirty = false;
+        _hash = HashHelper.hashBuffer(buffer, beginIndex, buffer.writeIndex());
     }
 
     @Override
@@ -75,6 +80,26 @@ final class HeapGenChunk implements GenChunk {
         internal_load(buffer, true);
     }
 
+    @Override
+    public final long hash() {
+        return _hash;
+    }
+
+    @Override
+    public synchronized final boolean inSync() {
+        return _inSync;
+    }
+
+    @Override
+    public synchronized final boolean sync(long remoteHash) {
+        if (_inSync && remoteHash != _hash) {
+            _inSync = false;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     private void internal_load(Buffer buffer, boolean diff) {
         if (buffer == null || buffer.length() == 0) {
             return;
@@ -83,8 +108,8 @@ final class HeapGenChunk implements GenChunk {
         long previousSeed = _seed;
         _seed = loaded;
         if (previousSeed != -1 && previousSeed != _seed) {
-            if (_space != null && !_dirty && diff) {
-                _dirty = true;
+            if (_space != null && _hash != Constants.EMPTY_HASH) {
+                _hash = Constants.EMPTY_HASH;
                 _space.notifyUpdate(_index);
             }
         }

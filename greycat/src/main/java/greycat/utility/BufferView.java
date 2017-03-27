@@ -33,6 +33,11 @@ class BufferView implements Buffer {
     }
 
     @Override
+    public long writeIndex() {
+        throw new RuntimeException("Write operation forbidden during iteration");
+    }
+
+    @Override
     public final void write(byte b) {
         throw new RuntimeException("Write operation forbidden during iteration");
     }
@@ -78,11 +83,6 @@ class BufferView implements Buffer {
     @Override
     public final BufferIterator iterator() {
         throw new RuntimeException("iterator creation forbidden forbidden during iteration");
-    }
-
-    @Override
-    public void removeLast() {
-        throw new RuntimeException("Write operation forbidden during iteration");
     }
 
     @Override

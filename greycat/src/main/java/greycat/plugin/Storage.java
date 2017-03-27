@@ -18,6 +18,7 @@ package greycat.plugin;
 import greycat.Graph;
 import greycat.struct.Buffer;
 import greycat.Callback;
+import greycat.utility.Tuple;
 
 /**
  * Storage defines the interface any storage solution must comply with to be plugged to GreyCat.
@@ -82,5 +83,12 @@ public interface Storage {
      * @param callback Called when the disconnection process is complete. The parameter will be true if the operation succeeded, false otherwise.
      */
     void disconnect(Callback<Boolean> callback);
+
+    /**
+     * Listen for all updates
+     *
+     * @param synCallback Called synchronously when update process is performed
+     */
+    void listen(Callback<Buffer> synCallback);
 
 }

@@ -16,8 +16,7 @@
 package greycat.websocket;
 
 import greycat.*;
-import greycat.websocket.WSClient;
-import greycat.websocket.WSServer;
+import greycatTest.internal.MockStorage;
 
 import static greycat.Tasks.newTask;
 
@@ -26,6 +25,7 @@ public class TaskServerTest {
     public static void main(String[] args) {
         Graph graph = GraphBuilder
                 .newBuilder()
+                .withStorage(new MockStorage())
                 .build();
         graph.connect(new Callback<Boolean>() {
             @Override
@@ -57,53 +57,56 @@ public class TaskServerTest {
                                 nodesIndex.addToIndex(n0, "name");
                                 nodesIndex.addToIndex(n1, "name");
                                 nodesIndex.addToIndex(root, "name");
-                                new WSServer(graph, 4000).start();
+                                WSServer srv = new WSServer(graph, 4000);
+                                srv.start();
                                 System.out.println("Server started 4000");
 
-
-                                WSClient client = new WSClient("ws://localhost:4000");
+                                WSClient client = new WSClient("ws://localhost:4000/ws");
                                 Graph emptyGraph = GraphBuilder
                                         .newBuilder()
                                         .withStorage(client)
                                         .build();
                                 emptyGraph.connect(result1 -> {
 
-                                    client.executeTasks(new Callback<String[]>() {
+                                    Task t = newTask().readGlobalIndex("nodes");
+                                    t.execute(emptyGraph, new Callback<TaskResult>() {
                                         @Override
-                                        public void on(String[] results) {
-                                            System.out.println("Results");
-                                            for (String r : results) {
-                                                System.out.println("=>" + r);
-                                            }
-                                            emptyGraph.disconnect(result2 -> {
-                                                graph.disconnect(null);
-                                                System.out.println("Should exit now...");
-                                            });
+                                        public void on(TaskResult result) {
+                                            System.out.println(result);
+                                            client.executeTasks(new Callback<String[]>() {
+                                                @Override
+                                                public void on(String[] results) {
+                                                    System.out.println("Results");
+                                                    for (String r : results) {
+                                                        System.out.println("=>" + r);
+                                                    }
+
+                                                    t.execute(emptyGraph, new Callback<TaskResult>() {
+                                                        @Override
+                                                        public void on(TaskResult result) {
+                                                            System.out.println(result);
+
+                                                            emptyGraph.disconnect(result2 -> {
+                                                                srv.stop();
+                                                                graph.disconnect(null);
+                                                                System.out.println("Should exit now...");
+                                                            });
+
+                                                        }
+                                                    });
+
+
+                                                }
+                                            }, newTask().readGlobalIndex("nodes"), newTask().readGlobalIndex("roots"), newTask().createNode().setAttribute("name", Type.STRING, "remotelyAdded").addToGlobalIndex("nodes", "name").save());
+
                                         }
-                                    }, newTask().readGlobalIndex("nodes"), newTask().readGlobalIndex("roots"));
-
-
-
-
-                                /*
-                                client.execute(new Callback<TaskResult[]>() {
-                                    @Override
-                                    public void on(TaskResult[] result) {
-
-                                    }
-                                }, newTask().readGlobalIndex("nodes"));
-*/
+                                    });
                                 });
-
-
                             }
                         });
-
                     }
                 });
-
             }
         });
     }
-
 }

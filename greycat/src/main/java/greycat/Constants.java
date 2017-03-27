@@ -166,5 +166,7 @@ public class Constants {
         return Double.NaN == toTest;
     }
 
+    public static final long EMPTY_HASH = -1;
+
 }
 

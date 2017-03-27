@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-public class WSServer implements WebSocketConnectionCallback {
+public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
 
     private final Graph graph;
     private final int port;
@@ -63,6 +63,7 @@ public class WSServer implements WebSocketConnectionCallback {
         pathHandler.addPrefixPath(PREFIX, Handlers.websocket(this));
         this.server = Undertow.builder().addHttpListener(port, "0.0.0.0", pathHandler).build();
         server.start();
+        this.graph.storage().listen(this);//stop
     }
 
     public void stop() {
@@ -77,23 +78,38 @@ public class WSServer implements WebSocketConnectionCallback {
         peers.add(webSocketChannel);
     }
 
+    @Override
+    public final void on(final Buffer result) {
+        //broadcast to anyone...
+        WebSocketChannel[] others = peers.toArray(new WebSocketChannel[peers.size()]);
+        Buffer notificationBuffer = graph.newBuffer();
+        notificationBuffer.write(WSConstants.NOTIFY_UPDATE);
+        notificationBuffer.write(Constants.BUFFER_SEP);
+        notificationBuffer.writeAll(result.data());
+        byte[] notificationMsg = notificationBuffer.data();
+        notificationBuffer.free();
+        for (int i = 0; i < others.length; i++) {
+            send_flat_resp(notificationMsg, others[i]);
+        }
+    }
+
     private class PeerInternalListener extends AbstractReceiveListener {
 
         @Override
-        protected void onFullBinaryMessage(WebSocketChannel channel, BufferedBinaryMessage message) throws IOException {
+        protected final void onFullBinaryMessage(WebSocketChannel channel, BufferedBinaryMessage message) throws IOException {
             ByteBuffer byteBuffer = WebSockets.mergeBuffers(message.getData().getResource());
             process_rpc(byteBuffer.array(), channel);
             super.onFullBinaryMessage(channel, message);
         }
 
         @Override
-        protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) throws IOException {
+        protected final void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) throws IOException {
             process_rpc(message.getData().getBytes(), channel);
             super.onFullTextMessage(channel, message);
         }
 
         @Override
-        protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) throws IOException {
+        protected final void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) throws IOException {
             peers.remove(webSocketChannel);
             super.onClose(webSocketChannel, channel);
         }
@@ -226,16 +242,21 @@ public class WSServer implements WebSocketConnectionCallback {
                     process_put(collectedKeys, flatValues.toArray(new Buffer[flatValues.size()]), new Job() {
                         @Override
                         public void run() {
-                            graph.save(null);//TODO transaction management
+                            graph.save(new Callback<Boolean>() {
+                                @Override
+                                public void on(Boolean result) {
+                                    Buffer concat = graph.newBuffer();
+                                    concat.write(WSConstants.RESP_PUT);
+                                    concat.write(Constants.BUFFER_SEP);
+                                    concat.writeAll(callbackCodeView.data());
+                                    payload.free();
+                                    WSServer.this.send_resp(concat, channel);
+                                }
+                            });
 
-                            Buffer concat = graph.newBuffer();
-                            concat.write(WSConstants.RESP_UNLOCK);
-                            concat.write(Constants.BUFFER_SEP);
-                            concat.writeAll(callbackCodeView.data());
-                            payload.free();
-                            WSServer.this.send_resp(concat, channel);
 
                             //for all other channel
+                            /*
                             WebSocketChannel[] others = WSServer.this.peers.toArray(new WebSocketChannel[WSServer.this.peers.size()]);
                             Buffer notificationBuffer = graph.newBuffer();
                             notificationBuffer.write(WSConstants.REQ_UPDATE);
@@ -251,6 +272,7 @@ public class WSServer implements WebSocketConnectionCallback {
                                     WSServer.this.send_flat_resp(notificationMsg, others[i]);
                                 }
                             }
+                            */
                         }
                     });
                     break;

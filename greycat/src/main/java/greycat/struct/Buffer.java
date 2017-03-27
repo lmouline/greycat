@@ -20,6 +20,8 @@ package greycat.struct;
  */
 public interface Buffer {
 
+    long writeIndex();
+
     /**
      * Append a byte to the buffer
      *
@@ -71,9 +73,7 @@ public interface Buffer {
      * @return the newly created iterator
      */
     BufferIterator iterator();
-
-    void removeLast();
-
+    
     byte[] slice(long initPos, long endPos);
 
 }

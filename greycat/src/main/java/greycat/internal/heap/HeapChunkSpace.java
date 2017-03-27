@@ -125,7 +125,13 @@ public class HeapChunkSpace implements ChunkSpace {
             }
         }
         if (found != -1) {
-            return this._chunkValues.get(found);
+            Chunk result = this._chunkValues.get(found);
+            if (!result.inSync()) {
+                //cache is out of sync, force refresh
+                unmark(result.index());
+                result = null;
+            }
+            return result;
         } else {
             return null;
         }

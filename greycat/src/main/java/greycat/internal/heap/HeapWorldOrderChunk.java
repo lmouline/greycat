@@ -51,7 +51,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     private int[] _next;
     private int[] _hash;
 
-    private boolean _dirty;
+    private long _chunkHash;
+    private boolean _inSync;
 
     /**
      * @ignore ts
@@ -72,6 +73,21 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
         }
     }
 
+    @Override
+    public synchronized final boolean inSync() {
+        return _inSync;
+    }
+
+    @Override
+    public synchronized final boolean sync(long remoteHash) {
+        if (_inSync && remoteHash != _chunkHash) {
+            _inSync = false;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     HeapWorldOrderChunk(final HeapChunkSpace p_space, final long p_index) {
         _index = p_index;
         _space = p_space;
@@ -84,7 +100,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
         _next = null;
         _diff = null;
         _hash = null;
-        _dirty = false;
+        _chunkHash = 0;
+        _inSync = true;
     }
 
     @Override
@@ -209,8 +226,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
                 _hash[hashIndex] = _size;
                 _size++;
                 _magic = _magic + 1;
-                if (notifyUpdate && !_dirty) {
-                    _dirty = true;
+                if (notifyUpdate && _chunkHash != Constants.EMPTY_HASH) {
+                    _chunkHash = Constants.EMPTY_HASH;
                     if (_space != null) {
                         _space.notifyUpdate(_index);
                     }
@@ -222,8 +239,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
                         _diff[found] = true;
                     }
                     _magic = _magic + 1;
-                    if (notifyUpdate && !_dirty) {
-                        _dirty = true;
+                    if (notifyUpdate && _chunkHash != Constants.EMPTY_HASH) {
+                        _chunkHash = Constants.EMPTY_HASH;
                         if (_space != null) {
                             _space.notifyUpdate(_index);
                         }
@@ -246,8 +263,8 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
                 _diff[0] = true;
             }
             _hash[(int) HashHelper.longHash(key, _capacity * 2)] = 0;
-            if (notifyUpdate && !_dirty) {
-                _dirty = true;
+            if (notifyUpdate && _chunkHash != Constants.EMPTY_HASH) {
+                _chunkHash = Constants.EMPTY_HASH;
                 if (_space != null) {
                     _space.notifyUpdate(_index);
                 }
@@ -302,6 +319,11 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     @Override
     public synchronized void loadDiff(Buffer buffer) {
         internal_load(false, buffer);
+    }
+
+    @Override
+    public final long hash() {
+        return _chunkHash;
     }
 
     private void internal_load(final boolean initial, final Buffer buffer) {
@@ -368,6 +390,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
 
     @Override
     public final synchronized void save(final Buffer buffer) {
+        final long beginIndex = buffer.writeIndex();
         if (_extra != CoreConstants.NULL_LONG) {
             Base64.encodeLongToBuffer(_extra, buffer);
             buffer.write(CoreConstants.CHUNK_SEP);
@@ -379,12 +402,13 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
             buffer.write(CoreConstants.CHUNK_VAL_SEP);
             Base64.encodeLongToBuffer(_kv[i * 2 + 1], buffer);
         }
-        _dirty = false;
+        _chunkHash = HashHelper.hashBuffer(buffer, beginIndex, buffer.writeIndex());
     }
 
     @Override
     public final synchronized void saveDiff(Buffer buffer) {
-        if (_dirty) {
+        if (_chunkHash == Constants.EMPTY_HASH) {
+            final long beginIndex = buffer.writeIndex();
             if (_extra != CoreConstants.NULL_LONG) {
                 Base64.encodeLongToBuffer(_extra, buffer);
                 buffer.write(CoreConstants.CHUNK_SEP);
@@ -398,7 +422,7 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
                     Base64.encodeLongToBuffer(_kv[i * 2 + 1], buffer);
                 }
             }
-            _dirty = false;
+            _chunkHash = HashHelper.hashBuffer(buffer, beginIndex, buffer.writeIndex());
         }
     }
 

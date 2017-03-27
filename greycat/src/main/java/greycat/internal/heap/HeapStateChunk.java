@@ -27,6 +27,7 @@ import greycat.internal.tree.NDTree;
 import greycat.plugin.NodeStateCallback;
 import greycat.struct.*;
 import greycat.utility.Base64;
+import greycat.utility.HashHelper;
 
 import java.util.Arrays;
 
@@ -42,7 +43,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     private byte[] _type;
 
     private int[] next_and_hash;
-    private boolean _dirty;
+    private long _hash;
+    private boolean _inSync;
 
     final Graph graph() {
         return _space.graph();
@@ -57,7 +59,23 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         //init to empty size
         _size = 0;
         _capacity = 0;
-        _dirty = false;
+        _hash = 0;
+        _inSync = true;
+    }
+
+    @Override
+    public synchronized final boolean inSync() {
+        return _inSync;
+    }
+
+    @Override
+    public synchronized final boolean sync(long remoteHash) {
+        if (_inSync && remoteHash != _hash) {
+            _inSync = false;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -334,8 +352,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
 
     @Override
     final public void declareDirty() {
-        if (_space != null && !_dirty) {
-            _dirty = true;
+        if (_space != null && _hash != Constants.EMPTY_HASH) {
+            _hash = Constants.EMPTY_HASH;
             _space.notifyUpdate(_index);
         }
     }
@@ -343,6 +361,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     @SuppressWarnings("Duplicates")
     @Override
     public synchronized final void save(final Buffer buffer) {
+        final long beginIndex = buffer.writeIndex();
         Base64.encodeIntToBuffer(_size, buffer);
         for (int i = 0; i < _size; i++) {
             final Object loopValue = _v[i]; //there is a real value
@@ -492,7 +511,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                 }
             }
         }
-        _dirty = false;
+        _hash = HashHelper.hashBuffer(buffer, beginIndex, buffer.writeIndex());
     }
 
     @Override
@@ -917,7 +936,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     private static final byte LOAD_WAITING_KEY = 2;
     private static final byte LOAD_WAITING_VALUE = 3;
 
-    private final synchronized void internal_load(final Buffer buffer, final boolean initial) {
+    private synchronized void internal_load(final Buffer buffer, final boolean initial) {
         if (buffer != null && buffer.length() > 0) {
             final long payloadSize = buffer.length();
             long previous = 0;
@@ -955,104 +974,6 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                     cursor++;
                                     previous = cursor;
                                     break;
-                                //arrays
-                                /*
-                                case Type.DOUBLE_ARRAY:
-                                    double[] doubleArrayLoaded = null;
-                                    int doubleArrayIndex = 0;
-                                    cursor++;
-                                    previous = cursor;
-                                    current = buffer.read(cursor);
-                                    while (cursor < payloadSize && current != Constants.CHUNK_SEP) {
-                                        if (current == Constants.CHUNK_VAL_SEP) {
-                                            if (doubleArrayLoaded == null) {
-                                                doubleArrayLoaded = new double[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                            } else {
-                                                doubleArrayLoaded[doubleArrayIndex] = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
-                                                doubleArrayIndex++;
-                                            }
-                                            previous = cursor + 1;
-                                        }
-                                        cursor++;
-                                        if (cursor < payloadSize) {
-                                            current = buffer.read(cursor);
-                                        }
-                                    }
-                                    if (doubleArrayLoaded == null) {
-                                        doubleArrayLoaded = new double[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                    } else {
-                                        doubleArrayLoaded[doubleArrayIndex] = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
-                                    }
-                                    internal_set(read_key, read_type, doubleArrayLoaded, true, initial);
-                                    state = LOAD_WAITING_TYPE;
-                                    cursor++;
-                                    previous = cursor;
-                                    break;
-
-                                case Type.LONG_ARRAY:
-                                    long[] longArrayLoaded = null;
-                                    int longArrayIndex = 0;
-                                    cursor++;
-                                    previous = cursor;
-                                    current = buffer.read(cursor);
-                                    while (cursor < payloadSize && current != Constants.CHUNK_SEP) {
-                                        if (current == Constants.CHUNK_VAL_SEP) {
-                                            if (longArrayLoaded == null) {
-                                                longArrayLoaded = new long[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                            } else {
-                                                longArrayLoaded[longArrayIndex] = Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                                                longArrayIndex++;
-                                            }
-                                            previous = cursor + 1;
-                                        }
-                                        cursor++;
-                                        if (cursor < payloadSize) {
-                                            current = buffer.read(cursor);
-                                        }
-                                    }
-                                    if (longArrayLoaded == null) {
-                                        longArrayLoaded = new long[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                    } else {
-                                        longArrayLoaded[longArrayIndex] = Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                                    }
-                                    internal_set(read_key, read_type, longArrayLoaded, true, initial);
-                                    state = LOAD_WAITING_TYPE;
-                                    cursor++;
-                                    previous = cursor;
-                                    break;
-
-                                case Type.INT_ARRAY:
-                                    int[] intArrayLoaded = null;
-                                    int intArrayIndex = 0;
-                                    cursor++;
-                                    previous = cursor;
-                                    current = buffer.read(cursor);
-                                    while (cursor < payloadSize && current != Constants.CHUNK_SEP) {
-                                        if (current == Constants.CHUNK_VAL_SEP) {
-                                            if (intArrayLoaded == null) {
-                                                intArrayLoaded = new int[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                            } else {
-                                                intArrayLoaded[intArrayIndex] = Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                                                intArrayIndex++;
-                                            }
-                                            previous = cursor + 1;
-                                        }
-                                        cursor++;
-                                        if (cursor < payloadSize) {
-                                            current = buffer.read(cursor);
-                                        }
-                                    }
-                                    if (intArrayLoaded == null) {
-                                        intArrayLoaded = new int[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                    } else {
-                                        intArrayLoaded[intArrayIndex] = Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                                    }
-                                    internal_set(read_key, read_type, intArrayLoaded, true, initial);
-                                    state = LOAD_WAITING_TYPE;
-                                    cursor++;
-                                    previous = cursor;
-                                    break;
-*/
                                 case Type.LONG_ARRAY:
                                     HeapLongArray larray = new HeapLongArray(this);
                                     cursor++;
@@ -1241,6 +1162,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             if (state == LOAD_WAITING_VALUE) {
                 load_primitive(read_key, read_type, buffer, previous, cursor, initial);
             }
+            _hash = HashHelper.hashBuffer(buffer, 0, payloadSize);
+        } else {
+            _hash = 0;
         }
     }
 
@@ -1271,6 +1195,11 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     @Override
     public final void loadDiff(Buffer buffer) {
         internal_load(buffer, false);
+    }
+
+    @Override
+    public synchronized final long hash() {
+        return _hash;
     }
 
 

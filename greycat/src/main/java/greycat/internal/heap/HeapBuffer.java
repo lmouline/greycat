@@ -24,7 +24,7 @@ public class HeapBuffer implements Buffer {
 
     private byte[] buffer;
 
-    private int writeCursor;
+    private int writeCursor = 0;
 
     @Override
     public final byte[] slice(long initPos, long endPos) {
@@ -32,6 +32,11 @@ public class HeapBuffer implements Buffer {
         byte[] newResult = new byte[newSize];
         System.arraycopy(buffer, (int) initPos, newResult, 0, newSize);
         return newResult;
+    }
+
+    @Override
+    public long writeIndex() {
+        return writeCursor;
     }
 
     @Override
@@ -127,11 +132,6 @@ public class HeapBuffer implements Buffer {
     @Override
     public final BufferIterator iterator() {
         return new DefaultBufferIterator(this);
-    }
-
-    @Override
-    public final void removeLast() {
-        writeCursor--;
     }
 
     /**

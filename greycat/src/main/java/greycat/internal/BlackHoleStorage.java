@@ -84,4 +84,9 @@ public class BlackHoleStorage implements Storage {
         callback.on(true);
     }
 
+    @Override
+    public void listen(Callback<Buffer> synCallback) {
+        //TODO
+    }
+
 }

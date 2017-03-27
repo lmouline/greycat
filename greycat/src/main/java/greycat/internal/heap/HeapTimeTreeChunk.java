@@ -22,6 +22,7 @@ import greycat.chunk.TreeWalker;
 import greycat.internal.CoreConstants;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
+import greycat.utility.HashHelper;
 
 class HeapTimeTreeChunk implements TimeTreeChunk {
 
@@ -40,7 +41,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     private volatile long _magic;
     private volatile int _size = 0;
 
-    private boolean _dirty;
+    private long _hash;
+    private boolean _inSync;
 
     //extra temporal element
     private volatile long _extra;
@@ -50,9 +52,10 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         _space = p_space;
         _index = p_index;
         _magic = 0;
-        _dirty = false;
+        _hash = 0;
         _extra = 0;
         _extra2 = 0;
+        _inSync = true;
     }
 
     @Override
@@ -96,6 +99,21 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @Override
+    public synchronized final boolean inSync() {
+        return _inSync;
+    }
+
+    @Override
+    public synchronized final boolean sync(long remoteHash) {
+        if (_inSync && remoteHash != _hash) {
+            _inSync = false;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
     public synchronized final void range(final long startKey, final long endKey, final long maxElements, final TreeWalker walker) {
         //lock and load fromVar main memory
         int nbElements = 0;
@@ -109,6 +127,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public synchronized final void save(Buffer buffer) {
+        final long beginIndex = buffer.writeIndex();
         if (_extra != CoreConstants.NULL_LONG && _extra != 0) {
             Base64.encodeLongToBuffer(_extra, buffer);
             buffer.write(CoreConstants.CHUNK_SEP);
@@ -122,7 +141,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             buffer.write(CoreConstants.CHUNK_VAL_SEP);
             Base64.encodeLongToBuffer(this._k[i], buffer);
         }
-        _dirty = false;
+        _hash = HashHelper.hashBuffer(buffer, beginIndex, buffer.writeIndex());
         if (_diff != null) {
             CoreConstants.fillBooleanArray(_diff, false);
         }
@@ -130,7 +149,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public synchronized final void saveDiff(Buffer buffer) {
-        if (_dirty) {
+        if (_hash == Constants.EMPTY_HASH) {
+            final long beginIndex = buffer.writeIndex();
             if (_extra != CoreConstants.NULL_LONG && _extra != 0) {
                 Base64.encodeLongToBuffer(_extra, buffer);
                 buffer.write(CoreConstants.CHUNK_SEP);
@@ -146,7 +166,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
                     Base64.encodeLongToBuffer(this._k[i], buffer);
                 }
             }
-            _dirty = false;
+            _hash = HashHelper.hashBuffer(buffer, beginIndex, buffer.writeIndex());
             CoreConstants.fillBooleanArray(_diff, false);
         }
     }
@@ -159,12 +179,17 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public synchronized void loadDiff(final Buffer buffer) {
-        if (internal_load(buffer, false) && !_dirty) {
-            _dirty = true;
+        if (internal_load(buffer, false) && _hash != Constants.EMPTY_HASH) {
+            _hash = Constants.EMPTY_HASH;
             if (_space != null) {
                 _space.notifyUpdate(_index);
             }
         }
+    }
+
+    @Override
+    public final long hash() {
+        return _hash;
     }
 
     private boolean internal_load(final Buffer buffer, final boolean initial) {
@@ -715,8 +740,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
 
     private void internal_set_dirty() {
         _magic = _magic + 1;
-        if (_space != null && !_dirty) {
-            _dirty = true;
+        if (_space != null && _hash != Constants.EMPTY_HASH) {
+            _hash = Constants.EMPTY_HASH;
             _space.notifyUpdate(_index);
         }
     }

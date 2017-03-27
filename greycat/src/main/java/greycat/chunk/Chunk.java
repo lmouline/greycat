@@ -37,4 +37,10 @@ public interface Chunk {
 
     void loadDiff(Buffer buffer);
 
+    long hash();
+
+    boolean inSync();
+
+    boolean sync(long remoteHash);
+
 }

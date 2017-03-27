@@ -16,6 +16,7 @@
 package greycat.utility;
 
 import greycat.Constants;
+import greycat.struct.Buffer;
 
 public class HashHelper {
 
@@ -300,6 +301,25 @@ public class HashHelper {
         int dataLength = data.length;
         for (int i = 0; i < dataLength; i++) {
             h = (h * hmult) ^ ht[data[i] & 0xff];
+        }
+        return h % Constants.END_OF_TIME;
+    }
+
+    /**
+     * {@native ts
+     * var h = HashHelper.HSTART;
+     * for (var i = begin; i < end; i++) {
+     * h = h.mul(HashHelper.HMULT).xor(HashHelper.byteTable[data.read(i) & 0xff]);
+     * }
+     * return h.mod(greycat.internal.CoreConstants.END_OF_TIME).toNumber();
+     * }
+     */
+    public static long hashBuffer(final Buffer data, final long begin, final long end) {
+        long h = HSTART;
+        final long hmult = HMULT;
+        final long[] ht = byteTable;
+        for (long i = begin; i < end; i++) {
+            h = (h * hmult) ^ ht[data.read(i) & 0xff];
         }
         return h % Constants.END_OF_TIME;
     }

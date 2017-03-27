@@ -54,6 +54,11 @@ public class ReadOnlyStorage implements Storage {
     }
 
     @Override
+    public void listen(Callback<Buffer> synCallback) {
+        wrapped.listen(synCallback);
+    }
+
+    @Override
     public void lock(Callback<Buffer> callback) {
         wrapped.lock(callback);
     }

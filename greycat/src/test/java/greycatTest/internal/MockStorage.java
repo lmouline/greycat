@@ -15,6 +15,7 @@
  */
 package greycatTest.internal;
 
+import greycat.Constants;
 import greycat.Graph;
 import greycat.internal.CoreConstants;
 import greycat.plugin.Storage;
@@ -22,8 +23,11 @@ import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
 import greycat.utility.Base64;
 import greycat.Callback;
+import greycat.utility.HashHelper;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MockStorage implements Storage {
@@ -31,6 +35,7 @@ public class MockStorage implements Storage {
     private Graph _graph;
     private short prefix = 0;
     private final Map<String, byte[]> backend = new HashMap<String, byte[]>();
+    private final List<Callback<Buffer>> updates = new ArrayList<Callback<Buffer>>();
 
     /**
      * @native ts
@@ -67,12 +72,32 @@ public class MockStorage implements Storage {
     @Override
     public final void put(Buffer stream, Callback<Boolean> callback) {
         if (callback != null) {
-            Buffer result = _graph.newBuffer();
+            Buffer result = null;
+            if (updates.size() != 0) {
+                result = _graph.newBuffer();
+            }
             BufferIterator it = stream.iterator();
+            boolean isFirst = true;
             while (it.hasNext()) {
                 Buffer keyView = it.next();
+                byte[] keyData = keyView.data();
                 Buffer valueView = it.next();
-                backend.put(keyToString(keyView.data()), valueView.data());
+                byte[] valueData = valueView.data();
+                if (result != null) {
+                    if (isFirst) {
+                        isFirst = false;
+                    } else {
+                        result.write(Constants.BUFFER_SEP);
+                    }
+                    result.writeAll(keyView.data());
+                    result.write(Constants.BUFFER_SEP);
+                    Base64.encodeLongToBuffer(HashHelper.hashBuffer(valueView, 0, valueView.length()), result);
+                }
+                backend.put(keyToString(keyData), valueData);
+            }
+            for (int i = 0; i < updates.size(); i++) {
+                final Callback<Buffer> explicit = updates.get(i);
+                explicit.on(result);
             }
             callback.on(true);
         }
@@ -106,6 +131,11 @@ public class MockStorage implements Storage {
     public final void disconnect(Callback<Boolean> callback) {
         _graph = null;
         callback.on(true);
+    }
+
+    @Override
+    public void listen(Callback<Buffer> synCallback) {
+        updates.add(synCallback);
     }
 
 }
