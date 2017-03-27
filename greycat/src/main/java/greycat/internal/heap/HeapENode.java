@@ -98,6 +98,26 @@ class HeapENode implements ENode, HeapContainer {
                                 _v[i] = new HeapLMatrix(this, (HeapLMatrix) origin._v[i]);
                             }
                             break;
+                        case Type.LONG_ARRAY:
+                            if (origin._v[i] != null) {
+                                _v[i] = ((HeapLongArray) origin._v[i]).cloneFor(this);
+                            }
+                            break;
+                        case Type.DOUBLE_ARRAY:
+                            if (origin._v[i] != null) {
+                                _v[i] = ((HeapDoubleArray) origin._v[i]).cloneFor(this);
+                            }
+                            break;
+                        case Type.INT_ARRAY:
+                            if (origin._v[i] != null) {
+                                _v[i] = ((HeapIntArray) origin._v[i]).cloneFor(this);
+                            }
+                            break;
+                        case Type.STRING_ARRAY:
+                            if (origin._v[i] != null) {
+                                _v[i] = ((HeapStringArray) origin._v[i]).cloneFor(this);
+                            }
+                            break;
                         default:
                             _v[i] = origin._v[i];
                             break;

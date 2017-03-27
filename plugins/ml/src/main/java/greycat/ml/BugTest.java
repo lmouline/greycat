@@ -20,9 +20,6 @@ import greycat.struct.DoubleArray;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
 
-/**
- * Created by assaad on 23/02/2017.
- */
 public class BugTest {
 
     public static void main(String[] arg) {
@@ -78,16 +75,10 @@ public class BugTest {
                             }
 
 
-
-
                         });
 
                     }
                 });
-
-
-
-
 
 
             }
