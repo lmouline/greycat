@@ -134,6 +134,14 @@ export class WSClient implements greycat.plugin.Storage {
         });
     }
 
+    //** TEMPORARY FIX :: task execution callback received before cache Notify terminates **//
+    //TODO: remove
+    private notificationCallbacks : any[] = [];
+    registerNotificationCallback(cb) {
+        this.notificationCallbacks.push(cb);
+    }
+    //** TEMPORARY FIX END :: task execution callback received before cache Notify terminates **//
+
     process_rpc_resp(payload: Int8Array) {
         let payloadBuf = this.graph.newBuffer();
         payloadBuf.writeAll(payload);
@@ -142,6 +150,9 @@ export class WSClient implements greycat.plugin.Storage {
         if (codeView != null && codeView.length() != 0) {
             let firstCode = codeView.read(0);
             if (firstCode == this.NOTIFY_UPDATE) {
+
+                //TODO: remove
+                //console.log("Processing Notify");
                 while (it.hasNext()) {
                     let view = it.next();
                     let key = ChunkKey.build(view);
@@ -155,6 +166,14 @@ export class WSClient implements greycat.plugin.Storage {
                         }
                     }
                 }
+                //** TEMPORARY FIX :: task execution callback received before cache Notify terminates **//
+                //TODO: remove
+                //console.log("Processing Notify done. calling callbacks");
+                for(let i = 0; i < this.notificationCallbacks.length; i++) {
+                    this.notificationCallbacks[i]();
+                    this.notificationCallbacks.slice(i,i);
+                }
+                //** TEMPORARY FIX END:: task execution callback received before cache Notify terminates **//
             } else {
                 let callbackCodeView = it.next();
                 if (callbackCodeView != null) {
