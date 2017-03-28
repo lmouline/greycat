@@ -1059,104 +1059,60 @@ class HeapENode implements ENode, HeapContainer {
                                 cursor++;
                                 previous = cursor;
                                 break;
-                            //arrays
-                            case Type.DOUBLE_ARRAY:
-                                double[] doubleArrayLoaded = null;
-                                int doubleArrayIndex = 0;
+                            case Type.LONG_ARRAY:
+                                HeapLongArray larray = new HeapLongArray(this);
                                 cursor++;
-                                previous = cursor;
-                                current = buffer.read(cursor);
-                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
-                                    if (current == Constants.CHUNK_VAL_SEP) {
-                                        if (doubleArrayLoaded == null) {
-                                            doubleArrayLoaded = new double[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                        } else {
-                                            doubleArrayLoaded[doubleArrayIndex] = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
-                                            doubleArrayIndex++;
-                                        }
-                                        previous = cursor + 1;
+                                cursor = larray.load(buffer, cursor, payloadSize);
+                                internal_set(read_key, read_type, larray, true, initial);
+                                if (cursor < payloadSize) {
+                                    current = buffer.read(cursor);
+                                    if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
                                     }
-                                    cursor++;
-                                    if (cursor < payloadSize) {
-                                        current = buffer.read(cursor);
-                                    }
-                                }
-                                if (doubleArrayLoaded == null) {
-                                    doubleArrayLoaded = new double[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                } else {
-                                    doubleArrayLoaded[doubleArrayIndex] = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
-                                }
-                                internal_set(read_key, read_type, doubleArrayLoaded, true, initial);
-                                if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
-                                    state = LOAD_WAITING_TYPE;
-                                    cursor++;
-                                    previous = cursor;
                                 }
                                 break;
-                            case Type.LONG_ARRAY:
-                                long[] longArrayLoaded = null;
-                                int longArrayIndex = 0;
+                            case Type.DOUBLE_ARRAY:
+                                HeapDoubleArray darray = new HeapDoubleArray(this);
                                 cursor++;
-                                previous = cursor;
-                                current = buffer.read(cursor);
-                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
-                                    if (current == Constants.CHUNK_VAL_SEP) {
-                                        if (longArrayLoaded == null) {
-                                            longArrayLoaded = new long[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                        } else {
-                                            longArrayLoaded[longArrayIndex] = Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                                            longArrayIndex++;
-                                        }
-                                        previous = cursor + 1;
+                                cursor = darray.load(buffer, cursor, payloadSize);
+                                internal_set(read_key, read_type, darray, true, initial);
+                                if (cursor < payloadSize) {
+                                    current = buffer.read(cursor);
+                                    if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
                                     }
-                                    cursor++;
-                                    if (cursor < payloadSize) {
-                                        current = buffer.read(cursor);
-                                    }
-                                }
-                                if (longArrayLoaded == null) {
-                                    longArrayLoaded = new long[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                } else {
-                                    longArrayLoaded[longArrayIndex] = Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                                }
-                                internal_set(read_key, read_type, longArrayLoaded, true, initial);
-                                if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
-                                    state = LOAD_WAITING_TYPE;
-                                    cursor++;
-                                    previous = cursor;
                                 }
                                 break;
                             case Type.INT_ARRAY:
-                                int[] intArrayLoaded = null;
-                                int intArrayIndex = 0;
+                                HeapIntArray iarray = new HeapIntArray(this);
                                 cursor++;
-                                previous = cursor;
-                                current = buffer.read(cursor);
-                                while (cursor < payloadSize && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
-                                    if (current == Constants.CHUNK_VAL_SEP) {
-                                        if (intArrayLoaded == null) {
-                                            intArrayLoaded = new int[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                        } else {
-                                            intArrayLoaded[intArrayIndex] = Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                                            intArrayIndex++;
-                                        }
-                                        previous = cursor + 1;
-                                    }
-                                    cursor++;
-                                    if (cursor < payloadSize) {
-                                        current = buffer.read(cursor);
+                                cursor = iarray.load(buffer, cursor, payloadSize);
+                                internal_set(read_key, read_type, iarray, true, initial);
+                                if (cursor < payloadSize) {
+                                    current = buffer.read(cursor);
+                                    if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
                                     }
                                 }
-                                if (intArrayLoaded == null) {
-                                    intArrayLoaded = new int[(int) Base64.decodeToLongWithBounds(buffer, previous, cursor)];
-                                } else {
-                                    intArrayLoaded[intArrayIndex] = Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                                }
-                                internal_set(read_key, read_type, intArrayLoaded, true, initial);
-                                if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
-                                    state = LOAD_WAITING_TYPE;
-                                    cursor++;
-                                    previous = cursor;
+                                break;
+                            case Type.STRING_ARRAY:
+                                HeapStringArray sarray = new HeapStringArray(this);
+                                cursor++;
+                                cursor = sarray.load(buffer, cursor, payloadSize);
+                                internal_set(read_key, read_type, sarray, true, initial);
+                                if (cursor < payloadSize) {
+                                    current = buffer.read(cursor);
+                                    if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                    }
                                 }
                                 break;
                             case Type.RELATION:
