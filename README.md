@@ -1,11 +1,10 @@
-# GreyCat: Many-World Temporal Graph
-### Empowering Next-Gen Analytics
-
 <p align="center">
+<h1><b>GreyCat</b>: Many-World Temporal Graph</h1>
 <img src="logo.png" />
+<h3>Empowering Next-Gen Live Analytics</h3>
+<span>The GreyCat escapes from the quantum box by analyzing all alternatives, now he is ready to do the same with your data.</span>
 </p>
 
-The GreyCat escapes from the quantum box by analyzing all alternatives, now he is ready to do the same with your data.
 For any questions please contact us via our Gitter:
 
 [![Join the chat at https://gitter.im/datathings/greycat](https://badges.gitter.im/datathings/greycat.svg)](https://gitter.im/datathings/greycat?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
