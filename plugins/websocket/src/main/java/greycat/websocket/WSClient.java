@@ -246,6 +246,14 @@ public class WSClient implements Storage, TaskExecutor {
                         }
                     }
                 }
+                if (listeners.size() > 0) {
+                    final Buffer notifyBuffer = graph.newBuffer();
+                    notifyBuffer.writeAll(payloadBuf.slice(1, payloadBuf.length() - 1));
+                    for (int i = 0; i < listeners.size(); i++) {
+                        listeners.get(i).on(notifyBuffer);
+                    }
+                    notifyBuffer.free();
+                }
             } else {
                 Buffer callbackCodeView = it.next();
                 if (callbackCodeView != null) {
