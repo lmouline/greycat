@@ -1,5 +1,7 @@
-GreyCat documentation is coming soon ... stay tuned !
+GreyCat
 ==================
+
+<center><img src="logo.png" /></center>
 
 For any questions please contact us via our Gitter:
 
