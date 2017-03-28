@@ -130,6 +130,14 @@ public interface Graph {
     void save(Callback<Boolean> callback);
 
     /**
+     * Triggers a save task for the current graph, but without notifying storage, instead we collect notification buffer to process afterward.
+     * This method synchronizes the physical storage with the current in-memory graph.
+     *
+     * @param callback called when the save is finished. The parameter specifies whether or not the task succeeded.
+     */
+    void saveSilent(Callback<Buffer> callback);
+
+    /**
      * Connects the current graph to its storage (mandatory before any other method call)
      *
      * @param callback Called when the connection is done. The parameter specifies whether or not the connection succeeded.

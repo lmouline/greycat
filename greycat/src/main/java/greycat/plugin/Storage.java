@@ -45,6 +45,14 @@ public interface Storage {
     void put(Buffer stream, Callback<Boolean> callback);
 
     /**
+     * Used to push objects to the storage without notification.<br>
+     *
+     * @param stream   The objects to store organized as a list of elements, assembled in a flat buffer.
+     * @param callback Called when the operation is complete. The parameter will be true if the operation succeeded, false otherwise.
+     */
+    void putSilent(Buffer stream, Callback<Buffer> callback);
+
+    /**
      * Called to remove objects from the storage.
      * The {@code keys} array is a sequential list of &lt;world, timepoint, id&gt; tuples organized as follows:<br>
      * Say you wanna remove objects &lt;1, 2, 3&gt; and &lt;1, 5, 6&gt;, the array will be: [1,2,3,1,5,6]

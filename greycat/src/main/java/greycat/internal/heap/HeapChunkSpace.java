@@ -426,6 +426,42 @@ public class HeapChunkSpace implements ChunkSpace {
     }
 
     @Override
+    public final synchronized void saveSilent(Callback<Buffer> callback) {
+        final Buffer stream = this._graph.newBuffer();
+        boolean isFirst = true;
+        while (_dirtiesStack.size() != 0) {
+            int tail = (int) _dirtiesStack.dequeueTail();
+            Chunk loopChunk = _chunkValues.get(tail);
+            //Save chunk Key
+            if (isFirst) {
+                isFirst = false;
+            } else {
+                stream.write(Constants.BUFFER_SEP);
+            }
+            KeyHelper.keyToBuffer(stream, _chunkTypes.get(tail), _chunkWorlds.get(tail), _chunkTimes.get(tail), _chunkIds.get(tail));
+            //Save chunk payload
+            stream.write(Constants.BUFFER_SEP);
+            try {
+                loopChunk.save(stream);
+                unmark(tail);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        //shrink in case of i != full size
+        this.graph().storage().putSilent(stream, new Callback<Buffer>() {
+            @Override
+            public void on(Buffer result) {
+                //free all value
+                stream.free();
+                if (callback != null) {
+                    callback.on(result);
+                }
+            }
+        });
+    }
+
+    @Override
     public final void clear() {
         //TODO reset everything
     }

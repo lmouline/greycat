@@ -189,17 +189,17 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public TaskHook[] taskHooks() {
+    public final TaskHook[] taskHooks() {
         return _taskHooks;
     }
 
     @Override
-    public ActionRegistry actionRegistry() {
+    public final ActionRegistry actionRegistry() {
         return _actionRegistry;
     }
 
     @Override
-    public NodeRegistry nodeRegistry() {
+    public final NodeRegistry nodeRegistry() {
         return _nodeRegistry;
     }
 
@@ -227,7 +227,7 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public <A extends Node> void lookup(long world, long time, long id, Callback<A> callback) {
+    public final <A extends Node> void lookup(long world, long time, long id, Callback<A> callback) {
         if (!_isConnected.get()) {
             throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
         }
@@ -235,7 +235,7 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public void lookupBatch(long[] worlds, long[] times, long[] ids, Callback<Node[]> callback) {
+    public final void lookupBatch(long[] worlds, long[] times, long[] ids, Callback<Node[]> callback) {
         if (!_isConnected.get()) {
             throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
         }
@@ -243,7 +243,7 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public void lookupAll(long world, long time, long[] ids, Callback<Node[]> callback) {
+    public final void lookupAll(long world, long time, long[] ids, Callback<Node[]> callback) {
         if (!_isConnected.get()) {
             throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
         }
@@ -251,7 +251,7 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public void lookupTimes(long world, long from, long to, long id, Callback<Node[]> callback) {
+    public final void lookupTimes(long world, long from, long to, long id, Callback<Node[]> callback) {
         if (!_isConnected.get()) {
             throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
         }
@@ -259,7 +259,7 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public void lookupAllTimes(long world, long from, long to, long[] ids, Callback<Node[]> callback) {
+    public final void lookupAllTimes(long world, long from, long to, long[] ids, Callback<Node[]> callback) {
         if (!_isConnected.get()) {
             throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
         }
@@ -267,12 +267,17 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public void save(Callback<Boolean> callback) {
+    public final void save(Callback<Boolean> callback) {
         _space.save(callback);
     }
 
     @Override
-    public void connect(final Callback<Boolean> callback) {
+    public final void saveSilent(Callback<Buffer> callback) {
+        _space.saveSilent(callback);
+    }
+
+    @Override
+    public final void connect(final Callback<Boolean> callback) {
         final CoreGraph selfPointer = this;
         //negociate a lock
         while (selfPointer._lock.compareAndSet(false, true)) ;
@@ -365,7 +370,7 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public void disconnect(final Callback callback) {
+    public final void disconnect(final Callback callback) {
         while (this._lock.compareAndSet(false, true)) ;
         //ok we have the lock
         if (_isConnected.compareAndSet(true, false)) {
@@ -422,22 +427,22 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public Buffer newBuffer() {
+    public final Buffer newBuffer() {
         return _memoryFactory.newBuffer();
     }
 
     @Override
-    public Query newQuery() {
+    public final Query newQuery() {
         return new CoreQuery(this, _resolver);
     }
 
     @Override
-    public synchronized void index(long world, long time, String name, Callback<NodeIndex> callback) {
+    public final synchronized void index(long world, long time, String name, Callback<NodeIndex> callback) {
         internal_index(world, time, name, false, callback);
     }
 
     @Override
-    public synchronized void indexIfExists(long world, long time, String name, Callback<NodeIndex> callback) {
+    public final synchronized void indexIfExists(long world, long time, String name, Callback<NodeIndex> callback) {
         internal_index(world, time, name, true, callback);
     }
 
@@ -480,7 +485,7 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public void indexNames(final long world, final long time, final Callback<String[]> callback) {
+    public final void indexNames(final long world, final long time, final Callback<String[]> callback) {
         final CoreGraph selfPointer = this;
         this._resolver.lookup(world, time, CoreConstants.END_OF_TIME, new Callback<Node>() {
             @Override
@@ -511,37 +516,37 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public DeferCounter newCounter(int expectedCountCalls) {
+    public final DeferCounter newCounter(int expectedCountCalls) {
         return new CoreDeferCounter(expectedCountCalls);
     }
 
     @Override
-    public DeferCounterSync newSyncCounter(int expectedCountCalls) {
+    public final DeferCounterSync newSyncCounter(int expectedCountCalls) {
         return new CoreDeferCounterSync(expectedCountCalls);
     }
 
     @Override
-    public Resolver resolver() {
+    public final Resolver resolver() {
         return _resolver;
     }
 
     @Override
-    public Scheduler scheduler() {
+    public final Scheduler scheduler() {
         return _scheduler;
     }
 
     @Override
-    public ChunkSpace space() {
+    public final ChunkSpace space() {
         return _space;
     }
 
     @Override
-    public Storage storage() {
+    public final Storage storage() {
         return _storage;
     }
 
     @Override
-    public void freeNodes(Node[] nodes) {
+    public final void freeNodes(Node[] nodes) {
         if (nodes != null) {
             for (int i = 0; i < nodes.length; i++) {
                 if (nodes[i] != null) {

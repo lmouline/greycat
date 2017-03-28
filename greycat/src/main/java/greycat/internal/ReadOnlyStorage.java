@@ -24,6 +24,8 @@ public class ReadOnlyStorage implements Storage {
 
     private final Storage wrapped;
 
+    private Graph graph;
+
     public ReadOnlyStorage(final Storage toWrap) {
         wrapped = toWrap;
     }
@@ -35,7 +37,16 @@ public class ReadOnlyStorage implements Storage {
 
     @Override
     public void put(Buffer stream, Callback<Boolean> callback) {
-        callback.on(false);
+        if (callback != null) {
+            callback.on(false);
+        }
+    }
+
+    @Override
+    public void putSilent(Buffer stream, Callback<Buffer> callback) {
+        if (callback != null) {
+            callback.on(graph.newBuffer());
+        }
     }
 
     @Override
@@ -44,7 +55,8 @@ public class ReadOnlyStorage implements Storage {
     }
 
     @Override
-    public void connect(Graph graph, Callback<Boolean> callback) {
+    public void connect(Graph p_graph, Callback<Boolean> callback) {
+        this.graph = p_graph;
         wrapped.connect(graph, callback);
     }
 
@@ -67,4 +79,5 @@ public class ReadOnlyStorage implements Storage {
     public void unlock(Buffer previousLock, Callback<Boolean> callback) {
         wrapped.unlock(previousLock, callback);
     }
+    
 }

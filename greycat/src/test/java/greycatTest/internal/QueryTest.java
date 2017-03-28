@@ -139,6 +139,11 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
+    public void saveSilent(Callback<Buffer> callback) {
+
+    }
+
+    @Override
     public void connect(Callback<Boolean> callback) {
 
     }

@@ -70,6 +70,16 @@ public class WSClient implements Storage, TaskExecutor {
     }
 
     @Override
+    public void putSilent(Buffer stream, Callback<Buffer> callback) {
+        send_rpc_req(WSConstants.REQ_PUT, stream, new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                callback.on(null);
+            }
+        });
+    }
+
+    @Override
     public void remove(Buffer keys, Callback<Boolean> callback) {
         send_rpc_req(WSConstants.REQ_REMOVE, keys, callback);
     }

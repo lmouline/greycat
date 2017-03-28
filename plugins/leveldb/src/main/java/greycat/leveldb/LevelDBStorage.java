@@ -132,6 +132,45 @@ public class LevelDBStorage implements Storage {
         }
     }
 
+    @Override
+    public final void putSilent(Buffer stream, Callback<Buffer> callback) {
+        if (!isConnected) {
+            throw new RuntimeException(_connectedError);
+        }
+        try {
+            Buffer result = graph.newBuffer();
+            WriteBatch batch = db.createWriteBatch();
+            BufferIterator it = stream.iterator();
+            boolean isFirst = true;
+            while (it.hasNext()) {
+                Buffer keyView = it.next();
+                Buffer valueView = it.next();
+                if (valueView != null) {
+                    batch.put(keyView.data(), valueView.data());
+                }
+                if (isFirst) {
+                    isFirst = false;
+                } else {
+                    result.write(Constants.BUFFER_SEP);
+                }
+                result.writeAll(keyView.data());
+                result.write(Constants.BUFFER_SEP);
+                Base64.encodeLongToBuffer(HashHelper.hashBuffer(valueView, 0, valueView.length()), result);
+            }
+            db.write(batch);
+            for (int i = 0; i < updates.size(); i++) {
+                final Callback<Buffer> explicit = updates.get(i);
+                explicit.on(result);
+            }
+            callback.on(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (callback != null) {
+                callback.on(null);
+            }
+        }
+    }
+
 
     @Override
     public void remove(Buffer keys, Callback<Boolean> callback) {

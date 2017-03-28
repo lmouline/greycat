@@ -55,6 +55,13 @@ public class BlackHoleStorage implements Storage {
     }
 
     @Override
+    public void putSilent(Buffer stream, Callback<Buffer> callback) {
+        if (callback != null) {
+            callback.on(_graph.newBuffer());
+        }
+    }
+
+    @Override
     public final void remove(Buffer keys, Callback<Boolean> callback) {
         callback.on(true);
     }

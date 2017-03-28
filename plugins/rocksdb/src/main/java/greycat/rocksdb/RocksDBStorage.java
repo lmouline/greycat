@@ -163,6 +163,45 @@ public class RocksDBStorage implements Storage {
     }
 
     @Override
+    public final void putSilent(Buffer stream, Callback<Buffer> callback) {
+        if (!_isConnected) {
+            throw new RuntimeException(_connectedError);
+        }
+        Buffer result = _graph.newBuffer();
+        WriteBatch batch = new WriteBatch();
+        BufferIterator it = stream.iterator();
+        boolean isFirst = true;
+        while (it.hasNext()) {
+            Buffer keyView = it.next();
+            Buffer valueView = it.next();
+            if (valueView != null) {
+                batch.put(keyView.data(), valueView.data());
+            }
+            if (isFirst) {
+                isFirst = false;
+            } else {
+                result.write(Constants.BUFFER_SEP);
+            }
+            result.writeAll(keyView.data());
+            result.write(Constants.BUFFER_SEP);
+            Base64.encodeLongToBuffer(HashHelper.hashBuffer(valueView, 0, valueView.length()), result);
+        }
+        WriteOptions options = new WriteOptions();
+        options.setSync(false);
+        try {
+            _db.write(options, batch);
+            for (int i = 0; i < updates.size(); i++) {
+                final Callback<Buffer> explicit = updates.get(i);
+                explicit.on(result);
+            }
+            callback.on(result);
+        } catch (RocksDBException e) {
+            e.printStackTrace();
+            callback.on(null);
+        }
+    }
+
+    @Override
     public void remove(Buffer keys, Callback<Boolean> callback) {
         if (!_isConnected) {
             throw new RuntimeException(_connectedError);

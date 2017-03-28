@@ -103,6 +103,12 @@ export class WSClient implements greycat.plugin.Storage {
         this.send_rpc_req(this.REQ_PUT, stream, callback);
     }
 
+    putSilent(stream: greycat.struct.Buffer, callback: greycat.Callback<greycat.struct.Buffer>): void {
+        this.send_rpc_req(this.REQ_PUT, stream, function(b:boolean){
+            callback(null);
+        });
+    }
+
     remove(keys: greycat.struct.Buffer, callback: greycat.Callback<boolean>): void {
         this.send_rpc_req(this.REQ_REMOVE, keys, callback);
     }

@@ -104,6 +104,33 @@ public class MockStorage implements Storage {
     }
 
     @Override
+    public final void putSilent(Buffer stream, Callback<Buffer> callback) {
+        if (callback != null) {
+            Buffer result = _graph.newBuffer();
+            BufferIterator it = stream.iterator();
+            boolean isFirst = true;
+            while (it.hasNext()) {
+                Buffer keyView = it.next();
+                byte[] keyData = keyView.data();
+                Buffer valueView = it.next();
+                byte[] valueData = valueView.data();
+                if (result != null) {
+                    if (isFirst) {
+                        isFirst = false;
+                    } else {
+                        result.write(Constants.BUFFER_SEP);
+                    }
+                    result.writeAll(keyView.data());
+                    result.write(Constants.BUFFER_SEP);
+                    Base64.encodeLongToBuffer(HashHelper.hashBuffer(valueView, 0, valueView.length()), result);
+                }
+                backend.put(keyToString(keyData), valueData);
+            }
+            callback.on(result);
+        }
+    }
+
+    @Override
     public final void remove(Buffer keys, Callback<Boolean> callback) {
         callback.on(true);
     }

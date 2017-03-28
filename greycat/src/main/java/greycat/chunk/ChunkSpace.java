@@ -16,6 +16,7 @@
 package greycat.chunk;
 
 import greycat.Graph;
+import greycat.struct.Buffer;
 import greycat.struct.EGraph;
 import greycat.Callback;
 
@@ -23,30 +24,33 @@ public interface ChunkSpace {
 
     /**
      * Creates a chunk, out of the space, not marked, used as a factory
-     * @param type the type of chunk {@link ChunkType}
+     *
+     * @param type  the type of chunk {@link ChunkType}
      * @param world the world id of the chunk
-     * @param time the time of the chunk
-     * @param id the id of the chunk
+     * @param time  the time of the chunk
+     * @param id    the id of the chunk
      * @return the created chunk
      */
     Chunk createAndMark(byte type, long world, long time, long id);
 
     /**
      * Gets and marks a chunk for the given values/keys
-     * @param type the type of chunk {@link ChunkType}
+     *
+     * @param type  the type of chunk {@link ChunkType}
      * @param world the world id of the chunk
-     * @param time the time of the chunk
-     * @param id the id of the chunk
+     * @param time  the time of the chunk
+     * @param id    the id of the chunk
      * @return the retrieved chunk
      */
     Chunk getAndMark(byte type, long world, long time, long id);
 
     /**
      * Gets and marks a chunk for the given values/keys, if not present in cache, loads it from configured storage
-     * @param type the type of chunk {@link ChunkType}
-     * @param world the world id of the chunk
-     * @param time the time of the chunk
-     * @param id the id of the chunk
+     *
+     * @param type     the type of chunk {@link ChunkType}
+     * @param world    the world id of the chunk
+     * @param time     the time of the chunk
+     * @param id       the id of the chunk
      * @param callback method to be called once the chunk is ready for use (retrieved or loaded).
      */
     void getOrLoadAndMark(byte type, long world, long time, long id, Callback<Chunk> callback);
@@ -55,6 +59,7 @@ public interface ChunkSpace {
 
     /**
      * Retrieves the chunk for the given index
+     *
      * @param index index of the chunk
      * @return the chunk
      */
@@ -62,12 +67,14 @@ public interface ChunkSpace {
 
     /**
      * Unmarks the chunk at the given index
+     *
      * @param index the index of the chunk to unmark
      */
     void unmark(final long index);
 
     /**
      * Marks the chunk at the given index
+     *
      * @param index the index of the chunk to mark
      * @return the number of marks at this index
      */
@@ -75,27 +82,38 @@ public interface ChunkSpace {
 
     /**
      * Frees the chunk given in parameter from the memory
+     *
      * @param chunk the chunk to be freed
      */
     void free(final Chunk chunk);
 
     /**
      * Notifies that the chunk at this intex has been updated
+     *
      * @param index the index of the chunk updated
      */
     void notifyUpdate(long index);
 
     /**
      * Get current working graph
+     *
      * @return current graph
      */
     Graph graph();
 
     /**
      * Saves the ChunkSpace
+     *
      * @param callback the method to be called when save is completed. Parameter indicates status of the save.
      */
     void save(Callback<Boolean> callback);
+
+    /**
+     * Saves the ChunkSpace without notifying storage directly
+     *
+     * @param callback the method to be called when save is completed. Parameter indicates status of the save.
+     */
+    void saveSilent(Callback<Buffer> callback);
 
     void clear();
 
@@ -105,6 +123,7 @@ public interface ChunkSpace {
 
     /**
      * Create a temporary EGraph object, not related to the main Graph and without the purpose to be serialized. This object has to be free at end.
+     *
      * @return the newly created EGraph.
      */
     EGraph newVolatileGraph();
