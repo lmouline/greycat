@@ -20,8 +20,6 @@ import greycat.struct.Buffer;
 import greycat.struct.StringArray;
 import greycat.utility.Base64;
 
-import java.util.Objects;
-
 class HeapStringArray implements StringArray {
 
     private String[] _backend = null;
