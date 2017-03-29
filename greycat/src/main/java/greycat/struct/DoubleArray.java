@@ -29,4 +29,12 @@ public interface DoubleArray {
 
     double[] extract();
 
+    boolean removeElement(double value);
+
+    boolean removeElementbyIndex(int index);
+
+    void addElement(double value);
+
+    void addAll(double[] values);
+
 }

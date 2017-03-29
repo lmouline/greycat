@@ -71,4 +71,28 @@ public final class DoubleArrayProxy implements DoubleArray {
         return _elem.extract();
     }
 
+    @Override
+    public boolean removeElement(double value) {
+        check();
+        return _elem.removeElement(value);
+    }
+
+    @Override
+    public boolean removeElementbyIndex(int index) {
+        check();
+        return _elem.removeElementbyIndex(index);
+    }
+
+    @Override
+    public void addElement(double value) {
+        check();
+        _elem.addElement(value);
+    }
+
+    @Override
+    public void addAll(double[] values) {
+        check();
+        _elem.addAll(values);
+    }
+
 }

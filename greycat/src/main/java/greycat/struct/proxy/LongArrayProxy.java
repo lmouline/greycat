@@ -71,4 +71,28 @@ public final class LongArrayProxy implements LongArray {
         return _elem.extract();
     }
 
+    @Override
+    public boolean removeElement(long value) {
+        check();
+        return _elem.removeElement(value);
+    }
+
+    @Override
+    public boolean removeElementbyIndex(int index) {
+        check();
+        return _elem.removeElementbyIndex(index);
+    }
+
+    @Override
+    public void addElement(long value) {
+        check();
+        _elem.addElement(value);
+    }
+
+    @Override
+    public void addAll(long[] values) {
+        check();
+        _elem.addAll(values);
+    }
+
 }

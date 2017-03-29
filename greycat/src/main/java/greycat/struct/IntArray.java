@@ -29,4 +29,12 @@ public interface IntArray {
 
     int[] extract();
 
+    boolean removeElement(int value);
+
+    boolean removeElementbyIndex(int index);
+
+    void addElement(int value);
+
+    void addAll(int[] values);
+
 }

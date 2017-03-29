@@ -68,6 +68,7 @@ class HeapDoubleArray implements DoubleArray {
     public synchronized final void initWith(final double[] values) {
         _backend = new double[values.length];
         System.arraycopy(values, 0, _backend, 0, values.length);
+        _parent.declareDirty();
     }
 
     @Override
@@ -76,6 +77,54 @@ class HeapDoubleArray implements DoubleArray {
         System.arraycopy(_backend, 0, extracted, 0, _backend.length);
         return extracted;
     }
+
+    @Override
+    public final synchronized boolean removeElement(double value) {
+        int index = -1;
+        for (int i = 0; i < _backend.length; i++) {
+            if (_backend[i] == value) {
+                index = i;
+                break;
+            }
+        }
+        return removeElementbyIndex(index);
+
+    }
+
+    @Override
+    public final synchronized boolean removeElementbyIndex(int index) {
+        if (index < 0 || index >= _backend.length) return false;
+        double[] newBackend = new double[_backend.length - 1];
+        System.arraycopy(_backend, 0, newBackend, 0, index);
+        System.arraycopy(_backend, index + 1, newBackend, index, _backend.length - index - 1);
+        _backend = newBackend;
+        _parent.declareDirty();
+        return true;
+    }
+
+    @Override
+    public final synchronized void addElement(double value) {
+        if (_backend == null) {
+            _backend = new double[]{value};
+        } else {
+            double[] newBackend = new double[_backend.length + 1];
+            System.arraycopy(_backend, 0, newBackend, 0, _backend.length);
+            newBackend[_backend.length] = value;
+            _backend = newBackend;
+        }
+        _parent.declareDirty();
+    }
+
+    @Override
+    public final synchronized void addAll(double[] values) {
+        if (_backend == null) initWith(values);
+        double[] newBackend = new double[_backend.length + values.length];
+        System.arraycopy(_backend, 0, newBackend, 0, _backend.length);
+        System.arraycopy(values, 0, newBackend, _backend.length, values.length);
+        _backend = newBackend;
+        _parent.declareDirty();
+    }
+
 
     /* TODO merge */
     public final long load(final Buffer buffer, final long offset, final long max) {
