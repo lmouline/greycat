@@ -46,3 +46,5 @@ For any questions please contact us via our Gitter:
 ## Version 1
     - first release with the GreyCat name, mostly renamed from ManyWorldGraph project
     
+
+<h5>by <a href="http://datathings.com">DataThings</a></h5>
