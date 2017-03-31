@@ -35,8 +35,8 @@ public class Gaussian {
     public static final String PRECISIONS = "profile_precisions"; //Default covariance matrix for a dirac function
     public static final String VALUES = "profile_values";
 
-    public static final String HISTOGRAM_BUCKETS="hist_buckets";
-    public static final int HISTOGRAM_BUCKETS_DEF=20;
+    public static final String HISTOGRAM_BUCKETS = "hist_buckets";
+    public static final int HISTOGRAM_BUCKETS_DEF = 20;
     public static final String HISTOGRAM_MIN="histogram_min";
     public static final String HISTOGRAM_MAX="histogram_max";
     public static final String HISTOGRAM_VALUES="histogram_values";
