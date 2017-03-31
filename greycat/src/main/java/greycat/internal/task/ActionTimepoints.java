@@ -72,6 +72,9 @@ class ActionTimepoints implements Action {
                         }
                     });
                 }
+                else {
+                    defer.count();
+                }
             }
             defer.then(new Job() {
                 @Override
