@@ -106,7 +106,7 @@ public class TestVectorization {
 //                        System.out.print("error nonVectorized at round " + (j+1) + ": ");
                         for (int k = 0; k < outputdim; k++) {
                             lossround[k] = lossround[k] / trainset;
-                            System.out.print(lossround[k] + " ");
+                            //System.out.print(lossround[k] + " ");
                         }
 //                        System.out.println("");
                     }
