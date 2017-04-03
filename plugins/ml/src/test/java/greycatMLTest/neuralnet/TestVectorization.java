@@ -80,18 +80,18 @@ public class TestVectorization {
                 for (int j = 0; j < rounds; j++) {
                     DMatrix err = net1.learnVec(inputs, outputs, true);
                     double[] reserr = Losses.avgLossPerOutput(err);
-                    if(display||j==rounds-1) {
-                        System.out.print("error Vectorized NN at round " + (j+1) + ": ");
-                        for (int i = 0; i < reserr.length; i++) {
-                            System.out.print(reserr[i] + " ");
-                        }
-                        System.out.println("");
-                    }
+//                    if(display||j==rounds-1) {
+//                        System.out.print("error Vectorized NN at round " + (j+1) + ": ");
+//                        for (int i = 0; i < reserr.length; i++) {
+//                            System.out.print(reserr[i] + " ");
+//                        }
+//                        System.out.println("");
+//                    }
                 }
                 long end=System.currentTimeMillis();
-                System.out.println("time Vectorized: "+(end-start)+" ms");
+//                System.out.println("time Vectorized: "+(end-start)+" ms");
 
-                System.out.println("");
+//                System.out.println("");
 
                 start=System.currentTimeMillis();
                 for (int j = 0; j < rounds; j++) {
@@ -103,17 +103,17 @@ public class TestVectorization {
                         }
                     }
                     if(display||j==rounds-1) {
-                        System.out.print("error nonVectorized at round " + (j+1) + ": ");
+//                        System.out.print("error nonVectorized at round " + (j+1) + ": ");
                         for (int k = 0; k < outputdim; k++) {
                             lossround[k] = lossround[k] / trainset;
                             System.out.print(lossround[k] + " ");
                         }
-                        System.out.println("");
+//                        System.out.println("");
                     }
                     net2.finalLearn();
                 }
                 end=System.currentTimeMillis();
-                System.out.println("time nonVectorized: "+(end-start)+" ms");
+//                System.out.println("time nonVectorized: "+(end-start)+" ms");
 
 
 

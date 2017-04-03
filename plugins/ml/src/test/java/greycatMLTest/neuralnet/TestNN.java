@@ -74,14 +74,14 @@ public class TestNN {
 
                     if (i % 100 == 0) {
                         DMatrix err = net.learn(inputSet, outputSet,true);
-                        System.out.println("Step " + i + " error: " + Losses.sumOfLosses(err));
+                        //System.out.println("Step " + i + " error: " + Losses.sumOfLosses(err));
                     }
                     else {
                         net.learn(inputSet, outputSet,false);
                     }
                 }
                 long end = System.currentTimeMillis();
-                System.out.println("Learning done in: "+(end-start)+" ms!");
+                //System.out.println("Learning done in: "+(end-start)+" ms!");
 
                 outputSet[0] = 0;
                 for (int j = 0; j < input; j++) {
@@ -90,10 +90,10 @@ public class TestNN {
                 }
 
                 double[] pred = net.predict(inputSet);
-                System.out.println("");
-                System.out.println("Target val : " + outputSet[0]);
-                System.out.println("Prediction : " + pred[0]);
-                System.out.println("Error val  : " + Math.abs(pred[0] - outputSet[0]));
+//                System.out.println("");
+//                System.out.println("Target val : " + outputSet[0]);
+//                System.out.println("Prediction : " + pred[0]);
+//                System.out.println("Error val  : " + Math.abs(pred[0] - outputSet[0]));
                 Assert.assertTrue(Math.abs(pred[0] - outputSet[0]) < 1e-10);
 
             }

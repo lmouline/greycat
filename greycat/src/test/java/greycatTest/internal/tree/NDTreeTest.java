@@ -89,7 +89,7 @@ public class NDTreeTest {
                 }
                 long te = System.currentTimeMillis() - ts;
 
-                System.out.println("NDTree insert: " + te + " ms");
+//                System.out.println("NDTree insert: " + te + " ms");
 
                 ts = System.currentTimeMillis();
                 for (int i = 0; i < ins; i++) {
@@ -97,7 +97,7 @@ public class NDTreeTest {
                 }
                 te = System.currentTimeMillis() - ts;
 
-                System.out.println("KDTree insert: " + te + " ms");
+//                System.out.println("KDTree insert: " + te + " ms");
 
 
                 long[][] temp = new long[test][nsearch];
@@ -110,7 +110,7 @@ public class NDTreeTest {
                     res.free();
                 }
                 te = System.currentTimeMillis() - ts;
-                System.out.println("NDTree get all: " + te + " ms");
+//                System.out.println("NDTree get all: " + te + " ms");
 
                 long[][] tempkdtree = new long[test][nsearch];
                 ts = System.currentTimeMillis();
@@ -122,7 +122,7 @@ public class NDTreeTest {
                     res.free();
                 }
                 te = System.currentTimeMillis() - ts;
-                System.out.println("KDTree get all: " + te + " ms");
+//                System.out.println("KDTree get all: " + te + " ms");
 
 
 //                System.out.println();
@@ -152,14 +152,13 @@ public class NDTreeTest {
                 ts = System.currentTimeMillis();
                 TreeResult trangeND = ndTree.queryArea(mins, maxs);
                 te = System.currentTimeMillis() - ts;
-                System.out.println("NDtree range: " + te + " ms");
+//                System.out.println("NDtree range: " + te + " ms");
 
                 ts = System.currentTimeMillis();
                 TreeResult trangeKD = kdTree.queryArea(mins, maxs);
                 te = System.currentTimeMillis() - ts;
-                System.out.println("KDTree range: " + te + " ms");
-
-                System.out.println(trangeKD.size() + " , " + trangeND.size());
+//                System.out.println("KDTree range: " + te + " ms");
+//                System.out.println(trangeKD.size() + " , " + trangeND.size());
                 Assert.assertTrue(trangeKD.size() == trangeND.size());
 
 
@@ -168,7 +167,7 @@ public class NDTreeTest {
                 }
 
 
-                System.out.println("test pass!");
+//                System.out.println("test pass!");
 
             }
         });
