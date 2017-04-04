@@ -159,7 +159,9 @@ class HeapIntArray implements IntArray {
 
     public final HeapIntArray cloneFor(HeapContainer target) {
         HeapIntArray cloned = new HeapIntArray(target);
-        cloned.initWith(_backend);
+        if (_backend != null) {
+            cloned.initWith(_backend);
+        }
         return cloned;
     }
 
