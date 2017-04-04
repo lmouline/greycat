@@ -520,6 +520,9 @@ public class CoreTask implements Task {
                         case Type.STRING:
                             parsedParams[i] = params[i];
                             break;
+                        case Type.INT:
+                            parsedParams[i] = Integer.parseInt(params[i]);
+                            break;
                         case Type.LONG:
                             parsedParams[i] = Long.parseLong(params[i]);
                             break;
@@ -562,6 +565,8 @@ public class CoreTask implements Task {
                                 varargs_index++;
                             }
                             break;
+                        default:
+                            throw new RuntimeException("Type: " +correspondingType+" not implemented!");
                     }
                 }
                 if (resultSize > params.length) {
