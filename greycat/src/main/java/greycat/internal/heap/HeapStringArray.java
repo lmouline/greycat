@@ -157,7 +157,8 @@ class HeapStringArray implements StringArray {
 
     public final HeapStringArray cloneFor(HeapContainer target) {
         HeapStringArray cloned = new HeapStringArray(target);
-        cloned.initWith(_backend);
+        if (_backend != null)
+            cloned.initWith(_backend);
         return cloned;
     }
 

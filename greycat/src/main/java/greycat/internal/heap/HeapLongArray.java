@@ -103,25 +103,25 @@ class HeapLongArray implements LongArray {
     }
 
     @Override
-    public final synchronized void addElement(long value){
+    public final synchronized void addElement(long value) {
         if (_backend == null) {
             _backend = new long[]{value};
         } else {
-        long[] newBackend = new long[_backend.length + 1];
-        System.arraycopy(_backend, 0, newBackend, 0, _backend.length);
-        newBackend[_backend.length] = value;
-        _backend = newBackend;
+            long[] newBackend = new long[_backend.length + 1];
+            System.arraycopy(_backend, 0, newBackend, 0, _backend.length);
+            newBackend[_backend.length] = value;
+            _backend = newBackend;
         }
         _parent.declareDirty();
     }
 
     @Override
-    public final synchronized void addAll(long[] values){
-        if(_backend == null) initWith(values);
+    public final synchronized void addAll(long[] values) {
+        if (_backend == null) initWith(values);
         long[] newBackend = new long[_backend.length + values.length];
         System.arraycopy(_backend, 0, newBackend, 0, _backend.length);
         System.arraycopy(values, 0, newBackend, _backend.length, values.length);
-        _backend =newBackend;
+        _backend = newBackend;
         _parent.declareDirty();
     }
 
@@ -158,7 +158,8 @@ class HeapLongArray implements LongArray {
 
     public final HeapLongArray cloneFor(HeapContainer target) {
         HeapLongArray cloned = new HeapLongArray(target);
-        cloned.initWith(_backend);
+        if (_backend != null)
+            cloned.initWith(_backend);
         return cloned;
     }
 
