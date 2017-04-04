@@ -158,8 +158,9 @@ class HeapLongArray implements LongArray {
 
     public final HeapLongArray cloneFor(HeapContainer target) {
         HeapLongArray cloned = new HeapLongArray(target);
-        if (_backend != null)
+        if (_backend != null) {
             cloned.initWith(_backend);
+        }
         return cloned;
     }
 

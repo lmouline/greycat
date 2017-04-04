@@ -159,8 +159,9 @@ class HeapDoubleArray implements DoubleArray {
 
     public final HeapDoubleArray cloneFor(HeapContainer target) {
         HeapDoubleArray cloned = new HeapDoubleArray(target);
-        if (_backend != null)
+        if (_backend != null) {
             cloned.initWith(_backend);
+        }
         return cloned;
     }
 
