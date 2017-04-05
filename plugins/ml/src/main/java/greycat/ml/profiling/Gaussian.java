@@ -24,6 +24,8 @@ import greycat.struct.DoubleArray;
  * Created by assaad on 20/02/2017.
  */
 public class Gaussian {
+    public static final String NULL = "profile_null";
+    public static final String REJECT = "profile_reject";
     public static final String MIN = "profile_min";
     public static final String MAX = "profile_max";
     public static final String AVG = "profile_avg";
@@ -37,11 +39,21 @@ public class Gaussian {
 
     public static final String HISTOGRAM_BUCKETS = "hist_buckets";
     public static final int HISTOGRAM_BUCKETS_DEF = 20;
-    public static final String HISTOGRAM_MIN="histogram_min";
-    public static final String HISTOGRAM_MAX="histogram_max";
-    public static final String HISTOGRAM_VALUES="histogram_values";
+    public static final String HISTOGRAM_MIN = "histogram_min";
+    public static final String HISTOGRAM_MAX = "histogram_max";
+    public static final String HISTOGRAM_VALUES = "histogram_values";
 
-    public static void profile(Node host, double value) {
+    public static void profile(Node host, Double value, Double boundMin, Double boundMax) {
+        if (value == null) {
+            host.set(NULL, Type.LONG, host.getWithDefault(NULL, 0l) + 1);
+            return;
+        }
+
+        if (boundMin != null && value < boundMin || boundMax != null && value > boundMax) {
+            host.set(REJECT, Type.LONG, host.getWithDefault(REJECT, 0l) + 1);
+            return;
+        }
+
         Double min = host.getWithDefault(MIN, null);
         Double max = host.getWithDefault(MAX, null);
         if (min == null || value < min) {
@@ -70,29 +82,31 @@ public class Gaussian {
     }
 
     public static void clearProfile(Node host) {
+        host.set(NULL, Type.LONG, null);
+        host.set(REJECT, Type.LONG, null);
         host.set(TOTAL, Type.LONG, null);
         host.set(SUM, Type.DOUBLE, null);
         host.set(SUMSQ, Type.DOUBLE, null);
         host.set(AVG, Type.DOUBLE, null);
         host.set(COV, Type.DOUBLE, null);
         host.set(STD, Type.DOUBLE, null);
-        host.set(HISTOGRAM_MIN,Type.DOUBLE_ARRAY,null);
-        host.set(HISTOGRAM_MAX,Type.DOUBLE_ARRAY,null);
-        host.set(HISTOGRAM_VALUES,Type.DOUBLE_ARRAY,null);
+        host.set(HISTOGRAM_MIN, Type.DOUBLE_ARRAY, null);
+        host.set(HISTOGRAM_MAX, Type.DOUBLE_ARRAY, null);
+        host.set(HISTOGRAM_VALUES, Type.DOUBLE_ARRAY, null);
     }
 
     public static void histogram(Node host, double min, double max, double value) {
-        if(max<min || value<min || value>max){
-            throw new RuntimeException("value is outside min, max range");
+        if (max < min || value < min || value > max) {
+            return;
         }
         if (max != min) {
-            int steps= host.getWithDefault(HISTOGRAM_BUCKETS,HISTOGRAM_BUCKETS_DEF);
+            int steps = host.getWithDefault(HISTOGRAM_BUCKETS, HISTOGRAM_BUCKETS_DEF);
             double stepsize = (max - min) / steps;
-            DoubleArray hist_min= (DoubleArray) host.getOrCreate(HISTOGRAM_MIN,Type.DOUBLE_ARRAY);
-            DoubleArray hist_max= (DoubleArray) host.getOrCreate(HISTOGRAM_MAX,Type.DOUBLE_ARRAY);
-            DoubleArray hist_values= (DoubleArray) host.getOrCreate(HISTOGRAM_VALUES,Type.DOUBLE_ARRAY);
+            DoubleArray hist_min = (DoubleArray) host.getOrCreate(HISTOGRAM_MIN, Type.DOUBLE_ARRAY);
+            DoubleArray hist_max = (DoubleArray) host.getOrCreate(HISTOGRAM_MAX, Type.DOUBLE_ARRAY);
+            DoubleArray hist_values = (DoubleArray) host.getOrCreate(HISTOGRAM_VALUES, Type.DOUBLE_ARRAY);
 
-            if(hist_min.size()==0){
+            if (hist_min.size() == 0) {
                 hist_min.init(steps);
                 hist_max.init(steps);
                 hist_values.init(steps);
@@ -106,7 +120,7 @@ public class Gaussian {
             if (index == steps) {
                 index--;
             }
-            hist_values.set(index,hist_values.get(index)+1);
+            hist_values.set(index, hist_values.get(index) + 1);
         }
     }
 
