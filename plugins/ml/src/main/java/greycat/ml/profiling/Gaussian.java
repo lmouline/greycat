@@ -112,6 +112,7 @@ public class Gaussian {
                 hist_min.init(steps);
                 hist_max.init(steps);
                 hist_values.init(steps);
+                hist_center.init(steps);
                 for (int i = 0; i < steps; i++) {
                     hist_center.set(i, min + stepsize * (i + 0.5));
                     hist_min.set(i, min + stepsize * i);
