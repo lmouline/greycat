@@ -41,6 +41,7 @@ public class Gaussian {
     public static final int HISTOGRAM_BUCKETS_DEF = 20;
     public static final String HISTOGRAM_MIN = "histogram_min";
     public static final String HISTOGRAM_MAX = "histogram_max";
+    public static final String HISTOGRAM_CENTER = "histogram_center";
     public static final String HISTOGRAM_VALUES = "histogram_values";
 
     public static void profile(Node host, Double value, Double boundMin, Double boundMax) {
@@ -104,6 +105,7 @@ public class Gaussian {
             double stepsize = (max - min) / steps;
             DoubleArray hist_min = (DoubleArray) host.getOrCreate(HISTOGRAM_MIN, Type.DOUBLE_ARRAY);
             DoubleArray hist_max = (DoubleArray) host.getOrCreate(HISTOGRAM_MAX, Type.DOUBLE_ARRAY);
+            DoubleArray hist_center = (DoubleArray) host.getOrCreate(HISTOGRAM_CENTER, Type.DOUBLE_ARRAY);
             DoubleArray hist_values = (DoubleArray) host.getOrCreate(HISTOGRAM_VALUES, Type.DOUBLE_ARRAY);
 
             if (hist_min.size() == 0) {
@@ -111,6 +113,7 @@ public class Gaussian {
                 hist_max.init(steps);
                 hist_values.init(steps);
                 for (int i = 0; i < steps; i++) {
+                    hist_center.set(i, min + stepsize * (i + 0.5));
                     hist_min.set(i, min + stepsize * i);
                     hist_max.set(i, min + stepsize * (i + 1));
                 }
