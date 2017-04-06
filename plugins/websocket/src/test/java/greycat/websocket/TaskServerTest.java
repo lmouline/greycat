@@ -74,7 +74,7 @@ public class TaskServerTest {
                                         public void on(TaskResult result) {
                                             System.out.println(result);
 
-                                            Task tremote = newTask().readGlobalIndex("nodes").attribute("name");
+                                            Task tremote = newTask().readGlobalIndex("nodes");
                                             tremote.executeRemotely(emptyGraph, new Callback<TaskResult>() {
                                                 @Override
                                                 public void on(TaskResult result) {

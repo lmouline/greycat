@@ -129,11 +129,12 @@ export class WSClient implements greycat.plugin.Storage {
             //TODO
         }
         let finalCB = callback;
+        let notifyMethod = this.process_notify;
         this.send_rpc_req(this.REQ_TASK, reqBuffer, function (resultBuffer) {
             reqBuffer.free();
             let baseTaskResult: greycat.base.BaseTaskResult<any> = new greycat.base.BaseTaskResult<any>(null, false);
             baseTaskResult.load(resultBuffer, finalGraph);
-            this.process_notify(baseTaskResult.notifications());
+            notifyMethod(baseTaskResult.notifications());
             baseTaskResult.loadRefs(finalGraph,function (b: boolean) {
                 resultBuffer.free();
                 finalCB(baseTaskResult);
