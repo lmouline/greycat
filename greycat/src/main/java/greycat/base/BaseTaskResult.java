@@ -365,7 +365,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                     case 0:
                         if (previous != cursor) {
                             _notifications = graph.newBuffer();
-                            _notifications.writeAll(buffer.slice(previous, cursor));
+                            _notifications.writeAll(buffer.slice(previous, cursor-1));
                         }
                         index++;
                         break;
