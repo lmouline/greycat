@@ -166,6 +166,13 @@ public class CoreTask implements Task {
     }
 
     @Override
+    public final void executeRemotely(Graph graph, Callback<TaskResult> callback) {
+        Object str = graph.storage();
+        TaskExecutor exec = (TaskExecutor) str;
+        exec.execute(callback, this, null);
+    }
+
+    @Override
     public final TaskResult executeSync(final Graph graph) {
         DeferCounterSync waiter = graph.newSyncCounter(1);
         executeWith(graph, null, waiter.wrap());

@@ -25,12 +25,24 @@ class ActionSave implements Action {
 
     @Override
     public void eval(final TaskContext ctx) {
-        ctx.graph().save(new Callback<Boolean>() {
-            @Override
-            public void on(Boolean result) {
-                ctx.continueTask();
-            }
-        });
+        final Buffer notifier = ctx.notifier();
+        if (notifier == null) {
+            ctx.graph().save(new Callback<Boolean>() {
+                @Override
+                public void on(Boolean result) {
+                    ctx.continueTask();
+                }
+            });
+        } else {
+            ctx.graph().saveSilent(new Callback<Buffer>() {
+                @Override
+                public void on(final Buffer result) {
+                    notifier.writeAll(result.data());
+                    result.free();
+                    ctx.continueTask();
+                }
+            });
+        }
     }
 
     @Override

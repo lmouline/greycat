@@ -15,10 +15,8 @@
  */
 package greycat.websocket;
 
-import greycat.Callback;
-import greycat.Constants;
-import greycat.Graph;
-import greycat.Task;
+import greycat.*;
+import greycat.base.BaseTaskResult;
 import greycat.plugin.TaskExecutor;
 import greycat.struct.BufferIterator;
 import io.undertow.connector.ByteBufferPool;
@@ -103,7 +101,7 @@ public class WSClient implements Storage, TaskExecutor {
         }
         this.graph = p_graph;
         try {
-            Xnio xnio = Xnio.getInstance(io.undertow.websockets.client.WebSocketClient.class.getClassLoader());
+            final Xnio xnio = Xnio.getInstance(io.undertow.websockets.client.WebSocketClient.class.getClassLoader());
             _worker = xnio.createWorker(OptionMap.builder()
                     .set(Options.WORKER_IO_THREADS, 2)
                     .set(Options.CONNECTION_HIGH_WATER, 1000000)
@@ -166,27 +164,29 @@ public class WSClient implements Storage, TaskExecutor {
     }
 
     @Override
-    public final void executeTasks(final Callback<String[]> callback, final Task... tasks) {
+    public final void execute(final Callback<TaskResult> callback, final Task task, TaskContext prepared) {
         final Buffer buffer = graph.newBuffer();
-        for (int i = 0; i < tasks.length; i++) {
-            if (i != 0) {
-                buffer.write(Constants.BUFFER_SEP);
-            }
-            tasks[i].saveToBuffer(buffer);
+        task.saveToBuffer(buffer);
+        if (prepared != null) {
+            buffer.write(Constants.BUFFER_SEP);
+            //TODO saveTo
+            throw new RuntimeException("Remote Task Context not implemented yet!");
         }
         send_rpc_req(WSConstants.REQ_TASK, buffer, new Callback<Buffer>() {
             @Override
-            public void on(Buffer result) {
+            public void on(final Buffer bufferResult) {
                 buffer.free();
-                String[] results = new String[tasks.length];
-                BufferIterator it = result.iterator();
-                int i = 0;
-                while (it.hasNext()) {
-                    Buffer view = it.next();
-                    results[i] = Base64.decodeToStringWithBounds(view, 0, view.length());
-                    i++;
-                }
-                callback.on(results);
+                //process_notify(it.next());
+                final BaseTaskResult baseTaskResult = new BaseTaskResult(null, false);
+                baseTaskResult.load(bufferResult, graph);
+                process_notify(baseTaskResult.notifications());
+                baseTaskResult.loadRefs(graph, new Callback<Boolean>() {
+                    @Override
+                    public void on(Boolean result) {
+                        bufferResult.free();
+                        callback.on(baseTaskResult);
+                    }
+                });
             }
         });
     }
@@ -235,6 +235,79 @@ public class WSClient implements Storage, TaskExecutor {
         });
     }
 
+    private void process_notify(Buffer buffer) {
+        if (buffer != null) {
+            byte type = 0;
+            long world = 0;
+            long time = 0;
+            long id = 0;
+            long hash = 0;
+            int step = 0;
+            long cursor = 0;
+            long previous = 0;
+            int end = (int) buffer.length();
+            while (cursor < end) {
+                byte current = buffer.read(cursor);
+                if (current == Constants.KEY_SEP) {
+                    switch (step) {
+                        case 0:
+                            type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                            break;
+                        case 1:
+                            world = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            break;
+                        case 2:
+                            time = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            break;
+                        case 3:
+                            id = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            break;
+                        case 4:
+                            hash = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            break;
+                    }
+                    previous = cursor + 1;
+                    if (step == 4) {
+                        step = 0;
+                        final Chunk ch = graph.space().getAndMark(type, world, time, id);
+                        if (ch != null) {
+                            ch.sync(hash);
+                            graph.space().unmark(ch.index());
+                        }
+                    } else {
+                        step++;
+                    }
+                }
+                cursor++;
+            }
+            switch (step) {
+                case 0:
+                    type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                    break;
+                case 1:
+                    world = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    break;
+                case 2:
+                    time = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    break;
+                case 3:
+                    id = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    break;
+                case 4:
+                    hash = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    break;
+            }
+            if (step == 4) {
+                //invalidate
+                final Chunk ch = graph.space().getAndMark(type, world, time, id);
+                if (ch != null) {
+                    ch.sync(hash);
+                    graph.space().unmark(ch.index());
+                }
+            }
+        }
+    }
+
     private void process_rpc_resp(byte[] payload) {
         Buffer payloadBuf = graph.newBuffer();
         payloadBuf.writeAll(payload);
@@ -244,18 +317,9 @@ public class WSClient implements Storage, TaskExecutor {
             final byte firstCode = codeView.read(0);
             if (firstCode == WSConstants.NOTIFY_UPDATE) {
                 while (it.hasNext()) {
-                    final Buffer view = it.next();
-                    final ChunkKey key = ChunkKey.build(view);
-                    final Buffer hashView = it.next();
-                    if (key != null && hashView != null) {
-                        final long hash = Base64.decodeToLongWithBounds(hashView, 0, hashView.length());
-                        final Chunk ch = graph.space().getAndMark(key.type, key.world, key.time, key.id);
-                        if (ch != null) {
-                            ch.sync(hash);
-                            graph.space().unmark(ch.index());
-                        }
-                    }
+                    process_notify(it.next());
                 }
+                //optimize this
                 if (listeners.size() > 0) {
                     final Buffer notifyBuffer = graph.newBuffer();
                     notifyBuffer.writeAll(payloadBuf.slice(1, payloadBuf.length() - 1));

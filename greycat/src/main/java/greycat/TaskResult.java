@@ -15,6 +15,8 @@
  */
 package greycat;
 
+import greycat.struct.Buffer;
+
 public interface TaskResult<A> {
 
     TaskResultIterator iterator();
@@ -47,6 +49,12 @@ public interface TaskResult<A> {
 
     TaskResult<A> setOutput(String output);
 
+    TaskResult<A> setNotifications(Buffer buf);
+
     TaskResult<A> fillWith(TaskResult<A> source);
+
+    void saveToBuffer(Buffer buffer);
+
+    Buffer notifications();
 
 }

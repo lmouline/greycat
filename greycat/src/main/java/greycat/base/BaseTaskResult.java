@@ -15,12 +15,13 @@
  */
 package greycat.base;
 
-import greycat.Node;
+import greycat.*;
+import greycat.internal.CoreConstants;
 import greycat.internal.heap.HeapBuffer;
 import greycat.internal.task.TaskHelper;
-import greycat.TaskResult;
-import greycat.TaskResultIterator;
 import greycat.struct.Buffer;
+import greycat.utility.Base64;
+import greycat.utility.LArray;
 
 import java.util.ArrayList;
 
@@ -32,6 +33,9 @@ public class BaseTaskResult<A> implements TaskResult<A> {
 
     Exception _exception = null;
     String _output = null;
+    Buffer _notifications;
+
+    private LArray refs = null;
 
     @Override
     public Object[] asArray() {
@@ -61,6 +65,12 @@ public class BaseTaskResult<A> implements TaskResult<A> {
     @Override
     public final TaskResult<A> setOutput(String output) {
         _output = output;
+        return this;
+    }
+
+    @Override
+    public final TaskResult<A> setNotifications(Buffer buf) {
+        _notifications = buf;
         return this;
     }
 
@@ -259,6 +269,172 @@ public class BaseTaskResult<A> implements TaskResult<A> {
         return toJson(true);
     }
 
+    @Override
+    public synchronized final void saveToBuffer(Buffer buffer) {
+        if (_notifications != null) {
+            buffer.writeAll(_notifications.data());//this could be optimize
+        }
+        buffer.write(CoreConstants.CHUNK_SEP);
+        if (_output != null) {
+            Base64.encodeStringToBuffer(_output, buffer);
+        }
+        buffer.write(CoreConstants.CHUNK_SEP);
+        if (_exception != null) {
+            Base64.encodeStringToBuffer(_exception.toString(), buffer);
+        }
+        buffer.write(CoreConstants.CHUNK_SEP);
+        Base64.encodeIntToBuffer(_size, buffer);
+        for (int i = 0; i < _size; i++) {
+            final Object it = _backend[i];
+            if (it != null) {
+                buffer.write(CoreConstants.CHUNK_SEP);
+                if (it instanceof BaseNode) {
+                    Node castedNode = (Node) it;
+                    Base64.encodeIntToBuffer((int) Type.NODE, buffer);
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                    Base64.encodeLongToBuffer(castedNode.world(), buffer);
+                    buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                    Base64.encodeLongToBuffer(castedNode.time(), buffer);
+                    buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                    Base64.encodeLongToBuffer(castedNode.id(), buffer);
+                } else if (it instanceof String) {
+                    Base64.encodeIntToBuffer((int) Type.STRING, buffer);
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                    Base64.encodeStringToBuffer((String) it, buffer);
+                } else if (it instanceof double[]) {
+                    final double[] castedDA = (double[]) it;
+                    Base64.encodeIntToBuffer((int) Type.DOUBLE_ARRAY, buffer);
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                    Base64.encodeIntToBuffer(castedDA.length, buffer);
+                    for (int j = 0; j < castedDA.length; j++) {
+                        buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                        Base64.encodeDoubleToBuffer(castedDA[j], buffer);
+                    }
+                } else {
+                    throw new RuntimeException("Unsupported yet!");
+                }
+            }
+        }
+    }
+
+    @Override
+    public final Buffer notifications() {
+        return _notifications;
+    }
+
+    private void internal_load_element(final Buffer buffer, final int previous, final int cursor, final byte type, final int index) {
+        Object loaded = null;
+        switch (type) {
+            case Type.NODE:
+                if (refs == null) {
+                    refs = new LArray();
+                }
+                refs.add(index);
+                int iCursor = previous;
+                int iPrevious = previous;
+                while (iCursor < cursor) {
+                    byte current = buffer.read(iCursor);
+                    if (current == Constants.CHUNK_VAL_SEP) {
+                        long idElem = Base64.decodeToLongWithBounds(buffer, iPrevious, iCursor);
+                        refs.add(idElem);
+                        iPrevious = iCursor + 1;
+                    }
+                    iCursor++;
+                }
+                long idElem = Base64.decodeToIntWithBounds(buffer, iPrevious, iCursor);
+                refs.add(idElem);
+                break;
+            case Type.STRING:
+                loaded = Base64.decodeToStringWithBounds(buffer, previous, cursor);
+                break;
+        }
+        if (loaded != null) {
+            _backend[index] = loaded;
+        }
+    }
+
+    public void load(final Buffer buffer, final Graph graph) {
+        int cursor = 0;
+        int previous = 0;
+        int index = 0;
+        byte type = -1;
+        while (cursor < buffer.length()) {
+            byte current = buffer.read(cursor);
+            if (current == Constants.CHUNK_SEP) {
+                switch (index) {
+                    case 0:
+                        if (previous != cursor) {
+                            _notifications = graph.newBuffer();
+                            _notifications.writeAll(buffer.slice(previous, cursor));
+                        }
+                        index++;
+                        break;
+                    case 1:
+                        if (previous != cursor) {
+                            _output = Base64.decodeToStringWithBounds(buffer, previous, cursor);
+                        }
+                        index++;
+                        break;
+                    case 2:
+                        if (previous != cursor) {
+                            _exception = new RuntimeException(Base64.decodeToStringWithBounds(buffer, previous, cursor));
+                        }
+                        index++;
+                        break;
+                    case 3:
+                        int newSize = Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                        allocate(newSize);
+                        _size = newSize;
+                        index++;
+                        break;
+                    default:
+                        if (type == -1) {
+                            type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                        } else {
+                            internal_load_element(buffer, previous, cursor, type, index - 4);
+                            index++;
+                            type = -1;
+                        }
+                }
+                previous = cursor + 1;
+            }
+            cursor++;
+        }
+        if (type != -1) {
+            internal_load_element(buffer, previous, cursor, type, index - 4);
+        }
+    }
+
+    public void loadRefs(final Graph graph, final Callback<Boolean> callback) {
+        if (refs != null) {
+            long[] allRefs = refs.all();
+            int nbElem = allRefs.length / 4;
+            long[] worlds = new long[nbElem];
+            long[] times = new long[nbElem];
+            long[] ids = new long[nbElem];
+            int[] indexes = new int[nbElem];
+            int index = 0;
+            for (int i = 0; i < refs.size(); i = i + 4) {
+                indexes[index] = (int) allRefs[i];
+                worlds[index] = allRefs[i + 1];
+                times[index] = allRefs[i + 2];
+                ids[index] = allRefs[i + 3];
+                index++;
+            }
+            graph.lookupBatch(worlds, times, ids, new Callback<Node[]>() {
+                @Override
+                public void on(Node[] result) {
+                    for (int i = 0; i < indexes.length; i++) {
+                        _backend[indexes[i]] = result[i];
+                    }
+                    callback.on(true);
+                }
+            });
+        } else {
+            callback.on(true);
+        }
+    }
+
     private String toJson(boolean withContent) {
         final Buffer builder = new HeapBuffer();
         boolean isFirst = true;
@@ -304,6 +480,5 @@ public class BaseTaskResult<A> implements TaskResult<A> {
         builder.writeString("}");
         return builder.toString();
     }
-
 
 }

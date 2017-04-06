@@ -17,9 +17,11 @@ package greycat.plugin;
 
 import greycat.Task;
 import greycat.Callback;
+import greycat.TaskContext;
+import greycat.TaskResult;
 
 public interface TaskExecutor {
 
-    void executeTasks(Callback<String[]> callback, Task... tasks);
+    void execute(Callback<TaskResult> callback, Task task, TaskContext prepared);
 
 }

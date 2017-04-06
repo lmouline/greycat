@@ -56,7 +56,7 @@ public interface Storage {
      * Called to remove objects from the storage.
      * The {@code keys} array is a sequential list of &lt;world, timepoint, id&gt; tuples organized as follows:<br>
      * Say you wanna remove objects &lt;1, 2, 3&gt; and &lt;1, 5, 6&gt;, the array will be: [1,2,3,1,5,6]
-     *
+     *-
      * @param keys     The array of keys as specified above.
      * @param callback Is called when all keys are deleted.
      */

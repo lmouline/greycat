@@ -138,7 +138,7 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                     process_get(keys.toArray(new ChunkKey[keys.size()]), new Callback<Buffer>() {
                         @Override
                         public void on(Buffer streamResult) {
-                            Buffer concat = graph.newBuffer();
+                            final Buffer concat = graph.newBuffer();
                             concat.write(WSConstants.RESP_GET);
                             concat.write(Constants.BUFFER_SEP);
                             concat.writeAll(callbackCodeView.data());
@@ -151,50 +151,34 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                     });
                     break;
                 case WSConstants.REQ_TASK:
-                    final List<Object> tasks = new ArrayList<Object>();
-                    while (it.hasNext()) {
-                        Task t = Tasks.newTask();
-                        try {
-                            t.loadFromBuffer(it.next(), graph);
-                            tasks.add(t);
-                        } catch (Exception e) {
-                            tasks.add(Tasks.emptyResult().setException(e));
-                        }
-                    }
-                    final TaskResult[] results = new TaskResult[tasks.size()];
-                    final DeferCounter counter = graph.newCounter(tasks.size());
-                    counter.then(new Job() {
+                    final Callback<TaskResult> end = new Callback<TaskResult>() {
                         @Override
-                        public void run() {
-                            Buffer concat = graph.newBuffer();
+                        public void on(TaskResult result) {
+                            final Buffer concat = graph.newBuffer();
                             concat.write(WSConstants.RESP_TASK);
                             concat.write(Constants.BUFFER_SEP);
                             concat.writeAll(callbackCodeView.data());
-                            for (int i = 0; i < tasks.size(); i++) {
-                                concat.write(Constants.BUFFER_SEP);
-                                //improve the interface
-                                greycat.utility.Base64.encodeStringToBuffer(results[i].toString(), concat);
-                                results[i].free();
-                            }
+                            concat.write(Constants.BUFFER_SEP);
+                            result.saveToBuffer(concat);
+                            result.free();
                             payload.free();
                             WSServer.this.send_resp(concat, channel);
                         }
-                    });
-                    //call all subTask
-                    for (int i = 0; i < tasks.size(); i++) {
-                        int finalI = i;
-                        Object elem = tasks.get(i);
-                        if (elem instanceof TaskResult) {
-                            results[finalI] = (TaskResult) elem;
-                            counter.count();
-                        } else {
-                            ((Task) elem).execute(graph, new Callback<TaskResult>() {
+                    };
+                    if (it.hasNext()) {
+                        Task t = Tasks.newTask();
+                        try {
+                            t.loadFromBuffer(it.next(), graph);
+                            TaskContext ctx = t.prepare(graph, null, new Callback<TaskResult>() {
                                 @Override
                                 public void on(TaskResult result) {
-                                    results[finalI] = result;
-                                    counter.count();
+                                    end.on(result);
                                 }
                             });
+                            ctx.silentSave();
+                            t.executeUsing(ctx);
+                        } catch (Exception e) {
+                            end.on(Tasks.emptyResult().setException(e));
                         }
                     }
                     break;
@@ -253,26 +237,6 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                                     WSServer.this.send_resp(concat, channel);
                                 }
                             });
-
-
-                            //for all other channel
-                            /*
-                            WebSocketChannel[] others = WSServer.this.peers.toArray(new WebSocketChannel[WSServer.this.peers.size()]);
-                            Buffer notificationBuffer = graph.newBuffer();
-                            notificationBuffer.write(WSConstants.REQ_UPDATE);
-                            for (int i = 0; i < collectedKeys.length; i++) {
-                                notificationBuffer.write(Constants.BUFFER_SEP);
-                                KeyHelper.keyToBuffer(notificationBuffer, collectedKeys[i].type, collectedKeys[i].world, collectedKeys[i].time, collectedKeys[i].id);
-                            }
-                            byte[] notificationMsg = notificationBuffer.data();
-                            notificationBuffer.free();
-                            for (int i = 0; i < others.length; i++) {
-                                if (!others[i].equals(channel)) {
-                                    //send notification
-                                    WSServer.this.send_flat_resp(notificationMsg, others[i]);
-                                }
-                            }
-                            */
                         }
                     });
                     break;

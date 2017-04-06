@@ -15,6 +15,7 @@
  */
 package greycat;
 
+import greycat.struct.Buffer;
 import greycat.utility.Tuple;
 
 public interface TaskContext {
@@ -38,7 +39,7 @@ public interface TaskContext {
     double doubleVar(String name);
 
     long longVar(String name);
-    
+
     boolean isGlobal(String name);
 
     TaskResult wrap(Object input);
@@ -85,5 +86,9 @@ public interface TaskContext {
     String[] templates(String[] inputs);
 
     void append(String additionalOutput);
+
+    void silentSave();
+
+    Buffer notifier();
 
 }

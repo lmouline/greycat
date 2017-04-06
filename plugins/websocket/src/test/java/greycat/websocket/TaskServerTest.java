@@ -73,14 +73,17 @@ public class TaskServerTest {
                                         @Override
                                         public void on(TaskResult result) {
                                             System.out.println(result);
-                                            client.executeTasks(new Callback<String[]>() {
+
+                                            Task tremote = newTask().readGlobalIndex("nodes").attribute("name");
+                                            tremote.executeRemotely(emptyGraph, new Callback<TaskResult>() {
                                                 @Override
-                                                public void on(String[] results) {
+                                                public void on(TaskResult result) {
+                                                    System.out.println(result);
+                                                    /*
                                                     System.out.println("Results");
                                                     for (String r : results) {
                                                         System.out.println("=>" + r);
-                                                    }
-
+                                                    }*/
                                                     t.execute(emptyGraph, new Callback<TaskResult>() {
                                                         @Override
                                                         public void on(TaskResult result) {
@@ -94,10 +97,19 @@ public class TaskServerTest {
 
                                                         }
                                                     });
-
-
                                                 }
-                                            }, newTask().readGlobalIndex("nodes"), newTask().readGlobalIndex("roots"), newTask().createNode().setAttribute("name", Type.STRING, "remotelyAdded").addToGlobalIndex("nodes", "name").save());
+                                            });
+
+                                            /*
+                                            client.execute(new Callback<TaskResult>() {
+                                                               @Override
+                                                               public void on(TaskResult result) {
+                                                               }
+                                                           },
+                                                    newTask().readGlobalIndex("nodes")
+                                                    //newTask().readGlobalIndex("roots")
+                                                    //newTask().createNode().setAttribute("name", Type.STRING, "remotelyAdded").addToGlobalIndex("nodes", "name").save()
+                                                    , null);*/
 
                                         }
                                     });

@@ -104,7 +104,7 @@ export class WSClient implements greycat.plugin.Storage {
     }
 
     putSilent(stream: greycat.struct.Buffer, callback: greycat.Callback<greycat.struct.Buffer>): void {
-        this.send_rpc_req(this.REQ_PUT, stream, function(b:boolean){
+        this.send_rpc_req(this.REQ_PUT, stream, function (b: boolean) {
             callback(null);
         });
     }
@@ -121,25 +121,97 @@ export class WSClient implements greycat.plugin.Storage {
         this.send_rpc_req(this.REQ_UNLOCK, previousLock, callback);
     }
 
-    executeTasks(callback: greycat.Callback<String[]>, ...tasks: greycat.Task[]): void {
-        let tasksBuffer = this.graph.newBuffer();
-        for (let i = 0; i < tasks.length; i++) {
-            if (i != 0) {
-                tasksBuffer.write(greycat.Constants.BUFFER_SEP);
-            }
-            tasks[i].saveToBuffer(tasksBuffer);
+    execute(callback: greycat.Callback<greycat.TaskResult<any>>, task: greycat.Task, context: greycat.TaskContext): void {
+        let reqBuffer = this.graph.newBuffer();
+        let finalGraph = this.graph;
+        task.saveToBuffer(reqBuffer);
+        if (context != null) {
+            //TODO
         }
         let finalCB = callback;
-        this.send_rpc_req(this.REQ_TASK, tasksBuffer, function (resultBuffer) {
-            let result = [];
-            let it = resultBuffer.iterator();
-            while (it.hasNext()) {
-                let view = it.next();
-                result.push(greycat.utility.Base64.decodeToStringWithBounds(view, 0, view.length()));
-            }
-            resultBuffer.free();
-            finalCB(result);
+        this.send_rpc_req(this.REQ_TASK, reqBuffer, function (resultBuffer) {
+            reqBuffer.free();
+            let baseTaskResult: greycat.base.BaseTaskResult<any> = new greycat.base.BaseTaskResult<any>(null, false);
+            baseTaskResult.load(resultBuffer, finalGraph);
+            this.process_notify(baseTaskResult.notifications());
+            baseTaskResult.loadRefs(finalGraph,function (b: boolean) {
+                resultBuffer.free();
+                finalCB(baseTaskResult);
+            });
         });
+    }
+
+    process_notify(buffer : greycat.struct.Buffer){
+        if (buffer != null) {
+            var type = 0;
+            var world = 0;
+            var time = 0;
+            var id = 0;
+            var hash = 0;
+            var step = 0;
+            var cursor = 0;
+            var previous = 0;
+            var end = buffer.length();
+            while (cursor < end) {
+                let current = buffer.read(cursor);
+                if (current == greycat.Constants.KEY_SEP) {
+                    switch (step) {
+                        case 0:
+                            type = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                            break;
+                        case 1:
+                            world = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            break;
+                        case 2:
+                            time = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            break;
+                        case 3:
+                            id = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            break;
+                        case 4:
+                            hash = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            break;
+                    }
+                    previous = cursor + 1;
+                    if (step == 4) {
+                        step = 0;
+                        let ch : greycat.chunk.Chunk = this.graph.space().getAndMark(type, world, time, id);
+                        if (ch != null) {
+                            ch.sync(hash);
+                            this.graph.space().unmark(ch.index());
+                        }
+                    } else {
+                        step++;
+                    }
+                }
+                cursor++;
+            }
+            switch (step) {
+                case 0:
+                    type = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                    break;
+                case 1:
+                    world = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    break;
+                case 2:
+                    time = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    break;
+                case 3:
+                    id = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    break;
+                case 4:
+                    hash = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    break;
+            }
+            if (step == 4) {
+                //invalidate
+                let ch : greycat.chunk.Chunk = this.graph.space().getAndMark(type, world, time, id);
+                if (ch != null) {
+                    ch.sync(hash);
+                    this.graph.space().unmark(ch.index());
+                }
+            }
+        }
     }
 
     process_rpc_resp(payload: Int8Array) {
@@ -151,18 +223,9 @@ export class WSClient implements greycat.plugin.Storage {
             let firstCode = codeView.read(0);
             if (firstCode == this.NOTIFY_UPDATE) {
                 while (it.hasNext()) {
-                    let view = it.next();
-                    let key = ChunkKey.build(view);
-                    let hashView = it.next();
-                    if (key != null && hashView != null) {
-                        let hash = greycat.utility.Base64.decodeToLongWithBounds(hashView, 0, hashView.length());
-                        let ch = this.graph.space().getAndMark(key.type, key.world, key.time, key.id);
-                        if (ch != null) {
-                            ch.sync(hash);
-                            this.graph.space().unmark(ch.index());
-                        }
-                    }
+                    this.process_notify(it.next());
                 }
+                //optimize this
                 if (this._listeners.length > 0) {
                     const notifyBuffer = this.graph.newBuffer();
                     notifyBuffer.writeAll(payloadBuf.slice(1, payloadBuf.length() - 1));

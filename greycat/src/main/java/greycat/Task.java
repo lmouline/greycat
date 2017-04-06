@@ -231,6 +231,14 @@ public interface Task {
     void execute(final Graph graph, final Callback<TaskResult> callback);
 
     /**
+     * Executes the defined chain of tasks on a graph in an asynchronous way.
+     *
+     * @param graph    the graph where the execution is applied to
+     * @param callback to notify when the chain of tasks has been executed
+     */
+    void executeRemotely(final Graph graph, final Callback<TaskResult> callback);
+
+    /**
      * Synchronous version of {@link #execute(Graph, Callback)}.
      *
      * @param graph where the execcution is applied to

@@ -54,6 +54,10 @@ public class Type {
     public static final byte KDTREE = 22;
     public static final byte NDTREE = 23;
 
+    public static final byte NODE = 24;
+    public static final byte NODE_ARRAY = 25;
+
+
     /**
      * Convert a type that represent a byte to a readable String representation
      *

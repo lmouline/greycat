@@ -40,7 +40,7 @@ public class WSServerTest {
             @Override
             public void on(Boolean connectResult) {
                 WSServer graphServer = new WSServer(graph, 8050);
-                graphServer.addHandler("hello", new ResourceHandler(new ClassPathResourceManager(this.getClass().getClassLoader(),"hello")).addWelcomeFiles("index.html").setDirectoryListingEnabled(true));
+                graphServer.addHandler("hello", new ResourceHandler(new ClassPathResourceManager(this.getClass().getClassLoader(), "hello")).addWelcomeFiles("index.html").setDirectoryListingEnabled(true));
                 graphServer.start();
                 System.out.println("Connected!");
 
@@ -117,7 +117,7 @@ public class WSServerTest {
                 WSServer graphServer = new WSServer(graph, port);
                 graphServer.start();
                 final CountDownLatch latch = new CountDownLatch(1);
-                final Graph graph2 = new GraphBuilder().withMemorySize(10000).withStorage(new WSClient("ws://localhost:" + port+"/ws")).build();
+                final Graph graph2 = new GraphBuilder().withMemorySize(10000).withStorage(new WSClient("ws://localhost:" + port + "/ws")).build();
                 graph2.connect(new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result1) {

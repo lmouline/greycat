@@ -136,10 +136,10 @@ public class RocksDBStorage implements Storage {
                 if (isFirst) {
                     isFirst = false;
                 } else {
-                    result.write(Constants.BUFFER_SEP);
+                    result.write(Constants.KEY_SEP);
                 }
                 result.writeAll(keyView.data());
-                result.write(Constants.BUFFER_SEP);
+                result.write(Constants.KEY_SEP);
                 Base64.encodeLongToBuffer(HashHelper.hashBuffer(valueView, 0, valueView.length()), result);
             }
         }
@@ -180,10 +180,10 @@ public class RocksDBStorage implements Storage {
             if (isFirst) {
                 isFirst = false;
             } else {
-                result.write(Constants.BUFFER_SEP);
+                result.write(Constants.KEY_SEP);
             }
             result.writeAll(keyView.data());
-            result.write(Constants.BUFFER_SEP);
+            result.write(Constants.KEY_SEP);
             Base64.encodeLongToBuffer(HashHelper.hashBuffer(valueView, 0, valueView.length()), result);
         }
         WriteOptions options = new WriteOptions();

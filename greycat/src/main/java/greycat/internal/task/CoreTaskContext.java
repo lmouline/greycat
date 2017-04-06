@@ -20,6 +20,7 @@ import greycat.base.BaseTaskResult;
 import greycat.internal.task.math.CoreMathExpressionEngine;
 import greycat.internal.task.math.MathExpressionEngine;
 import greycat.base.BaseNode;
+import greycat.struct.Buffer;
 import greycat.utility.Tuple;
 
 import java.util.HashMap;
@@ -43,6 +44,7 @@ class CoreTaskContext implements TaskContext {
     private int cursor = 0;
     final TaskHook[] _hooks;
     private StringBuilder _output = null;
+    private Buffer _silent;
 
     CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
         this._origin = origin;
@@ -59,8 +61,10 @@ class CoreTaskContext implements TaskContext {
         final CoreTaskContext castedParentContext = (CoreTaskContext) parentContext;
         if (parentContext == null) {
             this._globalVariables = new ConcurrentHashMap<String, TaskResult>();
+            this._silent = null;
         } else {
             this._globalVariables = castedParentContext.globalVariables();
+            this._silent = castedParentContext._silent;
         }
         this._result = initial;
         this._callback = p_callback;
@@ -447,7 +451,7 @@ class CoreTaskContext implements TaskContext {
                 nextAction.eval(this);
             } catch (Exception e) {
                 if (cursor == previousCursor) {
-                    endTask(null, new RuntimeException("Exception during evaluation of in task: " + nextAction.toString() + "\n" + e.toString()));
+                    endTask(null, e);
                 } else {
                     e.printStackTrace();
                 }
@@ -518,6 +522,12 @@ class CoreTaskContext implements TaskContext {
                     _result = new BaseTaskResult(null, false);
                 }
                 _result.setOutput(_output.toString());
+            }
+            if (_silent != null) {
+                if (_result == null) {
+                    _result = new BaseTaskResult(null, false);
+                }
+                _result.setNotifications(_silent);
             }
             this._callback.on(_result);
         } else {
@@ -714,7 +724,18 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
+    public synchronized final void silentSave() {
+        _silent = _graph.newBuffer();
+    }
+
+    @Override
+    public final Buffer notifier() {
+        return _silent;
+    }
+
+    @Override
     public final String toString() {
         return "{result:" + _result.toString() + "}";
     }
+
 }
