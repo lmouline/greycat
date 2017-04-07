@@ -38,6 +38,7 @@ export class WSClient implements greycat.plugin.Storage {
     private RESP_TASK = 11;
 
     private NOTIFY_UPDATE = 12;
+    private NOTIFY_PRINT = 12;
 
     constructor(p_url: string) {
         this.url = p_url;
@@ -134,7 +135,7 @@ export class WSClient implements greycat.plugin.Storage {
             reqBuffer.free();
             let baseTaskResult: greycat.base.BaseTaskResult<any> = new greycat.base.BaseTaskResult<any>(null, false);
             baseTaskResult.load(resultBuffer, finalGraph);
-            notifyMethod(baseTaskResult.notifications());
+            notifyMethod(baseTaskResult.notifications(), finalGraph);
             baseTaskResult.loadRefs(finalGraph,function (b: boolean) {
                 resultBuffer.free();
                 finalCB(baseTaskResult);
@@ -142,7 +143,7 @@ export class WSClient implements greycat.plugin.Storage {
         });
     }
 
-    process_notify(buffer : greycat.struct.Buffer){
+    process_notify(buffer : greycat.struct.Buffer, graph : greycat.Graph){
         if (buffer != null) {
             var type = 0;
             var world = 0;
@@ -179,7 +180,7 @@ export class WSClient implements greycat.plugin.Storage {
                         let ch : greycat.chunk.Chunk = this.graph.space().getAndMark(type, world, time, id);
                         if (ch != null) {
                             ch.sync(hash);
-                            this.graph.space().unmark(ch.index());
+                            graph.unmark(ch.index());
                         }
                     } else {
                         step++;
@@ -224,7 +225,7 @@ export class WSClient implements greycat.plugin.Storage {
             let firstCode = codeView.read(0);
             if (firstCode == this.NOTIFY_UPDATE) {
                 while (it.hasNext()) {
-                    this.process_notify(it.next());
+                    this.process_notify(it.next(), this.graph);
                 }
                 //optimize this
                 if (this._listeners.length > 0) {
