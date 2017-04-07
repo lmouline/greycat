@@ -1433,8 +1433,8 @@ final class MWResolver implements Resolver {
                                     previousDivergenceTime = currentDivergenceTime;
                                 }
                             }
+                            selfPointer._space.unmark(timeTree.index());
                         }
-                        selfPointer._space.unmark(timeTree.index());
                     }
                     //now we have times
                     if (insert_index[0] != collectedTimesSize[0]) {
