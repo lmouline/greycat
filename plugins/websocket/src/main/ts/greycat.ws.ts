@@ -180,7 +180,7 @@ export class WSClient implements greycat.plugin.Storage {
                         let ch : greycat.chunk.Chunk = graph.space().getAndMark(type, world, time, id);
                         if (ch != null) {
                             ch.sync(hash);
-                            graph.unmark(ch.index());
+                            graph.space().unmark(ch.index());
                         }
                     } else {
                         step++;
