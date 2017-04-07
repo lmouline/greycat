@@ -365,7 +365,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                     case 0:
                         if (previous != cursor) {
                             _notifications = graph.newBuffer();
-                            _notifications.writeAll(buffer.slice(previous, cursor-1));
+                            _notifications.writeAll(buffer.slice(previous, cursor - 1));
                         }
                         index++;
                         break;
@@ -405,7 +405,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
         }
     }
 
-    public void loadRefs(final Graph graph, final Callback<Boolean> callback) {
+    public final void loadRefs(final Graph graph, final Callback<Boolean> callback) {
         if (refs != null) {
             long[] allRefs = refs.all();
             int nbElem = allRefs.length / 4;

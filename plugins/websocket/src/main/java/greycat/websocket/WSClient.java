@@ -169,14 +169,12 @@ public class WSClient implements Storage, TaskExecutor {
         task.saveToBuffer(buffer);
         if (prepared != null) {
             buffer.write(Constants.BUFFER_SEP);
-            //TODO saveTo
-            throw new RuntimeException("Remote Task Context not implemented yet!");
+            prepared.saveToBuffer(buffer);
         }
         send_rpc_req(WSConstants.REQ_TASK, buffer, new Callback<Buffer>() {
             @Override
             public void on(final Buffer bufferResult) {
                 buffer.free();
-                //process_notify(it.next());
                 final BaseTaskResult baseTaskResult = new BaseTaskResult(null, false);
                 baseTaskResult.load(bufferResult, graph);
                 process_notify(baseTaskResult.notifications());

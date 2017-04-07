@@ -173,6 +173,14 @@ public class CoreTask implements Task {
     }
 
     @Override
+    public void executeRemotelyUsing(TaskContext preparedContext) {
+        Object str = preparedContext.graph().storage();
+        TaskExecutor exec = (TaskExecutor) str;
+        final CoreTaskContext casted = (CoreTaskContext) preparedContext;
+        exec.execute(casted._callback, this, preparedContext);
+    }
+
+    @Override
     public final TaskResult executeSync(final Graph graph) {
         DeferCounterSync waiter = graph.newSyncCounter(1);
         executeWith(graph, null, waiter.wrap());
@@ -573,7 +581,7 @@ public class CoreTask implements Task {
                             }
                             break;
                         default:
-                            throw new RuntimeException("Type: " +correspondingType+" not implemented!");
+                            throw new RuntimeException("Type: " + correspondingType + " not implemented!");
                     }
                 }
                 if (resultSize > params.length) {

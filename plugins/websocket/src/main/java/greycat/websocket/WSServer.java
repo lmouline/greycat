@@ -151,21 +151,21 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                     });
                     break;
                 case WSConstants.REQ_TASK:
-                    final Callback<TaskResult> end = new Callback<TaskResult>() {
-                        @Override
-                        public void on(TaskResult result) {
-                            final Buffer concat = graph.newBuffer();
-                            concat.write(WSConstants.RESP_TASK);
-                            concat.write(Constants.BUFFER_SEP);
-                            concat.writeAll(callbackCodeView.data());
-                            concat.write(Constants.BUFFER_SEP);
-                            result.saveToBuffer(concat);
-                            result.free();
-                            payload.free();
-                            WSServer.this.send_resp(concat, channel);
-                        }
-                    };
                     if (it.hasNext()) {
+                        final Callback<TaskResult> end = new Callback<TaskResult>() {
+                            @Override
+                            public void on(TaskResult result) {
+                                final Buffer concat = graph.newBuffer();
+                                concat.write(WSConstants.RESP_TASK);
+                                concat.write(Constants.BUFFER_SEP);
+                                concat.writeAll(callbackCodeView.data());
+                                concat.write(Constants.BUFFER_SEP);
+                                result.saveToBuffer(concat);
+                                result.free();
+                                payload.free();
+                                WSServer.this.send_resp(concat, channel);
+                            }
+                        };
                         Task t = Tasks.newTask();
                         try {
                             t.loadFromBuffer(it.next(), graph);
@@ -176,6 +176,9 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                                 }
                             });
                             ctx.silentSave();
+                            if (it.hasNext()) {
+                                ctx.loadFromBuffer(it.next());
+                            }
                             t.executeUsing(ctx);
                         } catch (Exception e) {
                             end.on(Tasks.emptyResult().setException(e));
@@ -270,7 +273,6 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                             newChunk.loadDiff(values[finalI]);
                             graph.space().unmark(newChunk.index());
                         }
-
                     }
                     defer.count();
                 }

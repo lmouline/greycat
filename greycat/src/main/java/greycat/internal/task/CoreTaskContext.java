@@ -17,10 +17,12 @@ package greycat.internal.task;
 
 import greycat.*;
 import greycat.base.BaseTaskResult;
+import greycat.internal.CoreConstants;
 import greycat.internal.task.math.CoreMathExpressionEngine;
 import greycat.internal.task.math.MathExpressionEngine;
 import greycat.base.BaseNode;
 import greycat.struct.Buffer;
+import greycat.utility.Base64;
 import greycat.utility.Tuple;
 
 import java.util.HashMap;
@@ -731,6 +733,54 @@ class CoreTaskContext implements TaskContext {
     @Override
     public final Buffer notifier() {
         return _silent;
+    }
+
+    @Override
+    public final void saveToBuffer(Buffer buffer) {
+        if (_result != null) {
+            _result.saveToBuffer(buffer);
+        }
+        Tuple<String, TaskResult>[] variables = variables();
+        for (int i = 0; i < variables.length; i++) {
+            buffer.write(CoreConstants.CHUNK_ESEP);
+            Base64.encodeStringToBuffer(variables[i].left(), buffer);
+            buffer.write(CoreConstants.CHUNK_ESEP);
+            variables[i].right().saveToBuffer(buffer);
+        }
+    }
+
+    @Override
+    public final void loadFromBuffer(Buffer buffer) {
+        int cursor = 0;
+        int previous = 0;
+        String name = null;
+        while (cursor < buffer.length()) {
+            byte current = buffer.read(cursor);
+            if (current == Constants.CHUNK_ESEP) {
+                if (name == null) {
+                    name = Base64.decodeToStringWithBounds(buffer, previous, cursor);
+                } else {
+                    BaseTaskResult subResult = new BaseTaskResult(null, false);
+                    subResult.load(buffer, _graph);
+                    defineVariable(name, subResult);
+                    name = null;
+                }
+                previous = cursor + 1;
+            }
+            cursor++;
+        }
+        if (name != null) {
+            BaseTaskResult subResult = new BaseTaskResult(null, false);
+            subResult.load(buffer, _graph);
+            defineVariable(name, subResult);
+        } else {
+            BaseTaskResult subResult = new BaseTaskResult(null, false);
+            subResult.load(buffer, _graph);
+            if (_result != null) {
+                _result.free();
+            }
+            _result = subResult;
+        }
     }
 
     @Override

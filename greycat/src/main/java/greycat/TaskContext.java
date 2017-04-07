@@ -91,4 +91,8 @@ public interface TaskContext {
 
     Buffer notifier();
 
+    void saveToBuffer(Buffer buffer);
+
+    void loadFromBuffer(Buffer buffer);
+
 }

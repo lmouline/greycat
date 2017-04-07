@@ -75,10 +75,12 @@ public class TaskServerTest {
                                             System.out.println(result);
 
                                             Task tremote = newTask()
+                                                    .log("remotely logged: {{result}}")
+                                                    .print("remotely printed: {{result}}")
                                                     .readGlobalIndex("nodes")
                                                     .createNode()
                                                     .save();
-                                            tremote.executeRemotely(emptyGraph, new Callback<TaskResult>() {
+                                            TaskContext prepare = tremote.prepare(emptyGraph, "hello", new Callback<TaskResult>() {
                                                 @Override
                                                 public void on(TaskResult result) {
                                                     System.out.println(result);
@@ -102,6 +104,7 @@ public class TaskServerTest {
                                                     });
                                                 }
                                             });
+                                            tremote.executeRemotelyUsing(prepare);
 
                                             /*
                                             client.execute(new Callback<TaskResult>() {
