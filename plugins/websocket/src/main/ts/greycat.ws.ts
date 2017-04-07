@@ -177,7 +177,7 @@ export class WSClient implements greycat.plugin.Storage {
                     previous = cursor + 1;
                     if (step == 4) {
                         step = 0;
-                        let ch : greycat.chunk.Chunk = this.graph.space().getAndMark(type, world, time, id);
+                        let ch : greycat.chunk.Chunk = graph.space().getAndMark(type, world, time, id);
                         if (ch != null) {
                             ch.sync(hash);
                             graph.unmark(ch.index());
@@ -207,10 +207,10 @@ export class WSClient implements greycat.plugin.Storage {
             }
             if (step == 4) {
                 //invalidate
-                let ch : greycat.chunk.Chunk = this.graph.space().getAndMark(type, world, time, id);
+                let ch : greycat.chunk.Chunk = graph.space().getAndMark(type, world, time, id);
                 if (ch != null) {
                     ch.sync(hash);
-                    this.graph.space().unmark(ch.index());
+                    graph.space().unmark(ch.index());
                 }
             }
         }
