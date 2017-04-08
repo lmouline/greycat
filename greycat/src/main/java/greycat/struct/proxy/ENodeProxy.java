@@ -205,6 +205,11 @@ public final class ENodeProxy implements ENode {
     }
 
     @Override
+    public int id() {
+        return _node.id();
+    }
+
+    @Override
     public final String toString() {
         return _node.toString();
     }
