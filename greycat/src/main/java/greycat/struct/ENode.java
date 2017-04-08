@@ -46,4 +46,6 @@ public interface ENode extends Container {
 
     ENode clear();
 
+    int id();
+
 }
