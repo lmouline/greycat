@@ -884,6 +884,15 @@ public class CoreTask implements Task {
                         return new ActionSave();
                     }
                 });
+        registry.getOrCreateDeclaration(CoreActionNames.CLEAR_RESULT)
+                .setParams()
+                .setDescription("Clears the current result")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionClearResult();
+                    }
+                });
         registry.getOrCreateDeclaration(CoreActionNames.EXECUTE_EXPRESSION)
                 .setParams(Type.STRING)
                 .setDescription("Executes an expression on all nodes given from the previous step.")
