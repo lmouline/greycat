@@ -104,6 +104,12 @@ public class TaskServerTest {
                                                     });
                                                 }
                                             });
+                                            prepare.setPrintHook(new Callback<String>() {
+                                                @Override
+                                                public void on(String result) {
+                                                    System.out.println("Streamed="+result);
+                                                }
+                                            });
                                             tremote.executeRemotelyUsing(prepare);
 
                                             /*

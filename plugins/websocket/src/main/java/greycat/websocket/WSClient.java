@@ -33,9 +33,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class WSClient implements Storage, TaskExecutor {
@@ -54,21 +54,21 @@ public class WSClient implements Storage, TaskExecutor {
 
     public WSClient(String p_url) {
         this.url = p_url;
-        this.callbacks = new HashMap<Integer, Callback>();
+        this.callbacks = new ConcurrentHashMap<Integer, Callback>();
     }
 
     @Override
-    public void get(Buffer keys, Callback<Buffer> callback) {
+    public final void get(Buffer keys, Callback<Buffer> callback) {
         send_rpc_req(WSConstants.REQ_GET, keys, callback);
     }
 
     @Override
-    public void put(Buffer stream, Callback<Boolean> callback) {
+    public final void put(Buffer stream, Callback<Boolean> callback) {
         send_rpc_req(WSConstants.REQ_PUT, stream, callback);
     }
 
     @Override
-    public void putSilent(Buffer stream, Callback<Buffer> callback) {
+    public final void putSilent(Buffer stream, Callback<Buffer> callback) {
         send_rpc_req(WSConstants.REQ_PUT, stream, new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
@@ -78,22 +78,22 @@ public class WSClient implements Storage, TaskExecutor {
     }
 
     @Override
-    public void remove(Buffer keys, Callback<Boolean> callback) {
+    public final void remove(Buffer keys, Callback<Boolean> callback) {
         send_rpc_req(WSConstants.REQ_REMOVE, keys, callback);
     }
 
     @Override
-    public void lock(Callback<Buffer> callback) {
+    public final void lock(Callback<Buffer> callback) {
         send_rpc_req(WSConstants.REQ_LOCK, null, callback);
     }
 
     @Override
-    public void unlock(Buffer previousLock, Callback<Boolean> callback) {
+    public final void unlock(Buffer previousLock, Callback<Boolean> callback) {
         send_rpc_req(WSConstants.REQ_UNLOCK, previousLock, callback);
     }
 
     @Override
-    public void connect(final Graph p_graph, final Callback<Boolean> callback) {
+    public final void connect(final Graph p_graph, final Callback<Boolean> callback) {
         if (channel != null) {
             if (callback != null) {
                 callback.on(true);//already connected
@@ -164,16 +164,31 @@ public class WSClient implements Storage, TaskExecutor {
     }
 
     @Override
-    public final void execute(final Callback<TaskResult> callback, final Task task, TaskContext prepared) {
+    public final void execute(final Callback<TaskResult> callback, final Task task, final TaskContext prepared) {
         final Buffer buffer = graph.newBuffer();
         task.saveToBuffer(buffer);
+        final int hash;
         if (prepared != null) {
             buffer.write(Constants.BUFFER_SEP);
+            final Callback<String> printHook = prepared.printHook();
+            if (printHook != null) {
+                hash = printHook.hashCode();
+                callbacks.put(hash, printHook);
+                Base64.encodeIntToBuffer(hash, buffer);
+            } else {
+                hash = -1;
+            }
+            buffer.write(Constants.BUFFER_SEP);
             prepared.saveToBuffer(buffer);
+        } else {
+            hash = -1;
         }
         send_rpc_req(WSConstants.REQ_TASK, buffer, new Callback<Buffer>() {
             @Override
             public void on(final Buffer bufferResult) {
+                if(hash != -1){
+                    callbacks.remove(hash);
+                }
                 buffer.free();
                 final BaseTaskResult baseTaskResult = new BaseTaskResult(null, false);
                 baseTaskResult.load(bufferResult, graph);
@@ -313,45 +328,56 @@ public class WSClient implements Storage, TaskExecutor {
         Buffer codeView = it.next();
         if (codeView != null && codeView.length() != 0) {
             final byte firstCode = codeView.read(0);
-            if (firstCode == WSConstants.NOTIFY_UPDATE) {
-                while (it.hasNext()) {
-                    process_notify(it.next());
-                }
-                //optimize this
-                if (listeners.size() > 0) {
-                    final Buffer notifyBuffer = graph.newBuffer();
-                    notifyBuffer.writeAll(payloadBuf.slice(1, payloadBuf.length() - 1));
-                    for (int i = 0; i < listeners.size(); i++) {
-                        listeners.get(i).on(notifyBuffer);
+            switch (firstCode) {
+                case WSConstants.NOTIFY_UPDATE:
+                    while (it.hasNext()) {
+                        process_notify(it.next());
                     }
-                    notifyBuffer.free();
-                }
-            } else {
-                Buffer callbackCodeView = it.next();
-                if (callbackCodeView != null) {
-                    int callbackCode = Base64.decodeToIntWithBounds(callbackCodeView, 0, callbackCodeView.length());
-                    Callback resolvedCallback = callbacks.get(callbackCode);
-                    if (resolvedCallback != null) {
-                        if (firstCode == WSConstants.RESP_LOCK || firstCode == WSConstants.RESP_GET || firstCode == WSConstants.RESP_TASK) {
-                            Buffer newBuf = graph.newBuffer();//will be free by the core
-                            boolean isFirst = true;
-                            while (it.hasNext()) {
-                                if (isFirst) {
-                                    isFirst = false;
-                                } else {
-                                    newBuf.write(Constants.BUFFER_SEP);
-                                }
-                                newBuf.writeAll(it.next().data());
-                            }
-                            resolvedCallback.on(newBuf);
-                        } else {
-                            resolvedCallback.on(true);
+                    //todo optimize this
+                    if (listeners.size() > 0) {
+                        final Buffer notifyBuffer = graph.newBuffer();
+                        notifyBuffer.writeAll(payloadBuf.slice(1, payloadBuf.length() - 1));
+                        for (int i = 0; i < listeners.size(); i++) {
+                            listeners.get(i).on(notifyBuffer);
                         }
+                        notifyBuffer.free();
                     }
-                }
+                    break;
+                case WSConstants.NOTIFY_PRINT:
+                    final Buffer callbackPrintCodeView = it.next();
+                    final Buffer printContentView = it.next();
+                    final int callbackPrintCode = Base64.decodeToIntWithBounds(callbackPrintCodeView, 0, callbackPrintCodeView.length());
+                    final String printContent = Base64.decodeToStringWithBounds(printContentView, 0, printContentView.length());
+                    Callback printCallback = callbacks.get(callbackPrintCode);
+                    printCallback.on(printContent);
+                    break;
+                case WSConstants.RESP_LOCK:
+                case WSConstants.RESP_GET:
+                case WSConstants.RESP_TASK:
+                    final Buffer callBackCodeView = it.next();
+                    final int callbackCode = Base64.decodeToIntWithBounds(callBackCodeView, 0, callBackCodeView.length());
+                    Callback resolvedCallback = callbacks.get(callbackCode);
+                    Buffer newBuf = graph.newBuffer();//will be free by the core
+                    boolean isFirst = true;
+                    while (it.hasNext()) {
+                        if (isFirst) {
+                            isFirst = false;
+                        } else {
+                            newBuf.write(Constants.BUFFER_SEP);
+                        }
+                        newBuf.writeAll(it.next().data());
+                    }
+                    callbacks.remove(callbackCode);
+                    resolvedCallback.on(newBuf);
+                    break;
+                default:
+                    Buffer genericCodeView = it.next();
+                    final int genericCode = Base64.decodeToIntWithBounds(genericCodeView, 0, genericCodeView.length());
+                    Callback genericCallback = callbacks.get(genericCode);
+                    callbacks.remove(genericCode);
+                    genericCallback.on(true);
             }
         }
         payloadBuf.free();
     }
-
 }

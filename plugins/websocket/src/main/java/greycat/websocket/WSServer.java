@@ -19,6 +19,8 @@ import greycat.*;
 import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
+import greycat.utility.*;
+import greycat.utility.Base64;
 import io.undertow.Handlers;
 import io.undertow.Undertow;
 import io.undertow.server.HttpHandler;
@@ -27,7 +29,6 @@ import io.undertow.websockets.WebSocketConnectionCallback;
 import io.undertow.websockets.core.*;
 import io.undertow.websockets.spi.WebSocketHttpExchange;
 import greycat.chunk.Chunk;
-import greycat.utility.KeyHelper;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -177,6 +178,23 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                             });
                             ctx.silentSave();
                             if (it.hasNext()) {
+                                final int printHookCode;
+                                Buffer hookCodeView = it.next();
+                                if(hookCodeView.length() > 0){
+                                    printHookCode = greycat.utility.Base64.decodeToIntWithBounds(hookCodeView,0,hookCodeView.length());
+                                    ctx.setPrintHook(new Callback<String>() {
+                                        @Override
+                                        public void on(String result) {
+                                            final Buffer concat = graph.newBuffer();
+                                            concat.write(WSConstants.NOTIFY_PRINT);
+                                            concat.write(Constants.BUFFER_SEP);
+                                            Base64.encodeIntToBuffer(printHookCode, concat);
+                                            concat.write(Constants.BUFFER_SEP);
+                                            Base64.encodeStringToBuffer(result,concat);
+                                            WSServer.this.send_resp(concat, channel);
+                                        }
+                                    });
+                                }
                                 ctx.loadFromBuffer(it.next());
                             }
                             t.executeUsing(ctx);

@@ -9,10 +9,14 @@ For any questions please contact us via our Gitter:
 
 # Changelog
 
-## Version 6 (27/03/2017)
+## Version 6 (planned 10/04/2017)
     - Introducing Hash to check Remote Cache Consistency
     - New API for React Remote Graph usage
+    - New API for Remote Task Context usage
+    - New API for Stream Output of task (also in remote usage)
     - Fix various bugs according to new Arrays APIs.
+    - Fix in Base64
+    - NPE protection in Task API
 
 ## Version 5 (20/03/2017) 
     - New API for Arrays (now defined as complex sub objects such as Map or Relationships)

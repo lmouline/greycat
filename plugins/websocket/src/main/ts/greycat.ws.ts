@@ -122,28 +122,45 @@ export class WSClient implements greycat.plugin.Storage {
         this.send_rpc_req(this.REQ_UNLOCK, previousLock, callback);
     }
 
-    execute(callback: greycat.Callback<greycat.TaskResult<any>>, task: greycat.Task, context: greycat.TaskContext): void {
+    execute(callback: greycat.Callback<greycat.TaskResult<any>>, task: greycat.Task, prepared: greycat.TaskContext): void {
         let reqBuffer = this.graph.newBuffer();
         let finalGraph = this.graph;
         task.saveToBuffer(reqBuffer);
-        if (context != null) {
-            //TODO
+        var hash = -1;
+        if (prepared != null) {
+            reqBuffer.write(greycat.Constants.BUFFER_SEP);
+            var printHook = prepared.printHook();
+            if (printHook != null) {
+                hash = this.generator;
+                this.generator = this.generator + 1 % 1000000;
+                this.callbacks[hash] = printHook;
+                greycat.utility.Base64.encodeIntToBuffer(hash, reqBuffer);
+            } else {
+                hash = -1;
+            }
+            reqBuffer.write(greycat.Constants.BUFFER_SEP);
+            prepared.saveToBuffer(reqBuffer);
         }
         let finalCB = callback;
         let notifyMethod = this.process_notify;
+        let finalCallbacks = this.callbacks;
+        let finalHash = hash;
         this.send_rpc_req(this.REQ_TASK, reqBuffer, function (resultBuffer) {
+            if (finalHash != -1) {
+                delete finalCallbacks[finalHash];
+            }
             reqBuffer.free();
             let baseTaskResult: greycat.base.BaseTaskResult<any> = new greycat.base.BaseTaskResult<any>(null, false);
             baseTaskResult.load(resultBuffer, finalGraph);
             notifyMethod(baseTaskResult.notifications(), finalGraph);
-            baseTaskResult.loadRefs(finalGraph,function (b: boolean) {
+            baseTaskResult.loadRefs(finalGraph, function (b: boolean) {
                 resultBuffer.free();
                 finalCB(baseTaskResult);
             });
         });
     }
 
-    process_notify(buffer : greycat.struct.Buffer, graph : greycat.Graph){
+    process_notify(buffer: greycat.struct.Buffer, graph: greycat.Graph) {
         if (buffer != null) {
             var type = 0;
             var world = 0;
@@ -177,7 +194,7 @@ export class WSClient implements greycat.plugin.Storage {
                     previous = cursor + 1;
                     if (step == 4) {
                         step = 0;
-                        let ch : greycat.chunk.Chunk = graph.space().getAndMark(type, world, time, id);
+                        let ch: greycat.chunk.Chunk = graph.space().getAndMark(type, world, time, id);
                         if (ch != null) {
                             ch.sync(hash);
                             graph.space().unmark(ch.index());
@@ -207,7 +224,7 @@ export class WSClient implements greycat.plugin.Storage {
             }
             if (step == 4) {
                 //invalidate
-                let ch : greycat.chunk.Chunk = graph.space().getAndMark(type, world, time, id);
+                let ch: greycat.chunk.Chunk = graph.space().getAndMark(type, world, time, id);
                 if (ch != null) {
                     ch.sync(hash);
                     graph.space().unmark(ch.index());
@@ -223,43 +240,54 @@ export class WSClient implements greycat.plugin.Storage {
         let codeView = it.next();
         if (codeView != null && codeView.length() != 0) {
             let firstCode = codeView.read(0);
-            if (firstCode == this.NOTIFY_UPDATE) {
-                while (it.hasNext()) {
-                    this.process_notify(it.next(), this.graph);
-                }
-                //optimize this
-                if (this._listeners.length > 0) {
-                    const notifyBuffer = this.graph.newBuffer();
-                    notifyBuffer.writeAll(payloadBuf.slice(1, payloadBuf.length() - 1));
-                    for (var i = 0; i < this._listeners.length; i++) {
-                        this._listeners[i](notifyBuffer);
+            switch (firstCode) {
+                case this.NOTIFY_UPDATE:
+                    while (it.hasNext()) {
+                        this.process_notify(it.next(), this.graph);
                     }
-                    notifyBuffer.free();
-                }
-            } else {
-                let callbackCodeView = it.next();
-                if (callbackCodeView != null) {
-                    let callbackCode = greycat.utility.Base64.decodeToIntWithBounds(callbackCodeView, 0, callbackCodeView.length());
-                    let resolvedCallback = this.callbacks[callbackCode];
-                    this.callbacks[callbackCode] = undefined;
-                    if (resolvedCallback != null) {
-                        if (firstCode == this.RESP_GET || firstCode == this.RESP_LOCK || firstCode == this.RESP_TASK) {
-                            let newBuf = this.graph.newBuffer();
-                            let isFirst = true;
-                            while (it.hasNext()) {
-                                if (isFirst) {
-                                    isFirst = false;
-                                } else {
-                                    newBuf.write(greycat.Constants.BUFFER_SEP);
-                                }
-                                newBuf.writeAll(it.next().data());
-                            }
-                            resolvedCallback(newBuf);
-                        } else {
-                            resolvedCallback(true);
+                    //optimize this
+                    if (this._listeners.length > 0) {
+                        const notifyBuffer = this.graph.newBuffer();
+                        notifyBuffer.writeAll(payloadBuf.slice(1, payloadBuf.length() - 1));
+                        for (var i = 0; i < this._listeners.length; i++) {
+                            this._listeners[i](notifyBuffer);
                         }
+                        notifyBuffer.free();
                     }
-                }
+                    break;
+                case this.NOTIFY_PRINT:
+                    let callbackPrintCodeView = it.next();
+                    let printContentView = it.next();
+                    let callbackPrintCode = greycat.utility.Base64.decodeToIntWithBounds(callbackPrintCodeView, 0, callbackPrintCodeView.length());
+                    let printContent = greycat.utility.Base64.decodeToStringWithBounds(printContentView, 0, printContentView.length());
+                    let printCallback = this.callbacks.get(callbackPrintCode);
+                    printCallback.on(printContent);
+                    break;
+                case this.RESP_LOCK:
+                case this.RESP_GET:
+                case this.RESP_TASK:
+                    let callBackCodeView = it.next();
+                    let callbackCode = greycat.utility.Base64.decodeToIntWithBounds(callBackCodeView, 0, callBackCodeView.length());
+                    let resolvedCallback = this.callbacks.get(callbackCode);
+                    let newBuf = this.graph.newBuffer();//will be free by the core
+                    var isFirst = true;
+                    while (it.hasNext()) {
+                        if (isFirst) {
+                            isFirst = false;
+                        } else {
+                            newBuf.write(greycat.Constants.BUFFER_SEP);
+                        }
+                        newBuf.writeAll(it.next().data());
+                    }
+                    this.callbacks.remove(callbackCode);
+                    resolvedCallback.on(newBuf);
+                    break;
+                default:
+                    let genericCodeView = it.next();
+                    let genericCode = greycat.utility.Base64.decodeToIntWithBounds(genericCodeView, 0, genericCodeView.length());
+                    let genericCallback = this.callbacks.get(genericCode);
+                    delete this.callbacks[genericCode];
+                    genericCallback.on(true);
             }
         }
     }
@@ -286,61 +314,62 @@ export class WSClient implements greycat.plugin.Storage {
 
 }
 
-class ChunkKey {
-    type: number;
+/*
+ class ChunkKey {
+ type: number;
 
-    world: number;
+ world: number;
 
-    time: number;
+ time: number;
 
-    id: number;
+ id: number;
 
-    static build(buffer: greycat.struct.Buffer): ChunkKey {
-        let result = new ChunkKey();
-        var cursor = 0;
-        let length = buffer.length();
-        var previous = 0;
-        var index = 0;
-        while (cursor < length) {
-            let current = buffer.read(cursor);
-            if (current == greycat.Constants.KEY_SEP) {
-                switch (index) {
-                    case 0:
-                        result.type = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                        break;
-                    case 1:
-                        result.world = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                        break;
-                    case 2:
-                        result.time = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                        break;
-                    case 3:
-                        result.id = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                        break;
-                }
-                index++;
-                previous = cursor + 1;
-            }
-            cursor++;
-        }
-        switch (index) {
-            case 0:
-                result.type = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                break;
-            case 1:
-                result.world = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                break;
-            case 2:
-                result.time = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                break;
-            case 3:
-                result.id = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                break;
-        }
-        return result;
-    };
-}
-
+ static build(buffer: greycat.struct.Buffer): ChunkKey {
+ let result = new ChunkKey();
+ var cursor = 0;
+ let length = buffer.length();
+ var previous = 0;
+ var index = 0;
+ while (cursor < length) {
+ let current = buffer.read(cursor);
+ if (current == greycat.Constants.KEY_SEP) {
+ switch (index) {
+ case 0:
+ result.type = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
+ break;
+ case 1:
+ result.world = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+ break;
+ case 2:
+ result.time = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+ break;
+ case 3:
+ result.id = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+ break;
+ }
+ index++;
+ previous = cursor + 1;
+ }
+ cursor++;
+ }
+ switch (index) {
+ case 0:
+ result.type = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
+ break;
+ case 1:
+ result.world = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+ break;
+ case 2:
+ result.time = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+ break;
+ case 3:
+ result.id = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+ break;
+ }
+ return result;
+ };
+ }
+ */
 
 
 

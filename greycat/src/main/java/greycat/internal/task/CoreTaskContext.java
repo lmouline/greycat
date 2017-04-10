@@ -47,6 +47,7 @@ class CoreTaskContext implements TaskContext {
     final TaskHook[] _hooks;
     private StringBuilder _output = null;
     private Buffer _silent;
+    private Callback<String> _printHook = null;
 
     CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
         this._origin = origin;
@@ -719,10 +720,14 @@ class CoreTaskContext implements TaskContext {
 
     @Override
     public final synchronized void append(String additionalOutput) {
-        if (_output == null) {
-            _output = new StringBuilder();
+        if (_printHook != null) {
+            _printHook.on(additionalOutput);
+        } else {
+            if (_output == null) {
+                _output = new StringBuilder();
+            }
+            _output.append(additionalOutput);
         }
-        _output.append(additionalOutput);
     }
 
     @Override
@@ -781,6 +786,17 @@ class CoreTaskContext implements TaskContext {
             }
             _result = subResult;
         }
+    }
+
+
+    @Override
+    public final Callback<String> printHook() {
+        return this._printHook;
+    }
+
+    @Override
+    public final void setPrintHook(final Callback<String> callback) {
+        this._printHook = callback;
     }
 
     @Override

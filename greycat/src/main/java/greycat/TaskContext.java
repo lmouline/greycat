@@ -95,4 +95,8 @@ public interface TaskContext {
 
     void loadFromBuffer(Buffer buffer);
 
+    Callback<String> printHook();
+
+    void setPrintHook(Callback<String> callback);
+
 }
