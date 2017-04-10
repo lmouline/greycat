@@ -17,6 +17,7 @@ For any questions please contact us via our Gitter:
     - Fix various bugs according to new Arrays APIs.
     - Fix in Base64
     - NPE protection in Task API
+    - Fix missing declaration of standard actions
 
 ## Version 5 (20/03/2017) 
     - New API for Arrays (now defined as complex sub objects such as Map or Relationships)
