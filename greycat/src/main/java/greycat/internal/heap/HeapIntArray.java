@@ -80,6 +80,9 @@ class HeapIntArray implements IntArray {
 
     @Override
     public final synchronized boolean removeElement(int value) {
+        if (_backend == null) {
+            return false;
+        }
         int index = -1;
         for (int i = 0; i < _backend.length; i++) {
             if (_backend[i] == value) {
@@ -87,19 +90,33 @@ class HeapIntArray implements IntArray {
                 break;
             }
         }
-        return removeElementbyIndex(index);
+        if (index != -1) {
+            removeElementByIndexInternal(index);
+            return true;
+        } else {
+            return false;
+        }
 
     }
 
     @Override
     public final synchronized boolean removeElementbyIndex(int index) {
-        if (index < 0 || index >= _backend.length) return false;
+        if (_backend == null) {
+            return false;
+        }
+        if (index < 0 || index >= _backend.length) {
+            return false;
+        }
+        removeElementByIndexInternal(index);
+        return true;
+    }
+
+    private void removeElementByIndexInternal(int index) {
         int[] newBackend = new int[_backend.length - 1];
         System.arraycopy(_backend, 0, newBackend, 0, index);
         System.arraycopy(_backend, index + 1, newBackend, index, _backend.length - index - 1);
         _backend = newBackend;
         _parent.declareDirty();
-        return true;
     }
 
     @Override
@@ -116,13 +133,54 @@ class HeapIntArray implements IntArray {
     }
 
     @Override
-    public final synchronized void addAll(int[] values) {
-        if (_backend == null) initWith(values);
-        int[] newBackend = new int[_backend.length + values.length];
-        System.arraycopy(_backend, 0, newBackend, 0, _backend.length);
-        System.arraycopy(values, 0, newBackend, _backend.length, values.length);
+    public final synchronized boolean insertElementAt(int position, int value) {
+        if (_backend == null) {
+            return false;
+        }
+        if (position < 0 || position >= _backend.length) {
+            return false;
+        }
+        int[] newBackend = new int[_backend.length + 1];
+        System.arraycopy(_backend, 0, newBackend, 0, position);
+        newBackend[position] = value;
+        System.arraycopy(_backend, position, newBackend, position + 1, _backend.length - position);
         _backend = newBackend;
         _parent.declareDirty();
+        return true;
+    }
+
+    @Override
+    public final synchronized boolean replaceElementby(int element, int value) {
+        if (_backend == null) {
+            return false;
+        }
+        int index = -1;
+        for (int i = 0; i < _backend.length; i++) {
+            if (_backend[i] == element) {
+                index = i;
+                break;
+            }
+        }
+        if (index != -1) {
+            _backend[index] = value;
+            _parent.declareDirty();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public final synchronized void addAll(int[] values) {
+        if (_backend == null) {
+            initWith(values);
+        } else {
+            int[] newBackend = new int[_backend.length + values.length];
+            System.arraycopy(_backend, 0, newBackend, 0, _backend.length);
+            System.arraycopy(values, 0, newBackend, _backend.length, values.length);
+            _backend = newBackend;
+            _parent.declareDirty();
+        }
     }
 
 

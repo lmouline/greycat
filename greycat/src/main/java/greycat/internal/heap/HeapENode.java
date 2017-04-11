@@ -150,6 +150,11 @@ class HeapENode implements ENode, HeapContainer {
     }
 
     @Override
+    public int id() {
+        return _id;
+    }
+
+    @Override
     public final void declareDirty() {
         if (!_dirty) {
             _dirty = true;

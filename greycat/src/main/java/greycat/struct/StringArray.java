@@ -35,5 +35,9 @@ public interface StringArray {
 
     void addElement(String value);
 
+    boolean insertElementAt(int position, String value);
+
+    boolean replaceElementby(String element, String value);
+
     void addAll(String[] values);
 }

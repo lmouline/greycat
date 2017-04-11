@@ -90,6 +90,18 @@ public final class DoubleArrayProxy implements DoubleArray {
     }
 
     @Override
+    public boolean insertElementAt(int position, double value) {
+        check();
+        return _elem.insertElementAt(position, value);
+    }
+
+    @Override
+    public boolean replaceElementby(double element, double value) {
+        check();
+        return _elem.replaceElementby(element, value);
+    }
+
+    @Override
     public void addAll(double[] values) {
         check();
         _elem.addAll(values);

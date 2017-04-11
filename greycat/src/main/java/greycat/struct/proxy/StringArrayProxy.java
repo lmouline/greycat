@@ -90,6 +90,18 @@ public final class StringArrayProxy implements StringArray {
     }
 
     @Override
+    public boolean insertElementAt(int position, String value) {
+        check();
+        return _elem.insertElementAt(position, value);
+    }
+
+    @Override
+    public boolean replaceElementby(String element, String value) {
+        check();
+        return _elem.replaceElementby(element, value);
+    }
+
+    @Override
     public void addAll(String[] values) {
         check();
         _elem.addAll(values);
