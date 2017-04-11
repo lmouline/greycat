@@ -76,6 +76,7 @@ public class TaskServerTest {
 
                                             Task tremote = newTask()
                                                     .log("remotely logged: {{result}}")
+                                                    .log("log: {{var_name}}")
                                                     .print("remotely printed: {{result}}")
                                                     .readGlobalIndex("nodes")
                                                     .createNode()
@@ -93,7 +94,6 @@ public class TaskServerTest {
                                                         @Override
                                                         public void on(TaskResult result) {
                                                             System.out.println(result);
-
                                                             emptyGraph.disconnect(result2 -> {
                                                                 srv.stop();
                                                                 graph.disconnect(null);
@@ -104,10 +104,11 @@ public class TaskServerTest {
                                                     });
                                                 }
                                             });
+                                            prepare.setGlobalVariable("var_name", "var_value");
                                             prepare.setPrintHook(new Callback<String>() {
                                                 @Override
                                                 public void on(String result) {
-                                                    System.out.println("Streamed="+result);
+                                                    System.out.println("Streamed=" + result);
                                                 }
                                             });
                                             tremote.executeRemotelyUsing(prepare);

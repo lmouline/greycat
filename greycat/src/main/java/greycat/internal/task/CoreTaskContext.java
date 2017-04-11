@@ -23,6 +23,7 @@ import greycat.internal.task.math.MathExpressionEngine;
 import greycat.base.BaseNode;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
+import greycat.utility.BufferView;
 import greycat.utility.Tuple;
 
 import java.util.HashMap;
@@ -742,16 +743,24 @@ class CoreTaskContext implements TaskContext {
 
     @Override
     public final void saveToBuffer(Buffer buffer) {
+        boolean isFirst = true;
         if (_result != null) {
+            buffer.write(CoreConstants.CHUNK_ESEP);
             _result.saveToBuffer(buffer);
+            isFirst = false;
         }
         Tuple<String, TaskResult>[] variables = variables();
         for (int i = 0; i < variables.length; i++) {
-            buffer.write(CoreConstants.CHUNK_ESEP);
+            if (isFirst) {
+                isFirst = false;
+            } else {
+                buffer.write(CoreConstants.CHUNK_ESEP);
+            }
             Base64.encodeStringToBuffer(variables[i].left(), buffer);
             buffer.write(CoreConstants.CHUNK_ESEP);
             variables[i].right().saveToBuffer(buffer);
         }
+
     }
 
     @Override
@@ -763,11 +772,24 @@ class CoreTaskContext implements TaskContext {
             byte current = buffer.read(cursor);
             if (current == Constants.CHUNK_ESEP) {
                 if (name == null) {
-                    name = Base64.decodeToStringWithBounds(buffer, previous, cursor);
+                    if (previous != cursor) {
+                        name = Base64.decodeToStringWithBounds(buffer, previous, cursor);
+                    } else {
+                        name = "";
+                    }
                 } else {
-                    BaseTaskResult subResult = new BaseTaskResult(null, false);
-                    subResult.load(buffer, _graph);
-                    defineVariable(name, subResult);
+                    final BaseTaskResult subResult = new BaseTaskResult(null, false);
+                    final BufferView view = new BufferView(buffer, previous, cursor - 1);
+                    subResult.load(view, _graph);
+                    if (name.equals("")) {
+                        if (_result != null) {
+                            _result.free();
+                        }
+                        _result = subResult;
+                    } else {
+                        defineVariable(name, subResult);
+                    }
+
                     name = null;
                 }
                 previous = cursor + 1;
@@ -775,16 +797,17 @@ class CoreTaskContext implements TaskContext {
             cursor++;
         }
         if (name != null) {
-            BaseTaskResult subResult = new BaseTaskResult(null, false);
-            subResult.load(buffer, _graph);
-            defineVariable(name, subResult);
-        } else {
-            BaseTaskResult subResult = new BaseTaskResult(null, false);
-            subResult.load(buffer, _graph);
-            if (_result != null) {
-                _result.free();
+            final BaseTaskResult subResult = new BaseTaskResult(null, false);
+            final BufferView view = new BufferView(buffer, previous, cursor - 1);
+            subResult.load(view, _graph);
+            if (name.equals("")) {
+                if (_result != null) {
+                    _result.free();
+                }
+                _result = subResult;
+            } else {
+                defineVariable(name, subResult);
             }
-            _result = subResult;
         }
     }
 

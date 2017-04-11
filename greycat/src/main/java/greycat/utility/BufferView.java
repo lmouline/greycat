@@ -18,7 +18,7 @@ package greycat.utility;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
 
-class BufferView implements Buffer {
+public class BufferView implements Buffer {
 
     private Buffer _origin;
 
@@ -26,7 +26,7 @@ class BufferView implements Buffer {
 
     private long _endPos;
 
-    BufferView(Buffer p_origin, long p_initPos, long p_endPos) {
+    public BufferView(Buffer p_origin, long p_initPos, long p_endPos) {
         this._origin = p_origin;
         this._initPos = p_initPos;
         this._endPos = p_endPos;
@@ -86,7 +86,7 @@ class BufferView implements Buffer {
     }
 
     @Override
-    public byte[] slice(long initPos, long endPos) {
-        throw new RuntimeException("Write operation forbidden during iteration");
+    public byte[] slice(long p_initPos, long p_endPos) {
+        return _origin.slice(this._initPos + p_initPos, this._initPos + p_endPos);
     }
 }
