@@ -104,7 +104,7 @@ public class TaskServerTest {
                                                     });
                                                 }
                                             });
-                                            prepare.setGlobalVariable("var_name", "var_value");
+                                            //prepare.setGlobalVariable("var_name", "var_value");
                                             prepare.setPrintHook(new Callback<String>() {
                                                 @Override
                                                 public void on(String result) {

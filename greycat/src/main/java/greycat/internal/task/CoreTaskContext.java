@@ -743,24 +743,21 @@ class CoreTaskContext implements TaskContext {
 
     @Override
     public final void saveToBuffer(Buffer buffer) {
-        boolean isFirst = true;
+        Base64.encodeLongToBuffer(_world, buffer);
+        buffer.write(CoreConstants.CHUNK_ESEP);
+        Base64.encodeLongToBuffer(_time, buffer);
         if (_result != null) {
             buffer.write(CoreConstants.CHUNK_ESEP);
+            buffer.write(CoreConstants.CHUNK_ESEP);
             _result.saveToBuffer(buffer);
-            isFirst = false;
         }
         Tuple<String, TaskResult>[] variables = variables();
         for (int i = 0; i < variables.length; i++) {
-            if (isFirst) {
-                isFirst = false;
-            } else {
-                buffer.write(CoreConstants.CHUNK_ESEP);
-            }
+            buffer.write(CoreConstants.CHUNK_ESEP);
             Base64.encodeStringToBuffer(variables[i].left(), buffer);
             buffer.write(CoreConstants.CHUNK_ESEP);
             variables[i].right().saveToBuffer(buffer);
         }
-
     }
 
     @Override
@@ -768,29 +765,40 @@ class CoreTaskContext implements TaskContext {
         int cursor = 0;
         int previous = 0;
         String name = null;
+        int index = 0;
         while (cursor < buffer.length()) {
             byte current = buffer.read(cursor);
             if (current == Constants.CHUNK_ESEP) {
-                if (name == null) {
-                    if (previous != cursor) {
-                        name = Base64.decodeToStringWithBounds(buffer, previous, cursor);
-                    } else {
-                        name = "";
-                    }
-                } else {
-                    final BaseTaskResult subResult = new BaseTaskResult(null, false);
-                    final BufferView view = new BufferView(buffer, previous, cursor - 1);
-                    subResult.load(view, _graph);
-                    if (name.equals("")) {
-                        if (_result != null) {
-                            _result.free();
+                switch (index) {
+                    case 0:
+                        _world = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                        index++;
+                        break;
+                    case 1:
+                        _time = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                        index++;
+                        break;
+                    default:
+                        if (name == null) {
+                            if (previous != cursor) {
+                                name = Base64.decodeToStringWithBounds(buffer, previous, cursor);
+                            } else {
+                                name = "";
+                            }
+                        } else {
+                            final BaseTaskResult subResult = new BaseTaskResult(null, false);
+                            final BufferView view = new BufferView(buffer, previous, cursor - 1);
+                            subResult.load(view, _graph);
+                            if (name.equals("")) {
+                                if (_result != null) {
+                                    _result.free();
+                                }
+                                _result = subResult;
+                            } else {
+                                defineVariable(name, subResult);
+                            }
+                            name = null;
                         }
-                        _result = subResult;
-                    } else {
-                        defineVariable(name, subResult);
-                    }
-
-                    name = null;
                 }
                 previous = cursor + 1;
             }
@@ -807,6 +815,19 @@ class CoreTaskContext implements TaskContext {
                 _result = subResult;
             } else {
                 defineVariable(name, subResult);
+            }
+        } else {
+            if (index == 1) {
+                _time = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+            } else {
+                //should not occurs
+                final BaseTaskResult subResult = new BaseTaskResult(null, false);
+                final BufferView view = new BufferView(buffer, previous, cursor - 1);
+                subResult.load(view, _graph);
+                if (_result != null) {
+                    _result.free();
+                }
+                _result = subResult;
             }
         }
     }
