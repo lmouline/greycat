@@ -90,6 +90,12 @@ public final class StringArrayProxy implements StringArray {
     }
 
     @Override
+    public boolean replaceElementby(String element, String value) {
+        check();
+        return _elem.replaceElementby(element, value);
+    }
+
+    @Override
     public void addAll(String[] values) {
         check();
         _elem.addAll(values);

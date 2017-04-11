@@ -95,4 +95,10 @@ public final class LongArrayProxy implements LongArray {
         _elem.addAll(values);
     }
 
+    @Override
+    public boolean replaceElementby(long element, long value) {
+        check();
+        return _elem.replaceElementby(element, value);
+    }
+
 }

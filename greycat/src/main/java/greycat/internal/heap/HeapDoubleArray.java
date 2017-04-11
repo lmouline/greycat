@@ -80,6 +80,9 @@ class HeapDoubleArray implements DoubleArray {
 
     @Override
     public final synchronized boolean removeElement(double value) {
+        if (_backend == null) {
+            return false;
+        }
         int index = -1;
         for (int i = 0; i < _backend.length; i++) {
             if (_backend[i] == value) {
@@ -87,19 +90,33 @@ class HeapDoubleArray implements DoubleArray {
                 break;
             }
         }
-        return removeElementbyIndex(index);
+        if (index != -1) {
+            removeElementByIndexInternal(index);
+            return true;
+        } else {
+            return false;
+        }
 
     }
 
     @Override
     public final synchronized boolean removeElementbyIndex(int index) {
-        if (index < 0 || index >= _backend.length) return false;
+        if (_backend == null) {
+            return false;
+        }
+        if (index < 0 || index >= _backend.length) {
+            return false;
+        }
+        removeElementByIndexInternal(index);
+        return true;
+    }
+
+    private synchronized void removeElementByIndexInternal(int index) {
         double[] newBackend = new double[_backend.length - 1];
         System.arraycopy(_backend, 0, newBackend, 0, index);
         System.arraycopy(_backend, index + 1, newBackend, index, _backend.length - index - 1);
         _backend = newBackend;
         _parent.declareDirty();
-        return true;
     }
 
     @Override
@@ -116,13 +133,37 @@ class HeapDoubleArray implements DoubleArray {
     }
 
     @Override
+    public final synchronized boolean replaceElementby(double element, double value) {
+        if (_backend == null) {
+            return false;
+        }
+        int index = -1;
+        for (int i = 0; i < _backend.length; i++) {
+            if (_backend[i] == element) {
+                index = i;
+                break;
+            }
+        }
+        if (index != -1) {
+            _backend[index] = value;
+            _parent.declareDirty();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
     public final synchronized void addAll(double[] values) {
-        if (_backend == null) initWith(values);
-        double[] newBackend = new double[_backend.length + values.length];
-        System.arraycopy(_backend, 0, newBackend, 0, _backend.length);
-        System.arraycopy(values, 0, newBackend, _backend.length, values.length);
-        _backend = newBackend;
-        _parent.declareDirty();
+        if (_backend == null) {
+            initWith(values);
+        } else {
+            double[] newBackend = new double[_backend.length + values.length];
+            System.arraycopy(_backend, 0, newBackend, 0, _backend.length);
+            System.arraycopy(values, 0, newBackend, _backend.length, values.length);
+            _backend = newBackend;
+            _parent.declareDirty();
+        }
     }
 
 

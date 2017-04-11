@@ -35,6 +35,8 @@ public interface IntArray {
 
     void addElement(int value);
 
+    boolean replaceElementby(int element, int value);
+
     void addAll(int[] values);
 
 }
