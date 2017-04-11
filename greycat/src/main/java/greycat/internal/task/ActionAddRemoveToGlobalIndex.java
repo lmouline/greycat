@@ -59,6 +59,7 @@ class ActionAddRemoveToGlobalIndex implements Action {
                     } else {
                         indexNode.addToIndex(loopBaseNode, templatedAttributes);
                     }
+                    indexNode.free();
                     counter.count();
                 });
             } else {
