@@ -96,36 +96,35 @@ public class Gaussian {
         host.set(HISTOGRAM_VALUES, Type.DOUBLE_ARRAY, null);
     }
 
-    public static void histogram(Node host, double min, double max, double value) {
-        if (max < min || value < min || value > max) {
+    public static void histogram(Node host, double min, double max, Double value) {
+        if (value==null ||max <= min || value < min || value > max) {
             return;
         }
-        if (max != min) {
-            int steps = host.getWithDefault(HISTOGRAM_BUCKETS, HISTOGRAM_BUCKETS_DEF);
-            double stepsize = (max - min) / steps;
-            DoubleArray hist_min = (DoubleArray) host.getOrCreate(HISTOGRAM_MIN, Type.DOUBLE_ARRAY);
-            DoubleArray hist_max = (DoubleArray) host.getOrCreate(HISTOGRAM_MAX, Type.DOUBLE_ARRAY);
-            DoubleArray hist_center = (DoubleArray) host.getOrCreate(HISTOGRAM_CENTER, Type.DOUBLE_ARRAY);
-            DoubleArray hist_values = (DoubleArray) host.getOrCreate(HISTOGRAM_VALUES, Type.DOUBLE_ARRAY);
 
-            if (hist_min.size() == 0) {
-                hist_min.init(steps);
-                hist_max.init(steps);
-                hist_values.init(steps);
-                hist_center.init(steps);
-                for (int i = 0; i < steps; i++) {
-                    hist_center.set(i, min + stepsize * (i + 0.5));
-                    hist_min.set(i, min + stepsize * i);
-                    hist_max.set(i, min + stepsize * (i + 1));
-                }
-            }
+        int steps = host.getWithDefault(HISTOGRAM_BUCKETS, HISTOGRAM_BUCKETS_DEF);
+        double stepsize = (max - min) / steps;
+        DoubleArray hist_min = (DoubleArray) host.getOrCreate(HISTOGRAM_MIN, Type.DOUBLE_ARRAY);
+        DoubleArray hist_max = (DoubleArray) host.getOrCreate(HISTOGRAM_MAX, Type.DOUBLE_ARRAY);
+        DoubleArray hist_center = (DoubleArray) host.getOrCreate(HISTOGRAM_CENTER, Type.DOUBLE_ARRAY);
+        DoubleArray hist_values = (DoubleArray) host.getOrCreate(HISTOGRAM_VALUES, Type.DOUBLE_ARRAY);
 
-            int index = (int) ((value - min) / stepsize);
-            if (index == steps) {
-                index--;
+        if (hist_min.size() == 0) {
+            hist_min.init(steps);
+            hist_max.init(steps);
+            hist_values.init(steps);
+            hist_center.init(steps);
+            for (int i = 0; i < steps; i++) {
+                hist_center.set(i, min + stepsize * (i + 0.5));
+                hist_min.set(i, min + stepsize * i);
+                hist_max.set(i, min + stepsize * (i + 1));
             }
-            hist_values.set(index, hist_values.get(index) + 1);
         }
+
+        int index = (int) ((value - min) / stepsize);
+        if (index == steps) {
+            index--;
+        }
+        hist_values.set(index, hist_values.get(index) + 1);
     }
 
 
