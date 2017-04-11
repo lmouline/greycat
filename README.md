@@ -9,7 +9,7 @@ For any questions please contact us via our Gitter:
 
 # Changelog
 
-## Version 6 (planned 10/04/2017)
+## Version 6 (11/04/2017)
     - Introducing Hash to check Remote Cache Consistency
     - New API for React Remote Graph usage
     - New API for Remote Task Context usage
