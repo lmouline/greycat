@@ -110,7 +110,7 @@ class HeapStringArray implements StringArray {
         return true;
     }
 
-    private synchronized void removeElementByIndexInternal(int index) {
+    private void removeElementByIndexInternal(int index) {
         String[] newBackend = new String[_backend.length - 1];
         System.arraycopy(_backend, 0, newBackend, 0, index);
         System.arraycopy(_backend, index + 1, newBackend, index, _backend.length - index - 1);
@@ -132,7 +132,7 @@ class HeapStringArray implements StringArray {
     }
 
     @Override
-    public boolean insertElementAt(int position, String value) {
+    public final synchronized boolean insertElementAt(int position, String value) {
         if (_backend == null) {
             return false;
         }
@@ -149,7 +149,7 @@ class HeapStringArray implements StringArray {
     }
 
     @Override
-    public boolean replaceElementby(String element, String value) {
+    public final synchronized boolean replaceElementby(String element, String value) {
         if (_backend == null) {
             return false;
         }

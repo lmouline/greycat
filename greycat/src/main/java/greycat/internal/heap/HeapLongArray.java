@@ -111,7 +111,7 @@ class HeapLongArray implements LongArray {
         return true;
     }
 
-    private synchronized void removeElementByIndexInternal(int index) {
+    private void removeElementByIndexInternal(int index) {
         long[] newBackend = new long[_backend.length - 1];
         System.arraycopy(_backend, 0, newBackend, 0, index);
         System.arraycopy(_backend, index + 1, newBackend, index, _backend.length - index - 1);
@@ -147,7 +147,7 @@ class HeapLongArray implements LongArray {
     }
 
     @Override
-    public boolean insertElementAt(int position, long value) {
+    public final synchronized boolean insertElementAt(int position, long value) {
         if (_backend == null) {
             return false;
         }
@@ -164,7 +164,7 @@ class HeapLongArray implements LongArray {
     }
 
     @Override
-    public boolean replaceElementby(long element, long value) {
+    public final synchronized boolean replaceElementby(long element, long value) {
         if (_backend == null) {
             return false;
         }

@@ -111,7 +111,7 @@ class HeapDoubleArray implements DoubleArray {
         return true;
     }
 
-    private synchronized void removeElementByIndexInternal(int index) {
+    private void removeElementByIndexInternal(int index) {
         double[] newBackend = new double[_backend.length - 1];
         System.arraycopy(_backend, 0, newBackend, 0, index);
         System.arraycopy(_backend, index + 1, newBackend, index, _backend.length - index - 1);
@@ -133,7 +133,7 @@ class HeapDoubleArray implements DoubleArray {
     }
 
     @Override
-    public boolean insertElementAt(int position, double value) {
+    public final synchronized boolean insertElementAt(int position, double value) {
         if (_backend == null) {
             return false;
         }
