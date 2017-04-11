@@ -65,7 +65,12 @@ public final class EGraphProxy implements EGraph {
     public final ENode root() {
         final Container _host = _target;
         if (_host != null) {
-            return new ENodeProxy(this, _elem.root(), -1);
+            ENode noProxy = _elem.root();
+            if (noProxy == null) {
+                return null;
+            } else {
+                return new ENodeProxy(this, noProxy, noProxy.id());
+            }
         } else {
             return _elem.root();
         }
