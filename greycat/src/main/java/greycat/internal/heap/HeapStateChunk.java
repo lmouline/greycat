@@ -46,7 +46,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     private long _hash;
     private boolean _inSync;
 
-    final Graph graph() {
+    @Override
+    public final Graph graph() {
         return _space.graph();
     }
 
@@ -1205,6 +1206,11 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     @Override
     public final Relation getRelation(String name) {
         return (Relation) get(name);
+    }
+
+    @Override
+    public final RelationIndexed getRelationIndexed(String name) {
+        return (RelationIndexed) get(name);
     }
 
     @Override

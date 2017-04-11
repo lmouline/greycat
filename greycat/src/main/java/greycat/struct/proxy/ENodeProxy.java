@@ -54,6 +54,11 @@ public final class ENodeProxy implements ENode {
     }
 
     @Override
+    public final RelationIndexed getRelationIndexed(String name) {
+        return (RelationIndexed) get(name);
+    }
+
+    @Override
     public final DMatrix getDMatrix(String name) {
         return (DMatrix) get(name);
     }

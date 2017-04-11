@@ -30,6 +30,8 @@ public interface Container {
 
     Relation getRelation(String name);
 
+    RelationIndexed getRelationIndexed(String name);
+
     DMatrix getDMatrix(String name);
 
     LMatrix getLMatrix(String name);

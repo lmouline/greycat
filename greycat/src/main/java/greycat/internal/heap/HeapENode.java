@@ -162,6 +162,11 @@ class HeapENode implements ENode, HeapContainer {
         }
     }
 
+    @Override
+    public final Graph graph() {
+        return _eGraph.graph();
+    }
+
     final void rebase() {
         for (int i = 0; i < _size; i++) {
             switch (_type[i]) {
@@ -1307,6 +1312,11 @@ class HeapENode implements ENode, HeapContainer {
     @Override
     public final Relation getRelation(String name) {
         return (Relation) get(name);
+    }
+
+    @Override
+    public final RelationIndexed getRelationIndexed(String name) {
+        return (RelationIndexed) get(name);
     }
 
     @Override

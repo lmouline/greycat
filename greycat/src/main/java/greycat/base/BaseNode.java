@@ -801,6 +801,11 @@ public class BaseNode implements Node {
     }
 
     @Override
+    public final RelationIndexed getRelationIndexed(String name) {
+        return (RelationIndexed) get(name);
+    }
+
+    @Override
     public final DMatrix getDMatrix(String name) {
         return (DMatrix) get(name);
     }
