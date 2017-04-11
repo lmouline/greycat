@@ -38,7 +38,7 @@ export class WSClient implements greycat.plugin.Storage {
   private static RESP_TASK = 11;
 
   private static NOTIFY_UPDATE = 12;
-  private static NOTIFY_PRINT = 12;
+  private static NOTIFY_PRINT = 13;
 
   constructor(p_url: string) {
     this.url = p_url;
