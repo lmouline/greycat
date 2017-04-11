@@ -133,6 +133,23 @@ class HeapDoubleArray implements DoubleArray {
     }
 
     @Override
+    public boolean insertElementAt(int position, double value) {
+        if (_backend == null) {
+            return false;
+        }
+        if (position < 0 || position >= _backend.length) {
+            return false;
+        }
+        double[] newBackend = new double[_backend.length + 1];
+        System.arraycopy(_backend, 0, newBackend, 0, position);
+        newBackend[position] = value;
+        System.arraycopy(_backend, position, newBackend, position + 1, _backend.length - position);
+        _backend = newBackend;
+        _parent.declareDirty();
+        return true;
+    }
+
+    @Override
     public final synchronized boolean replaceElementby(double element, double value) {
         if (_backend == null) {
             return false;

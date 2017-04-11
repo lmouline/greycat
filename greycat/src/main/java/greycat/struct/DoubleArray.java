@@ -35,6 +35,8 @@ public interface DoubleArray {
 
     void addElement(double value);
 
+    boolean insertElementAt(int position, double value);
+
     boolean replaceElementby(double element, double value);
 
     void addAll(double[] values);

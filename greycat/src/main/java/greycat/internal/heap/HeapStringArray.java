@@ -132,6 +132,23 @@ class HeapStringArray implements StringArray {
     }
 
     @Override
+    public boolean insertElementAt(int position, String value) {
+        if (_backend == null) {
+            return false;
+        }
+        if (position < 0 || position >= _backend.length) {
+            return false;
+        }
+        String[] newBackend = new String[_backend.length + 1];
+        System.arraycopy(_backend, 0, newBackend, 0, position);
+        newBackend[position] = value;
+        System.arraycopy(_backend, position, newBackend, position + 1, _backend.length - position);
+        _backend = newBackend;
+        _parent.declareDirty();
+        return true;
+    }
+
+    @Override
     public boolean replaceElementby(String element, String value) {
         if (_backend == null) {
             return false;

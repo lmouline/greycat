@@ -147,6 +147,23 @@ class HeapLongArray implements LongArray {
     }
 
     @Override
+    public boolean insertElementAt(int position, long value) {
+        if (_backend == null) {
+            return false;
+        }
+        if (position < 0 || position >= _backend.length) {
+            return false;
+        }
+        long[] newBackend = new long[_backend.length + 1];
+        System.arraycopy(_backend, 0, newBackend, 0, position);
+        newBackend[position] = value;
+        System.arraycopy(_backend, position, newBackend, position + 1, _backend.length - position);
+        _backend = newBackend;
+        _parent.declareDirty();
+        return true;
+    }
+
+    @Override
     public boolean replaceElementby(long element, long value) {
         if (_backend == null) {
             return false;

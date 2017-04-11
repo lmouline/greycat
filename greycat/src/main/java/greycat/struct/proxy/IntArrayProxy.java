@@ -90,6 +90,12 @@ public final class IntArrayProxy implements IntArray {
     }
 
     @Override
+    public boolean insertElementAt(int position, int value) {
+        check();
+        return _elem.insertElementAt(position, value);
+    }
+
+    @Override
     public boolean replaceElementby(int element, int value) {
         check();
         return _elem.replaceElementby(element, value);

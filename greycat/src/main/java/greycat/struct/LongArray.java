@@ -37,6 +37,8 @@ public interface LongArray {
 
     void addAll(long[] values);
 
+    boolean insertElementAt(int position, long value);
+
     boolean replaceElementby(long element, long value);
 
 }
