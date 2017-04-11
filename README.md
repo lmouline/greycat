@@ -18,6 +18,7 @@ For any questions please contact us via our Gitter:
     - Fix in Base64
     - NPE protection in Task API
     - Fix missing declaration of standard actions
+    - add typed API to access complex elements such as Map, Relation...
 
 ## Version 5 (20/03/2017) 
     - New API for Arrays (now defined as complex sub objects such as Map or Relationships)

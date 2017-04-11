@@ -15,7 +15,6 @@
  */
 package greycat.internal.heap;
 
-import greycat.Callback;
 import greycat.Constants;
 import greycat.Node;
 import greycat.struct.Buffer;
