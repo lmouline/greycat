@@ -18,299 +18,312 @@ import * as greycat from "greycat";
 
 export class WSClient implements greycat.plugin.Storage {
 
-    private url: string;
-    private callbacks;
-    private ws: WebSocket = null;
-    private graph: greycat.Graph = null;
-    private generator: number = 0;
+  private url: string;
+  private callbacks;
+  private ws: WebSocket = null;
+  private graph: greycat.Graph = null;
+  private generator: number = 0;
 
-    private REQ_GET = 0;
-    private REQ_PUT = 1;
-    private REQ_LOCK = 2;
-    private REQ_UNLOCK = 3;
-    private REQ_REMOVE = 4;
-    private REQ_TASK = 5;
-    private RESP_GET = 6;
-    private RESP_PUT = 7;
-    private RESP_REMOVE = 8;
-    private RESP_LOCK = 9;
-    private RESP_UNLOCK = 10;
-    private RESP_TASK = 11;
+  private static REQ_GET = 0;
+  private static REQ_PUT = 1;
+  private static REQ_LOCK = 2;
+  private static REQ_UNLOCK = 3;
+  private static REQ_REMOVE = 4;
+  private static REQ_TASK = 5;
+  private static RESP_GET = 6;
+  private static RESP_PUT = 7;
+  private static RESP_REMOVE = 8;
+  private static RESP_LOCK = 9;
+  private static RESP_UNLOCK = 10;
+  private static RESP_TASK = 11;
 
-    private NOTIFY_UPDATE = 12;
-    private NOTIFY_PRINT = 12;
+  private static NOTIFY_UPDATE = 12;
+  private static NOTIFY_PRINT = 12;
 
-    constructor(p_url: string) {
-        this.url = p_url;
-        this.callbacks = {};
-    }
+  constructor(p_url: string) {
+    this.url = p_url;
+    this.callbacks = {};
+  }
 
-    private _listeners: greycat.Callback<greycat.struct.Buffer>[] = [];
+  private _listeners: greycat.Callback<greycat.struct.Buffer>[] = [];
 
-    listen(cb: greycat.Callback<greycat.struct.Buffer>) {
-        this._listeners.push(cb);
-    }
+  listen(cb: greycat.Callback<greycat.struct.Buffer>) {
+    this._listeners.push(cb);
+  }
 
-    connect(p_graph: greycat.Graph, callback: greycat.Callback<boolean>): void {
-        this.graph = p_graph;
-        if (this.ws == null) {
-            let selfPointer = this;
-            this.ws = new WebSocket(this.url);
+  connect(p_graph: greycat.Graph, callback: greycat.Callback<boolean>): void {
+    this.graph = p_graph;
+    if (this.ws == null) {
+      let selfPointer = this;
+      this.ws = new WebSocket(this.url);
 
-            this.ws.onmessage = function (msg: MessageEvent) {
-                let fr = new FileReader();
-                fr.onload = function () {
-                    selfPointer.process_rpc_resp(new Int8Array(fr.result));
-                };
-                fr.readAsArrayBuffer(msg.data);
-            };
+      this.ws.onmessage = function (msg: MessageEvent) {
+        let fr = new FileReader();
+        fr.onload = function () {
+          selfPointer.process_rpc_resp(new Int8Array(fr.result));
+        };
+        fr.readAsArrayBuffer(msg.data);
+      };
 
-            this.ws.onclose = function (event: CloseEvent) {
-                console.log("Connection closed.", event);
-                if (this.readyState === WebSocket.CONNECTING) {
-                    callback(false);
-                }
-            };
-
-            this.ws.onerror = function (event: ErrorEvent) {
-                console.error("An error occurred while connecting to server:", event);
-                if (this.readyState === WebSocket.CONNECTING) {
-                    callback(false);
-                }
-            };
-
-            this.ws.onopen = function (event: Event) {
-                callback(true);
-            };
-        } else {
-            //do nothing
-            callback(true);
+      this.ws.onclose = function (event: CloseEvent) {
+        console.log("Connection closed.", event);
+        if (this.readyState === WebSocket.CONNECTING) {
+          callback(false);
         }
-    }
+      };
 
-    disconnect(callback: greycat.Callback<boolean>): void {
-        if (this.ws != null) {
-            this.ws.close();
-            this.ws = null;
-            callback(true);
+      this.ws.onerror = function (event: ErrorEvent) {
+        console.error("An error occurred while connecting to server:", event);
+        if (this.readyState === WebSocket.CONNECTING) {
+          callback(false);
         }
-    }
+      };
 
-    get(keys: greycat.struct.Buffer, callback: greycat.Callback<greycat.struct.Buffer>): void {
-        this.send_rpc_req(this.REQ_GET, keys, callback);
+      this.ws.onopen = function (event: Event) {
+        callback(true);
+      };
+    } else {
+      //do nothing
+      callback(true);
     }
+  }
 
-    put(stream: greycat.struct.Buffer, callback: greycat.Callback<boolean>): void {
-        this.send_rpc_req(this.REQ_PUT, stream, callback);
+  disconnect(callback: greycat.Callback<boolean>): void {
+    if (this.ws != null) {
+      this.ws.close();
+      this.ws = null;
+      callback(true);
     }
+  }
 
-    putSilent(stream: greycat.struct.Buffer, callback: greycat.Callback<greycat.struct.Buffer>): void {
-        this.send_rpc_req(this.REQ_PUT, stream, function (b: boolean) {
-            callback(null);
-        });
-    }
+  get(keys: greycat.struct.Buffer, callback: greycat.Callback<greycat.struct.Buffer>): void {
+    this.send_rpc_req(WSClient.REQ_GET, keys, callback);
+  }
 
-    remove(keys: greycat.struct.Buffer, callback: greycat.Callback<boolean>): void {
-        this.send_rpc_req(this.REQ_REMOVE, keys, callback);
-    }
+  put(stream: greycat.struct.Buffer, callback: greycat.Callback<boolean>): void {
+    this.send_rpc_req(WSClient.REQ_PUT, stream, callback);
+  }
 
-    lock(callback: greycat.Callback<greycat.struct.Buffer>): void {
-        this.send_rpc_req(this.REQ_LOCK, null, callback);
-    }
+  putSilent(stream: greycat.struct.Buffer, callback: greycat.Callback<greycat.struct.Buffer>): void {
+    this.send_rpc_req(WSClient.REQ_PUT, stream, function (b: boolean) {
+      callback(null);
+    });
+  }
 
-    unlock(previousLock: greycat.struct.Buffer, callback: greycat.Callback<boolean>): void {
-        this.send_rpc_req(this.REQ_UNLOCK, previousLock, callback);
-    }
+  remove(keys: greycat.struct.Buffer, callback: greycat.Callback<boolean>): void {
+    this.send_rpc_req(WSClient.REQ_REMOVE, keys, callback);
+  }
 
-    execute(callback: greycat.Callback<greycat.TaskResult<any>>, task: greycat.Task, prepared: greycat.TaskContext): void {
-        let reqBuffer = this.graph.newBuffer();
-        let finalGraph = this.graph;
-        task.saveToBuffer(reqBuffer);
-        var hash = -1;
-        if (prepared != null) {
-            reqBuffer.write(greycat.Constants.BUFFER_SEP);
-            var printHook = prepared.printHook();
-            if (printHook != null) {
-                hash = this.generator;
-                this.generator = this.generator + 1 % 1000000;
-                this.callbacks[hash] = printHook;
-                greycat.utility.Base64.encodeIntToBuffer(hash, reqBuffer);
-            } else {
-                hash = -1;
-            }
-            reqBuffer.write(greycat.Constants.BUFFER_SEP);
-            prepared.saveToBuffer(reqBuffer);
-        }
-        let finalCB = callback;
-        let notifyMethod = this.process_notify;
-        let finalCallbacks = this.callbacks;
-        let finalHash = hash;
-        this.send_rpc_req(this.REQ_TASK, reqBuffer, function (resultBuffer) {
-            if (finalHash != -1) {
-                delete finalCallbacks[finalHash];
-            }
-            reqBuffer.free();
-            let baseTaskResult: greycat.base.BaseTaskResult<any> = new greycat.base.BaseTaskResult<any>(null, false);
-            baseTaskResult.load(resultBuffer, finalGraph);
-            notifyMethod(baseTaskResult.notifications(), finalGraph);
-            baseTaskResult.loadRefs(finalGraph, function (b: boolean) {
-                resultBuffer.free();
-                finalCB(baseTaskResult);
-            });
-        });
-    }
+  lock(callback: greycat.Callback<greycat.struct.Buffer>): void {
+    this.send_rpc_req(WSClient.REQ_LOCK, null, callback);
+  }
 
-    process_notify(buffer: greycat.struct.Buffer, graph: greycat.Graph) {
-        if (buffer != null) {
-            var type = 0;
-            var world = 0;
-            var time = 0;
-            var id = 0;
-            var hash = 0;
-            var step = 0;
-            var cursor = 0;
-            var previous = 0;
-            var end = buffer.length();
-            while (cursor < end) {
-                let current = buffer.read(cursor);
-                if (current == greycat.Constants.KEY_SEP) {
-                    switch (step) {
-                        case 0:
-                            type = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                            break;
-                        case 1:
-                            world = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                            break;
-                        case 2:
-                            time = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                            break;
-                        case 3:
-                            id = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                            break;
-                        case 4:
-                            hash = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                            break;
-                    }
-                    previous = cursor + 1;
-                    if (step == 4) {
-                        step = 0;
-                        let ch: greycat.chunk.Chunk = graph.space().getAndMark(type, world, time, id);
-                        if (ch != null) {
-                            ch.sync(hash);
-                            graph.space().unmark(ch.index());
-                        }
-                    } else {
-                        step++;
-                    }
-                }
-                cursor++;
-            }
-            switch (step) {
-                case 0:
-                    type = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                    break;
-                case 1:
-                    world = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                    break;
-                case 2:
-                    time = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                    break;
-                case 3:
-                    id = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                    break;
-                case 4:
-                    hash = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                    break;
-            }
-            if (step == 4) {
-                //invalidate
-                let ch: greycat.chunk.Chunk = graph.space().getAndMark(type, world, time, id);
-                if (ch != null) {
-                    ch.sync(hash);
-                    graph.space().unmark(ch.index());
-                }
-            }
-        }
-    }
+  unlock(previousLock: greycat.struct.Buffer, callback: greycat.Callback<boolean>): void {
+    this.send_rpc_req(WSClient.REQ_UNLOCK, previousLock, callback);
+  }
 
-    process_rpc_resp(payload: Int8Array) {
-        let payloadBuf = this.graph.newBuffer();
-        payloadBuf.writeAll(payload);
-        let it = payloadBuf.iterator();
-        let codeView = it.next();
-        if (codeView != null && codeView.length() != 0) {
-            let firstCode = codeView.read(0);
-            switch (firstCode) {
-                case this.NOTIFY_UPDATE:
-                    while (it.hasNext()) {
-                        this.process_notify(it.next(), this.graph);
-                    }
-                    //optimize this
-                    if (this._listeners.length > 0) {
-                        const notifyBuffer = this.graph.newBuffer();
-                        notifyBuffer.writeAll(payloadBuf.slice(1, payloadBuf.length() - 1));
-                        for (var i = 0; i < this._listeners.length; i++) {
-                            this._listeners[i](notifyBuffer);
-                        }
-                        notifyBuffer.free();
-                    }
-                    break;
-                case this.NOTIFY_PRINT:
-                    let callbackPrintCodeView = it.next();
-                    let printContentView = it.next();
-                    let callbackPrintCode = greycat.utility.Base64.decodeToIntWithBounds(callbackPrintCodeView, 0, callbackPrintCodeView.length());
-                    let printContent = greycat.utility.Base64.decodeToStringWithBounds(printContentView, 0, printContentView.length());
-                    let printCallback = this.callbacks.get(callbackPrintCode);
-                    printCallback.on(printContent);
-                    break;
-                case this.RESP_LOCK:
-                case this.RESP_GET:
-                case this.RESP_TASK:
-                    let callBackCodeView = it.next();
-                    let callbackCode = greycat.utility.Base64.decodeToIntWithBounds(callBackCodeView, 0, callBackCodeView.length());
-                    let resolvedCallback = this.callbacks.get(callbackCode);
-                    let newBuf = this.graph.newBuffer();//will be free by the core
-                    var isFirst = true;
-                    while (it.hasNext()) {
-                        if (isFirst) {
-                            isFirst = false;
-                        } else {
-                            newBuf.write(greycat.Constants.BUFFER_SEP);
-                        }
-                        newBuf.writeAll(it.next().data());
-                    }
-                    this.callbacks.remove(callbackCode);
-                    resolvedCallback.on(newBuf);
-                    break;
-                default:
-                    let genericCodeView = it.next();
-                    let genericCode = greycat.utility.Base64.decodeToIntWithBounds(genericCodeView, 0, genericCodeView.length());
-                    let genericCallback = this.callbacks.get(genericCode);
-                    delete this.callbacks[genericCode];
-                    genericCallback.on(true);
-            }
-        }
-    }
 
-    send_rpc_req(code: number, payload: greycat.struct.Buffer, callback: greycat.Callback<any>): void {
-        if (this.ws == null) {
-            throw new Error("Not connected!");
-        }
-        let buffer: greycat.struct.Buffer = this.graph.newBuffer();
-        buffer.write(code);
-        buffer.write(greycat.Constants.BUFFER_SEP);
-        let hash = this.generator;
+  execute(callback: greycat.Callback<greycat.TaskResult<any>>, task: greycat.Task, prepared: greycat.TaskContext): void {
+    let reqBuffer = this.graph.newBuffer();
+    let finalGraph = this.graph;
+    task.saveToBuffer(reqBuffer);
+    var hash = -1;
+    if (prepared != null) {
+      reqBuffer.write(greycat.Constants.BUFFER_SEP);
+      var printHook = prepared.printHook();
+      if (printHook != null) {
+        hash = this.generator;
         this.generator = this.generator + 1 % 1000000;
-        this.callbacks[hash] = callback;
-        greycat.utility.Base64.encodeIntToBuffer(hash, buffer);
-        if (payload != null) {
-            buffer.write(greycat.Constants.BUFFER_SEP);
-            buffer.writeAll(payload.data());
-        }
-        let flatData = buffer.data();
-        buffer.free();
-        this.ws.send(flatData);
+        this.callbacks[hash] = printHook;
+        greycat.utility.Base64.encodeIntToBuffer(hash, reqBuffer);
+      } else {
+        hash = -1;
+      }
+      reqBuffer.write(greycat.Constants.BUFFER_SEP);
+      prepared.saveToBuffer(reqBuffer);
     }
+    let finalCB = callback;
+    let notifyMethod = WSClient.process_notify;
+    let finalCallbacks = this.callbacks;
+    let finalHash = hash;
+    this.send_rpc_req(WSClient.REQ_TASK, reqBuffer, function (resultBuffer) {
+      if (finalHash != -1) {
+        delete finalCallbacks[finalHash];
+      }
+      reqBuffer.free();
+      let baseTaskResult: greycat.base.BaseTaskResult<any> = new greycat.base.BaseTaskResult<any>(null, false);
+      baseTaskResult.load(resultBuffer, finalGraph);
+      notifyMethod(baseTaskResult.notifications(), finalGraph);
+      baseTaskResult.loadRefs(finalGraph, function (b: boolean) {
+        resultBuffer.free();
+        finalCB(baseTaskResult);
+      });
+    });
+  }
+
+  private static process_notify(buffer: greycat.struct.Buffer, graph: greycat.Graph) {
+    if (buffer != null) {
+      let type = 0;
+      let world = 0;
+      let time = 0;
+      let id = 0;
+      let hash = 0;
+      let step = 0;
+      let cursor = 0;
+      let previous = 0;
+      let end = buffer.length();
+      while (cursor < end) {
+        let current = buffer.read(cursor);
+        if (current == greycat.Constants.KEY_SEP) {
+          switch (step) {
+            case 0:
+              type = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
+              break;
+            case 1:
+              world = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+              break;
+            case 2:
+              time = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+              break;
+            case 3:
+              id = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+              break;
+            case 4:
+              hash = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+              break;
+          }
+          previous = cursor + 1;
+          if (step == 4) {
+            step = 0;
+            let ch: greycat.chunk.Chunk = graph.space().getAndMark(type, world, time, id);
+            if (ch != null) {
+              ch.sync(hash);
+              graph.space().unmark(ch.index());
+            }
+          } else {
+            step++;
+          }
+        }
+        cursor++;
+      }
+      switch (step) {
+        case 0:
+          type = greycat.utility.Base64.decodeToIntWithBounds(buffer, previous, cursor);
+          break;
+        case 1:
+          world = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+          break;
+        case 2:
+          time = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+          break;
+        case 3:
+          id = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+          break;
+        case 4:
+          hash = greycat.utility.Base64.decodeToLongWithBounds(buffer, previous, cursor);
+          break;
+      }
+      if (step == 4) {
+        //invalidate
+        let ch: greycat.chunk.Chunk = graph.space().getAndMark(type, world, time, id);
+        if (ch != null) {
+          ch.sync(hash);
+          graph.space().unmark(ch.index());
+        }
+      }
+    }
+  }
+
+  process_rpc_resp(payload: Int8Array) {
+    let payloadBuf = this.graph.newBuffer();
+    payloadBuf.writeAll(payload);
+    let it = payloadBuf.iterator();
+    let codeView = it.next();
+    if (codeView != null && codeView.length() != 0) {
+      let firstCode = codeView.read(0);
+      switch (firstCode) {
+        case WSClient.NOTIFY_UPDATE:
+          while (it.hasNext()) {
+            WSClient.process_notify(it.next(), this.graph);
+          }
+          //optimize this
+          if (this._listeners.length > 0) {
+            const notifyBuffer = this.graph.newBuffer();
+            notifyBuffer.writeAll(payloadBuf.slice(1, payloadBuf.length() - 1));
+            for (let i = 0; i < this._listeners.length; i++) {
+              this._listeners[i](notifyBuffer);
+            }
+            notifyBuffer.free();
+          }
+          break;
+        case WSClient.NOTIFY_PRINT:
+          let callbackPrintCodeView = it.next();
+          let printContentView = it.next();
+          let callbackPrintCode = greycat.utility.Base64.decodeToIntWithBounds(callbackPrintCodeView, 0, callbackPrintCodeView.length());
+          let printContent = greycat.utility.Base64.decodeToStringWithBounds(printContentView, 0, printContentView.length());
+          let printCallback = this.callbacks[callbackPrintCode];
+          if (printCallback) {
+            printCallback(printContent);
+          } else {
+            console.error("Received a NOTIFY_PRINT callback with unknown hash: " + callbackPrintCode, this.callbacks);
+          }
+          break;
+        case WSClient.RESP_LOCK:
+        case WSClient.RESP_GET:
+        case WSClient.RESP_TASK:
+          let callBackCodeView = it.next();
+          let callbackCode = greycat.utility.Base64.decodeToIntWithBounds(callBackCodeView, 0, callBackCodeView.length());
+          let resolvedCallback = this.callbacks[callbackCode];
+          if (resolvedCallback) {
+            let newBuf = this.graph.newBuffer();//will be free by the core
+            let isFirst = true;
+            while (it.hasNext()) {
+              if (isFirst) {
+                isFirst = false;
+              } else {
+                newBuf.write(greycat.Constants.BUFFER_SEP);
+              }
+              newBuf.writeAll(it.next().data());
+            }
+            delete this.callbacks[callbackCode];
+            resolvedCallback(newBuf);
+          } else {
+            console.error("Received a RESP_TASK callback with unknown hash: " + callbackPrintCode, this.callbacks);
+          }
+          break;
+        default:
+          let genericCodeView = it.next();
+          let genericCode = greycat.utility.Base64.decodeToIntWithBounds(genericCodeView, 0, genericCodeView.length());
+          let genericCallback = this.callbacks[genericCode];
+          if (genericCallback) {
+            delete this.callbacks[genericCode];
+            genericCallback(true);
+          } else {
+            console.error("Received a generic callback with unknown hash: " + callbackPrintCode, this.callbacks);
+          }
+      }
+    }
+  }
+
+  send_rpc_req(code: number, payload: greycat.struct.Buffer, callback: greycat.Callback<any>): void {
+    if (this.ws == null) {
+      throw new Error("Not connected!");
+    }
+    let buffer: greycat.struct.Buffer = this.graph.newBuffer();
+    buffer.write(code);
+    buffer.write(greycat.Constants.BUFFER_SEP);
+    let hash = this.generator;
+    this.generator = this.generator + 1 % 1000000;
+    this.callbacks[hash] = callback;
+    greycat.utility.Base64.encodeIntToBuffer(hash, buffer);
+    if (payload != null) {
+      buffer.write(greycat.Constants.BUFFER_SEP);
+      buffer.writeAll(payload.data());
+    }
+    let flatData = buffer.data();
+    buffer.free();
+    this.ws.send(flatData);
+  }
 
 }
 
