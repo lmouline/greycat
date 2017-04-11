@@ -15,6 +15,7 @@
  */
 package greycat.internal.heap;
 
+import greycat.Callback;
 import greycat.Constants;
 import greycat.Node;
 import greycat.struct.Buffer;
@@ -105,7 +106,7 @@ class HeapRelation implements Relation {
         return this;
     }
 
-    private void internal_add(long newValue){
+    private void internal_add(long newValue) {
         if (_back == null) {
             aligned = true;
             _back = new long[Constants.MAP_INITIAL_CAPACITY];

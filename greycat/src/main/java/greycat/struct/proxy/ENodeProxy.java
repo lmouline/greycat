@@ -49,6 +49,61 @@ public final class ENodeProxy implements ENode {
     }
 
     @Override
+    public final Relation getRelation(String name) {
+        return (Relation) get(name);
+    }
+
+    @Override
+    public final DMatrix getDMatrix(String name) {
+        return (DMatrix) get(name);
+    }
+
+    @Override
+    public final LMatrix getLMatrix(String name) {
+        return (LMatrix) get(name);
+    }
+
+    @Override
+    public final EGraph getEGraph(String name) {
+        return (EGraph) get(name);
+    }
+
+    @Override
+    public final LongArray getLongArray(String name) {
+        return (LongArray) get(name);
+    }
+
+    @Override
+    public IntArray getIntArray(String name) {
+        return (IntArray) get(name);
+    }
+
+    @Override
+    public final DoubleArray getDoubleArray(String name) {
+        return (DoubleArray) get(name);
+    }
+
+    @Override
+    public final StringArray getStringArray(String name) {
+        return (StringArray) get(name);
+    }
+
+    @Override
+    public final StringIntMap getStringIntMap(String name) {
+        return (StringIntMap) get(name);
+    }
+
+    @Override
+    public final LongLongMap getLongLongMap(String name) {
+        return (LongLongMap) get(name);
+    }
+
+    @Override
+    public final LongLongArrayMap getLongLongArrayMap(String name) {
+        return (LongLongArrayMap) get(name);
+    }
+
+    @Override
     public final <A> A getWithDefault(final String key, final A defaultValue) {
         return getAtWithDefault(_node.egraph().graph().resolver().stringToHash(key, false), defaultValue);
     }

@@ -15,6 +15,8 @@
  */
 package greycat;
 
+import greycat.struct.*;
+
 public interface Container {
 
     /**
@@ -25,6 +27,28 @@ public interface Container {
      * The type of the returned object (i.e. of the attribute) is given by {@link #type(String)} (typed by one of  {@link #type(String)}
      */
     Object get(String name);
+
+    Relation getRelation(String name);
+
+    DMatrix getDMatrix(String name);
+
+    LMatrix getLMatrix(String name);
+
+    EGraph getEGraph(String name);
+
+    LongArray getLongArray(String name);
+
+    IntArray getIntArray(String name);
+
+    DoubleArray getDoubleArray(String name);
+
+    StringArray getStringArray(String name);
+
+    StringIntMap getStringIntMap(String name);
+
+    LongLongMap getLongLongMap(String name);
+
+    LongLongArrayMap getLongLongArrayMap(String name);
 
     /**
      * Returns the value of an attribute of the container.

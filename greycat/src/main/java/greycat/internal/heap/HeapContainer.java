@@ -15,8 +15,12 @@
  */
 package greycat.internal.heap;
 
+import greycat.Graph;
+
 public interface HeapContainer {
 
     void declareDirty();
+
+    Graph graph();
 
 }
