@@ -108,7 +108,7 @@ class HeapStringIntMap implements StringIntMap {
             Arrays.fill(new_hashes, 0, newCapacity * 2, -1);
             hashs = new_hashes;
             nexts = new_nexts;
-            int double_capacity = capacity * 2;
+            int double_capacity = newCapacity * 2;
             for (int i = 0; i < mapSize; i++) {
                 int new_key_hash = keyH(i) % double_capacity;
                 if (new_key_hash < 0) {
