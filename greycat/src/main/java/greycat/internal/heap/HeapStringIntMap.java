@@ -42,19 +42,19 @@ class HeapStringIntMap implements StringIntMap {
         this.parent = p_parent;
     }
 
-    private String key(int i) {
+    private String key(final int i) {
         return keys[i];
     }
 
-    private void setKey(int i, String newValue) {
+    private void setKey(final int i, final String newValue) {
         keys[i] = newValue;
     }
 
-    private int keyH(int i) {
+    private int keyH(final int i) {
         return keysH[i];
     }
 
-    private void setKeyH(int i, int newValue) {
+    private void setKeyH(final int i, int newValue) {
         keysH[i] = newValue;
     }
 
