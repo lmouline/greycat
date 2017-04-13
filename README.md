@@ -9,7 +9,7 @@ For any questions please contact us via our Gitter:
 
 # Changelog
 
-## Versino 7 (planned for 20/04/2017)
+## Version 7 (planned for 20/04/2017)
     - fix bug in global dictionary
     - add option in builder to desactivate global dictionary and introspection ability
     - fix potential NPE into dephased struct proxy for EGraph
