@@ -240,6 +240,8 @@ public class BaseTaskResult<A> implements TaskResult<A> {
         for (int i = 0; i < _capacity; i++) {
             if (_backend[i] instanceof BaseNode) {
                 ((Node) _backend[i]).free();
+            } else if (_backend[i] instanceof BaseTaskResult) {
+                ((BaseTaskResult) _backend[i]).free();
             }
         }
     }
