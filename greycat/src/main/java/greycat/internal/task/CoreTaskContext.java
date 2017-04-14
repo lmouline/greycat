@@ -862,32 +862,56 @@ class CoreTaskContext implements TaskContext {
         hooks[0] = new TaskHook() {
             @Override
             public void start(TaskContext initialContext) {
-                hook.progress(new CoreProgressReport(ProgressType.START_TASK,((CoreTaskContext) initialContext).cursor, ((CoreTaskContext) initialContext)._origin.insertCursor, "Execution Start"));
+                hook.progress(new CoreProgressReport()
+                        .setType(ProgressType.START_TASK)
+                        .setIndex(((CoreTaskContext) initialContext).cursor)
+                        .setTotal(((CoreTaskContext) initialContext)._origin.insertCursor)
+                        .setComment("Execution Start"));
             }
 
             @Override
             public void beforeAction(Action action, TaskContext context) {
-                hook.progress(new CoreProgressReport(ProgressType.START_ACTION,((CoreTaskContext) context).cursor, ((CoreTaskContext) context)._origin.insertCursor, "Start " + action.toString()));
+                hook.progress(new CoreProgressReport()
+                        .setType(ProgressType.START_ACTION)
+                        .setIndex(((CoreTaskContext) context).cursor)
+                        .setTotal(((CoreTaskContext) context)._origin.insertCursor)
+                        .setComment( "Start " + action.name()));
             }
 
             @Override
             public void afterAction(Action action, TaskContext context) {
-                hook.progress(new CoreProgressReport(ProgressType.END_ACTION,((CoreTaskContext) context).cursor, ((CoreTaskContext) context)._origin.insertCursor, "End " + action.toString()));
+                hook.progress(new CoreProgressReport()
+                        .setType(ProgressType.END_ACTION)
+                        .setIndex(((CoreTaskContext) context).cursor)
+                        .setTotal(((CoreTaskContext) context)._origin.insertCursor)
+                        .setComment( "End " + action.name()));
             }
 
             @Override
             public void beforeTask(TaskContext parentContext, TaskContext context) {
-                hook.progress(new CoreProgressReport(ProgressType.START_SUB_TASK,((CoreTaskContext) context).cursor, ((CoreTaskContext) context)._origin.insertCursor, "Start sub-task"));
+                hook.progress(new CoreProgressReport()
+                        .setType(ProgressType.START_SUB_TASK)
+                        .setIndex(((CoreTaskContext) context).cursor)
+                        .setTotal(((CoreTaskContext) context)._origin.insertCursor)
+                        .setComment( "Start sub-task"));
             }
 
             @Override
             public void afterTask(TaskContext context) {
-                hook.progress(new CoreProgressReport(ProgressType.END_SUB_TASK,((CoreTaskContext) context).cursor, ((CoreTaskContext) context)._origin.insertCursor, "End sub-task"));
+                hook.progress(new CoreProgressReport()
+                        .setType(ProgressType.END_SUB_TASK)
+                        .setIndex(((CoreTaskContext) context).cursor)
+                        .setTotal(((CoreTaskContext) context)._origin.insertCursor)
+                        .setComment( "End sub-task"));
             }
 
             @Override
             public void end(TaskContext finalContext) {
-                hook.progress(new CoreProgressReport(ProgressType.END_TASK,((CoreTaskContext) finalContext).cursor, ((CoreTaskContext) finalContext)._origin.insertCursor, "Execution end."));
+                hook.progress(new CoreProgressReport()
+                        .setType(ProgressType.END_TASK)
+                        .setIndex(((CoreTaskContext) finalContext).cursor)
+                        .setTotal(((CoreTaskContext) finalContext)._origin.insertCursor)
+                        .setComment( "Execution end"));
             }
         };
         if (this._hooks != null) {

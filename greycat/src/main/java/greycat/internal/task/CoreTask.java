@@ -1152,7 +1152,7 @@ public class CoreTask implements Task {
                 });
         //TODO improve TreeTask API
         registry
-                .getOrCreateDeclaration(ActionQueryBoundedRadius.NAME)
+                .getOrCreateDeclaration(CoreActionNames.QUERY_BOUNDED_RADIUS)
                 .setParams(Type.INT, Type.DOUBLE, Type.BOOL, Type.DOUBLE_ARRAY)
                 .setFactory(new ActionFactory() {
                     @Override

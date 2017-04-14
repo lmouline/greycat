@@ -1,3 +1,18 @@
+/**
+ * Copyright 2017 The GreyCat Authors.  All rights reserved.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package greycat.internal.task;
 
 import greycat.Constants;
@@ -20,13 +35,6 @@ public class CoreProgressReport implements ProgressReport {
     public CoreProgressReport(){
     }
 
-    public CoreProgressReport(final ProgressType type, final int _index, final int _total, final String _comment) {
-        this._type = type;
-        this._index = _index;
-        this._total = _total;
-        this._comment = _comment;
-    }
-
     @Override
     public ProgressType type() {
         return this._type;
@@ -47,6 +55,34 @@ public class CoreProgressReport implements ProgressReport {
         return this._comment;
     }
 
+    public CoreProgressReport setType(ProgressType _type) {
+        this._type = _type;
+        return this;
+    }
+
+    public CoreProgressReport setIndex(int _index) {
+        this._index = _index;
+        return this;
+    }
+
+    public CoreProgressReport setTotal(int _total) {
+        this._total = _total;
+        return this;
+    }
+
+    public CoreProgressReport setComment(String _comment) {
+        this._comment = _comment;
+        return this;
+    }
+
+    /**
+     * {@native ts
+     * return greycat.utility.ProgressType[_pt];
+     * }
+     */
+    private ProgressType enumFromString(String _pt) {
+        return ProgressType.valueOf(_pt);
+    }
 
     public void loadFromBuffer(Buffer buffer) {
 
@@ -58,7 +94,7 @@ public class CoreProgressReport implements ProgressReport {
             if (current == Constants.CHUNK_ESEP || cursor + 1 == buffer.length()) {
                 switch (index) {
                     case 0:
-                        _type = ProgressType.valueOf(Base64.decodeToStringWithBounds(buffer, previous, cursor));
+                        _type = enumFromString(Base64.decodeToStringWithBounds(buffer, previous, cursor));
                         index++;
                         break;
                     case 1:
@@ -81,8 +117,17 @@ public class CoreProgressReport implements ProgressReport {
         }
     }
 
+    /**
+     * {@native ts
+     * return greycat.utility.ProgressType[_pt];
+     * }
+     */
+    private String enumToString(ProgressType _pt) {
+        return _pt.name();
+    }
+
     public void saveToBuffer(Buffer buffer) {
-        Base64.encodeStringToBuffer(this._type.toString(), buffer);
+        Base64.encodeStringToBuffer(enumToString(this._type), buffer);
         buffer.write(CoreConstants.CHUNK_ESEP);
         Base64.encodeIntToBuffer(this._index, buffer);
         buffer.write(CoreConstants.CHUNK_ESEP);
