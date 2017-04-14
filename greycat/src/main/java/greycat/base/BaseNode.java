@@ -16,6 +16,8 @@
 package greycat.base;
 
 import greycat.*;
+import greycat.chunk.ChunkSpace;
+import greycat.chunk.StateChunk;
 import greycat.plugin.NodeStateCallback;
 import greycat.struct.*;
 import greycat.plugin.NodeDeclaration;
@@ -853,6 +855,14 @@ public class BaseNode implements Node {
     @Override
     public final LongLongArrayMap getLongLongArrayMap(String name) {
         return (LongLongArrayMap) get(name);
+    }
+
+    public final Node createClone() {
+        Node cloned = _graph.newNode(_world, _time);
+        StateChunk clonedStateChunk = (StateChunk) _resolver.resolveState(cloned);
+        StateChunk currentStateChunk = (StateChunk) _resolver.resolveState(this);
+        clonedStateChunk.loadFrom(currentStateChunk);
+        return cloned;
     }
 
 }
