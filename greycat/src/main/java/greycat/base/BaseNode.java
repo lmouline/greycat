@@ -19,6 +19,7 @@ import greycat.*;
 import greycat.chunk.ChunkSpace;
 import greycat.chunk.StateChunk;
 import greycat.plugin.NodeStateCallback;
+import greycat.scheduler.NoopScheduler;
 import greycat.struct.*;
 import greycat.plugin.NodeDeclaration;
 import greycat.plugin.NodeState;
@@ -858,9 +859,9 @@ public class BaseNode implements Node {
     }
 
     public final Node createClone() {
-        Node cloned = _graph.newNode(_world, _time);
-        StateChunk clonedStateChunk = (StateChunk) _resolver.resolveState(cloned);
-        StateChunk currentStateChunk = (StateChunk) _resolver.resolveState(this);
+        final Node cloned = _graph.newNode(_world, _time);
+        final StateChunk clonedStateChunk = (StateChunk) _resolver.resolveState(cloned);
+        final StateChunk currentStateChunk = (StateChunk) _resolver.resolveState(this);
         clonedStateChunk.loadFrom(currentStateChunk);
         return cloned;
     }
