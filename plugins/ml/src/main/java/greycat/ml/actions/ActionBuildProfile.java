@@ -20,16 +20,11 @@ import greycat.internal.task.TaskHelper;
 import greycat.ml.MLPlugin;
 import greycat.ml.profiling.Gaussian;
 import greycat.struct.Buffer;
-import greycat.struct.DoubleArray;
-
 import static greycat.Tasks.newTask;
-
 
 /**
  * Takes a list of feature nodes, and update the profile
  */
-
-
 public class ActionBuildProfile implements Action {
     int _histogramBins;
 
