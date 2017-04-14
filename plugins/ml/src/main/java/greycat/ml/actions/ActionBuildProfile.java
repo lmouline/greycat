@@ -20,6 +20,8 @@ import greycat.internal.task.TaskHelper;
 import greycat.ml.MLPlugin;
 import greycat.ml.profiling.Gaussian;
 import greycat.struct.Buffer;
+import greycat.struct.DoubleArray;
+
 import static greycat.Tasks.newTask;
 
 /**
@@ -65,12 +67,8 @@ public class ActionBuildProfile implements Action {
                                                     Node feature = (Node) ctx.variable("feature").get(0);
                                                     final double min = feature.getWithDefault("value_min", Double.NEGATIVE_INFINITY);
                                                     final double max = feature.getWithDefault("value_max", Double.POSITIVE_INFINITY);
-                                                    Object value = node.get("value");
-                                                    if (value != null) {
-                                                        Gaussian.profile(feature, Double.valueOf(value.toString()), min, max);
-                                                    } else {
-                                                        Gaussian.profile(feature, null, min, max);
-                                                    }
+                                                    Double value = (Double) node.get("value");
+                                                    Gaussian.profile(feature, value, min, max);
                                                     ctx.continueWith(ctx.result());
                                                 }
                                             })
@@ -99,10 +97,8 @@ public class ActionBuildProfile implements Action {
                                                                     final double pmin = (double) feature.get(Gaussian.MIN);
                                                                     final double pmax = (double) feature.get(Gaussian.MAX);
                                                                     final int hist = (int) ctx.variable("histogram").get(0);
-                                                                    Object value = node.get("value");
-                                                                    if (value != null) {
-                                                                        Gaussian.histogram(feature, pmin, pmax, Double.valueOf(value.toString()), hist);
-                                                                    }
+                                                                    Double value = (Double) node.get("value");
+                                                                    Gaussian.histogram(feature, pmin, pmax, value, hist);
                                                                     ctx.continueWith(ctx.result());
                                                                 }
                                                             })
