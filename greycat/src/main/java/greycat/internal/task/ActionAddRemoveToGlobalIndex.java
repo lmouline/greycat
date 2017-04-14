@@ -77,9 +77,17 @@ class ActionAddRemoveToGlobalIndex implements Action {
     @Override
     public final void serialize(final Buffer builder) {
         if (_timed) {
-            builder.writeString(CoreActionNames.ADD_TO_GLOBAL_TIMED_INDEX);
+            if (_remove) {
+                builder.writeString(CoreActionNames.REMOVE_FROM_GLOBAL_TIMED_INDEX);
+            } else {
+                builder.writeString(CoreActionNames.ADD_TO_GLOBAL_TIMED_INDEX);
+            }
         } else {
-            builder.writeString(CoreActionNames.ADD_TO_GLOBAL_INDEX);
+            if (_remove) {
+                builder.writeString(CoreActionNames.REMOVE_FROM_GLOBAL_INDEX);
+            } else {
+                builder.writeString(CoreActionNames.ADD_TO_GLOBAL_INDEX);
+            }
         }
         builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_name, builder, true);
@@ -88,4 +96,10 @@ class ActionAddRemoveToGlobalIndex implements Action {
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
+    @Override
+    public String name() {
+        return (_remove ?
+                (_timed ? CoreActionNames.REMOVE_FROM_GLOBAL_TIMED_INDEX : CoreActionNames.REMOVE_FROM_GLOBAL_INDEX)
+                : (_timed ? CoreActionNames.ADD_TO_GLOBAL_TIMED_INDEX : CoreActionNames.ADD_TO_GLOBAL_INDEX));
+    }
 }

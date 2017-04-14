@@ -55,4 +55,10 @@ class ActionCreateNode implements Action {
         }
     }
 
+
+    @Override
+    public String name() {
+        return CoreActionNames.CREATE_NODE;
+    }
+
 }

@@ -128,4 +128,9 @@ class CF_Map extends CF_Action {
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
+    @Override
+    public String name() {
+        return CoreActionNames.MAP;
+    }
+
 }

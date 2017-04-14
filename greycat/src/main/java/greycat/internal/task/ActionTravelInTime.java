@@ -108,4 +108,9 @@ class ActionTravelInTime implements Action {
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
+
+    @Override
+    public String name() {
+        return CoreActionNames.TRAVEL_IN_TIME;
+    }
 }

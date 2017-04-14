@@ -116,4 +116,9 @@ class CF_Pipe extends CF_Action {
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
+    @Override
+    public String name() {
+        return CoreActionNames.PIPE;
+    }
+
 }

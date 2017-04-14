@@ -37,7 +37,7 @@ class ActionInject implements Action {
 
     @Override
     public void serialize(final Buffer builder) {
-        throw new RuntimeException("inject remote action not managed yet!");
+        throw new RuntimeException("Remote injection not supported.");
     }
 
     @Override
@@ -45,4 +45,8 @@ class ActionInject implements Action {
         return "inject()";
     }
 
+    @Override
+    public String name() {
+        return CoreActionNames.INJECT;
+    }
 }

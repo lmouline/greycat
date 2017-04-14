@@ -59,4 +59,9 @@ public class ReadContinuous implements Action {
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
+    @Override
+    public String name() {
+        return NAME;
+    }
+
 }

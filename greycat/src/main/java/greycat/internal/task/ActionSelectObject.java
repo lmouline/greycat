@@ -59,4 +59,10 @@ class ActionSelectObject implements Action {
     public String toString() {
         return "selectObject()";
     }
+
+
+    @Override
+    public String name() {
+        return CoreActionNames.SELECT_OBJECT;
+    }
 }

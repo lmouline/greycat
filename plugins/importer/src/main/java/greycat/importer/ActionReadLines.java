@@ -38,10 +38,14 @@ class ActionReadLines implements Action {
 
     @Override
     public final void serialize(final Buffer builder) {
-        builder.writeString("readLines");
+        builder.writeString(ImporterActions.READLINES);
         builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_pathOrTemplate, builder, true);
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
+    @Override
+    public String name() {
+        return ImporterActions.READLINES;
+    }
 }

@@ -52,4 +52,9 @@ class ActionPrint implements Action {
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
+    @Override
+    public String name() {
+        return CoreActionNames.PRINT;
+    }
+
 }

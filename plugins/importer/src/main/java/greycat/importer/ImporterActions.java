@@ -23,6 +23,8 @@ public class ImporterActions {
 
     public static final String READLINES = "readLines";
 
+    public static final String SPLIT = "split";
+
     /*
     public static final String READJSON = "readJson";
 

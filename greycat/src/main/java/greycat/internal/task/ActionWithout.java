@@ -71,5 +71,11 @@ class ActionWithout implements Action {
         TaskHelper.serializeString(_patternTemplate, builder, true);
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
+
+
+    @Override
+    public String name() {
+        return CoreActionNames.WITHOUT;
+    }
     
 }

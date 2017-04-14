@@ -36,4 +36,5 @@ public abstract class CF_Action implements Action {
         throw new RuntimeException("serialization error !!!");
     }
 
+    abstract public String name();
 }

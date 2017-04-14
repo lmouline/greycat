@@ -86,4 +86,9 @@ class ActionAddRemoveVarToRelation implements Action {
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
+    @Override
+    public String name() {
+        return (_isAdd?CoreActionNames.ADD_VAR_TO_RELATION:CoreActionNames.REMOVE_VAR_TO_RELATION);
+    }
+
 }

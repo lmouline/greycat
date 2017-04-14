@@ -23,4 +23,6 @@ public interface Action {
 
     void serialize(Buffer builder);
 
+    String name();
+
 }

@@ -56,4 +56,9 @@ class ActionDeclareVar implements Action {
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
+
+    @Override
+    public String name() {
+        return (_isGlobal?CoreActionNames.DECLARE_GLOBAL_VAR:CoreActionNames.DECLARE_VAR);
+    }
 }

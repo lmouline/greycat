@@ -113,4 +113,9 @@ class CF_ForEach extends CF_Action {
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
+    @Override
+    public String name() {
+        return CoreActionNames.FOR_EACH;
+    }
+
 }

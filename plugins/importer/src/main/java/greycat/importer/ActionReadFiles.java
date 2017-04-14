@@ -70,10 +70,14 @@ class ActionReadFiles implements Action {
 
     @Override
     public void serialize(final Buffer builder) {
-        builder.writeString("readFiles");
+        builder.writeString(ImporterActions.READFILES);
         builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_pathOrTemplate, builder, true);
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
+    @Override
+    public String name() {
+        return ImporterActions.READFILES;
+    }
 }

@@ -203,4 +203,10 @@ class ActionTraverseOrAttribute implements Action {
         }
     }
 
+
+    @Override
+    public String name() {
+        return (_isUnknown?_name:(_isAttribute?CoreActionNames.ATTRIBUTE:CoreActionNames.TRAVERSE));
+    }
+
 }

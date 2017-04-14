@@ -136,4 +136,9 @@ public class ActionBuildProfile implements Action {
         TaskHelper.serializeString(_histogramBins + "", builder, true);
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
+
+    @Override
+    public String name() {
+        return MLPlugin.BUILD_PROFILE;
+    }
 }

@@ -19,8 +19,12 @@ public class CoreActionNames {
 
     public static String ADD_VAR_TO_RELATION = "addVarToRelation";
     public static String REMOVE_VAR_TO_RELATION = "removeVarToRelation";
+
     public static String ADD_TO_GLOBAL_INDEX = "addToGlobalIndex";
     public static String ADD_TO_GLOBAL_TIMED_INDEX = "addToGlobalTimedIndex";
+    public static String REMOVE_FROM_GLOBAL_INDEX = "removeFromGlobalIndex";
+    public static String REMOVE_FROM_GLOBAL_TIMED_INDEX = "removeFromGlobalTimedIndex";
+
     public static String ADD_TO_VAR = "addToVar";
     public static String ATTRIBUTES = "attributes";
     public static String ATTRIBUTES_WITH_TYPE = "attributesWithType";
@@ -43,7 +47,6 @@ public class CoreActionNames {
     public static String GLOBAL_INDEX = "globalIndex";
     public static String READ_VAR = "readVar";
     public static String REMOVE = "remove";
-    public static String REMOVE_FROM_GLOBAL_INDEX = "removeFromGlobalIndex";
     public static String SAVE = "save";
     public static String SCRIPT = "script";
     public static String ASYNC_SCRIPT = "asyncScript";
@@ -69,11 +72,15 @@ public class CoreActionNames {
     public static String PIPE_PAR = "pipePar";
     public static String PIPE_TO = "pipeTo";
     public static String DO_WHILE = "doWhile";
-    public static String WHILE_DO = "whileDo";
     public static String IF_THEN = "ifThen";
     public static String IF_THEN_ELSE = "ifThenElse";
     public static String ATOMIC = "atomic";
     public static String FLAT = "flat";
+    public static String INJECT = "inject";
+    public static String QUERY_BOUNDED_RADIUS = "queryBoundedRadius";
+    public static String SELECT_OBJECT = "selectObject";
+    public static String THEN_DO = "thenDo";
+    public static String WHILE_DO = "whileDo";
 
 }
 

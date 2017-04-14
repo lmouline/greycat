@@ -80,4 +80,9 @@ class ActionAttributes implements Action {
         }
     }
 
+    @Override
+    public String name() {
+        return CoreActionNames.ATTRIBUTES;
+    }
+
 }

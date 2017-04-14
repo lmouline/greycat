@@ -146,5 +146,11 @@ class ActionSetAttribute implements Action {
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
+
+    @Override
+    public String name() {
+        return (_force?CoreActionNames.FORCE_ATTRIBUTE:CoreActionNames.SET_ATTRIBUTE);
+    }
+
 }
 

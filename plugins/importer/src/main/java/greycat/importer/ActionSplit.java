@@ -53,10 +53,14 @@ class ActionSplit implements Action {
 
     @Override
     public final void serialize(final Buffer builder) {
-        builder.writeString("split");
+        builder.writeString(ImporterActions.SPLIT);
         builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_splitPattern, builder, true);
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
+    @Override
+    public String name() {
+        return ImporterActions.SPLIT;
+    }
 }

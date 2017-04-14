@@ -105,4 +105,10 @@ class CF_PipePar extends CF_Action {
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
+
+    @Override
+    public String name() {
+        return CoreActionNames.PIPE_PAR;
+    }
+
 }

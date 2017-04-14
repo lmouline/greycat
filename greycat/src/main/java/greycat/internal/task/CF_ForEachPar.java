@@ -119,4 +119,9 @@ class CF_ForEachPar extends CF_Action {
         }
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
+
+    @Override
+    public String name() {
+        return CoreActionNames.FOR_EACH_PAR;
+    }
 }

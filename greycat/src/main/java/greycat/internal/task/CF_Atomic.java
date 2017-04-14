@@ -124,5 +124,9 @@ public class CF_Atomic extends CF_Action {
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 
+    @Override
+    public String name() {
+        return CoreActionNames.ATOMIC;
+    }
 
 }

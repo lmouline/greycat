@@ -25,8 +25,6 @@ import greycat.struct.TreeResult;
 
 public class ActionQueryBoundedRadius implements Action {
 
-    public static String NAME = "QueryBoundedRadius";
-
     private final double[] _key;
     private final int _n;
     private final double _radius;
@@ -109,6 +107,11 @@ public class ActionQueryBoundedRadius implements Action {
             }
         }
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
+    }
+
+    @Override
+    public String name() {
+        return CoreActionNames.QUERY_BOUNDED_RADIUS;
     }
 
 }

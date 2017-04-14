@@ -48,4 +48,9 @@ class CF_ThenDo implements Action {
         throw new RuntimeException("Not managed yet!");
     }
 
+    @Override
+    public String name() {
+        return CoreActionNames.THEN_DO;
+    }
+
 }
