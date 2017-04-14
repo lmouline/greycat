@@ -99,4 +99,7 @@ public interface TaskContext {
 
     void setPrintHook(Callback<String> callback);
 
+    Callback<String> progressHook();
+    void setProgressHook(Callback<String> hook);
+
 }

@@ -167,27 +167,44 @@ public class WSClient implements Storage, TaskExecutor {
     public final void execute(final Callback<TaskResult> callback, final Task task, final TaskContext prepared) {
         final Buffer buffer = graph.newBuffer();
         task.saveToBuffer(buffer);
-        final int hash;
+        final int hashPrint;
+        final int hashProgress;
         if (prepared != null) {
             buffer.write(Constants.BUFFER_SEP);
             final Callback<String> printHook = prepared.printHook();
             if (printHook != null) {
-                hash = printHook.hashCode();
-                callbacks.put(hash, printHook);
-                Base64.encodeIntToBuffer(hash, buffer);
+
+                hashPrint = printHook.hashCode();
+                callbacks.put(hashPrint, printHook);
+                Base64.encodeIntToBuffer(hashPrint, buffer);
             } else {
-                hash = -1;
+                hashPrint = -1;
             }
+
+            buffer.write(Constants.BUFFER_SEP);
+            final Callback<String> progressHook = prepared.progressHook();
+            if (progressHook != null) {
+                hashProgress = progressHook.hashCode();
+                callbacks.put(hashProgress, progressHook);
+                Base64.encodeIntToBuffer(hashProgress, buffer);
+            } else {
+                hashProgress = -1;
+            }
+
             buffer.write(Constants.BUFFER_SEP);
             prepared.saveToBuffer(buffer);
         } else {
-            hash = -1;
+            hashPrint = -1;
+            hashProgress = -1;
         }
         send_rpc_req(WSConstants.REQ_TASK, buffer, new Callback<Buffer>() {
             @Override
             public void on(final Buffer bufferResult) {
-                if(hash != -1){
-                    callbacks.remove(hash);
+                if(hashPrint != -1){
+                    callbacks.remove(hashPrint);
+                }
+                if(hashProgress != -1){
+                    callbacks.remove(hashProgress);
                 }
                 buffer.free();
                 final BaseTaskResult baseTaskResult = new BaseTaskResult(null, false);

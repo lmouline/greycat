@@ -127,17 +127,28 @@ export class WSClient implements greycat.plugin.Storage {
     let reqBuffer = this.graph.newBuffer();
     let finalGraph = this.graph;
     task.saveToBuffer(reqBuffer);
-    var hash = -1;
+    let printHash = -1;
+    let progressHash = -1;
     if (prepared != null) {
       reqBuffer.write(greycat.Constants.BUFFER_SEP);
-      var printHook = prepared.printHook();
+      let printHook = prepared.printHook();
       if (printHook != null) {
-        hash = this.generator;
+        printHash = this.generator;
         this.generator = this.generator + 1 % 1000000;
-        this.callbacks[hash] = printHook;
-        greycat.utility.Base64.encodeIntToBuffer(hash, reqBuffer);
+        this.callbacks[printHash] = printHook;
+        greycat.utility.Base64.encodeIntToBuffer(printHash, reqBuffer);
       } else {
-        hash = -1;
+        printHash = -1;
+      }
+      reqBuffer.write(greycat.Constants.BUFFER_SEP);
+      let progressHook = prepared.progressHook();
+      if (progressHook != null) {
+        progressHash = this.generator;
+        this.generator = this.generator + 1 % 1000000;
+        this.callbacks[progressHash] = progressHook;
+        greycat.utility.Base64.encodeIntToBuffer(progressHash, reqBuffer);
+      } else {
+        progressHash = -1;
       }
       reqBuffer.write(greycat.Constants.BUFFER_SEP);
       prepared.saveToBuffer(reqBuffer);
@@ -145,10 +156,14 @@ export class WSClient implements greycat.plugin.Storage {
     let finalCB = callback;
     let notifyMethod = WSClient.process_notify;
     let finalCallbacks = this.callbacks;
-    let finalHash = hash;
+    let finalPrintHash = printHash;
+    let finalProgressHash = progressHash;
     this.send_rpc_req(WSClient.REQ_TASK, reqBuffer, function (resultBuffer) {
-      if (finalHash != -1) {
-        delete finalCallbacks[finalHash];
+      if (finalPrintHash != -1) {
+        delete finalCallbacks[finalPrintHash];
+      }
+      if (finalProgressHash != -1) {
+        delete finalCallbacks[finalProgressHash];
       }
       reqBuffer.free();
       let baseTaskResult: greycat.base.BaseTaskResult<any> = new greycat.base.BaseTaskResult<any>(null, false);

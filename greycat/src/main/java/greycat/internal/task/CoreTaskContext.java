@@ -45,10 +45,11 @@ class CoreTaskContext implements TaskContext {
     private long _time;
     private final CoreTask _origin;
     private int cursor = 0;
-    final TaskHook[] _hooks;
+    TaskHook[] _hooks;
     private StringBuilder _output = null;
     private Buffer _silent;
     private Callback<String> _printHook = null;
+    private Callback<String> _progressHook = null;
 
     CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
         this._origin = origin;
@@ -841,6 +842,58 @@ class CoreTaskContext implements TaskContext {
     @Override
     public final void setPrintHook(final Callback<String> callback) {
         this._printHook = callback;
+    }
+
+    @Override
+    public final Callback<String> progressHook() {
+        return this._progressHook;
+    }
+
+    @Override
+    public final void setProgressHook(final Callback<String> hook) {
+        this._progressHook = hook;
+        TaskHook[] hooks;
+        if (this._hooks != null) {
+            hooks = new TaskHook[this._hooks.length + 1];
+        } else {
+            hooks = new TaskHook[1];
+        }
+        hooks[0] = new TaskHook() {
+            @Override
+            public void start(TaskContext initialContext) {
+                hook.on("{\"s\":" + ((CoreTaskContext) initialContext).cursor + ",\"t\":" + ((CoreTaskContext) initialContext)._origin.insertCursor + ",\"k\":\"ts\",\"c\":\"Start\"}");
+            }
+
+            @Override
+            public void beforeAction(Action action, TaskContext context) {
+                hook.on("{\"s\":" + ((CoreTaskContext) context).cursor + ",\"t\":" + ((CoreTaskContext) context)._origin.insertCursor + ",\"k\":\"as\",\"c\":\"Start " + action.toString() + "\"}");
+            }
+
+            @Override
+            public void afterAction(Action action, TaskContext context) {
+                hook.on("{\"s\":" + ((CoreTaskContext) context).cursor + ",\"t\":" + ((CoreTaskContext) context)._origin.insertCursor + ",\"k\":\"ae\",\"c\":\"Finished " + action.toString() + "\"}");
+            }
+
+            @Override
+            public void beforeTask(TaskContext parentContext, TaskContext context) {
+                hook.on("{\"s\":" + ((CoreTaskContext) context).cursor + ",\"t\":" + ((CoreTaskContext) context)._origin.insertCursor + ",\"k\":\"sts\",\"c\":\"Start sub-task\"}");
+            }
+
+            @Override
+            public void afterTask(TaskContext context) {
+                hook.on("{\"s\":" + ((CoreTaskContext) context).cursor + ",\"t\":" + ((CoreTaskContext) context)._origin.insertCursor + ",\"k\":\"ste\",\"c\":\"End sub-task\"}");
+            }
+
+            @Override
+            public void end(TaskContext finalContext) {
+                hook.on("{\"s\":" + ((CoreTaskContext) finalContext).cursor + ",\"t\":" + ((CoreTaskContext) finalContext)._origin.insertCursor + ",\"k\":\"te\",\"c\":\"End\"}");
+            }
+        };
+        if (this._hooks != null) {
+            System.arraycopy(this._hooks, 0, hooks, 1, this._hooks.length);
+        }
+
+        this._hooks = hooks;
     }
 
     @Override

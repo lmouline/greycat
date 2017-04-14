@@ -195,6 +195,23 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                                         }
                                     });
                                 }
+                                final int progressHookCode;
+                                Buffer progressHookCodeView = it.next();
+                                if(progressHookCodeView.length() > 0){
+                                    progressHookCode = greycat.utility.Base64.decodeToIntWithBounds(progressHookCodeView,0,progressHookCodeView.length());
+                                    ctx.setProgressHook(new Callback<String>() {
+                                        @Override
+                                        public void on(String result) {
+                                            final Buffer concat = graph.newBuffer();
+                                            concat.write(WSConstants.NOTIFY_PRINT);
+                                            concat.write(Constants.BUFFER_SEP);
+                                            Base64.encodeIntToBuffer(progressHookCode, concat);
+                                            concat.write(Constants.BUFFER_SEP);
+                                            Base64.encodeStringToBuffer(result,concat);
+                                            WSServer.this.send_resp(concat, channel);
+                                        }
+                                    });
+                                }
                                 ctx.loadFromBuffer(it.next());
                             }
                             t.executeUsing(ctx);
