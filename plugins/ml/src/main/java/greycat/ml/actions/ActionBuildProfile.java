@@ -34,12 +34,6 @@ public class ActionBuildProfile implements Action {
 
     private static Task updateProfile =
             newTask()
-                    .select(new TaskFunctionSelect() {
-                        @Override
-                        public boolean select(Node node, TaskContext context) {
-                            return ((int) node.get("value_type") == Type.DOUBLE) || ((int) node.get("value_type") == Type.INT);
-                        }
-                    })
                     .forEach(newTask()
                             .setAsVar("feature")
                             .thenDo(new ActionFunction() {
