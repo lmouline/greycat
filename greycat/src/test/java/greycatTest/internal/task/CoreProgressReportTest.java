@@ -15,11 +15,10 @@
  */
 package greycatTest.internal.task;
 
-import greycat.ProgressReport;
 import greycat.internal.heap.HeapBuffer;
 import greycat.internal.task.CoreProgressReport;
 import greycat.struct.Buffer;
-import greycat.utility.ProgressType;
+import greycat.TaskProgressType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -31,24 +30,24 @@ public class CoreProgressReportTest {
     @Test
     public void saveLoadTest() {
 
-        CoreProgressReport report = new CoreProgressReport().setType(ProgressType.START_TASK).setIndex(2).setTotal(3).setComment("Yaha");
+        CoreProgressReport report = new CoreProgressReport().setType(TaskProgressType.START_TASK).setIndex(2).setTotal(3).setComment("Yaha");
         Buffer b = new HeapBuffer();
         report.saveToBuffer(b);
         CoreProgressReport reportBack = new CoreProgressReport();
         reportBack.loadFromBuffer(b);
 
-        Assert.assertEquals(report.type().toString(), reportBack.type().toString());
+        Assert.assertEquals(report.type(), reportBack.type());
         Assert.assertEquals(report.index(), reportBack.index());
         Assert.assertEquals(report.total(), reportBack.total());
         Assert.assertEquals(report.comment(), reportBack.comment());
 
-        report = new CoreProgressReport().setType(ProgressType.START_TASK).setIndex(2).setTotal(3);
+        report = new CoreProgressReport().setType(TaskProgressType.START_TASK).setIndex(2).setTotal(3);
         b = new HeapBuffer();
         report.saveToBuffer(b);
         reportBack = new CoreProgressReport();
         reportBack.loadFromBuffer(b);
 
-        Assert.assertEquals(report.type().toString(), reportBack.type().toString());
+        Assert.assertEquals(report.type(), reportBack.type());
         Assert.assertEquals(report.index(), reportBack.index());
         Assert.assertEquals(report.total(), reportBack.total());
         Assert.assertEquals(report.comment(), reportBack.comment());

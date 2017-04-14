@@ -24,7 +24,7 @@ import greycat.base.BaseNode;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
 import greycat.utility.BufferView;
-import greycat.utility.ProgressType;
+import greycat.TaskProgressType;
 import greycat.utility.Tuple;
 
 import java.util.HashMap;
@@ -50,7 +50,7 @@ class CoreTaskContext implements TaskContext {
     private StringBuilder _output = null;
     private Buffer _silent;
     private Callback<String> _printHook = null;
-    private Callback<ProgressReport> _progressHook = null;
+    private Callback<TaskProgressReport> _progressHook = null;
 
     CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
         this._origin = origin;
@@ -846,12 +846,12 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
-    public final Callback<ProgressReport> progressHook() {
+    public final Callback<TaskProgressReport> progressHook() {
         return this._progressHook;
     }
 
     @Override
-    public final void setProgressHook(final Callback<ProgressReport> hook) {
+    public final void setProgressHook(final Callback<TaskProgressReport> hook) {
         this._progressHook = hook;
         TaskHook[] hooks;
         if (this._hooks != null) {
@@ -863,7 +863,7 @@ class CoreTaskContext implements TaskContext {
             @Override
             public void start(TaskContext initialContext) {
                 hook.on(new CoreProgressReport()
-                        .setType(ProgressType.START_TASK)
+                        .setType(TaskProgressType.START_TASK)
                         .setIndex(((CoreTaskContext) initialContext).cursor)
                         .setTotal(((CoreTaskContext) initialContext)._origin.insertCursor)
                         .setComment("Execution Start"));
@@ -872,7 +872,7 @@ class CoreTaskContext implements TaskContext {
             @Override
             public void beforeAction(Action action, TaskContext context) {
                 hook.on(new CoreProgressReport()
-                        .setType(ProgressType.START_ACTION)
+                        .setType(TaskProgressType.START_ACTION)
                         .setIndex(((CoreTaskContext) context).cursor)
                         .setTotal(((CoreTaskContext) context)._origin.insertCursor)
                         .setComment( "Start " + action.name()));
@@ -881,7 +881,7 @@ class CoreTaskContext implements TaskContext {
             @Override
             public void afterAction(Action action, TaskContext context) {
                 hook.on(new CoreProgressReport()
-                        .setType(ProgressType.END_ACTION)
+                        .setType(TaskProgressType.END_ACTION)
                         .setIndex(((CoreTaskContext) context).cursor)
                         .setTotal(((CoreTaskContext) context)._origin.insertCursor)
                         .setComment( "End " + action.name()));
@@ -890,7 +890,7 @@ class CoreTaskContext implements TaskContext {
             @Override
             public void beforeTask(TaskContext parentContext, TaskContext context) {
                 hook.on(new CoreProgressReport()
-                        .setType(ProgressType.START_SUB_TASK)
+                        .setType(TaskProgressType.START_SUB_TASK)
                         .setIndex(((CoreTaskContext) context).cursor)
                         .setTotal(((CoreTaskContext) context)._origin.insertCursor)
                         .setComment( "Start sub-task"));
@@ -899,7 +899,7 @@ class CoreTaskContext implements TaskContext {
             @Override
             public void afterTask(TaskContext context) {
                 hook.on(new CoreProgressReport()
-                        .setType(ProgressType.END_SUB_TASK)
+                        .setType(TaskProgressType.END_SUB_TASK)
                         .setIndex(((CoreTaskContext) context).cursor)
                         .setTotal(((CoreTaskContext) context)._origin.insertCursor)
                         .setComment( "End sub-task"));
@@ -908,7 +908,7 @@ class CoreTaskContext implements TaskContext {
             @Override
             public void end(TaskContext finalContext) {
                 hook.on(new CoreProgressReport()
-                        .setType(ProgressType.END_TASK)
+                        .setType(TaskProgressType.END_TASK)
                         .setIndex(((CoreTaskContext) finalContext).cursor)
                         .setTotal(((CoreTaskContext) finalContext)._origin.insertCursor)
                         .setComment( "Execution end"));

@@ -16,18 +16,18 @@
 package greycat.internal.task;
 
 import greycat.Constants;
-import greycat.ProgressReport;
+import greycat.TaskProgressReport;
 import greycat.internal.CoreConstants;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
-import greycat.utility.ProgressType;
+import greycat.TaskProgressType;
 
 /**
  * Created by Gregory NAIN on 14/04/17.
  */
-public class CoreProgressReport implements ProgressReport {
+public class CoreProgressReport implements TaskProgressReport {
 
-    private ProgressType _type;
+    private byte _type;
     private int _index;
     private int _total;
     private String _comment;
@@ -36,7 +36,7 @@ public class CoreProgressReport implements ProgressReport {
     }
 
     @Override
-    public ProgressType type() {
+    public byte type() {
         return this._type;
     }
 
@@ -55,7 +55,7 @@ public class CoreProgressReport implements ProgressReport {
         return this._comment;
     }
 
-    public CoreProgressReport setType(ProgressType _type) {
+    public CoreProgressReport setType(byte _type) {
         this._type = _type;
         return this;
     }
@@ -75,15 +75,6 @@ public class CoreProgressReport implements ProgressReport {
         return this;
     }
 
-    /**
-     * {@native ts
-     * return greycat.utility.ProgressType[_pt];
-     * }
-     */
-    private ProgressType enumFromString(String _pt) {
-        return ProgressType.valueOf(_pt);
-    }
-
     public void loadFromBuffer(Buffer buffer) {
 
         int cursor = 0;
@@ -94,7 +85,7 @@ public class CoreProgressReport implements ProgressReport {
             if (current == Constants.CHUNK_ESEP || cursor + 1 == buffer.length()) {
                 switch (index) {
                     case 0:
-                        _type = enumFromString(Base64.decodeToStringWithBounds(buffer, previous, cursor));
+                        _type = (byte)Base64.decodeToIntWithBounds(buffer, previous, cursor);
                         index++;
                         break;
                     case 1:
@@ -117,17 +108,8 @@ public class CoreProgressReport implements ProgressReport {
         }
     }
 
-    /**
-     * {@native ts
-     * return greycat.utility.ProgressType[_pt];
-     * }
-     */
-    private String enumToString(ProgressType _pt) {
-        return _pt.name();
-    }
-
     public void saveToBuffer(Buffer buffer) {
-        Base64.encodeStringToBuffer(enumToString(this._type), buffer);
+        Base64.encodeIntToBuffer(this._type, buffer);
         buffer.write(CoreConstants.CHUNK_ESEP);
         Base64.encodeIntToBuffer(this._index, buffer);
         buffer.write(CoreConstants.CHUNK_ESEP);
@@ -140,7 +122,7 @@ public class CoreProgressReport implements ProgressReport {
     }
 
     public String toString() {
-        return _type.toString() + "\t\t" + _index + "/" + _total + "\t" + _comment;
+        return TaskProgressType.toString(_type) + "\t\t" + _index + "/" + _total + "\t" + _comment;
     }
 
 }

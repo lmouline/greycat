@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.utility;
+package greycat;
 
 /**
  * Created by Gregory NAIN on 14/04/17.
  */
-public enum ProgressType {
+public interface TaskProgressReport {
 
-    START_TASK, START_SUB_TASK, START_ACTION, END_TASK, END_SUB_TASK, END_ACTION, ACTION_PROGRESS;
+    byte type();
+    int index();
+    int total();
+    String comment();
 
 }

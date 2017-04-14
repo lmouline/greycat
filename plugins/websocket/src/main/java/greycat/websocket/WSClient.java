@@ -182,7 +182,7 @@ public class WSClient implements Storage, TaskExecutor {
             }
 
             buffer.write(Constants.BUFFER_SEP);
-            final Callback<ProgressReport> progressHook = prepared.progressHook();
+            final Callback<TaskProgressReport> progressHook = prepared.progressHook();
             if (progressHook != null) {
                 hashProgress = progressHook.hashCode();
                 _callbacks.put(hashProgress, progressHook);
@@ -374,7 +374,7 @@ public class WSClient implements Storage, TaskExecutor {
                     final int progressCallbackCode = Base64.decodeToIntWithBounds(progressCallbackCodeView, 0, progressCallbackCodeView.length());
                     final CoreProgressReport report = new CoreProgressReport();
                     report.loadFromBuffer(progressCallbackView);
-                    Callback<ProgressReport> progressHook = _callbacks.get(progressCallbackCode);
+                    Callback<TaskProgressReport> progressHook = _callbacks.get(progressCallbackCode);
                     progressHook.on(report);
                     break;
                 case WSConstants.RESP_LOCK:
