@@ -19,9 +19,10 @@ import greycat.*;
 import greycat.internal.task.TaskHelper;
 import greycat.ml.MLPlugin;
 import greycat.ml.profiling.Gaussian;
-import greycat.plugin.Job;
 import greycat.struct.Buffer;
-import greycat.struct.Relation;
+import greycat.struct.DoubleArray;
+
+import static greycat.Tasks.newTask;
 
 
 /**
@@ -32,65 +33,122 @@ import greycat.struct.Relation;
 public class ActionBuildProfile implements Action {
     int _histogramBins;
 
-    public ActionBuildProfile(int histogramBins){
-        this._histogramBins=histogramBins;
+    public ActionBuildProfile(int histogramBins) {
+        this._histogramBins = histogramBins;
     }
+
+    private static Task updateProfile =
+            newTask()
+                    .select(new TaskFunctionSelect() {
+                        @Override
+                        public boolean select(Node node, TaskContext context) {
+                            return ((int) node.get("value_type") == Type.DOUBLE) || ((int) node.get("value_type") == Type.INT);
+                        }
+                    })
+                    .forEach(newTask()
+                            .setAsVar("feature")
+                            .thenDo(new ActionFunction() {
+                                @Override
+                                public void eval(TaskContext ctx) {
+                                    TaskResult res = ctx.resultAsNodes();
+                                    Node node = (Node) res.get(0);
+                                    Gaussian.clearProfile(node);
+                                    ctx.continueTask();
+                                }
+                            })
+                            .readVar("feature")
+                            .travelInTime(Constants.END_OF_TIME + "")
+                            .traverse("value")
+                            .setAsVar("value")
+                            .timepoints(Constants.BEGINNING_OF_TIME + "", Constants.END_OF_TIME + "")
+                            .setAsVar("timepoints")
+                            .forEach(
+                                    newTask()
+                                            .setAsVar("time")
+                                            .readVar("value")
+                                            .travelInTime("{{time}}")
+                                            .thenDo(new ActionFunction() {
+                                                @Override
+                                                public void eval(TaskContext ctx) {
+                                                    TaskResult res = ctx.resultAsNodes();
+                                                    Node node = (Node) res.get(0);
+
+                                                    Node feature = (Node) ctx.variable("feature").get(0);
+                                                    final double min = feature.getWithDefault("value_min", Double.NEGATIVE_INFINITY);
+                                                    final double max = feature.getWithDefault("value_max", Double.POSITIVE_INFINITY);
+                                                    Object value = node.get("value");
+                                                    if (value != null) {
+                                                        Gaussian.profile(feature, Double.valueOf(value.toString()), min, max);
+                                                    } else {
+                                                        Gaussian.profile(feature, null, min, max);
+                                                    }
+                                                    ctx.continueWith(ctx.result());
+                                                }
+                                            })
+                            )
+                            .ifThen(new ConditionalFunction() {
+                                        @Override
+                                        public boolean eval(TaskContext ctx) {
+                                            Node feature = (Node) ctx.variable("feature").get(0);
+                                            final double pmin = feature.getWithDefault(Gaussian.MIN, 0.0);
+                                            final double pmax = feature.getWithDefault(Gaussian.MAX, 0.0);
+                                            return pmin != pmax;
+                                        }
+                                    }, newTask()
+                                            .readVar("timepoints")
+                                            .forEach(
+                                                    newTask()
+                                                            .setAsVar("time")
+                                                            .readVar("value")
+                                                            .travelInTime("{{time}}")
+                                                            .thenDo(new ActionFunction() {
+                                                                @Override
+                                                                public void eval(TaskContext ctx) {
+                                                                    TaskResult res = ctx.resultAsNodes();
+                                                                    Node node = (Node) res.get(0);
+                                                                    Node feature = (Node) ctx.variable("feature").get(0);
+                                                                    final double pmin = (double) feature.get(Gaussian.MIN);
+                                                                    final double pmax = (double) feature.get(Gaussian.MAX);
+                                                                    final int hist = (int) ctx.variable("histogram").get(0);
+                                                                    Object value = node.get("value");
+                                                                    if (value != null) {
+                                                                        Gaussian.histogram(feature, pmin, pmax, Double.valueOf(value.toString()), hist);
+                                                                    }
+                                                                    ctx.continueWith(ctx.result());
+                                                                }
+                                                            })
+
+
+                                            )
+                            )
+                    );
 
     @Override
     public void eval(TaskContext ctx) {
-        TaskResult res = ctx.resultAsNodes();
-        final DeferCounter allnodes = ctx.graph().newCounter(res.size());
-        allnodes.then(new Job() {
+
+        TaskContext newctx = updateProfile.prepare(ctx.graph(), ctx.result(), new Callback<TaskResult>() {
             @Override
-            public void run() {
-                ctx.continueWith(res);
+            public void on(TaskResult result) {
+                if (result.exception() != null) {
+                    ctx.endTask(null, result.exception());
+                } else {
+                    ctx.continueTask();
+                }
             }
         });
+        newctx.setTime(ctx.time());
+        newctx.setWorld(ctx.world());
+        newctx.setVariable("histogram", _histogramBins);
 
-
-        for (int i = 0; i < res.size(); i++) {
-            final Node feature = (Node) res.get(i);
-            final long valueId = ((Relation) feature.get("value")).get(0);
-            final double min = feature.getWithDefault("value_min", Double.NEGATIVE_INFINITY);
-            final double max = feature.getWithDefault("value_max", Double.POSITIVE_INFINITY);
-            //clear the previously created profile
-            Gaussian.clearProfile(feature);
-
-            ctx.graph().lookupAllTimes(ctx.world(), Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, new long[]{valueId}, new Callback<Node[]>() {
-                @Override
-                public void on(Node[] result) {
-                    Double value;
-                    for (int j = 0; j < result.length; j++) {
-                        value = (Double) result[j].get("value");
-                        Gaussian.profile(feature, value, min, max);
-                    }
-
-                    double pmin= feature.getWithDefault(Gaussian.MIN,0);
-                    double pmax= feature.getWithDefault(Gaussian.MAX,0);
-
-                    if(pmin!=pmax) {
-                        for (int j = 0; j < result.length; j++) {
-                            value = (Double) result[j].get("value");
-                            Gaussian.histogram(feature, pmin, pmax, value,_histogramBins);
-                        }
-                    }
-
-                    for (int j = 0; j < result.length; j++) {
-                        result[j].free();
-                    }
-
-                    allnodes.count();
-                }
-            });
-
-        }
+        //ctx.setVariable("histogram", _histogramBins);
+        updateProfile.executeUsing(newctx);
     }
 
     @Override
     public void serialize(Buffer builder) {
         builder.writeString(MLPlugin.BUILD_PROFILE);
         builder.writeChar(Constants.TASK_PARAM_OPEN);
-        TaskHelper.serializeString(_histogramBins+"", builder,true);
+        TaskHelper.serializeString(_histogramBins + "", builder, true);
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
     }
 }

@@ -19,6 +19,7 @@ import greycat.Node;
 import greycat.Type;
 import greycat.ml.math.Gaussian1D;
 import greycat.struct.DoubleArray;
+import greycat.struct.Relation;
 
 /**
  * Created by assaad on 20/02/2017.
@@ -87,7 +88,14 @@ public class Gaussian {
         host.set(AVG, Type.DOUBLE, null);
         host.set(COV, Type.DOUBLE, null);
         host.set(STD, Type.DOUBLE, null);
-        host.set(HISTOGRAM_VALUES, Type.DOUBLE_ARRAY, null);
+        Relation center =host.getRelation(HISTOGRAM_CENTER);
+        Relation values= host.getRelation(HISTOGRAM_VALUES);
+        if(center!=null){
+            center.clear();
+        }
+        if(values!=null){
+            values.clear();
+        }
     }
 
     public static void histogram(Node host, double min, double max, Double value, int histogramBins) {

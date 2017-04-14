@@ -676,6 +676,7 @@ final class MWResolver implements Resolver {
     @Override
     public void lookupAllTimes(long world, long from, long to, long[] ids, Callback<Node[]> callback) {
         //TODO
+        throw new RuntimeException("NOT IMPLEMENTED YET");
     }
 
     private long resolve_world(final LongLongMap globalWorldOrder, final LongLongMap nodeWorldOrder, final long timeToResolve, long originWorld) {
