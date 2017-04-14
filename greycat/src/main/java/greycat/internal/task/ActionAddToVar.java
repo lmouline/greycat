@@ -53,7 +53,7 @@ class ActionAddToVar implements Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return CoreActionNames.ADD_TO_VAR;
     }
 

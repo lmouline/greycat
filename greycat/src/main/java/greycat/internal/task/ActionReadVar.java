@@ -77,7 +77,7 @@ class ActionReadVar implements Action {
 
 
     @Override
-    public String name() {
+    public final String name() {
         return CoreActionNames.READ_VAR;
     }
 

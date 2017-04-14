@@ -60,7 +60,7 @@ public class ReadContinuous implements Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return NAME;
     }
 

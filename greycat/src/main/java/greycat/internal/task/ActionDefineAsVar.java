@@ -56,7 +56,7 @@ class ActionDefineAsVar implements Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return (_global?CoreActionNames.DEFINE_AS_GLOBAL_VAR:CoreActionNames.DEFINE_AS_VAR);
     }
 

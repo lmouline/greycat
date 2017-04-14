@@ -121,7 +121,7 @@ class CF_ForEachPar extends CF_Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return CoreActionNames.FOR_EACH_PAR;
     }
 }

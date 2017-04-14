@@ -111,7 +111,7 @@ class CF_WhileDo extends CF_Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return CoreActionNames.WHILE_DO;
     }
 }

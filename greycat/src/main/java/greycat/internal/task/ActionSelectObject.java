@@ -62,7 +62,7 @@ class ActionSelectObject implements Action {
 
 
     @Override
-    public String name() {
+    public final String name() {
         return CoreActionNames.SELECT_OBJECT;
     }
 }

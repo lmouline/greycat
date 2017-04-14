@@ -85,7 +85,7 @@ public class ActionTraverseOrKeep implements Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return NAME;
     }
 

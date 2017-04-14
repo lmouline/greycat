@@ -118,7 +118,7 @@ class CF_LoopPar extends CF_Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return CoreActionNames.LOOP_PAR;
     }
 

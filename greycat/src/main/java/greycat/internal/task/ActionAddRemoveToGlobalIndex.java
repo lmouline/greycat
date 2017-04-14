@@ -97,7 +97,7 @@ class ActionAddRemoveToGlobalIndex implements Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return (_remove ?
                 (_timed ? CoreActionNames.REMOVE_FROM_GLOBAL_TIMED_INDEX : CoreActionNames.REMOVE_FROM_GLOBAL_INDEX)
                 : (_timed ? CoreActionNames.ADD_TO_GLOBAL_TIMED_INDEX : CoreActionNames.ADD_TO_GLOBAL_INDEX));

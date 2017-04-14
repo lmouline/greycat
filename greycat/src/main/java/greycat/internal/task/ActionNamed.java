@@ -57,7 +57,7 @@ class ActionNamed implements Action {
 
 
     @Override
-    public String name() {
+    public final String name() {
         return _name;
     }
 }

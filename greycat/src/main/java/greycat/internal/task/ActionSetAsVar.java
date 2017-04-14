@@ -53,7 +53,7 @@ class ActionSetAsVar implements Action {
 
 
     @Override
-    public String name() {
+    public final String name() {
         return CoreActionNames.SET_AS_VAR;
     }
 

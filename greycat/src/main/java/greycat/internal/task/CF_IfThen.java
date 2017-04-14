@@ -101,7 +101,7 @@ class CF_IfThen extends CF_Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return CoreActionNames.IF_THEN;
     }
 

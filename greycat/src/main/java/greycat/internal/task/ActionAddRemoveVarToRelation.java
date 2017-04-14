@@ -87,7 +87,7 @@ class ActionAddRemoveVarToRelation implements Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return (_isAdd?CoreActionNames.ADD_VAR_TO_RELATION:CoreActionNames.REMOVE_VAR_TO_RELATION);
     }
 

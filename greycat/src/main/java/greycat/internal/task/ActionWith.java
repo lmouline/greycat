@@ -74,7 +74,7 @@ class ActionWith implements Action {
 
 
     @Override
-    public String name() {
+    public final String name() {
         return CoreActionNames.WITH;
     }
 }

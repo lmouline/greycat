@@ -45,7 +45,7 @@ class ActionReadLines implements Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return ImporterActions.READLINES;
     }
 }

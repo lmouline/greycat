@@ -58,7 +58,7 @@ class ActionDeclareVar implements Action {
 
 
     @Override
-    public String name() {
+    public final String name() {
         return (_isGlobal?CoreActionNames.DECLARE_GLOBAL_VAR:CoreActionNames.DECLARE_VAR);
     }
 }

@@ -57,7 +57,7 @@ class ActionRemove implements Action {
 
 
     @Override
-    public String name() {
+    public final String name() {
         return CoreActionNames.REMOVE;
     }
 

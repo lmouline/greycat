@@ -110,7 +110,7 @@ public class ActionQueryBoundedRadius implements Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return CoreActionNames.QUERY_BOUNDED_RADIUS;
     }
 

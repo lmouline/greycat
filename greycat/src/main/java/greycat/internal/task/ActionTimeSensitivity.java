@@ -59,7 +59,7 @@ class ActionTimeSensitivity implements Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return CoreActionNames.TIME_SENSITIVITY;
     }
 

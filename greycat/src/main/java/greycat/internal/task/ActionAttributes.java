@@ -81,7 +81,7 @@ class ActionAttributes implements Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return CoreActionNames.ATTRIBUTES;
     }
 

@@ -148,7 +148,7 @@ class ActionSetAttribute implements Action {
 
 
     @Override
-    public String name() {
+    public final String name() {
         return (_force?CoreActionNames.FORCE_ATTRIBUTE:CoreActionNames.SET_ATTRIBUTE);
     }
 

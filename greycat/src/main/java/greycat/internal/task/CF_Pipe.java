@@ -117,7 +117,7 @@ class CF_Pipe extends CF_Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return CoreActionNames.PIPE;
     }
 

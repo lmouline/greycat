@@ -138,7 +138,7 @@ public class ActionBuildProfile implements Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return MLPlugin.BUILD_PROFILE;
     }
 }

@@ -60,7 +60,7 @@ class ActionSplit implements Action {
     }
 
     @Override
-    public String name() {
+    public final String name() {
         return ImporterActions.SPLIT;
     }
 }
