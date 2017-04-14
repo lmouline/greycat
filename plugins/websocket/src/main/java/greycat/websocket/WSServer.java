@@ -16,6 +16,7 @@
 package greycat.websocket;
 
 import greycat.*;
+import greycat.internal.task.CoreProgressReport;
 import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
@@ -205,7 +206,7 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                                         concat.write(Constants.BUFFER_SEP);
                                         Base64.encodeIntToBuffer(progressHookCode, concat);
                                         concat.write(Constants.BUFFER_SEP);
-                                        report.saveToBuffer(concat);
+                                        ((CoreProgressReport)report).saveToBuffer(concat);
                                         WSServer.this.send_resp(concat, channel);
                                     });
                                 }

@@ -50,14 +50,12 @@ public class WSClient implements Storage, TaskExecutor {
     private Graph _graph;
 
     private Map<Integer, Callback> _callbacks;
-    private Map<Integer, TaskProgressHook> _progressHooks;
 
     private final List<Callback<Buffer>> _listeners = new ArrayList<Callback<Buffer>>();
 
     public WSClient(String p_url) {
         this._url = p_url;
         this._callbacks = new ConcurrentHashMap<Integer, Callback>();
-        this._progressHooks = new ConcurrentHashMap<Integer, TaskProgressHook>();
     }
 
     @Override
@@ -184,10 +182,10 @@ public class WSClient implements Storage, TaskExecutor {
             }
 
             buffer.write(Constants.BUFFER_SEP);
-            final TaskProgressHook progressHook = prepared.progressHook();
+            final Callback<ProgressReport> progressHook = prepared.progressHook();
             if (progressHook != null) {
                 hashProgress = progressHook.hashCode();
-                _progressHooks.put(hashProgress, progressHook);
+                _callbacks.put(hashProgress, progressHook);
                 Base64.encodeIntToBuffer(hashProgress, buffer);
             } else {
                 hashProgress = -1;
@@ -206,7 +204,7 @@ public class WSClient implements Storage, TaskExecutor {
                     _callbacks.remove(hashPrint);
                 }
                 if(hashProgress != -1){
-                    _progressHooks.remove(hashProgress);
+                    _callbacks.remove(hashProgress);
                 }
                 buffer.free();
                 final BaseTaskResult baseTaskResult = new BaseTaskResult(null, false);
@@ -374,10 +372,10 @@ public class WSClient implements Storage, TaskExecutor {
                     final Buffer progressCallbackCodeView = it.next();
                     final Buffer progressCallbackView = it.next();
                     final int progressCallbackCode = Base64.decodeToIntWithBounds(progressCallbackCodeView, 0, progressCallbackCodeView.length());
-                    final ProgressReport report = new CoreProgressReport();
+                    final CoreProgressReport report = new CoreProgressReport();
                     report.loadFromBuffer(progressCallbackView);
-                    TaskProgressHook progressHook = _progressHooks.get(progressCallbackCode);
-                    progressHook.progress(report);
+                    Callback<ProgressReport> progressHook = _callbacks.get(progressCallbackCode);
+                    progressHook.on(report);
                     break;
                 case WSConstants.RESP_LOCK:
                 case WSConstants.RESP_GET:

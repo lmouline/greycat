@@ -50,7 +50,7 @@ class CoreTaskContext implements TaskContext {
     private StringBuilder _output = null;
     private Buffer _silent;
     private Callback<String> _printHook = null;
-    private TaskProgressHook _progressHook = null;
+    private Callback<ProgressReport> _progressHook = null;
 
     CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
         this._origin = origin;
@@ -846,12 +846,12 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
-    public final TaskProgressHook progressHook() {
+    public final Callback<ProgressReport> progressHook() {
         return this._progressHook;
     }
 
     @Override
-    public final void setProgressHook(final TaskProgressHook hook) {
+    public final void setProgressHook(final Callback<ProgressReport> hook) {
         this._progressHook = hook;
         TaskHook[] hooks;
         if (this._hooks != null) {
@@ -862,7 +862,7 @@ class CoreTaskContext implements TaskContext {
         hooks[0] = new TaskHook() {
             @Override
             public void start(TaskContext initialContext) {
-                hook.progress(new CoreProgressReport()
+                hook.on(new CoreProgressReport()
                         .setType(ProgressType.START_TASK)
                         .setIndex(((CoreTaskContext) initialContext).cursor)
                         .setTotal(((CoreTaskContext) initialContext)._origin.insertCursor)
@@ -871,7 +871,7 @@ class CoreTaskContext implements TaskContext {
 
             @Override
             public void beforeAction(Action action, TaskContext context) {
-                hook.progress(new CoreProgressReport()
+                hook.on(new CoreProgressReport()
                         .setType(ProgressType.START_ACTION)
                         .setIndex(((CoreTaskContext) context).cursor)
                         .setTotal(((CoreTaskContext) context)._origin.insertCursor)
@@ -880,7 +880,7 @@ class CoreTaskContext implements TaskContext {
 
             @Override
             public void afterAction(Action action, TaskContext context) {
-                hook.progress(new CoreProgressReport()
+                hook.on(new CoreProgressReport()
                         .setType(ProgressType.END_ACTION)
                         .setIndex(((CoreTaskContext) context).cursor)
                         .setTotal(((CoreTaskContext) context)._origin.insertCursor)
@@ -889,7 +889,7 @@ class CoreTaskContext implements TaskContext {
 
             @Override
             public void beforeTask(TaskContext parentContext, TaskContext context) {
-                hook.progress(new CoreProgressReport()
+                hook.on(new CoreProgressReport()
                         .setType(ProgressType.START_SUB_TASK)
                         .setIndex(((CoreTaskContext) context).cursor)
                         .setTotal(((CoreTaskContext) context)._origin.insertCursor)
@@ -898,7 +898,7 @@ class CoreTaskContext implements TaskContext {
 
             @Override
             public void afterTask(TaskContext context) {
-                hook.progress(new CoreProgressReport()
+                hook.on(new CoreProgressReport()
                         .setType(ProgressType.END_SUB_TASK)
                         .setIndex(((CoreTaskContext) context).cursor)
                         .setTotal(((CoreTaskContext) context)._origin.insertCursor)
@@ -907,7 +907,7 @@ class CoreTaskContext implements TaskContext {
 
             @Override
             public void end(TaskContext finalContext) {
-                hook.progress(new CoreProgressReport()
+                hook.on(new CoreProgressReport()
                         .setType(ProgressType.END_TASK)
                         .setIndex(((CoreTaskContext) finalContext).cursor)
                         .setTotal(((CoreTaskContext) finalContext)._origin.insertCursor)

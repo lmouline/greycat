@@ -34,7 +34,7 @@ public class CoreProgressReportTest {
         CoreProgressReport report = new CoreProgressReport().setType(ProgressType.START_TASK).setIndex(2).setTotal(3).setComment("Yaha");
         Buffer b = new HeapBuffer();
         report.saveToBuffer(b);
-        ProgressReport reportBack = new CoreProgressReport();
+        CoreProgressReport reportBack = new CoreProgressReport();
         reportBack.loadFromBuffer(b);
 
         Assert.assertEquals(report.type().toString(), reportBack.type().toString());

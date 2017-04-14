@@ -15,7 +15,6 @@
  */
 package greycat;
 
-import greycat.struct.Buffer;
 import greycat.utility.ProgressType;
 
 /**
@@ -27,13 +26,5 @@ public interface ProgressReport {
     int index();
     int total();
     String comment();
-
-    ProgressReport setType(ProgressType type);
-    ProgressReport setIndex(int idx);
-    ProgressReport setTotal(int total);
-    ProgressReport setComment(String comment);
-
-    void saveToBuffer(Buffer buffer);
-    void loadFromBuffer(Buffer buffer);
 
 }
