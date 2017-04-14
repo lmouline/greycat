@@ -63,8 +63,9 @@ public class RocksDBStorage implements Storage {
         if (!_isConnected) {
             throw new RuntimeException(_connectedError);
         }
-        Buffer result = _graph.newBuffer();
-        BufferIterator it = keys.iterator();
+        final Buffer result = _graph.newBuffer();
+        final BufferIterator it = keys.iterator();
+        /*
         List<byte[]> query = new ArrayList<byte[]>();
         while (it.hasNext()) {
             Buffer view = it.next();
@@ -90,7 +91,8 @@ public class RocksDBStorage implements Storage {
         if (callback != null) {
             callback.on(result);
         }
-/*
+        */
+
         boolean isFirst = true;
         while (it.hasNext()) {
             Buffer view = it.next();
@@ -111,7 +113,7 @@ public class RocksDBStorage implements Storage {
         if (callback != null) {
             callback.on(result);
         }
-        */
+
     }
 
     @Override
