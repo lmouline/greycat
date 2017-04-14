@@ -37,10 +37,6 @@ public class Gaussian {
     public static final String PRECISIONS = "profile_precisions"; //Default covariance matrix for a dirac function
     public static final String VALUES = "profile_values";
 
-    public static final String HISTOGRAM_BUCKETS = "hist_buckets";
-    public static final int HISTOGRAM_BUCKETS_DEF = 20;
-    public static final String HISTOGRAM_MIN = "histogram_min";
-    public static final String HISTOGRAM_MAX = "histogram_max";
     public static final String HISTOGRAM_CENTER = "histogram_center";
     public static final String HISTOGRAM_VALUES = "histogram_values";
 
@@ -91,37 +87,31 @@ public class Gaussian {
         host.set(AVG, Type.DOUBLE, null);
         host.set(COV, Type.DOUBLE, null);
         host.set(STD, Type.DOUBLE, null);
-        host.set(HISTOGRAM_MIN, Type.DOUBLE_ARRAY, null);
-        host.set(HISTOGRAM_MAX, Type.DOUBLE_ARRAY, null);
         host.set(HISTOGRAM_VALUES, Type.DOUBLE_ARRAY, null);
     }
 
-    public static void histogram(Node host, double min, double max, Double value) {
+    public static void histogram(Node host, double min, double max, Double value, int histogramBins) {
         if (value==null ||max <= min || value < min || value > max) {
             return;
         }
+        if(histogramBins<=0){
+            throw new RuntimeException("Histogram bins should be at least 1");
+        }
 
-        int steps = host.getWithDefault(HISTOGRAM_BUCKETS, HISTOGRAM_BUCKETS_DEF);
-        double stepsize = (max - min) / steps;
-        DoubleArray hist_min = (DoubleArray) host.getOrCreate(HISTOGRAM_MIN, Type.DOUBLE_ARRAY);
-        DoubleArray hist_max = (DoubleArray) host.getOrCreate(HISTOGRAM_MAX, Type.DOUBLE_ARRAY);
+        double stepsize = (max - min) / histogramBins;
         DoubleArray hist_center = (DoubleArray) host.getOrCreate(HISTOGRAM_CENTER, Type.DOUBLE_ARRAY);
         DoubleArray hist_values = (DoubleArray) host.getOrCreate(HISTOGRAM_VALUES, Type.DOUBLE_ARRAY);
 
-        if (hist_min.size() == 0) {
-            hist_min.init(steps);
-            hist_max.init(steps);
-            hist_values.init(steps);
-            hist_center.init(steps);
-            for (int i = 0; i < steps; i++) {
+        if (hist_center.size() == 0) {
+            hist_values.init(histogramBins);
+            hist_center.init(histogramBins);
+            for (int i = 0; i < histogramBins; i++) {
                 hist_center.set(i, min + stepsize * (i + 0.5));
-                hist_min.set(i, min + stepsize * i);
-                hist_max.set(i, min + stepsize * (i + 1));
             }
         }
 
         int index = (int) ((value - min) / stepsize);
-        if (index == steps) {
+        if (index == histogramBins) {
             index--;
         }
         hist_values.set(index, hist_values.get(index) + 1);
