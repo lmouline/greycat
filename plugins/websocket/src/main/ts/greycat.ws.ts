@@ -39,6 +39,8 @@ export class WSClient implements greycat.plugin.Storage {
 
   private static NOTIFY_UPDATE = 12;
   private static NOTIFY_PRINT = 13;
+  private static NOTIFY_PROGRESS = 14;
+
 
   constructor(p_url: string) {
     this.url = p_url;
@@ -282,6 +284,16 @@ export class WSClient implements greycat.plugin.Storage {
           } else {
             console.error("Received a NOTIFY_PRINT callback with unknown hash: " + callbackPrintCode, this.callbacks);
           }
+          break;
+
+        case WSClient.NOTIFY_PROGRESS:
+          let progressCallbackCodeView = it.next();
+          let progressCallbackView = it.next();
+          let progressCallbackCode = greycat.utility.Base64.decodeToIntWithBounds(progressCallbackCodeView, 0, progressCallbackCodeView.length());
+          let report = new greycat.internal.task.CoreProgressReport();
+          report.loadFromBuffer(progressCallbackView);
+          let progressHook = this.callbacks[progressCallbackCode];
+          progressHook(report);
           break;
         case WSClient.RESP_LOCK:
         case WSClient.RESP_GET:

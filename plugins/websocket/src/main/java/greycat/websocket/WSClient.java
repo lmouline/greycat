@@ -17,6 +17,7 @@ package greycat.websocket;
 
 import greycat.*;
 import greycat.base.BaseTaskResult;
+import greycat.internal.task.CoreProgressReport;
 import greycat.plugin.TaskExecutor;
 import greycat.struct.BufferIterator;
 import io.undertow.connector.ByteBufferPool;
@@ -40,21 +41,23 @@ import java.util.concurrent.TimeUnit;
 
 public class WSClient implements Storage, TaskExecutor {
 
-    private final String url;
+    private final String _url;
 
-    private WebSocketChannel channel;
+    private WebSocketChannel _channel;
 
     private XnioWorker _worker;
 
-    private Graph graph;
+    private Graph _graph;
 
-    private Map<Integer, Callback> callbacks;
+    private Map<Integer, Callback> _callbacks;
+    private Map<Integer, TaskProgressHook> _progressHooks;
 
-    private final List<Callback<Buffer>> listeners = new ArrayList<Callback<Buffer>>();
+    private final List<Callback<Buffer>> _listeners = new ArrayList<Callback<Buffer>>();
 
     public WSClient(String p_url) {
-        this.url = p_url;
-        this.callbacks = new ConcurrentHashMap<Integer, Callback>();
+        this._url = p_url;
+        this._callbacks = new ConcurrentHashMap<Integer, Callback>();
+        this._progressHooks = new ConcurrentHashMap<Integer, TaskProgressHook>();
     }
 
     @Override
@@ -94,12 +97,12 @@ public class WSClient implements Storage, TaskExecutor {
 
     @Override
     public final void connect(final Graph p_graph, final Callback<Boolean> callback) {
-        if (channel != null) {
+        if (_channel != null) {
             if (callback != null) {
                 callback.on(true);//already connected
             }
         }
-        this.graph = p_graph;
+        this._graph = p_graph;
         try {
             final Xnio xnio = Xnio.getInstance(io.undertow.websockets.client.WebSocketClient.class.getClassLoader());
             _worker = xnio.createWorker(OptionMap.builder()
@@ -113,7 +116,7 @@ public class WSClient implements Storage, TaskExecutor {
                     .getMap());
             ByteBufferPool _buffer = new DefaultByteBufferPool(true, 1024 * 1024);
             WebSocketClient.ConnectionBuilder builder = io.undertow.websockets.client.WebSocketClient
-                    .connectionBuilder(_worker, _buffer, new URI(url));
+                    .connectionBuilder(_worker, _buffer, new URI(_url));
 
             /*
             if(_sslContext != null) {
@@ -129,9 +132,9 @@ public class WSClient implements Storage, TaskExecutor {
                     callback.on(null);
                 }
             }
-            channel = futureChannel.get();
-            channel.getReceiveSetter().set(new MessageReceiver());
-            channel.resumeReceives();
+            _channel = futureChannel.get();
+            _channel.getReceiveSetter().set(new MessageReceiver());
+            _channel.resumeReceives();
             if (callback != null) {
                 callback.on(true);
             }
@@ -146,10 +149,10 @@ public class WSClient implements Storage, TaskExecutor {
     @Override
     public final void disconnect(Callback<Boolean> callback) {
         try {
-            channel.sendClose();
-            channel.close();
+            _channel.sendClose();
+            _channel.close();
             _worker.shutdown();
-            channel = null;
+            _channel = null;
             _worker = null;
         } catch (IOException e) {
             e.printStackTrace();
@@ -160,12 +163,12 @@ public class WSClient implements Storage, TaskExecutor {
 
     @Override
     public final void listen(Callback<Buffer> synCallback) {
-        listeners.add(synCallback);
+        _listeners.add(synCallback);
     }
 
     @Override
     public final void execute(final Callback<TaskResult> callback, final Task task, final TaskContext prepared) {
-        final Buffer buffer = graph.newBuffer();
+        final Buffer buffer = _graph.newBuffer();
         task.saveToBuffer(buffer);
         final int hashPrint;
         final int hashProgress;
@@ -173,19 +176,18 @@ public class WSClient implements Storage, TaskExecutor {
             buffer.write(Constants.BUFFER_SEP);
             final Callback<String> printHook = prepared.printHook();
             if (printHook != null) {
-
                 hashPrint = printHook.hashCode();
-                callbacks.put(hashPrint, printHook);
+                _callbacks.put(hashPrint, printHook);
                 Base64.encodeIntToBuffer(hashPrint, buffer);
             } else {
                 hashPrint = -1;
             }
 
             buffer.write(Constants.BUFFER_SEP);
-            final Callback<String> progressHook = prepared.progressHook();
+            final TaskProgressHook progressHook = prepared.progressHook();
             if (progressHook != null) {
                 hashProgress = progressHook.hashCode();
-                callbacks.put(hashProgress, progressHook);
+                _progressHooks.put(hashProgress, progressHook);
                 Base64.encodeIntToBuffer(hashProgress, buffer);
             } else {
                 hashProgress = -1;
@@ -201,16 +203,16 @@ public class WSClient implements Storage, TaskExecutor {
             @Override
             public void on(final Buffer bufferResult) {
                 if(hashPrint != -1){
-                    callbacks.remove(hashPrint);
+                    _callbacks.remove(hashPrint);
                 }
                 if(hashProgress != -1){
-                    callbacks.remove(hashProgress);
+                    _progressHooks.remove(hashProgress);
                 }
                 buffer.free();
                 final BaseTaskResult baseTaskResult = new BaseTaskResult(null, false);
-                baseTaskResult.load(bufferResult, graph);
+                baseTaskResult.load(bufferResult, _graph);
                 process_notify(baseTaskResult.notifications());
-                baseTaskResult.loadRefs(graph, new Callback<Boolean>() {
+                baseTaskResult.loadRefs(_graph, new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result) {
                         bufferResult.free();
@@ -237,14 +239,14 @@ public class WSClient implements Storage, TaskExecutor {
     }
 
     private void send_rpc_req(byte operationId, Buffer payload, Callback callback) {
-        if (channel == null) {
+        if (_channel == null) {
             throw new RuntimeException(WSConstants.DISCONNECTED_ERROR);
         }
-        Buffer buffer = graph.newBuffer();
+        Buffer buffer = _graph.newBuffer();
         buffer.write(operationId);
         buffer.write(Constants.BUFFER_SEP);
         int hash = callback.hashCode();
-        callbacks.put(hash, callback);
+        _callbacks.put(hash, callback);
         Base64.encodeIntToBuffer(hash, buffer);
         if (payload != null) {
             buffer.write(Constants.BUFFER_SEP);
@@ -252,7 +254,7 @@ public class WSClient implements Storage, TaskExecutor {
         }
         ByteBuffer wrapped = ByteBuffer.wrap(buffer.data());
         buffer.free();
-        WebSockets.sendBinary(wrapped, channel, new WebSocketCallback<Void>() {
+        WebSockets.sendBinary(wrapped, _channel, new WebSocketCallback<Void>() {
             @Override
             public void complete(WebSocketChannel webSocketChannel, Void aVoid) {
 
@@ -299,10 +301,10 @@ public class WSClient implements Storage, TaskExecutor {
                     previous = cursor + 1;
                     if (step == 4) {
                         step = 0;
-                        final Chunk ch = graph.space().getAndMark(type, world, time, id);
+                        final Chunk ch = _graph.space().getAndMark(type, world, time, id);
                         if (ch != null) {
                             ch.sync(hash);
-                            graph.space().unmark(ch.index());
+                            _graph.space().unmark(ch.index());
                         }
                     } else {
                         step++;
@@ -329,17 +331,17 @@ public class WSClient implements Storage, TaskExecutor {
             }
             if (step == 4) {
                 //invalidate
-                final Chunk ch = graph.space().getAndMark(type, world, time, id);
+                final Chunk ch = _graph.space().getAndMark(type, world, time, id);
                 if (ch != null) {
                     ch.sync(hash);
-                    graph.space().unmark(ch.index());
+                    _graph.space().unmark(ch.index());
                 }
             }
         }
     }
 
     private void process_rpc_resp(byte[] payload) {
-        Buffer payloadBuf = graph.newBuffer();
+        Buffer payloadBuf = _graph.newBuffer();
         payloadBuf.writeAll(payload);
         BufferIterator it = payloadBuf.iterator();
         Buffer codeView = it.next();
@@ -351,11 +353,11 @@ public class WSClient implements Storage, TaskExecutor {
                         process_notify(it.next());
                     }
                     //todo optimize this
-                    if (listeners.size() > 0) {
-                        final Buffer notifyBuffer = graph.newBuffer();
+                    if (_listeners.size() > 0) {
+                        final Buffer notifyBuffer = _graph.newBuffer();
                         notifyBuffer.writeAll(payloadBuf.slice(1, payloadBuf.length() - 1));
-                        for (int i = 0; i < listeners.size(); i++) {
-                            listeners.get(i).on(notifyBuffer);
+                        for (int i = 0; i < _listeners.size(); i++) {
+                            _listeners.get(i).on(notifyBuffer);
                         }
                         notifyBuffer.free();
                     }
@@ -365,16 +367,25 @@ public class WSClient implements Storage, TaskExecutor {
                     final Buffer printContentView = it.next();
                     final int callbackPrintCode = Base64.decodeToIntWithBounds(callbackPrintCodeView, 0, callbackPrintCodeView.length());
                     final String printContent = Base64.decodeToStringWithBounds(printContentView, 0, printContentView.length());
-                    Callback printCallback = callbacks.get(callbackPrintCode);
+                    Callback printCallback = _callbacks.get(callbackPrintCode);
                     printCallback.on(printContent);
+                    break;
+                case WSConstants.NOTIFY_PROGRESS:
+                    final Buffer progressCallbackCodeView = it.next();
+                    final Buffer progressCallbackView = it.next();
+                    final int progressCallbackCode = Base64.decodeToIntWithBounds(progressCallbackCodeView, 0, progressCallbackCodeView.length());
+                    final ProgressReport report = new CoreProgressReport();
+                    report.loadFromBuffer(progressCallbackView);
+                    TaskProgressHook progressHook = _progressHooks.get(progressCallbackCode);
+                    progressHook.progress(report);
                     break;
                 case WSConstants.RESP_LOCK:
                 case WSConstants.RESP_GET:
                 case WSConstants.RESP_TASK:
                     final Buffer callBackCodeView = it.next();
                     final int callbackCode = Base64.decodeToIntWithBounds(callBackCodeView, 0, callBackCodeView.length());
-                    Callback resolvedCallback = callbacks.get(callbackCode);
-                    Buffer newBuf = graph.newBuffer();//will be free by the core
+                    Callback resolvedCallback = _callbacks.get(callbackCode);
+                    Buffer newBuf = _graph.newBuffer();//will be free by the core
                     boolean isFirst = true;
                     while (it.hasNext()) {
                         if (isFirst) {
@@ -384,14 +395,14 @@ public class WSClient implements Storage, TaskExecutor {
                         }
                         newBuf.writeAll(it.next().data());
                     }
-                    callbacks.remove(callbackCode);
+                    _callbacks.remove(callbackCode);
                     resolvedCallback.on(newBuf);
                     break;
                 default:
                     Buffer genericCodeView = it.next();
                     final int genericCode = Base64.decodeToIntWithBounds(genericCodeView, 0, genericCodeView.length());
-                    Callback genericCallback = callbacks.get(genericCode);
-                    callbacks.remove(genericCode);
+                    Callback genericCallback = _callbacks.get(genericCode);
+                    _callbacks.remove(genericCode);
                     genericCallback.on(true);
             }
         }

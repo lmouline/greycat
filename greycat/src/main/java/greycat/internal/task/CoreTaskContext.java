@@ -24,6 +24,7 @@ import greycat.base.BaseNode;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
 import greycat.utility.BufferView;
+import greycat.utility.ProgressType;
 import greycat.utility.Tuple;
 
 import java.util.HashMap;
@@ -49,7 +50,7 @@ class CoreTaskContext implements TaskContext {
     private StringBuilder _output = null;
     private Buffer _silent;
     private Callback<String> _printHook = null;
-    private Callback<String> _progressHook = null;
+    private TaskProgressHook _progressHook = null;
 
     CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
         this._origin = origin;
@@ -845,12 +846,12 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
-    public final Callback<String> progressHook() {
+    public final TaskProgressHook progressHook() {
         return this._progressHook;
     }
 
     @Override
-    public final void setProgressHook(final Callback<String> hook) {
+    public final void setProgressHook(final TaskProgressHook hook) {
         this._progressHook = hook;
         TaskHook[] hooks;
         if (this._hooks != null) {
@@ -861,32 +862,32 @@ class CoreTaskContext implements TaskContext {
         hooks[0] = new TaskHook() {
             @Override
             public void start(TaskContext initialContext) {
-                hook.on("{\"s\":" + ((CoreTaskContext) initialContext).cursor + ",\"t\":" + ((CoreTaskContext) initialContext)._origin.insertCursor + ",\"k\":\"ts\",\"c\":\"Start\"}");
+                hook.progress(new CoreProgressReport(ProgressType.START_TASK,((CoreTaskContext) initialContext).cursor, ((CoreTaskContext) initialContext)._origin.insertCursor, "Execution Start"));
             }
 
             @Override
             public void beforeAction(Action action, TaskContext context) {
-                hook.on("{\"s\":" + ((CoreTaskContext) context).cursor + ",\"t\":" + ((CoreTaskContext) context)._origin.insertCursor + ",\"k\":\"as\",\"c\":\"Start " + action.toString() + "\"}");
+                hook.progress(new CoreProgressReport(ProgressType.START_ACTION,((CoreTaskContext) context).cursor, ((CoreTaskContext) context)._origin.insertCursor, "Start " + action.toString()));
             }
 
             @Override
             public void afterAction(Action action, TaskContext context) {
-                hook.on("{\"s\":" + ((CoreTaskContext) context).cursor + ",\"t\":" + ((CoreTaskContext) context)._origin.insertCursor + ",\"k\":\"ae\",\"c\":\"Finished " + action.toString() + "\"}");
+                hook.progress(new CoreProgressReport(ProgressType.END_ACTION,((CoreTaskContext) context).cursor, ((CoreTaskContext) context)._origin.insertCursor, "End " + action.toString()));
             }
 
             @Override
             public void beforeTask(TaskContext parentContext, TaskContext context) {
-                hook.on("{\"s\":" + ((CoreTaskContext) context).cursor + ",\"t\":" + ((CoreTaskContext) context)._origin.insertCursor + ",\"k\":\"sts\",\"c\":\"Start sub-task\"}");
+                hook.progress(new CoreProgressReport(ProgressType.START_SUB_TASK,((CoreTaskContext) context).cursor, ((CoreTaskContext) context)._origin.insertCursor, "Start sub-task"));
             }
 
             @Override
             public void afterTask(TaskContext context) {
-                hook.on("{\"s\":" + ((CoreTaskContext) context).cursor + ",\"t\":" + ((CoreTaskContext) context)._origin.insertCursor + ",\"k\":\"ste\",\"c\":\"End sub-task\"}");
+                hook.progress(new CoreProgressReport(ProgressType.END_SUB_TASK,((CoreTaskContext) context).cursor, ((CoreTaskContext) context)._origin.insertCursor, "End sub-task"));
             }
 
             @Override
             public void end(TaskContext finalContext) {
-                hook.on("{\"s\":" + ((CoreTaskContext) finalContext).cursor + ",\"t\":" + ((CoreTaskContext) finalContext)._origin.insertCursor + ",\"k\":\"te\",\"c\":\"End\"}");
+                hook.progress(new CoreProgressReport(ProgressType.END_TASK,((CoreTaskContext) finalContext).cursor, ((CoreTaskContext) finalContext)._origin.insertCursor, "Execution end."));
             }
         };
         if (this._hooks != null) {

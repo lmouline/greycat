@@ -34,5 +34,6 @@ class WSConstants {
 
     static final byte NOTIFY_UPDATE = 12;
     static final byte NOTIFY_PRINT = 13;
+    static final byte NOTIFY_PROGRESS = 14;
     
 }
