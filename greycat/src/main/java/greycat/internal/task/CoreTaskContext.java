@@ -851,6 +851,17 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
+    public final void reportProgress(final int step, final int total, final String comment) {
+        if(this._progressHook != null) {
+            this._progressHook.on(new CoreProgressReport()
+                    .setType(TaskProgressType.ACTION_PROGRESS)
+                    .setIndex(step)
+                    .setTotal(total)
+                    .setComment(comment));
+        }
+    }
+
+    @Override
     public final void setProgressHook(final Callback<TaskProgressReport> hook) {
         this._progressHook = hook;
         TaskHook[] hooks;

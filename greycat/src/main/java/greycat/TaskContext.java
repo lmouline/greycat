@@ -100,6 +100,9 @@ public interface TaskContext {
     void setPrintHook(Callback<String> callback);
 
     Callback<TaskProgressReport> progressHook();
+
+    void reportProgress(int step, int total, String comment);
+
     void setProgressHook(Callback<TaskProgressReport> hook);
 
 }
