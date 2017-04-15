@@ -812,6 +812,15 @@ public class CoreTask implements Task {
                         return new ActionCreateNode((String) params[0]);
                     }
                 });
+        registry.getOrCreateDeclaration(CoreActionNames.CLONE_NODES)
+                .setParams()
+                .setDescription("Clones the current result. Creates new nodes that have to be referenced somewhere after clone.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionCloneNodes();
+                    }
+                });
         registry.getOrCreateDeclaration(CoreActionNames.PRINT)
                 .setParams(Type.STRING)
                 .setDescription("Prints the action in a human readable format (without line breaks).")
@@ -1437,6 +1446,11 @@ public class CoreTask implements Task {
     @Override
     public final Task createNode() {
         return then(CoreActions.createNode());
+    }
+
+    @Override
+    public final Task cloneNodes() {
+        return then(CoreActions.cloneResult());
     }
 
     @Override

@@ -502,4 +502,13 @@ public class CoreActions {
         return new ActionClearResult();
     }
 
+    /**
+     * Resets the result of the task context.
+     *
+     * @return the action to chain
+     */
+    public static Action cloneResult() {
+        return new ActionCloneNodes();
+    }
+
 }

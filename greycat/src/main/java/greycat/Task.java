@@ -393,6 +393,8 @@ public interface Task {
 
     Task clearResult();
 
+    Task cloneNodes();
+
     Task action(String name, String... params);
 
     Task flipVar(String name);

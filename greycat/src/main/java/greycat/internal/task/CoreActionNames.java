@@ -25,12 +25,15 @@ public class CoreActionNames {
     public static String REMOVE_FROM_GLOBAL_INDEX = "removeFromGlobalIndex";
     public static String REMOVE_FROM_GLOBAL_TIMED_INDEX = "removeFromGlobalTimedIndex";
 
+    public static String CREATE_NODE = "createNode";
+    public static String CREATE_TYPED_NODE = "createTypedNode";
+
+    public static String CLONE_NODES = "cloneNodes";
+    public static String CLEAR_RESULT = "clearResult";
+
     public static String ADD_TO_VAR = "addToVar";
     public static String ATTRIBUTES = "attributes";
     public static String ATTRIBUTES_WITH_TYPE = "attributesWithType";
-    public static String CLEAR_RESULT = "clearResult";
-    public static String CREATE_NODE = "createNode";
-    public static String CREATE_TYPED_NODE = "createTypedNode";
     public static String DECLARE_GLOBAL_VAR = "declareGlobalVar";
     public static String DECLARE_VAR = "declareVar";
     public static String FLIP_VAR = "flipVar";
