@@ -106,7 +106,8 @@ public class ActionBuildProfile implements Action {
 
                                             )
                             )
-                    );
+                    ).log("profiling done")
+            ;
 
     @Override
     public void eval(TaskContext ctx) {
@@ -114,6 +115,7 @@ public class ActionBuildProfile implements Action {
         TaskContext newctx = updateProfile.prepare(ctx.graph(), ctx.result(), new Callback<TaskResult>() {
             @Override
             public void on(TaskResult result) {
+                result.free();
                 if (result.exception() != null) {
                     ctx.endTask(null, result.exception());
                 } else {
