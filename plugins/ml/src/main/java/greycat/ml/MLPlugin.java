@@ -31,7 +31,7 @@ import greycat.plugin.Plugin;
 
 public class MLPlugin  implements Plugin  {
 
-    public static String BUILD_PROFILE="build_profile";
+    public static final String BUILD_PROFILE="buildProfile";
 
 
     @Override
