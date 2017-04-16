@@ -23,6 +23,9 @@ import greycat.struct.Buffer;
 import greycat.utility.Base64;
 import greycat.utility.LArray;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 
 public class BaseTaskResult<A> implements TaskResult<A> {
@@ -282,7 +285,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
         }
         buffer.write(CoreConstants.CHUNK_SEP);
         if (_exception != null) {
-            Base64.encodeStringToBuffer(_exception.toString(), buffer);
+            saveExceptionToBuffer(buffer);
         }
         buffer.write(CoreConstants.CHUNK_SEP);
         Base64.encodeIntToBuffer(_size, buffer);
@@ -317,6 +320,34 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                 }
             }
         }
+    }
+
+    /**
+     * {@native ts
+     * greycat.utility.Base64.encodeStringToBuffer(this._exception.stack,buffer);
+     * }
+     */
+    private void saveExceptionToBuffer(Buffer buffer) {
+        StringBuilder sb = new StringBuilder();
+        _exception.printStackTrace(new PrintStream(new OutputStream() {
+            @Override
+            public void write(int b) throws IOException {
+                sb.append((char)b);
+            }
+        }));
+        Base64.encodeStringToBuffer(sb.toString(), buffer);
+    }
+
+    /**
+     * {@native ts
+     * let e:Error = new Error();
+     * e.stack = exception;
+     * this._exception = e;
+     * }
+     */
+    private void loadExceptionFromString(String exception) {
+        this._exception = new Exception(exception);
+        this._exception.setStackTrace(new StackTraceElement[0]);
     }
 
     @Override
@@ -379,7 +410,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                         break;
                     case 2:
                         if (previous != cursor) {
-                            _exception = new RuntimeException(Base64.decodeToStringWithBounds(buffer, previous, cursor));
+                            loadExceptionFromString(Base64.decodeToStringWithBounds(buffer, previous, cursor));
                         }
                         index++;
                         break;
