@@ -374,7 +374,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                     }
                     iCursor++;
                 }
-                long idElem = Base64.decodeToIntWithBounds(buffer, iPrevious, iCursor);
+                long idElem = Base64.decodeToLongWithBounds(buffer, iPrevious, iCursor);
                 refs.add(idElem);
                 break;
             case Type.STRING:
