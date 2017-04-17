@@ -55,9 +55,9 @@ public class ActionBuildProfile implements Action {
                             .setAsVar("timepoints")
                             .forEach(
                                     newTask()
-                                            .setAsVar("time")
+                                            .setAsVar("localtime")
                                             .readVar("value")
-                                            .travelInTime("{{time}}")
+                                            .travelInTime("{{localtime}}")
                                             .thenDo(new ActionFunction() {
                                                 @Override
                                                 public void eval(TaskContext ctx) {
@@ -85,9 +85,9 @@ public class ActionBuildProfile implements Action {
                                             .readVar("timepoints")
                                             .forEach(
                                                     newTask()
-                                                            .setAsVar("time")
+                                                            .setAsVar("localtime")
                                                             .readVar("value")
-                                                            .travelInTime("{{time}}")
+                                                            .travelInTime("{{localtime}}")
                                                             .thenDo(new ActionFunction() {
                                                                 @Override
                                                                 public void eval(TaskContext ctx) {
