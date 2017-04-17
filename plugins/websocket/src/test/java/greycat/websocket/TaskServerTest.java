@@ -81,7 +81,7 @@ public class TaskServerTest {
                                                     .readGlobalIndex("nodes")
                                                     .createNode()
                                                     .save();
-                                            TaskContext prepare = tremote.prepare(emptyGraph, "hello", new Callback<TaskResult>() {
+                                            TaskContext prepare = tremote.prepare(emptyGraph, result.asArray(), new Callback<TaskResult>() {
                                                 @Override
                                                 public void on(TaskResult result) {
                                                     System.out.println(result);

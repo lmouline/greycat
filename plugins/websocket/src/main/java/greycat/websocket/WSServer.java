@@ -206,13 +206,16 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                                         concat.write(Constants.BUFFER_SEP);
                                         Base64.encodeIntToBuffer(progressHookCode, concat);
                                         concat.write(Constants.BUFFER_SEP);
-                                        ((CoreProgressReport)report).saveToBuffer(concat);
+                                        ((CoreProgressReport) report).saveToBuffer(concat);
                                         WSServer.this.send_resp(concat, channel);
                                     });
                                 }
-                                ctx.loadFromBuffer(it.next());
+                                ctx.loadFromBuffer(it.next(), loaded->{
+                                    t.executeUsing(ctx);
+                                });
+                            } else {
+                                t.executeUsing(ctx);
                             }
-                            t.executeUsing(ctx);
                         } catch (Exception e) {
                             end.on(Tasks.emptyResult().setException(e));
                         }

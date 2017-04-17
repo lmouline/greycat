@@ -763,7 +763,7 @@ class CoreTaskContext implements TaskContext {
     }
 
     @Override
-    public final void loadFromBuffer(Buffer buffer) {
+    public final void loadFromBuffer(Buffer buffer, Callback<Boolean> loaded) {
         int cursor = 0;
         int previous = 0;
         String name = null;
@@ -810,14 +810,18 @@ class CoreTaskContext implements TaskContext {
             final BaseTaskResult subResult = new BaseTaskResult(null, false);
             final BufferView view = new BufferView(buffer, previous, cursor - 1);
             subResult.load(view, _graph);
-            if (name.equals("")) {
-                if (_result != null) {
-                    _result.free();
+            final String finalName = name;
+            subResult.loadRefs(_graph, done->{
+                if (finalName.equals("")) {
+                    if (_result != null) {
+                        _result.free();
+                    }
+                    _result = subResult;
+                } else {
+                    defineVariable(finalName, subResult);
                 }
-                _result = subResult;
-            } else {
-                defineVariable(name, subResult);
-            }
+                loaded.on(true);
+            });
         } else {
             if (index == 1) {
                 _time = Base64.decodeToLongWithBounds(buffer, previous, cursor);
@@ -826,10 +830,13 @@ class CoreTaskContext implements TaskContext {
                 final BaseTaskResult subResult = new BaseTaskResult(null, false);
                 final BufferView view = new BufferView(buffer, previous, cursor - 1);
                 subResult.load(view, _graph);
-                if (_result != null) {
-                    _result.free();
-                }
-                _result = subResult;
+                subResult.loadRefs(_graph, done->{
+                    if (_result != null) {
+                        _result.free();
+                    }
+                    _result = subResult;
+                    loaded.on(true);
+                });
             }
         }
     }

@@ -93,7 +93,7 @@ public interface TaskContext {
 
     void saveToBuffer(Buffer buffer);
 
-    void loadFromBuffer(Buffer buffer);
+    void loadFromBuffer(Buffer buffer, Callback<Boolean> loaded);
 
     Callback<String> printHook();
 
