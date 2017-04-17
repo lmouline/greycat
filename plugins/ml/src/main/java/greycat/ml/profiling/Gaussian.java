@@ -88,8 +88,10 @@ public class Gaussian {
         host.set(AVG, Type.DOUBLE, null);
         host.set(COV, Type.DOUBLE, null);
         host.set(STD, Type.DOUBLE, null);
-        Relation center =host.getRelation(HISTOGRAM_CENTER);
-        Relation values= host.getRelation(HISTOGRAM_VALUES);
+        host.set(MIN, Type.DOUBLE, null);
+        host.set(MAX, Type.DOUBLE, null);
+        DoubleArray center =host.getDoubleArray(HISTOGRAM_CENTER);
+        DoubleArray values= host.getDoubleArray(HISTOGRAM_VALUES);
         if(center!=null){
             center.clear();
         }
