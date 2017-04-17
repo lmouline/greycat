@@ -23,6 +23,8 @@ public interface DoubleArray {
 
     int size();
 
+    void clear();
+
     void init(int size);
 
     void initWith(double[] values);

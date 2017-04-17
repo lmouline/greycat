@@ -55,6 +55,12 @@ public final class DoubleArrayProxy implements DoubleArray {
     }
 
     @Override
+    public final void clear() {
+        check();
+        _elem.clear();
+    }
+
+    @Override
     public final void init(final int size) {
         check();
         _elem.init(size);

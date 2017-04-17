@@ -59,6 +59,12 @@ class HeapDoubleArray implements DoubleArray {
     }
 
     @Override
+    public synchronized void clear() {
+        _backend = null;
+        _parent.declareDirty();
+    }
+
+    @Override
     public synchronized void init(int size) {
         _backend = new double[size];
         _parent.declareDirty();
