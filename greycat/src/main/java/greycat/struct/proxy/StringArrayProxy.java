@@ -61,6 +61,12 @@ public final class StringArrayProxy implements StringArray {
     }
 
     @Override
+    public final void clear() {
+        check();
+        _elem.clear();
+    }
+
+    @Override
     public final void initWith(final String[] values) {
         check();
         _elem.initWith(values);

@@ -20,7 +20,7 @@ import greycat.struct.Buffer;
 import greycat.struct.DoubleArray;
 import greycat.utility.Base64;
 
-class HeapDoubleArray implements DoubleArray {
+final class HeapDoubleArray implements DoubleArray {
 
     private double[] _backend = null;
     private final HeapContainer _parent;
@@ -30,7 +30,7 @@ class HeapDoubleArray implements DoubleArray {
     }
 
     @Override
-    public synchronized double get(int index) {
+    public synchronized final double get(int index) {
         if (_backend != null) {
             if (index >= _backend.length) {
                 throw new RuntimeException("Array Out of Bounds");
@@ -41,7 +41,7 @@ class HeapDoubleArray implements DoubleArray {
     }
 
     @Override
-    public synchronized void set(int index, double value) {
+    public synchronized final void set(int index, double value) {
         if (_backend == null || index >= _backend.length) {
             throw new RuntimeException("allocate first!");
         } else {
@@ -51,7 +51,7 @@ class HeapDoubleArray implements DoubleArray {
     }
 
     @Override
-    public synchronized int size() {
+    public synchronized final int size() {
         if (_backend != null) {
             return _backend.length;
         }
@@ -59,13 +59,13 @@ class HeapDoubleArray implements DoubleArray {
     }
 
     @Override
-    public synchronized void clear() {
+    public synchronized final void clear() {
         _backend = null;
         _parent.declareDirty();
     }
 
     @Override
-    public synchronized void init(int size) {
+    public synchronized final void init(int size) {
         _backend = new double[size];
         _parent.declareDirty();
     }
@@ -221,7 +221,7 @@ class HeapDoubleArray implements DoubleArray {
         return cursor;
     }
 
-    public final HeapDoubleArray cloneFor(HeapContainer target) {
+    final HeapDoubleArray cloneFor(HeapContainer target) {
         HeapDoubleArray cloned = new HeapDoubleArray(target);
         if (_backend != null) {
             cloned.initWith(_backend);

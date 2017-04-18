@@ -20,17 +20,17 @@ import greycat.struct.Buffer;
 import greycat.struct.StringArray;
 import greycat.utility.Base64;
 
-class HeapStringArray implements StringArray {
+final class HeapStringArray implements StringArray {
 
     private String[] _backend = null;
     private final HeapContainer _parent;
 
-    public HeapStringArray(final HeapContainer parent) {
+    HeapStringArray(final HeapContainer parent) {
         this._parent = parent;
     }
 
     @Override
-    public synchronized String get(int index) {
+    public final synchronized String get(int index) {
         if (_backend != null) {
             if (index >= _backend.length) {
                 throw new RuntimeException("Array Out of Bounds");
@@ -41,7 +41,7 @@ class HeapStringArray implements StringArray {
     }
 
     @Override
-    public synchronized void set(int index, String value) {
+    public final synchronized void set(int index, String value) {
         if (_backend == null || index >= _backend.length) {
             throw new RuntimeException("allocate first!");
         } else {
@@ -51,7 +51,7 @@ class HeapStringArray implements StringArray {
     }
 
     @Override
-    public synchronized int size() {
+    public final synchronized int size() {
         if (_backend != null) {
             return _backend.length;
         }
@@ -59,8 +59,14 @@ class HeapStringArray implements StringArray {
     }
 
     @Override
-    public synchronized void init(int size) {
+    public final synchronized void init(int size) {
         _backend = new String[size];
+        _parent.declareDirty();
+    }
+
+    @Override
+    public final synchronized void clear() {
+        _backend = null;
         _parent.declareDirty();
     }
 
@@ -213,7 +219,7 @@ class HeapStringArray implements StringArray {
         return cursor;
     }
 
-    public final HeapStringArray cloneFor(HeapContainer target) {
+    final HeapStringArray cloneFor(HeapContainer target) {
         HeapStringArray cloned = new HeapStringArray(target);
         if (_backend != null) {
             cloned.initWith(_backend);

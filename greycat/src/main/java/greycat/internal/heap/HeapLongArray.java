@@ -20,12 +20,12 @@ import greycat.struct.Buffer;
 import greycat.struct.LongArray;
 import greycat.utility.Base64;
 
-class HeapLongArray implements LongArray {
+final class HeapLongArray implements LongArray {
 
     private long[] _backend = null;
     private final HeapContainer _parent;
 
-    public HeapLongArray(final HeapContainer parent) {
+    HeapLongArray(final HeapContainer parent) {
         this._parent = parent;
     }
 
@@ -56,6 +56,12 @@ class HeapLongArray implements LongArray {
             return _backend.length;
         }
         return 0;
+    }
+
+    @Override
+    public final synchronized void clear() {
+        _backend = null;
+        _parent.declareDirty();
     }
 
     @Override
@@ -215,7 +221,7 @@ class HeapLongArray implements LongArray {
         return cursor;
     }
 
-    public final HeapLongArray cloneFor(HeapContainer target) {
+    final HeapLongArray cloneFor(HeapContainer target) {
         HeapLongArray cloned = new HeapLongArray(target);
         if (_backend != null) {
             cloned.initWith(_backend);

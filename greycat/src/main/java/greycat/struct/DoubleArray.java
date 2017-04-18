@@ -15,17 +15,11 @@
  */
 package greycat.struct;
 
-public interface DoubleArray {
+public interface DoubleArray extends ArrayStruct {
 
     double get(int index);
 
     void set(int index, double value);
-
-    int size();
-
-    void clear();
-
-    void init(int size);
 
     void initWith(double[] values);
 

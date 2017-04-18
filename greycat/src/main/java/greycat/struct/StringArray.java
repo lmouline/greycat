@@ -15,17 +15,13 @@
  */
 package greycat.struct;
 
-public interface StringArray {
+public interface StringArray extends ArrayStruct {
 
     String get(int index);
 
     void set(int index, String value);
 
-    void init(int size);
-
     void initWith(String[] values);
-
-    int size();
 
     String[] extract();
 
@@ -40,4 +36,5 @@ public interface StringArray {
     boolean replaceElementby(String element, String value);
 
     void addAll(String[] values);
+
 }

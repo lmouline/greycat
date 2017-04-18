@@ -15,15 +15,11 @@
  */
 package greycat.struct;
 
-public interface LongArray {
+public interface LongArray extends ArrayStruct {
 
     long get(int index);
 
     void set(int index, long value);
-
-    int size();
-
-    void init(int size);
 
     void initWith(long[] values);
 

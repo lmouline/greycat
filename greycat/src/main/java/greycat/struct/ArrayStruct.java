@@ -15,26 +15,12 @@
  */
 package greycat.struct;
 
-public interface IntArray extends ArrayStruct {
+public interface ArrayStruct {
 
-    int get(int index);
+    int size();
 
-    void set(int index, int value);
+    void clear();
 
-    void initWith(int[] values);
-
-    int[] extract();
-
-    boolean removeElement(int value);
-
-    boolean removeElementbyIndex(int index);
-
-    void addElement(int value);
-
-    boolean insertElementAt(int position, int value);
-
-    boolean replaceElementby(int element, int value);
-
-    void addAll(int[] values);
+    void init(int size);
 
 }

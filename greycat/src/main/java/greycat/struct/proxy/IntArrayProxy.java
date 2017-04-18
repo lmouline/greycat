@@ -61,6 +61,12 @@ public final class IntArrayProxy implements IntArray {
     }
 
     @Override
+    public final void clear() {
+        check();
+        _elem.clear();
+    }
+
+    @Override
     public final void initWith(final int[] values) {
         check();
         _elem.initWith(values);

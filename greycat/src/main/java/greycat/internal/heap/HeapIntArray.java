@@ -20,17 +20,17 @@ import greycat.struct.Buffer;
 import greycat.struct.IntArray;
 import greycat.utility.Base64;
 
-class HeapIntArray implements IntArray {
+final class HeapIntArray implements IntArray {
 
     private int[] _backend = null;
     private final HeapContainer _parent;
 
-    public HeapIntArray(final HeapContainer parent) {
+    HeapIntArray(final HeapContainer parent) {
         this._parent = parent;
     }
 
     @Override
-    public synchronized int get(int index) {
+    public final synchronized int get(int index) {
         if (_backend != null) {
             if (index >= _backend.length) {
                 throw new RuntimeException("Array Out of Bounds");
@@ -41,7 +41,7 @@ class HeapIntArray implements IntArray {
     }
 
     @Override
-    public synchronized void set(int index, int value) {
+    public final synchronized void set(int index, int value) {
         if (_backend == null || index >= _backend.length) {
             throw new RuntimeException("allocate first!");
         } else {
@@ -51,7 +51,7 @@ class HeapIntArray implements IntArray {
     }
 
     @Override
-    public synchronized int size() {
+    public final synchronized int size() {
         if (_backend != null) {
             return _backend.length;
         }
@@ -59,7 +59,13 @@ class HeapIntArray implements IntArray {
     }
 
     @Override
-    public synchronized void init(int size) {
+    public final synchronized void clear() {
+        _backend = null;
+        _parent.declareDirty();
+    }
+
+    @Override
+    public final synchronized void init(int size) {
         _backend = new int[size];
         _parent.declareDirty();
     }
@@ -215,7 +221,7 @@ class HeapIntArray implements IntArray {
         return cursor;
     }
 
-    public final HeapIntArray cloneFor(HeapContainer target) {
+    final HeapIntArray cloneFor(HeapContainer target) {
         HeapIntArray cloned = new HeapIntArray(target);
         if (_backend != null) {
             cloned.initWith(_backend);

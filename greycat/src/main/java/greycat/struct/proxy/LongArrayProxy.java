@@ -61,6 +61,12 @@ public final class LongArrayProxy implements LongArray {
     }
 
     @Override
+    public final void clear() {
+        check();
+        _elem.clear();
+    }
+
+    @Override
     public final void initWith(final long[] values) {
         check();
         _elem.initWith(values);
