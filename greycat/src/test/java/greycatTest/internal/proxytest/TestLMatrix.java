@@ -16,11 +16,11 @@
 package greycatTest.internal.proxytest;
 
 import greycat.*;
-import greycat.struct.DMatrix;
+import greycat.struct.LMatrix;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class TestDMatrix {
+public class TestLMatrix {
 
     @Test
     public void testMatrix() {
@@ -31,7 +31,7 @@ public class TestDMatrix {
             @Override
             public void on(Boolean result) {
                 final Node node = graph.newNode(0, 0);
-                final DMatrix matrix = (DMatrix) node.getOrCreate("matrix", Type.DMATRIX);
+                final LMatrix matrix = (LMatrix) node.getOrCreate("matrix", Type.LMATRIX);
                 matrix.init(3, 3);
                 matrix.set(0, 0, 0);
                 matrix.set(1, 1, 1);
@@ -43,7 +43,7 @@ public class TestDMatrix {
                 node.travelInTime(1, new Callback<Node>() {
                     @Override
                     public void on(final Node node_t1) {
-                        final DMatrix matrix_t1 = (DMatrix) node_t1.getOrCreate("matrix", Type.DMATRIX);
+                        final LMatrix matrix_t1 = (LMatrix) node_t1.getOrCreate("matrix", Type.LMATRIX);
                         Assert.assertTrue(matrix_t1.get(0,0)==0);
                         Assert.assertTrue(matrix_t1.get(1,1)==1);
                         Assert.assertTrue(matrix_t1.get(2,2)==2);
@@ -58,7 +58,7 @@ public class TestDMatrix {
                                 node_t1.travelInTime(0, new Callback<Node>() {
                                     @Override
                                     public void on(Node node2) {
-                                        DMatrix matrix_t2 = (DMatrix) node2.getOrCreate("matrix", Type.DMATRIX);
+                                        LMatrix matrix_t2 = (LMatrix) node2.getOrCreate("matrix", Type.LMATRIX);
 
                                         Assert.assertTrue(matrix_t2.get(0,0)==0);
                                         Assert.assertTrue(matrix_t2.get(1,1)==1);
@@ -67,7 +67,7 @@ public class TestDMatrix {
                                         node2.travelInTime(1, new Callback<Node>() {
                                             @Override
                                             public void on(Node node3) {
-                                                DMatrix matrix_t3 = (DMatrix) node3.getOrCreate("matrix", Type.DMATRIX);
+                                                LMatrix matrix_t3 = (LMatrix) node3.getOrCreate("matrix", Type.LMATRIX);
                                                 Assert.assertTrue(matrix_t3.get(0,0)==10);
                                                 Assert.assertTrue(matrix_t3.get(1,1)==11);
                                                 Assert.assertTrue(matrix_t3.get(2,2)==12);

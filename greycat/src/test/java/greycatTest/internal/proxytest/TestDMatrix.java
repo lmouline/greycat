@@ -20,7 +20,7 @@ import greycat.struct.DMatrix;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class TestMatrix {
+public class TestDMatrix {
 
     @Test
     public void testMatrix() {
@@ -68,7 +68,6 @@ public class TestMatrix {
                                             @Override
                                             public void on(Node node3) {
                                                 DMatrix matrix_t3 = (DMatrix) node3.getOrCreate("matrix", Type.DMATRIX);
-
                                                 Assert.assertTrue(matrix_t3.get(0,0)==10);
                                                 Assert.assertTrue(matrix_t3.get(1,1)==11);
                                                 Assert.assertTrue(matrix_t3.get(2,2)==12);

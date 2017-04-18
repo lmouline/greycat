@@ -25,7 +25,7 @@ import org.junit.Test;
 /**
  * Created by assaad on 18/04/2017.
  */
-public class TestTemporalStruct {
+public class TestDMatrixENode {
     @Test
     public void testMatrixEnode() {
         Graph graph= GraphBuilder

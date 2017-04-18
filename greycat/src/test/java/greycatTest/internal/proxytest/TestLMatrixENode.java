@@ -16,7 +16,7 @@
 package greycatTest.internal.proxytest;
 
 import greycat.*;
-import greycat.struct.DMatrix;
+import greycat.struct.LMatrix;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
 import org.junit.Assert;
@@ -25,7 +25,7 @@ import org.junit.Test;
 /**
  * Created by assaad on 18/04/2017.
  */
-public class TestDMatrixENode {
+public class TestLMatrixENode {
     @Test
     public void testMatrixEnode() {
         Graph graph= GraphBuilder
@@ -41,7 +41,7 @@ public class TestDMatrixENode {
                 ENode en =eg.newNode();
                 eg.setRoot(en);
 
-                DMatrix matrix= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
+                LMatrix matrix= (LMatrix)en.getOrCreate("matrix", Type.LMATRIX);
 
                 matrix.init(3,3);
                 matrix.set(0,0,0);
@@ -57,7 +57,7 @@ public class TestDMatrixENode {
                     public void on(Node result1) {
                         EGraph eg= (EGraph) result1.getOrCreate("egraph", Type.EGRAPH);
                         ENode en =eg.root();
-                        DMatrix matrix_t1= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
+                        LMatrix matrix_t1= (LMatrix)en.getOrCreate("matrix", Type.LMATRIX);
                         Assert.assertTrue(matrix_t1.get(0,0)==0);
                         Assert.assertTrue(matrix_t1.get(1,1)==1);
                         Assert.assertTrue(matrix_t1.get(2,2)==2);
@@ -72,7 +72,7 @@ public class TestDMatrixENode {
                             public void on(Node result2) {
                                 EGraph eg= (EGraph) result2.getOrCreate("egraph", Type.EGRAPH);
                                 ENode en =eg.root();
-                                DMatrix matrix_t2= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
+                                LMatrix matrix_t2= (LMatrix)en.getOrCreate("matrix", Type.LMATRIX);
                                 Assert.assertTrue(matrix_t2.get(0,0)==0);
                                 Assert.assertTrue(matrix_t2.get(1,1)==1);
                                 Assert.assertTrue(matrix_t2.get(2,2)==2);
@@ -81,7 +81,7 @@ public class TestDMatrixENode {
                                     public void on(Node result3) {
                                         EGraph eg= (EGraph) result3.getOrCreate("egraph", Type.EGRAPH);
                                         ENode en =eg.root();
-                                        DMatrix matrix_t3= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
+                                        LMatrix matrix_t3= (LMatrix)en.getOrCreate("matrix", Type.LMATRIX);
                                         Assert.assertTrue(matrix_t3.get(0,0)==10);
                                         Assert.assertTrue(matrix_t3.get(1,1)==11);
                                         Assert.assertTrue(matrix_t3.get(2,2)==12);
