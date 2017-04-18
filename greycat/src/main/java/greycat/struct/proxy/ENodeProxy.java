@@ -132,14 +132,14 @@ public final class ENodeProxy implements ENode {
     public final Object getOrCreateAt(final int index, final byte type) {
         Object elem = getAt(index);
         if (elem != null) {
-            return proxifyIfNecesserary(elem, index);
+            return proxifyIfNeeded(elem, index);
         } else {
             check();
             return _node.getOrCreateAt(index, type);
         }
     }
 
-    private Object proxifyIfNecesserary(Object elem, int index) {
+    private Object proxifyIfNeeded(Object elem, int index) {
         if (elem == null || _parent == null) { //implement time sensitivity
             return elem;
         } else {
@@ -181,7 +181,7 @@ public final class ENodeProxy implements ENode {
 
     @Override
     public final Object getAt(final int index) {
-        return proxifyIfNecesserary(_node.getAt(index), index);
+        return proxifyIfNeeded(_node.getAt(index), index);
     }
 
     @Override
