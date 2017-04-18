@@ -80,7 +80,7 @@ final class HeapDoubleArray implements DoubleArray {
     @Override
     public final synchronized double[] extract() {
         if(_backend == null){
-            return null;
+            return new double[0];
         }
         final double[] extracted = new double[_backend.length];
         System.arraycopy(_backend, 0, extracted, 0, _backend.length);
