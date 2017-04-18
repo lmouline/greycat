@@ -79,6 +79,9 @@ final class HeapIntArray implements IntArray {
 
     @Override
     public final synchronized int[] extract() {
+        if(_backend == null){
+            return null;
+        }
         final int[] extracted = new int[_backend.length];
         System.arraycopy(_backend, 0, extracted, 0, _backend.length);
         return extracted;
