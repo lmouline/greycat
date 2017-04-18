@@ -19,12 +19,13 @@ import greycat.*;
 import greycat.struct.DMatrix;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * Created by assaad on 18/04/2017.
  */
-public class TestTemporalStruct {
+public class TestDMatrixENode {
     @Test
     public void testMatrixEnode() {
         Graph graph= GraphBuilder
@@ -46,18 +47,24 @@ public class TestTemporalStruct {
                 matrix.set(0,0,0);
                 matrix.set(1,1,1);
                 matrix.set(2,2,2);
-                System.out.println("at time "+node.time() +": "+matrix.get(0,0)+" , "+matrix.get(1,1)+" , "+matrix.get(2,2));
+                Assert.assertTrue(matrix.get(0,0)==0);
+                Assert.assertTrue(matrix.get(1,1)==1);
+                Assert.assertTrue(matrix.get(2,2)==2);
+
 
                 node.travelInTime(1, new Callback<Node>() {
                     @Override
                     public void on(Node result1) {
                         EGraph eg= (EGraph) result1.getOrCreate("egraph", Type.EGRAPH);
                         ENode en =eg.root();
-                        DMatrix matrix= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
-                        System.out.println("at time "+result1.time()+" before set: "+matrix.get(0,0)+" , "+matrix.get(1,1)+" , "+matrix.get(2,2));
-                        matrix.set(0,0,10);
-                        matrix.set(1,1,11);
-                        matrix.set(2,2,12);
+                        DMatrix matrix_t1= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
+                        Assert.assertTrue(matrix_t1.get(0,0)==0);
+                        Assert.assertTrue(matrix_t1.get(1,1)==1);
+                        Assert.assertTrue(matrix_t1.get(2,2)==2);
+
+                        matrix_t1.set(0,0,10);
+                        matrix_t1.set(1,1,11);
+                        matrix_t1.set(2,2,12);
 
 
                         result1.travelInTime(0, new Callback<Node>() {
@@ -65,17 +72,19 @@ public class TestTemporalStruct {
                             public void on(Node result2) {
                                 EGraph eg= (EGraph) result2.getOrCreate("egraph", Type.EGRAPH);
                                 ENode en =eg.root();
-                                DMatrix matrix= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
-                                System.out.println("at time "+result2.time()+" after set: "+matrix.get(0,0)+" , "+matrix.get(1,1)+" , "+matrix.get(2,2));
-
+                                DMatrix matrix_t2= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
+                                Assert.assertTrue(matrix_t2.get(0,0)==0);
+                                Assert.assertTrue(matrix_t2.get(1,1)==1);
+                                Assert.assertTrue(matrix_t2.get(2,2)==2);
                                 result2.travelInTime(1, new Callback<Node>() {
                                     @Override
                                     public void on(Node result3) {
                                         EGraph eg= (EGraph) result3.getOrCreate("egraph", Type.EGRAPH);
                                         ENode en =eg.root();
-                                        DMatrix matrix= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
-                                        System.out.println("at time "+result3.time()+" after set: "+matrix.get(0,0)+" , "+matrix.get(1,1)+" , "+matrix.get(2,2));
-
+                                        DMatrix matrix_t3= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
+                                        Assert.assertTrue(matrix_t3.get(0,0)==10);
+                                        Assert.assertTrue(matrix_t3.get(1,1)==11);
+                                        Assert.assertTrue(matrix_t3.get(2,2)==12);
                                     }
                                 });
                             }

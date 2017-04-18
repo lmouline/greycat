@@ -17,6 +17,7 @@ package greycatTest.internal.proxytest;
 
 import greycat.*;
 import greycat.struct.DMatrix;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class TestMatrix {
@@ -36,13 +37,17 @@ public class TestMatrix {
                 matrix.set(1, 1, 1);
                 matrix.set(2, 2, 2);
 
-                System.out.println("at time: " + node.time() + " before set: " + matrix.get(0, 0) + " , " + matrix.get(1, 1) + " , " + matrix.get(2, 2));
-
+                Assert.assertTrue(matrix.get(0,0)==0);
+                Assert.assertTrue(matrix.get(1,1)==1);
+                Assert.assertTrue(matrix.get(2,2)==2);
                 node.travelInTime(1, new Callback<Node>() {
                     @Override
                     public void on(final Node node_t1) {
                         final DMatrix matrix_t1 = (DMatrix) node_t1.getOrCreate("matrix", Type.DMATRIX);
-                        System.out.println("at time: " + node_t1.time() + " before set: " + matrix_t1.get(0, 0) + " , " + matrix_t1.get(1, 1) + " , " + matrix_t1.get(2, 2));
+                        Assert.assertTrue(matrix_t1.get(0,0)==0);
+                        Assert.assertTrue(matrix_t1.get(1,1)==1);
+                        Assert.assertTrue(matrix_t1.get(2,2)==2);
+
                         matrix_t1.set(0, 0, 10);
                         matrix_t1.set(1, 1, 11);
                         matrix_t1.set(2, 2, 12);
@@ -50,22 +55,23 @@ public class TestMatrix {
                             @Override
                             public void on(Boolean saved) {
 
-                                System.out.println("at time: " + node.time() + " after set: " + matrix.get(0, 0) + " , " + matrix.get(1, 1) + " , " + matrix.get(2, 2));
-
-
-
-                                /*
                                 node_t1.travelInTime(0, new Callback<Node>() {
                                     @Override
                                     public void on(Node node2) {
-                                        DMatrix matrix = (DMatrix) node2.getOrCreate("matrix", Type.DMATRIX);
-                                        System.out.println("at time: " + node2.time() + " after set: " + matrix.get(0, 0) + " , " + matrix.get(1, 1) + " , " + matrix.get(2, 2));
+                                        DMatrix matrix_t2 = (DMatrix) node2.getOrCreate("matrix", Type.DMATRIX);
+
+                                        Assert.assertTrue(matrix_t2.get(0,0)==0);
+                                        Assert.assertTrue(matrix_t2.get(1,1)==1);
+                                        Assert.assertTrue(matrix_t2.get(2,2)==2);
 
                                         node2.travelInTime(1, new Callback<Node>() {
                                             @Override
                                             public void on(Node node3) {
-                                                DMatrix matrix = (DMatrix) node3.getOrCreate("matrix", Type.DMATRIX);
-                                                System.out.println("at time: " + node3.time() + " after set: " + matrix.get(0, 0) + " , " + matrix.get(1, 1) + " , " + matrix.get(2, 2));
+                                                DMatrix matrix_t3 = (DMatrix) node3.getOrCreate("matrix", Type.DMATRIX);
+
+                                                Assert.assertTrue(matrix_t3.get(0,0)==10);
+                                                Assert.assertTrue(matrix_t3.get(1,1)==11);
+                                                Assert.assertTrue(matrix_t3.get(2,2)==12);
 
                                             }
                                         });
@@ -73,7 +79,6 @@ public class TestMatrix {
 
                                     }
                                 });
-*/
 
                             }
                         });
